@@ -115,6 +115,15 @@ class DiscoverController extends GetxController {
   Rx<ApiResponse> earnServiceMapResponse = ApiResponse.initial('Initial').obs;
   RxList<ProfessionalConsData> professionalConsDataList =
       <ProfessionalConsData>[].obs;
+
+  /// Full unpaginated consultant list used by the v2 map view. Populated by
+  /// [fetchAllProfessionalConsForMap]; kept separate from the paginated
+  /// [professionalConsDataList] so list pagination state isn't disturbed.
+  /// Mirrors the [earnServiceMapList] pairing above.
+  RxList<ProfessionalConsData> professionalConsMapList =
+      <ProfessionalConsData>[].obs;
+  Rx<ApiResponse> professionalConsMapResponse =
+      ApiResponse.initial('Initial').obs;
   RxList<SchoolDetailsData> schoolDetailsDataDataList =
       <SchoolDetailsData>[].obs;
 
@@ -1016,6 +1025,41 @@ class DiscoverController extends GetxController {
       earnServiceMapResponse.value = ApiResponse.complete(response);
     } catch (e) {
       earnServiceMapResponse.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Loads ALL professional consultants (unpaginated) for the v2 map view.
+  /// Same `professionalSearch` endpoint as the list, with a high limit and no
+  /// pagination so every consultant with usable coords can become a marker.
+  ///
+  /// Deliberately sends NO lat/lng/radius: unlike the self-work endpoint, the
+  /// consultant search is not location-scoped server-side (it returns no
+  /// `distanceKm` either — the screens compute distance client-side). Adding
+  /// params the API doesn't read would only invite confusion.
+  Future<void> fetchAllProfessionalConsForMap() async {
+    professionalConsMapResponse.value = ApiResponse.initial('Initial');
+
+    final queryParams = <String, dynamic>{
+      if (selectedProfessionalConsultantData.value?.slugId != null)
+        "profession": selectedProfessionalConsultantData.value?.slugId,
+      ApiKeys.page: 1,
+      ApiKeys.limit: 1000,
+    };
+
+    try {
+      final response = await DiscoverRepo()
+          .fetchProfessionalConsServices(queryParams: queryParams);
+      if (!response.isSuccess) {
+        professionalConsMapResponse.value =
+            ApiResponse.error(response.message ?? 'error');
+        return;
+      }
+      final responseModel =
+          ProfessionalConsResModel.fromJson(response.response?.data);
+      professionalConsMapList.assignAll(responseModel.data ?? []);
+      professionalConsMapResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      professionalConsMapResponse.value = ApiResponse.error(e.toString());
     }
   }
 

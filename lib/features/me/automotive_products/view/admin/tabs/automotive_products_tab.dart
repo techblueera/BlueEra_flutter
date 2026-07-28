@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/automotive_products/model/automotive_product
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_admin_product_card.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +41,19 @@ class AutomotiveProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Same deck the Order tab carries. Its catalog card runs the host's
+        // real add-product flow here — the "switch to Products" callback the
+        // Order tab passes would be a no-op on this tab.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(
+            onAddCatalog: onAddProduct,
+            catalogIcon: Icons.car_repair_rounded,
+            catalogTitle: AppStrings.addProduct.tr,
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,

@@ -10,6 +10,7 @@ const Map<String, String> kMedicalCategoryImages = {
   'AYURVEDA_NUTRITION': 'assets/category/medical/AyurvedaNutrition.png',
   'HOME_PATIENT_CARE': 'assets/category/medical/Home_Patient_Care.png',
   'MEDICAL_DEVICES': 'assets/category/medical/Medical_Devices.png',
+  'ORTHO_MOBILITY': 'assets/category/medical/ortho_mobility.png',
   'OTC_MEDICINES': 'assets/category/medical/OTC_Medicines.png',
   'PERSONAL_BABY_CARE': 'assets/category/medical/Personal_Baby_Care.png',
   'WOUND_CARE_FIRST_AID': 'assets/category/medical/Wound_Care_First_Aid.png',

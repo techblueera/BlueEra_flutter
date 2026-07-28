@@ -16,6 +16,7 @@ import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,19 @@ class FoodProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Same deck the Order tab carries. Its catalog card goes straight to
+        // the add-dish flow here — on this tab the host's "switch to Products"
+        // callback would be a no-op.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(
+            onAddCatalog: () => _onAddFood(controller),
+            catalogIcon: Icons.restaurant_menu_rounded,
+            catalogTitle: AppStrings.addFood.tr,
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,

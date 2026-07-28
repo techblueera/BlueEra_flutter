@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_admin_a
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +41,19 @@ class ManufacturerProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Same deck the Order tab carries. Its catalog card runs the host's
+        // real add-product flow here — the "switch to Products" callback the
+        // Order tab passes would be a no-op on this tab.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(
+            onAddCatalog: onAddProduct,
+            catalogIcon: Icons.precision_manufacturing_rounded,
+            catalogTitle: AppStrings.addProduct.tr,
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,

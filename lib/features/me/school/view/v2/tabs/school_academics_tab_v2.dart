@@ -2,12 +2,14 @@ import 'package:BlueEra/core/api/model/school_course_res_model.dart'
     as course_res;
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/course_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_course_screen.dart';
 import 'package:BlueEra/features/me/school/widget/school_course_list_item_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -57,6 +59,30 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Column so the deck sits above both states the Obx can return — the
+    // empty placeholder and the populated course list alike.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: SizeConfig.size12),
+        // Same deck the Inquiry tab carries. Its catalog card opens the
+        // add-course flow here — on this tab the host's "switch to Academics"
+        // callback would be a no-op.
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+          child: OrderActionsCarousel(
+            onAddCatalog: _openAdd,
+            catalogIcon: Icons.menu_book_rounded,
+            catalogTitle: AppStrings.academics.tr,
+            catalogSubtitle: AppStrings.manageAcademicsCalendar.tr,
+          ),
+        ),
+        _coursesSection(context),
+      ],
+    );
+  }
+
+  Widget _coursesSection(BuildContext context) {
     return Obx(() {
       final data = controller.schoolDetailsData?.value;
       final courses = data?.courses ?? const <Courses>[];

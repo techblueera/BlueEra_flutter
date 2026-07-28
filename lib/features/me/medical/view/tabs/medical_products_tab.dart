@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/medical/constants/medical_category_assets.da
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -46,6 +47,19 @@ class MedicalProductsTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: SizeConfig.size10),
+        // Same deck the Inquiry tab carries. Its catalog card goes straight to
+        // the add-product flow here — on this tab the host's "switch to
+        // Products" callback would be a no-op.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(
+            onAddCatalog: _onAddProduct,
+            catalogIcon: Icons.medication_rounded,
+            catalogTitle: AppStrings.addProduct.tr,
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,

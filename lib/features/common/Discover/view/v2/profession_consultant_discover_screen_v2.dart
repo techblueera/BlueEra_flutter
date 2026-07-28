@@ -12,8 +12,8 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
@@ -26,21 +26,22 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-/// Tinted surface set for a provider card. Mirrors the grocery/product store
-/// cards so a result card reads as the same family across the app — a soft
-/// coloured card body instead of flat white, with the inner "Expertise" box
-/// tinted by a translucent wash of the same hue.
-class _ProviderCardPalette {
+/// Tinted surface set for a consultant card. Mirrors the self-profession v2
+/// cards so a result reads as the same family across both discover flows — a
+/// soft coloured card body instead of flat white, with the inner "Services
+/// offered" box tinted by a translucent wash of the same hue.
+class _ConsultantCardPalette {
   final Color cardBg;
   final Color cardBorder;
   final Color tileBg;
   final Color tileBorder;
   final Color dividerLine;
 
-  const _ProviderCardPalette({
+  const _ConsultantCardPalette({
     required this.cardBg,
     required this.cardBorder,
     required this.tileBg,
@@ -49,21 +50,20 @@ class _ProviderCardPalette {
   });
 }
 
-const _providerCardPalettes = <_ProviderCardPalette>[
-  _ProviderCardPalette(
+/// Hero aspect ratio from the card design (assets/card_ui.png, 1568×800).
+/// Kept in step with the same constant in
+/// `self_profession_discover_screen_v2.dart` so both result cards match.
+const double _heroAspectRatio = 1.96;
+
+const _consultantCardPalettes = <_ConsultantCardPalette>[
+  _ConsultantCardPalette(
     cardBg: Color(0xFFEDFDFF),
     cardBorder: Color(0xFFC0DDE1),
-    // CSS #13DBF414 (RGBA) → Flutter ARGB 0x1413DBF4 — translucent
-    // teal wash so the inner tiles tint with the card's identity.
     tileBg: Color(0x1413DBF4),
     tileBorder: Color(0xFFD0EEF2),
     dividerLine: Color(0xFFBBE3E8),
   ),
-  _ProviderCardPalette(
-    // Deliberately stronger than the grocery card's #FCF5FF: that value is
-    // only ~10/255 off white on its strongest channel, so next to the teal
-    // card (~18 off) the body read as plain white and only the inner tile
-    // looked pink. This carries the tint across the whole card instead.
+  _ConsultantCardPalette(
     cardBg: Color(0xFFF9EDFF),
     cardBorder: Color(0xFFE7CBF5),
     tileBg: Color(0x14BE26FF),
@@ -72,52 +72,60 @@ const _providerCardPalettes = <_ProviderCardPalette>[
   ),
 ];
 
-/// **Self-profession (Book Home Services) results — v2.**
+/// **Professionals & Consultants results — v2.**
 ///
-/// Same data as [SelfProfessionDiscoverScreen], re-chromed to match the entry
-/// screen ([SelfProfessionDiscoverEntryScreen]): a full-bleed map backdrop with
-/// the provider pins, a banner header (back + location pill + expand), and the
-/// results themselves in a [DraggableScrollableSheet] the user can pull up to
-/// near-full-screen or push down to reveal the map.
+/// The only consultant results screen — it replaced the v1
+/// `ProfessionConsultantDiscoverScreen` (banner carousel + sticky category
+/// header), which was deleted once this landed. Chromed to match its entry
+/// screen ([ProfessionConsultantDiscoverEntryScreen]): a full-bleed map
+/// backdrop with the consultant pins, a banner header (back + location pill +
+/// expand), and the results themselves in a [DraggableScrollableSheet] the user
+/// can pull up to near-full-screen or push down to reveal the map.
 ///
 /// The backdrop map is decorative (gestures absorbed) — tapping anywhere on it,
-/// or the expand button, opens the dedicated clustered full-screen map, exactly
-/// like the inline preview did in v1.
-class SelfProfessionDiscoverScreenV2 extends StatefulWidget {
-  final List<ProfessionTypeData> selfEmployedCategories;
-  final ProfessionTypeData? selectedSelfProfessionData;
+/// or the expand button, opens the dedicated clustered full-screen map.
+///
+/// **Distances are computed client-side.** The consultant endpoint returns no
+/// `distanceKm` (unlike self-work), so the origin is the location picked on the
+/// entry screen when there is one, else the device fix. Everything is keyed on
+/// the consultant id so pagination appends don't re-run the maths.
+class ProfessionConsultantDiscoverScreenV2 extends StatefulWidget {
+  final List<ProfessionTypeData> professionalConsultantCategories;
+  final ProfessionTypeData? selectedProfessionConsultantData;
 
-  const SelfProfessionDiscoverScreenV2({
+  const ProfessionConsultantDiscoverScreenV2({
     super.key,
-    required this.selfEmployedCategories,
-    this.selectedSelfProfessionData,
+    required this.professionalConsultantCategories,
+    this.selectedProfessionConsultantData,
   });
 
   @override
-  State<SelfProfessionDiscoverScreenV2> createState() =>
-      _SelfProfessionDiscoverScreenV2State();
+  State<ProfessionConsultantDiscoverScreenV2> createState() =>
+      _ProfessionConsultantDiscoverScreenV2State();
 }
 
-/// Hero aspect ratio from the card design (assets/card_ui.png, 1568×800).
-/// Shared by both discover v2 result cards so they stay identical.
-const double _heroAspectRatio = 1.96;
-
-class _SelfProfessionDiscoverScreenV2State
-    extends State<SelfProfessionDiscoverScreenV2> {
+class _ProfessionConsultantDiscoverScreenV2State
+    extends State<ProfessionConsultantDiscoverScreenV2> {
   final controller = getOrPut(() => DiscoverController());
-  final String serviceSubType = 'selfWork';
-  final String earnServiceType = AppConstants.service;
 
   /// Custom pin for the backdrop map — rendered once, reused for every marker.
   BitmapDescriptor? _markerIcon;
 
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
+  // ─── Client-side distance state ────────────────────────────────────────────
+  // Keyed on consultant id so it survives pagination appends without
+  // recomputing per row.
+  double? _originLat;
+  double? _originLng;
+  final Map<String, double> _distances = {};
+  bool _locationRequested = false;
+
   @override
   void initState() {
     super.initState();
-    final selected = widget.selectedSelfProfessionData;
-    controller.selectedEarnServiceData.value = selected != null
+    final selected = widget.selectedProfessionConsultantData;
+    controller.selectedProfessionalConsultantData.value = selected != null
         ? OnboardingCategoryModel(
             name: selected.name ?? '',
             slugId: selected.tagId ?? '',
@@ -126,43 +134,112 @@ class _SelfProfessionDiscoverScreenV2State
         : null;
     // Skip refetch on re-entry when the cached list is fresh for this
     // category; category taps on the entry screen force a fresh fetch.
-    controller.fetchEarnServicesIfNeeded(
-        earnServiceType: earnServiceType, subType: serviceSubType);
+    controller.fetchProfessionalConsultantServicesIfNeeded();
+    _ensureOrigin();
     DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _markerIcon = d);
     });
   }
 
+  /// Establishes the distance origin: the location picked on the entry screen
+  /// wins, then the cached device fix, and only if neither is set do we ask the
+  /// platform for GPS. Quiet failure when permission is denied — every distance
+  /// falls back to `—` and the Nearest sort degrades to server order.
+  Future<void> _ensureOrigin() async {
+    if (_locationRequested) return;
+    _locationRequested = true;
+
+    final pickedLat = controller.earnDiscoverLat;
+    final pickedLng = controller.earnDiscoverLng;
+    if (pickedLat != null && pickedLng != null && !(pickedLat == 0 && pickedLng == 0)) {
+      _originLat = pickedLat;
+      _originLng = pickedLng;
+      _recomputeDistances();
+      if (mounted) setState(() {});
+      return;
+    }
+    if (LocationService.lat != 0.0 || LocationService.lng != 0.0) {
+      _originLat = LocationService.lat;
+      _originLng = LocationService.lng;
+      _recomputeDistances();
+      if (mounted) setState(() {});
+      return;
+    }
+    try {
+      final perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        final req = await Geolocator.requestPermission();
+        if (req == LocationPermission.denied ||
+            req == LocationPermission.deniedForever) {
+          return;
+        }
+      } else if (perm == LocationPermission.deniedForever) {
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      _originLat = pos.latitude;
+      _originLng = pos.longitude;
+      _recomputeDistances();
+      if (mounted) setState(() {});
+    } catch (_) {/* swallow — distance just stays unknown */}
+  }
+
+  /// Computes road-adjusted km for every loaded consultant that has usable
+  /// coords. Idempotent — safe to call on every Obx rebuild.
+  void _recomputeDistances() {
+    if (_originLat == null || _originLng == null) return;
+    for (final item in controller.professionalConsDataList) {
+      final id = item.id ?? item.userId ?? '';
+      if (id.isEmpty || _distances.containsKey(id)) continue;
+      final lat = _toDouble(item.userDetails?.userLocation?.lat);
+      final lng = _toDouble(item.userDetails?.userLocation?.lon);
+      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
+      final meters =
+          Geolocator.distanceBetween(_originLat!, _originLng!, lat, lng);
+      // 1.27× road factor mirrors the helper in
+      // view_business_details_controller.dart so distances feel consistent
+      // across the app.
+      _distances[id] = (meters * 1.27) / 1000;
+    }
+  }
+
+  double? _toDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+
+  double? _distanceFor(ProfessionalConsData item) =>
+      _distances[item.id ?? item.userId ?? ''];
+
   // ─── Sorting / formatting helpers ──────────────────────────────────────────
 
   /// Returns a new list sorted by the active filter. Items missing the
   /// comparator key sort to the end.
-  ///
-  /// `ServiceData` already carries a server-computed `distance` so we don't
-  /// have to read GPS here. There's no explicit experience field on this model
-  /// — we use `rating` (descending) as a stand-in for the "Experienced" filter,
-  /// which generally tracks tenure.
-  List<ServiceData> _applySort(List<ServiceData> items, CategoryFilter filter) {
-    final sorted = List<ServiceData>.from(items);
+  List<ProfessionalConsData> _applySort(
+      List<ProfessionalConsData> items, CategoryFilter filter) {
+    final sorted = List<ProfessionalConsData>.from(items);
     switch (filter) {
       case CategoryFilter.nearest:
         sorted.sort((a, b) {
-          final da = (a.distance ?? double.infinity).toDouble();
-          final db = (b.distance ?? double.infinity).toDouble();
+          final da = _distanceFor(a) ?? double.infinity;
+          final db = _distanceFor(b) ?? double.infinity;
           return da.compareTo(db);
         });
         break;
       case CategoryFilter.experienced:
         sorted.sort((a, b) {
-          final ar = (a.rating ?? 0).toDouble();
-          final br = (b.rating ?? 0).toDouble();
-          return br.compareTo(ar); // descending
+          final aMonths = (a.about?.totalExperience?.years ?? 0) * 12 +
+              (a.about?.totalExperience?.months ?? 0);
+          final bMonths = (b.about?.totalExperience?.years ?? 0) * 12 +
+              (b.about?.totalExperience?.months ?? 0);
+          return bMonths.compareTo(aMonths); // descending
         });
         break;
       case CategoryFilter.priceLowToHigh:
         sorted.sort((a, b) {
-          final ap = _priceFor(a);
-          final bp = _priceFor(b);
+          final ap = a.pricing?.amount ?? 0;
+          final bp = b.pricing?.amount ?? 0;
           // Treat 0 as "unpriced" → push to end.
           if (ap == 0 && bp == 0) return 0;
           if (ap == 0) return 1;
@@ -174,8 +251,8 @@ class _SelfProfessionDiscoverScreenV2State
     return sorted;
   }
 
-  /// Converts an all-caps category name like "ELECTRICIAN" or "HOME_TUTOR"
-  /// into a human-readable label ("Electrician" / "Home Tutor"). Leaves
+  /// Converts an all-caps category name like "ADVOCATE" or "TAX_CONSULTANT"
+  /// into a human-readable label ("Advocate" / "Tax Consultant"). Leaves
   /// already mixed-case names untouched.
   String _prettyCategoryName(String raw) {
     if (raw.isEmpty) return raw;
@@ -183,22 +260,19 @@ class _SelfProfessionDiscoverScreenV2State
     if (cleaned != cleaned.toUpperCase()) return cleaned;
     return cleaned
         .split(RegExp(r'\s+'))
-        .map((w) =>
-            w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .map((w) => w.isEmpty
+            ? w
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
         .join(' ');
   }
 
-  /// Section title like "Electricians near you". Light pluralization: append
-  /// "s" unless the label already ends with "s" or ")" (e.g. "Maid (Female)").
+  /// Section title like "Advocates near you". Light pluralization: append "s"
+  /// unless the label already ends with "s" or ")".
   String _nearYouTitle(String pretty) {
-    if (pretty.isEmpty) return 'Providers near you';
+    if (pretty.isEmpty) return 'Consultants near you';
     final needsS = !pretty.toLowerCase().endsWith('s') && !pretty.endsWith(')');
     return '$pretty${needsS ? 's' : ''} near you';
   }
-
-  /// Effective price used for the Price (Low–High) sort — the range/single
-  /// minimum (handles both legacy `singlePrice` and the newer `priceRange`).
-  num _priceFor(ServiceData s) => s.priceData?.effectiveMin ?? 0;
 
   // ─── Map backdrop ──────────────────────────────────────────────────────────
 
@@ -214,16 +288,16 @@ class _SelfProfessionDiscoverScreenV2State
     return _fallbackCenter;
   }
 
-  /// Pins for the providers already loaded in the list. The full (unpaginated,
-  /// clustered) set lives on the dedicated map screen.
+  /// Pins for the consultants already loaded in the list. The full
+  /// (unpaginated, clustered) set lives on the dedicated map screen.
   Set<Marker> _backdropMarkers() {
     final markers = <Marker>{};
-    for (final s in controller.earnServiceList) {
-      final lat = s.userLocation?.lat?.toDouble();
-      final lng = s.userLocation?.lon?.toDouble();
+    for (final c in controller.professionalConsDataList) {
+      final lat = _toDouble(c.userDetails?.userLocation?.lat);
+      final lng = _toDouble(c.userDetails?.userLocation?.lon);
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
       markers.add(Marker(
-        markerId: MarkerId(s.id ?? '${s.name}_$lat,$lng'),
+        markerId: MarkerId(c.id ?? c.userId ?? '${c.userDetails?.name}_$lat,$lng'),
         position: LatLng(lat, lng),
         icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
       ));
@@ -232,28 +306,28 @@ class _SelfProfessionDiscoverScreenV2State
   }
 
   void _openFullMap() {
-    Get.to(() => _SelfProfessionMapScreenV2(
-          earnServiceType: earnServiceType,
-          subType: serviceSubType,
-          onMarkerTap: _showServiceMapSheet,
+    Get.to(() => _ProfessionConsultantMapScreenV2(
+          onMarkerTap: _showConsultantMapSheet,
         ));
   }
 
-  /// Bottom sheet shown when a map marker is tapped — compact provider summary
-  /// (avatar, name, rating, distance, price) with a "View Profile" CTA into
-  /// [SelfEmployeeViewDiscoverScreen]. Takes the host [BuildContext] so the
-  /// sheet renders over whichever screen the marker was tapped on.
-  void _showServiceMapSheet(BuildContext hostContext, ServiceData service) {
-    final priceData = service.priceData;
-    final isRange = priceData?.effectiveIsRange ?? false;
-    final priceDisplay = isRange
-        ? "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}-${formatIndianNumber(priceData?.effectiveMax ?? 0)}"
-        : "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}";
-    final priceUnit =
-        (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : 'Hour';
-    final ratingValue =
-        service.rating != null && service.rating != 0 ? service.rating.toString() : '0';
-    final distance = '${service.distance ?? 0} km';
+  /// Bottom sheet shown when a map marker is tapped — compact consultant
+  /// summary (avatar, name, tagline, price, distance) with a "View Profile" CTA
+  /// into [DiscoverProfessionalsViewScreen]. Takes the host [BuildContext] so
+  /// the sheet renders over whichever screen the marker was tapped on.
+  void _showConsultantMapSheet(
+      BuildContext hostContext, ProfessionalConsData service) {
+    final name = (service.basicDetails?.fullName?.trim().isNotEmpty ?? false)
+        ? service.basicDetails!.fullName!
+        : (service.userDetails?.name ?? AppStrings.unknownUser.tr);
+    final amount = service.pricing?.amount ?? 0;
+    final priceDisplay = amount == 0 ? '—' : '₹${formatIndianNumber(amount)}';
+    final priceType = (service.pricing?.type ?? '').trim();
+    final mode = (service.pricing?.consultationMode ?? '').trim();
+    final distanceKm = _distanceFor(service);
+    final distance = distanceKm == null
+        ? null
+        : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km';
 
     showModalBottomSheet<void>(
       context: hostContext,
@@ -276,30 +350,11 @@ class _SelfProfessionDiscoverScreenV2State
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Stack(
-                      children: [
-                        CachedAvatarWidget(
-                          imageUrl: service.profileImage ?? '',
-                          size: SizeConfig.size60,
-                          borderColor: Colors.white,
-                          borderRadius: SizeConfig.size30,
-                        ),
-                        // Presence dot — only when the provider really is live.
-                        if (service.isLive == true)
-                          Positioned(
-                            bottom: 2,
-                            right: 2,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                            ),
-                          ),
-                      ],
+                    CachedAvatarWidget(
+                      imageUrl: service.userDetails?.profileImage ?? '',
+                      size: SizeConfig.size60,
+                      borderColor: Colors.white,
+                      borderRadius: SizeConfig.size30,
                     ),
                     SizedBox(width: SizeConfig.size12),
                     Expanded(
@@ -307,17 +362,18 @@ class _SelfProfessionDiscoverScreenV2State
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            service.name ?? AppStrings.unknownUser.tr,
+                            name,
                             fontSize: SizeConfig.large18,
                             fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if ((service.profession ?? '').isNotEmpty) ...[
+                          if ((service.basicDetails?.professionalTitle ?? '')
+                              .isNotEmpty) ...[
                             const SizedBox(height: 2),
                             CustomText(
-                              service.profession!,
+                              service.basicDetails!.professionalTitle!,
                               fontSize: SizeConfig.small,
                               color: AppColors.secondaryTextColor,
                               fontWeight: FontWeight.w500,
@@ -328,10 +384,8 @@ class _SelfProfessionDiscoverScreenV2State
                             spacing: 6,
                             runSpacing: 6,
                             children: [
-                              _buildRatingBadge(ratingValue),
-                              _buildDistanceBadge(distance),
-                              if (service.isLive != null)
-                                _buildLiveBadge(service.isLive!),
+                              if (distance != null) _buildDistanceBadge(distance),
+                              if (mode.isNotEmpty) _buildModeBadge(mode),
                             ],
                           ),
                         ],
@@ -354,14 +408,15 @@ class _SelfProfessionDiscoverScreenV2State
                           ),
                           children: [
                             TextSpan(text: priceDisplay),
-                            TextSpan(
-                              text: ' / $priceUnit',
-                              style: TextStyle(
-                                fontSize: SizeConfig.small,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.w500,
+                            if (priceType.isNotEmpty)
+                              TextSpan(
+                                text: ' / $priceType',
+                                style: TextStyle(
+                                  fontSize: SizeConfig.small,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -370,21 +425,25 @@ class _SelfProfessionDiscoverScreenV2State
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
                         ProfileClickTracker.track(
-                          userId: service.id ?? '',
+                          userId: service.userId ?? '',
                           source: ChatClickSource.searchResult,
                         );
-                        Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
+                        Get.to(() => DiscoverProfessionalsViewScreen(
+                              professionalConsData: service,
+                            ));
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size8),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryColor.withValues(alpha: 0.25),
+                              color:
+                                  AppColors.primaryColor.withValues(alpha: 0.25),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -410,9 +469,9 @@ class _SelfProfessionDiscoverScreenV2State
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
-      controller.fetchEarnServices(
-          earnServiceType: earnServiceType, subType: serviceSubType, isLoadMore: true);
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.fetchProfessionalConsultantServices(isLoadMore: true);
     }
     return false;
   }
@@ -484,7 +543,8 @@ class _SelfProfessionDiscoverScreenV2State
               maxChildSize: 0.94,
               snap: true,
               snapSizes: const [0.32, 0.62, 0.94],
-              builder: (context, scrollController) => _buildSheet(scrollController),
+              builder: (context, scrollController) =>
+                  _buildSheet(scrollController),
             ),
           ],
         ),
@@ -524,8 +584,9 @@ class _SelfProfessionDiscoverScreenV2State
                     // Title: "{Category}s near you" — the category chosen on the
                     // entry screen. Reactive so it follows the selection.
                     Obx(() {
-                      final pretty = _prettyCategoryName(
-                          controller.selectedEarnServiceData.value?.name ?? '');
+                      final pretty = _prettyCategoryName(controller
+                              .selectedProfessionalConsultantData.value?.name ??
+                          '');
                       return CustomText(
                         _nearYouTitle(pretty),
                         fontSize: 20,
@@ -544,8 +605,8 @@ class _SelfProfessionDiscoverScreenV2State
               delegate: _PinnedFilterBar(
                 child: Container(
                   color: Colors.white,
-                  padding: EdgeInsets.fromLTRB(
-                      SizeConfig.size12, SizeConfig.size10, SizeConfig.size12, SizeConfig.size10),
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size12,
+                      SizeConfig.size10, SizeConfig.size12, SizeConfig.size10),
                   child: Obx(() => FilterCapsule(
                         filters: controller.filters,
                         selected: controller.selectedFilter.value,
@@ -560,32 +621,38 @@ class _SelfProfessionDiscoverScreenV2State
             SliverPadding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
               sliver: Obx(() {
-                if (controller.isEarnServiceLoading.value &&
-                    controller.earnServiceList.isEmpty) {
+                if (controller.isProfConServiceLoading.value &&
+                    controller.professionalConsDataList.isEmpty) {
                   return const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                if (controller.earnServiceList.isEmpty) {
-                  final selectedName =
-                      controller.selectedEarnServiceData.value?.name ?? '';
-                  // Server returns categories in upper-case (e.g. "ELECTRICIAN");
+                if (controller.professionalConsDataList.isEmpty) {
+                  final selectedName = controller
+                          .selectedProfessionalConsultantData.value?.name ??
+                      '';
+                  // Server returns categories in upper-case (e.g. "ADVOCATE");
                   // flip to title-case so the message reads naturally.
                   final pretty = _prettyCategoryName(selectedName);
                   final message = pretty.isNotEmpty
-                      ? AppStrings.noProvidersFoundNearYou.trParams({'category': pretty})
+                      ? AppStrings.noConsultantsFoundNearYou
+                          .trParams({'category': pretty})
                       : AppStrings.noServicesFound.tr;
                   return SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(child: EmptyStateWidget(message: message)),
                   );
                 }
+                // Recompute the distance cache cheaply for any new items
+                // appended by the load-more sentinel, then sort.
+                _recomputeDistances();
                 final sorted = _applySort(
-                  controller.earnServiceList,
+                  controller.professionalConsDataList,
                   controller.selectedFilter.value,
                 );
-                final showMoreSpinner = controller.isEarnServiceLoadingMore.value;
+                final showMoreSpinner =
+                    controller.isProfConServiceLoadingMore.value;
                 final rows = buildNativeAdRows(sorted.length);
                 return SliverList.builder(
                   itemCount: rows.length + (showMoreSpinner ? 1 : 0),
@@ -600,7 +667,7 @@ class _SelfProfessionDiscoverScreenV2State
                     if (row.isAd) {
                       return NativeAdSlot(
                         adOrdinal: row.adOrdinal,
-                        keyPrefix: 'self_profession_v2_native_ad',
+                        keyPrefix: 'consultant_v2_native_ad',
                       );
                     }
                     // Palette alternates on the content index (not the row
@@ -630,84 +697,78 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
-  /// **Spec-Sheet Card** — hero photo (rating badge / share + save / "Open |
-  /// hours" chip) → avatar + name + location → "Expertise" checklist box →
-  /// price + Book Now footer. Same card the v1 list used, so switching chrome
-  /// doesn't change how a provider reads.
-  Widget _buildSpecCard(ServiceData service, int index) {
+  /// **Spec-Sheet Card** — hero photo (share + save / consultation-mode chip) →
+  /// avatar + name + location → "Services offered" checklist box → price +
+  /// Book Now footer. Same anatomy the self-profession v2 card uses so both
+  /// discover flows read identically.
+  Widget _buildSpecCard(ProfessionalConsData service, int index) {
     final palette =
-        _providerCardPalettes[index.abs() % _providerCardPalettes.length];
+        _consultantCardPalettes[index.abs() % _consultantCardPalettes.length];
 
     // ─── Data extraction with sensible fallbacks ──────────────────
-    final name = (service.name?.trim().isNotEmpty ?? false)
-        ? service.name!
-        : AppStrings.unknownUser.tr;
+    final name = (service.basicDetails?.fullName?.trim().isNotEmpty ?? false)
+        ? service.basicDetails!.fullName!
+        : (service.userDetails?.name ?? AppStrings.unknownUser.tr);
+    final amount = service.pricing?.amount ?? 0;
+    final priceType = (service.pricing?.type ?? '').trim();
+    final mode = (service.pricing?.consultationMode ?? '').trim();
+    final distanceKm = _distanceFor(service);
+    final gallery = service.gallery?.signedUrls ?? const <String>[];
 
-    final priceData = service.priceData;
-    final isRange = priceData?.effectiveIsRange ?? false;
-    final priceMin = priceData?.effectiveMin ?? 0;
-    final priceMax = priceData?.effectiveMax ?? 0;
-    final priceUnit =
-        (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : '';
-    final distance = (service.distance ?? 0).toDouble();
-    final timingMap = getMinMaxTimings(service.service?.effectiveTimings);
-    final timingStart = timingMap['start'] ?? '--';
-    final timingEnd = timingMap['end'] ?? '--';
+    // Hero image: prefer an uploaded gallery shot, then the profile photo,
+    // then the curated basic-details photo. Empty → neutral placeholder.
+    final profileImage = (service.userDetails?.profileImage ?? '').trim();
+    final heroImage = gallery.isNotEmpty
+        ? gallery.first
+        : (profileImage.isNotEmpty
+            ? profileImage
+            : (service.basicDetails?.profilePhotoUrl ?? '').trim());
 
-    final livePhotos = (service.serviceMedia?.photos ?? const <String>[])
-        .where((p) => p.trim().isNotEmpty)
-        .toList();
-    final profileImage = service.profileImage ?? '';
-    // Hero image: a service photo if one exists, else the profile photo.
-    final heroImage = livePhotos.isNotEmpty ? livePhotos.first : profileImage;
+    // Address line shown next to the distance — first non-empty of the
+    // contact / user / basic-details address candidates.
+    final address = <String?>[
+      service.contact?.address,
+      service.userDetails?.address,
+      service.basicDetails?.location,
+      service.userDetails?.location,
+    ].firstWhere((a) => (a ?? '').trim().isNotEmpty, orElse: () => '')!.trim();
 
-    final address = (service.address?.trim().isNotEmpty ?? false)
-        ? service.address!.trim()
-        : (service.location ?? '').trim();
-    final ratingValue =
-        (service.rating != null && service.rating != 0) ? service.rating.toString() : null;
-
-    // Prefer the provider's explicit `expertise` list (the design labels this
-    // box "Expertise"), else fall back to serviceOffered + typesOfWork.
-    final expertiseList = (service.service?.expertise ?? const <String>[])
-        .where((e) => e.trim().isNotEmpty)
-        .toList();
-    final services =
-        expertiseList.isNotEmpty ? expertiseList : _combinedServices(service);
-    final totalServices = services.length;
-    final showMoreServices = totalServices > 6;
-    final visibleServices =
-        showMoreServices ? services.take(5).toList() : services.take(6).toList();
-    final extraServices = showMoreServices ? totalServices - 5 : 0;
-
-    final priceStr = priceMin == 0
-        ? '—'
-        : (isRange
-            ? '₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}'
-            : '₹${formatIndianNumber(priceMin)}');
-    final distStr = distance == 0
+    final priceStr = amount == 0 ? '—' : '₹${formatIndianNumber(amount)}';
+    final distStr = distanceKm == null
         ? null
-        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km away';
-    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" for the floating chip.
-    String compactTime(String t) {
-      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false).firstMatch(t.trim());
-      if (m == null) return t;
-      final hh = m.group(1)!;
-      final mm = m.group(2)!;
-      final pm = m.group(3)!.toUpperCase();
-      return mm == '00' ? '$hh$pm' : '$hh:$mm$pm';
+        : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km away';
+    final ratingValue = (service.rating != null && service.rating != 0)
+        ? service.rating.toString()
+        : null;
+    final hoursStr = _todayHours(service);
+
+    // "Services offered" checklist — certificate titles first (they read as
+    // concrete offerings), falling back to portfolio project titles.
+    var serviceTitles = (service.certificates ?? [])
+        .map((c) => (c.title ?? '').trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (serviceTitles.isEmpty) {
+      serviceTitles = (service.portfolio ?? [])
+          .map((p) => (p.projectTitle ?? '').trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
     }
-
-    final hoursStr = (timingStart == '--' && timingEnd == '--')
-        ? null
-        : '${compactTime(timingStart)}-${compactTime(timingEnd)}';
+    final totalServices = serviceTitles.length;
+    final showMoreServices = totalServices > 6;
+    final visibleServices = showMoreServices
+        ? serviceTitles.take(5).toList()
+        : serviceTitles.take(6).toList();
+    final extraServices = showMoreServices ? totalServices - 5 : 0;
 
     void openDetail() {
       ProfileClickTracker.track(
-        userId: service.id ?? '',
+        userId: service.userId ?? '',
         source: ChatClickSource.searchResult,
       );
-      Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
+      Get.to(() => DiscoverProfessionalsViewScreen(
+            professionalConsData: service,
+          ));
     }
 
     return InkWell(
@@ -730,15 +791,15 @@ class _SelfProfessionDiscoverScreenV2State
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Hero image + rating badge + "Open | hours" chip ──
+            // ─── Hero image + share/save + consultation-mode chip ──
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
                   // Ratio taken from the design (assets/card_ui.png, 1568×800)
                   // instead of a fixed 175 px, so the hero keeps the intended
-                  // proportions on every screen width rather than growing
-                  // letterboxed on wide phones and cramped on small ones.
+                  // proportions on every screen width.
                   child: AspectRatio(
                     aspectRatio: _heroAspectRatio,
                     child: heroImage.isEmpty
@@ -747,24 +808,29 @@ class _SelfProfessionDiscoverScreenV2State
                             imageUrl: heroImage,
                             fit: BoxFit.cover,
                             memCacheWidth: 800,
-                            placeholder: (_, __) => Container(color: const Color(0xFFEDEFF4)),
-                            errorWidget: (_, __, ___) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.fill,
+                            placeholder: (_, __) =>
+                                Container(color: const Color(0xFFEDEFF4)),
+                            errorWidget: (_, __, ___) => Container(
+                              color: const Color(0xFFEDEFF4),
+                              child: Icon(
+                                Icons.person,
+                                size: 48,
+                                color: AppColors.secondaryTextColor,
+                              ),
                             ),
                           ),
                   ),
                 ),
                 // Unconditional: the design always carries a rating pill in the
-                // hero's top-left, so an unrated provider shows "NA" instead
+                // hero's top-left, so an unrated consultant shows "NA" instead
                 // of leaving the slot empty.
                 Positioned(
                   left: SizeConfig.size12,
                   top: SizeConfig.size12,
                   child: _buildRatingBadge(ratingValue),
                 ),
-                // Share + Save, stacked top-right. Availability is conveyed by
-                // the "Open | hours" chip, so no standalone live badge here.
+                // Share + Save, stacked top-right — same affordances the
+                // self-profession v2 card carries.
                 Positioned(
                   right: SizeConfig.size12,
                   top: SizeConfig.size12,
@@ -772,58 +838,42 @@ class _SelfProfessionDiscoverScreenV2State
                     children: [
                       _heroCircleButton(
                         assetPath: AppIconAssets.reelShare,
-                        onTap: () => _shareProvider(service),
+                        onTap: () => _shareConsultant(service),
                       ),
                       SizedBox(height: SizeConfig.size8),
                       // Local-only save (no backend yet) — fills the star and
                       // shows a "coming soon" note on first save.
                       Obx(() {
-                        final saved = controller.isProviderLocallySaved(service.id);
+                        final saved = controller
+                            .isProviderLocallySaved(service.userId);
                         return _heroCircleButton(
-                          icon: saved ? Icons.star_rounded : Icons.star_border_rounded,
-                          iconColor: saved ? const Color(0xFFFFB400) : Colors.white,
+                          icon: saved
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          iconColor:
+                              saved ? const Color(0xFFFFB400) : Colors.white,
                           onTap: () => _toggleSave(service),
                         );
                       }),
                     ],
                   ),
                 ),
+                // "Open | hh:mm-hh:mm" sits bottom-RIGHT per the design, the
+                // same slot the self-profession card uses. The consultation
+                // mode moves to bottom-left rather than being dropped — it's
+                // the one thing a consultant card carries that a home-service
+                // card doesn't.
+                if (mode.isNotEmpty)
+                  Positioned(
+                    left: SizeConfig.size12,
+                    bottom: SizeConfig.size12,
+                    child: _buildModeBadge(mode),
+                  ),
                 if (hoursStr != null)
                   Positioned(
                     right: SizeConfig.size12,
                     bottom: SizeConfig.size12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        // Green hairline, per the design — the chip is outlined,
-                        // not just white-on-photo.
-                        border: Border.all(
-                            color: AppColors.green00.withValues(alpha: 0.55),
-                            width: 1),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1F001120),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.access_time_rounded, size: 14, color: AppColors.green00),
-                          const SizedBox(width: 6),
-                          CustomText(
-                            'Open | $hoursStr',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.green00,
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _buildOpenHoursChip(hoursStr),
                   ),
               ],
             ),
@@ -834,17 +884,17 @@ class _SelfProfessionDiscoverScreenV2State
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ─── Avatar + name + location ─────────────────
-                  // Avatar and name open the poster's profile (personal or
-                  // business, per account type); the rest of the card still
+                  // Avatar and name open the consultant's own profile (personal
+                  // or business, per account type); the rest of the card still
                   // opens the service detail.
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DiscoverProfileTap(
-                        accountType: service.accountType,
-                        userId: service.id,
+                        accountType: service.userDetails?.accountType,
+                        userId: service.userDetails?.id,
                         child: CachedAvatarWidget(
-                          imageUrl: profileImage,
+                          imageUrl: service.userDetails?.profileImage ?? '',
                           size: SizeConfig.size40,
                           borderColor: Colors.white,
                           borderRadius: SizeConfig.size20,
@@ -856,8 +906,8 @@ class _SelfProfessionDiscoverScreenV2State
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             DiscoverProfileTap(
-                              accountType: service.accountType,
-                              userId: service.id,
+                              accountType: service.userDetails?.accountType,
+                              userId: service.userDetails?.id,
                               child: Text(
                                 name,
                                 style: TextStyle(
@@ -913,7 +963,7 @@ class _SelfProfessionDiscoverScreenV2State
                     ],
                   ),
 
-                  // ─── "Expertise" box ──────────────────────────
+                  // ─── "Services offered" box ───────────────────
                   if (visibleServices.isNotEmpty) ...[
                     SizedBox(height: SizeConfig.size12),
                     Container(
@@ -927,7 +977,7 @@ class _SelfProfessionDiscoverScreenV2State
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            'Expertise',
+                            'Services offered',
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
@@ -935,7 +985,8 @@ class _SelfProfessionDiscoverScreenV2State
                           SizedBox(height: SizeConfig.size8),
                           Container(height: 1, color: palette.dividerLine),
                           SizedBox(height: SizeConfig.size10),
-                          _servicesGrid(visibleServices, extraServices, openDetail),
+                          _servicesGrid(
+                              visibleServices, extraServices, openDetail),
                         ],
                       ),
                     ),
@@ -967,11 +1018,11 @@ class _SelfProfessionDiscoverScreenV2State
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.primaryColor,
                               ),
-                              if (priceStr != '—' && priceUnit.isNotEmpty)
+                              if (priceStr != '—' && priceType.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 2),
                                   child: CustomText(
-                                    '/$priceUnit',
+                                    '/$priceType',
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.secondaryTextColor,
@@ -994,7 +1045,8 @@ class _SelfProfessionDiscoverScreenV2State
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primaryColor.withValues(alpha: 0.30),
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.30),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1027,25 +1079,7 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
-  /// Merges the provider's `serviceOffered` + `typesOfWork` into a single
-  /// deduped (case-insensitive) list, preserving first-seen order.
-  List<String> _combinedServices(ServiceData service) {
-    final out = <String>[];
-    final seen = <String>{};
-    final raw = <String>[
-      ...?service.service?.serviceOffered,
-      ...?service.service?.typesOfWork,
-    ];
-    for (final item in raw) {
-      final t = item.trim();
-      if (t.isEmpty) continue;
-      final key = t.toLowerCase();
-      if (seen.add(key)) out.add(t);
-    }
-    return out;
-  }
-
-  /// Two-column checklist inside the "Expertise" box. [items] is already
+  /// Two-column checklist inside the "Services offered" box. [items] is already
   /// capped; when [extra] > 0 a trailing "+N more services" link (→ [onMore])
   /// fills the final cell.
   Widget _servicesGrid(List<String> items, int extra, VoidCallback onMore) {
@@ -1139,30 +1173,110 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
-  void _shareProvider(ServiceData service) {
-    ShareService.instance.shareProfile(
-      userId: service.id ?? '',
-      subject: service.name,
+  // ─── Today's opening hours ─────────────────────────────────────
+  /// Compact "10:00- 16:00" for TODAY, or null when the consultant has no
+  /// schedule, is closed today, or the times are missing.
+  ///
+  /// The consultant payload carries a weekly `timings.schedule` with an
+  /// `isOpen`/`openTime`/`closeTime` object per day — unlike self-work, which
+  /// ships a flat timings list. So the day is picked from the device date
+  /// rather than min/max-ing a range.
+  String? _todayHours(ProfessionalConsData service) {
+    final schedule = service.timings?.schedule;
+    if (schedule == null) return null;
+
+    // DateTime.weekday: 1 = Monday … 7 = Sunday.
+    bool? isOpen;
+    String? open;
+    String? close;
+    switch (DateTime.now().weekday) {
+      case DateTime.monday:
+        isOpen = schedule.monday?.isOpen;
+        open = schedule.monday?.openTime;
+        close = schedule.monday?.closeTime;
+        break;
+      case DateTime.tuesday:
+        isOpen = schedule.tuesday?.isOpen;
+        open = schedule.tuesday?.openTime;
+        close = schedule.tuesday?.closeTime;
+        break;
+      case DateTime.wednesday:
+        isOpen = schedule.wednesday?.isOpen;
+        open = schedule.wednesday?.openTime;
+        close = schedule.wednesday?.closeTime;
+        break;
+      case DateTime.thursday:
+        isOpen = schedule.thursday?.isOpen;
+        open = schedule.thursday?.openTime;
+        close = schedule.thursday?.closeTime;
+        break;
+      case DateTime.friday:
+        isOpen = schedule.friday?.isOpen;
+        open = schedule.friday?.openTime;
+        close = schedule.friday?.closeTime;
+        break;
+      case DateTime.saturday:
+        isOpen = schedule.saturday?.isOpen;
+        open = schedule.saturday?.openTime;
+        close = schedule.saturday?.closeTime;
+        break;
+      default:
+        isOpen = schedule.sunday?.isOpen;
+        open = schedule.sunday?.openTime;
+        close = schedule.sunday?.closeTime;
+    }
+
+    if (isOpen == false) return null;
+    final o = (open ?? '').trim();
+    final c = (close ?? '').trim();
+    if (o.isEmpty || c.isEmpty) return null;
+    return '$o- $c';
+  }
+
+  /// Floating "Open | hours" chip over the hero. Solid white fill so it stays
+  /// readable on any photo.
+  Widget _buildOpenHoursChip(String hours) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        // Green hairline, per the design — the chip is outlined, not just
+        // white-on-photo.
+        border: Border.all(
+            color: AppColors.green00.withValues(alpha: 0.55), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F001120),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time_rounded, size: 14, color: AppColors.green00),
+          const SizedBox(width: 6),
+          CustomText(
+            'Open | $hours',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.green00,
+          ),
+        ],
+      ),
     );
   }
 
-  void _toggleSave(ServiceData service) {
-    final wasSaved = controller.isProviderLocallySaved(service.id);
-    controller.toggleProviderLocalSave(service.id);
-    if (!wasSaved) {
-      commonSnackBar(message: 'Saved — full favourites coming soon');
-    }
-  }
-
-  // ─── Badges ────────────────────────────────────────────────────
   /// Star + score pill, top-left of the hero (assets/img.png): a translucent
   /// dark stadium with a white ring and white numerals — the same glassy
-  /// treatment as the share/save circles, so the hero's overlays read as one
-  /// set and stay legible on any photo.
+  /// treatment as the share/save circles. Identical to the self-profession v2
+  /// badge so a rating reads the same across both discover flows.
   ///
   /// Always rendered so the hero's left slot is never empty. Shows the score
-  /// when the provider has one and "NA" when they don't — never a fabricated
-  /// number or a misleading 0.
+  /// when the consultant has one and "NA" when they don't — which is every
+  /// consultant until the search endpoint starts returning a rating.
   Widget _buildRatingBadge(String? rating) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
@@ -1187,6 +1301,22 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
+  void _shareConsultant(ProfessionalConsData service) {
+    ShareService.instance.shareProfile(
+      userId: service.userId ?? '',
+      subject: service.basicDetails?.fullName ?? service.userDetails?.name,
+    );
+  }
+
+  void _toggleSave(ProfessionalConsData service) {
+    final wasSaved = controller.isProviderLocallySaved(service.userId);
+    controller.toggleProviderLocalSave(service.userId);
+    if (!wasSaved) {
+      commonSnackBar(message: 'Saved — full favourites coming soon');
+    }
+  }
+
+  // ─── Badges ────────────────────────────────────────────────────
   Widget _buildDistanceBadge(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -1198,7 +1328,8 @@ class _SelfProfessionDiscoverScreenV2State
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.location_on_outlined, size: 12, color: AppColors.secondaryTextColor),
+          Icon(Icons.location_on_outlined,
+              size: 12, color: AppColors.secondaryTextColor),
           const SizedBox(width: 3),
           CustomText(
             text,
@@ -1211,17 +1342,14 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
-  /// Availability pill driven by the response's `isLive`. Solid white fill (not
-  /// a translucent tint) because it overlays photos/maps, where a see-through
-  /// pill would be unreadable.
-  Widget _buildLiveBadge(bool isLive) {
-    final Color fg = isLive ? Colors.green.shade700 : AppColors.secondaryTextColor;
+  /// Consultation-mode pill (Online / In-person). Solid white fill because it
+  /// overlays photos and maps, where a translucent pill would be unreadable.
+  Widget _buildModeBadge(String mode) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
         color: Colors.white,
-        border: Border.all(color: fg.withValues(alpha: 0.25), width: 1),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1F001120),
@@ -1233,56 +1361,23 @@ class _SelfProfessionDiscoverScreenV2State
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: isLive ? Colors.green : AppColors.grey9B,
-              shape: BoxShape.circle,
-            ),
+          Icon(
+            mode.toLowerCase().contains('online')
+                ? Icons.videocam_rounded
+                : Icons.handshake_outlined,
+            size: 14,
+            color: AppColors.green00,
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           CustomText(
-            isLive ? AppStrings.online.tr : AppStrings.offline.tr,
-            fontSize: 11,
-            color: fg,
+            mode,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
+            color: AppColors.green00,
           ),
         ],
       ),
     );
-  }
-
-  // ─── Timing helpers ───
-  DateTime _parse12HourTime(String timeStr) {
-    final format = RegExp(r'(\d+):(\d+)\s*(AM|PM)');
-    final match = format.firstMatch(timeStr.trim());
-    if (match != null) {
-      int hour = int.parse(match.group(1)!);
-      int minute = int.parse(match.group(2)!);
-      final period = match.group(3);
-      if (period == "PM" && hour != 12) hour += 12;
-      if (period == "AM" && hour == 12) hour = 0;
-      return DateTime(0, 1, 1, hour, minute);
-    }
-    return DateTime(0);
-  }
-
-  Map<String, String> getMinMaxTimings(List<Timings>? timingsList) {
-    if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
-    Timings? earliest = timingsList.first;
-    Timings? latest = timingsList.first;
-    for (final t in timingsList) {
-      if (_parse12HourTime(t.start ?? "00:00 AM")
-          .isBefore(_parse12HourTime(earliest?.start ?? "00:00 AM"))) {
-        earliest = t;
-      }
-      if (_parse12HourTime(t.end ?? "00:00 AM")
-          .isAfter(_parse12HourTime(latest?.end ?? "00:00 AM"))) {
-        latest = t;
-      }
-    }
-    return {"start": earliest?.start ?? "--", "end": latest?.end ?? "--"};
   }
 }
 
@@ -1308,43 +1403,38 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 }
 
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
-/// on [SelfProfessionDiscoverScreenV2]. Loads every provider (unpaginated) via
-/// [DiscoverController.fetchAllEarnServicesForMap] and renders them through
-/// `google_maps_flutter`'s built-in clustering so 100+ pins stay smooth —
-/// nearby providers collapse into a count badge that splits open on zoom-in.
+/// on [ProfessionConsultantDiscoverScreenV2]. Loads every consultant
+/// (unpaginated) via [DiscoverController.fetchAllProfessionalConsForMap] and
+/// renders them through `google_maps_flutter`'s built-in clustering so 100+ pins
+/// stay smooth — nearby consultants collapse into a count badge that splits open
+/// on zoom-in.
 ///
 /// Initial zoom is `12` — roughly a 25–50 km frame around the user, matching
 /// the "city-radius" feel of mainstream discover apps.
-class _SelfProfessionMapScreenV2 extends StatefulWidget {
-  final String earnServiceType;
-  final String subType;
-  final void Function(BuildContext context, ServiceData service) onMarkerTap;
+class _ProfessionConsultantMapScreenV2 extends StatefulWidget {
+  final void Function(BuildContext context, ProfessionalConsData service)
+      onMarkerTap;
 
-  const _SelfProfessionMapScreenV2({
-    required this.earnServiceType,
-    required this.subType,
-    required this.onMarkerTap,
-  });
+  const _ProfessionConsultantMapScreenV2({required this.onMarkerTap});
 
   @override
-  State<_SelfProfessionMapScreenV2> createState() => _SelfProfessionMapScreenV2State();
+  State<_ProfessionConsultantMapScreenV2> createState() =>
+      _ProfessionConsultantMapScreenV2State();
 }
 
-class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> {
+class _ProfessionConsultantMapScreenV2State
+    extends State<_ProfessionConsultantMapScreenV2> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _serviceIcon;
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
   static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('self_profession_services_v2');
+      ClusterManagerId('profession_consultants_v2');
 
   @override
   void initState() {
     super.initState();
-    _ctrl.fetchAllEarnServicesForMap(
-      earnServiceType: widget.earnServiceType,
-      subType: widget.subType,
-    );
+    _ctrl.fetchAllProfessionalConsForMap();
     // Pre-render the custom marker icon once; cluster taps pop the unclustered
     // marker so this is what the user actually sees.
     DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
@@ -1358,24 +1448,33 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
     super.dispose();
   }
 
+  double? _toDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+
   /// Builds the marker set fed to [GoogleMap.markers]. Each marker is stamped
   /// with [_clusterManagerId] so the platform-side cluster manager can group
   /// nearby ones into a numbered badge automatically.
-  Set<Marker> _buildMarkers(List<ServiceData> services) {
+  Set<Marker> _buildMarkers(List<ProfessionalConsData> services) {
     final markers = <Marker>{};
     for (final s in services) {
-      final lat = s.userLocation?.lat?.toDouble();
-      final lng = s.userLocation?.lon?.toDouble();
+      final lat = _toDouble(s.userDetails?.userLocation?.lat);
+      final lng = _toDouble(s.userDetails?.userLocation?.lon);
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
+      final name = (s.basicDetails?.fullName?.trim().isNotEmpty ?? false)
+          ? s.basicDetails!.fullName!
+          : (s.userDetails?.name ?? AppStrings.unknownUser.tr);
       markers.add(
         Marker(
-          markerId: MarkerId(s.id ?? '${s.name}_$lat,$lng'),
+          markerId: MarkerId(s.id ?? s.userId ?? '${name}_$lat,$lng'),
           position: LatLng(lat, lng),
           clusterManagerId: _clusterManagerId,
           icon: _serviceIcon ?? BitmapDescriptor.defaultMarker,
           infoWindow: InfoWindow(
-            title: s.name ?? AppStrings.unknownUser.tr,
-            snippet: s.profession ?? '',
+            title: name,
+            snippet: s.basicDetails?.professionalTitle ?? '',
             onTap: () => widget.onMarkerTap(context, s),
           ),
           onTap: () => widget.onMarkerTap(context, s),
@@ -1391,26 +1490,28 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
     if (_mapController == null) return;
     final markers = cluster.markerIds;
     if (markers.length <= 1) {
-      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
+      _mapController!
+          .animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
       return;
     }
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
+    _mapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
   }
 
   @override
   Widget build(BuildContext context) {
     // Frame on the picked earn-discover location when set, else the device fix.
-    final initialLat =
-        _ctrl.earnDiscoverLat ?? (LocationService.lat != 0.0 ? LocationService.lat : 28.6139);
-    final initialLng =
-        _ctrl.earnDiscoverLng ?? (LocationService.lng != 0.0 ? LocationService.lng : 77.2090);
+    final initialLat = _ctrl.earnDiscoverLat ??
+        (LocationService.lat != 0.0 ? LocationService.lat : 28.6139);
+    final initialLng = _ctrl.earnDiscoverLng ??
+        (LocationService.lng != 0.0 ? LocationService.lng : 77.2090);
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       body: Stack(
         children: [
           Obx(() {
-            final markers = _buildMarkers(_ctrl.earnServiceMapList);
+            final markers = _buildMarkers(_ctrl.professionalConsMapList);
             return GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: LatLng(initialLat, initialLng),
@@ -1433,7 +1534,8 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
           }),
           // Loading overlay while the unpaginated fetch is in flight.
           Obx(() {
-            final isLoading = _ctrl.earnServiceMapResponse.value.status == Status.INITIAL;
+            final isLoading =
+                _ctrl.professionalConsMapResponse.value.status == Status.INITIAL;
             if (!isLoading) return const SizedBox.shrink();
             return const Center(
               child: SizedBox(
@@ -1467,7 +1569,8 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
                   icon: Icons.my_location,
                   onTap: () {
                     _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(LatLng(initialLat, initialLng), 13),
+                      CameraUpdate.newLatLngZoom(
+                          LatLng(initialLat, initialLng), 13),
                     );
                   },
                 ),
@@ -1479,9 +1582,9 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
             left: 16,
             right: 16,
             child: Obx(() {
-              final count = _ctrl.earnServiceMapList.where((s) {
-                final lat = s.userLocation?.lat?.toDouble();
-                final lng = s.userLocation?.lon?.toDouble();
+              final count = _ctrl.professionalConsMapList.where((s) {
+                final lat = _toDouble(s.userDetails?.userLocation?.lat);
+                final lng = _toDouble(s.userDetails?.userLocation?.lon);
                 return lat != null && lng != null && !(lat == 0 && lng == 0);
               }).length;
               return Material(
@@ -1489,10 +1592,12 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded,
+                          size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(

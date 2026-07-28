@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -11,14 +10,15 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/app_targeted_share.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/common/referral/view/update_referral_page.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -39,16 +39,20 @@ import '../../../core/constants/app_strings.dart';
 /// card composes itself from whatever the caller's account type resolves to;
 /// each part self-hides when the profile carries no URL for it.
 class ProfileShareBanner extends StatefulWidget {
-  /// Optional override — display name on the banner. When omitted the
-  /// widget falls back to the registered business profile (legacy
-  /// behavior). Pass this from individual / professional dashboards
-  /// so the banner can render without a business profile.
+  /// Marks this placement as an individual / professional one, so the card
+  /// sources its poster, referral code and editability from the PERSONAL
+  /// profile instead of the registered business profile (legacy behavior).
+  ///
+  /// The poster itself is generated server-side and rendered as-is, so these
+  /// values are no longer drawn on the card — they only pick which profile the
+  /// card reads from. Kept as separate fields because callers already pass
+  /// whichever of them they happen to have.
   final String? overrideName;
 
-  /// Optional override — profile image URL.
+  /// See [overrideName] — selects the personal-profile source.
   final String? overridePhoto;
 
-  /// Optional override — sub-category / designation pill text.
+  /// See [overrideName] — selects the personal-profile source.
   final String? overrideSubCategory;
 
   /// Account type used in the share-message deep link. Pass
@@ -99,6 +103,11 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   final GlobalKey _bannerKey = GlobalKey();
   bool _isExporting = false;
 
+  /// The backend poster currently on screen, or null when the profile has
+  /// none. Set from `build` and read by the share paths, which have nothing to
+  /// capture without it.
+  String? _posterUrl;
+
   @override
   Widget build(BuildContext context) {
     final hasOverride = (widget.overrideName?.trim().isNotEmpty ?? false) ||
@@ -110,16 +119,6 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     // listen to here, so render directly. Wrapping in Obx without
     // touching any .value would trip the "improper Obx use" check.
     if (hasOverride) {
-      final shopName = (widget.overrideName?.trim().isNotEmpty ?? false)
-          ? widget.overrideName!
-          : 'My Profile';
-      final shopPhoto = (widget.overridePhoto?.trim().isNotEmpty ?? false)
-          ? widget.overridePhoto
-          : null;
-      final subCategory =
-          (widget.overrideSubCategory?.trim().isNotEmpty ?? false)
-              ? widget.overrideSubCategory
-              : null;
       // Override path is the individual/professional profile — editability and
       // the ready-made poster come off the personal profile record. The referral
       // code falls back to the personal profile too, so callers that don't pass
@@ -127,8 +126,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
       final referral = (widget.referralCode?.trim().isNotEmpty ?? false)
           ? widget.referralCode
           : _safePersonalReferralCode();
-      return _buildBannerCard(shopName, shopPhoto, subCategory,
-          referral, _safePersonalReferralEditable(),
+      return _buildBannerCard(referral, _safePersonalReferralEditable(),
           marketingCardUrl: _safePersonalMarketingCardUrl());
     }
 
@@ -137,14 +135,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     return Obx(() {
       final details = _safeBusinessDetails();
       if (details == null) return const SizedBox.shrink();
-      final shopName = (details.businessName?.trim().isNotEmpty ?? false)
-          ? details.businessName!
-          : 'My Shop';
-      final shopPhoto =
-          (details.logo?.trim().isNotEmpty ?? false) ? details.logo : null;
-      final subCategory =
-          details.subCategoryDetails?.name ?? details.subCategoryOfBusiness;
-      return _buildBannerCard(shopName, shopPhoto, subCategory,
+      return _buildBannerCard(
           details.referral_code, details.referralCodeEditable ?? false,
           marketingCardUrl: details.marketingCard?.readyUrl);
     });
@@ -246,14 +237,20 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     Get.to(() => UpdateReferralPage(controller: c));
   }
 
-  Widget _buildBannerCard(String shopName, String? shopPhoto,
-      String? subCategory, String? referralCode, bool referralCodeEditable,
+  Widget _buildBannerCard(String? referralCode, bool referralCodeEditable,
       {String? marketingCardUrl}) {
     // In dialog mode the card sits directly inside the dialog (itself a
     // white rounded surface), so keep a tight uniform 10px inset and no
     // top margin instead of stacking padding on the dialog's own inset.
     final bool dialogMode = widget.showCloseButton;
     final videoUrl = _resolveVideoUrl();
+    final poster = (marketingCardUrl?.trim().isNotEmpty ?? false)
+        ? marketingCardUrl!.trim()
+        : null;
+    // Remembered for the share paths: with no backend poster there is nothing
+    // to capture, so they send the referral text on its own rather than an
+    // empty PNG.
+    _posterUrl = poster;
     return CustomFormCard(
       padding: EdgeInsets.all(dialogMode ? 10.0 : 14.0),
       margin: dialogMode ? EdgeInsets.zero : const EdgeInsets.only(top: 10.0),
@@ -279,20 +276,13 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           const _DashedDivider(),
           SizedBox(height: SizeConfig.size12),
           _headline(referralCode, referralCodeEditable),
-          SizedBox(height: SizeConfig.size12),
-          RepaintBoundary(
-            key: _bannerKey,
-            // Prefer the backend-generated poster (composed server-side now);
-            // fall back to the client-composed art when it isn't ready / fails.
-            child: (marketingCardUrl != null && marketingCardUrl.isNotEmpty)
-                ? _backendPoster(
-                    marketingCardUrl, shopName, shopPhoto, subCategory)
-                : _BannerArt(
-                    shopName: shopName,
-                    shopPhoto: shopPhoto,
-                    subCategory: subCategory,
-                  ),
-          ),
+          // The poster is the backend-generated card and nothing else — no
+          // client-composed artwork. A profile whose card isn't generated yet
+          // simply shows the rest of the card without a poster.
+          if (poster != null) ...[
+            SizedBox(height: SizeConfig.size12),
+            RepaintBoundary(key: _bannerKey, child: _backendPoster(poster)),
+          ],
           SizedBox(height: SizeConfig.size14),
           _shareViaPanel(referralCode),
         ],
@@ -300,12 +290,10 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     );
   }
 
-  /// The backend-generated poster, rendered directly. Sits in the same 3:2 slot
-  /// the server art is composed at, and lives inside the [RepaintBoundary] so
-  /// the existing "capture → share as PNG" flow still works unchanged. On a
-  /// load failure it degrades to the client-composed [_BannerArt].
-  Widget _backendPoster(
-      String url, String shopName, String? shopPhoto, String? subCategory) {
+  /// The backend-generated poster, rendered directly. Sits in the 3:2 slot the
+  /// server art is composed at, and lives inside the [RepaintBoundary] so the
+  /// existing "capture → share as PNG" flow still works unchanged.
+  Widget _backendPoster(String url) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: AspectRatio(
@@ -314,11 +302,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           imageUrl: url,
           fit: BoxFit.cover,
           placeholder: (_, __) => Container(color: AppColors.greyE5),
-          errorWidget: (_, __, ___) => _BannerArt(
-            shopName: shopName,
-            shopPhoto: shopPhoto,
-            subCategory: subCategory,
-          ),
+          errorWidget: (_, __, ___) => Container(color: AppColors.greyE5),
         ),
       ),
     );
@@ -335,37 +319,39 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
 
   // ───── Header (referral code + optional close) ────────────────────
 
+  /// Headline on the left, Learn More pill (and the dialog's ✕) trailing.
+  ///
+  /// The headline is the only flexible child, so the pill and the close button
+  /// always get their intrinsic width and the row can't overflow on narrow
+  /// screens. The pill is centred against the two-line headline rather than
+  /// pinned to its baseline, which left it sitting low and detached.
   Widget _header() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              RichText(
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    height: 1.12,
-                    color: AppColors.mainTextColor,
-                  ),
-                  children: [
-                    const TextSpan(text: 'Share One-Time ,\nEarn '),
-                    TextSpan(
-                      text: 'Full Year',
-                      style: TextStyle(color: AppColors.blueAF),
-                    ),
-                  ],
-                ),
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                height: 1.12,
+                color: AppColors.mainTextColor,
               ),
-              SizedBox(width: SizeConfig.size10),
-              _learnMoreButton(),
-            ],
+              children: [
+                const TextSpan(text: 'Share One-Time ,\nEarn '),
+                TextSpan(
+                  text: 'Full Year',
+                  style: TextStyle(color: AppColors.blueAF),
+                ),
+              ],
+            ),
           ),
         ),
-
-        if (widget.showCloseButton)
+        SizedBox(width: SizeConfig.size8),
+        _learnMoreButton(),
+        if (widget.showCloseButton) ...[
+          SizedBox(width: SizeConfig.size4),
           InkWell(
             onTap: () => Get.back(),
             borderRadius: BorderRadius.circular(20),
@@ -375,6 +361,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
                   size: 22, color: AppColors.secondaryTextColor),
             ),
           ),
+        ],
       ],
     );
   }
@@ -437,37 +424,54 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     );
   }
 
+  /// Compact tinted pill. It used to be a white box with a drop shadow, which
+  /// on the card's own white surface read as a smudge rather than a control —
+  /// the tint carries the affordance instead, and the smaller type keeps it
+  /// subordinate to the 24px headline it sits beside.
   Widget _learnMoreButton() {
+    final accent = AppColors.blueAF;
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => Get.to(() => ReferralPage()),
+        borderRadius: BorderRadius.circular(20),
+        onTap: _openTermsAndConditions,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            color: accent.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.greyE5,
+              color: accent.withValues(alpha: 0.35),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                AppStrings.learnMore.tr,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+                color: accent,
               ),
+              const SizedBox(width: 2),
+              Icon(Icons.chevron_right_rounded, size: 16, color: accent),
             ],
           ),
-          child: CustomText(
-            AppStrings.learnMore.tr,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w700,
-            color: AppColors.secondaryTextColor,
-          ),
         ),
+      ),
+    );
+  }
+
+  /// Learn More opens the referral terms & conditions in the in-app webview —
+  /// the same `tncLink` + [CommonWebView] pairing every other T&C entry point
+  /// in the app uses.
+  void _openTermsAndConditions() {
+    Get.to(
+      () => CommonWebView(
+        urlLink: tncLink,
+        urlTitle: AppStrings.termsConditions.tr,
       ),
     );
   }
@@ -605,6 +609,9 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   }
 
   Future<Uint8List?> _captureBannerPng({double pixelRatio = 3.0}) async {
+    // No backend poster → no boundary in the tree to capture. Bail out here so
+    // the share paths fall through to their text-only branch.
+    if (_posterUrl == null) return null;
     try {
       final boundary = _bannerKey.currentContext?.findRenderObject()
           as RenderRepaintBoundary?;
@@ -779,257 +786,6 @@ class _DashedLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  Banner artwork — background image + dark wash + identity column.
-// ═══════════════════════════════════════════════════════════════════
-
-class _BannerArt extends StatelessWidget {
-  final String shopName;
-  final String? shopPhoto;
-  final String? subCategory;
-
-  const _BannerArt({
-    required this.shopName,
-    required this.shopPhoto,
-    required this.subCategory,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: AspectRatio(
-        // Taller than the source 3:2 so the poster reads bigger on the card.
-        aspectRatio: 4 / 3,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 1. Market-scene artwork.
-            Image.asset(
-              AppImageAssets.shopBanner,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: AppColors.primaryColor.withValues(alpha: 0.12),
-              ),
-            ),
-            // 2. Dark gradient wash for text legibility.
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x66000000), Color(0x99000000)],
-                ),
-              ),
-            ),
-            // 3. Corner accents.
-            Positioned(
-              left: 0,
-              top: 0,
-              child: Container(
-                  width: 40, height: 3, color: AppColors.primaryColor),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                  width: 40, height: 3, color: Colors.amber.shade400),
-            ),
-            // 4. Shop identity column — nudged into the left artwork
-            //    area, aligned under the banner's "AB HUM BHI ONLINE"
-            //    headline centre-line.
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final columnWidth = constraints.maxWidth * 0.48;
-                  final leftOffset = constraints.maxWidth * 0.10;
-                  final logoSize =
-                      (columnWidth * 0.24).clamp(42.0, 52.0);
-                  return Align(
-                    alignment: const Alignment(-1.0, -0.4),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                          left: leftOffset, top: SizeConfig.size12),
-                      child: SizedBox(
-                        width: columnWidth,
-                        child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              _logoDisc(logoSize),
-                              SizedBox(height: SizeConfig.size10),
-                              _nameDisplay(),
-                              if ((subCategory ?? '').trim().isNotEmpty) ...[
-                                SizedBox(height: SizeConfig.size6),
-                                _subcategoryPill(),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _logoDisc(double size) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFE5F1FF)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.28),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Container(
-        width: size,
-        height: size,
-        clipBehavior: Clip.antiAlias,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-        ),
-        child: shopPhoto != null
-            ? CachedNetworkImage(
-                imageUrl: shopPhoto!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: AppColors.greyE5),
-                errorWidget: (_, __, ___) => Icon(
-                  Icons.storefront_rounded,
-                  color: AppColors.primaryColor,
-                  size: size * 0.45,
-                ),
-              )
-            : Icon(
-                Icons.storefront_rounded,
-                color: AppColors.primaryColor,
-                size: size * 0.45,
-              ),
-      ),
-    );
-  }
-
-  Widget _nameDisplay() {
-    return SizedBox(
-      width: double.infinity,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Shadow layer.
-            Text(
-              shopName,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'AsapCondensed',
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
-                height: 1.08,
-                color: Colors.transparent,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.85),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.55),
-                    blurRadius: 10,
-                    offset: const Offset(0, 0),
-                  ),
-                  Shadow(
-                    color: const Color(0xFFFFB300).withValues(alpha: 0.45),
-                    blurRadius: 14,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-            ),
-            // Gradient fill.
-            ShaderMask(
-              blendMode: BlendMode.srcIn,
-              shaderCallback: (bounds) => const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFFFE082),
-                  Color(0xFFFFC857),
-                  Color(0xFFFFA726),
-                ],
-                stops: [0.0, 0.55, 1.0],
-              ).createShader(bounds),
-              child: Text(
-                shopName,
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'AsapCondensed',
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
-                  height: 1.08,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _subcategoryPill() {
-    return SizedBox(
-      width: double.infinity,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.center,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.55),
-              width: 1,
-            ),
-          ),
-          child: CustomText(
-            subCategory!.toUpperCase(),
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════

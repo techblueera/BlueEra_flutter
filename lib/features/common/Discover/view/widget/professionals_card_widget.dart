@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/common/Discover/view/professional_consultant_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/profession_consultant_discover_entry_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
@@ -19,15 +19,19 @@ class ProfessionalsCardWidget extends StatelessWidget {
       items: categories.take(10).toList(),
       getName: (item) => item.name ?? '',
       getIcon: (item) => getIndividualProfessionIcon(item.tagId),
+      // v2 is location-first: both entry points open the entry screen (map +
+      // "Where you Want?" + profession grid). The specific tile tapped just
+      // enters the flow; the user picks location and category there. Mirrors
+      // how [BookHomeServiceWidget] enters the self-profession flow.
       onViewAll: () {
-        Get.to(() => ProfessionConsultantDiscoverScreen(
+        Get.to(() => ProfessionConsultantDiscoverEntryScreen(
               professionalConsultantCategories: categories,
             ));
       },
       onItemTap: (item) {
-        Get.to(() => ProfessionConsultantDiscoverScreen(
-            professionalConsultantCategories: categories,
-            selectedProfessionConsultantData: item));
+        Get.to(() => ProfessionConsultantDiscoverEntryScreen(
+              professionalConsultantCategories: categories,
+            ));
       },
     );
   }

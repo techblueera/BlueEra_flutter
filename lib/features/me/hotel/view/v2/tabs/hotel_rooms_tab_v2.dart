@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,6 +34,20 @@ class HotelRoomsTabV2 extends StatelessWidget {
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: SizeConfig.size12),
+          // Same deck the Inquiry tab carries. Its catalog card opens the
+          // room-selection flow here — on this tab the host's "switch to
+          // Rooms" callback would be a no-op.
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            child: OrderActionsCarousel(
+              onAddCatalog: () => Get.to(RoomSelectionScreen())
+                  ?.then((_) => controller.loadHotelData()),
+              catalogIcon: Icons.king_bed_rounded,
+              catalogTitle: AppStrings.roomLabel.tr,
+              catalogSubtitle: AppStrings.manageRoomsAvailability.tr,
+            ),
+          ),
           SizedBox(height: SizeConfig.size12),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
