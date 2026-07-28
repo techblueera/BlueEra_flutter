@@ -152,15 +152,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
-    // BEFORE the first build, so the very first frame renders the tab the user
-    // actually lands on. This used to live in the post-frame callback below,
-    // which meant frame 1 always painted the Me tab (`currentIndex` starts at
-    // 0) — mounting a whole me-section dashboard for one frame, firing its boot
-    // APIs, and tearing it down when the index flipped to Discover. A pharmacy
-    // owner, for instance, saw medical business-products / gallery /
-    // categories-with-inventory all land while sitting on Discover.
-    _applyLandingTab();
+    // Resolved BEFORE the first build so frame 1 renders the tab the user
+    // actually lands on — but only into a plain field, NOT into the Rx. Writing
+    // `currentIndex` here would notify listeners while the framework is still
+    // building: mounting this screen via `Get.offAllNamed` (backing out of
+    // account creation, for one) happens mid-build, and any already-mounted Obx
+    // watching the index then throws "setState() called during build".
+    // [_tabContent] reads this field on its first pass; the post-frame callback
+    // below commits it to the Rx, where notifying is safe.
+    _pendingLandingIndex = _resolveLandingIndex();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _commitLandingTab();
       _handlePostFrameInitialization();
       _maybePromptGuestToCreateProfile();
       // One-shot per launch: surface the joining-bonus claim popup when the
@@ -514,18 +516,40 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  /// Picks the tab the app opens on. Called SYNCHRONOUSLY from `initState`
-  /// (before the first build) — never from a post-frame callback.
+  /// Picks the tab the app opens on. PURE — it only computes, it must never
+  /// touch `currentIndex`, because it runs from `initState` and writing an
+  /// observable there notifies listeners mid-build.
   ///
-  /// `BottomBarController.currentIndex` is born at 0 (Me), so whatever this
-  /// leaves it at is what frame 1 paints. Deciding after the first frame made
-  /// the app mount the user's me-section dashboard for a single frame on every
+  /// `BottomBarController.currentIndex` is born at 0 (Me), so whatever the
+  /// first frame reads is what it paints. Deciding after that frame made the
+  /// app mount the user's me-section dashboard for a single frame on every
   /// launch: its `initState` fired the tab's boot APIs, then the index flipped
   /// to Discover and disposed it while those requests were still in flight.
+  /// Hence the split: resolve here, paint from [_pendingLandingIndex], commit
+  /// in [_commitLandingTab].
   ///
   /// Every input here is a global resolved in `main()` before `runApp`, so
   /// there is nothing to wait a frame for.
-  void _applyLandingTab() {
+  /// Landing tab for this mount, held until the first frame is done.
+  ///
+  /// Non-null only between `initState` and the post-frame commit. While set it
+  /// OVERRIDES `currentIndex` for [_tabContent], which is what keeps frame 1 on
+  /// the right tab without touching an observable mid-build.
+  int? _pendingLandingIndex;
+
+  /// Moves the resolved landing tab into the Rx. Called from the post-frame
+  /// callback — outside the build phase — so the Obx rebuild it triggers is
+  /// legal. Clears the override FIRST so that rebuild reads the live value.
+  void _commitLandingTab() {
+    final landing = _pendingLandingIndex;
+    if (landing == null) return;
+    _pendingLandingIndex = null;
+    // Assigning the same value is a no-op in GetX (no notification), which is
+    // exactly right: the tab on screen already matches.
+    bottomBarController.currentIndex.value = landing;
+  }
+
+  int _resolveLandingIndex() {
     if (isBusiness()) {
       // Business users land on Discover (1) by default on app open / login /
       // signup — same as individuals. They used to open straight onto their
@@ -534,8 +558,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // one tab away either way. An explicit deep-link tab (notification, or a
       // post-action nav that requests a specific tab) still wins because it
       // passes a non-null initialIndex.
-      bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
-      return;
+      return widget.initialIndex ?? 1;
     }
     // Riders (bike rider / car-taxi driver) and gig workers always land on
     // the Me tab (index 0) on login — regardless of whether their profile
@@ -544,8 +567,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // (Discover by default).
     final isRider = isRiderProfession(userProfessionGlobal);
     final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
-    bottomBarController.currentIndex.value =
-        (isRider || isGigWorker) ? 0 : (widget.initialIndex ?? 1);
+    return (isRider || isGigWorker) ? 0 : (widget.initialIndex ?? 1);
   }
 
   void _handlePostFrameInitialization() {
@@ -554,8 +576,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // navigates a tab — it then runs from _ensureHeavyInit().
     final boot = !widget.deferHeavyInit;
     if (isBusiness()) {
-      // Landing tab is already set — see _applyLandingTab, called from
-      // initState so it lands before the first frame.
+      // Landing tab is already resolved — see _resolveLandingIndex (initState)
+      // and _commitLandingTab (this same post-frame callback, just above).
       //
       // Keep the controller registered even on a deferred open so any
       // Get.find<ViewBusinessDetailsController>() elsewhere stays safe; only
@@ -691,7 +713,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// hide-on-scroll toggle, the keyboard opening — rebuilds the page; those
   /// only reposition or wrap this same element.
   late final Widget _tabContent = Obx(() {
-    final index = bottomBarController.currentIndex.value;
+    // Still subscribe to the Rx (this is what rebuilds on a real tab switch),
+    // but let the not-yet-committed landing tab win on the first pass — see
+    // [_pendingLandingIndex]. Without that, frame 1 would paint index 0 (the Me
+    // tab) for every user, mounting a whole me-section dashboard and firing its
+    // boot APIs just to tear it down a frame later.
+    final live = bottomBarController.currentIndex.value;
+    final index = _pendingLandingIndex ?? live;
     // Single app-wide hide-on-scroll wrapper so EVERY tab and every "Me"
     // sub-screen (individual + business) gets the same behaviour — including
     // the ones that don't wrap themselves (SelfEmployee, Professionals, Food,

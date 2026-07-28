@@ -217,6 +217,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// see [_awaitPromoProfile]. Nothing inside it ever shows a spinner: it
   /// either opens complete or doesn't open.
   Future<void> _maybeShowSharePromo() async {
+    // Guests have no profile to share: no referral code, no poster, no clip —
+    // the card would compose itself out of nothing. They also get their own
+    // "create a profile" prompt from the nav shell
+    // (_maybePromptGuestToCreateProfile), and two sheets racing to open on the
+    // same landing is worse than either. Returns BEFORE the session slot is
+    // claimed below, so signing in still gets today's promo.
+    if (isGuestUser()) return;
     // A fresh account was just created this session — Discover is mounting
     // behind the onboarding "update data" screen, so don't pop the promo over
     // it. See [suppressPromosAfterAccountCreation].
