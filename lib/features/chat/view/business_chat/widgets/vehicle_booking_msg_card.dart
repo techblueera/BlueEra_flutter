@@ -6,8 +6,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
-import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_enquiry_controller_v3.dart';
+import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_booking_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -115,10 +115,13 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
       return;
     }
     setState(() => _isUpdating = true);
-    final controller = getOrPut(() => VehicleController(), permanent: true);
+    // v3 `/bookings` — the enquiry endpoints the rebuilt vehicle service
+    // exposes. The card's payload shape is unchanged; only the transport
+    // moved off the removed `/vehicles/bookings/*` paths.
+    final controller = getOrPut(() => VehicleEnquiryControllerV3());
     final ok = cancel
-        ? await controller.cancelBooking(id)
-        : await controller.respondToBooking(id: id, accept: accept);
+        ? await controller.cancelEnquiry(id)
+        : await controller.respondToEnquiry(id: id, accept: accept);
     if (!mounted) return;
     if (ok) {
       widget.message.metadata?.booking?.status = cancel

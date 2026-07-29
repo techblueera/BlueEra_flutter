@@ -127,7 +127,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                             children: [
                               CustomText(
                                 price.sellingRange.isNotEmpty
-                                    ? 'â‚¹${price.sellingRange}'
+                                    ? '₹${price.sellingRange}'
                                     : AppStrings.medicalPriceNotSet.tr,
                                 fontSize: 11,
                                 color: AppColors.primaryColor,
@@ -136,7 +136,7 @@ class MyMedicalVariantCard extends StatelessWidget {
                               if (price.mrpRange.isNotEmpty) ...[
                                 SizedBox(width: 6),
                                 Flexible(
-                                  child: CustomText('${AppStrings.medicalMrpRangePrefix.tr} â‚¹${price.mrpRange}',
+                                  child: CustomText('${AppStrings.medicalMrpRangePrefix.tr} ₹${price.mrpRange}',
                                       fontSize: 9,
                                       color: AppColors.grayText,
                                       maxLines: 1,

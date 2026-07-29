@@ -1629,6 +1629,32 @@ class AutomotiveProductController extends GetxController{
     }
   }
 
+  /// Subtree product count for a root category, from the level-0 list this
+  /// screen already loads — no extra call.
+  ///
+  /// Matches on `_id` first, then `key` (uppercase, globally unique), because
+  /// the by-root-category rails and the category tree are separate endpoints
+  /// and only one of the two identifiers is guaranteed to line up.
+  ///
+  /// Returns 0 when the category isn't in the level-0 list yet, which the UI
+  /// renders as "no badge" rather than a zero — see
+  /// docs/backend/flutter-categories-levels-and-counts.md §4.
+  int productCountForCategory({String? categoryId, String? categoryKey}) {
+    final id = (categoryId ?? '').trim();
+    final key = (categoryKey ?? '').trim().toUpperCase();
+    if (id.isEmpty && key.isEmpty) return 0;
+
+    for (final category in productsNestedCategoryList) {
+      if (id.isNotEmpty && (category.sId ?? '') == id) {
+        return category.productCount;
+      }
+      if (key.isNotEmpty && (category.key ?? '').toUpperCase() == key) {
+        return category.productCount;
+      }
+    }
+    return 0;
+  }
+
   /// Fetch a single category WITH its full nested subtree
   /// (`GET /categories/nested?categoryId=<id>`). Returns the parsed node
   /// (its `children` hold level-1, each with their own `children` down to

@@ -6,11 +6,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 // The medical business-products endpoint ships grocery's exact response shape
 // (docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md), so the Top Selling rail
-// reuses grocery's grouping helper, card and variants sheet.
+// reuses grocery's grouping helper and card. The variants sheet is reused too,
+// but through the MEDICAL entry point — it binds the sheet's edit/delete to
+// medical-service instead of grocery-service.
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_variants_sheet.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
@@ -63,7 +65,7 @@ class MedicalProductsTab extends StatelessWidget {
         ),
         SizedBox(height: SizeConfig.size20),
         _topSellingSection(controller),
-        SizedBox(height: SizeConfig.size20),
+        SizedBox(height: SizeConfig.size10),
         _categorySection(controller),
         SizedBox(height: SizeConfig.size16),
       ],
@@ -115,6 +117,12 @@ class MedicalProductsTab extends StatelessWidget {
             )
           else
             ProductsRail(
+              // Sized to the tallest card, not to the 232 the loader uses.
+              // A medical card is shorter than the grocery one that constant
+              // was tuned for (fewer detail lines), and since the cards are
+              // top-aligned the difference showed up as a band of dead space
+              // between this rail and "Manage Via Categories".
+              sizeToContent: true,
               height: _topSellingRailHeight,
               itemCount: previewGroups.length,
               spacing: 12,
@@ -137,7 +145,11 @@ class MedicalProductsTab extends StatelessWidget {
         width: _topSellingCardWidth,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => showGroceryVariantsSheet(
+          // Medical-service bound: the sheet's edit/delete write to
+          // `medical-service/inventory/{id}`. It used to call the grocery
+          // entry point, which posted a medical inventory id to
+          // grocery-service.
+          onTap: () => showMedicalVariantsSheet(
             context: context,
             productName: group.product.product?.name ?? '',
             productImageUrl: group.product.productImageUrlOnly,
@@ -146,6 +158,9 @@ class MedicalProductsTab extends StatelessWidget {
           child: GroceryTopSellingProductCard(
             product: group.product,
             variants: group.variants,
+            // Medical's pincode-aware pricing, not grocery's min/max over
+            // every city — see medicalTopSellingPrice.
+            priceResolver: medicalTopSellingPrice,
           ),
         ),
       ),

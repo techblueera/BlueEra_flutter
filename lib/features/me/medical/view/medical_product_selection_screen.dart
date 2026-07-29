@@ -26,6 +26,23 @@ class MedicalProductSelectionScreen extends StatefulWidget {
     required this.arrLevel3Category,
   });
 
+  /// The category list to open this screen with, for a tapped category.
+  ///
+  /// A category with children opens on those children — but a **leaf** has
+  /// none, and the two callers each got that case wrong in a different way:
+  /// the level-2 screen guarded with `if (children.isNotEmpty)` and so did
+  /// nothing at all on tap, while the level-1 screen pushed this screen with
+  /// an empty list, which then blew up on `.first`.
+  ///
+  /// A leaf isn't a dead end — products hang off it directly — so it opens on
+  /// **itself**: one entry in the left rail, and its own `key` as the search
+  /// term.
+  static List<MedicalNestedCategoryModel> categoriesToOpen(
+      MedicalNestedCategoryModel category) {
+    final children = category.children ?? const <MedicalNestedCategoryModel>[];
+    return children.isNotEmpty ? children : [category];
+  }
+
   @override
   State<MedicalProductSelectionScreen> createState() =>
       _MedicalProductSelectionScreenState();
@@ -44,6 +61,9 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
     // its searchTerm, so firing it before the selection was set (as this did)
     // queried a null/stale category while the title already read the first one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Defensive: a caller that still passes an empty list gets an empty
+      // state instead of a "Bad state: No element" crash.
+      if (widget.arrLevel3Category.isEmpty) return;
       controller.selectedMedicalData.value = widget.arrLevel3Category.first;
       controller.fetchGroceryCategoryProducts();
     });
@@ -248,12 +268,25 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
                               : Padding(
                                   padding: EdgeInsets.all(SizeConfig.size20),
                                   child: EmptyStateWidget(
-                                      message:
-                                          '${AppStrings.medicalNoFoundPrefix.tr} ${widget.arrLevel3Category.first.name?.tr} ${AppStrings.medicalNoFoundSuffix.tr}')),
+                                      // Names the SELECTED category, not
+                                      // `.first` — the left rail can move the
+                                      // selection, and `.first` also threw on
+                                      // an empty list.
+                                      message: _emptyMessage())),
                     )
                   ],
                 ),
         ));
+  }
+
+  /// "No products found in <category>" for whichever category is selected.
+  String _emptyMessage() {
+    final name = controller.selectedMedicalData.value?.name ??
+        (widget.arrLevel3Category.isEmpty
+            ? ''
+            : widget.arrLevel3Category.first.name ?? '');
+    return '${AppStrings.medicalNoFoundPrefix.tr} ${name.tr} '
+        '${AppStrings.medicalNoFoundSuffix.tr}';
   }
 
   Widget medicalCard(MedicalProductData medicalProductData) {
@@ -339,7 +372,7 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
                                 border: Border.all(width: 0.5, color: AppColors.greyE5)),
                             padding: EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                             child: CustomText(
-                              '${medicalProductData.variants?.firstOrNull?.weight?.toInt()} ${medicalProductData.variants?.firstOrNull?.unit}',
+                              _packLabel(medicalProductData.variants?.firstOrNull),
                               fontSize: 10,
                               color: Colors.grey,
                               maxLines: 1,
@@ -350,11 +383,21 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
                       ],
                     ),
                     SizedBox(height: 3),
-                    _priceRow(AppStrings.price.tr, "${price.sellingRange}", AppColors.primaryColor, isBold: true),
+                    // "~" marks a price the catalog carries for other cities
+                    // only — this shop's pincode has no row, so it's a
+                    // reference figure, not what it sells at.
+                    _priceRow(
+                      price.isIndicative
+                          ? '${AppStrings.price.tr} ~'
+                          : AppStrings.price.tr,
+                      price.sellingRange,
+                      AppColors.primaryColor,
+                      isBold: true,
+                    ),
                     SizedBox(height: 2),
-                    _priceRow(AppStrings.mrp.tr, "${price.mrpRange}", AppColors.grayText),
+                    _priceRow(AppStrings.mrp.tr, price.mrpRange, AppColors.grayText),
                     SizedBox(height: 2),
-                    _priceRow(AppStrings.discount.tr, "${price.discountRange}", AppColors.green00, isBold: true),
+                    _priceRow(AppStrings.discount.tr, price.discountRange, AppColors.green00, isBold: true),
                     SizedBox(height: 3),
                     CustomBtn(
                       height: SizeConfig.size30,
@@ -373,6 +416,27 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
         );
       }),
     );
+  }
+
+  /// Pack size chip — "10 tablet", or just the unit when the catalog has no
+  /// number for it.
+  ///
+  /// `weight` is genuinely absent on plenty of medical products (a spray has
+  /// a unit but no quantity), and the old interpolation printed the missing
+  /// value straight through, which is where the literal "null spray" on the
+  /// card came from. Falls back to `variantName` so the chip never renders
+  /// empty either.
+  String _packLabel(VariantsData? variant) {
+    if (variant == null) return '';
+    final unit = (variant.unit ?? '').trim();
+    final weight = variant.weight;
+    if (weight != null && weight > 0) {
+      final amount =
+          weight == weight.roundToDouble() ? weight.round().toString() : '$weight';
+      return unit.isEmpty ? amount : '$amount $unit';
+    }
+    if (unit.isNotEmpty) return unit;
+    return (variant.variantName ?? '').trim();
   }
 
   Widget _priceRow(String label, String value, Color valueColor, {bool isBold = false}) {

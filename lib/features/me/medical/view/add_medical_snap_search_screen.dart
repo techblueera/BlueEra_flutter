@@ -611,7 +611,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                                   const SizedBox(width: 6),
 
                                   CustomText(
-                                    "â‚¹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].mrp : '0'}",
+                                    "₹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].mrp : '0'}",
                                     fontSize: SizeConfig.small,
                                     fontWeight: FontWeight.w400,
                                     color: AppColors.mainTextColor,

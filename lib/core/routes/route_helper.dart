@@ -115,12 +115,12 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/search/view/global_search_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
-import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
+import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_listing_detail_screen_v3.dart';
+import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_discover_screen_v3.dart';
+
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
-import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
+import 'package:BlueEra/features/me/vehicle/v3/view/vehicle_screen_v3.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_screen.dart';
@@ -577,9 +577,6 @@ class RouteHelper {
 
   static String getVehicleDetailScreenRoute() =>
       RouteConstant.vehicleDetailScreen;
-
-  static String getVehicleBookingsScreenRoute() =>
-      RouteConstant.vehicleBookingsScreen;
 
   // static String getCreateNewAccountScreenRoute() =>
   //     RouteConstant.createNewAccountScreen;
@@ -2552,15 +2549,18 @@ class RouteHelper {
       // â”€â”€ be_vehicle_service screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       case RouteConstant.vehicleHomeScreen:
         return MaterialPageRoute(
-          builder: (_) => const VehicleHomeScreenV2(),
+          builder: (_) => const VehicleScreenV3(),
           settings: RouteSettings(name: getVehicleHomeScreenRoute()),
         );
       case RouteConstant.vehicleListingScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => VehicleListingScreen(
-            initialCategory: args?['category'] as String?,
-            initialSubCategory: args?['sub_category'] as String?,
+          // The old listing screen took catalog category/sub-category strings;
+          // the rebuilt buyer flow filters by condition and picks its
+          // categories from the with-inventory tree, so only `condition`
+          // carries over.
+          builder: (_) => VehicleDiscoverScreenV3(
+            initialCondition: args?['condition'] as String?,
           ),
           settings: RouteSettings(name: getVehicleListingScreenRoute()),
         );
@@ -2568,18 +2568,11 @@ class RouteHelper {
       case RouteConstant.vehicleDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-          builder: (_) =>
-              VehicleDetailScreen(vehicleId: args['vehicleId'] as String),
-          settings: RouteSettings(name: getVehicleDetailScreenRoute()),
-        );
-
-      case RouteConstant.vehicleBookingsScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => VehicleBookingsScreen(
-            initialTab: (args?['initialTab'] as int?) ?? 0,
+          // `vehicleId` is now an inventory id — see the v3 integration guide.
+          builder: (_) => VehicleListingDetailScreenV3(
+            listingId: args['vehicleId'] as String,
           ),
-          settings: RouteSettings(name: getVehicleBookingsScreenRoute()),
+          settings: RouteSettings(name: getVehicleDetailScreenRoute()),
         );
 
       case RouteConstant.chooseEarnServiceScreen:

@@ -11,7 +11,7 @@ import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_booking_model.dart';
 import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/business_enquiry_model.dart';
-import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_booking_models.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 import 'Conversation.dart';

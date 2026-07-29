@@ -39,10 +39,17 @@ class PriceResult {
   final String mrpRange;
   final String discountRange;
 
-  PriceResult({
+  /// True when no `pricing[]` row matched the shop's pincode, so these are
+  /// other cities' prices shown as a guide rather than what this shop sells
+  /// at. Callers can label or de-emphasise them; nothing is hidden, because a
+  /// merchant picking catalog items still needs a reference price.
+  final bool isIndicative;
+
+  const PriceResult({
     required this.sellingRange,
     required this.mrpRange,
     required this.discountRange,
+    this.isIndicative = false,
   });
 }
 
@@ -213,19 +220,21 @@ class MedicalController extends GetxController {
         return;
       }
 
+      // State work before cosmetics — same ordering rule as the manual publish
+      // path, and for the same reason: nothing after this may gate the cart
+      // clear or the refresh.
+      clearMedicalSelection();
+      invalidateMedicalProductsTabCache();
+      unawaited(fetchMedicalProductsTabData(businessId: businessId));
+
       Get.until((route) =>
           route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
       commonSnackBar(
         message: response.message ?? AppStrings.medicalProductsAddedSuccessfully.tr,
       );
-      // Same as the manual path: empty the basket, then refresh Top Selling +
-      // inventory so the just-published items are on the tab we popped back to.
-      clearMedicalSelection();
-      invalidateMedicalProductsTabCache();
-      unawaited(fetchMedicalProductsTabData(businessId: businessId));
-      log('success-- ${response.isSuccess}');
-    } catch (e) {
-      log('addMedicalSnapSearchProductNewVariant error: $e');
+      log('addMedicalSnapSearchProductNewVariant: published ${payload.length} variant(s)');
+    } catch (e, s) {
+      log('addMedicalSnapSearchProductNewVariant error: $e\n$s');
     } finally {
       isAddMedicalSnapSearchProductsLoading.value = false;
     }
@@ -260,8 +269,11 @@ class MedicalController extends GetxController {
           "batches": [
             {
               "quantity": variant.weight,
-              "mrp": variant.pricing?[0].mrp,
-              "sellingPrice": variant.pricing?[0].sellingPrice,
+              // Same resolver as the manual publish path — this shop's pincode
+              // row first, `pricing[0]` only as a fallback.
+              "mrp": resolvePublishPricing(variant.pricing)?.mrp,
+              "sellingPrice":
+                  resolvePublishPricing(variant.pricing)?.sellingPrice,
             }
           ],
         });
@@ -279,13 +291,18 @@ class MedicalController extends GetxController {
     showDialog(
       context: context,
       builder: (_) {
+        // Edit the row that will actually be PUBLISHED, not blindly
+        // `pricing[0]`. For a shop whose pincode has its own catalog row those
+        // are different entries, and editing index 0 would have looked like it
+        // did nothing — the publish would still send the shop's own row.
+        final target = resolvePublishPricing(variant.pricing);
         return EditMedicalVarientDialog(
           title: title,
-          mrp: variant.pricing?[0].mrp?.toString() ?? "",
-          selling: variant.pricing?[0].sellingPrice?.toString() ?? "",
+          mrp: target?.mrp?.toString() ?? "",
+          selling: target?.sellingPrice?.toString() ?? "",
           onSubmit: (mrp, sellingPrice) {
-            variant.pricing?[0].mrp = int.tryParse(mrp);
-            variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
+            target?.mrp = int.tryParse(mrp);
+            target?.sellingPrice = int.tryParse(sellingPrice);
             selectedSnapSearchProductVariants.refresh();
             Get.back();
           },
@@ -343,71 +360,141 @@ class MedicalController extends GetxController {
     return true;
   }
 
-  PriceResult getPriceDetails(List<Pricing>? v) {
-    final pricingList = v;
+  /// The pincode the catalog is being browsed for — the shop's own pincode,
+  /// falling back to the device's. Identical to what
+  /// [fetchGroceryCategoryProducts] sends as `?pincode=`, so what the card
+  /// shows and what the server was asked for can't drift apart.
+  String get activePincode {
+    final businessPincode = getOrPut(() => ViewBusinessDetailsController(),
+                permanent: true)
+            .businessProfileDetails
+            .value
+            ?.data
+            ?.pincode
+            ?.toString() ??
+        '';
+    if (businessPincode.trim().isNotEmpty) return businessPincode.trim();
+    return LocationService.userCurrentAddress.value.postalCode.trim();
+  }
 
-    if (pricingList==null) {
+  /// The one `pricing[]` row that applies to this shop — the entry whose
+  /// `pincode` matches [activePincode] — or null when the catalog carries no
+  /// price for this area.
+  ///
+  /// Every price surface should go through this instead of reaching for
+  /// `pricing[0]`: index 0 is just whichever city the backend happened to
+  /// write first (Delhi, in the sample payload), so a Surat shop was being
+  /// shown a Delhi price as if it were its own.
+  Pricing? resolveLocalPricing(List<Pricing>? pricingList, {String? pincode}) {
+    final target = (pincode ?? activePincode).trim();
+    if (target.isEmpty || pricingList == null) return null;
+    for (final p in pricingList) {
+      if ((p.pincode ?? '').trim() == target) return p;
+    }
+    return null;
+  }
+
+  /// `₹90`, or `—` when there is nothing to show. Public so the screens that
+  /// format a single [Pricing] row themselves stay consistent with the cards.
+  String formatMoney(num? value) => _money(value);
+
+  /// The pricing row a **publish** is seeded from: this shop's pincode when
+  /// the catalog has one, otherwise the first row.
+  ///
+  /// The fallback is deliberate and must stay. The add-variant screen and
+  /// [buildInventoryPayload] both go through here so the price a merchant is
+  /// shown before publishing is exactly the price that gets published. Using
+  /// the strict [resolveLocalPricing] on the screen alone made it read "MRP
+  /// not set / Price not set" for a catalog that has no Surat row, while the
+  /// POST still happily sent the Delhi figures — display and payload
+  /// disagreeing is worse than either one being approximate.
+  Pricing? resolvePublishPricing(List<Pricing>? pricingList) {
+    if (pricingList == null || pricingList.isEmpty) return null;
+    return resolveLocalPricing(pricingList) ?? pricingList.first;
+  }
+
+  /// Resolves a variant's `pricing[]` into the three display strings.
+  ///
+  /// `pricing` is one row **per city**, and the catalog carries cities this
+  /// shop doesn't sell in — a Surat pharmacy searching with `pincode=395010`
+  /// still gets rows for Delhi and Mumbai back. So the entry matching
+  /// [activePincode] is used when there is one, and only when there isn't do
+  /// we fall back to a range across the other cities, flagged as indicative
+  /// via [PriceResult.isIndicative] so a caller can label it.
+  ///
+  /// The old version skipped that step entirely and always min/max'd every
+  /// city, which is why a ₹90 (Delhi) / ₹92 (Mumbai) product advertised
+  /// "₹90 - ₹92" to a shop in Surat that has neither price.
+  PriceResult getPriceDetails(List<Pricing>? v, {String? pincode}) {
+    const empty = PriceResult(
+      sellingRange: '—',
+      mrpRange: '—',
+      discountRange: '—',
+    );
+
+    // Rows with an actual selling price. An entry missing one can't be shown
+    // and must not drag a range down to zero either.
+    final priced =
+        (v ?? const <Pricing>[]).where((p) => p.sellingPrice != null).toList();
+    if (priced.isEmpty) return empty;
+
+    double discountOf(Pricing p) {
+      final mrp = p.mrp?.toDouble() ?? 0;
+      final selling = p.sellingPrice?.toDouble() ?? 0;
+      if (mrp <= 0 || selling > mrp) return 0;
+      return ((mrp - selling) / mrp) * 100;
+    }
+
+    // Exact match on the pincode we searched with → that IS this shop's
+    // price, so show one number rather than a range.
+    final local = resolveLocalPricing(priced, pincode: pincode);
+
+    if (local != null) {
       return PriceResult(
-        sellingRange: "0",
-        mrpRange: "0",
-        discountRange: "0%",
+        sellingRange: _money(local.sellingPrice),
+        mrpRange: _money(local.mrp),
+        discountRange: _percent(discountOf(local)),
+        isIndicative: false,
       );
     }
 
-    // Safely map â†’ remove null â†’ convert to double
-    final sellingPrices = pricingList
-        .map((e) => e.sellingPrice)
-        .where((p) => p != null)
-        .map((p) => p!.toDouble())
-        .toList();
-
-    final mrpPrices = pricingList
-        .map((e) => e.mrp)
-        .where((p) => p != null)
-        .map((p) => p!.toDouble())
-        .toList();
-
-    if (sellingPrices.isEmpty || mrpPrices.isEmpty) {
-      return PriceResult(
-        sellingRange: "0",
-        mrpRange: "0",
-        discountRange: "0%",
-      );
+    String rangeOf(Iterable<num?> values, String Function(num?) format) {
+      final present =
+          values.whereType<num>().map((n) => n.toDouble()).toList()..sort();
+      if (present.isEmpty) return '—';
+      final min = present.first;
+      final max = present.last;
+      return min == max ? format(min) : '${format(min)} - ${format(max)}';
     }
 
-    // Find MIN/MAX
-    final minSelling = sellingPrices.reduce((a, b) => a < b ? a : b);
-    final maxSelling = sellingPrices.reduce((a, b) => a > b ? a : b);
-
-    final minMrp = mrpPrices.reduce((a, b) => a < b ? a : b);
-    final maxMrp = mrpPrices.reduce((a, b) => a > b ? a : b);
-
-    // Discount %
-    double discount(num mrp, num selling) {
-      if (mrp == 0) return 0;
-      final d = ((mrp - selling) / mrp) * 100;
-      return d < 0 ? 0 : d;
-    }
-
-    final minDiscount = discount(minMrp, minSelling);
-    final maxDiscount = discount(maxMrp, maxSelling);
-
-    // Format ranges
-    final sellingRange = minSelling == maxSelling
-        ? "â‚¹$minSelling"
-        : "â‚¹$minSelling - â‚¹$maxSelling";
-
-    final mrpRange = minMrp == maxMrp ? "â‚¹$minMrp" : "â‚¹$minMrp - â‚¹$maxMrp";
-
-    final discountRange = minDiscount == maxDiscount
-        ? "${minDiscount.toStringAsFixed(0)}% ${AppStrings.offCaps.tr}"
-        : "${minDiscount.toStringAsFixed(0)}% - ${maxDiscount.toStringAsFixed(0)}% ${AppStrings.offCaps.tr}";
+    // Discounts are min/max'd over the per-row values, not derived from the
+    // min/max price pair — that pairing produced descending nonsense like
+    // "10% - 8% Off" because the cheapest row isn't the biggest discount.
+    final discounts = priced.map(discountOf).toList()..sort();
 
     return PriceResult(
-      sellingRange: sellingRange,
-      mrpRange: mrpRange,
-      discountRange: discountRange,
+      sellingRange: rangeOf(priced.map((p) => p.sellingPrice), _money),
+      mrpRange: rangeOf(priced.map((p) => p.mrp), _money),
+      discountRange: discounts.first == discounts.last
+          ? _percent(discounts.first)
+          : '${_percent(discounts.first, withSuffix: false)} - ${_percent(discounts.last)}',
+      isIndicative: true,
     );
+  }
+
+  /// `₹90`, not `₹90.0` — paise only appear when the value actually has them.
+  String _money(num? value) {
+    if (value == null) return '—';
+    final asDouble = value.toDouble();
+    final text = asDouble == asDouble.roundToDouble()
+        ? asDouble.round().toString()
+        : asDouble.toStringAsFixed(2);
+    return '₹$text';
+  }
+
+  String _percent(double value, {bool withSuffix = true}) {
+    final text = '${value.round()}%';
+    return withSuffix ? '$text ${AppStrings.offCaps.tr}' : text;
   }
 
   void openEditVariantDialog({
@@ -420,13 +507,16 @@ class MedicalController extends GetxController {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
+        // As in the snap-search dialog above: edit the row that gets
+        // published, not whichever city the catalog listed first.
+        final target = resolvePublishPricing(variant.pricing);
         return EditMedicalVarientDialog(
           title: title,
-          mrp: variant.pricing?[0].mrp?.toString() ?? "",
-          selling: variant.pricing?[0].sellingPrice?.toString() ?? "",
+          mrp: target?.mrp?.toString() ?? "",
+          selling: target?.sellingPrice?.toString() ?? "",
           onSubmit: (mrp, sellingPrice) {
-            variant.pricing?[0].mrp = int.tryParse(mrp);
-            variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
+            target?.mrp = int.tryParse(mrp);
+            target?.sellingPrice = int.tryParse(sellingPrice);
             update();
             Get.back();
           },
@@ -635,24 +725,29 @@ class MedicalController extends GetxController {
       }
 
       addMedicalProductVariantResponse.value = ApiResponse.complete(response);
-      // final jsonData = response.response?.data;
+
+      // ORDER MATTERS. State work first, cosmetics last.
+      //
+      // This used to snackbar before clearing and refetching, and
+      // `response.message` threw on this endpoint's array body — so the throw
+      // took out the cart clear AND both refresh calls, silently, leaving the
+      // merchant on a Products tab that didn't contain what they had just
+      // published. Nothing after this point is allowed to gate the data work.
+      clearMedicalSelection();
+      invalidateMedicalProductsTabCache();
+      // Not awaited: the pop and the snackbar shouldn't wait on two GETs.
+      unawaited(fetchMedicalProductsTabData(businessId: businessId));
 
       Get.until((route) =>
                   route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
       commonSnackBar(
-        message: response.message ?? AppStrings.somethingWentWrong,
+        message: response.message ?? AppStrings.medicalInventoryUpdatedSuccessfully.tr,
       );
-      // The basket is published — empty it before anything can re-open the
-      // add flow and find the same items still in the cart.
-      clearMedicalSelection();
-      // We just landed back on the Products tab and both its lists are stale —
-      // the item the merchant published isn't in either. Drop the freshness
-      // stamp so nothing short-circuits, then refetch Top Selling + inventory.
-      // Not awaited: the snackbar and the pop shouldn't wait on two GETs.
-      invalidateMedicalProductsTabCache();
-      unawaited(fetchMedicalProductsTabData(businessId: businessId));
-      log('success-- ${response.isSuccess}');
-    } catch (e) {
+      log('addMedicalProductNewVariant: published ${payload.length} variant(s)');
+    } catch (e, s) {
+      // Never swallow this again — an empty catch here is exactly what made
+      // the missing refresh invisible.
+      log('addMedicalProductNewVariant failed: $e\n$s');
       addMedicalProductVariantResponse.value = ApiResponse.error('error');
     } finally {
       isAddMedicalProductsLoading.value = false;
@@ -709,8 +804,13 @@ class MedicalController extends GetxController {
               // most catalog variants, so every publish sent quantity: null and
               // the item landed with totalStock: 0.
               "quantity": 1,
-              "mrp": variant.pricing?[0].mrp,
-              "sellingPrice": variant.pricing?[0].sellingPrice,
+              // Prefer this shop's own pincode row; `pricing[0]` (whichever
+              // city the catalog listed first) is only the fallback. Same
+              // resolver the add-variant screen displays from, so what the
+              // merchant sees is what gets published.
+              "mrp": resolvePublishPricing(variant.pricing)?.mrp,
+              "sellingPrice":
+                  resolvePublishPricing(variant.pricing)?.sellingPrice,
             }
           ],
         });

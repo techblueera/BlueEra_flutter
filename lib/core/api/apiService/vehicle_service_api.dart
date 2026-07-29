@@ -2,118 +2,71 @@
 ///
 /// Mixed into [BaseService] alongside the other per-service API mixins.
 ///
-/// See `lib/docs/FLUTTER_INTEGRATION_GUIDE.md` for the full contract.
+/// The service was rebuilt around the same four-tier shape as grocery
+/// (Category → Product → ProductVariant → Inventory) and the `/vehicles`
+/// prefix is **gone** — every path that carried it (`/vehicles/types`,
+/// `/vehicles/catalog/*`, `/vehicles/create`, `/facilities/*`, `/gallery/*`,
+/// `/testimonials/*`, `/contact-us/*`, `/upload/init*`) now answers 404, and
+/// those constants were removed along with the screens that called them.
+///
+/// Contract: `docs/backend/FRONTEND_INTEGRATION_GUIDE.md`.
 mixin VehicleServiceApi {
-  // Public + owner vehicle CRUD
-  // Canonical, server-controlled type taxonomy (drives the type picker).
-  final String vehicleTypes = 'vehicle-service/vehicles/types';
-  // Condition (NEW/USED) + listing-detail option pickers + seller pre-fill.
-  final String vehicleConditions = 'vehicle-service/vehicles/conditions';
-  final String vehicleOptions = 'vehicle-service/vehicles/options';
-  final String vehicleSellerDefaults =
-      'vehicle-service/vehicles/seller-defaults';
-  final String vehiclesList = 'vehicle-service/vehicles';
-  String vehicleById(String id) => 'vehicle-service/vehicles/get/$id';
-  final String vehiclesCreate = 'vehicle-service/vehicles/create';
-  final String vehiclesMineList = 'vehicle-service/vehicles/me/list';
-  String vehiclesUpdate(String id) => 'vehicle-service/vehicles/update/$id';
-  String vehiclesDelete(String id) => 'vehicle-service/vehicles/delete/$id';
-  String vehiclesImagesAdd(String id) => 'vehicle-service/vehicles/$id/images';
-  String vehiclesImagesRemove(String id) =>
-      'vehicle-service/vehicles/$id/images';
 
-  // Catalog (Brand → Model → Variant). Create requires the catalog
-  // `variant_id`; the add-vehicle form is pre-filled from the chosen variant.
-  final String vehicleCatalogBrands = 'vehicle-service/vehicles/catalog/brands';
-  final String vehicleCatalogModels = 'vehicle-service/vehicles/catalog/models';
-  String vehicleCatalogModelVariants(String modelId) =>
-      'vehicle-service/vehicles/catalog/models/$modelId/variants';
-  String vehicleCatalogVariant(String id) =>
-      'vehicle-service/vehicles/catalog/variants/$id';
-  final String vehicleCatalogCategories =
-      'vehicle-service/vehicles/catalog/categories';
+  /// Flat category reads. `?level=0|1|2` + `?parentId=` drive the three
+  /// pickers (type → brand → model). `level` is derived server-side — never
+  /// send it on a write.
+  final String vehicleV3Categories = 'vehicle-service/categories';
+  final String vehicleV3CategoriesNested = 'vehicle-service/categories/nested';
+  final String vehicleV3CategoriesNestedWithInventory =
+      'vehicle-service/categories/nested/with-inventory';
+  final String vehicleV3CategoriesSearch = 'vehicle-service/categories/search';
+  String vehicleV3CategoryById(String id) => 'vehicle-service/categories/$id';
+  String vehicleV3CategoryChildren(String id) =>
+      'vehicle-service/categories/$id/children';
 
-  // Missing-model requests — a seller asks for a catalog item that
-  // doesn't exist yet (admin approval creates it).
-  final String vehicleCatalogRequests =
-      'vehicle-service/vehicles/catalog/requests';
-  final String vehicleCatalogRequestsMine =
-      'vehicle-service/vehicles/catalog/requests/my';
+  /// Children by parent **key** (`4W`, `BRAND_MARUTI_SUZUKI`). `key` is
+  /// globally unique and stable, so it is the safer thing to hardcode against.
+  String vehicleV3CategoryChildrenByKey(String key) =>
+      'vehicle-service/categories/key/$key/children';
+  String vehicleV3CategoryChildrenByKeyWithInventory(String key) =>
+      'vehicle-service/categories/key/$key/children/with-inventory';
 
-  // Catalog change requests — propose edits to an existing Model/Variant.
-  final String vehicleCatalogChangeRequests =
-      'vehicle-service/vehicles/catalog/change-requests';
+  /// Trims. `categoryId` resolves to the whole subtree, so a brand — or even
+  /// a root key — returns everything beneath it.
+  final String vehicleV3ProductsSearch = 'vehicle-service/products/search';
+  final String vehicleV3ProductsUserSearch =
+      'vehicle-service/products/user/search';
+  final String vehicleV3ProductsPopular = 'vehicle-service/products/popular';
+  final String vehicleV3ProductsByRootCategory =
+      'vehicle-service/products/by-root-category';
+  final String vehicleV3ProductsSimilar = 'vehicle-service/products/similar';
 
-  // Facilities
-  final String vehicleFacilitiesCreate = 'vehicle-service/facilities/create';
-  final String vehicleFacilitiesMineList = 'vehicle-service/facilities/me/list';
-  String vehicleFacilitiesPublic(String userId) =>
-      'vehicle-service/facilities/public/$userId';
-  String vehicleFacilitiesUpdate(String id) =>
-      'vehicle-service/facilities/update/$id';
-  String vehicleFacilitiesDelete(String id) =>
-      'vehicle-service/facilities/delete/$id';
+  /// Single trim **and its colours** — the colour `_id` is what a listing is
+  /// created against, and this is the only endpoint that returns them.
+  String vehicleV3ProductById(String productId) =>
+      'vehicle-service/products/$productId';
 
-  // Live photos
-  final String vehicleLivePhotosAdd = 'vehicle-service/live-photos/add';
-  final String vehicleLivePhotosBulk = 'vehicle-service/live-photos/bulk';
-  final String vehicleLivePhotosMineList =
-      'vehicle-service/live-photos/me/list';
-  String vehicleLivePhotosPublic(String userId) =>
-      'vehicle-service/live-photos/public/$userId';
-  String vehicleLivePhotosDelete(String id) =>
-      'vehicle-service/live-photos/delete/$id';
+  /// Listings. `POST`/`PUT` take JSON *or* multipart — there is no separate
+  /// upload step and no presigned URL any more.
+  final String vehicleV3Inventory = 'vehicle-service/inventory';
+  final String vehicleV3InventoryMine = 'vehicle-service/inventory/my';
+  final String vehicleV3InventorySummary = 'vehicle-service/inventory/summary';
+  final String vehicleV3InventoryBrowse = 'vehicle-service/inventory/browse';
+  String vehicleV3InventoryById(String id) => 'vehicle-service/inventory/$id';
+  String vehicleV3InventoryToggle(String id) =>
+      'vehicle-service/inventory/$id/toggle';
+  String vehicleV3InventoryBySeller(String userId) =>
+      'vehicle-service/inventory/seller/$userId';
 
-  // Gallery
-  final String vehicleGalleryAdd = 'vehicle-service/gallery/add';
-  final String vehicleGalleryBulk = 'vehicle-service/gallery/bulk';
-  final String vehicleGalleryMineList = 'vehicle-service/gallery/me/list';
-  String vehicleGalleryPublic(String userId) =>
-      'vehicle-service/gallery/public/$userId';
-  String vehicleGalleryUpdate(String id) =>
-      'vehicle-service/gallery/update/$id';
-  String vehicleGalleryDelete(String id) =>
-      'vehicle-service/gallery/delete/$id';
-
-  // Testimonials
-  final String vehicleTestimonialsAdd = 'vehicle-service/testimonials/add';
-  final String vehicleTestimonialsReceived =
-      'vehicle-service/testimonials/me/received';
-  String vehicleTestimonialsPublic(String userId) =>
-      'vehicle-service/testimonials/public/$userId';
-  String vehicleTestimonialsById(String id) =>
-      'vehicle-service/testimonials/get/$id';
-  String vehicleTestimonialsUpdate(String id) =>
-      'vehicle-service/testimonials/update/$id';
-  String vehicleTestimonialsDelete(String id) =>
-      'vehicle-service/testimonials/delete/$id';
-
-  // Contact us
-  final String vehicleContactCreate = 'vehicle-service/contact-us/create';
-  final String vehicleContactMineList = 'vehicle-service/contact-us/me/list';
-  String vehicleContactPublic(String userId) =>
-      'vehicle-service/contact-us/public/$userId';
-  String vehicleContactById(String id) => 'vehicle-service/contact-us/get/$id';
-  String vehicleContactUpdate(String id) =>
-      'vehicle-service/contact-us/update/$id';
-  String vehicleContactDelete(String id) =>
-      'vehicle-service/contact-us/delete/$id';
-
-  // Bookings ("place order") — connect-style, one request = one listing.
-  // See docs/backend/VEHICLE_SERVICE_API_DOCUMENTATION.md.
-  final String vehicleBookings = 'vehicle-service/vehicles/bookings';
-  final String vehicleBookingsMine = 'vehicle-service/vehicles/bookings/me';
-  final String vehicleBookingsSellerMine =
-      'vehicle-service/vehicles/bookings/seller/me';
-  String vehicleBookingById(String id) =>
-      'vehicle-service/vehicles/bookings/$id';
-  String vehicleBookingStatus(String id) =>
-      'vehicle-service/vehicles/bookings/$id/status';
-  String vehicleBookingCancel(String id) =>
-      'vehicle-service/vehicles/bookings/$id/cancel';
-
-  // S3 upload init (presigned PUT — legacy, no size cap)
-  final String vehicleUploadInit = 'vehicle-service/upload/init';
-  // S3 upload init v2 (presigned POST policy, size-capped) — preferred
-  final String vehicleUploadInitV2 = 'vehicle-service/upload/init-v2';
+  /// Enquiries. Named `booking` by the contract; there is no payment and no
+  /// stock decrement. Creating one opens a chat card automatically.
+  final String vehicleV3Bookings = 'vehicle-service/bookings';
+  final String vehicleV3BookingsMine = 'vehicle-service/bookings/me';
+  final String vehicleV3BookingsSellerMine =
+      'vehicle-service/bookings/seller/me';
+  String vehicleV3BookingById(String id) => 'vehicle-service/bookings/$id';
+  String vehicleV3BookingStatus(String id) =>
+      'vehicle-service/bookings/$id/status';
+  String vehicleV3BookingCancel(String id) =>
+      'vehicle-service/bookings/$id/cancel';
 }

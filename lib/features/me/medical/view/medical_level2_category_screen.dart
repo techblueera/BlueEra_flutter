@@ -303,12 +303,15 @@ class _MedicalLevel2CategoryScreenState
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          final level3Children = category.children ?? [];
-          if (level3Children.isNotEmpty) {
-            Get.to(() => MedicalProductSelectionScreen(
-                  arrLevel3Category: level3Children,
-                ));
-          }
+          // Always navigates. The old `if (children.isNotEmpty)` meant that
+          // tapping a LEAF sub-category did nothing at all — no screen, no
+          // message — which is the level most medical categories bottom out
+          // at. A leaf opens on itself; see
+          // [MedicalProductSelectionScreen.categoriesToOpen].
+          Get.to(() => MedicalProductSelectionScreen(
+                arrLevel3Category:
+                    MedicalProductSelectionScreen.categoriesToOpen(category),
+              ));
         },
         borderRadius: BorderRadius.circular(14),
         child: Ink(

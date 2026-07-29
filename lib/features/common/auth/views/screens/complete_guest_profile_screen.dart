@@ -1,23 +1,18 @@
-import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -36,7 +31,6 @@ class _CompleteGuestProfileScreenState
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final FocusNode _nameFocus = FocusNode();
-  final RxString _profileImagePath = ''.obs;
   final RxnString _nameError = RxnString();
   final RxBool _isNameValid = false.obs;
 
@@ -58,19 +52,6 @@ class _CompleteGuestProfileScreenState
     super.dispose();
   }
 
-  Future<void> _pickPhoto() async {
-    HapticFeedback.selectionClick();
-    final path = await PhotoPickerService.pickSinglePhoto(
-      context,
-      AppStrings.editProfilePicture.tr,
-      isOnlyCamera: true,
-      isGallery: true,
-    );
-    if (path is String && path.isNotEmpty) {
-      _profileImagePath.value = path;
-    }
-  }
-
   Future<void> _onContinue() async {
     final name = _nameController.text.trim();
     final validationError = ValidationMethod.validateName(name);
@@ -87,7 +68,6 @@ class _CompleteGuestProfileScreenState
         ApiKeys.contact_no: _authController.mobileNumberEditController.text,
         ApiKeys.account_type: AppConstants.guest,
         ApiKeys.name: name,
-        if (_profileImagePath.value.isNotEmpty) ApiKeys.profile_image: _profileImagePath.value,
       },
     );
   }
@@ -129,23 +109,10 @@ class _CompleteGuestProfileScreenState
                     SizeConfig.size20,
                     SizeConfig.size24,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _photoSectionHeader(),
-                      SizedBox(height: SizeConfig.size20),
-                      Center(child: _profilePicker()),
-                      SizedBox(height: SizeConfig.size24),
-                      Divider(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.08),
-                        height: 1,
-                        thickness: 1,
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      _nameSection(),
-                    ],
-                  ),
+                  // Name is the only thing a guest is asked for — the profile
+                  // picture used to sit above it (optional) and was dropped so
+                  // the screen is a single field between the guest and the app.
+                  child: _nameSection(),
                 ),
               ),
             ),
@@ -162,178 +129,6 @@ class _CompleteGuestProfileScreenState
       fontSize: SizeConfig.medium,
       fontWeight: FontWeight.w700,
       color: AppColors.mainTextColor,
-    );
-  }
-
-  Widget _photoSectionHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CustomText(
-          AppStrings.profilePicture.tr,
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w700,
-          color: AppColors.mainTextColor,
-        ),
-        SizedBox(width: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10,
-            vertical: 3,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: CustomText(
-            AppStrings.optional.tr,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primaryColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _profilePicker() {
-    final avatarSize = SizeConfig.size120 + SizeConfig.size20;
-    final haloSize = avatarSize + SizeConfig.size40;
-    final badgeSize = SizeConfig.size40 + SizeConfig.size4;
-    // 45° offset on the avatar perimeter, then pulled inward by ~28% of badge
-    // so half the badge sits outside the avatar's circle and half overlaps.
-    final radius = avatarSize / 2;
-    final angleOffset = radius * 0.7071; // cos/sin 45°
-    final pullIn = badgeSize * 0.28;
-    final badgeDx = angleOffset - pullIn;
-    final badgeDy = angleOffset - pullIn;
-
-    return GestureDetector(
-      onTap: _pickPhoto,
-      child: SizedBox(
-        width: haloSize,
-        height: haloSize,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Soft radial halo behind the avatar — adds depth without
-            // shipping any new dependency.
-            Container(
-              width: haloSize,
-              height: haloSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.10),
-                    AppColors.primaryColor.withValues(alpha: 0.0),
-                  ],
-                  stops: const [0.55, 1.0],
-                ),
-              ),
-            ),
-            // Avatar + badge live in their own stack so the badge can be
-            // positioned relative to the avatar's edge (not the halo).
-            SizedBox(
-              width: avatarSize,
-              height: avatarSize,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Obx(() {
-                    final path = _profileImagePath.value;
-                    final hasImage = path.isNotEmpty;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                      width: avatarSize,
-                      height: avatarSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color:
-                            hasImage ? AppColors.white : AppColors.whiteF3,
-                        border: Border.all(
-                          color: hasImage
-                              ? AppColors.primaryColor
-                              : AppColors.primaryColor
-                                  .withValues(alpha: 0.35),
-                          width: hasImage ? 2.0 : 1.4,
-                        ),
-                        image: hasImage
-                            ? DecorationImage(
-                                image: FileImage(File(path)),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor.withValues(
-                              alpha: hasImage ? 0.18 : 0.06,
-                            ),
-                            blurRadius: 24,
-                            spreadRadius: hasImage ? 1 : 0,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: hasImage
-                          ? null
-                          : Center(
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.user,
-                                imgColor: AppColors.primaryColor
-                                    .withValues(alpha: 0.55),
-                                height: SizeConfig.size60,
-                                width: SizeConfig.size60,
-                              ),
-                            ),
-                    );
-                  }),
-                  Positioned(
-                    left: radius + badgeDx - badgeSize / 3.5,
-                    top: radius + badgeDy - badgeSize / 3.5,
-                    child: Obx(() {
-                      final hasImage = _profileImagePath.value.isNotEmpty;
-                      return Container(
-                        width: badgeSize,
-                        height: badgeSize,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.white,
-                            width: 3,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.35),
-                              blurRadius: 14,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: LocalAssets(
-                            imagePath: hasImage
-                                ? AppIconAssets.pen_line
-                                : AppIconAssets.cameraWhiteIcon,
-                            imgColor: AppColors.white,
-                            height: SizeConfig.size18,
-                            width: SizeConfig.size18,
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

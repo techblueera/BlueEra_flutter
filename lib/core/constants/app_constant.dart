@@ -624,6 +624,7 @@ final List<String> gradingOptions = [
   "GPA",
   "GRADE",
 ];
+
 List<String> months = [
   'MM',
   '01',
@@ -639,6 +640,7 @@ List<String> months = [
   '11',
   '12'
 ];
+
 List<String> years = ['YYYY'] +
     List.generate(30, (index) => (DateTime.now().year + index).toString());
 
@@ -2732,55 +2734,6 @@ final List<OnboardingCategoryModel> financeCategories = [
     icon: AppImageAssets.advisorySector,
     subtitle: "Financial planning, consultation",
     accountType: AppConstants.business,),*/
-];
-
-final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
-  CollapsibleGridModel(
-      name: 'New Vehicle Sales',
-      slugId: 'Vehicle_Sales',
-      icon: AppImageAssets.VehicleSales),
-  CollapsibleGridModel(
-      name: 'Vehicle Parts',
-      slugId: 'Vehicle_parts',
-      icon: AppImageAssets.Vehicleparts),
-  CollapsibleGridModel(
-      name: 'Vehicle\nService',
-      slugId: 'VEHICLE_SERVICE',
-      icon: AppImageAssets.vehicleService),
-  CollapsibleGridModel(
-      name: 'Transport Logistic',
-      slugId: 'Transport_Logistic',
-      icon: AppImageAssets.TransportLogistic),
-  CollapsibleGridModel(
-      name: 'Old Vehicle Sales',
-      slugId: 'Vehicle_Rental',
-      icon: AppImageAssets.VehicleRental),
-  CollapsibleGridModel(
-      name: 'Vehicle Support',
-      slugId: 'VehicleSupport',
-      icon: AppImageAssets.VehicleSupport),
-  //
-  // CollapsibleGridModel(
-  //     name: '2 Wheeler\nShowroom',
-  //     slugId: 'TWO_WHEELER_SHOWROOM',
-  //     icon: AppImageAssets.twoWheelerBike),
-  // CollapsibleGridModel(
-  //     name: '4 Wheeler\nShowroom',
-  //     slugId: 'FOUR_WHEELER_SHOWROOM',
-  //     icon: AppImageAssets.vehicleShowroom),
-  // CollapsibleGridModel(
-  //     name: 'Pre Owned\nShowroom',
-  //     slugId: 'PRE_OWNED_SHOWROOM',
-  //     icon: AppImageAssets.preOwnedShowroom),
-  //
-  // CollapsibleGridModel(
-  //     name: 'Auto Parts\nShop',
-  //     slugId: 'AUTO_PARTS_SHOP',
-  //     icon: AppImageAssets.autoPartsShop),
-  // CollapsibleGridModel(
-  //     name: 'Vehicle\nAccessories',
-  //     slugId: 'VEHICLE_ACCESSORIES',
-  //     icon: AppImageAssets.vehicleAccessories),
 ];
 
 final List<CollapsibleGridModel> bookingList = [

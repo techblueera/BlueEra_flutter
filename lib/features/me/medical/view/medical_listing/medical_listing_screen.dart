@@ -266,8 +266,8 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
   }
 
   Widget medicalCard(MedicalProductData groceryProductData) {
-    final sellingPrice = "â‚¹${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
-    final mrp = "â‚¹${groceryProductData.variants?[0].pricing?[0].mrp}";
+    final sellingPrice = "₹${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
+    final mrp = "₹${groceryProductData.variants?[0].pricing?[0].mrp}";
     final discount = '${calculateDiscount(
       sellingPrice,
       mrp,
@@ -617,14 +617,14 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          'â‚¹${variant.pricing?[0].sellingPrice}',
+                          '₹${variant.pricing?[0].sellingPrice}',
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          'â‚¹${variant.pricing?[0].mrp}',
+                          '₹${variant.pricing?[0].mrp}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,

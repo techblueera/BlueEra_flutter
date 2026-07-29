@@ -548,7 +548,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       CustomText(
-                        'â‚¹${sellingPrice ?? mrp ?? ''}',
+                        '₹${sellingPrice ?? mrp ?? ''}',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.mainTextColor,
@@ -556,7 +556,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                       if (mrp != null && sellingPrice != null && mrp != sellingPrice) ...[
                         SizedBox(width: 4),
                         Text(
-                          'â‚¹$mrp',
+                          '₹$mrp',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.grey,

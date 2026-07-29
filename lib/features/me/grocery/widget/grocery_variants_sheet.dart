@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -39,6 +40,7 @@ Future<void> showGroceryVariantsSheet({
   required List<ProductVariants> variants,
   GrocerySelfPickupConsumerController? cartController,
   void Function(ProductVariants variant)? onAddToCart,
+  VariantInventoryService? inventoryService,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -50,8 +52,55 @@ Future<void> showGroceryVariantsSheet({
       variants: variants,
       cartController: cartController,
       onAddToCart: onAddToCart,
+      inventoryService: inventoryService,
     ),
   );
+}
+
+/// Which service the sheet's edit / delete actions write to.
+///
+/// The sheet is shared by more than one me-section module because the
+/// business-products response shape is identical across them — but the
+/// **endpoints are not**. Without this, a pharmacy editing a variant from the
+/// medical Top Selling rail posted a medical inventory id to
+/// `grocery-service`, which is simply the wrong service.
+///
+/// [refreshOwner] nudges whichever controller owns the list behind the sheet,
+/// since mutating an element in place doesn't notify an RxList.
+class VariantInventoryService {
+  final Future<ResponseModel> Function({
+    required String inventoryId,
+    required Map<String, dynamic> params,
+  }) update;
+
+  final Future<ResponseModel> Function({required String inventoryId}) delete;
+
+  final VoidCallback refreshOwner;
+
+  const VariantInventoryService({
+    required this.update,
+    required this.delete,
+    required this.refreshOwner,
+  });
+
+  /// `grocery-service/api/inventory/{id}` — the default, so every existing
+  /// grocery call site keeps working untouched.
+  factory VariantInventoryService.grocery() {
+    return VariantInventoryService(
+      update: ({required inventoryId, required params}) =>
+          GroceryRepo().updateInventoryVariantRepo(
+        inventoryId: inventoryId,
+        params: params,
+      ),
+      delete: ({required inventoryId}) =>
+          GroceryRepo().deleteInventoryVariantRepo(inventoryId: inventoryId),
+      refreshOwner: () {
+        if (Get.isRegistered<GroceryController>()) {
+          Get.find<GroceryController>().groceryBusinessProductsList.refresh();
+        }
+      },
+    );
+  }
 }
 
 class GroceryVariantsSheet extends StatefulWidget {
@@ -63,6 +112,9 @@ class GroceryVariantsSheet extends StatefulWidget {
   final GrocerySelfPickupConsumerController? cartController;
   final void Function(ProductVariants variant)? onAddToCart;
 
+  /// Defaults to grocery — see [VariantInventoryService].
+  final VariantInventoryService? inventoryService;
+
   const GroceryVariantsSheet({
     super.key,
     required this.productName,
@@ -70,6 +122,7 @@ class GroceryVariantsSheet extends StatefulWidget {
     required this.variants,
     this.cartController,
     this.onAddToCart,
+    this.inventoryService,
   });
 
   @override
@@ -79,6 +132,11 @@ class GroceryVariantsSheet extends StatefulWidget {
 class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
   late final List<ProductVariants> _variants =
       List<ProductVariants>.from(widget.variants);
+
+  /// The service the edit / delete actions write to. Grocery unless the
+  /// caller injected its own.
+  late final VariantInventoryService _service =
+      widget.inventoryService ?? VariantInventoryService.grocery();
 
   bool get _isCustomer => widget.cartController != null;
 
@@ -165,7 +223,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
         '${variant.quantity ?? ''} ${variant.unit ?? ''}'.trim();
 
     AppLoader.show();
-    final res = await GroceryRepo().updateInventoryVariantRepo(
+    final res = await _service.update(
       inventoryId: inventoryId,
       // The endpoint takes the batch list, not flat price fields — a bare
       // {mrp, sellingPrice} body doesn't identify which batch to write.
@@ -217,9 +275,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
     // shallow-copies the list, not its elements), so the model is already
     // current — but mutating an element doesn't notify an RxList. Nudge it so
     // the top-selling rail behind this sheet rebuilds.
-    if (Get.isRegistered<GroceryController>()) {
-      Get.find<GroceryController>().groceryBusinessProductsList.refresh();
-    }
+    _service.refreshOwner();
 
     if (mounted) setState(() {});
     Get.back(); // close the edit sheet — the variants list stays open
@@ -237,8 +293,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
       return;
     }
     AppLoader.show();
-    final res = await GroceryRepo()
-        .deleteInventoryVariantRepo(inventoryId: inventoryId);
+    final res = await _service.delete(inventoryId: inventoryId);
     AppLoader.hide();
     if (!res.isSuccess) {
       commonSnackBar(message: res.message ?? 'Could not delete the variant.');
@@ -247,6 +302,9 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
     if (mounted) {
       setState(() => _variants.removeWhere((v) => identical(v, variant)));
     }
+    // The row is gone from the server too, so the rail behind the sheet must
+    // drop it as well — the old code only mutated this sheet's local copy.
+    _service.refreshOwner();
     commonSnackBar(message: 'Variant deleted');
   }
 

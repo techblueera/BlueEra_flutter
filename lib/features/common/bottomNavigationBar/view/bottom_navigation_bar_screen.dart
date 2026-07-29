@@ -45,12 +45,11 @@ import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
-import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
+import 'package:BlueEra/features/me/vehicle/v3/view/vehicle_screen_v3.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/location_permission_banner.dart';
 import 'package:flutter/material.dart';
@@ -165,7 +164,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _commitLandingTab();
       _handlePostFrameInitialization();
-      _maybePromptGuestToCreateProfile();
       // One-shot per launch: surface the joining-bonus claim popup when the
       // profile API says so. Skipped on deep-link background hosts.
       if (!widget.deferHeavyInit) {
@@ -178,10 +176,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     });
   }
 
-  /// One-shot per-session prompt: when the user lands on the home and
-  /// their session is in guest mode, surface a friendly dialog asking
-  /// them to create a profile so chat / bookings / orders unlock. The
-  /// dialog from re-firing on tab swaps inside the same launch.
   /// One-shot per launch: show the joining-bonus claim popup. The
   /// `joining_bounce` object is read from the profile response the app already
   /// loads (business → business profile, individual → personal profile) — no
@@ -294,89 +288,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       logs("JOINING_BONUS: not shown yet — listening for profile updates");
       _joiningBonusWorker = ever<JoiningBounce?>(source, show);
     }
-  }
-
-  static bool _guestPromptShown = false;
-
-  void _maybePromptGuestToCreateProfile() {
-    if (_guestPromptShown) return;
-    if (!isGuestUser()) return;
-    if (!mounted) return;
-    _guestPromptShown = true;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor.withValues(alpha: 0.10),
-                ),
-                child: Icon(
-                  Icons.account_circle_outlined,
-                  size: 36,
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              CustomText(
-                AppStrings.createYourProfile.tr,
-                fontSize: SizeConfig.large18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              CustomText(
-                AppStrings.guestBrowsingHint.tr,
-                fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w500,
-                textAlign: TextAlign.center,
-                maxLines: 4,
-              ),
-              SizedBox(height: SizeConfig.size16),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomBtn(
-                      onTap: () => Navigator.of(ctx).pop(),
-                      title: AppStrings.maybeLater.tr,
-                      bgColor: AppColors.transparent,
-                      textColor: AppColors.primaryColor,
-                      borderColor: AppColors.primaryColor,
-                      radius: 10,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: CustomBtn(
-                      onTap: () {
-                        Navigator.of(ctx).pop();
-                        createProfileScreen();
-                      },
-                      title: AppStrings.createProfile.tr,
-                      bgColor: AppColors.primaryColor,
-                      textColor: AppColors.white,
-                      radius: 10,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Future<void> checkByRiderCall() async {
@@ -938,8 +849,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       final category = businessCategoryGlobal.toUpperCase();
       logs("AUTOMOTIVE -> category= $category");
       if (_isSpecificServiceAutomotive()) {
-        // VEHICLE_SALES → vehicle showroom.
-        return const VehicleHomeScreenV2();
+        // VEHICLE_SALES → vehicle showroom, on the rebuilt (v3) service.
+        // VehicleHomeScreenV2 is left in the tree but no longer routed to:
+        // it reads the `/vehicles/*` API that the service replaced, so its
+        // tabs would sit on 404s.
+        return const VehicleScreenV3(fromBottomNavBar: true);
       } else if (_isSpecificServiceSpecialAutomotive()) {
         // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT — their own
         // module entry that currently reuses the OthersMain UI (other_repo.dart

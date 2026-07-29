@@ -218,11 +218,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// either opens complete or doesn't open.
   Future<void> _maybeShowSharePromo() async {
     // Guests have no profile to share: no referral code, no poster, no clip —
-    // the card would compose itself out of nothing. They also get their own
-    // "create a profile" prompt from the nav shell
-    // (_maybePromptGuestToCreateProfile), and two sheets racing to open on the
-    // same landing is worse than either. Returns BEFORE the session slot is
-    // claimed below, so signing in still gets today's promo.
+    // the card would compose itself out of nothing. They also get the guest
+    // scratch card from the nav shell (_maybeShowJoiningBonus), whose CTA is
+    // "create a profile", and two sheets racing to open on the same landing is
+    // worse than either. Returns BEFORE the session slot is claimed below, so
+    // signing in still gets today's promo.
     if (isGuestUser()) return;
     // A fresh account was just created this session — Discover is mounting
     // behind the onboarding "update data" screen, so don't pop the promo over
@@ -320,22 +320,37 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return completer.future;
   }
 
-  /// Whether the profile feeding the promo card is loaded. Guarded — the
+  /// Whether the profile feeding the promo card is loaded **and** carries the
+  /// backend-generated poster the card is built around. Guarded — the
   /// controllers aren't registered on every entry path.
+  ///
+  /// The poster is the promo: without it the sheet is a headline and three
+  /// share buttons, and the share itself degrades to plain text (there's no
+  /// image in the tree to capture). An account whose card hasn't been generated
+  /// yet therefore gets no sheet at all rather than a hollow one — the wait in
+  /// [_awaitPromoProfile] simply times out and today's promo is skipped, and
+  /// since the day key is only written when the sheet actually opens, it comes
+  /// back on its own once the backend has the card. The inline placements on
+  /// the profile screens are unaffected; they still render posterless.
   bool get _isPromoProfileReady {
     try {
+      final String? posterUrl;
       if (isBusinessUser()) {
-        return Get.find<ViewBusinessDetailsController>()
-                .businessProfileDetails
-                .value
-                ?.data !=
-            null;
+        final data = Get.find<ViewBusinessDetailsController>()
+            .businessProfileDetails
+            .value
+            ?.data;
+        if (data == null) return false;
+        posterUrl = data.marketingCard?.readyUrl;
+      } else {
+        final user = Get.find<ViewPersonalDetailsController>()
+            .personalProfileDetails
+            .value
+            .user;
+        if (user == null) return false;
+        posterUrl = user.marketingCard?.readyUrl;
       }
-      return Get.find<ViewPersonalDetailsController>()
-              .personalProfileDetails
-              .value
-              .user !=
-          null;
+      return posterUrl?.trim().isNotEmpty ?? false;
     } catch (_) {
       return false;
     }

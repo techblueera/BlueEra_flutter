@@ -6427,6 +6427,10 @@ class AppStrings {
   static const String addPromptTitleManufacturer = "addPromptTitleManufacturer";
   static const String addPromptTitleAutomotive = "addPromptTitleAutomotive";
   static const String addPromptTitleMedical = "addPromptTitleMedical";
+
+  /// Vehicle SALES showroom — distinct from [addPromptTitleAutomotive], which
+  /// is the auto-PARTS shop ("Add your auto parts").
+  static const String addPromptTitleVehicle = "addPromptTitleVehicle";
   static const String addPromptSubtitle = "addPromptSubtitle";
   static const String addPromptNotNow = "addPromptNotNow";
 

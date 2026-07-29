@@ -57,7 +57,7 @@ class MedicalBillDetails extends StatelessWidget {
                     _commonIconTextRow(
                         imagePath: AppIconAssets.handPriceIcon,
                         leftText: AppStrings.totalMRP,
-                        rightText: 'â‚¹${controller.totalMRP.toStringAsFixed(2)}'
+                        rightText: '₹${controller.totalMRP.toStringAsFixed(2)}'
                     ),
 
                     CommonHorizontalDivider(
@@ -68,7 +68,7 @@ class MedicalBillDetails extends StatelessWidget {
                     _commonIconTextRow(
                         imagePath: AppIconAssets.handPriceIcon,
                         leftText: AppStrings.savingsDiscount,
-                        rightText: 'â‚¹${controller.totalSavings.toStringAsFixed(2)}',
+                        rightText: '₹${controller.totalSavings.toStringAsFixed(2)}',
                         showDiscount: true
                     ),
                   ],
@@ -95,7 +95,7 @@ class MedicalBillDetails extends StatelessWidget {
                           color: AppColors.secondaryTextColor,
                         ),
                         CustomText(
-                          'â‚¹${controller.totalSellingPrice.toStringAsFixed(2)}',
+                          '₹${controller.totalSellingPrice.toStringAsFixed(2)}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor,

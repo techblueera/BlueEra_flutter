@@ -20,11 +20,11 @@ class PharmacySubCategories {
   /// Anything unmapped (i.e. a sub-category added server-side later) falls back
   /// to [fallbackIcon] so it still renders.
   static const Map<String, String> _icons = {
-    'generic medicine store': 'assets/category/medical/OTC_Medicines.png',
+    'generic medicine store': 'assets/category/medical/health_surgical.png',
     'medical store': 'assets/category/medical/health_pharmacy.png',
     'online pharmacy': 'assets/category/medical/otc.png',
     'surgical store': 'assets/category/medical/health_surgical.png',
-    'medical equipment shop': 'assets/category/medical/Medical_Devices.png',
+    'medical equipment shop': 'assets/category/medical/health_labs.png',
   };
 
   static const String fallbackIcon =
