@@ -209,15 +209,33 @@ class GroceryController extends GetxController {
       return d < 0 ? 0 : d;
     }
 
-    final minDiscount = discount(minMrp, minSelling);
-    final maxDiscount = discount(maxMrp, maxSelling);
+    // Discounts are min/max'd over the PER-ROW values. Deriving them from the
+    // min/max price pair instead produced descending nonsense like
+    // "10% - 8% Off", because the cheapest row isn't the biggest discount.
+    final discounts = pricingList
+        .where((p) => p.sellingPrice != null && p.mrp != null)
+        .map((p) => discount(p.mrp!, p.sellingPrice!))
+        .toList()
+      ..sort();
+    final minDiscount = discounts.isEmpty ? 0.0 : discounts.first;
+    final maxDiscount = discounts.isEmpty ? 0.0 : discounts.last;
 
-    // Format ranges
+    // Format ranges. `₹90`, not `₹90.0` — these are doubles, and interpolating
+    // one raw put a trailing `.0` on every price in the app.
+    String money(double value) {
+      final text = value == value.roundToDouble()
+          ? value.round().toString()
+          : value.toStringAsFixed(2);
+      return '₹$text';
+    }
+
     final sellingRange = minSelling == maxSelling
-        ? "₹$minSelling"
-        : "₹$minSelling - ₹$maxSelling";
+        ? money(minSelling)
+        : "${money(minSelling)} - ${money(maxSelling)}";
 
-    final mrpRange = minMrp == maxMrp ? "₹$minMrp" : "₹$minMrp - ₹$maxMrp";
+    final mrpRange = minMrp == maxMrp
+        ? money(minMrp)
+        : "${money(minMrp)} - ${money(maxMrp)}";
 
     final discountRange = minDiscount == maxDiscount
         ? "${minDiscount.toStringAsFixed(0)}% ${AppStrings.offCaps.tr}"

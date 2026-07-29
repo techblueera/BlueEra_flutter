@@ -12,6 +12,19 @@ class AutomotiveProductNestedCategoryResponse {
   int? iV;
   String? description;
   String? image;
+
+  /// Subtree total — this node's products plus every descendant's.
+  ///
+  /// The one to badge with. See
+  /// docs/backend/flutter-categories-levels-and-counts.md §1: counts arrive on
+  /// every node in every response mode, and count **active products only**, so
+  /// a `0` means "nothing on sale here", not "broken category".
+  int productCount = 0;
+
+  /// Products sitting directly ON this node. Usually 0 on a level-0 row while
+  /// [productCount] is large — which is exactly why badges must not use it.
+  int directProductCount = 0;
+
   List<AutomotiveProductNestedCategoryResponse>? children;
   List<AutomotiveItems>? items;
 
@@ -27,9 +40,23 @@ class AutomotiveProductNestedCategoryResponse {
     this.iV,
     this.description,
     this.image,
+    this.productCount = 0,
+    this.directProductCount = 0,
     this.children,
     this.items,
   });
+
+  /// Anything to show behind this node.
+  bool get hasStock => productCount > 0;
+
+  /// True once a subtree has been loaded. Meaningless on a `?level=` row,
+  /// where `children` is never sent — use [hasStock] to decide whether a tap
+  /// is worthwhile.
+  bool get hasChildren => children?.isNotEmpty ?? false;
+
+  /// Worth showing to a merchant browsing for stock: active, and with
+  /// something beneath it. §4's "hiding dead ends".
+  bool get isSellable => (isActive ?? true) && hasStock;
 
   AutomotiveProductNestedCategoryResponse.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -43,6 +70,11 @@ class AutomotiveProductNestedCategoryResponse {
     iV = json['__v'];
     description = json['description'];
     image = json['image'];
+    // `totalProductCount` is documented as an alias of `productCount`; accept
+    // either so a payload that ships only one of them still badges.
+    productCount =
+        _asInt(json['productCount'] ?? json['totalProductCount']) ?? 0;
+    directProductCount = _asInt(json['directProductCount']) ?? 0;
 
     if (json['children'] != null) {
       children = <AutomotiveProductNestedCategoryResponse>[];
@@ -76,11 +108,24 @@ class AutomotiveProductNestedCategoryResponse {
     data['__v'] = iV;
     data['description'] = description;
     data['image'] = image;
+    // Round-tripped so the Hive-cached level-0 list replays with its badges
+    // intact instead of showing 0 until the network refresh lands.
+    data['productCount'] = productCount;
+    data['directProductCount'] = directProductCount;
     if (children != null) {
       data['children'] = children!.map((v) => v.toJson()).toList();
     }
     return data;
   }
+}
+
+/// Counts arrive as numbers, but a `num`/`String` shows up often enough in
+/// this codebase's payloads that a hard cast isn't worth the crash.
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value.trim());
+  return null;
 }
 
 AutomotiveItems itemsFromJson(String str) => AutomotiveItems.fromJson(json.decode(str));

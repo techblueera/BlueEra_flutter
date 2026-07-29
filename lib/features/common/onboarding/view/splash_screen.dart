@@ -24,7 +24,7 @@ import 'package:BlueEra/features/common/Discover/view/self_employee_view_discove
 import 'package:BlueEra/features/common/profile_share_preview/model/share_profile_overview_response.dart';
 import 'package:BlueEra/features/common/profile_share_preview/repo/share_profile_overview_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_listing_detail_screen_v3.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_detail_screen.dart';
@@ -592,10 +592,12 @@ print("type==== ${type}");
             break;
           case 'vehicle':
             // Public vehicle share/QR landing
-            // (`https://beapp.in/app/vehicle/<id>`). The screen fetches its own
-            // data from [VehicleController.fetchVehicleById] in initState, so
-            // passing the id is enough to hydrate the full detail view.
-            Get.to(() => VehicleDetailScreen(vehicleId: id));
+            // (`https://beapp.in/app/vehicle/<id>`). The id is now an
+            // **inventory** id — the rebuilt service dropped `/vehicles/*`, so
+            // the screen reads `GET /inventory/:id` and hydrates itself from
+            // that. Links minted before the rebuild carry ids that no longer
+            // resolve; the screen shows its "no longer available" state.
+            Get.to(() => VehicleListingDetailScreenV3(listingId: id));
             break;
           case 'hotel':
             // Public hotel share/QR landing

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -24,6 +25,15 @@ class AddMedicalVariantScreen extends StatefulWidget {
 
 class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
   final controller = getOrPut(() => MedicalController());
+
+  /// The `pricing[]` row this variant will be **published** with — this shop's
+  /// pincode when the catalog has one, otherwise the first row.
+  ///
+  /// Same resolver `buildInventoryPayload` uses, on purpose: this screen is the
+  /// last thing a merchant sees before hitting Publish, so it has to show the
+  /// figures that are actually going to be sent.
+  Pricing? _localPricing(VariantsData variant) =>
+      controller.resolvePublishPricing(variant.pricing);
 
   @override
   Widget build(BuildContext context) {
@@ -207,8 +217,14 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                 const SizedBox(width: 4),
                                                 Flexible(
                                                   child: CustomText(
-                                                    (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].mrp != null)
-                                                        ? 'â‚¹${v.pricing![0].mrp!.toStringAsFixed(2)}'
+                                                    // The row for THIS shop's
+                                                    // pincode, not pricing[0]
+                                                    // — that was whichever
+                                                    // city the catalog listed
+                                                    // first.
+                                                    _localPricing(v)?.mrp != null
+                                                        ? controller.formatMoney(
+                                                            _localPricing(v)!.mrp)
                                                         : AppStrings.medicalMrpNotSet.tr,
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
@@ -226,8 +242,9 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                 const SizedBox(width: 4),
                                                 Flexible(
                                                   child: CustomText(
-                                                    (v.pricing != null && v.pricing!.isNotEmpty && v.pricing![0].sellingPrice != null)
-                                                        ? 'â‚¹${v.pricing![0].sellingPrice!.toStringAsFixed(2)}'
+                                                    _localPricing(v)?.sellingPrice != null
+                                                        ? controller.formatMoney(
+                                                            _localPricing(v)!.sellingPrice)
                                                         : AppStrings.medicalPriceNotSet.tr,
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,

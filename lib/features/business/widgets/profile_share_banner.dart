@@ -341,26 +341,37 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   /// always get their intrinsic width and the row can't overflow on narrow
   /// screens. The pill is centred against the two-line headline rather than
   /// pinned to its baseline, which left it sitting low and detached.
+  ///
+  /// The two lines are authored with an explicit `\n` and then scaled down as a
+  /// whole to whatever width is left over. At a hard 24px, "Share One-Time,"
+  /// was wider than that leftover space on narrow phones and soft-wrapped, so
+  /// the headline rendered as three ragged lines instead of the two it's
+  /// written as. [BoxFit.scaleDown] shrinks the type instead of re-wrapping it,
+  /// and never scales past the 24px design size on wider screens.
   Widget _header() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                height: 1.12,
-                color: AppColors.mainTextColor,
-              ),
-              children: [
-                const TextSpan(text: 'Share One-Time ,\nEarn '),
-                TextSpan(
-                  text: 'Full Year',
-                  style: TextStyle(color: AppColors.blueAF),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  height: 1.12,
+                  color: AppColors.mainTextColor,
                 ),
-              ],
+                children: [
+                  const TextSpan(text: 'Share One-Time,\nEarn '),
+                  TextSpan(
+                    text: 'Full Year',
+                    style: TextStyle(color: AppColors.blueAF),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

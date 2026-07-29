@@ -231,7 +231,7 @@ class _MedicalInventoryProductScreenState
                       Row(
                         children: [
                           CustomText(
-                            'â‚¹${sellingPrice ?? mrp ?? ''}',
+                            '₹${sellingPrice ?? mrp ?? ''}',
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.mainTextColor,
@@ -241,7 +241,7 @@ class _MedicalInventoryProductScreenState
                               mrp != sellingPrice) ...[
                             SizedBox(width: 4),
                             Text(
-                              'â‚¹$mrp',
+                              '₹$mrp',
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.grey,

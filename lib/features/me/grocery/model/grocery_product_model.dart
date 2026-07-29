@@ -212,7 +212,11 @@ class ProductVariants {
       });
     }
 
-    quantity = json['quantity'];
+    // Same guard as Batches.quantity below: medical renders this model too and
+    // sends numbers where grocery sends strings. It happens to send a string
+    // here today, but an unguarded cast on a shared model is what emptied the
+    // Top Selling rail once already.
+    quantity = json['quantity']?.toString();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
@@ -391,11 +395,17 @@ class Batches {
       {this.batchNumber, this.quantity, this.mrp, this.sellingPrice, this.sId});
 
   Batches.fromJson(Map<String, dynamic> json) {
-    batchNumber = json['batchNumber'];
-    quantity = json['quantity'];
+    batchNumber = json['batchNumber']?.toString();
+    // NOT a plain cast: `quantity` is a pack-size string in grocery ("2 kg")
+    // but a numeric stock count in medical, which renders this same model.
+    // Assigning straight from JSON threw `type 'int' is not a subtype of type
+    // 'String?'` the moment a medical batch carried a number, and because the
+    // throw happens inside the list parse it took the WHOLE business-products
+    // response down with it — the merchant's Top Selling rail just went empty.
+    quantity = json['quantity']?.toString();
     mrp = json['mrp'];
     sellingPrice = json['sellingPrice'];
-    sId = json['_id'];
+    sId = json['_id']?.toString();
   }
 
   Map<String, dynamic> toJson() {

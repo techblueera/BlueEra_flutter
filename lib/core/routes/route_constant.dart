@@ -250,7 +250,6 @@ class RouteConstant {
   static const String vehicleHomeScreen = "/VehicleHomeScreen";
   static const String vehicleListingScreen = "/VehicleListingScreen";
   static const String vehicleDetailScreen = "/VehicleDetailScreen";
-  static const String vehicleBookingsScreen = "/VehicleBookingsScreen";
 
   // Earn Pages
   static const String chooseEarnServiceScreen = "/ChooseEarnServiceScreen";

@@ -362,6 +362,7 @@ class ProductsAddSquareCta extends StatelessWidget {
 /// background so the rail reads as one shelf. Trailing inset only, so the last
 /// card clears the edge while the rail still bleeds off the right.
 class ProductsRail extends StatelessWidget {
+  /// Fixed rail height. Ignored when [sizeToContent] is true.
   final double height;
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
@@ -369,16 +370,46 @@ class ProductsRail extends StatelessWidget {
   /// Gap between cards.
   final double spacing;
 
+  /// Sizes the rail to its tallest card instead of [height].
+  ///
+  /// The fixed height is a magic number tuned to one module's card. When a
+  /// shorter card renders in it — a medical product has fewer detail lines
+  /// than a grocery one — the leftover shows up as dead space between this
+  /// rail and whatever section follows it, because the cards are top-aligned.
+  /// A Row inside a horizontal scroll view takes the height of its tallest
+  /// child, so there is nothing left over.
+  ///
+  /// Trade-off: this builds every card up front rather than lazily, so use it
+  /// for capped preview rails, not unbounded lists.
+  final bool sizeToContent;
+
   const ProductsRail({
     super.key,
     required this.height,
     required this.itemCount,
     required this.itemBuilder,
     required this.spacing,
+    this.sizeToContent = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (sizeToContent) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.only(right: productsTabTrailingInset),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(
+            itemCount,
+            (index) => Padding(
+              padding: EdgeInsets.only(right: spacing),
+              child: itemBuilder(context, index),
+            ),
+          ),
+        ),
+      );
+    }
     return SizedBox(
       height: height,
       child: ListView.builder(

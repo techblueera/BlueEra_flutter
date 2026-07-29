@@ -97,10 +97,14 @@ class _MedicalCategoryScreenState extends State<MedicalCategoryScreen>
                                   return _buildCategoryItem(
                                     medicalNestedCategory: item2,
                                     onTap: (c) {
-                                      List<MedicalNestedCategoryModel> level3Category = item2.children ?? [];
-
+                                      // A leaf category has no children, and
+                                      // passing the resulting empty list threw
+                                      // "Bad state: No element" on the next
+                                      // screen. It opens on itself instead.
                                       Get.to(() => MedicalProductSelectionScreen(
-                                        arrLevel3Category: level3Category,
+                                        arrLevel3Category:
+                                            MedicalProductSelectionScreen
+                                                .categoriesToOpen(item2),
                                       ));
                                     },
                                   );

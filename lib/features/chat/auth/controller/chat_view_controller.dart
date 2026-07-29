@@ -46,7 +46,7 @@ import '../model/ChatRequestsListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
-import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_booking_models.dart';
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
 import '../model/chat_language.dart';

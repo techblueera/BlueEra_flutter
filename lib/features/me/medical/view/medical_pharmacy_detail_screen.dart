@@ -539,7 +539,7 @@ class _MedicalPharmacyDetailScreenState
     //               Row(
     //                 children: [
     //                   if (sellingPrice != null || mrp != null)
-    //                     CustomText('â‚¹${sellingPrice ?? mrp}',
+    //                     CustomText('₹${sellingPrice ?? mrp}',
     //                         fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.mainTextColor),
     //                   if (discount > 0) ...[
     //                     SizedBox(width: 4),

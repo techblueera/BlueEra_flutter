@@ -52,7 +52,7 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'â‚¹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.productsCountSuffix.tr}',
+                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.productsCountSuffix.tr}',
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor,
@@ -186,14 +186,14 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          'â‚¹$sellingPrice',
+                          '₹$sellingPrice',
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          'â‚¹$mrp',
+                          '₹$mrp',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor
@@ -226,14 +226,14 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CustomText(
-                      'â‚¹$sellingPrice',
+                      '₹$sellingPrice',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(width: SizeConfig.size4),
                     CustomText(
-                      'â‚¹$mrp',
+                      '₹$mrp',
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,

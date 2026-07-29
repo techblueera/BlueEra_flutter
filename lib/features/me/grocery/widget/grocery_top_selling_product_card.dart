@@ -44,6 +44,17 @@ class GroceryTopSellingProductCard extends StatelessWidget {
   final double imageHeight;
   final VoidCallback? onShare;
 
+  /// How the card turns a variant's `pricing[]` into the displayed strings.
+  ///
+  /// Defaults to grocery's resolver. Other modules render this same card over
+  /// their own service's data (medical's Top Selling rail does), and their
+  /// pricing rules are not grocery's — medical, for one, has one `pricing` row
+  /// per city and must show the one matching the shop's pincode. Without this
+  /// hook the card silently formatted every module's prices with grocery's
+  /// rules *and* force-registered a GroceryController inside an unrelated
+  /// merchant's screen.
+  final PriceResult Function(List<Pricing>? pricing)? priceResolver;
+
   const GroceryTopSellingProductCard({
     super.key,
     required this.product,
@@ -51,13 +62,11 @@ class GroceryTopSellingProductCard extends StatelessWidget {
     this.imageOverlay,
     this.imageHeight = 130,
     this.onShare,
+    this.priceResolver,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<GroceryController>()
-        ? Get.find<GroceryController>()
-        : Get.put(GroceryController());
     final firstVariant =
         variants.isNotEmpty ? variants.first : product.productVariant;
     // Show the MERCHANT'S INVENTORY price (variant.inventory.batches — what the
@@ -72,7 +81,12 @@ class GroceryTopSellingProductCard extends StatelessWidget {
     // plain price. Trade-off: the card tracks the FIRST variant only, so an
     // edit to any other variant won't move it.
     final pricingSource = _firstPrice(firstVariant);
-    final price = controller.getPriceDetails(pricingSource);
+    final price = priceResolver != null
+        ? priceResolver!(pricingSource)
+        : (Get.isRegistered<GroceryController>()
+                ? Get.find<GroceryController>()
+                : Get.put(GroceryController()))
+            .getPriceDetails(pricingSource);
     // Variant image first, product image as fallback (handles missing OR
     // broken variant images).
     final variantImageUrl = (firstVariant?.images?.isNotEmpty ?? false)

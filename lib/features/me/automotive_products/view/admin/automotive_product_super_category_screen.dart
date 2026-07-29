@@ -274,7 +274,7 @@ class _AutomotiveProductSuperCategoryScreenState
             ),
             SizedBox(width: SizeConfig.size8),
           ],
-          Expanded(
+          Flexible(
             child: CustomText(
               section.name,
               fontSize: SizeConfig.large,
@@ -284,6 +284,8 @@ class _AutomotiveProductSuperCategoryScreenState
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          _countBadge(section),
+          const Spacer(),
           SizedBox(width: SizeConfig.size8),
           InkWell(
             onTap: () => _openCategory(section),
@@ -300,6 +302,48 @@ class _AutomotiveProductSuperCategoryScreenState
         ],
       ),
     );
+  }
+
+  /// How many products sit under this root category, badged next to its
+  /// title.
+  ///
+  /// The number is `productCount` — the SUBTREE total — never
+  /// `directProductCount`, which is normally 0 on a level-0 node and would
+  /// badge every rail with a zero. Source is the `?level=0` list this screen
+  /// already loads, so the badge costs no extra request. See
+  /// docs/backend/flutter-categories-levels-and-counts.md §1 and §4.
+  ///
+  /// Self-hides at 0: counts cover ACTIVE products only, and a category can
+  /// legitimately hold inactive rows, so a "0" chip would read as an error
+  /// rather than as information. Wrapped in [Obx] because the level-0 list
+  /// arrives after the rails on a cold start.
+  Widget _countBadge(AutomotiveProductRootCategorySection section) {
+    return Obx(() {
+      final count = controller.productCountForCategory(
+        categoryId: section.category?.sId,
+        categoryKey: section.category?.key,
+      );
+      if (count <= 0) return const SizedBox.shrink();
+      return Padding(
+        padding: EdgeInsets.only(left: SizeConfig.size6),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: 1,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: CustomText(
+            '$count',
+            fontSize: SizeConfig.small,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    });
   }
 
   /// "More" → the nested-category screen for this root category (same args as
