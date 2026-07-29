@@ -1,10 +1,7 @@
 import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'dart:developer';
 import 'dart:io';
-import 'package:dio/dio.dart' as dio;
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -12,23 +9,28 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
+import 'package:BlueEra/features/chat/auth/model/business_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
-import 'package:BlueEra/features/chat/auth/model/business_enquiry_model.dart';
-import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/check_internet_connectivity.dart';
@@ -39,32 +41,31 @@ import '../../../personal/personal_profile/model/check_chat_connection_model.dar
 import '../../view/business_chat/business_chat_screen_updated.dart';
 import '../../view/group_chat/group_chat_screen.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
-import '../model/Generate_Upload_Ulr_Model.dart';
-import '../model/GetChatListModel.dart';
-import '../model/GetChatListModel.dart' as chatListModel;
+import '../../view/widget/phone_user_bottom_sheet.dart';
 import '../model/ChatRequestsListModel.dart';
+import '../model/Generate_Upload_Ulr_Model.dart';
+import '../model/GetChatListModel.dart' as chatListModel;
+import '../model/GetChatListModel.dart';
 import '../model/GetChatRequestListModel.dart';
-import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
-import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import '../model/GetListOfMessageData.dart';
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
 import '../model/chat_language.dart';
-import 'ai_chat_profile_controller.dart';
 import '../model/contactListModel.dart';
 import '../model/find_service_by_contact_model.dart';
-import '../model/user_by_phone_model.dart';
-import '../../view/widget/phone_user_bottom_sheet.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
 import '../model/group_details_model.dart';
 import '../model/inventory_ask_ai_model.dart';
+import '../model/user_by_phone_model.dart';
 import '../repo/chat_view_repo.dart';
-import 'payment_qr_controller.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
 import '../socket/live_location_track_socket.dart';
+import 'ai_chat_profile_controller.dart';
+import 'payment_qr_controller.dart';
 
 class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
@@ -81,18 +82,18 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> getListOfInventoryAiMessageResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getGroupMembersResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getServiceByContactResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getServiceByContactResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateUploadUrlResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> chatMessageRequestResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> groupDetailsResponse =
-      ApiResponse.initial('Initial').obs;
-  RxInt personalTabSelectedIndex=0.obs;
-  RxInt businessChatTabSelectedIndex=0.obs;
+  Rx<ApiResponse> groupDetailsResponse = ApiResponse.initial('Initial').obs;
+  RxInt personalTabSelectedIndex = 0.obs;
+  RxInt businessChatTabSelectedIndex = 0.obs;
   Rx<ApiResponse> viewContactsListResponse = ApiResponse.initial('Initial').obs;
-  final chatSocket      = ChatSocketService();
-  final aiSocket        = AiSocketService();
+  final chatSocket = ChatSocketService();
+  final aiSocket = AiSocketService();
 
   /// Whether the user has scrolled up away from the bottom of the chat.
   RxBool isUserScrolledUp = false.obs;
@@ -105,10 +106,8 @@ class ChatViewController extends GetxController {
   /// Symbol-reply chat requests — `GET chat-service/chat/requests`.
   ///
   /// Incoming view (default `role=incoming`) — caller is the **recipient**.
-  Rx<ChatRequestsListModel> chatRequestsListModel =
-      ChatRequestsListModel().obs;
-  Rx<ApiResponse> chatRequestsListResponse =
-      ApiResponse.initial('Initial').obs;
+  Rx<ChatRequestsListModel> chatRequestsListModel = ChatRequestsListModel().obs;
+  Rx<ApiResponse> chatRequestsListResponse = ApiResponse.initial('Initial').obs;
 
   /// Sent view (`role=sent`) — caller is the **initiator**, surfaces the
   /// durable list of outgoing requests they're still waiting on. Without
@@ -125,7 +124,7 @@ class ChatViewController extends GetxController {
   RxString mentionQuery = "".obs;
   RxList<GroupMembersListModel> filteredMembers = <GroupMembersListModel>[].obs;
   RxList<String> taggedUserIds = <String>[].obs;
-  Rx<GroupDetailsModel> groupDetailsModel=GroupDetailsModel().obs;
+  Rx<GroupDetailsModel> groupDetailsModel = GroupDetailsModel().obs;
 
   static final Map<String, dynamic> aiChatListModel = {
     "last_message": "Ask anything with friend",
@@ -133,7 +132,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "BlueEra Friend",
       "contact_no": "BlueEra Friend",
-      "profile_image":AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.personal_Chat_Type,
     }
   };
@@ -144,8 +143,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Ask BlueEra Ai",
       "contact_no": "BlueEra Friend",
-      "profile_image":
-          AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.business_Chat_Type,
     }
   };
@@ -155,8 +153,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "BlueEra Friend",
       "contact_no": "BlueEra Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.search_Chat_Type,
     }
   };
@@ -166,8 +163,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Inventory Friend",
-      "profile_image":
-          AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askInventory_Chat_Type,
     }
   };
@@ -177,8 +173,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Food Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askFood_Chat_Type,
     }
   };
@@ -188,8 +183,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Service Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askService_Chat_Type,
     }
   };
@@ -199,8 +193,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Health Care Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askHealthCare_Chat_Type,
     }
   };
@@ -210,8 +203,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Education Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askEducation_Chat_Type,
     }
   };
@@ -221,8 +213,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Home Service Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askHomeService_Chat_Type,
     }
   };
@@ -232,8 +223,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Travel and Stay Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askTravelStay_Chat_Type,
     }
   };
@@ -243,8 +233,7 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "Sarthi Ai",
       "contact_no": "BlueEra Consulting Talk Friend",
-      "profile_image":
-      AppImageAssets.app_logo,
+      "profile_image": AppImageAssets.app_logo,
       "account_type": AppConstants.askConsultingTalk_Chat_Type,
     }
   };
@@ -263,13 +252,13 @@ class ChatViewController extends GetxController {
   static final ChatList? healthCareAiChatListSearchModule =
       ChatList.fromJson(healthCareAiSearch);
   static final ChatList? educationAiChatListSearchModule =
-     ChatList.fromJson(educationAiSearch);
+      ChatList.fromJson(educationAiSearch);
   static final ChatList? homeServiceAiChatListSearchModule =
       ChatList.fromJson(homeServiceAiSearch);
   static final ChatList? travelAndStayAiChatListSearchModule =
-     ChatList.fromJson(travelAndStayAiSearch);
+      ChatList.fromJson(travelAndStayAiSearch);
   static final ChatList? consultingTalkAiChatListSearchModule =
-     ChatList.fromJson(consultingTalkAiSearch);
+      ChatList.fromJson(consultingTalkAiSearch);
 
   /// Synthetic row for the pinned "BlueEra" system chat that surfaces broadcast
   /// / system notifications (profile updates, admin announcements, etc.) as a
@@ -308,12 +297,14 @@ class ChatViewController extends GetxController {
 
   List<Messages>? get getListOfMessageData =>
       getListOfMessageResponse.value.data;
-  RxList<InventoryAskAiModel> getListOfInventoryAiMessages = <InventoryAskAiModel>[].obs;
+  RxList<InventoryAskAiModel> getListOfInventoryAiMessages =
+      <InventoryAskAiModel>[].obs;
 
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
       GetMediaMsgCommentsModel().obs;
-  RxList<ProfessionalContact> findProfessionalContactList = <ProfessionalContact>[].obs;
+  RxList<ProfessionalContact> findProfessionalContactList =
+      <ProfessionalContact>[].obs;
   Rx<TextEditingController> sendMessageController = TextEditingController().obs;
 
   /// The `route` lane to attach to outgoing 1:1 sends — `contact` (personal)
@@ -328,7 +319,9 @@ class ChatViewController extends GetxController {
   /// is active so legacy sends stay route-less).
   void attachRouteParam(Map<String, dynamic> params) {
     final route = activeRoute;
-    if (route != null && route.isNotEmpty && !params.containsKey(ApiKeys.route)) {
+    if (route != null &&
+        route.isNotEmpty &&
+        !params.containsKey(ApiKeys.route)) {
       params[ApiKeys.route] = route;
     }
   }
@@ -378,7 +371,7 @@ class ChatViewController extends GetxController {
   /// Key = conversation_id, Value = typer's name.
   RxMap<String, String> typingByConversation = <String, String>{}.obs;
   final Map<String, Timer> _chatListTypingTimers = {};
-  RxInt selectedIndex =0.obs;
+  RxInt selectedIndex = 0.obs;
 
   Rx<Messages> sendLoadingFile = Messages().obs;
   RxList selectedUserIds = <String>[].obs;
@@ -445,8 +438,8 @@ class ChatViewController extends GetxController {
   RxBool isDeleteBtnLoading = false.obs;
   RxBool isPinMessageLoading = false.obs;
   RxBool isEditGroupBtnLoading = false.obs;
-  final groupNameController=TextEditingController();
-  final groupDescriptionController=TextEditingController();
+  final groupNameController = TextEditingController();
+  final groupDescriptionController = TextEditingController();
 
   RxInt groupChatScreenSelectedTab = 0.obs;
   final RxInt selectedDays = 1.obs;
@@ -471,8 +464,8 @@ class ChatViewController extends GetxController {
   /// Index of the "Ourview" tab in [tabs].
   int get ourViewTabIndex => tabs.indexOf('Ourview');
 
-
-  String productInitialMessage = 'Looking for the right product? Find TVs, refrigerators, washing machines & smartphones. Browse kitchen appliances, home essentials, electronics & gifts. All from trusted sellers near you. Just tell me what you’re looking for, and I’ll take care of the rest.';
+  String productInitialMessage =
+      'Looking for the right product? Find TVs, refrigerators, washing machines & smartphones. Browse kitchen appliances, home essentials, electronics & gifts. All from trusted sellers near you. Just tell me what you’re looking for, and I’ll take care of the rest.';
 
   Future<void> disposeAiSocket() async {
     aiSocket.disposeSocket();
@@ -485,28 +478,30 @@ class ChatViewController extends GetxController {
 
   Future<bool?> clearChatHistory(Map<String, dynamic> params) async {
     try {
-      isDeleteBtnLoading.value=true;
+      isDeleteBtnLoading.value = true;
       ResponseModel responseModel =
-      await ChatViewRepo().clearChatHistoryApi(params);
+          await ChatViewRepo().clearChatHistoryApi(params);
 
       if (responseModel.isSuccess) {
-        isDeleteBtnLoading.value=false;
+        isDeleteBtnLoading.value = false;
         getListOfMessageData?.clear();
-         getListOfMessageResponse.value =ApiResponse.complete(getListOfMessageData);
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
         return true;
       } else {
-        isDeleteBtnLoading.value=false;
+        isDeleteBtnLoading.value = false;
 
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      isDeleteBtnLoading.value=false;
+      isDeleteBtnLoading.value = false;
 
       commonSnackBar(message: e.toString());
     }
     return null;
   }
+
   void parseAiChatHistory(List<dynamic> jsonList) {
     for (var item in jsonList) {
       final details = AiChatHistoryMessageModel.fromJson(item);
@@ -540,9 +535,7 @@ class ChatViewController extends GetxController {
     String? mimeType,
   }) async {
     chatBotReading.value = true;
-    String? converId = await AiChatLocalStorage.getConversationId(
-        type
-    );
+    String? converId = await AiChatLocalStorage.getConversationId(type);
     aiSocket.sendMessage(
         message: message,
         conversationId: converId,
@@ -619,9 +612,7 @@ class ChatViewController extends GetxController {
     aiSocket.onHistory((data) {
       parseAiChatHistory(data);
     });
-    String? converId = await AiChatLocalStorage.getConversationId(
-        type
-    );
+    String? converId = await AiChatLocalStorage.getConversationId(type);
 
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
@@ -642,9 +633,7 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> saveAiConversationId(String id, String type) async {
-    await AiChatLocalStorage.saveConversationIdIfEmpty(
-        id: id,
-        type: type);
+    await AiChatLocalStorage.saveConversationIdIfEmpty(id: id, type: type);
   }
 
   String _getInitialMessageText(String type) {
@@ -716,7 +705,8 @@ class ChatViewController extends GetxController {
       saveAiConversationId(msg.conversationId ?? '', type);
 
       currentChatMessages.add(msg);
-      getListOfAiMessageResponse.value = ApiResponse.complete(currentChatMessages);
+      getListOfAiMessageResponse.value =
+          ApiResponse.complete(currentChatMessages);
     });
 
     // --- FETCH HISTORY ---
@@ -733,14 +723,12 @@ class ChatViewController extends GetxController {
     }
   }
 
-
   Future<void> sendMessageToAiSearchSocket({
     required String type,
     required String message,
     Uint8List? imageBytes,
     String? mimeType,
   }) async {
-
     BaseAiChatModel userMsg = _createLocalUserMessage(type, message);
     currentChatMessages.add(userMsg);
 
@@ -748,7 +736,6 @@ class ChatViewController extends GetxController {
     chatBotReading.value = true;
 
     String? converId = await AiChatLocalStorage.getConversationId(type);
-
 
     if (converId == null &&
         type != AppConstants.personal_Chat_Type &&
@@ -761,8 +748,7 @@ class ChatViewController extends GetxController {
         conversationId: converId,
         serviceType: type,
         imageBytes: imageBytes,
-        mimeType: mimeType
-    );
+        mimeType: mimeType);
   }
 
   BaseAiChatModel _parseDataByType(String type, Map<String, dynamic> json) {
@@ -811,30 +797,38 @@ class ChatViewController extends GetxController {
 
     switch (type) {
       case AppConstants.askInventory_Chat_Type:
-        return InventoryAskAiModel(message: text, role: "user", timestamp: time);
+        return InventoryAskAiModel(
+            message: text, role: "user", timestamp: time);
       case AppConstants.askFood_Chat_Type:
         return FoodAskAiModel(message: text, role: "user", timestamp: time);
       case AppConstants.askService_Chat_Type:
-        return BusinessServicesAskAiModel(message: text, role: "user", timestamp: time);
+        return BusinessServicesAskAiModel(
+            message: text, role: "user", timestamp: time);
       case AppConstants.askHealthCare_Chat_Type:
-        return HealthCareAskAiModel(message: text, role: "user", timestamp: time);
+        return HealthCareAskAiModel(
+            message: text, role: "user", timestamp: time);
       case AppConstants.askEducation_Chat_Type:
-        return EducationAskAiModel(message: text, role: "user", timestamp: time);
+        return EducationAskAiModel(
+            message: text, role: "user", timestamp: time);
       case AppConstants.askHomeService_Chat_Type:
         return ServiceAskAiModel(message: text, role: "user", timestamp: time);
       case AppConstants.askTravelStay_Chat_Type:
-        return TravelAndStayAskAiModel(message: text, role: "user", timestamp: time);
+        return TravelAndStayAskAiModel(
+            message: text, role: "user", timestamp: time);
       case AppConstants.askConsultingTalk_Chat_Type:
         return ServiceAskAiModel(message: text, role: "user", timestamp: time);
       default:
-        return InventoryAskAiModel(message: text, role: "user", timestamp: time);
+        return InventoryAskAiModel(
+            message: text, role: "user", timestamp: time);
     }
   }
 
   BaseAiChatModel _createInitialModel(String type) {
-    String text = _getInitialMessageText(type); // Gets the welcome text we defined earlier
+    String text = _getInitialMessageText(
+        type); // Gets the welcome text we defined earlier
 
-    final DateTime date = DateTime.parse(DateTime.now().toIso8601String()).toLocal(); // Convert to local time
+    final DateTime date = DateTime.parse(DateTime.now().toIso8601String())
+        .toLocal(); // Convert to local time
     String time = DateFormat('h:mm a').format(date);
 
     switch (type) {
@@ -843,8 +837,7 @@ class ChatViewController extends GetxController {
             message: text, role: "model", timestamp: time);
 
       case AppConstants.askFood_Chat_Type:
-        return FoodAskAiModel(
-            message: text, role: "model", timestamp: time);
+        return FoodAskAiModel(message: text, role: "model", timestamp: time);
 
       case AppConstants.askService_Chat_Type:
         return BusinessServicesAskAiModel(
@@ -859,16 +852,14 @@ class ChatViewController extends GetxController {
             message: text, role: "model", timestamp: time);
 
       case AppConstants.askHomeService_Chat_Type:
-        return ServiceAskAiModel(
-            message: text, role: "model", timestamp: time);
+        return ServiceAskAiModel(message: text, role: "model", timestamp: time);
 
       case AppConstants.askTravelStay_Chat_Type:
         return TravelAndStayAskAiModel(
             message: text, role: "model", timestamp: time);
 
       case AppConstants.askConsultingTalk_Chat_Type:
-        return ServiceAskAiModel(
-            message: text, role: "model", timestamp: time);
+        return ServiceAskAiModel(message: text, role: "model", timestamp: time);
 
       default:
         return InventoryAskAiModel(
@@ -942,7 +933,6 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-
         final parsedData = GetChatListModel.fromJson(data);
 
         // The server doesn't always echo `type` back in the ChatList
@@ -991,128 +981,126 @@ class ChatViewController extends GetxController {
         handlePaymentStatusUpdate(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-          log("📩 messageReceived (chat history) → $data");
-          // DIAGNOSTIC: does the raw admin/BlueEra conversation payload carry a
-          // "link" key? The Messages model doesn't parse `link`, so this checks
-          // the raw socket JSON (top level + each message) as the convo opens.
-          _debugScanLinkKey(data);
-          final parsedData = GetListOfMessageData.fromJson(data);
-          log("📩 messageReceived parsed: ${parsedData.messages?.length ?? 0} messages");
+        log("📩 messageReceived (chat history) → $data");
+        // DIAGNOSTIC: does the raw admin/BlueEra conversation payload carry a
+        // "link" key? The Messages model doesn't parse `link`, so this checks
+        // the raw socket JSON (top level + each message) as the convo opens.
+        _debugScanLinkKey(data);
+        final parsedData = GetListOfMessageData.fromJson(data);
+        log("📩 messageReceived parsed: ${parsedData.messages?.length ?? 0} messages");
 
-          if (parsedData.messages != null) {
-            for (var message in parsedData.messages!) {
-              if (message.myMessage == null) {
-                final currentUserId = userId;
-                final senderId = message.senderId;
-                message.myMessage = currentUserId == senderId;
-              }
+        if (parsedData.messages != null) {
+          for (var message in parsedData.messages!) {
+            if (message.myMessage == null) {
+              final currentUserId = userId;
+              final senderId = message.senderId;
+              message.myMessage = currentUserId == senderId;
             }
           }
+        }
 
-          if (parsedData.messages?.isNotEmpty ?? false) {
-            // The first entry is often a "date" separator with
-            // conversation_id "0" — scan until we find a real message so the
-            // Hive save key matches the actual conversationId the chat list
-            // uses when loading offline. Otherwise every conversation's
-            // messages would be stored under "0" and getMessagesByConversationId
-            // would return empty for the real id.
-            String conversationId = '';
+        if (parsedData.messages?.isNotEmpty ?? false) {
+          // The first entry is often a "date" separator with
+          // conversation_id "0" — scan until we find a real message so the
+          // Hive save key matches the actual conversationId the chat list
+          // uses when loading offline. Otherwise every conversation's
+          // messages would be stored under "0" and getMessagesByConversationId
+          // would return empty for the real id.
+          String conversationId = '';
+          for (final m in parsedData.messages!) {
+            if (m.messageType == 'date') continue;
+            final id = m.conversationId ?? '';
+            if (id.isEmpty || id == '0') continue;
+            conversationId = id;
+            break;
+          }
+          // Fall back to the open conversation id so sync still works for
+          // edge cases where every message entry is a date separator.
+          if (conversationId.isEmpty) {
+            conversationId = userOpenConversationId.value;
+          }
+          if (parsedData.messages != null && conversationId.isNotEmpty) {
+            // Deduplicate server messages by ID before setting
+            final seen = <String>{};
+            final deduped = <Messages>[];
             for (final m in parsedData.messages!) {
-              if (m.messageType == 'date') continue;
-              final id = m.conversationId ?? '';
-              if (id.isEmpty || id == '0') continue;
-              conversationId = id;
-              break;
+              final id = m.id ?? '';
+              if (id.isEmpty || seen.add(id)) {
+                deduped.add(m);
+              }
             }
-            // Fall back to the open conversation id so sync still works for
-            // edge cases where every message entry is a date separator.
-            if (conversationId.isEmpty) {
-              conversationId = userOpenConversationId.value;
-            }
-            if (parsedData.messages != null && conversationId.isNotEmpty) {
-              // Deduplicate server messages by ID before setting
-              final seen = <String>{};
-              final deduped = <Messages>[];
-              for (final m in parsedData.messages!) {
+            // Preserve locally-latched enquiry_status on the owner's
+            // service+enquiry_only cards. The chat wire has no field for
+            // it, so a fresh server payload would otherwise wipe an
+            // Accept/Decline the owner just made and cause the buttons to
+            // reappear. Keyed by message id → Hive replay stays in sync.
+            final prevList = getListOfMessageData;
+            if (prevList != null && prevList.isNotEmpty) {
+              final prevStatusById = <String, String>{};
+              for (final m in prevList) {
                 final id = m.id ?? '';
-                if (id.isEmpty || seen.add(id)) {
-                  deduped.add(m);
+                final s = m.metadata?.enquiryStatus;
+                if (id.isNotEmpty && s != null && s.isNotEmpty) {
+                  prevStatusById[id] = s;
                 }
               }
-              // Preserve locally-latched enquiry_status on the owner's
-              // service+enquiry_only cards. The chat wire has no field for
-              // it, so a fresh server payload would otherwise wipe an
-              // Accept/Decline the owner just made and cause the buttons to
-              // reappear. Keyed by message id → Hive replay stays in sync.
-              final prevList = getListOfMessageData;
-              if (prevList != null && prevList.isNotEmpty) {
-                final prevStatusById = <String, String>{};
-                for (final m in prevList) {
+              if (prevStatusById.isNotEmpty) {
+                for (final m in deduped) {
                   final id = m.id ?? '';
-                  final s = m.metadata?.enquiryStatus;
-                  if (id.isNotEmpty && s != null && s.isNotEmpty) {
-                    prevStatusById[id] = s;
-                  }
-                }
-                if (prevStatusById.isNotEmpty) {
-                  for (final m in deduped) {
-                    final id = m.id ?? '';
-                    final carried = prevStatusById[id];
-                    if (carried == null) continue;
-                    m.metadata ??= MessageMetadata();
-                    if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
-                      m.metadata!.enquiryStatus = carried;
-                    }
+                  final carried = prevStatusById[id];
+                  if (carried == null) continue;
+                  m.metadata ??= MessageMetadata();
+                  if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
+                    m.metadata!.enquiryStatus = carried;
                   }
                 }
               }
-              // Also preserve enquiry_status from the Hive snapshot — the
-              // socket replay can run before `loadOfflineMessages` has
-              // finished populating the in-memory list, in which case the
-              // in-memory-diff above finds nothing to carry.
-              final cached = await localStorageHelper
-                  .getMessagesByConversationId(conversationId);
-              if (cached.isNotEmpty) {
-                final cachedStatusById = <String, String>{};
-                for (final m in cached) {
-                  final id = m.id ?? '';
-                  final s = m.metadata?.enquiryStatus;
-                  if (id.isNotEmpty && s != null && s.isNotEmpty) {
-                    cachedStatusById[id] = s;
-                  }
-                }
-                if (cachedStatusById.isNotEmpty) {
-                  for (final m in deduped) {
-                    final id = m.id ?? '';
-                    final carried = cachedStatusById[id];
-                    if (carried == null) continue;
-                    m.metadata ??= MessageMetadata();
-                    if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
-                      m.metadata!.enquiryStatus = carried;
-                    }
-                  }
-                }
-              }
-              // Resolve local file paths for already-downloaded media
-              // so images/videos show instantly from local storage
-              await _resolveLocalMediaPaths(deduped);
-              getListOfMessageResponse.value = ApiResponse.complete(deduped);
-              scrollDown();
-              // saveMessagesByConversationId REPLACES the full list — this is
-              // the authoritative server data. The helper preserves any locally
-              // pending messages that the server hasn't acked yet.
-              localStorageHelper.saveMessagesByConversationId(
-                  conversationId, deduped);
-            } else {
-              getListOfMessageResponse.value =
-                  ApiResponse.complete(parsedData.messages);
             }
+            // Also preserve enquiry_status from the Hive snapshot — the
+            // socket replay can run before `loadOfflineMessages` has
+            // finished populating the in-memory list, in which case the
+            // in-memory-diff above finds nothing to carry.
+            final cached = await localStorageHelper
+                .getMessagesByConversationId(conversationId);
+            if (cached.isNotEmpty) {
+              final cachedStatusById = <String, String>{};
+              for (final m in cached) {
+                final id = m.id ?? '';
+                final s = m.metadata?.enquiryStatus;
+                if (id.isNotEmpty && s != null && s.isNotEmpty) {
+                  cachedStatusById[id] = s;
+                }
+              }
+              if (cachedStatusById.isNotEmpty) {
+                for (final m in deduped) {
+                  final id = m.id ?? '';
+                  final carried = cachedStatusById[id];
+                  if (carried == null) continue;
+                  m.metadata ??= MessageMetadata();
+                  if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
+                    m.metadata!.enquiryStatus = carried;
+                  }
+                }
+              }
+            }
+            // Resolve local file paths for already-downloaded media
+            // so images/videos show instantly from local storage
+            await _resolveLocalMediaPaths(deduped);
+            getListOfMessageResponse.value = ApiResponse.complete(deduped);
+            scrollDown();
+            // saveMessagesByConversationId REPLACES the full list — this is
+            // the authoritative server data. The helper preserves any locally
+            // pending messages that the server hasn't acked yet.
+            localStorageHelper.saveMessagesByConversationId(
+                conversationId, deduped);
           } else {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
           }
-
-
+        } else {
+          getListOfMessageResponse.value =
+              ApiResponse.complete(parsedData.messages);
+        }
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
         log("📨 newMessageReceived (single) → $data");
@@ -1161,9 +1149,10 @@ class ChatViewController extends GetxController {
         // Deduplicate: skip if message with same ID already exists
         // This prevents doubles when sendMessage() already added it via API response
         final existingIds = getListOfMessageData
-            ?.map((m) => m.id)
-            .where((id) => id != null)
-            .toSet() ?? {};
+                ?.map((m) => m.id)
+                .where((id) => id != null)
+                .toSet() ??
+            {};
         if (message.id != null && existingIds.contains(message.id)) {
           return;
         }
@@ -1173,8 +1162,7 @@ class ChatViewController extends GetxController {
         getListOfMessageData?.add(message);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-        saveSingleMessageToLocal(
-            message.conversationId ?? '', message);
+        saveSingleMessageToLocal(message.conversationId ?? '', message);
 
         // Auto-mark as read: user is viewing this conversation, so incoming
         // messages should be marked read immediately (guide §5.2)
@@ -1230,7 +1218,7 @@ class ChatViewController extends GetxController {
       });
       chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
         final List<Map<String, dynamic>> datas =
-        List<Map<String, dynamic>>.from(data);
+            List<Map<String, dynamic>>.from(data);
 
         for (final update in datas) {
           final uid = update['user_id'] as String?;
@@ -1347,12 +1335,15 @@ class ChatViewController extends GetxController {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1366,10 +1357,10 @@ class ChatViewController extends GetxController {
 
       // Self-Pickup: Order marked as ready
       chatSocket.listenEvent(ChatEmitEvents.selfPickupOrderReady, (data) {
-
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -1377,7 +1368,8 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
@@ -1479,8 +1471,30 @@ class ChatViewController extends GetxController {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty &&
-              conversationId == userOpenConversationId.value) {
+          // First-time enquiry flows (lab/hospital/hotel/education) open the
+          // chat with an empty conversationId because `checkChatConnection`
+          // races Kafka. The card arrives on the freshly-created thread —
+          // so when we're in initial-mode (empty convId) and a peer is set
+          // (we just opened a chat with someone), adopt the id and append.
+          // `newHealthcareEnquiryReceived` is server-scoped to the enquiry's
+          // participants, so we can trust it belongs to the open chat.
+          // Without adoption the card silently drops and the user sees an
+          // empty screen (lab enquiry "empty chat" bug).
+          final openConvId = userOpenConversationId.value;
+          final openUserId = userOpenUserId.value;
+          final matchesOpenPeer = openConvId.isEmpty && openUserId.isNotEmpty;
+          final belongsToOpenChat =
+              conversationId == openConvId || matchesOpenPeer;
+          if (conversationId.isNotEmpty && belongsToOpenChat) {
+            // Adopt the id so subsequent status updates / replies match.
+            if (openConvId.isEmpty) {
+              userOpenConversationId.value = conversationId;
+              // Join the socket room for this newly-known conversation so
+              // future push events land here without a screen re-open.
+              addConversationOnce(conversationId);
+              emitEvent(ChatEmitEvents.screenRoom,
+                  {ApiKeys.conversation_id: conversationId});
+            }
             final currentMessages =
                 getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
@@ -1593,8 +1607,7 @@ class ChatViewController extends GetxController {
       });
 
       // Hotel Enquiry: owner accepted / declined → flip the card status.
-      chatSocket.listenEvent(ChatEmitEvents.hotelEnquiryStatusUpdated,
-          (data) {
+      chatSocket.listenEvent(ChatEmitEvents.hotelEnquiryStatusUpdated, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         final status = data['status']?.toString();
         if (messageId.isNotEmpty && status != null) {
@@ -1639,8 +1652,7 @@ class ChatViewController extends GetxController {
       // Hotel Booking (§2b): owner accept / decline OR buyer cancel — the
       // status endpoint accepts all three transitions, so this single
       // event flips the card for both sides regardless of who acted.
-      chatSocket.listenEvent(ChatEmitEvents.hotelBookingStatusUpdated,
-          (data) {
+      chatSocket.listenEvent(ChatEmitEvents.hotelBookingStatusUpdated, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         final status = data['status']?.toString();
         if (messageId.isNotEmpty && status != null) {
@@ -1659,8 +1671,7 @@ class ChatViewController extends GetxController {
 
       // Vehicle Booking: new booking request received (seller side, echoed
       // to the buyer's other sessions — dedupe by message._id).
-      chatSocket.listenEvent(ChatEmitEvents.newVehicleBookingReceived,
-          (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newVehicleBookingReceived, (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
@@ -1752,8 +1763,7 @@ class ChatViewController extends GetxController {
       // "Other" Business Enquiry: new enquiry received (owner side, echoed
       // to the customer's other sessions — dedupe by message._id). See
       // lib/docs/other-enquiry-ui-integration.md §6.
-      chatSocket.listenEvent(ChatEmitEvents.newBusinessEnquiryReceived,
-          (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newBusinessEnquiryReceived, (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
@@ -1801,12 +1811,15 @@ class ChatViewController extends GetxController {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1821,7 +1834,8 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.foodPickupOrderReady, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -1834,21 +1848,26 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
       // Product Self-Pickup: New order received (seller side)
-      chatSocket.listenEvent(ChatEmitEvents.newProductPickupOrderReceived, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newProductPickupOrderReceived,
+          (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1863,7 +1882,8 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.productPickupOrderReady, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -1876,21 +1896,26 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
       // Medical/Pharmacy Self-Pickup: New order received (pharmacy side)
-      chatSocket.listenEvent(ChatEmitEvents.newMedicalPickupOrderReceived, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newMedicalPickupOrderReceived,
+          (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1905,7 +1930,8 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.medicalPickupOrderReady, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -1918,22 +1944,26 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
       // Home-Made Food Self-Pickup: New order received (cook side)
-      chatSocket.listenEvent(
-          ChatEmitEvents.newHomeMadeFoodPickupOrderReceived, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newHomeMadeFoodPickupOrderReceived,
+          (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1945,11 +1975,12 @@ class ChatViewController extends GetxController {
       });
 
       // Home-Made Food Self-Pickup: Order marked as ready
-      chatSocket.listenEvent(
-          ChatEmitEvents.homeMadeFoodPickupOrderReady, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.homeMadeFoodPickupOrderReady,
+          (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -1962,22 +1993,26 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
       // Tiffin Self-Pickup: New order received (cook side)
-      chatSocket.listenEvent(
-          ChatEmitEvents.newTiffinPickupOrderReceived, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.newTiffinPickupOrderReceived,
+          (data) {
         if (data['message'] != null) {
           final message = Messages.fromJson(data['message']);
           final conversationId = message.conversationId ?? '';
-          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
-            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
             final exists = currentMessages.any((m) => m.id == message.id);
             if (!exists) {
               currentMessages.add(message);
-              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
               scrollDown();
             }
           }
@@ -1989,11 +2024,11 @@ class ChatViewController extends GetxController {
       });
 
       // Tiffin Self-Pickup: Order marked as ready
-      chatSocket.listenEvent(
-          ChatEmitEvents.tiffinPickupOrderReady, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.tiffinPickupOrderReady, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.orderStatus = true;
@@ -2006,23 +2041,25 @@ class ChatViewController extends GetxController {
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
       // Tiffin Self-Pickup: Order cancelled by the customer (while 'placed').
-      chatSocket.listenEvent(
-          ChatEmitEvents.tiffinPickupOrderCancelled, (data) {
+      chatSocket.listenEvent(ChatEmitEvents.tiffinPickupOrderCancelled, (data) {
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
-          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.is_cancelled = true;
               break;
             }
           }
-          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
         }
       });
 
@@ -2110,8 +2147,7 @@ class ChatViewController extends GetxController {
       createdAt: now,
     );
     getListOfMessageData?.add(sendLoadingFile.value);
-    getListOfMessageResponse.value =
-        ApiResponse.complete(getListOfMessageData);
+    getListOfMessageResponse.value = ApiResponse.complete(getListOfMessageData);
     scrollDown();
 
     try {
@@ -2191,8 +2227,7 @@ class ChatViewController extends GetxController {
         ApiKeys.payment_status: status,
       });
       if (!res.isSuccess) {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
     } catch (_) {
       // Best-effort: the socket event remains the source of truth.
@@ -2203,8 +2238,7 @@ class ChatViewController extends GetxController {
   /// receiver). Patches the referenced message's [Messages.paymentStatus].
   void handlePaymentStatusUpdate(dynamic data) {
     if (data is! Map) return;
-    final messageId =
-        (data['messageId'] ?? data['message_id'])?.toString();
+    final messageId = (data['messageId'] ?? data['message_id'])?.toString();
     final status = data['payment_status']?.toString();
     _applyPaymentStatus(messageId, status);
   }
@@ -2305,13 +2339,20 @@ class ChatViewController extends GetxController {
   /// No-op if no conversation is open. Safe to call after any enquiry
   /// submission.
   void refreshOpenConversationMessages() {
-    final convId = userOpenConversationId.value;
-    if (convId.isEmpty) return;
-    _emitFetchMessages(convId); // immediate — catches cards already indexed
-    Future.delayed(const Duration(milliseconds: 1200),
-        () => _emitFetchMessages(convId));
-    Future.delayed(const Duration(seconds: 3),
-        () => _emitFetchMessages(convId));
+    // Re-read the id inside each fire — the immediate call often races
+    // BusinessChatScreenUpdated's first-frame `listenUserNewMessages`
+    // (which sets userOpenConversationId), and for first-time enquiry
+    // threads the id isn't known until the socket handler below adopts
+    // the fresh conversation. Capturing lazily lets the 1.2s / 3s
+    // callbacks still fetch once the id lands.
+    void fetch() {
+      final convId = userOpenConversationId.value;
+      if (convId.isNotEmpty) _emitFetchMessages(convId);
+    }
+
+    fetch();
+    Future.delayed(const Duration(milliseconds: 1200), fetch);
+    Future.delayed(const Duration(seconds: 2), fetch);
   }
 
   void isChatFromBusinessProfile(bool value) {
@@ -2412,8 +2453,7 @@ class ChatViewController extends GetxController {
       // the online success branch to clear it once the server has accepted
       // the message.
       if (sendStatus != null) {
-        chat?.lastMessageSendStatus =
-            sendStatus.isEmpty ? null : sendStatus;
+        chat?.lastMessageSendStatus = sendStatus.isEmpty ? null : sendStatus;
       }
       // Move this conversation to the top of the list so the most recent
       // activity surfaces immediately — matches the native chat-list order
@@ -2429,8 +2469,8 @@ class ChatViewController extends GetxController {
       // and the top-of-list reorder) gets blown away the instant the user
       // leaves the chat screen.
       if (persistAsType != null) {
-        unawaited(localStorageHelper.saveChatList(
-            list.toList(), persistAsType));
+        unawaited(
+            localStorageHelper.saveChatList(list.toList(), persistAsType));
       }
     }
 
@@ -2529,8 +2569,7 @@ class ChatViewController extends GetxController {
         localStorageHelper.markPendingInFlight(tempId);
         try {
           await _retryPendingFileMessage(
-            params:
-                Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
+            params: Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
             filePaths: paths,
             messageId: tempId,
             fileName: data[i]['docFileName']?.toString(),
@@ -2596,8 +2635,7 @@ class ChatViewController extends GetxController {
 
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          final drainConvId =
-              params[ApiKeys.conversation_id]?.toString() ?? '';
+          final drainConvId = params[ApiKeys.conversation_id]?.toString() ?? '';
           // Only touch the in-memory message list when the drained message
           // belongs to the conversation the user currently has open. If the
           // user queued this offline in chat A and is now viewing chat B,
@@ -2616,9 +2654,7 @@ class ChatViewController extends GetxController {
             // Dedup: the newMessageReceived socket echo may have already
             // inserted this server message while the HTTP ack was in flight.
             final alreadyExists = message.id != null &&
-                (getListOfMessageData
-                        ?.any((m) => m.id == message.id) ??
-                    false);
+                (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
             if (!alreadyExists) {
               getListOfMessageData?.add(message);
             }
@@ -2684,7 +2720,8 @@ class ChatViewController extends GetxController {
   /// Tells the server the user is no longer viewing any conversation so new
   /// incoming messages get "delivered" status instead of "read".
   void leaveConversation() {
-    debugPrint('[CHAT_DEBUG] leaveConversation() called — emitting screenRoom: online');
+    debugPrint(
+        '[CHAT_DEBUG] leaveConversation() called — emitting screenRoom: online');
     userOpenConversationId.value = '';
     userOpenUserId.value = '';
     readMessageStatus.value = '';
@@ -2704,8 +2741,8 @@ class ChatViewController extends GetxController {
   /// Emit typing indicator (debounced — max once per second per guide)
   void emitTyping(String conversationId) {
     if (_typingDebounceTimer?.isActive ?? false) return;
-    chatSocket.emitEvent(ChatEmitEvents.isTyping,
-        {ApiKeys.conversation_id: conversationId});
+    chatSocket.emitEvent(
+        ChatEmitEvents.isTyping, {ApiKeys.conversation_id: conversationId});
     _typingDebounceTimer = Timer(const Duration(seconds: 1), () {});
   }
 
@@ -2753,6 +2790,7 @@ class ChatViewController extends GetxController {
       openedConversation.add(conversationId);
     }
   }
+
   /// Check if the scroll position is near the bottom (within 150px).
   bool get _isNearBottom {
     if (!scrollController.hasClients) return true;
@@ -2801,7 +2839,6 @@ class ChatViewController extends GetxController {
       curve: Curves.easeOut,
     );
   }
-
 
   Future<List<Messages>> loadOfflineMessages(String conversationId) async {
     if (conversationId.isEmpty) return [];
@@ -2885,7 +2922,6 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().sendMessageToUserLargeFile(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
-
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         // Enquiry / booking cards are fabricated on the client (see
@@ -2905,8 +2941,7 @@ class ChatViewController extends GetxController {
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           scrollDown();
-          saveSingleMessageToLocal(
-              message.conversationId ?? '', message);
+          saveSingleMessageToLocal(message.conversationId ?? '', message);
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(
               0,
@@ -2991,8 +3026,7 @@ class ChatViewController extends GetxController {
         break;
       case 'business_enquiry':
         md.businessEnquiryId ??= sentMeta['businessEnquiryId']?.toString();
-        if (md.businessEnquiry == null &&
-            sentMeta['businessEnquiry'] is Map) {
+        if (md.businessEnquiry == null && sentMeta['businessEnquiry'] is Map) {
           md.businessEnquiry = BusinessEnquiryModel.fromJson(
               Map<String, dynamic>.from(sentMeta['businessEnquiry'] as Map));
         }
@@ -3075,8 +3109,7 @@ class ChatViewController extends GetxController {
     });
   }
 
-  void emitEvent(String event, dynamic data,
-      [ String? conversationId]) async {
+  void emitEvent(String event, dynamic data, [String? conversationId]) async {
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "").isNotEmpty &&
         conversationId != userOpenConversationId.value) {
@@ -3249,38 +3282,42 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<void> setContact(String type,List<Map<String, dynamic>> params)async{
-    contactListParamsData=params;
+  Future<void> setContact(
+      String type, List<Map<String, dynamic>> params) async {
+    contactListParamsData = params;
     await findServiceByContacts(type, params);
   }
-  Future<void> reloadContact()async{
 
-    await findServiceByContacts(findServiceByContactParamsType??'',null);
+  Future<void> reloadContact() async {
+    await findServiceByContacts(findServiceByContactParamsType ?? '', null);
   }
-  Future<void> findServiceByContacts(String type,List<Map<String, dynamic>>? contactList) async {
-    getServiceByContactResponse.value=ApiResponse.initial("Initial");
 
-    findServiceByContactParamsType=type;
-    final params={
+  Future<void> findServiceByContacts(
+      String type, List<Map<String, dynamic>>? contactList) async {
+    getServiceByContactResponse.value = ApiResponse.initial("Initial");
+
+    findServiceByContactParamsType = type;
+    final params = {
       ApiKeys.profile_type: type,
-      ApiKeys.contact_list:contactList??contactListParamsData
+      ApiKeys.contact_list: contactList ?? contactListParamsData
     };
-      ResponseModel responseModel =
-          await ChatViewRepo().findServiceByContactApi(params);
-      if (responseModel.isSuccess) {
-        final List<dynamic> listOf = responseModel.data ?? [];
+    ResponseModel responseModel =
+        await ChatViewRepo().findServiceByContactApi(params);
+    if (responseModel.isSuccess) {
+      final List<dynamic> listOf = responseModel.data ?? [];
 
-        findProfessionalContactList.value = listOf
-            .map((e) => ProfessionalContact.fromJson(e as Map<String, dynamic>))
-            .toList();
+      findProfessionalContactList.value = listOf
+          .map((e) => ProfessionalContact.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-        getServiceByContactResponse.value=ApiResponse.complete(findProfessionalContactList);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-        getServiceByContactResponse.value=ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
-
-      }
+      getServiceByContactResponse.value =
+          ApiResponse.complete(findProfessionalContactList);
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      getServiceByContactResponse.value = ApiResponse.error(
+          responseModel.message ?? AppStrings.somethingWentWrong);
+    }
   }
 
   Future<void> loadGroupConnections(
@@ -3654,13 +3691,14 @@ class ChatViewController extends GetxController {
     final permission = await Permission.locationWhenInUse.request();
     if (!permission.isGranted) return;
     Position pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
     );
-    await LiveTrackingSocketService().connectToSocket(LatLng(pos.latitude, pos.longitude));
+    await LiveTrackingSocketService()
+        .connectToSocket(LatLng(pos.latitude, pos.longitude));
 
-     Geolocator.getPositionStream(
+    Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 2, // 🔥 10 meters move = update
@@ -3674,7 +3712,7 @@ class ChatViewController extends GetxController {
         },
       );
     });
-    Timer(duration, (){
+    Timer(duration, () {
       LiveTrackingSocketService().disconnectSocket();
     });
   }
@@ -3683,6 +3721,7 @@ class ChatViewController extends GetxController {
   void stopLiveLocationTracking() {
     LiveTrackingSocketService().disconnectSocket();
   }
+
   Duration labelToDuration(String label) {
     switch (label) {
       case "15min":
@@ -3692,7 +3731,7 @@ class ChatViewController extends GetxController {
       case "8h":
         return const Duration(hours: 8);
       default:
-      // fallback: "30min", "45min" madhiri iruntha
+        // fallback: "30min", "45min" madhiri iruntha
         if (label.endsWith("min")) {
           final mins = int.tryParse(label.replaceAll("min", ""));
           return Duration(minutes: mins ?? 0);
@@ -3704,6 +3743,7 @@ class ChatViewController extends GetxController {
         return Duration.zero;
     }
   }
+
   List<String> getMentionedUserIds({
     required String message,
     required List<GroupMembersListModel> members,
@@ -3720,7 +3760,7 @@ class ChatViewController extends GetxController {
       if (mentionedName == null) continue;
 
       final user = members.firstWhereOrNull(
-            (member) => member.name?.toLowerCase().trim() == mentionedName,
+        (member) => member.name?.toLowerCase().trim() == mentionedName,
       );
 
       if (user?.id != null) {
@@ -3730,11 +3770,11 @@ class ChatViewController extends GetxController {
 
     return mentionedIds;
   }
+
   /// Build a local pending-message stand-in for a message that can't be sent
   /// right now (offline or API failure). Persists to Hive with sendStatus
   /// "pending" and its retry params so the drainer can re-fire it later.
-  Messages _buildPendingMessage(
-      Map<String, dynamic> params, String? fileName) {
+  Messages _buildPendingMessage(Map<String, dynamic> params, String? fileName) {
     final now = DateTime.now().toUtc();
     final isoTime = now.toIso8601String();
     // Populate senderId + sender from the signed-in user so the pending card
@@ -3780,8 +3820,7 @@ class ChatViewController extends GetxController {
       Map<String, dynamic> params, String? fileName) async {
     final message = _buildPendingMessage(params, fileName);
     getListOfMessageData?.add(message);
-    getListOfMessageResponse.value =
-        ApiResponse.complete(getListOfMessageData);
+    getListOfMessageResponse.value = ApiResponse.complete(getListOfMessageData);
     await saveSingleMessageToLocal(
         params[ApiKeys.conversation_id] ?? '', message, params);
     _updateChatListLastMessage(
@@ -3847,8 +3886,7 @@ class ChatViewController extends GetxController {
     );
 
     getListOfMessageData?.add(message);
-    getListOfMessageResponse.value =
-        ApiResponse.complete(getListOfMessageData);
+    getListOfMessageResponse.value = ApiResponse.complete(getListOfMessageData);
     await saveSingleMessageToLocal(convKey, message, params);
     _updateChatListLastMessage(
       conversationId,
@@ -3915,8 +3953,9 @@ class ChatViewController extends GetxController {
       attachRouteParam(params);
       params[ApiKeys.tagged_users] = taggedUserIds.join(',');
       taggedUserIds.clear();
-      if(params[ApiKeys.message_type]=="live_location"){
-       await startLiveLocationTracking(labelToDuration(params[ApiKeys.live_location_validity]));
+      if (params[ApiKeys.message_type] == "live_location") {
+        await startLiveLocationTracking(
+            labelToDuration(params[ApiKeys.live_location_validity]));
       }
 
       clearMessageControllerCommon();
@@ -3946,7 +3985,6 @@ class ChatViewController extends GetxController {
             messageType: params[ApiKeys.message_type]);
         getListOfMessageData?.add(sendLoadingFile.value);
 
-
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
       }
@@ -3955,7 +3993,8 @@ class ChatViewController extends GetxController {
       if (responseModel.isSuccess) {
         // For video: swap loading placeholder with real message in a single update
         if (isVideoSend) {
-          if (getListOfMessageData != null && getListOfMessageData!.isNotEmpty) {
+          if (getListOfMessageData != null &&
+              getListOfMessageData!.isNotEmpty) {
             getListOfMessageData!.removeLast();
           }
           // Don't reassign getListOfMessageResponse here — batch with the add below
@@ -3977,13 +4016,12 @@ class ChatViewController extends GetxController {
 
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-     if (!alreadyExists) {
-    getListOfMessageData?.add(message);
-    }
+          if (!alreadyExists) {
+            getListOfMessageData?.add(message);
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
-          saveSingleMessageToLocal(
-              params[ApiKeys.conversation_id], message);
+          saveSingleMessageToLocal(params[ApiKeys.conversation_id], message);
           // Update chat list locally so last message is visible immediately.
           // Pass an empty sendStatus so any prior "pending" clock icon is
           // cleared now that the server accepted the message.
@@ -4132,7 +4170,6 @@ class ChatViewController extends GetxController {
     }
   }
 
-
   Future<void> getGroupMembersApi(
     Map<String, dynamic> params,
   ) async {
@@ -4145,7 +4182,6 @@ class ChatViewController extends GetxController {
       List<GroupMembersListModel> members =
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
 
-
       getGroupMembersResponse.value = ApiResponse.complete(members);
       ;
     } else {
@@ -4153,6 +4189,7 @@ class ChatViewController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong);
     }
   }
+
   /// Open a chat directly from the chat list without an API call.
   /// All required data is already available from the ChatList object.
   Future<void> openChatFromChatList({
@@ -4163,7 +4200,6 @@ class ChatViewController extends GetxController {
     String? contactNo,
     String? profileImage,
   }) async {
-
     businessTabIndexSelected.value = 0;
     await getLocalConversation(
         conversationId, userId, userId, contactName ?? '');
@@ -4358,48 +4394,47 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<void> checkChatConnectionAndOpenChat(
-      {required String userId,bool? isFromContactList,
-        bool? isWithProductSend,
-        Map<String, dynamic>? shareProductParams,
-        String? name,
-        String? conductNo,
-        String? profile,
-        // Which conversation lane this entry point belongs to —
-        // [AppConstants.route_contact] (personal) or
-        // [AppConstants.route_discover] (business). When set it both forces
-        // the destination chat screen into that lane (so e.g. a Discover tap
-        // always lands on the business thread, even if a personal one exists)
-        // and is attached to every send as the `route` param. `null` keeps the
-        // legacy behaviour of opening whatever the backend reports.
-        String? route,
-        // When non-empty, the destination chat screen seeds its input field
-        // with this text so the user starts a new conversation with a
-        // pre-written intro (e.g. "Hi, I'm Alice — I'd like to know more
-        // about your service"). The user can edit before sending.
-        String? prefilledMessage,
-      }) async {
+  Future<void> checkChatConnectionAndOpenChat({
+    required String userId,
+    bool? isFromContactList,
+    bool? isWithProductSend,
+    Map<String, dynamic>? shareProductParams,
+    String? name,
+    String? conductNo,
+    String? profile,
+    // Which conversation lane this entry point belongs to —
+    // [AppConstants.route_contact] (personal) or
+    // [AppConstants.route_discover] (business). When set it both forces
+    // the destination chat screen into that lane (so e.g. a Discover tap
+    // always lands on the business thread, even if a personal one exists)
+    // and is attached to every send as the `route` param. `null` keeps the
+    // legacy behaviour of opening whatever the backend reports.
+    String? route,
+    // When non-empty, the destination chat screen seeds its input field
+    // with this text so the user starts a new conversation with a
+    // pre-written intro (e.g. "Hi, I'm Alice — I'd like to know more
+    // about your service"). The user can edit before sending.
+    String? prefilledMessage,
+  }) async {
     // Set the send lane up-front so any fire-and-forget send below
     // (e.g. sendProductMessages) already carries the right route.
     activeRoute = route;
-    Map<String, dynamic> params = {
-      ApiKeys.user_id: userId
-    };
+    Map<String, dynamic> params = {ApiKeys.user_id: userId};
     ResponseModel responseModel =
-    await ChatViewRepo().checkChatConnectionApi(params);
+        await ChatViewRepo().checkChatConnectionApi(params);
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
       CheckChatConversationModel details =
-      CheckChatConversationModel.fromJson(data);
-      String conversationId=details.data?.conversationId??'';
-      String otherUserId=details.data?.otherUserId??'';
-      String chatPersonUserId=userId;
-      String contactNo=conductNo??details.data?.sender?.contact??'';
-      String contactName=name??details.data?.sender?.name??'';
-      String profileImage=profile??details.data?.sender?.profileImage??'';
-      final String backendType=details.data?.conversation?.type??'';
-      String type=backendType;
+          CheckChatConversationModel.fromJson(data);
+      String conversationId = details.data?.conversationId ?? '';
+      String otherUserId = details.data?.otherUserId ?? '';
+      String chatPersonUserId = userId;
+      String contactNo = conductNo ?? details.data?.sender?.contact ?? '';
+      String contactName = name ?? details.data?.sender?.name ?? '';
+      String profileImage = profile ?? details.data?.sender?.profileImage ?? '';
+      final String backendType = details.data?.conversation?.type ?? '';
+      String type = backendType;
       // The send lane wins over the backend-reported type: a `discover` tap
       // always opens the business thread and a `contact` tap the personal one.
       // checkChatConnection only reports one conversation for the pair, so when
@@ -4489,7 +4524,8 @@ class ChatViewController extends GetxController {
     // Load cached messages for instant display (no server fetch)
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
     await loadOfflineMessages(conversationId);
-    listenUserNewMessages(conversationId: conversationId, userId: chatPersonUserId);
+    listenUserNewMessages(
+        conversationId: conversationId, userId: chatPersonUserId);
 
     // Determine type from cached data — default to personal
     String type = AppConstants.personal_Chat_Type;
@@ -4498,8 +4534,8 @@ class ChatViewController extends GetxController {
     } else {
       // Check in-memory business chat list
       final businessChats = getBusinessChatListModel?.value.chatList ?? [];
-      final isBusiness = businessChats.any(
-              (c) => c?.conversationId == conversationId);
+      final isBusiness =
+          businessChats.any((c) => c?.conversationId == conversationId);
       if (isBusiness) type = AppConstants.business_Chat_Type;
     }
 
@@ -4550,9 +4586,9 @@ class ChatViewController extends GetxController {
         lane == AppConstants.order_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
-              () => BusinessChatScreenUpdated(
+          () => BusinessChatScreenUpdated(
             type: type,
-            isInitialMessage: conversationId=='',
+            isInitialMessage: conversationId == '',
             userId: userId,
             conversationId: conversationId,
             profileImage: profileImage,
@@ -4563,9 +4599,9 @@ class ChatViewController extends GetxController {
         );
       } else {
         Get.to(
-              () => BusinessChatScreenUpdated(
+          () => BusinessChatScreenUpdated(
             type: type,
-            isInitialMessage: conversationId=='',
+            isInitialMessage: conversationId == '',
             userId: userId,
             conversationId: conversationId,
             profileImage: profileImage,
@@ -4578,9 +4614,9 @@ class ChatViewController extends GetxController {
     } else {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
-              () => PersonalChatScreen(
+          () => PersonalChatScreen(
             type: type,
-            isInitialMessage: conversationId=='',
+            isInitialMessage: conversationId == '',
             userId: userId,
             conversationId: conversationId,
             profileImage: profileImage,
@@ -4591,9 +4627,9 @@ class ChatViewController extends GetxController {
         );
       } else {
         Get.to(
-              () => PersonalChatScreen(
+          () => PersonalChatScreen(
             type: type,
-            isInitialMessage: conversationId=='',
+            isInitialMessage: conversationId == '',
             userId: userId,
             conversationId: conversationId,
             profileImage: profileImage,
@@ -4605,6 +4641,7 @@ class ChatViewController extends GetxController {
       }
     }
   }
+
   Future<bool> updateMessageApi(
     Map<String, dynamic> params,
   ) async {
@@ -4627,20 +4664,16 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<bool> updateGroupInfo(
-    Map<String, dynamic> params,
-  {
-  bool? isFromFile,
-  bool? isFromCoverImage,
-  Map<String, dynamic>? fileParams,
-  File? fileSended
-  }
-  ) async {
+  Future<bool> updateGroupInfo(Map<String, dynamic> params,
+      {bool? isFromFile,
+      bool? isFromCoverImage,
+      Map<String, dynamic>? fileParams,
+      File? fileSended}) async {
     try {
-      isEditGroupBtnLoading.value=true;
-      if (isFromFile != null||isFromCoverImage!=null) {
+      isEditGroupBtnLoading.value = true;
+      if (isFromFile != null || isFromCoverImage != null) {
         ResponseModel responseModel =
-        await ChatViewRepo().generateUploadUrlsApi(fileParams!);
+            await ChatViewRepo().generateUploadUrlsApi(fileParams!);
         clearMessageControllerCommon();
 
         if (!responseModel.isSuccess) {
@@ -4663,69 +4696,69 @@ class ChatViewController extends GetxController {
           return uploadFileToS3(file: file!, fileType: type, preSignedUrl: url);
         }));
         List<String> sharedFile = uploadModel.files?.map((element) {
-          return element.publicUrl ?? '';
-        }).toList() ??
+              return element.publicUrl ?? '';
+            }).toList() ??
             [];
         params.addAll({
-          if(isFromCoverImage!=null)
+          if (isFromCoverImage != null)
             ApiKeys.group_cover_image: sharedFile
-            else
-          ApiKeys.group_profile_image: sharedFile,
+          else
+            ApiKeys.group_profile_image: sharedFile,
         });
         ResponseModel responseModelCreas =
-        await ChatViewRepo().updateGroupApi(params);
+            await ChatViewRepo().updateGroupApi(params);
         if (responseModelCreas.isSuccess) {
-
           groupDetailsModel.value.copyWith(
-              groupProfileImage:responseModelCreas.data['group_profile_image'],
+            groupProfileImage: responseModelCreas.data['group_profile_image'],
             groupCoverImage: responseModelCreas.data['group_cover_image'],
             groupName: responseModelCreas.data['group_name'],
             publicGroup: responseModelCreas.data['public_group'],
           );
-          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
-          isEditGroupBtnLoading.value=false;
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.group_Chat_Type});
+          isEditGroupBtnLoading.value = false;
           return true;
         } else {
-          isEditGroupBtnLoading.value=false;
+          isEditGroupBtnLoading.value = false;
 
           commonSnackBar(
               message:
-              responseModelCreas.message ?? AppStrings.somethingWentWrong);
+                  responseModelCreas.message ?? AppStrings.somethingWentWrong);
           return false;
         }
-      }else{
+      } else {
         ResponseModel responseModelCreas =
-        await ChatViewRepo().updateGroupApi(params);
+            await ChatViewRepo().updateGroupApi(params);
         clearMessageControllerCommon();
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+        emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.group_Chat_Type});
 
         if (responseModelCreas.isSuccess) {
-
           clearMessageControllerCommon();
-          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.group_Chat_Type});
 
           groupDetailsModel.value.copyWith(
-            groupProfileImage:responseModelCreas.data['group_profile_image'],
+            groupProfileImage: responseModelCreas.data['group_profile_image'],
             groupCoverImage: responseModelCreas.data['group_cover_image'],
             groupName: responseModelCreas.data['group_name'],
             publicGroup: responseModelCreas.data['public_group'],
           );
-          isEditGroupBtnLoading.value=false;
+          isEditGroupBtnLoading.value = false;
 
           return true;
         } else {
           clearMessageControllerCommon();
           commonSnackBar(
-              message: responseModelCreas.message ?? AppStrings.somethingWentWrong);
-          isEditGroupBtnLoading.value=false;
+              message:
+                  responseModelCreas.message ?? AppStrings.somethingWentWrong);
+          isEditGroupBtnLoading.value = false;
 
           return false;
+        }
       }
-
-      }
-
     } catch (e) {
-      isEditGroupBtnLoading.value=false;
+      isEditGroupBtnLoading.value = false;
 
       return false;
     }
@@ -4734,27 +4767,30 @@ class ChatViewController extends GetxController {
   String getCurrentIsoTime() {
     return DateTime.now().toUtc().toIso8601String();
   }
+
   Future<void> getGroupDetailsApi(Map<String, dynamic> params) async {
     // try {
 
-      ResponseModel responseModel =
-          await ChatViewRepo().getGroupDetailsApi(params);
+    ResponseModel responseModel =
+        await ChatViewRepo().getGroupDetailsApi(params);
 
-      if (responseModel.isSuccess) {
-        final data = responseModel.data;
-        groupDetailsModel.value=GroupDetailsModel.fromJson(data);
-        groupDetailsResponse.value=ApiResponse.complete(groupDetailsModel.value);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-        groupDetailsResponse.value=ApiResponse.error( responseModel.message ?? AppStrings.somethingWentWrong);
-
-      }
+    if (responseModel.isSuccess) {
+      final data = responseModel.data;
+      groupDetailsModel.value = GroupDetailsModel.fromJson(data);
+      groupDetailsResponse.value =
+          ApiResponse.complete(groupDetailsModel.value);
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      groupDetailsResponse.value = ApiResponse.error(
+          responseModel.message ?? AppStrings.somethingWentWrong);
+    }
     // } catch (e) {
     //   groupDetailsResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
     //
     // }
   }
+
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
     if (isSending.value) return;
     isSending.value = true;
@@ -4843,12 +4879,12 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().deleteSingleMessage(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
-     emitEvent(ChatEmitEvents.messageReceived, {
-      ApiKeys.conversation_id: params[ApiKeys.conversation_id],
-      ApiKeys.page: 1,
-      ApiKeys.is_online_user: userId,
-      ApiKeys.per_page_message: 30,
-    });
+        emitEvent(ChatEmitEvents.messageReceived, {
+          ApiKeys.conversation_id: params[ApiKeys.conversation_id],
+          ApiKeys.page: 1,
+          ApiKeys.is_online_user: userId,
+          ApiKeys.per_page_message: 30,
+        });
       } else {
         clearMessageControllerCommon();
         commonSnackBar(
@@ -4885,43 +4921,46 @@ class ChatViewController extends GetxController {
 
   Future<bool> addToPinMessage(Map<String, dynamic> params) async {
     try {
-      isPinMessageLoading.value=true;
+      isPinMessageLoading.value = true;
       ResponseModel responseModel =
           await ChatViewRepo().addToPinMultiMessage(params);
       if (responseModel.isSuccess) {
-        isPinMessageLoading.value=false;
+        isPinMessageLoading.value = false;
         commonSnackBar(
-            message:responseModel.message?? AppStrings.messagePinnedSuccessfully.tr);
+            message: responseModel.message ??
+                AppStrings.messagePinnedSuccessfully.tr);
         return true;
       } else {
-        isPinMessageLoading.value=false;
+        isPinMessageLoading.value = false;
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         return false;
       }
     } catch (e) {
-      isPinMessageLoading.value=false;
-      commonSnackBar(
-          message: AppStrings.somethingWentWrong);
+      isPinMessageLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     }
   }
+
   Future<bool> getPinMessageListDataApi(Map<String, dynamic> params) async {
     // try {
 
-      ResponseModel responseModel =
-          await ChatViewRepo().getPinMessageListData(params);
-      if (responseModel.isSuccess) {
-        getListOfMessageData?.clear();
-        List<dynamic> details=responseModel.response?.data['messages'];
-        getListOfMessageData?.addAll(details.map((e) => Messages.fromJson(e)).toList());
-        getListOfMessageResponse.value =ApiResponse.complete(getListOfMessageData);
-        return true;
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
+    ResponseModel responseModel =
+        await ChatViewRepo().getPinMessageListData(params);
+    if (responseModel.isSuccess) {
+      getListOfMessageData?.clear();
+      List<dynamic> details = responseModel.response?.data['messages'];
+      getListOfMessageData
+          ?.addAll(details.map((e) => Messages.fromJson(e)).toList());
+      getListOfMessageResponse.value =
+          ApiResponse.complete(getListOfMessageData);
+      return true;
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      return false;
+    }
     // } catch (e) {
     //
     //   commonSnackBar(
@@ -5035,7 +5074,7 @@ class ChatViewController extends GetxController {
       }).toList();
 
       final Map<String, dynamic> messagePayload = {
-        if (conversationId==null)
+        if (conversationId == null)
           ApiKeys.other_user_id: userId
         else
           ApiKeys.conversation_id: conversationId,
@@ -5068,8 +5107,7 @@ class ChatViewController extends GetxController {
       if (isOffline || e == "Something went wrong") {
         final now = DateTime.now().toUtc();
         final isoTime = now.toIso8601String();
-        List<String> filePathsList =
-            listFile.map((f) => f.path).toList();
+        List<String> filePathsList = listFile.map((f) => f.path).toList();
         final String tempId = "${isoTime}_${conversationId ?? ''}";
         final bool alreadyExists =
             getListOfMessageData?.any((m) => m.id == tempId) ?? false;
@@ -5154,14 +5192,12 @@ class ChatViewController extends GetxController {
             final alreadyExists = message.id != null &&
                 (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
             if (!alreadyExists) {
-
               getListOfMessageData?.add(message);
             }
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
             scrollDown();
-            saveSingleMessageToLocal(
-                message.conversationId ?? '', message);
+            saveSingleMessageToLocal(message.conversationId ?? '', message);
           }
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(
@@ -5248,20 +5284,20 @@ class ChatViewController extends GetxController {
       }
     } catch (e) {}
   }
-  Future<bool> checkTrackOrderStatusApi(
-      String orderId) async {
+
+  Future<bool> checkTrackOrderStatusApi(String orderId) async {
     try {
       ResponseModel responseModel =
-      await ChatViewRepo().checkTrackOrderStatusApi(orderId);
+          await ChatViewRepo().checkTrackOrderStatusApi(orderId);
       if (responseModel.isSuccess) {
-        var details=responseModel.response?.data;
-        if(details["status"]=="rejected"||details["status"]=="cancelled"){
-        // if(details["status"]=="completed"||details["status"]=="rejected"||details["status"]=="cancelled"){
+        var details = responseModel.response?.data;
+        if (details["status"] == "rejected" ||
+            details["status"] == "cancelled") {
+          // if(details["status"]=="completed"||details["status"]=="rejected"||details["status"]=="cancelled"){
           return false;
-        }else{
+        } else {
           return true;
         }
-
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);

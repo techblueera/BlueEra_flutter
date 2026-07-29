@@ -875,34 +875,37 @@ Widget _productsBanner({required VoidCallback onAddTests}) {
           ),
         ),
         SizedBox(width: SizeConfig.size8),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.primaryColor.withValues(alpha: 0.25),
-              width: 1,
+        GestureDetector(
+          onTap: onAddTests,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+                width: 1,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LocalAssets(
-                  imagePath: AppIconAssets.add,
-                  imgColor: AppColors.primaryColor,
-                  height: 14,
-                  width: 14),
-              SizedBox(
-                width: 4,
-              ),
-              CustomText(
-                'Add Tests',
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-            ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                    imagePath: AppIconAssets.add,
+                    imgColor: AppColors.primaryColor,
+                    height: 14,
+                    width: 14),
+                SizedBox(
+                  width: 4,
+                ),
+                CustomText(
+                  'Add Tests',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
           ),
         )
       ],

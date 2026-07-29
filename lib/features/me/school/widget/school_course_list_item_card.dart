@@ -21,11 +21,19 @@ class SchoolCourseListItemCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
+  /// Draws a thin grey outline around the card. The owner Academics tab
+  /// prefers the shadow-only look (default `false`); the public-facing
+  /// [DiscoverSchoolHomeScreen] rail asks for `true` so the horizontal
+  /// cards read as distinct tiles even when the background scroll
+  /// container is also white.
+  final bool showBorder;
+
   const SchoolCourseListItemCard({
     super.key,
     required this.course,
     this.onEdit,
     this.onDelete,
+    this.showBorder = false,
   });
 
   @override
@@ -44,13 +52,20 @@ class SchoolCourseListItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border:
+            showBorder ? Border.all(color: Color(0xffDDE2EE), width: 1) : null,
+        // In the bordered variant (discover home screen) the outline
+        // already delimits the card, so drop the shadow to avoid a
+        // "double edge" look. Owner Academics tab keeps the shadow.
+        boxShadow: showBorder
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +138,14 @@ class SchoolCourseListItemCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
                   const SizedBox(height: 10),
+                  // Full-width pill button (matches assets/img.png). The
+                  // Container previously sized to its text, so long
+                  // `admissionProcess` strings made the button dwarf the
+                  // rest of the card. width: infinity + textAlign.center
+                  // gives a uniform CTA; ellipsis stops any overflow when
+                  // the string is longer than the right column width.
                   Container(
+                    width: 150,
                     padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     decoration: BoxDecoration(
@@ -135,6 +157,9 @@ class SchoolCourseListItemCard extends StatelessWidget {
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -161,6 +186,11 @@ class _MiniChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Long `eligibility` / `duration` strings used to push the chip's
+    // Row past the parent Wrap's max width (right-column ~140px in the
+    // horizontal rail). Flexible + ellipsis makes the label truncate
+    // instead of the Row overflowing. mainAxisSize.min keeps short
+    // labels tight so two chips can still sit side-by-side.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -178,11 +208,15 @@ class _MiniChip extends StatelessWidget {
             width: 12,
           ),
           const SizedBox(width: 4),
-          CustomText(
-            label,
-            fontSize: 12,
-            color: AppColors.grey7E,
-            fontWeight: FontWeight.w400,
+          Flexible(
+            child: CustomText(
+              label,
+              fontSize: 12,
+              color: AppColors.grey7E,
+              fontWeight: FontWeight.w400,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

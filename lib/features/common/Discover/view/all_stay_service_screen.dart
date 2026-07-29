@@ -12,6 +12,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
+import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -1122,47 +1125,31 @@ class PropertyCard extends StatefulWidget {
 }
 
 class _PropertyCardState extends State<PropertyCard> {
-  // Dummy reviews for the read-only review sheet.
-  final List<Map<String, dynamic>> _dummyReviews = const [
-    {
-      'name': 'Priya Sharma',
-      'rating': 5.0,
-      'date': '2 days ago',
-      'comment':
-          'Fantastic stay! The rooms were spotless and the staff was incredibly warm. Breakfast spread was delicious.',
-    },
-    {
-      'name': 'Rahul Verma',
-      'rating': 4.0,
-      'date': '1 week ago',
-      'comment':
-          'Great value for money. Clean rooms, good location, though check-in took a little longer than expected.',
-    },
-    {
-      'name': 'Anita Desai',
-      'rating': 4.5,
-      'date': '3 weeks ago',
-      'comment':
-          'Loved the view from our room. The pool area is well-maintained and the ambience is peaceful.',
-    },
-    {
-      'name': 'Vikram Rao',
-      'rating': 3.5,
-      'date': '1 month ago',
-      'comment':
-          'Decent stay. Rooms could be a little more spacious but the service made up for it.',
-    },
-  ];
+  // Real ratings live in user-service; the shared BusinessRatingsBottomSheet
+  // fetches paginated reviews via GET /user-service/business/{businessId}/ratings
+  // and parses `created_at` per lib/docs/rating-ui-integration.md §4. The
+  // hotel's businessId is the be_user_service `businesses._id` — the same
+  // value the profile payload exposes as `profile.businessId`.
+  String get _businessId => (widget.businessId ?? '').trim();
 
   void _openReviewsSheet() {
+    if (_businessId.isEmpty) return;
+    getOrPut(() => ViewBusinessDetailsController());
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ReviewsBottomSheet(
-        hotelName: widget.hotelName,
-        rating: widget.rating,
-        reviews: _dummyReviews,
+      builder: (_) => BusinessRatingsBottomSheet(businessId: _businessId),
+    );
+  }
+
+  Future<void> _openRateDialog() async {
+    if (_businessId.isEmpty) return;
+    await showDialog(
+      context: context,
+      builder: (_) => RatingFeedbackDialog(
+        businessId: _businessId,
+        reviewFor: AppConstants.business,
       ),
     );
   }
@@ -1369,7 +1356,7 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ),
           ),
-          if (widget.rating > 0)
+          if (widget.rating > 0 && _businessId.isNotEmpty)
             Positioned(
               left: 10,
               top: 10,
@@ -1393,8 +1380,9 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ),
 
-          // Single bookmark affordance top-right — long-press falls back
-          // to share so the share entry point isn't lost from the surface.
+          // Share is always available; the rate button is hidden when the
+          // listing has no businessId (per rating-ui-integration.md §1 the
+          // POST would 404 without the be_user_service businesses._id).
           Positioned(
             top: 12,
             right: 12,
@@ -1402,8 +1390,10 @@ class _PropertyCardState extends State<PropertyCard> {
               children: [
                 _circleIconBtn(AppIconAssets.share_bold,
                     onTap: () => _shareBusiness),
-                const SizedBox(height: 8),
-                _circleIconBtn(AppIconAssets.star, onTap: () {}),
+                if (_businessId.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _circleIconBtn(AppIconAssets.star, onTap: _openRateDialog),
+                ],
               ],
             ),
           ),
@@ -1802,171 +1792,6 @@ class _PropertyCardState extends State<PropertyCard> {
           ],
         ),
       );
-}
-
-class _ReviewsBottomSheet extends StatelessWidget {
-  final String hotelName;
-  final double rating;
-  final List<Map<String, dynamic>> reviews;
-
-  const _ReviewsBottomSheet({
-    required this.hotelName,
-    required this.rating,
-    required this.reviews,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CommonDraggableBottomSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      backgroundColor: AppColors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      padding: EdgeInsets.only(
-        left: SizeConfig.size16,
-        right: SizeConfig.size16,
-        top: SizeConfig.size10,
-      ),
-      builder: (scrollController) {
-        final avg = reviews.isEmpty
-            ? rating
-            : reviews
-                    .map((r) => (r['rating'] as num).toDouble())
-                    .reduce((a, b) => a + b) /
-                reviews.length;
-
-        return ListView(
-          controller: scrollController,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 5,
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryTextColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    hotelName,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size6),
-            Row(
-              children: [
-                Icon(Icons.star_rounded,
-                    color: Colors.amber, size: SizeConfig.size22),
-                SizedBox(width: SizeConfig.size4),
-                CustomText(
-                  avg.toStringAsFixed(1),
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                CustomText(
-                  '· ${reviews.length} ${AppStrings.reviewsLowercase.tr}',
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size12),
-            Divider(color: AppColors.greyE5, height: 1),
-            SizedBox(height: SizeConfig.size10),
-            ...reviews.map(_reviewTile),
-            SizedBox(height: SizeConfig.paddingL),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _reviewTile(Map<String, dynamic> r) {
-    final name = r['name'] as String;
-    final rate = (r['rating'] as num).toDouble();
-    final date = r['date'] as String;
-    final comment = r['comment'] as String;
-    return Padding(
-      padding: EdgeInsets.only(bottom: SizeConfig.size14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: SizeConfig.size16,
-                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.15),
-                child: CustomText(
-                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      name,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                    ),
-                    CustomText(
-                      date,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: List.generate(5, (i) {
-                  final filled = i < rate.floor();
-                  final half = !filled && (i < rate);
-                  return Icon(
-                    half
-                        ? Icons.star_half_rounded
-                        : (filled
-                            ? Icons.star_rounded
-                            : Icons.star_border_rounded),
-                    size: SizeConfig.size16,
-                    color: Colors.amber,
-                  );
-                }),
-              ),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size6),
-          CustomText(
-            comment,
-            fontSize: SizeConfig.small,
-            color: AppColors.mainTextColor,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _NoHotelsFound extends StatelessWidget {

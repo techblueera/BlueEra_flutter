@@ -232,8 +232,6 @@ class ViewBusinessDetailsController extends GetxController
         fetchProducts(visitBusinessId: visitBusinessId),
         fetchServices(visitBusinessId: visitBusinessId),
         fetchFoods(visitBusinessId: visitBusinessId),
-        // getBusinessRatingsSummary(businessID),
-        // getBusinessDetailedRatings(businessID)
       ]);
     } catch (e) {
     } finally {

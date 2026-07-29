@@ -26,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../business/widgets/rating_widget.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/service/chat_click_tracker.dart';
 
@@ -480,6 +481,22 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     }
   }
 
+  /// Opens the rating submit dialog for a school listing. The POST target
+  /// is the be_user_service `businesses._id` (see
+  /// lib/docs/rating-ui-integration.md §1) — the caller must hide the
+  /// entry point when it is empty, otherwise the request 404s.
+  Future<void> _openRateDialog(SchoolDetailsData service) async {
+    final businessId = (service.businessId ?? '').trim();
+    if (businessId.isEmpty) return;
+    await showDialog(
+      context: context,
+      builder: (_) => RatingFeedbackDialog(
+        businessId: businessId,
+        reviewFor: AppConstants.business,
+      ),
+    );
+  }
+
   Future<void> _shareSchool(SchoolDetailsData service) async {
     final name = (service.name?.trim().isNotEmpty ?? false)
         ? service.name!.trim()
@@ -664,8 +681,17 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     onTap: () => _shareSchool(service),
                     child: _circleIcon(AppIconAssets.share_bold),
                   ),
-                  const SizedBox(height: 8),
-                  _circleIcon(AppIconAssets.star),
+                  // Rate CTA is only shown when the listing carries the
+                  // be_user_service `businesses._id` (see
+                  // lib/docs/rating-ui-integration.md §1) — without it the
+                  // POST to /business/{businessId}/ratings would 404.
+                  if ((service.businessId ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => _openRateDialog(service),
+                      child: _circleIcon(AppIconAssets.star),
+                    ),
+                  ],
                 ],
               ),
             ),

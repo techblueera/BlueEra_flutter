@@ -74,6 +74,7 @@ class SchoolDetailsData {
     this.avgRating,
     this.quickInfoRaw,
     this.quickInfoCategory,
+    this.businessId,
   });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -167,6 +168,12 @@ class SchoolDetailsData {
 
     final ratingVal = json['avg_rating'] ?? json['avgRating'];
     avgRating = ratingVal is num ? ratingVal.toDouble() : null;
+
+    // be_user_service `businesses._id` — the only id the rating endpoints
+    // accept (see lib/docs/rating-ui-integration.md §1). Empty when the
+    // schools payload wasn't enriched via the business chain; UIs must
+    // hide the rating submit CTA in that case.
+    businessId = json['businessId']?.toString();
   }
   String? id;
   String? name;
@@ -206,6 +213,7 @@ class SchoolDetailsData {
   // of the doc's six categories from the business chain; otherwise null.
   String? quickInfoCategory;
   double? avgRating;
+  String? businessId;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

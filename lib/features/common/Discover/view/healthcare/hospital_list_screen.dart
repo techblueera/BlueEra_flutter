@@ -386,44 +386,16 @@ class _HospitalCard extends StatelessWidget {
             ),
           ),
         ),
-        // Rating badge (top-left). No rating in the listing payload yet, so
-        // this renders a static placeholder until the backend supplies one.
-        Positioned(
-          top: 10,
-          left: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.black25,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
-                const SizedBox(width: 3),
-                CustomText(
-                  '4.8',
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
-        ),
-        // Floating share + directions controls, stacked vertically.
+        // Floating share control. Rating badge + rate CTA are intentionally
+        // omitted on the listing card — the hospital `business/filter`
+        // payload does not include the be_user_service `businesses._id`
+        // (see lib/docs/rating-ui-integration.md §1) and rating without
+        // it 404s. Rate/reviews live on the detail screen instead, where
+        // VisitBusinessHero resolves the correct id from the profile fetch.
         Positioned(
           top: 10,
           right: 10,
-          child: Column(
-            children: [
-              _circleAction(AppIconAssets.share_bold, _share),
-              const SizedBox(height: 8),
-              _circleAction(
-                  AppIconAssets.star_rounded, () => (Text("Coming Soon"))),
-            ],
-          ),
+          child: _circleAction(AppIconAssets.share_bold, _share),
         ),
       ],
     );

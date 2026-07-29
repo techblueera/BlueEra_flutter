@@ -160,8 +160,8 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// mode).
                     SchoolQuickInfoCard(controller: schoolAboutUsController),
 
-                    if (data?.aboutId?.management?.isNotEmpty ?? false) ...[
-                      SizedBox(height: SizeConfig.size10),
+                    if (data?.aboutId?.management?.isEmpty ?? false) ...[
+                      SizedBox(height: SizeConfig.paddingXS),
                     ],
 
                     /// MANAGEMENT
@@ -172,13 +172,16 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     // 10px margin on every side. The former spacer stacked
                     // on top of those two margins, producing a ~30px gap
                     // between the cards instead of the intended ~10px.
-                    if (data?.courses?.isNotEmpty ?? false)
+
+                    if (data?.courses?.isEmpty ?? false) ...[
                       SizedBox(height: SizeConfig.size10),
+                    ],
 
                     /// COURSES
                     _CoursesSection(data: data),
-
-                    SizedBox(height: SizeConfig.paddingXS),
+                    if (data?.campusLife?.isEmpty ?? false) ...[
+                      SizedBox(height: SizeConfig.paddingXS),
+                    ],
 
                     /// CAMPUS GALLERY (social-style grid)
                     _GallerySection(data: data),
@@ -587,27 +590,133 @@ class _CoursesSection extends StatelessWidget {
     // Reuse the same card the owner Academics tab uses, in read-only
     // mode (no edit/delete callbacks → the overflow menu is hidden).
     //
-    // Vertical layout — the shared card packs a 165px image plus a fee
-    // row, description, eligibility/duration chips, and a "Direct
-    // Admission" pill into its right column. At a 320px horizontal-rail
-    // width the right column was ~130px wide, squeezing the admission
-    // pill into the bottom-right corner. Stacking cards vertically
-    // gives each one the full page width and lets the internal layout
-    // breathe.
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-      child: CommonCardWidget(
-        cardMargin: 0,
+    // Horizontal rail — matches assets/img.png. Header is a plain
+    // "Our Courses" title on the left and a "View All" link on the
+    // right (no leading icon). Each card is fixed at 340px so the
+    // right column stays ~155px wide, keeping the "Direct Admission"
+    // pill on its own line rather than being squeezed into the corner.
+    return CommonCardWidget(
+      padding: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(
-                Icons.menu_book_outlined, AppStrings.coursesLabel.tr),
-            SizedBox(height: SizeConfig.paddingXS),
-            for (int i = 0; i < courses.length; i++) ...[
-              SchoolCourseListItemCard(course: courses[i]),
-              if (i != courses.length - 1) SizedBox(height: SizeConfig.size10),
-            ],
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.paddingS,
+                  vertical: SizeConfig.paddingXS),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.coursesLabel.tr,
+                      fontSize: SizeConfig.size18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black22,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (courses.length > 1)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _openAllCoursesSheet(context, courses),
+                      child: CustomText(
+                        AppStrings.viewAll.tr,
+                        fontSize: SizeConfig.size14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // 240px covers the tallest natural card height: 165px image +
+            // 16px card padding + slack for a card whose right column runs
+            // longer than the image (title + fee + 2-line description +
+            // chips + divider + admission pill). Bumped from 210 after a
+            // 4px overflow on cards with the admission pill visible.
+            // Align each card to top so shorter cards don't stretch.
+            SizedBox(
+              height: 240,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                itemCount: courses.length,
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+                itemBuilder: (_, i) => SizedBox(
+                  width: 340,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: SchoolCourseListItemCard(
+                      course: courses[i],
+                      showBorder: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Full-screen list of every course on the school, stacked vertically.
+  /// Shown when the user taps "View All" on the horizontal rail. Same
+  /// [SchoolCourseListItemCard] as the rail — only the layout changes.
+  void _openAllCoursesSheet(BuildContext context, List<Courses> courses) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.paddingS,
+                vertical: SizeConfig.paddingXS,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.coursesLabel.tr,
+                      fontSize: SizeConfig.size18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black22,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                padding: EdgeInsets.all(SizeConfig.paddingS),
+                itemCount: courses.length,
+                separatorBuilder: (_, __) =>
+                    SizedBox(height: SizeConfig.size10),
+                itemBuilder: (_, i) => SchoolCourseListItemCard(
+                  course: courses[i],
+                  showBorder: true,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -633,10 +742,13 @@ class _GallerySection extends StatelessWidget {
     }
 
     if (allImages.isEmpty) {
-      return _emptySection(
-        Icons.photo_library_outlined,
-        AppStrings.gallery.tr,
-        AppStrings.noPhotosAvailableMsg.tr,
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: _emptySection(
+          Icons.photo_library_outlined,
+          AppStrings.gallery.tr,
+          AppStrings.noPhotosAvailableMsg.tr,
+        ),
       );
     }
 

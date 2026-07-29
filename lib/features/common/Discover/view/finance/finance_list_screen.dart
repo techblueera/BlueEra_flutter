@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
@@ -225,6 +226,20 @@ class _FinanceCard extends StatelessWidget {
     return '';
   }
 
+  Future<void> _openRateDialog() async {
+    final businessId = (item.businessId ?? '').trim();
+    if (businessId.isEmpty) return;
+    final ctx = Get.context;
+    if (ctx == null) return;
+    await showDialog(
+      context: ctx,
+      builder: (_) => RatingFeedbackDialog(
+        businessId: businessId,
+        reviewFor: AppConstants.business,
+      ),
+    );
+  }
+
   Future<void> _shareFinance(FinanceBusinessItem item) async {
     final name = (item.profileName?.trim().isNotEmpty ?? false)
         ? item.profileName!.trim()
@@ -371,8 +386,14 @@ class _FinanceCard extends StatelessWidget {
                 children: [
                   _circleIconBtn(AppIconAssets.share_bold,
                       onTap: () => _shareFinance(item)),
-                  const SizedBox(height: 8),
-                  _circleIconBtn(AppIconAssets.star, onTap: () {}),
+                  // Rate CTA is only shown when the listing carries the
+                  // be_user_service `businesses._id` (see
+                  // lib/docs/rating-ui-integration.md §1) — without it the
+                  // POST to /business/{businessId}/ratings would 404.
+                  if ((item.businessId ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _circleIconBtn(AppIconAssets.star, onTap: _openRateDialog),
+                  ],
                 ],
               ),
             ),

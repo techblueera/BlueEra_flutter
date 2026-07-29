@@ -21,6 +21,11 @@ class FinanceBusinessItem {
   String? id;
   String? userId;
   String? businessProfileId;
+  // be_user_service `businesses._id` — the only id the rating endpoints
+  // accept (see lib/docs/rating-ui-integration.md §1). Empty when the
+  // owner has no business record or the gRPC enrichment failed; UIs must
+  // hide the rating submit CTA in that case.
+  String? businessId;
   String? profileName;
   String? description;
   String? logoUrl;
@@ -70,6 +75,7 @@ class FinanceBusinessItem {
     id = json['_id'] ?? profile?['_id'];
     userId = json['userId'] ?? profile?['userId'];
     businessProfileId = json['businessProfileId'] ?? profile?['businessProfileId'];
+    businessId = json['businessId'] ?? profile?['businessId'];
     profileName = json['profileName'] ?? profile?['profileName'];
     description = json['description'] ?? profile?['description'];
     logoUrl = (json['logoUrl'] ?? profile?['logoUrl'])?.toString().trim();
