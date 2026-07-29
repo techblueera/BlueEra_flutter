@@ -1,0 +1,19 @@
+{
+  "otherManagementTitle": "Management",
+  "otherJobsTitle": "Career / Jobs",
+  "otherTimingTitle": "Timing",
+  "otherAddEdit": "Add / Edit",
+  "otherOpen": "Open",
+  "otherClosed": "Closed",
+  "otherBankingInfoTitle": "Banking Information",
+  "otherRbiRegistered": "RBI Registered",
+  "otherAccountTypes": "Account Types",
+  "otherNoAccountTypesSelected": "No account types selected",
+  "otherAccountTypeSavings": "Savings",
+  "otherAccountTypeCurrent": "Current",
+  "otherAccountTypeFixedDeposit": "Fixed Deposit",
+  "otherAccountTypeRecurringDeposit": "Recurring Deposit",
+  "otherAccountTypeSalary": "Salary",
+  "otherAccountTypeNri": "NRI",
+  "otherAccountTypeDemat": "Demat"
+}

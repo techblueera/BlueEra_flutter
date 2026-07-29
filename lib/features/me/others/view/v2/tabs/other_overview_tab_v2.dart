@@ -447,8 +447,8 @@ class _GalleryLayout extends StatelessWidget {
     void open(int i) => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ImageViewScreen(
-              subTitle: AppStrings.imageViewer,
-              appBarTitle: AppStrings.imageViewer,
+              subTitle: AppStrings.imageViewer.tr,
+              appBarTitle: AppStrings.imageViewer.tr,
               imageUrls: images,
               initialIndex: i,
             ),
@@ -546,6 +546,9 @@ class _TimingCard extends StatelessWidget {
 
   const _TimingCard({required this.timings, required this.onEditTap});
 
+  /// Canonical (untranslated) day keys — used for the [_slotFor] lookup. The
+  /// visible label goes through [_dayLabelKey] so only the display text is
+  /// localized.
   static const List<String> _weekDays = [
     'Monday',
     'Tuesday',
@@ -555,6 +558,26 @@ class _TimingCard extends StatelessWidget {
     'Saturday',
     'Sunday',
   ];
+
+  static String _dayLabelKey(String day) {
+    switch (day) {
+      case 'Monday':
+        return AppStrings.monday;
+      case 'Tuesday':
+        return AppStrings.tuesday;
+      case 'Wednesday':
+        return AppStrings.wednesday;
+      case 'Thursday':
+        return AppStrings.thursday;
+      case 'Friday':
+        return AppStrings.friday;
+      case 'Saturday':
+        return AppStrings.saturday;
+      case 'Sunday':
+        return AppStrings.sunday;
+    }
+    return day;
+  }
 
   DayTiming? _slotFor(String day) {
     switch (day) {
@@ -599,7 +622,7 @@ class _TimingCard extends StatelessWidget {
           ..._weekDays.map((day) {
             final slot = _slotFor(day);
             return _TimingRow(
-              day: day,
+              day: _dayLabelKey(day).tr,
               isOpen: slot?.isOpen ?? false,
               openTime: slot?.openTime ?? '10:00',
               closeTime: slot?.closeTime ?? '10:00',
@@ -671,7 +694,7 @@ class _TimingStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomText(
-        isOpen ? 'Open' : 'Closed',
+        isOpen ? AppStrings.otherOpen.tr : AppStrings.otherClosed.tr,
         fontSize: 11,
         color: fg,
         fontWeight: FontWeight.w600,
@@ -803,11 +826,11 @@ class _ContactUs extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.edit_outlined,
+                        children: [
+                          const Icon(Icons.edit_outlined,
                               size: 14, color: AppColors.primaryColor),
-                          SizedBox(width: 4),
-                          CustomText(AppStrings.edit,
+                          const SizedBox(width: 4),
+                          CustomText(AppStrings.edit.tr,
                               fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
@@ -845,10 +868,10 @@ class _ContactUs extends StatelessWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.add, size: 16, color: AppColors.primaryColor),
-                SizedBox(width: 6),
-                CustomText(AppStrings.addMore,
+              children: [
+                const Icon(Icons.add, size: 16, color: AppColors.primaryColor),
+                const SizedBox(width: 6),
+                CustomText(AppStrings.addMore.tr,
                     fontSize: 13,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600),
@@ -900,6 +923,9 @@ class _ContactUs extends StatelessWidget {
 /// the sheet calls [onSave], closes on success, and the parent refetches via
 /// `getBusinessProfileFull()` so the card rebuilds with the new props.
 class _BankingCard extends StatelessWidget {
+  /// Canonical account-type values. These are what get persisted through
+  /// `updateBankingInfo` and what the server sends back, so they stay in
+  /// English — only the visible label is localized via [accountTypeLabel].
   static const List<String> _accountTypeOptions = [
     'Savings',
     'Current',
@@ -909,6 +935,28 @@ class _BankingCard extends StatelessWidget {
     'NRI',
     'Demat',
   ];
+
+  /// Localized label for a stored account-type value. Unknown values (older
+  /// records, values added server-side) fall through to the raw text.
+  static String accountTypeLabel(String value) {
+    switch (value) {
+      case 'Savings':
+        return AppStrings.otherAccountTypeSavings.tr;
+      case 'Current':
+        return AppStrings.otherAccountTypeCurrent.tr;
+      case 'Fixed deposit':
+        return AppStrings.otherAccountTypeFixedDeposit.tr;
+      case 'Recurring deposit':
+        return AppStrings.otherAccountTypeRecurringDeposit.tr;
+      case 'Salary':
+        return AppStrings.otherAccountTypeSalary.tr;
+      case 'NRI':
+        return AppStrings.otherAccountTypeNri.tr;
+      case 'Demat':
+        return AppStrings.otherAccountTypeDemat.tr;
+    }
+    return value;
+  }
 
   final bool? initialRbi;
   final List<String> initialAccountTypes;
@@ -952,7 +1000,7 @@ class _BankingCard extends StatelessWidget {
               SizedBox(width: SizeConfig.size8),
               Expanded(
                 child: CustomText(
-                  'Banking Information',
+                  AppStrings.otherBankingInfoTitle.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -1004,9 +1052,9 @@ class _BankingCard extends StatelessWidget {
 
   Widget _buildReadOnlyBody() {
     final rbiText = initialRbi == true
-        ? 'Yes'
+        ? AppStrings.yes.tr
         : initialRbi == false
-            ? 'No'
+            ? AppStrings.no.tr
             : '—';
     final types = initialAccountTypes;
 
@@ -1017,7 +1065,7 @@ class _BankingCard extends StatelessWidget {
           children: [
             Expanded(
               child: CustomText(
-                'RBI Registered',
+                AppStrings.otherRbiRegistered.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -1044,7 +1092,7 @@ class _BankingCard extends StatelessWidget {
         ),
         Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
         CustomText(
-          'Account Types',
+          AppStrings.otherAccountTypes.tr,
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -1052,7 +1100,7 @@ class _BankingCard extends StatelessWidget {
         const SizedBox(height: 8),
         if (types.isEmpty)
           CustomText(
-            'No account types selected',
+            AppStrings.otherNoAccountTypesSelected.tr,
             fontSize: 12,
             color: AppColors.grey83,
           )
@@ -1076,7 +1124,7 @@ class _BankingCard extends StatelessWidget {
                               size: 14, color: AppColors.primaryColor),
                           const SizedBox(width: 6),
                           CustomText(
-                            t,
+                            accountTypeLabel(t),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
@@ -1185,7 +1233,7 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                       size: 18, color: AppColors.primaryColor),
                   const SizedBox(width: 8),
                   CustomText(
-                    'Banking Information',
+                    AppStrings.otherBankingInfoTitle.tr,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                     color: AppColors.mainTextColor,
@@ -1204,13 +1252,13 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                     ),
                   ),
                   _YesNoPill(
-                    label: 'Yes',
+                    label: AppStrings.yes.tr,
                     selected: _rbi == true,
                     onTap: _saving ? null : () => setState(() => _rbi = true),
                   ),
                   const SizedBox(width: 8),
                   _YesNoPill(
-                    label: 'No',
+                    label: AppStrings.no.tr,
                     selected: _rbi == false,
                     onTap: _saving ? null : () => setState(() => _rbi = false),
                   ),
@@ -1218,7 +1266,7 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
               ),
               Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
               CustomText(
-                'Account Types',
+                AppStrings.otherAccountTypes.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -1265,7 +1313,7 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                           ),
                           const SizedBox(width: 6),
                           CustomText(
-                            type,
+                            _BankingCard.accountTypeLabel(type),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: selected

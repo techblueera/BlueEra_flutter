@@ -64,29 +64,29 @@ class SocialContactUsController extends GetxController {
     final phoneRegex = RegExp(r'^[6-9][0-9]{9}$');
 
     nameError.value = branchName.trim().isEmpty
-        ? 'Full name is required'
+        ? AppStrings.fullNameRequired.tr
         : !nameRegex.hasMatch(branchName.trim())
-            ? 'Name must be 3-50 characters (letters, numbers, spaces)'
+            ? AppStrings.nameLengthRule.tr
             : '';
 
     websiteError.value = website.trim().isNotEmpty && !websiteRegex.hasMatch(website.trim())
-        ? 'Please enter a valid website URL (e.g. https://example.com)'
+        ? AppStrings.enterValidWebsiteUrl.tr
         : website.trim().isEmpty
-            ? 'Website URL is required'
+            ? AppStrings.websiteUrlRequired.tr
             : '';
 
-    addressError.value = address.trim().isEmpty ? 'Location is required' : '';
+    addressError.value = address.trim().isEmpty ? AppStrings.locationRequired.tr : '';
 
     emailError.value = email.trim().isEmpty
-        ? 'Email is required'
+        ? AppStrings.validationEmailRequired.tr
         : !gmailRegex.hasMatch(email.trim())
-            ? 'Please enter a valid Gmail address (e.g. name@gmail.com)'
+            ? AppStrings.enterValidGmail.tr
             : '';
 
     phoneError.value = phone.trim().isEmpty
-        ? 'Phone number is required'
+        ? AppStrings.phoneNumberRequired.tr
         : !phoneRegex.hasMatch(cleanPhone)
-            ? 'Please enter a valid 10-digit mobile number (starts with 6-9)'
+            ? AppStrings.enterValidMobileNumber.tr
             : '';
 
     bool isValid = nameError.value.isEmpty &&
@@ -117,7 +117,7 @@ class SocialContactUsController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.selectValidLocationFromSearch.tr);
       return;
     }
 
@@ -146,11 +146,11 @@ class SocialContactUsController extends GetxController {
         Get.back();
         fetchHomeData();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
       print("Request Body: $body");
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       isLoading.value = false;
     }

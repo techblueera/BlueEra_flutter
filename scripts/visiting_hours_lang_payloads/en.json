@@ -1,0 +1,8 @@
+{
+  "statusOpen": "Open",
+  "statusClosed": "Closed",
+  "updateBusinessHours": "Update Business Hours",
+  "loadingBusinessHours": "Loading business hours...",
+  "applyHoursToAllDays": "Apply these hours to all days",
+  "hoursCopiedToAllDays": "@day's hours copied to all days"
+}

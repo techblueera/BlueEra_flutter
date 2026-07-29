@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/model/social_activity_res_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
@@ -109,7 +110,9 @@ class SocialActivityController extends GetxController {
         if (result.isSuccess) {
           finalImageUrl = result.url;
         } else {
-          commonSnackBar(message: "Image upload failed: ${result.message}");
+          commonSnackBar(
+              message:
+                  "${AppStrings.genericImageUploadFailed.tr}: ${result.message}");
           isSaving.value = false;
           return;
         }
@@ -142,14 +145,17 @@ class SocialActivityController extends GetxController {
       }
 
       if (res.success == true) {
-        commonSnackBar(message: isEditMode.value ? "Activity updated successfully" : "Activity created successfully");
+        commonSnackBar(
+            message: isEditMode.value
+                ? AppStrings.activityUpdatedSuccess.tr
+                : AppStrings.activityCreatedSuccess.tr);
         Get.back(); // Go back to list
         getActivities(); // Refresh list
       } else {
-        commonSnackBar(message: "Failed to save activity");
+        commonSnackBar(message: AppStrings.failedToSaveActivity.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error saving: $e");
+      commonSnackBar(message: "${AppStrings.errorSaving.tr}: $e");
     } finally {
       isSaving.value = false;
     }
@@ -159,13 +165,13 @@ class SocialActivityController extends GetxController {
     try {
       final res = await _repo.deleteSocialActivity(id);
       if (res.success == true) {
-         commonSnackBar(message: "Activity deleted successfully");
+         commonSnackBar(message: AppStrings.activityDeletedSuccess.tr);
          getActivities();
       } else {
-        commonSnackBar(message: "Failed to delete activity");
+        commonSnackBar(message: AppStrings.failedToDeleteActivity.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error deleting: $e");
+      commonSnackBar(message: "${AppStrings.errorDeleting.tr}: $e");
     }
   }
 

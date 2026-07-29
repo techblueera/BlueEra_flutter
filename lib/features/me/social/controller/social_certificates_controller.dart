@@ -72,14 +72,14 @@ class SocialCertificatesController extends GetxController {
 
   String? get certificateValidationMessage {
     if (titleController.text.trim().isEmpty) {
-      return "Please enter a title for the certificate.";
+      return AppStrings.enterCertificateTitle.tr;
     }
     if (!isValidIssueDate) {
-      return "Please select a valid issued date.";
+      return AppStrings.selectValidIssuedDate.tr;
     }
     if ((editingCertificateId.value?.isEmpty ?? true) &&
         selectedFile.value == null) {
-      return AppStrings.uploadImages;
+      return AppStrings.uploadImages.tr;
     }
     return null;
   }
@@ -139,15 +139,15 @@ class SocialCertificatesController extends GetxController {
 
       if (response.isSuccess) {
         await getCertificateController();
-        commonSnackBar(message: "Saved Successfully");
+        commonSnackBar(message: AppStrings.genericSavedSuccess.tr);
         return true;
       } else {
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return false;
     } finally {
       isSaving.value = false;
@@ -173,9 +173,9 @@ class SocialCertificatesController extends GetxController {
         await getCertificateController();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.response?.data['message'] ?? AppStrings.successful.tr);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");

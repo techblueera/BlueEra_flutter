@@ -1,0 +1,8 @@
+{
+  "statusOpen": "उघडे",
+  "statusClosed": "बंद",
+  "updateBusinessHours": "व्यवसायाचे तास अपडेट करा",
+  "loadingBusinessHours": "व्यवसायाचे तास लोड होत आहेत...",
+  "applyHoursToAllDays": "हे तास सर्व दिवसांना लागू करा",
+  "hoursCopiedToAllDays": "@day चे तास सर्व दिवसांमध्ये कॉपी केले"
+}

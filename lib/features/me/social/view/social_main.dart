@@ -142,9 +142,9 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   unselectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w400, fontSize: 14),
                   tabs: [
-                    const Tab(text: 'Post'),
-                    const Tab(text: 'Profile'),
-                    const Tab(text: 'Store'),
+                     Tab(text: AppStrings.post.tr),
+                     Tab(text: AppStrings.profile.tr),
+                     Tab(text: AppStrings.store.tr),
                     Tab(text: AppStrings.statistics.tr),
                   ],
                 ),
@@ -735,7 +735,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           children: [
             Flexible(
               child: CustomText(
-                hasDesignation ? designation : 'Add designation',
+                hasDesignation ? designation : AppStrings.description.tr,
                 color: AppColors.primaryColor,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,

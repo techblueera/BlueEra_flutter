@@ -82,11 +82,11 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CustomText(AppStrings.uploadImages,
+                                CustomText(AppStrings.uploadImages.tr,
                                     fontWeight: FontWeight.w600,
                                     fontSize: SizeConfig.medium),
                                 const SizedBox(height: 2),
-                                CustomText("Add up to 5 photos",
+                                CustomText(AppStrings.socialAddUpToFivePhotos.tr,
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.small),
                               ],
@@ -123,7 +123,7 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                                 color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText("Activity Details",
+                          CustomText(AppStrings.activityDetails.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -131,8 +131,8 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: nameCtrl,
-                        title: AppStrings.title,
-                        hintText: "Give your activity a title...",
+                        title: AppStrings.title.tr,
+                        hintText: AppStrings.socialActivityTitleHint.tr,
                         onChange: (v) {
                           controller.deptName.value = v;
                           controller.validateForm(isEdit: widget.isEdit);
@@ -141,8 +141,8 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                       SizedBox(height: SizeConfig.paddingM),
                       Obx(() {
                         return AiDescriptionField(
-                          label: AppStrings.description,
-                          hintText: "Describe your activity...",
+                          label: AppStrings.description.tr,
+                          hintText: AppStrings.socialDescribeActivityHint.tr,
                           controller: descCtrl,
                           rxValue: controller.description,
                           aiType: "Activity Feed",
@@ -220,7 +220,7 @@ class _AddSocialFeedScreenState extends State<AddSocialFeedScreen> {
                       Icon(Icons.add_photo_alternate_outlined,
                           color: AppColors.primaryColor, size: 24),
                       const SizedBox(height: 4),
-                      CustomText("Add",
+                      CustomText(AppStrings.add.tr,
                           color: AppColors.primaryColor,
                           fontSize: 10),
                     ],

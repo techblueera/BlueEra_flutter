@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/personal_identity_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +105,7 @@ class ProfileIdentityController extends GetxController {
   Future<void> validateAndSave() async {
     if (formKey.currentState!.validate()) {
       if (locationController.text.isEmpty) {
-        commonSnackBar(message: "Error Location is required");
+        commonSnackBar(message: AppStrings.locationRequired.tr);
         return;
       }
 
@@ -125,15 +126,15 @@ class ProfileIdentityController extends GetxController {
         final response = await _repo.updatePersonalIdentity(body);
 
         if (response.success == true) {
-          commonSnackBar(message: "Success Profile Saved Successfully");
+          commonSnackBar(message: AppStrings.profileSavedSuccessfully.tr);
           isEditMode.value = true;
           Get.back();
         } else {
-          commonSnackBar(message: "Error Failed to save profile");
+          commonSnackBar(message: AppStrings.failedToSaveProfile.tr);
         }
       } catch (e) {
         print("Error saving profile: $e");
-        commonSnackBar(message: "Error Something went wrong");
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       } finally {
         isLoading.value = false;
       }

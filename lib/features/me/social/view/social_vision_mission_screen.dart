@@ -18,7 +18,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.visionMission),
+      appBar: CommonBackAppBar(title: AppStrings.visionMission.tr),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -45,7 +45,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: CustomText(
-                        "Share your vision & mission to inspire your audience",
+                        AppStrings.socialVisionMissionBanner.tr,
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
                       ),
@@ -80,12 +80,12 @@ class SocialVisionMissionScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CustomText(AppStrings.visionMission,
+                                CustomText(AppStrings.visionMission.tr,
                                     fontWeight: FontWeight.w600,
                                     fontSize: SizeConfig.medium),
                                 const SizedBox(height: 2),
                                 CustomText(
-                                    "Describe what you aim to achieve",
+                                    AppStrings.socialDescribeYourAim.tr,
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.small),
                               ],
@@ -96,8 +96,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       AiDescriptionField(
                         label: "",
-                        hintText:
-                            "Tell us about your Vision & Mission...",
+                        hintText: AppStrings.socialVisionMissionHint.tr,
                         controller: controller.descriptionController,
                         rxValue: controller.description,
                         aiType: "vision mission",
@@ -136,12 +135,12 @@ class SocialVisionMissionScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CustomText(AppStrings.uploadImages,
+                                CustomText(AppStrings.uploadImages.tr,
                                     fontWeight: FontWeight.w600,
                                     fontSize: SizeConfig.medium),
                                 const SizedBox(height: 2),
                                 CustomText(
-                                    "Add an image to represent your vision",
+                                    AppStrings.socialVisionImageHint.tr,
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.small),
                               ],
@@ -182,7 +181,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
                                   Icon(Icons.delete_outline,
                                       color: AppColors.red, size: 16),
                                   const SizedBox(width: 4),
-                                  CustomText(AppStrings.remove,
+                                  CustomText(AppStrings.remove.tr,
                                       color: AppColors.red,
                                       fontWeight: FontWeight.w600,
                                       fontSize: SizeConfig.small),
@@ -238,7 +237,7 @@ class SocialVisionMissionScreen extends StatelessWidget {
           Icon(Icons.add_photo_alternate_outlined,
               size: 48, color: Colors.grey[400]),
           const SizedBox(height: 8),
-          CustomText("Tap to upload image",
+          CustomText(AppStrings.tapToUploadImage.tr,
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.small),
         ],

@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/visiting_hour_selector.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
 
 class BusinessHoursSheetContent extends StatefulWidget {
@@ -87,15 +88,15 @@ class _BusinessHoursSheetContentState
   }
 
   Widget _buildLoader() {
-    return const SizedBox.expand(
-      key: ValueKey('loader'),
+    return SizedBox.expand(
+      key: const ValueKey('loader'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: AppColors.primaryColor),
-          SizedBox(height: 16),
+          const CircularProgressIndicator(color: AppColors.primaryColor),
+          const SizedBox(height: 16),
           CustomText(
-            'Loading business hours...',
+            AppStrings.loadingBusinessHours.tr,
             fontSize: 14,
             color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
@@ -113,20 +114,28 @@ class _BusinessHoursSheetContentState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText('Update Business Hours',
-                  fontSize: 18, fontWeight: FontWeight.w600),
+              // Expanded so a longer translation wraps or ellipsizes instead
+              // of colliding with the close button.
+              Expanded(
+                child: CustomText(
+                  AppStrings.updateBusinessHours.tr,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               const CloseButton(),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           VisitingHoursSelector(),
           const SizedBox(height: 16),
           CustomBtn(
             radius: 10,
             bgColor: AppColors.primaryColor,
-            title: AppStrings.save,
+            title: AppStrings.save.tr,
             onTap: () async {
               // Use BookingController's payload builder
               final visitingHoursData = _bookingCtrl.payloadForVisitingHours();

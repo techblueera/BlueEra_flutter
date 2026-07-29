@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
@@ -41,7 +42,7 @@ class SocialVisionMissionController extends GetxController {
         }
       }
     } catch (e) {
-      commonSnackBar(message: "Error fetching data: $e");
+      commonSnackBar(message: "${AppStrings.errorFetchingData.tr}: $e");
     } finally {
       isLoading.value = false;
     }
@@ -54,7 +55,7 @@ class SocialVisionMissionController extends GetxController {
         selectedImage.value = File(image.path);
       }
     } catch (e) {
-      commonSnackBar(message: "Error picking image: $e");
+      commonSnackBar(message: "${AppStrings.errorPickingImage.tr}: $e");
     }
   }
 
@@ -65,13 +66,13 @@ class SocialVisionMissionController extends GetxController {
 
   Future<void> save() async {
     if (descriptionController.text.trim().isEmpty) {
-      commonSnackBar(message: "Please enter a description");
+      commonSnackBar(message: AppStrings.pleaseEnterDescription.tr);
       return;
     }
 
     // Basic validation: User must have either an existing image or a new selected image
     if (selectedImage.value == null && serverImageUrl.value == null) {
-        commonSnackBar(message: "Please select an image");
+        commonSnackBar(message: AppStrings.pleaseSelectImage.tr);
         return;
     }
 
@@ -85,7 +86,9 @@ class SocialVisionMissionController extends GetxController {
         if (result.isSuccess) {
           finalImageUrl = result.url;
         } else {
-          commonSnackBar(message: "Image upload failed: ${result.message}");
+          commonSnackBar(
+              message:
+                  "${AppStrings.genericImageUploadFailed.tr}: ${result.message}");
           return; 
         }
       }
@@ -99,7 +102,7 @@ class SocialVisionMissionController extends GetxController {
       final response = await _repo.createMissionVision(body);
       
       if (response.success == true) {
-        commonSnackBar(message: "Saved successfully");
+        commonSnackBar(message: AppStrings.genericSavedSuccess.tr);
         if (response.data != null) {
             existingId = response.data!.sId;
             descriptionController.text = response.data!.description ?? "";
@@ -108,10 +111,10 @@ class SocialVisionMissionController extends GetxController {
         }
         Get.back();
       } else {
-        commonSnackBar(message: "Failed to save");
+        commonSnackBar(message: AppStrings.failedToSave.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error saving: $e");
+      commonSnackBar(message: "${AppStrings.errorSaving.tr}: $e");
     } finally {
       isSaving.value = false;
     }

@@ -19,7 +19,7 @@ class EventScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.eventsSchedule),
+      appBar: CommonBackAppBar(title: AppStrings.eventsSchedule.tr),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           controller.resetForm();
@@ -27,7 +27,7 @@ class EventScheduleScreen extends StatelessWidget {
         },
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: CustomText(AppStrings.createEvent,
+        label: CustomText(AppStrings.createEvent.tr,
             color: Colors.white,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600),
@@ -43,11 +43,11 @@ class EventScheduleScreen extends StatelessWidget {
               children: [
                 Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
                 const SizedBox(height: 16),
-                CustomText(AppStrings.noEventsFound,
+                CustomText(AppStrings.noEventsFound.tr,
                     color: AppColors.secondaryTextColor,
                     fontSize: SizeConfig.medium),
                 const SizedBox(height: 8),
-                CustomText("Tap + to create your first event",
+                CustomText(AppStrings.socialTapCreateFirstEvent.tr,
                     color: Colors.grey[400], fontSize: SizeConfig.small),
               ],
             ),
@@ -103,7 +103,7 @@ class EventScheduleScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        event.title ?? "No Title",
+                        event.title ?? AppStrings.noTitle.tr,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: Colors.white,
@@ -154,7 +154,7 @@ class EventScheduleScreen extends StatelessWidget {
                             Icon(Icons.edit_outlined,
                                 color: AppColors.primaryColor, size: 18),
                             const SizedBox(width: 8),
-                            CustomText(AppStrings.edit),
+                            CustomText(AppStrings.edit.tr),
                           ],
                         ),
                       ),
@@ -165,7 +165,7 @@ class EventScheduleScreen extends StatelessWidget {
                             Icon(Icons.delete_outline,
                                 color: Colors.red, size: 18),
                             const SizedBox(width: 8),
-                            CustomText(AppStrings.delete,
+                            CustomText(AppStrings.delete.tr,
                                 color: Colors.red),
                           ],
                         ),
@@ -184,18 +184,18 @@ class EventScheduleScreen extends StatelessWidget {
               children: [
                 _buildDetailRow(
                     Icons.calendar_today_outlined,
-                    AppStrings.date,
+                    AppStrings.date.tr,
                     event.startDate != null
                         ? _formatDate(event.startDate!)
-                        : "N/A"),
+                        : AppStrings.na.tr),
                 SizedBox(height: SizeConfig.paddingXS),
                 _buildDetailRow(
                     Icons.access_time,
-                    AppStrings.timing,
-                    "${event.timing?.from ?? ''} to ${event.timing?.to ?? ''}"),
+                    AppStrings.timing.tr,
+                    "${event.timing?.from ?? ''} ${AppStrings.toSeparator.tr} ${event.timing?.to ?? ''}"),
                 SizedBox(height: SizeConfig.paddingXS),
                 _buildDetailRow(Icons.location_on_outlined,
-                    AppStrings.location, event.venue?.name ?? "N/A"),
+                    AppStrings.location.tr, event.venue?.name ?? AppStrings.na.tr),
               ],
             ),
           ),
@@ -237,7 +237,7 @@ class EventScheduleScreen extends StatelessWidget {
       BuildContext context, SocialEventData event) async {
     await showCommonDialog(
         context: context,
-        text: AppStrings.deleteEventConfirm,
+        text: AppStrings.deleteEventConfirm.tr,
         confirmCallback: () async {
           Get.back();
           controller.eventId = event.sId;
@@ -246,8 +246,8 @@ class EventScheduleScreen extends StatelessWidget {
         cancelCallback: () {
           Navigator.of(context).pop();
         },
-        confirmText: AppStrings.yes,
-        cancelText: AppStrings.no);
+        confirmText: AppStrings.yes.tr,
+        cancelText: AppStrings.no.tr);
   }
 
   String _formatDate(String dateStr) {

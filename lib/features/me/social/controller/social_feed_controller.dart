@@ -100,14 +100,14 @@ class SocialFeedController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.response?.data['message'] ?? AppStrings.successful.tr);
         addEditDeptResponse.value =
             ApiResponse.complete(response.response?.data);
         await fetchDepartments(isRefresh: true);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
         addEditDeptResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
+            ApiResponse.error(AppStrings.somethingWentWrong.tr);
       }
     } finally {
       isUploading.value = false;
@@ -159,10 +159,10 @@ class SocialFeedController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.response?.data['message'] ?? AppStrings.successful.tr);
         await fetchDepartments(isRefresh: true);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");

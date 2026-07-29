@@ -82,6 +82,20 @@ class BusinessProfileFullController extends GetxController {
     }
   }
 
+  /// `profileName` to send on a business-profile PUT. The backend validates
+  /// it as a string, so a null fails the whole request with
+  /// `"profileName" must be a string` — which is what happened on a
+  /// logo/banner upload before the full profile had loaded (or on a profile
+  /// created without a name). Fall back to the logged-in account's name, and
+  /// to an empty string when even that is unavailable.
+  String get _profileNameForUpdate {
+    final fromProfile =
+        businessProfile.value?.profile?.profileName?.trim() ?? '';
+    if (fromProfile.isNotEmpty) return fromProfile;
+    if (businessNameGlobal.trim().isNotEmpty) return businessNameGlobal.trim();
+    return userNameGlobal.trim();
+  }
+
   uploadSchoolLogoOrBannerImage(
       {required File uploadFile, required String uploadVia}) async {
     try {
@@ -90,7 +104,7 @@ class BusinessProfileFullController extends GetxController {
         ResponseModel response =
             await _repo.updateOtherBusinessProfileRepo(reqBODY: {
           uploadVia: result.url,
-          "profileName": businessProfile.value?.profile?.profileName
+          "profileName": _profileNameForUpdate
         });
         if (response.isSuccess) {
           commonSnackBar(message: response.response?.data['message']);

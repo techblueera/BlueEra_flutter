@@ -237,7 +237,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                       tabs: [
                         Tab(text: AppStrings.social.tr),
                         Tab(text: AppStrings.community.tr),
-                        Tab(text: "Bites"),
+                        Tab(text: AppStrings.bites.tr),
                       ],
                     ),
                   ),

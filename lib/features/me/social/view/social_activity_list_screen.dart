@@ -22,7 +22,7 @@ class SocialActivityListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.socialActivity),
+      appBar: CommonBackAppBar(title: AppStrings.socialActivity.tr),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           controller.clearForm();
@@ -30,7 +30,7 @@ class SocialActivityListScreen extends StatelessWidget {
         },
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: CustomText(AppStrings.createNew,
+        label: CustomText(AppStrings.createNew.tr,
             color: Colors.white,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600),
@@ -48,11 +48,11 @@ class SocialActivityListScreen extends StatelessWidget {
                 Icon(Icons.volunteer_activism,
                     size: 64, color: Colors.grey[300]),
                 const SizedBox(height: 16),
-                CustomText(AppStrings.noActivitiesFound,
+                CustomText(AppStrings.noActivitiesFound.tr,
                     color: AppColors.secondaryTextColor,
                     fontSize: SizeConfig.medium),
                 const SizedBox(height: 8),
-                CustomText("Tap + to add your first social activity",
+                CustomText(AppStrings.socialTapAddFirstActivity.tr,
                     color: Colors.grey[400],
                     fontSize: SizeConfig.small),
               ],
@@ -125,7 +125,7 @@ class SocialActivityListScreen extends StatelessWidget {
                                     CrossAxisAlignment.start,
                                 children: [
                                   CustomText(
-                                    item.title ?? "No Title",
+                                    item.title ?? AppStrings.noTitle.tr,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   const SizedBox(height: 4),
@@ -138,7 +138,7 @@ class SocialActivityListScreen extends StatelessWidget {
                                       if (item.role != null) ...[
                                         const SizedBox(width: 6),
                                         _tagChip(
-                                            "@${item.role ?? 'User'}"),
+                                            "@${item.role ?? AppStrings.userFallback.tr}"),
                                       ],
                                     ],
                                   ),
@@ -167,9 +167,9 @@ class SocialActivityListScreen extends StatelessWidget {
                                       controller.deleteActivity(
                                           item.sId ?? "");
                                     },
-                                    title: AppStrings.delete,
+                                    title: AppStrings.delete.tr,
                                     content: AppStrings
-                                        .deleteActivityConfirm,
+                                        .deleteActivityConfirm.tr,
                                   );
                                 }
                               },

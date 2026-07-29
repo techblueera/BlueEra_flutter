@@ -56,6 +56,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
             _section1JoinedDate(details),
             SizedBox(height: SizeConfig.size12),
             IntrinsicWidth(
+
               child: _profileCardWrap(
                 child: _section2IdentityRating(context, details),
               ),
@@ -109,6 +110,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
 
   Widget _profileCardWrap({required Widget child, bool clip = false}) {
     return Container(
+      width: Get.width,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),

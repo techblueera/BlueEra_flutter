@@ -1,0 +1,8 @@
+{
+  "statusOpen": "ತೆರೆದಿದೆ",
+  "statusClosed": "ಮುಚ್ಚಲಾಗಿದೆ",
+  "updateBusinessHours": "ವ್ಯವಹಾರದ ಸಮಯ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ",
+  "loadingBusinessHours": "ವ್ಯವಹಾರದ ಸಮಯ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+  "applyHoursToAllDays": "ಈ ಸಮಯವನ್ನು ಎಲ್ಲಾ ದಿನಗಳಿಗೆ ಅನ್ವಯಿಸಿ",
+  "hoursCopiedToAllDays": "@day ರ ಸಮಯವನ್ನು ಎಲ್ಲಾ ದಿನಗಳಿಗೆ ನಕಲಿಸಲಾಗಿದೆ"
+}
