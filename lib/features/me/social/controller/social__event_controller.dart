@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/social_event_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
@@ -174,7 +175,7 @@ class SocialEventController extends GetxController {
         eventList.clear();
       }
     } catch (e) {
-      commonSnackBar(message: "Error fetching events: $e");
+      commonSnackBar(message: "${AppStrings.errorFetchingEvents.tr}: $e");
     } finally {
       isListLoading.value = false;
     }
@@ -232,14 +233,20 @@ class SocialEventController extends GetxController {
         }
         
         if (response.success == true) {
-            commonSnackBar(message: "Event ${eventId == null ? 'scheduled' : 'updated'} successfully");
+            commonSnackBar(
+                message: eventId == null
+                    ? AppStrings.eventScheduledSuccess.tr
+                    : AppStrings.eventUpdatedSuccess.tr);
             Get.back();
             getEvents(); // Refresh list
         } else {
-            commonSnackBar(message: "Failed to ${eventId == null ? 'schedule' : 'update'} event");
+            commonSnackBar(
+                message: eventId == null
+                    ? AppStrings.failedToScheduleEvent.tr
+                    : AppStrings.failedToUpdateEvent.tr);
         }
     } catch (e) {
-        commonSnackBar(message: "Error: $e");
+        commonSnackBar(message: "${AppStrings.error.tr}: $e");
     } finally {
         isLoading.value = false;
     }
@@ -251,14 +258,14 @@ class SocialEventController extends GetxController {
     try {
       final response = await _repo.deleteEvent(eventId!);
       if (response.success == true) {
-        commonSnackBar(message: "Event deleted successfully");
+        commonSnackBar(message: AppStrings.eventDeletedSuccess.tr);
         Get.back();
         getEvents(); // Refresh list
       } else {
-        commonSnackBar(message: "Failed to delete event");
+        commonSnackBar(message: AppStrings.failedToDeleteEvent.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error deleting event: $e");
+      commonSnackBar(message: "${AppStrings.errorDeletingEvent.tr}: $e");
     } finally {
       isLoading.value = false;
     }

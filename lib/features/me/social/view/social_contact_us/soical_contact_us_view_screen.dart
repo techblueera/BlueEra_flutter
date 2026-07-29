@@ -36,7 +36,7 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.contactUs,
+        title: AppStrings.contactUs.tr,
       ),
       body: Column(
         children: [
@@ -88,7 +88,7 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText(AppStrings.contactUs),
+                CustomText(AppStrings.contactUs.tr),
                 InkWell(
                     onTap: () {
                       Get.to(SocialContactUsScreen(

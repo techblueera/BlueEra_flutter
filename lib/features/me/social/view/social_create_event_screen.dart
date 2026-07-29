@@ -55,7 +55,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Event Details",
+                        CustomText(AppStrings.eventDetails.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
@@ -63,14 +63,14 @@ class SocialCreateEventScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     CommonTextField(
                       textEditController: controller.titleController,
-                      title: AppStrings.eventTitle,
-                      hintText: "E.g. Annual Meet 2025",
+                      title: AppStrings.eventTitle.tr,
+                      hintText: AppStrings.socialEventTitleHint.tr,
                     ),
                     const SizedBox(height: 16),
                     CommonTextField(
                       textEditController: controller.eventTypeController,
-                      title: AppStrings.eventType,
-                      hintText: "E.g. Meeting / Show / Live...",
+                      title: AppStrings.eventType.tr,
+                      hintText: AppStrings.socialEventTypeHint.tr,
                     ),
                   ],
                 ),
@@ -99,7 +99,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Date & Time",
+                        CustomText(AppStrings.dateAndTime.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
@@ -107,14 +107,14 @@ class SocialCreateEventScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Start Date Picker
-                    CustomText(AppStrings.startingDate,
+                    CustomText(AppStrings.startingDate.tr,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
                     const SizedBox(height: 8),
                     _buildDatePickerField(
                       context: context,
                       dateObs: controller.selectedStartDate,
-                      hintText: "Select start date",
+                      hintText: AppStrings.selectStartDate.tr,
                       firstDate: DateTime.now(),
                       lastDate:
                           DateTime.now().add(const Duration(days: 365 * 5)),
@@ -124,7 +124,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // End Date Picker
-                    CustomText(AppStrings.endDate,
+                    CustomText(AppStrings.endDate.tr,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
                     const SizedBox(height: 8),
@@ -134,8 +134,8 @@ class SocialCreateEventScreen extends StatelessWidget {
                         context: context,
                         dateObs: controller.selectedEndDate,
                         hintText: startDate == null
-                            ? "Select start date first"
-                            : "Select end date",
+                            ? AppStrings.selectStartDateFirst.tr
+                            : AppStrings.selectEndDate.tr,
                         enabled: startDate != null,
                         firstDate: startDate ?? DateTime.now(),
                         lastDate: DateTime.now()
@@ -147,7 +147,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Time Selection
-                    CustomText(AppStrings.time,
+                    CustomText(AppStrings.time.tr,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor),
                     const SizedBox(height: 10),
@@ -155,13 +155,13 @@ class SocialCreateEventScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildSingleTimeDropdown(
-                              AppStrings.from,
+                              AppStrings.from.tr,
                               controller.selectedFromTime),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildSingleTimeDropdown(
-                              "To", controller.selectedToTime),
+                              AppStrings.toLabel.tr, controller.selectedToTime),
                         ),
                       ],
                     ),
@@ -192,7 +192,7 @@ class SocialCreateEventScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Venue & Registration",
+                        CustomText(AppStrings.venueAndRegistration.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
@@ -200,9 +200,9 @@ class SocialCreateEventScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     CommonLocationSearchField(
                       controller: controller.venueController,
-                      hintText: "E.g. Lucknow, Uttar Pradesh...",
+                      hintText: AppStrings.locationSearchHint.tr,
                       isShowLeading: false,
-                      title: AppStrings.venue,
+                      title: AppStrings.venue.tr,
                       onSelected:
                           (placeId, lat, lng, address) async {
                         controller.venueController.text = address;
@@ -229,9 +229,9 @@ class SocialCreateEventScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     HttpsTextField(
-                      title: AppStrings.registrationLink,
+                      title: AppStrings.registrationLink.tr,
                       controller: controller.linkController,
-                      hintText: "E.g. https://registrationlink...",
+                      hintText: AppStrings.registrationLinkHint.tr,
                     ),
                   ],
                 ),

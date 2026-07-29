@@ -1,16 +1,26 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:get/get.dart';
 
 class IndividualProfileTypeModel{
   final String type;
-  final String title;
-  final String subTitle;
+
+  /// Translation keys — [title] / [subTitle] resolve them at read time so the
+  /// labels follow the active language instead of freezing at the value this
+  /// list was built with (`profileTypeList` is a top-level final).
+  final String titleKey;
+  final String subTitleKey;
   final String icon;
+
+  String get title => titleKey.tr;
+
+  String get subTitle => subTitleKey.tr;
 
   IndividualProfileTypeModel({
     required this.type,
-    required this.title,
-    required this.subTitle,
+    required this.titleKey,
+    required this.subTitleKey,
     required this.icon,
   });
 
@@ -26,15 +36,15 @@ class IndividualProfileTypeModel{
   String get hintText {
     switch (type) {
       case SOCIAL_PROFILE:
-        return "Select Profession";
+        return AppStrings.selectProfession.tr;
       case SELF_EMPLOYED:
-        return "Select Profession";
+        return AppStrings.selectProfession.tr;
       case GIG_WORKER:
-        return "Select Profession";
+        return AppStrings.selectProfession.tr;
       case PROFESSIONAL:
-        return "Select Profession";
+        return AppStrings.selectProfession.tr;
       default:
-        return "Select Profession";
+        return AppStrings.selectProfession.tr;
     }
   }
 }
@@ -42,26 +52,26 @@ class IndividualProfileTypeModel{
 final List<IndividualProfileTypeModel> profileTypeList = [
   IndividualProfileTypeModel(
     type: SOCIAL_PROFILE,
-    title: "Social Profile",
-    subTitle: "Eg. Politician, Student, Artist...",
+    titleKey: AppStrings.socialProfile,
+    subTitleKey: AppStrings.socialProfileSubTitle,
     icon: AppIconAssets.socialProfile,
   ),
   IndividualProfileTypeModel(
     type: SELF_EMPLOYED,
-    title: "Skilled Services",
-    subTitle: "Eg. Electrician, Plumber, Carpenter...",
+    titleKey: AppStrings.skilledServicesTitle,
+    subTitleKey: AppStrings.skilledServicesSubTitle,
     icon: AppIconAssets.skillService,
   ),
   IndividualProfileTypeModel(
     type: GIG_WORKER,
-    title: "Self-Employed (Delivery / Taxi)",
-    subTitle: "Eg. Driver, Delivery Rider...",
+    titleKey: AppStrings.selfEmployedGigTitle,
+    subTitleKey: AppStrings.selfEmployedGigSubTitle,
     icon: AppIconAssets.carTaxiGigWorker,
   ),
   IndividualProfileTypeModel(
     type: PROFESSIONAL,
-    title: "Professional Consultant",
-    subTitle: "Eg. Doctor, Lawyer, Consultant...",
+    titleKey: AppStrings.professionalConsultantTitle,
+    subTitleKey: AppStrings.professionalConsultantSubTitle,
     icon: AppIconAssets.professional,
   ),
 ];

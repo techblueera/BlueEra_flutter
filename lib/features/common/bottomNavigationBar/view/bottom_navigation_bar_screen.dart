@@ -31,6 +31,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/content_creator/content_creator_main.dart';
+import 'package:BlueEra/features/me/doctor/doctor_main.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
@@ -902,10 +903,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Healthcare.name.toUpperCase()) {
-      if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
-          (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase()) ||
-          (businessCategoryGlobal.toUpperCase() == "Doctors".toUpperCase()) ||
-          (businessCategoryGlobal.toUpperCase() == "CLINICS")) {
+      // DOCTORS / CLINICS are STANDALONE DOCTORS — independent practitioners
+      // with their own listing, professional profile and appointment inbox
+      // (hospital-service/doctors*). They get their own module; everything
+      // else in Healthcare keeps its existing destination, so the hospital
+      // OPD flow below is unchanged.
+      if (_isStandaloneDoctor()) {
+        return const DoctorMain();
+      } else if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
+          (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase())) {
         return const HospitalMain();
       } else if (businessCategoryGlobal.toUpperCase() == "Diagnostic".toUpperCase()) {
         return const LaboratoryMain();
@@ -947,6 +953,22 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else {
       return const _UnknownBusinessFallback();
     }
+  }
+
+  /// True for a Healthcare business whose category is DOCTORS or CLINICS —
+  /// the standalone-doctor module.
+  ///
+  /// The category arrives from the API in several shapes ("DOCTORS",
+  /// "Doctors", "Clinic Doctors", "CLINICS"), so this normalises case and
+  /// matches on the token rather than an exact string, the same way the
+  /// automotive helpers below do.
+  bool _isStandaloneDoctor() {
+    if (businessTypeGlobal.toUpperCase() !=
+        BusinessType.Healthcare.name.toUpperCase()) {
+      return false;
+    }
+    final category = businessCategoryGlobal.toUpperCase().trim();
+    return category.contains('DOCTOR') || category.contains('CLINIC');
   }
 
   bool _isSpecificServiceAutomotive() {

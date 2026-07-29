@@ -48,7 +48,7 @@ class SocialHomeController extends GetxController {
       }
       validateForm();
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       isLoading.value = false;
     }
@@ -80,7 +80,7 @@ class SocialHomeController extends GetxController {
 
   Future<void> submitContact() async {
     if (!isFormValid.value) {
-      commonSnackBar(message: "Please Enter Valid Details");
+      commonSnackBar(message: AppStrings.pleaseEnterValidDetails.tr);
       return;
     }
     try {
@@ -104,10 +104,10 @@ class SocialHomeController extends GetxController {
                 "Contact updated successfully");
         await fetchProfile();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
     } catch (_) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       isLoading.value = false;
     }

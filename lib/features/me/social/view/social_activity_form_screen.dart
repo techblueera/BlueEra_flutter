@@ -25,7 +25,7 @@ class SocialActivityFormScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.socialDetails),
+      appBar: CommonBackAppBar(title: AppStrings.socialDetails.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size14),
         child: Column(
@@ -56,11 +56,11 @@ class SocialActivityFormScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomText(AppStrings.uploadPhotos,
+                              CustomText(AppStrings.uploadPhotos.tr,
                                   fontWeight: FontWeight.w600,
                                   fontSize: SizeConfig.medium),
                               const SizedBox(height: 2),
-                              CustomText("Add a photo for this activity",
+                              CustomText(AppStrings.socialAddPhotoForActivity.tr,
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.small),
                             ],
@@ -97,7 +97,7 @@ class SocialActivityFormScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Activity Info",
+                        CustomText(AppStrings.activityInfo.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
@@ -105,8 +105,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     CommonTextField(
                       textEditController: controller.titleController,
-                      title: AppStrings.activityTitle,
-                      hintText: "E.g. Free Health Check-up Camp...",
+                      title: AppStrings.activityTitle.tr,
+                      hintText: AppStrings.egFreeHealthCheckup.tr,
                       onChange: (val) {
                         controller.activityTitle.value = val;
                       },
@@ -114,9 +114,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Obx(() {
                       return AiDescriptionField(
-                        label: AppStrings.descriptionMessage,
-                        hintText:
-                            "Free medicines & doctor consultation",
+                        label: AppStrings.descriptionMessage.tr,
+                        hintText: AppStrings.socialFreeMedicinesHint.tr,
                         controller: controller.descriptionController,
                         rxValue: "".obs,
                         aiType: "Activity",
@@ -128,8 +127,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     CommonTextField(
                       textEditController: controller.typeController,
-                      title: AppStrings.activityType,
-                      hintText: "E.g. Health Camp, Education...",
+                      title: AppStrings.activityType.tr,
+                      hintText: AppStrings.socialActivityTypeHint.tr,
                       onChange: (val) {
                         controller.activityType.value = val;
                       },
@@ -161,19 +160,19 @@ class SocialActivityFormScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Date & Location",
+                        CustomText(AppStrings.dateAndLocation.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildDateRow(AppStrings.date),
+                    _buildDateRow(AppStrings.date.tr),
                     const SizedBox(height: 16),
                     CommonLocationSearchField(
                       controller: controller.venueController,
-                      hintText: "E.g. Lucknow, Uttar Pradesh...",
+                      hintText: AppStrings.locationSearchHint.tr,
                       isShowLeading: false,
-                      title: AppStrings.location,
+                      title: AppStrings.location.tr,
                       onSelected:
                           (placeId, lat, lng, address) async {
                         controller.venueController.text = address;
@@ -226,7 +225,7 @@ class SocialActivityFormScreen extends StatelessWidget {
                               color: AppColors.primaryColor, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CustomText("Role & Impact",
+                        CustomText(AppStrings.roleAndImpact.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
                       ],
@@ -234,8 +233,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     CommonTextField(
                       textEditController: controller.roleController,
-                      title: AppStrings.yourRole,
-                      hintText: "E.g. Organizer, Chief Guest...",
+                      title: AppStrings.yourRole.tr,
+                      hintText: AppStrings.socialYourRoleHint.tr,
                       onChange: (val) {
                         controller.activityRole.value = val;
                       },
@@ -244,8 +243,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     CommonTextField(
                       textEditController:
                           controller.organizerController,
-                      title: AppStrings.organizerName,
-                      hintText: "E.g. Organization Name...",
+                      title: AppStrings.organizerName.tr,
+                      hintText: AppStrings.socialOrganizerHint.tr,
                       onChange: (val) {
                         controller.activityOrganizer.value = val;
                       },
@@ -253,9 +252,8 @@ class SocialActivityFormScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Obx(() {
                       return AiDescriptionField(
-                        label: AppStrings.beneficiariesImpact,
-                        hintText:
-                            "E.g. 80 villagers / 1.2K Peoples benefited...",
+                        label: AppStrings.beneficiariesImpact.tr,
+                        hintText: AppStrings.socialImpactHint.tr,
                         controller: controller.impactController,
                         rxValue: "".obs,
                         aiType: "Beneficiaries",
@@ -288,7 +286,7 @@ class SocialActivityFormScreen extends StatelessWidget {
                         ? null
                         : controller.save)
                     : null,
-                title: AppStrings.save,
+                title: AppStrings.save.tr,
               );
             }),
             SizedBox(height: SizeConfig.size20),
@@ -347,7 +345,7 @@ class SocialActivityFormScreen extends StatelessWidget {
       );
     }
     return CommonImageUploadTile(
-      title: AppStrings.uploadPhotos,
+      title: AppStrings.uploadPhotos.tr,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(

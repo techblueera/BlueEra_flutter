@@ -84,8 +84,8 @@ class _JobSeekerAddNgoFormScreenState
     return Scaffold(
         appBar: CommonBackAppBar(
             title: widget.isEdit
-                ? AppStrings.editAchievement
-                : AppStrings.addAchievement),
+                ? AppStrings.editAchievement.tr
+                : AppStrings.addAchievement.tr),
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
@@ -101,16 +101,16 @@ class _JobSeekerAddNgoFormScreenState
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              title: AppStrings.title,
+                              title: AppStrings.title.tr,
                               titleColor: AppColors.black1A,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
-                              hintText: AppStrings.ngoExample,
+                              hintText: AppStrings.ngoExample.tr,
                               isValidate: true,
                               onChange: (value) => validateForm(),
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText(AppStrings.date,
+                            CustomText(AppStrings.date.tr,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -138,7 +138,7 @@ class _JobSeekerAddNgoFormScreenState
                                   validateForm();
                                 }),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText(AppStrings.uploadDocument,
+                            CustomText(AppStrings.uploadDocument.tr,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -159,8 +159,8 @@ class _JobSeekerAddNgoFormScreenState
 
                             // Your Journey Field
                             AiDescriptionField(
-                              label: AppStrings.description,
-                              hintText: "Share your achievement...",
+                              label: AppStrings.description.tr,
+                              hintText: AppStrings.socialShareAchievementHint.tr,
                               controller: descCtrl,
                               rxValue: descriptionTxt,
                               aiType: "description",
@@ -192,8 +192,8 @@ class _JobSeekerAddNgoFormScreenState
                                     }
                                   : null,
                               title: widget.isEdit
-                                  ? AppStrings.update
-                                  : AppStrings.save,
+                                  ? AppStrings.update.tr
+                                  : AppStrings.save.tr,
                               isValidate: validate,
                             )
                           ]))
@@ -216,7 +216,7 @@ class _JobSeekerAddNgoFormScreenState
 
   void selectImage(BuildContext context) async {
     imagePath = await PhotoPickerService.pickSinglePhoto(
-        context, AppStrings.uploadYourDocumentPhoto);
+        context, AppStrings.uploadYourDocumentPhoto.tr);
     if (imagePath?.isNotEmpty ?? false) {
       validateForm();
     }

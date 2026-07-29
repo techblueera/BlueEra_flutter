@@ -35,12 +35,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.activityFeed),
+      appBar: CommonBackAppBar(title: AppStrings.activityFeed.tr),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.to(() => AddSocialFeedScreen()),
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: CustomText(AppStrings.addActivityFeed,
+        label: CustomText(AppStrings.addActivityFeed.tr,
             color: Colors.white,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600),
@@ -56,11 +56,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               children: [
                 Icon(Icons.post_add, size: 64, color: Colors.grey[300]),
                 const SizedBox(height: 16),
-                CustomText(AppStrings.noDataFound,
+                CustomText(AppStrings.noDataFound.tr,
                     color: AppColors.secondaryTextColor,
                     fontSize: SizeConfig.medium),
                 const SizedBox(height: 8),
-                CustomText("Tap + to create your first activity feed",
+                CustomText(AppStrings.socialTapCreateFirstFeed.tr,
                     color: Colors.grey[400], fontSize: SizeConfig.small),
               ],
             ),
@@ -86,7 +86,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   onDelete: () async {
                     await showCommonDialog(
                         context: context,
-                        text: AppStrings.deleteConfirm,
+                        text: AppStrings.deleteConfirm.tr,
                         confirmCallback: () async {
                           controller.deleteSchoolDepartmentController(
                               departmentId:
@@ -95,8 +95,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                         cancelCallback: () {
                           Navigator.of(context).pop();
                         },
-                        confirmText: AppStrings.yes,
-                        cancelText: AppStrings.no);
+                        confirmText: AppStrings.yes.tr,
+                        cancelText: AppStrings.no.tr);
                   },
                 );
               } else {
@@ -198,7 +198,7 @@ class DepartmentCard extends StatelessWidget {
                               Icon(Icons.edit_outlined,
                                   color: AppColors.primaryColor, size: 18),
                               const SizedBox(width: 8),
-                              CustomText(AppStrings.edit),
+                              CustomText(AppStrings.edit.tr),
                             ],
                           ),
                         ),
@@ -209,7 +209,7 @@ class DepartmentCard extends StatelessWidget {
                               Icon(Icons.delete_outline,
                                   color: AppColors.red, size: 18),
                               const SizedBox(width: 8),
-                              CustomText(AppStrings.delete,
+                              CustomText(AppStrings.delete.tr,
                                   color: AppColors.red00),
                             ],
                           ),

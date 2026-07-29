@@ -1,0 +1,19 @@
+{
+  "otherManagementTitle": "વ્યવસ્થાપન",
+  "otherJobsTitle": "કારકિર્દી / નોકરીઓ",
+  "otherTimingTitle": "સમય",
+  "otherAddEdit": "ઉમેરો / સંપાદિત કરો",
+  "otherOpen": "ખુલ્લું",
+  "otherClosed": "બંધ",
+  "otherBankingInfoTitle": "બેંકિંગ માહિતી",
+  "otherRbiRegistered": "આરબીઆઈ નોંધાયેલ",
+  "otherAccountTypes": "ખાતાના પ્રકાર",
+  "otherNoAccountTypesSelected": "કોઈ ખાતાનો પ્રકાર પસંદ કરેલ નથી",
+  "otherAccountTypeSavings": "બચત ખાતું",
+  "otherAccountTypeCurrent": "ચાલુ ખાતું",
+  "otherAccountTypeFixedDeposit": "મુદતી થાપણ",
+  "otherAccountTypeRecurringDeposit": "આવર્તક થાપણ",
+  "otherAccountTypeSalary": "પગાર ખાતું",
+  "otherAccountTypeNri": "એનઆરઆઈ",
+  "otherAccountTypeDemat": "ડીમેટ"
+}

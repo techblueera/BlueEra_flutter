@@ -164,30 +164,30 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
   Future<bool> onSubmit() async {
     if (_selectedProfileType.type == PROFESSIONAL) {
       if (_selectedDesignationObj?.name?.isEmpty ?? true) {
-        commonSnackBar(message: 'Select your profession');
+        commonSnackBar(message: AppStrings.selectYourProfession.tr);
         return false;
       }
     }
     if (_selectedProfession?.tagId == ARTIST) {
       if (_selectedDesignationObj?.name?.isEmpty ?? true) {
-        commonSnackBar(message: 'Select your art / skill');
+        commonSnackBar(message: AppStrings.selectArtSkillLower.tr);
         return false;
       }
     }
     if (_selectedProfession?.tagId == REG_UNION ||
         _selectedProfession?.tagId == NGO) {
       if (_ngoNameTextCtrl.text.isEmpty) {
-        commonSnackBar(message: 'Enter your NGO / Society Name');
+        commonSnackBar(message: AppStrings.enterNGOName.tr);
         return false;
       }
     }
     if (_selectedProfession?.tagId == CONTENT_CREATOR) {
       if (_selectedContentCreatorSpecialization?.name?.isEmpty ?? true) {
-        commonSnackBar(message: 'Select your Field');
+        commonSnackBar(message: AppStrings.selectYourField.tr);
         return false;
       }
       if (_selectedDesignationObj?.name?.isEmpty ?? true) {
-        commonSnackBar(message: 'Select your Specification');
+        commonSnackBar(message: AppStrings.selectYourSpecification.tr);
         return false;
       }
     }
@@ -287,7 +287,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                       children: [
                         Expanded(
                           child: CustomText(
-                            'Profile Data',
+                            AppStrings.profileDataTitle.tr,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.large,
                             color: AppColors.mainTextColor,
@@ -300,7 +300,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                       ],
                     ),
                     CustomText(
-                      'Select Profile Type',
+                      AppStrings.selectProfileType.tr,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -309,8 +309,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                     CommonDropdownIconDialog<IndividualProfileTypeModel>(
                       items: profileTypeList,
                       selectedValue: _selectedProfileType,
-                      title: 'Select Profile Type',
-                      hintText: 'Select Profile Type',
+                      title: AppStrings.selectProfileType.tr,
+                      hintText: AppStrings.selectProfileType.tr,
                       displayValue: (item) => item.title,
                       displayValueSubTitle: (item) => item.subTitle,
                       displayValueImagePath: (item) => item.icon,
@@ -329,7 +329,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                     ),
                     SizedBox(height: SizeConfig.paddingM),
                     CustomText(
-                      'Select Profession',
+                      AppStrings.selectProfession.tr,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -338,7 +338,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                     CommonDropdownDialog<ProfessionTypeData>(
                       items: professionCategoryList,
                       selectedValue: _selectedProfession,
-                      title: 'Select Profession',
+                      title: AppStrings.selectProfession.tr,
                       hintText: _selectedProfileType.hintText,
                       displayValue: (item) => (item.name ?? '').tr,
                       onChanged: (val) {
@@ -368,14 +368,14 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
                         titleColor: Colors.black,
-                        title: 'Specialization',
-                        hintText: 'Please specify work type',
+                        title: AppStrings.specialization.tr,
+                        hintText: AppStrings.pleaseSpecifyWorkType.tr,
                       ),
                     ],
                     if (_selectedProfileType.type == PROFESSIONAL) ...[
                       SizedBox(height: SizeConfig.paddingM),
                       CustomText(
-                        'Expertise',
+                        AppStrings.expertise.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
@@ -391,8 +391,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                                           [])
                                       : []),
                               selectedValue: _selectedDesignationObj,
-                              title: 'Expertise',
-                              hintText: 'Select expertise',
+                              title: AppStrings.expertise.tr,
+                              hintText: AppStrings.selectExpertiseHint.tr,
                               displayValue: (s) => s.name ?? '',
                               onChanged: (value) {
                                 setState(() => _selectedDesignationObj = value);
@@ -402,7 +402,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                     if (_selectedProfession?.tagId == ARTIST) ...[
                       SizedBox(height: SizeConfig.paddingM),
                       CustomText(
-                        'Select Your Art / Skill',
+                        AppStrings.selectArtSkill.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
@@ -418,8 +418,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                                           [])
                                       : []),
                               selectedValue: _selectedDesignationObj,
-                              title: 'Select Your Art / Skill',
-                              hintText: 'Select expertise',
+                              title: AppStrings.selectArtSkill.tr,
+                              hintText: AppStrings.selectExpertiseHint.tr,
                               displayValue: (s) => s.name ?? '',
                               onChanged: (value) {
                                 setState(() => _selectedDesignationObj = value);
@@ -434,7 +434,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  'Select your Field',
+                                  AppStrings.selectYourField.tr,
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.mainTextColor,
@@ -444,8 +444,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                                   items: authController.arrIndividualFields,
                                   selectedValue:
                                       _selectedContentCreatorSpecialization,
-                                  title: 'Select your Field',
-                                  hintText: 'Select expertise',
+                                  title: AppStrings.selectYourField.tr,
+                                  hintText: AppStrings.selectExpertiseHint.tr,
                                   displayValue: (value) => value.name ?? '',
                                   onChanged: (value) {
                                     _selectedContentCreatorSpecialization =
@@ -461,7 +461,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                                 ),
                                 SizedBox(height: SizeConfig.paddingM),
                                 CustomText(
-                                  'Select Your Specification',
+                                  AppStrings.selectYourSpecification.tr,
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.mainTextColor,
@@ -471,8 +471,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                                   items: authController
                                       .arrIndividualSubCategories,
                                   selectedValue: _selectedDesignationObj,
-                                  title: 'Select Your Specification',
-                                  hintText: 'Select expertise',
+                                  title: AppStrings.selectYourSpecification.tr,
+                                  hintText: AppStrings.selectExpertiseHint.tr,
                                   displayValue: (s) => s.name ?? '',
                                   onChanged: (value) {
                                     setState(
@@ -489,11 +489,11 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         isValidate: false,
                         textEditController: _ngoNameTextCtrl,
                         inputLength: 40,
-                        title: 'Type Your NGO / Society Name',
+                        title: AppStrings.typeNGOName.tr,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: 'eg. Auto Union',
+                        hintText: AppStrings.autoUnionExample.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == INDUSTRIALIST ||
@@ -503,11 +503,11 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         isValidate: false,
                         textEditController: _companyNameCtrl,
                         inputLength: 24,
-                        title: 'Type Your Company Name',
+                        title: AppStrings.typeCompanyName.tr,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: 'eg. TCS LTD',
+                        hintText: AppStrings.companyExample.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == HOMEMAKER) ...[
@@ -516,11 +516,11 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         isValidate: false,
                         textEditController: _expertiseTextCtrl,
                         inputLength: 24,
-                        title: 'Type Your Expertise',
+                        title: AppStrings.typeExpertise.tr,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: 'eg. Cooking,Dancing',
+                        hintText: AppStrings.expertiseExample1.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == SENIOR_CITIZEN) ...[
@@ -529,11 +529,11 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         isValidate: false,
                         textEditController: _seniorTextCtrl,
                         inputLength: 24,
-                        title: 'Type Your Expertise',
+                        title: AppStrings.typeExpertise.tr,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: 'eg. Banking,Teaching',
+                        hintText: AppStrings.expertiseExample2.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == STUDENT) ...[
@@ -542,20 +542,20 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         isValidate: false,
                         textEditController: _courseTextCtrl,
                         inputLength: 24,
-                        title: 'Enter your Education',
+                        title: AppStrings.enterYourEducation.tr,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: 'eg. 10th,Diploma,BE,PHD',
+                        hintText: AppStrings.studyExample.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == POLITICIAN) ...[
                       SizedBox(height: SizeConfig.paddingM),
                       CommonTextField(
                         isValidate: false,
-                        title: 'Political Party',
+                        title: AppStrings.politicalParty.tr,
                         hintText:
-                            'Enter political party or organization name',
+                            AppStrings.enterPoliticalParty.tr,
                         textEditController: _politicalPartyCtrl,
                         inputLength: 50,
                       ),
@@ -564,26 +564,26 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                       SizedBox(height: SizeConfig.paddingM),
                       CommonTextField(
                         isValidate: false,
-                        title: 'Name of Department/PSU',
+                        title: AppStrings.departmentName.tr,
                         textEditController: _departmentNameCtrl,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern_,
                         titleColor: Colors.black,
-                        hintText: 'eg., Ministry of Education',
+                        hintText: AppStrings.departmentExample.tr,
                       ),
                       SizedBox(height: SizeConfig.size18),
                       CommonTextField(
                         isValidate: false,
-                        title: 'SUB Division/Branch',
+                        title: AppStrings.subDivision.tr,
                         textEditController: _subDivisionCtrl,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern_,
                         titleColor: Colors.black,
-                        hintText: 'eg., Civil Engineering Division',
+                        hintText: AppStrings.subDivisionExample.tr,
                       ),
                     ],
                     if (_selectedProfession?.tagId == GOVERNMENT_JOB) ...[
@@ -595,14 +595,14 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: 'Name of Government/PSU',
-                        hintText: 'Eg. ONGC',
+                        title: AppStrings.nameOfGovtPSU.tr,
+                        hintText: AppStrings.govtPSUExample.tr,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your Name of Government/PSU';
+                            return AppStrings.enterNameOfGovtPSU.tr;
                           }
                           if (value.trim().length > 24) {
-                            return 'Name of Government/PSU must not exceed 24 characters';
+                            return AppStrings.govtPSUMaxLength.tr;
                           }
                           return null;
                         },
@@ -617,14 +617,14 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: 'Sector',
-                        hintText: 'eg. IT Sector',
+                        title: AppStrings.sector.tr,
+                        hintText: AppStrings.sectorExample.tr,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your Sector';
+                            return AppStrings.enterSector.tr;
                           }
                           if (value.trim().length > 24) {
-                            return 'Sector must not exceed 24 characters';
+                            return AppStrings.sectorMaxLength.tr;
                           }
                           return null;
                         },
@@ -648,8 +648,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: 'Designation / Expertise',
-                        hintText: 'Enter your designation/expertise',
+                        title: AppStrings.designationExpertise.tr,
+                        hintText: AppStrings.enterDesignationExpertise.tr,
                       ),
                     ],
                     SizedBox(height: SizeConfig.paddingL),
@@ -663,7 +663,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                           },
                           title: personalController.updateBtnLoading.value
                               ? null
-                              : AppStrings.done,
+                              : AppStrings.done.tr,
                           radius: SizeConfig.size8,
                           bgColor: AppColors.primaryColor,
                         )),

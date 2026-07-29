@@ -98,9 +98,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
       final date = DateTime.parse(dateStr);
       final diff = DateTime.now().difference(date);
       if (diff.inDays > 30) return DateFormat('MMM dd, yyyy').format(date);
-      if (diff.inDays > 0) return '${diff.inDays}d ago';
-      if (diff.inHours > 0) return '${diff.inHours}h ago';
-      return '${diff.inMinutes}m ago';
+      if (diff.inDays > 0) return '${diff.inDays} ${AppStrings.daysAgo.tr}';
+      if (diff.inHours > 0) return '${diff.inHours} ${AppStrings.hoursAgo.tr}';
+      return '${diff.inMinutes} ${AppStrings.minutesAgo.tr}';
     } catch (_) {
       return dateStr;
     }
@@ -208,14 +208,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 1,
-            title: AppStrings.activities,
+            title: AppStrings.activities.tr,
             count: activities.length,
             onEdit: () => _navigateToEdit(SocialFeedScreen()),
           ),
           if (activities.isEmpty)
             _EmptyState(
               icon: Icons.photo_library_outlined,
-              message: "Showcase your activities and feed posts",
+              message: AppStrings.socialEmptyActivities.tr,
               onAdd: () => _navigateToEdit(SocialFeedScreen()),
             )
           else
@@ -306,13 +306,13 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 2,
-            title: AppStrings.visionMission,
+            title: AppStrings.visionMission.tr,
             onEdit: () => _navigateToEdit(SocialVisionMissionScreen()),
           ),
           if (!hasData)
             _EmptyState(
               icon: Icons.visibility_outlined,
-              message: "Define your vision & mission to inspire others",
+              message: AppStrings.socialEmptyVisionMission.tr,
               onAdd: () => _navigateToEdit(SocialVisionMissionScreen()),
             )
           else ...[
@@ -366,14 +366,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 3,
-            title: AppStrings.events,
+            title: AppStrings.events.tr,
             count: events.length,
             onEdit: () => _navigateToEdit(EventScheduleScreen()),
           ),
           if (events.isEmpty)
             _EmptyState(
               icon: Icons.event_outlined,
-              message: "Schedule and share your upcoming events",
+              message: AppStrings.socialEmptyEvents.tr,
               onAdd: () => _navigateToEdit(EventScheduleScreen()),
             )
           else
@@ -540,14 +540,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 4,
-            title: AppStrings.achievements,
+            title: AppStrings.achievements.tr,
             count: achievements.length,
             onEdit: () => _navigateToEdit(SocialCertificatesScreen()),
           ),
           if (achievements.isEmpty)
             _EmptyState(
               icon: Icons.emoji_events_outlined,
-              message: "Highlight your certificates & achievements",
+              message: AppStrings.socialEmptyAchievements.tr,
               onAdd: () => _navigateToEdit(SocialCertificatesScreen()),
             )
           else
@@ -650,14 +650,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 5,
-            title: AppStrings.socialActivity,
+            title: AppStrings.socialActivity.tr,
             count: socialActivities.length,
             onEdit: () => _navigateToEdit(SocialActivityListScreen()),
           ),
           if (socialActivities.isEmpty)
             _EmptyState(
               icon: Icons.volunteer_activism_outlined,
-              message: "Share your social contributions & initiatives",
+              message: AppStrings.socialEmptySocialActivities.tr,
               onAdd: () => _navigateToEdit(SocialActivityListScreen()),
             )
           else
@@ -762,14 +762,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 6,
-            title: "Latest Post",
+            title: AppStrings.latestPost.tr,
             count: postActivities.length,
             onEdit: () => _navigateToEdit(SocialFeedScreen()),
           ),
           if (postActivities.isEmpty)
             _EmptyState(
               icon: Icons.dynamic_feed_outlined,
-              message: "Create your first post to engage with your audience",
+              message: AppStrings.socialEmptyLatestPost.tr,
               onAdd: () => _navigateToEdit(SocialFeedScreen()),
             )
           else
@@ -865,11 +865,11 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                _postAction(Icons.thumb_up_outlined, "Like"),
+                _postAction(Icons.thumb_up_outlined, AppStrings.like.tr),
                 const SizedBox(width: 24),
-                _postAction(Icons.comment_outlined, "Comment"),
+                _postAction(Icons.comment_outlined, AppStrings.comment.tr),
                 const SizedBox(width: 24),
-                _postAction(Icons.share_outlined, "Share"),
+                _postAction(Icons.share_outlined, AppStrings.share.tr),
               ],
             ),
           ),
@@ -918,14 +918,14 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 7,
-            title: AppStrings.gallery,
+            title: AppStrings.gallery.tr,
             count: galleryImages.length,
             onEdit: () => _navigateToEdit(SocialFeedScreen()),
           ),
           if (galleryImages.isEmpty)
             _EmptyState(
               icon: Icons.photo_library_outlined,
-              message: "Your gallery is empty - add photos to showcase",
+              message: AppStrings.socialEmptyGallery.tr,
               onAdd: () => _navigateToEdit(SocialFeedScreen()),
             )
           else
@@ -986,10 +986,10 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeader(index: 8, title: AppStrings.testimonials),
+          _SectionHeader(index: 8, title: AppStrings.testimonials.tr),
           _EmptyState(
             icon: Icons.format_quote_outlined,
-            message: "Testimonials from people who know your work",
+            message: AppStrings.socialEmptyTestimonials.tr,
           ),
         ],
       ),
@@ -1008,13 +1008,13 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         children: [
           _SectionHeader(
             index: 9,
-            title: AppStrings.contactUs,
+            title: AppStrings.contactUs.tr,
             onEdit: () => _navigateToEdit(SocialContactUsScreen()),
           ),
           if (!hasContact)
             _EmptyState(
               icon: Icons.contact_mail_outlined,
-              message: "Add your contact details so people can reach you",
+              message: AppStrings.socialEmptyContact.tr,
               onAdd: () => _navigateToEdit(SocialContactUsScreen()),
             )
           else
@@ -1042,7 +1042,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
                   ),
                   _PressableContactItem(
                     icon: AppIconAssets.principal,
-                    label: AppStrings.reception,
+                    label: AppStrings.reception.tr,
                     iconColor: AppColors.secondaryTextColor,
                   ),
                   _PressableContactItem(
@@ -1098,10 +1098,10 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeader(index: 10, title: "Quick Links"),
+          _SectionHeader(index: 10, title: AppStrings.quickLinksLabel.tr),
           _EmptyState(
             icon: Icons.link_outlined,
-            message: "Add quick links to your important resources",
+            message: AppStrings.socialEmptyQuickLinks.tr,
           ),
         ],
       ),
@@ -1455,7 +1455,7 @@ class _EmptyState extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: CustomText(
-                  "Add Now",
+                  AppStrings.addNowCta.tr,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,

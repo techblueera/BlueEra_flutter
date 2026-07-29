@@ -182,7 +182,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Edit Profile',
+                AppStrings.editProfile,
                 fontSize: SizeConfig.large18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -196,25 +196,25 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _label('Name'),
+                _label(AppStrings.fullName),
                 CommonTextField(
                   textEditController: _nameController,
-                  hintText: 'Your full name',
+                  hintText: AppStrings.enterFullName,
                   isValidate: false,
                 ),
                 const SizedBox(height: 12),
-                _label('Email'),
+                _label(AppStrings.email),
                 CommonTextField(
                   textEditController: _emailController,
-                  hintText: 'name@example.com',
+                  hintText: AppStrings.enterEmailAddress,
                   keyBoardType: TextInputType.emailAddress,
                   isValidate: false,
                 ),
                 const SizedBox(height: 12),
-                _label('Phone'),
+                _label(AppStrings.phoneNumber),
                 CommonTextField(
                   textEditController: _phoneController,
-                  hintText: '10-digit number',
+                  hintText:AppStrings.enterPhoneNumberHint,
                   keyBoardType: TextInputType.phone,
                   isValidate: false,
                   inputLength: 10,

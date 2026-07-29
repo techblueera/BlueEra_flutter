@@ -781,6 +781,23 @@ class AppStrings {
   static const govtPSUMaxLength = "govtPSUMaxLength";
   static const designationExpertise = "designationExpertise";
   static const enterDesignationExpertise = "enterDesignationExpertise";
+
+  /// Profile-data / designation editor (profile_designation_bottom_sheet.dart
+  /// and personal_profile_setup_new_screen.dart)
+  static const profileDataTitle = "profileDataTitle";
+  static const selectProfileType = "selectProfileType";
+  static const selectProfession = "selectProfession";
+  static const selectExpertiseHint = "selectExpertiseHint";
+
+  /// `profileTypeList` entries in individual_profile_type_model.dart
+  static const socialProfileSubTitle = "socialProfileSubTitle";
+  static const skilledServicesTitle = "skilledServicesTitle";
+  static const skilledServicesSubTitle = "skilledServicesSubTitle";
+  static const selfEmployedGigTitle = "selfEmployedGigTitle";
+  static const selfEmployedGigSubTitle = "selfEmployedGigSubTitle";
+  static const professionalConsultantTitle = "professionalConsultantTitle";
+  static const professionalConsultantSubTitle =
+      "professionalConsultantSubTitle";
   static const check = "check";
   static const usernameHint = "usernameHint";
   static const usernameMinLength = "usernameMinLength";
@@ -2379,6 +2396,9 @@ class AppStrings {
   static const String politician = 'politician';
   static const String socialist = 'socialist';
   static const String social = 'social';
+
+  /// Reels tab label in the order/chat main feed TabBar
+  static const String bites = 'bites';
   static const String journalist = 'journalist';
   static const String artist = 'artist';
   static const String industrialist = 'industrialist';
@@ -4183,6 +4203,192 @@ class AppStrings {
 
   static const String profileIdentity = "profile_identity";
 
+  /// Weekly visiting-hours selector (widgets/visiting_hour_selector.dart)
+  /// and the business-hours sheet that hosts it.
+  ///
+  /// statusOpen/statusClosed exist separately from `open`/`closed` because
+  /// those translate to the imperative verb in several languages.
+  static const String statusOpen = "statusOpen";
+  static const String statusClosed = "statusClosed";
+  static const String updateBusinessHours = "updateBusinessHours";
+  static const String loadingBusinessHours = "loadingBusinessHours";
+  static const String applyHoursToAllDays = "applyHoursToAllDays";
+  static const String hoursCopiedToAllDays = "hoursCopiedToAllDays";
+
+  /// Standalone doctor module (lib/features/me/doctor/)
+  static const String doctorBooking = "doctorBooking";
+  static const String doctorAboutMe = "doctorAboutMe";
+  static const String doctorAboutTab = "doctorAboutTab";
+  static const String doctorStatics = "doctorStatics";
+  static const String doctorCoverPhoto = "doctorCoverPhoto";
+  static const String doctorAddCoverPhoto = "doctorAddCoverPhoto";
+  static const String doctorExpertise = "doctorExpertise";
+  static const String doctorExpertiseHint = "doctorExpertiseHint";
+  static const String doctorAddExpertise = "doctorAddExpertise";
+  static const String doctorCertificateAwards = "doctorCertificateAwards";
+  static const String doctorAddCertificate = "doctorAddCertificate";
+  static const String doctorEditCertificate = "doctorEditCertificate";
+  static const String doctorNoCertificates = "doctorNoCertificates";
+  static const String doctorCertificateImage = "doctorCertificateImage";
+  static const String doctorCertificateTitleHint =
+      "doctorCertificateTitleHint";
+  static const String doctorCertificateDescHint = "doctorCertificateDescHint";
+  static const String doctorCertificateTitleRequired =
+      "doctorCertificateTitleRequired";
+  static const String doctorCertificateTitleLimit =
+      "doctorCertificateTitleLimit";
+  static const String doctorIssuedBy = "doctorIssuedBy";
+  static const String doctorIssuedByHint = "doctorIssuedByHint";
+  static const String doctorIssuedDate = "doctorIssuedDate";
+  static const String doctorSelectDate = "doctorSelectDate";
+  static const String doctorImageTooLarge = "doctorImageTooLarge";
+  static const String doctorAddPhoto = "doctorAddPhoto";
+  static const String doctorGalleryEmpty = "doctorGalleryEmpty";
+  static const String doctorDegree = "doctorDegree";
+  static const String doctorDegreeHint = "doctorDegreeHint";
+  static const String doctorSpecialization = "doctorSpecialization";
+  static const String doctorSpecializationHint = "doctorSpecializationHint";
+  static const String doctorLanguageSpoken = "doctorLanguageSpoken";
+  static const String doctorLanguageHint = "doctorLanguageHint";
+  static const String doctorLanguagesSpoken = "doctorLanguagesSpoken";
+  static const String doctorExperience = "doctorExperience";
+  static const String doctorExperienceHint = "doctorExperienceHint";
+  static const String doctorYears = "doctorYears";
+  static const String doctorRegistrationNumber = "doctorRegistrationNumber";
+  static const String doctorRegistrationHint = "doctorRegistrationHint";
+  static const String doctorConsultationFee = "doctorConsultationFee";
+  static const String doctorFeeHint = "doctorFeeHint";
+  static const String doctorAddressHint = "doctorAddressHint";
+  static const String doctorDescriptionHint = "doctorDescriptionHint";
+  static const String doctorConsultationAvailability =
+      "doctorConsultationAvailability";
+  static const String doctorAddVisitingDays = "doctorAddVisitingDays";
+  static const String doctorCompleteProfileTitle =
+      "doctorCompleteProfileTitle";
+  static const String doctorCompleteProfileBody = "doctorCompleteProfileBody";
+  static const String doctorCreateProfile = "doctorCreateProfile";
+  static const String doctorMaxEntriesError = "doctorMaxEntriesError";
+  static const String doctorExperienceRangeError =
+      "doctorExperienceRangeError";
+  static const String doctorFeeError = "doctorFeeError";
+  static const String doctorDescriptionLimitError =
+      "doctorDescriptionLimitError";
+  static const String doctorNoAppointments = "doctorNoAppointments";
+  static const String doctorLoadMore = "doctorLoadMore";
+  static const String doctorFilterAll = "doctorFilterAll";
+  static const String doctorStatusPending = "doctorStatusPending";
+  static const String doctorStatusAccepted = "doctorStatusAccepted";
+  static const String doctorStatusDeclined = "doctorStatusDeclined";
+  static const String doctorStatusCancelled = "doctorStatusCancelled";
+  static const String doctorAccept = "doctorAccept";
+  static const String doctorDecline = "doctorDecline";
+  static const String doctorPatient = "doctorPatient";
+  static const String doctorAttachments = "doctorAttachments";
+  static const String doctorAppointmentStats = "doctorAppointmentStats";
+  static const String doctorTotalRequests = "doctorTotalRequests";
+  static const String doctorUpcomingVisits = "doctorUpcomingVisits";
+  static const String doctorCertificates = "doctorCertificates";
+
+  /// Social module controllers — snackbar results and form validation copy
+  static const String locationRequired = "locationRequired";
+  static const String profileSavedSuccessfully = "profileSavedSuccessfully";
+  static const String failedToSaveProfile = "failedToSaveProfile";
+  static const String errorFetchingEvents = "errorFetchingEvents";
+  static const String errorFetchingData = "errorFetchingData";
+  static const String errorPickingImage = "errorPickingImage";
+  static const String errorSaving = "errorSaving";
+  static const String errorDeleting = "errorDeleting";
+  static const String errorDeletingEvent = "errorDeletingEvent";
+  static const String eventScheduledSuccess = "eventScheduledSuccess";
+  static const String eventUpdatedSuccess = "eventUpdatedSuccess";
+  static const String eventDeletedSuccess = "eventDeletedSuccess";
+  static const String failedToScheduleEvent = "failedToScheduleEvent";
+  static const String failedToUpdateEvent = "failedToUpdateEvent";
+  static const String failedToDeleteEvent = "failedToDeleteEvent";
+  static const String activityCreatedSuccess = "activityCreatedSuccess";
+  static const String activityUpdatedSuccess = "activityUpdatedSuccess";
+  static const String activityDeletedSuccess = "activityDeletedSuccess";
+  static const String failedToSaveActivity = "failedToSaveActivity";
+  static const String failedToDeleteActivity = "failedToDeleteActivity";
+  static const String failedToSave = "failedToSave";
+  static const String pleaseSelectImage = "pleaseSelectImage";
+  static const String selectValidLocationFromSearch =
+      "selectValidLocationFromSearch";
+  static const String enterCertificateTitle = "enterCertificateTitle";
+  static const String selectValidIssuedDate = "selectValidIssuedDate";
+  static const String fullNameRequired = "fullNameRequired";
+  static const String nameLengthRule = "nameLengthRule";
+  static const String websiteUrlRequired = "websiteUrlRequired";
+  static const String enterValidWebsiteUrl = "enterValidWebsiteUrl";
+  static const String enterValidGmail = "enterValidGmail";
+  static const String phoneNumberRequired = "phoneNumberRequired";
+  static const String enterValidMobileNumber = "enterValidMobileNumber";
+  static const String pleaseEnterValidDetails = "pleaseEnterValidDetails";
+
+  /// Social module — card titles, hints and empty states shared across the
+  /// events / activities / achievements / feed / contact-us screens
+  static const String noTitle = "noTitle";
+  static const String activityInfo = "activityInfo";
+  static const String activityDetails = "activityDetails";
+  static const String eventDetails = "eventDetails";
+  static const String dateAndTime = "dateAndTime";
+  static const String dateAndLocation = "dateAndLocation";
+  static const String roleAndImpact = "roleAndImpact";
+  static const String venueAndRegistration = "venueAndRegistration";
+  static const String personalInfoTitle = "personalInfoTitle";
+  static const String contactDetailsTitle = "contactDetailsTitle";
+  static const String selectStartDate = "selectStartDate";
+  static const String selectStartDateFirst = "selectStartDateFirst";
+  static const String selectEndDate = "selectEndDate";
+  static const String tapToUploadImage = "tapToUploadImage";
+  static const String addCertificate = "addCertificate";
+  static const String editCertificate = "editCertificate";
+  static const String locationSearchHint = "locationSearchHint";
+  static const String registrationLinkHint = "registrationLinkHint";
+  static const String socialTapCreateFirstEvent = "socialTapCreateFirstEvent";
+  static const String socialTapAddFirstActivity = "socialTapAddFirstActivity";
+  static const String socialTapAddFirstCertificate =
+      "socialTapAddFirstCertificate";
+  static const String socialTapCreateFirstFeed = "socialTapCreateFirstFeed";
+  static const String socialAddPhotoForActivity = "socialAddPhotoForActivity";
+  static const String socialAddUpToFivePhotos = "socialAddUpToFivePhotos";
+  static const String socialFreeMedicinesHint = "socialFreeMedicinesHint";
+  static const String socialActivityTypeHint = "socialActivityTypeHint";
+  static const String socialActivityTitleHint = "socialActivityTitleHint";
+  static const String socialDescribeActivityHint =
+      "socialDescribeActivityHint";
+  static const String socialYourRoleHint = "socialYourRoleHint";
+  static const String socialOrganizerHint = "socialOrganizerHint";
+  static const String socialImpactHint = "socialImpactHint";
+  static const String socialShareAchievementHint =
+      "socialShareAchievementHint";
+  static const String socialDescribeAchievementHint =
+      "socialDescribeAchievementHint";
+  static const String socialEventTitleHint = "socialEventTitleHint";
+  static const String socialEventTypeHint = "socialEventTypeHint";
+  static const String socialCertificateTitleHint =
+      "socialCertificateTitleHint";
+  static const String socialCertificatesBanner = "socialCertificatesBanner";
+  static const String socialVisionMissionBanner = "socialVisionMissionBanner";
+  static const String socialVisionMissionHint = "socialVisionMissionHint";
+  static const String socialVisionImageHint = "socialVisionImageHint";
+  static const String socialDescribeYourAim = "socialDescribeYourAim";
+  static const String socialFullNameHint = "socialFullNameHint";
+
+  /// Social home screen — section titles + per-section empty states
+  static const String latestPost = "latestPost";
+  static const String socialEmptyActivities = "socialEmptyActivities";
+  static const String socialEmptyVisionMission = "socialEmptyVisionMission";
+  static const String socialEmptyEvents = "socialEmptyEvents";
+  static const String socialEmptyAchievements = "socialEmptyAchievements";
+  static const String socialEmptySocialActivities =
+      "socialEmptySocialActivities";
+  static const String socialEmptyLatestPost = "socialEmptyLatestPost";
+  static const String socialEmptyGallery = "socialEmptyGallery";
+  static const String socialEmptyTestimonials = "socialEmptyTestimonials";
+  static const String socialEmptyContact = "socialEmptyContact";
+  static const String socialEmptyQuickLinks = "socialEmptyQuickLinks";
+
   /// FOOD HOME SCREEN
   static const String foodSelection = "food_selection";
   static const String ourMenu = "our_menu";
@@ -5781,6 +5987,22 @@ class AppStrings {
   static const String otherOpen = "otherOpen";
   static const String otherClosed = "otherClosed";
 
+  // Others overview — Banking Information card (Finance business type)
+  static const String otherBankingInfoTitle = "otherBankingInfoTitle";
+  static const String otherRbiRegistered = "otherRbiRegistered";
+  static const String otherAccountTypes = "otherAccountTypes";
+  static const String otherNoAccountTypesSelected =
+      "otherNoAccountTypesSelected";
+  static const String otherAccountTypeSavings = "otherAccountTypeSavings";
+  static const String otherAccountTypeCurrent = "otherAccountTypeCurrent";
+  static const String otherAccountTypeFixedDeposit =
+      "otherAccountTypeFixedDeposit";
+  static const String otherAccountTypeRecurringDeposit =
+      "otherAccountTypeRecurringDeposit";
+  static const String otherAccountTypeSalary = "otherAccountTypeSalary";
+  static const String otherAccountTypeNri = "otherAccountTypeNri";
+  static const String otherAccountTypeDemat = "otherAccountTypeDemat";
+
   static const String otherServicePhotos = "otherServicePhotos";
   static const String otherUploadServicePhoto = "otherUploadServicePhoto";
   static const String otherProfileQr = "otherProfileQr";
@@ -5894,7 +6116,10 @@ class AppStrings {
   static const String daysAgo = "days_ago";
   static const String editComment = "edit_comment";
   static const String deleteComment = "delete_comment";
-  static const String userFallback = "userFallback";
+  // The shipped translation lives under `user_fallback`; the constant used to
+  // point at a "userFallback" key that never existed, so `.tr` fell through to
+  // the raw key at every call site.
+  static const String userFallback = "user_fallback";
 
   //business profile
   static const String nodata = "NA";

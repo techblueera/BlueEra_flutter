@@ -118,4 +118,52 @@ mixin HospitalServiceApi {
   /// Owner inbox — appointments on my hospital (doc §3).
   final String hospitalAppointmentsOwnerMe =
       'hospital-service/hospital-appointments/owner/me';
+
+  // ───────────────────────────────────────────────────────────────────────
+  // STANDALONE DOCTOR (docs/backend/STANDALONE_DOCTOR_FLUTTER_GUIDE.md)
+  //
+  // A standalone doctor is an INDEPENDENT business account (Healthcare →
+  // DOCTORS/CLINICS) — not a row in a hospital's OPD list. These endpoints
+  // are entirely separate from the `hospital-service/opd` +
+  // `hospital-service/hospital-appointments` pair above, which continue to
+  // serve the hospital OPD flow unchanged.
+  // ───────────────────────────────────────────────────────────────────────
+
+  /// Doctor professional profile. POST creates (goes live instantly — there
+  /// is no approval step); `/me` reads/updates/deletes the caller's own.
+  final String doctorsBase = 'hospital-service/doctors';
+  final String doctorsMe = 'hospital-service/doctors/me';
+  final String doctorsMeStats = 'hospital-service/doctors/me/stats';
+
+  /// Public full profile for a patient viewing a doctor. Takes the OWNER's
+  /// user id (`Business.user_id`) — not `Business._id`, not
+  /// `DoctorProfile._id`. A 404 here is normal (profile not completed yet).
+  String doctorsFullByUserId(String userId) =>
+      'hospital-service/doctors/full/$userId';
+
+  /// Basic public profile by `DoctorProfile._id` (no certificates).
+  String doctorsById(String id) => 'hospital-service/doctors/$id';
+
+  /// Certificates & Awards.
+  final String doctorCertificatesBase = 'hospital-service/doctor-certificates';
+  final String doctorCertificatesMe =
+      'hospital-service/doctor-certificates/me';
+  String doctorCertificateById(String id) =>
+      'hospital-service/doctor-certificates/$id';
+  String doctorCertificatesByProfile(String doctorProfileId) =>
+      'hospital-service/doctor-certificates/doctor/$doctorProfileId';
+
+  /// Appointments. NOTE: no `opd_id` — that field belongs to the hospital
+  /// booking API. Ownership is derived server-side from the token.
+  final String doctorAppointments = 'hospital-service/doctor-appointments';
+  final String doctorAppointmentsMe =
+      'hospital-service/doctor-appointments/me';
+
+  /// Owner inbox — this backs the doctor dashboard's Booking tab.
+  final String doctorAppointmentsOwnerMe =
+      'hospital-service/doctor-appointments/owner/me';
+  String doctorAppointmentById(String appointmentId) =>
+      'hospital-service/doctor-appointments/$appointmentId';
+  String doctorAppointmentStatus(String appointmentId) =>
+      'hospital-service/doctor-appointments/$appointmentId/status';
 }

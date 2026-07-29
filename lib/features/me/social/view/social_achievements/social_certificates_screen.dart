@@ -26,7 +26,7 @@ class SocialCertificatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.certifications),
+      appBar: CommonBackAppBar(title: AppStrings.certifications.tr),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           certController.openForCreate();
@@ -34,7 +34,7 @@ class SocialCertificatesScreen extends StatelessWidget {
         },
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: CustomText(AppStrings.addMore,
+        label: CustomText(AppStrings.addMore.tr,
             color: Colors.white,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600),
@@ -61,7 +61,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: CustomText(
-                      "Showcase your certificates and achievements",
+                      AppStrings.socialCertificatesBanner.tr,
                       color: AppColors.primaryColor,
                       fontSize: SizeConfig.small,
                     ),
@@ -79,7 +79,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(AppStrings.certifications,
+                    CustomText(AppStrings.certifications.tr,
                         fontWeight: FontWeight.w600,
                         fontSize: SizeConfig.medium),
                     SizedBox(height: SizeConfig.size15),
@@ -95,12 +95,12 @@ class SocialCertificatesScreen extends StatelessWidget {
                               Icon(Icons.emoji_events_outlined,
                                   size: 48, color: Colors.grey[300]),
                               const SizedBox(height: 12),
-                              CustomText(AppStrings.noDataFound,
+                              CustomText(AppStrings.noDataFound.tr,
                                   color:
                                       AppColors.secondaryTextColor),
                               const SizedBox(height: 4),
                               CustomText(
-                                  "Tap + to add your first certificate",
+                                  AppStrings.socialTapAddFirstCertificate.tr,
                                   color: Colors.grey[400],
                                   fontSize: SizeConfig.small),
                               const SizedBox(height: 20),
@@ -203,7 +203,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomText(
-                            cert.title ?? "Certificate",
+                            cert.title ?? AppStrings.certificate.tr,
                             color: Colors.white,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.bold,
@@ -280,8 +280,8 @@ class SocialCertificatesScreen extends StatelessWidget {
                         children: [
                           CustomText(
                             isEdit
-                                ? "Edit Certificate"
-                                : "Add Certificate",
+                                ? AppStrings.editCertificate.tr
+                                : AppStrings.addCertificate.tr,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
@@ -293,17 +293,17 @@ class SocialCertificatesScreen extends StatelessWidget {
                       ),
                       SizedBox(height: SizeConfig.size12),
                       CommonTextField(
-                        title: AppStrings.title,
+                        title: AppStrings.title.tr,
                         textEditController:
                             certController.titleController,
-                        hintText: "E.g. Certificate of Excellence",
+                        hintText: AppStrings.socialCertificateTitleHint.tr,
                         onChange: (val) {
                           setState(() {});
                         },
                       ),
                       SizedBox(height: SizeConfig.size12),
                       CustomText(
-                        AppStrings.certificateIssuedBy,
+                        AppStrings.certificateIssuedBy.tr,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -341,8 +341,8 @@ class SocialCertificatesScreen extends StatelessWidget {
                         SizedBox(height: SizeConfig.size12),
                       ],
                       AiDescriptionField(
-                        label: AppStrings.description,
-                        hintText: "Describe your achievement...",
+                        label: AppStrings.description.tr,
+                        hintText: AppStrings.socialDescribeAchievementHint.tr,
                         controller:
                             certController.descriptionController,
                         rxValue: certController.description,
@@ -372,11 +372,11 @@ class SocialCertificatesScreen extends StatelessWidget {
                       if (isEdit) ...[
                         SizedBox(height: SizeConfig.size12),
                         CustomBtn(
-                          title: AppStrings.delete,
+                          title: AppStrings.delete.tr,
                           onTap: () async {
                             await showCommonDialog(
                               context: context,
-                              text: AppStrings.deleteConfirm,
+                              text: AppStrings.deleteConfirm.tr,
                               confirmCallback: () async {
                                 Get.back();
                                 await certController
@@ -390,8 +390,8 @@ class SocialCertificatesScreen extends StatelessWidget {
                               cancelCallback: () {
                                 Navigator.of(context).pop();
                               },
-                              confirmText: AppStrings.yes,
-                              cancelText: AppStrings.no,
+                              confirmText: AppStrings.yes.tr,
+                              cancelText: AppStrings.no.tr,
                             );
                           },
                           bgColor: AppColors.red00,
@@ -415,7 +415,7 @@ class SocialCertificatesScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(AppStrings.uploadDocument,
+          CustomText(AppStrings.uploadDocument.tr,
               fontWeight: FontWeight.w500),
           SizedBox(height: SizeConfig.size8),
           InkWell(

@@ -46,12 +46,20 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
   @override
   void initState() {
     super.initState();
-    if (_hasEarnProfile) {
+    if (!_hasEarnProfile) return;
+    // Both of these write to observables synchronously — `fetchEarnProfile`
+    // flips `isProfileLoading` before its first await. This card is mounted
+    // lazily inside a sliver, so initState runs mid-build and the write would
+    // dirty an already-built ancestor Obx (the profile top bar watches
+    // `shopStatusOpenClose`). Deferring to the post-frame callback matches
+    // what the earn dashboard and self-employee screen already do.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _earnProfileCtrl.fetchEarnProfile();
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() ==
               AppConstants.OPEN.toUpperCase();
-    }
+    });
   }
 
   @override

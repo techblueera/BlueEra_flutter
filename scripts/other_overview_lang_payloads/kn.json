@@ -1,0 +1,19 @@
+{
+  "otherManagementTitle": "ಆಡಳಿತ ಮಂಡಳಿ",
+  "otherJobsTitle": "ವೃತ್ತಿ / ಉದ್ಯೋಗಗಳು",
+  "otherTimingTitle": "ಸಮಯ",
+  "otherAddEdit": "ಸೇರಿಸಿ / ಸಂಪಾದಿಸಿ",
+  "otherOpen": "ತೆರೆದಿದೆ",
+  "otherClosed": "ಮುಚ್ಚಲಾಗಿದೆ",
+  "otherBankingInfoTitle": "ಬ್ಯಾಂಕಿಂಗ್ ಮಾಹಿತಿ",
+  "otherRbiRegistered": "ಆರ್‌ಬಿಐ ನೋಂದಾಯಿತ",
+  "otherAccountTypes": "ಖಾತೆ ಪ್ರಕಾರಗಳು",
+  "otherNoAccountTypesSelected": "ಯಾವುದೇ ಖಾತೆ ಪ್ರಕಾರ ಆಯ್ಕೆ ಮಾಡಿಲ್ಲ",
+  "otherAccountTypeSavings": "ಉಳಿತಾಯ ಖಾತೆ",
+  "otherAccountTypeCurrent": "ಚಾಲ್ತಿ ಖಾತೆ",
+  "otherAccountTypeFixedDeposit": "ನಿಶ್ಚಿತ ಠೇವಣಿ",
+  "otherAccountTypeRecurringDeposit": "ಪುನರಾವರ್ತಿತ ಠೇವಣಿ",
+  "otherAccountTypeSalary": "ಸಂಬಳ ಖಾತೆ",
+  "otherAccountTypeNri": "ಎನ್‌ಆರ್‌ಐ",
+  "otherAccountTypeDemat": "ಡಿಮ್ಯಾಟ್"
+}

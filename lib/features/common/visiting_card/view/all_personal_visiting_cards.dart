@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/visiting_card/widget/share_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -17,7 +18,8 @@ class AllPersonalVisitingCards extends StatelessWidget {
   Widget build(BuildContext context) {
     final u = personalDetails?.user;
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Visiting Cards'),
+      appBar: CommonBackAppBar(title: AppStrings.visitingCard),
+      // appBar: CommonBackAppBar(title: 'Visiting Cards'),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         children: [

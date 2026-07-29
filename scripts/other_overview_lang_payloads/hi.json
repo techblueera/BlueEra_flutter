@@ -1,0 +1,19 @@
+{
+  "otherManagementTitle": "प्रबंधन",
+  "otherJobsTitle": "करियर / नौकरियां",
+  "otherTimingTitle": "समय",
+  "otherAddEdit": "जोड़ें / संपादित करें",
+  "otherOpen": "खुला",
+  "otherClosed": "बंद",
+  "otherBankingInfoTitle": "बैंकिंग जानकारी",
+  "otherRbiRegistered": "आरबीआई पंजीकृत",
+  "otherAccountTypes": "खाता प्रकार",
+  "otherNoAccountTypesSelected": "कोई खाता प्रकार चयनित नहीं है",
+  "otherAccountTypeSavings": "बचत खाता",
+  "otherAccountTypeCurrent": "चालू खाता",
+  "otherAccountTypeFixedDeposit": "सावधि जमा",
+  "otherAccountTypeRecurringDeposit": "आवर्ती जमा",
+  "otherAccountTypeSalary": "वेतन खाता",
+  "otherAccountTypeNri": "एनआरआई",
+  "otherAccountTypeDemat": "डीमैट"
+}

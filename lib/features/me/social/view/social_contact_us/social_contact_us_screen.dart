@@ -103,7 +103,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
     final bool isEdit = widget.profile != null;
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.contactUs),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs.tr),
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
@@ -144,7 +144,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: CustomText(
-                        "Add your contact details so people can reach you",
+                        AppStrings.socialEmptyContact.tr,
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
                       ),
@@ -175,7 +175,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                                 color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText("Personal Info",
+                          CustomText(AppStrings.personalInfoTitle.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -183,8 +183,8 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: branchNameController,
-                        hintText: "E.g. Rajesh Kr. Rajak",
-                        title: AppStrings.fullName,
+                        hintText: AppStrings.socialFullNameHint.tr,
+                        title: AppStrings.fullName.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                       if (controller.nameError.value.isNotEmpty)
@@ -193,7 +193,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                       HttpsTextField(
                         controller: websiteController,
                         hintText: "https://yourwebsite.com",
-                        title: AppStrings.website,
+                        title: AppStrings.website.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                       if (controller.websiteError.value.isNotEmpty)
@@ -225,7 +225,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                                 color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText("Contact Details",
+                          CustomText(AppStrings.contactDetailsTitle.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -234,7 +234,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                       CommonTextField(
                         textEditController: emailController,
                         hintText: "yourname@gmail.com",
-                        title: AppStrings.email,
+                        title: AppStrings.email.tr,
                         keyBoardType: TextInputType.emailAddress,
                         onChange: (_) => _triggerValidation(),
                       ),
@@ -244,7 +244,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                       CommonTextField(
                         textEditController: phoneController,
                         hintText: "9876543210",
-                        title: AppStrings.phoneNumber,
+                        title: AppStrings.phoneNumber.tr,
                         maxLength: 10,
                         keyBoardType: TextInputType.phone,
                         inputFormatters: [
@@ -300,7 +300,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                                 color: AppColors.primaryColor, size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText(AppStrings.location,
+                          CustomText(AppStrings.location.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -308,7 +308,7 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                       const SizedBox(height: 16),
                       CommonLocationSearchField(
                         controller: addressController,
-                        title: AppStrings.location,
+                        title: AppStrings.location.tr,
                         isShowLeading: false,
                         onSelected: (placeId, lat, lng, address) async {
                           addressController.text = address;

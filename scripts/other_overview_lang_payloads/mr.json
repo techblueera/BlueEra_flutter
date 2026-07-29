@@ -1,0 +1,19 @@
+{
+  "otherManagementTitle": "व्यवस्थापन",
+  "otherJobsTitle": "करिअर / नोकऱ्या",
+  "otherTimingTitle": "वेळ",
+  "otherAddEdit": "जोडा / संपादित करा",
+  "otherOpen": "उघडे",
+  "otherClosed": "बंद",
+  "otherBankingInfoTitle": "बँकिंग माहिती",
+  "otherRbiRegistered": "आरबीआय नोंदणीकृत",
+  "otherAccountTypes": "खात्याचे प्रकार",
+  "otherNoAccountTypesSelected": "कोणताही खाते प्रकार निवडलेला नाही",
+  "otherAccountTypeSavings": "बचत खाते",
+  "otherAccountTypeCurrent": "चालू खाते",
+  "otherAccountTypeFixedDeposit": "मुदत ठेव",
+  "otherAccountTypeRecurringDeposit": "आवर्ती ठेव",
+  "otherAccountTypeSalary": "पगार खाते",
+  "otherAccountTypeNri": "एनआरआय",
+  "otherAccountTypeDemat": "डिमॅट"
+}
