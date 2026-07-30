@@ -20,6 +20,11 @@ class CustomText extends StatelessWidget {
   final Color? decorationColor;
   final TextDecorationStyle? decorationStyle;
 
+  /// Optional text shadow, for labels that sit directly on imagery (e.g. the
+  /// Discover folder captions over the blurred profile photo) and so have no
+  /// guaranteed contrast from a background of their own.
+  final List<Shadow>? shadows;
+
   const CustomText(
     this.title, {
     Key? key,
@@ -36,6 +41,7 @@ class CustomText extends StatelessWidget {
     this.letterSpacing,
     this.decorationColor,
     this.decorationStyle,
+    this.shadows,
   }) : super(key: key);
 
   @override
@@ -58,6 +64,7 @@ class CustomText extends StatelessWidget {
         decorationColor: decorationColor,
         decorationStyle: decorationStyle,
         decorationThickness: 2,
+        shadows: shadows,
       ),
     );
   }

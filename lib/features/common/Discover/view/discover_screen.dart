@@ -546,12 +546,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               // Scrim. A profile photo can be any brightness, so this keeps the
               // white folder labels and dark pill text readable over all of
               // them, and stops the photo competing with the content.
+              //
+              // Lighter than it was: the folders now carry their own colour and
+              // their labels their own shadow (see [DiscoverFolderTheme]), so
+              // legibility no longer has to be bought by darkening the whole
+              // page — which had been washing the photo out to grey.
               const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0x59000000), Color(0x33000000)],
+                    colors: [Color(0x40000000), Color(0x26000000)],
                   ),
                 ),
               ),
@@ -619,11 +624,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         .map((s) => s.widget)
         .toList();
     // The host lets a folder's sheet mount that very section again, live —
-    // see [DiscoverFolderHost].
-    final folders = visible
-        .where((s) => s.folder)
-        .map((s) => DiscoverFolderHost(section: s.widget) as Widget)
-        .toList();
+    // see [DiscoverFolderHost]. It also carries the folder's position in the
+    // grid, which is what gives each tile its own colour
+    // (`docs/discover_color_full.jpeg`) — see [discoverFolderThemeFor].
+    final folderSections =
+        visible.where((s) => s.folder).map((s) => s.widget).toList();
+    final folders = <Widget>[
+      for (int i = 0; i < folderSections.length; i++)
+        DiscoverFolderHost(section: folderSections[i], index: i),
+    ];
 
     final children = <Widget>[...rails];
     // Two per row; a trailing odd folder keeps its half-width slot rather than

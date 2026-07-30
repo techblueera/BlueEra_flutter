@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_folder_palette.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -52,19 +53,33 @@ class DiscoverFolderScope extends InheritedWidget {
 /// configuration, and each mount gets its own Element/State (there are no
 /// GlobalKeys on these sections).
 class DiscoverFolderHost extends InheritedWidget {
-  DiscoverFolderHost({super.key, required this.section})
+  DiscoverFolderHost({super.key, required this.section, this.index = 0})
       : super(child: section);
 
   final Widget section;
+
+  /// Position of this folder in the landing grid, which is what picks its
+  /// colour — see [discoverFolderThemeFor].
+  ///
+  /// Position rather than title: the titles are localised (`AppStrings…tr`), so
+  /// keying colours off them would hand a folder a different colour in every
+  /// language. The grid builds this list in a fixed order, so the index is the
+  /// stable identity.
+  final int index;
 
   /// The section widget wrapping the caller, if the landing grid put one there.
   static Widget? sectionOf(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()
       ?.section;
 
+  /// Grid position of the folder wrapping the caller; 0 outside the grid.
+  static int indexOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()?.index ??
+      0;
+
   @override
   bool updateShouldNotify(DiscoverFolderHost oldWidget) =>
-      section != oldWidget.section;
+      section != oldWidget.section || index != oldWidget.index;
 }
 
 /// One launcher-style folder: a translucent rounded square holding a 2x2
@@ -96,6 +111,11 @@ class DiscoverFolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Colour comes from the folder's slot in the landing grid, published by the
+    // [DiscoverFolderHost] the grid wraps every section in. Nothing is passed in
+    // by the ~15 section widgets that build these tiles.
+    final theme = discoverFolderThemeFor(DiscoverFolderHost.indexOf(context));
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => DiscoverFolderSheet.show(context, title, expandedBuilder),
@@ -107,21 +127,19 @@ class DiscoverFolderTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                // Frosted plate: a translucent white wash over the blurred
-                // profile photo behind the page, so the folder picks up the
-                // colour of whatever it sits on.
-                color: Colors.white.withValues(alpha: 0.22),
+                // Coloured wash over the blurred profile photo behind the page:
+                // still translucent, so the folder keeps picking up whatever it
+                // sits on, but tinted with this folder's own hue.
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: theme.tileGradient,
+                ),
                 borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1A101828),
-                    blurRadius: 16,
-                    offset: Offset(0, 6),
-                  ),
-                ],
+                border: Border.all(color: theme.border),
+                boxShadow: theme.shadow,
               ),
-              child: _preview(),
+              child: _preview(theme),
             ),
           ),
           SizedBox(height: SizeConfig.size8),
@@ -133,6 +151,16 @@ class DiscoverFolderTile extends StatelessWidget {
             color: AppColors.white,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            // The label sits on the profile photo, not on the tile, so it has no
+            // guaranteed contrast of its own — a dark halo keeps it readable
+            // over a light photo without darkening the whole page for it.
+            shadows: const [
+              Shadow(
+                color: Color(0x8C000000),
+                blurRadius: 6,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
         ],
       ),
@@ -142,7 +170,7 @@ class DiscoverFolderTile extends StatelessWidget {
   /// The 2x2 body of the folder. Beyond four icons the last slot becomes a
   /// mini 2x2 of the next four, so a long section still reads as "one folder"
   /// rather than an arbitrary truncation.
-  Widget _preview() {
+  Widget _preview(DiscoverFolderTheme theme) {
     final icons = iconPaths.where((e) => e.trim().isNotEmpty).toList();
     final bool overflows = icons.length > 4;
     final slots = <Widget>[];
@@ -150,10 +178,11 @@ class DiscoverFolderTile extends StatelessWidget {
     for (int i = 0; i < (overflows ? 3 : 4); i++) {
       slots.add(_DiscoverFolderPlate(
         iconPath: i < icons.length ? icons[i] : null,
+        color: theme.plateTint(i),
       ));
     }
     if (overflows) {
-      slots.add(_miniGrid(icons.skip(3).take(4).toList()));
+      slots.add(_miniGrid(theme, icons.skip(3).take(4).toList()));
     }
 
     return Column(
@@ -183,9 +212,12 @@ class DiscoverFolderTile extends StatelessWidget {
 
   /// Last slot when the section has more than four categories: four quarter-size
   /// plates in their own 2x2.
-  Widget _miniGrid(List<String> icons) {
+  Widget _miniGrid(DiscoverFolderTheme theme, List<String> icons) {
     Widget cell(int i) => _DiscoverFolderPlate(
           iconPath: i < icons.length ? icons[i] : null,
+          // Offset by one so the mini cells don't repeat the tint of the
+          // full-size plate they sit next to.
+          color: theme.plateTint(i + 1),
           radius: 7,
           padding: 3,
         );
@@ -215,17 +247,21 @@ class DiscoverFolderTile extends StatelessWidget {
   }
 }
 
-/// One rounded white plate inside a folder, holding a single category icon.
+/// One rounded pastel plate inside a folder, holding a single category icon.
 /// Renders empty (but still plate-shaped) when the section has fewer icons than
 /// slots or its data hasn't arrived yet.
 class _DiscoverFolderPlate extends StatelessWidget {
   const _DiscoverFolderPlate({
     this.iconPath,
+    required this.color,
     this.radius = 14,
     this.padding = 6,
   });
 
   final String? iconPath;
+
+  /// Pastel fill for this slot, from [DiscoverFolderTheme.plateTint].
+  final Color color;
   final double radius;
   final double padding;
 
@@ -234,7 +270,7 @@ class _DiscoverFolderPlate extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.82),
+        color: color,
         borderRadius: BorderRadius.circular(radius),
       ),
       child: iconPath == null
