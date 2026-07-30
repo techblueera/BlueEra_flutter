@@ -89,6 +89,13 @@ mixin UserServiceApi {
       '/user-service/business/updateBusinessProfile';
   final String bussinessProfileById =
       "/user-service/business";
+
+  /// Discover listing feed, filtered by `category` (+ optional `subCategory`,
+  /// `page`, `limit`). The backend enriches each listing with category-specific
+  /// data — e.g. a DOCTORS/CLINICS listing carries the standalone doctor's
+  /// specialization / degree / experience / fee (see
+  /// `docs/STANDALONE_DOCTOR_FLUTTER_GUIDE.md` §14).
+  final String businessFilter = 'user-service/business/filter';
   final String businessIdViewForLocation =
       "user-service/business/user";
   final String updateBusinessDescription =

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/doctor_discover_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/health_care_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/me/medical/view/pharmacy_stores_screen.dart';
@@ -13,10 +14,21 @@ class HealthServiceCardWidget extends StatelessWidget {
   /// Pharmacy has its own flow (sub-category tabs → pharmacy cards → cart), so
   /// it opens [PharmacyStoresScreen] rather than the healthcare listing — whose
   /// `rightContent()` has no PHARMACY branch and would show "Coming soon".
+  ///
+  /// Clinic Doctors goes straight to [DoctorDiscoverListScreen]: a standalone
+  /// doctor is an independent business account, not a hospital, so it must not
+  /// travel through the hospital list / hospital detail screens (which discard
+  /// every doctor field and post enquiries to the hospital endpoint — see
+  /// `docs/STANDALONE_DOCTOR_FLUTTER_GUIDE.md` §26).
+  ///
   /// Every other category routes into the listing as before.
   void _open(OnboardingCategoryModel categoryItem) {
     if (categoryItem.slugId == PHARMACY) {
       Get.to(() => const PharmacyStoresScreen());
+      return;
+    }
+    if (categoryItem.slugId == CLINIC_DOCTORS) {
+      Get.to(() => DoctorDiscoverListScreen(title: categoryItem.name));
       return;
     }
     Get.to(() => HealthCareListingScreen(

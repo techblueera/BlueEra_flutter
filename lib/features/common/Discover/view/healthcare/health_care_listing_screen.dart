@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/doctor_discover_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/hospital_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
@@ -153,11 +154,16 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
           key: ValueKey('hospital_$v'),
         );
       } else if (slug == CLINIC_DOCTORS) {
-        return HospitalListScreen(
-          serviceType: 'DOCTORS',
-          // serviceType: 'CLINIC_DOCTORS',
-          // serviceType: 'clinic',
-          key: ValueKey('clinic_$v'),
+        // Standalone doctors get their own list + profile, exactly like the
+        // Lab category above. Routing them through [HospitalListScreen] fed
+        // the listing into the hospital adapter — which has no field for
+        // specialization, degree, experience, fee, languages or certificate
+        // count and silently dropped them — and landed the customer on the
+        // hospital detail screen, whose enquiry button posts to the hospital
+        // endpoint. See `docs/STANDALONE_DOCTOR_FLUTTER_GUIDE.md` §26.
+        return DoctorDiscoverListView(
+          category: 'DOCTORS',
+          key: ValueKey('doctors_$v'),
         );
       } else if (slug == ALTERNATIVE_WELLNESS) {
         return HospitalListScreen(
