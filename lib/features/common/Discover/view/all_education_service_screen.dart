@@ -486,15 +486,18 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   /// lib/docs/rating-ui-integration.md §1) — the caller must hide the
   /// entry point when it is empty, otherwise the request 404s.
   Future<void> _openRateDialog(SchoolDetailsData service) async {
-    final businessId = (service.businessId ?? '').trim();
+    final businessId = (service.id ?? '').trim();
     if (businessId.isEmpty) return;
-    await showDialog(
+    final submitted = await showDialog<bool>(
       context: context,
       builder: (_) => RatingFeedbackDialog(
         businessId: businessId,
         reviewFor: AppConstants.business,
       ),
     );
+    if (submitted == true) {
+      controller_.fetchEducationServiceServices();
+    }
   }
 
   Future<void> _shareSchool(SchoolDetailsData service) async {
@@ -685,7 +688,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   // be_user_service `businesses._id` (see
                   // lib/docs/rating-ui-integration.md §1) — without it the
                   // POST to /business/{businessId}/ratings would 404.
-                  if ((service.businessId ?? '').trim().isNotEmpty) ...[
+                  if ((service.id ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: () => _openRateDialog(service),

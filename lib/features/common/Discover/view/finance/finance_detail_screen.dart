@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
@@ -13,6 +14,8 @@ import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -70,12 +73,16 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
 
     // Hydrate the shared business-profile controller so the
     // BusinessContactMapCard below has data. Uses `userId` — the key
-    // `viewBusinessProfileById` expects (same as LabDetailScreen).
+    // `viewBusinessProfileById` expects (same as LabDetailScreen). Also
+    // kicks off the owner-scoped services fetch (`/services-service/
+    // services/user/:userId`) that feeds the "Our Services" rail below.
     void hydrateProfile(String? userIdVal) {
       final uid = (userIdVal ?? '').trim();
       if (uid.isEmpty) return;
       // ignore: unawaited_futures
       viewBusinessDetailsController.viewBusinessProfileById(uid);
+      // ignore: unawaited_futures
+      viewBusinessDetailsController.fetchServices(visitBusinessId: uid);
     }
 
     prefetch(controller.selectedDetail.value?.category);
@@ -198,6 +205,41 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                       SizedBox(height: SizeConfig.size10),
                     ],
 
+                    // ─── Services Offered (RBI status + account types) ───
+                    if (_hasServicesInfo(data)) ...[
+                      _buildServicesSection(data),
+                      // SizedBox(height: SizeConfig.size10),
+                    ],
+
+                    // ─── Our Services (owner's posted services from
+                    // /services-service/services/user/:userId) ───
+                    // Mirrors the pattern used in
+                    // OthersServiceDetailScreen so the two viewers render
+                    // this rail identically.
+                    Obx(() {
+                      final services =
+                          viewBusinessDetailsController.services.toList();
+                      if (services.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                        child: CustomFormCard(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                AppStrings.services.tr,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              const SizedBox(height: 10),
+                              _ServicesHorizontalList(services: services),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    SizedBox(height: SizeConfig.size10),
                     // ─── Management ───
                     if (data.management?.isNotEmpty ?? false) ...[
                       _buildManagementSection(data.management!),
@@ -225,7 +267,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
 
                     // ─── Contact Us ───
                     Obx(() {
-                      if (viewBusinessDetailsController.isProfileLoading.value) {
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
                         return const SizedBox.shrink();
                       }
                       final details = viewBusinessDetailsController
@@ -235,7 +278,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                         showEditButton: false,
                       );
                     }),
-                    SizedBox(height: SizeConfig.size16),
+                    SizedBox(height: SizeConfig.size8),
 
                     // ─── Website preview ───
                     WebsitePreviewCard(url: data.effectiveWebsite ?? ''),
@@ -443,6 +486,173 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── SERVICES OFFERED (RBI status + account types) ─────────────────
+  bool _hasServicesInfo(FinanceBusinessItem data) {
+    final hasRbi = data.rbiRegistered != null;
+    final hasAccounts =
+        (data.accountType?.any((s) => s.trim().isNotEmpty) ?? false);
+    return hasRbi || hasAccounts;
+  }
+
+  Widget _buildServicesSection(FinanceBusinessItem data) {
+    final rbi = data.rbiRegistered;
+    final types = data.accountType
+            ?.where((s) => s.trim().isNotEmpty)
+            .toList(growable: false) ??
+        const <String>[];
+
+    return CommonCardWidget(
+      padding: 12,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: 'Banking Information'),
+          SizedBox(height: SizeConfig.size12),
+          if (rbi != null) _rbiStatusBanner(rbi),
+          if (rbi != null && types.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size12),
+            Divider(height: 1, color: AppColors.greyE5),
+            SizedBox(height: SizeConfig.size12),
+          ],
+          if (types.isNotEmpty) _AccountBlock(types),
+        ],
+      ),
+    );
+  }
+
+  /// Full-width status banner. Green when RBI-registered (adds a
+  /// reassurance subtitle), amber when not (adds a warning subtitle).
+  Widget _rbiStatusBanner(bool registered) {
+    final Color color =
+        registered ? AppColors.greenShade : AppColors.primaryColor;
+    final String title = registered ? 'RBI Registered' : 'Not RBI Registered';
+    final String subtitle = registered
+        ? 'This institution is registered with the Reserve Bank of India.'
+        : 'This institution is not registered with the Reserve Bank of India.';
+    final IconData icon =
+        registered ? Icons.verified_rounded : Icons.gpp_maybe_rounded;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.12),
+            color.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 22, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  title,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+                const SizedBox(height: 2),
+                CustomText(
+                  subtitle,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _AccountBlock(List<String> types) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.account_balance_wallet_outlined,
+                size: 16, color: AppColors.primaryColor),
+            const SizedBox(width: 6),
+            CustomText(
+              'Account Type',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CustomText(
+                '${types.length}',
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: types.map(_AccountChip).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _AccountChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_rounded,
+              size: 14, color: AppColors.primaryColor),
+          const SizedBox(width: 6),
+          CustomText(
+            label,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
           ),
         ],
       ),
@@ -1035,5 +1245,98 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
     } catch (e) {
       debugPrint("Error launching URL: $e");
     }
+  }
+}
+
+class _ServicesHorizontalList extends StatelessWidget {
+  final List<GetServiceModel> services;
+
+  const _ServicesHorizontalList({required this.services});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: services.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final s = services[i];
+          final firstPhoto =
+              (s.photos?.isNotEmpty ?? false) ? s.photos!.first : '';
+          return InkWell(
+            onTap: () => Get.to(() => ServiceDetailsScreen(service: s)),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 160,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(10)),
+                    child: SizedBox(
+                      height: 100,
+                      width: 160,
+                      child: firstPhoto.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: firstPhoto,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>
+                                  Container(color: Colors.grey[300]),
+                              placeholder: (_, __) =>
+                                  Container(color: Colors.grey[200]),
+                            )
+                          : Container(color: Colors.grey[300]),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          s.title ?? AppStrings.na,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        CustomText(
+                          '₹${s.priceRange?.min ?? 0} - ₹${s.priceRange?.max ?? 0}',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

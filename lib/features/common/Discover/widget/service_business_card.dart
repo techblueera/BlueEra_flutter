@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../business/widgets/rating_widget.dart';
+import '../controller/other_service_business_search_controller.dart';
 import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
@@ -635,17 +636,27 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   Future<void> _onRateTap() async {
-    final businessId = (_profile?.id ?? '').trim();
+    // Uses `businessId` (be_user_service `businesses._id`) — the id the
+    // ratings endpoint keys off, not the search-doc `_id` on `id`.
+    final businessId = (_profile?.businessId ?? '').trim();
     if (businessId.isEmpty) return;
     final ctx = Get.context;
     if (ctx == null) return;
-    await showDialog(
+    final submitted = await showDialog<bool>(
       context: ctx,
       builder: (_) => RatingFeedbackDialog(
         businessId: businessId,
         reviewFor: AppConstants.business,
       ),
     );
+    if (submitted == true) {
+      // Refetch the list so the card's `_profile.rating` reflects the
+      // new server-side average. Both callers (services-near-me and
+      // automotive) share this controller and keep the last category
+      // on `selectedCategory`.
+      final listCtrl = Get.find<OtherServiceBusinessSearchController>();
+      listCtrl.fetchInitial(listCtrl.selectedCategory.value);
+    }
   }
 
   Future<void> _shareBusiness() async {

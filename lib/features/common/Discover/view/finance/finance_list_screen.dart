@@ -231,13 +231,17 @@ class _FinanceCard extends StatelessWidget {
     if (businessId.isEmpty) return;
     final ctx = Get.context;
     if (ctx == null) return;
-    await showDialog(
+    final submitted = await showDialog<bool>(
       context: ctx,
       builder: (_) => RatingFeedbackDialog(
         businessId: businessId,
         reviewFor: AppConstants.business,
       ),
     );
+    if (submitted == true) {
+      final controller = Get.find<FinanceDiscoverController>();
+      controller.fetchInitial(controller.selectedCategory.value);
+    }
   }
 
   Future<void> _shareFinance(FinanceBusinessItem item) async {
