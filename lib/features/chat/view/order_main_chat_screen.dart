@@ -13,6 +13,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.da
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
+import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
@@ -170,12 +171,19 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                           // Soft top-to-bottom frost gives the glass a little
                           // depth instead of a flat wash; a hairline edge seats
                           // it against the content below.
+                          //
+                          // The bottom stop is no longer as light as it was:
+                          // the tab strip moved into the pane, and it sits at
+                          // exactly that end. The search row could afford the
+                          // thinner frost because its field carries its own
+                          // glass pill; bare tab labels can't, and on a dark
+                          // banner they were reading on nearly nothing.
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.white.withValues(alpha: 0.55),
-                              Colors.white.withValues(alpha: 0.32),
+                              Colors.white.withValues(alpha: 0.58),
+                              Colors.white.withValues(alpha: 0.50),
                             ],
                           ),
                           border: Border(
@@ -203,65 +211,93 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                                     )
                                   : const SizedBox(width: double.infinity),
                             ),
+                            // Tab strip, INSIDE the header's glass. It used to
+                            // be a solid white bar below it, which cut a hard
+                            // white line across the frost. Sharing the one pane
+                            // makes the status bar, search row and tabs read as
+                            // a single sheet — and it re-uses the header's
+                            // existing BackdropFilter rather than adding a
+                            // second sampled layer.
+                            TabBar(
+                              onTap: (index) {
+                                // Reveal the search header again when switching
+                                // tabs.
+                                if (!_isSearchVisible) {
+                                  setState(() => _isSearchVisible = true);
+                                  _scrollAccumulator = 0;
+                                }
+                                if (widget.isNewGroupUI != null &&
+                                    widget.isNewGroupUI == true) {
+                                  if (chatViewController
+                                      .selectedChatList.isNotEmpty) {
+                                    commonSnackBar(
+                                        message: AppStrings
+                                            .cantSelectBothChatTypes.tr);
+                                    chatViewController.selectedUserIds.clear();
+                                  }
+                                }
+                              },
+                              controller:
+                                  chatViewController.chatMainTabController,
+                              labelColor: Colors.black,
+                              padding: EdgeInsets.zero,
+                              labelPadding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              // Was black54 — a touch stronger, since the label
+                              // now sits on frost rather than on solid white.
+                              unselectedLabelColor: Colors.black.withValues(
+                                alpha: 0.68,
+                              ),
+                              indicatorColor: Colors.lightBlue,
+                              // The strip is glass now, so the indicator can't
+                              // sit on a white bar of its own — drop the
+                              // divider that would draw a hard line across it.
+                              dividerColor: Colors.transparent,
+                              tabs: [
+                                Tab(text: AppStrings.social.tr),
+                                Tab(text: AppStrings.community.tr),
+                                Tab(text: AppStrings.bites.tr),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                  Container(
-                    // Solid white tab strip — matches the Me-screen tabs
-                    // (grocery_screen). Only the header above is glass.
-                    color: Colors.white,
-                    child: TabBar(
-                      onTap: (index) {
-                        // Reveal the search header again when switching tabs.
-                        if (!_isSearchVisible) {
-                          setState(() => _isSearchVisible = true);
-                          _scrollAccumulator = 0;
-                        }
-                        if (widget.isNewGroupUI != null &&
-                            widget.isNewGroupUI == true) {
-                          if (chatViewController.selectedChatList.isNotEmpty) {
-                            commonSnackBar(
-                                message: AppStrings.cantSelectBothChatTypes.tr);
-                            chatViewController.selectedUserIds.clear();
-                          }
-                        }
-                      },
-                      controller: chatViewController.chatMainTabController,
-                      labelColor: Colors.black,
-                      padding: EdgeInsets.zero,
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      unselectedLabelColor: Colors.black54,
-                      indicatorColor: Colors.lightBlue,
-                      tabs: [
-                        Tab(text: AppStrings.social.tr),
-                        Tab(text: AppStrings.community.tr),
-                        Tab(text: AppStrings.bites.tr),
-                      ],
                     ),
                   ),
                   Expanded(
                     // Transparent — the app-wide background banner
                     // (AppHomeBackground, set via app_background_screen) shows
                     // behind the feed content, like the rest of the app.
-                    child: TabBarView(
-                      controller: chatViewController.chatMainTabController,
-                      children: [
-                        HomeFeedScreenNew(
-                          key: const ValueKey('orderMain_feed_social'),
-                          postFilterType: PostType.all,
-                          headerHeight: 0,
-                          isInParentScroll: false,
-                        ),
-                        ChannelFeedScreen(
-                          key: const ValueKey('orderMain_feed_community'),
-                          headerHeight: 0,
-                        ),
-                        ReelsTabScreen(
-                          key: const ValueKey('reels_tab_screen'),
-                        ),
-                      ],
+                    //
+                    // [GlassScope] turns that from "shows in the gaps" into the
+                    // glass look the header already has: the symbol rail, the
+                    // post cards and the community sheet all go translucent so
+                    // the banner reads THROUGH them. The scope is what keeps
+                    // this local — the same widgets stay solid white on post
+                    // detail, the repost composer and the profile screens,
+                    // which have a plain page behind them. Reels is untouched:
+                    // it is full-bleed video on black, with no white chrome to
+                    // convert.
+                    child: GlassScope(
+                      enabled: true,
+                      child: TabBarView(
+                        controller: chatViewController.chatMainTabController,
+                        children: [
+                          HomeFeedScreenNew(
+                            key: const ValueKey('orderMain_feed_social'),
+                            postFilterType: PostType.all,
+                            headerHeight: 0,
+                            isInParentScroll: false,
+                          ),
+                          ChannelFeedScreen(
+                            key: const ValueKey('orderMain_feed_community'),
+                            headerHeight: 0,
+                          ),
+                          ReelsTabScreen(
+                            key: const ValueKey('reels_tab_screen'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   (widget.isForwardUI != null && (widget.isForwardUI ?? false))

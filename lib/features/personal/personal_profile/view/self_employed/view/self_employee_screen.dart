@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_employee_inquiry_tab.dart';
+import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -90,7 +91,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
 
   // The Store tab is always present, placed just before Statics (index 4).
   List<String> get _tabs => [
-        AppStrings.order.tr,
+        AppStrings.inquiries.tr,
         AppStrings.overview.tr,
         AppStrings.service.tr,
         AppStrings.store.tr,
@@ -168,10 +169,21 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
                 onGoLiveTap: _handleGoLiveTap,
                 showGoLivePill: Platform.isAndroid,
               ),
+              // Frosted rather than the default solid white, so the pinned tab
+              // row continues the header's glass instead of cutting a white bar
+              // across it — same treatment as the Connect tab strip.
+              tabBarColor: Colors.white.withValues(alpha: 0.45),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(SelfEmployeeInquiryTab(
-                  onAddServices: () => _tabController.animateTo(2),
+                // The Inquiry tab's chat section renders on the frosted chat
+                // sheet (docs/chat_new.jpeg). [GlassScope] is what switches the
+                // list card, its rows and its chips over; the other five tabs
+                // are outside it and keep their solid white cards.
+                _tabScroll(GlassScope(
+                  enabled: true,
+                  child: SelfEmployeeInquiryTab(
+                    onAddServices: () => _tabController.animateTo(2),
+                  ),
                 )),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),

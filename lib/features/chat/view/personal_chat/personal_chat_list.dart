@@ -20,6 +20,7 @@ import '../flag_chat/flag_chat_list.dart';
 import '../group_chat/group_chat_list.dart';
 import '../pin_chat/pin_chat_list.dart';
 import '../widget/component_widgets.dart';
+import '../../../../widgets/glass_surface.dart';
 import 'custom_tab_conversation_picker.dart';
 
 class PersonalChatsList extends StatefulWidget {
@@ -63,9 +64,10 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if(widget.isForwardUI==false && widget.hideSubTabs != true)
-                _buildTabStrip(theme),
-              _buildBody(data, theme),
+              // if(widget.isForwardUI==false && widget.hideSubTabs != true)
+              //   _buildTabStrip(theme),
+              SizedBox(height: 10,),
+              _sheeted(_buildBody(data, theme)),
             ],
           ),
         );
@@ -132,6 +134,11 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
     required VoidCallback onTap,
     VoidCallback? onLongPress,
   }) {
+    // On the Connect tab these pills sit on the frosted header, so an
+    // unselected pill takes a translucent white fill and a white rim to lift it
+    // off the banner. Its LABEL stays dark — the fill is what it reads against.
+    // The selected pill is solid brand blue in both looks.
+    final bool glass = GlassScope.isActive(context);
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -139,11 +146,16 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primaryColor : Colors.transparent,
+          color: selected
+              ? AppColors.primaryColor
+              : (glass ? Colors.white.withValues(alpha: 0.30) : Colors.transparent),
           borderRadius: BorderRadius.circular(10),
           border: selected
               ? null
-              : Border.all(color: AppColors.secondaryTextColor),
+              : Border.all(
+                  color: glass
+                      ? Colors.white.withValues(alpha: 0.75)
+                      : AppColors.secondaryTextColor),
         ),
         child: CustomText(
           label,
@@ -156,18 +168,44 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   }
 
   Widget _buildAddTabChip() {
+    final bool glass = GlassScope.isActive(context);
     return InkWell(
       onTap: _showAddTabDialog,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
+          color: glass ? Colors.white.withValues(alpha: 0.30) : null,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.secondaryTextColor),
+          border: Border.all(
+              color: glass
+                  ? Colors.white.withValues(alpha: 0.75)
+                  : AppColors.secondaryTextColor),
         ),
         child: Icon(Icons.add, size: 18, color: AppColors.secondaryTextColor),
       ),
     );
+  }
+
+  /// Drops the list body onto the frosted sheet when this list is rendering on
+  /// the Connect tab. The sheet's top edge lands directly under the filter chips
+  /// above it, which is where the reference puts it (docs/chat_new.jpeg).
+  /// Everywhere else this widget is embedded, the body is returned untouched on
+  /// whatever page the host already has.
+  ///
+  /// [_buildBody] returns an [Expanded] on most branches, and an Expanded has to
+  /// stay a direct child of the Column — so the sheet is slipped INSIDE it
+  /// rather than wrapped around it, which would put an Expanded under a
+  /// non-Flex parent and throw.
+  Widget _sheeted(Widget body) {
+    if (!GlassScope.isActive(context)) return body;
+    if (body is Expanded) {
+      return Expanded(
+        flex: body.flex,
+        child: GlassSheet(child: body.child),
+      );
+    }
+    return GlassSheet(child: body);
   }
 
   /// Chooses what to render under the strip: forward-UI list, a custom tab, or
@@ -586,7 +624,7 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
               .contains(chat?.conversationId ?? '');
           final isPinned = pinnedIds.contains(chat?.conversationId);
 
-          return ChatListTile(
+          final tile = ChatListTile(
             isFromGroupSelect: widget.isNewGroupUI,
             onLongPress: () {
               if (!isInSelectionMode) {
@@ -606,6 +644,22 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
             isForwardUI: widget.isForwardUI,
             showFlagBadge: true,
             context: context,
+          );
+
+          // The sheet has no per-row edge, so without a rule the entries run
+          // together into one column of text. Inset past the avatar so the line
+          // separates entries rather than cutting across the sheet
+          // (docs/chat_new.jpeg). The solid look keeps its undivided rows.
+          if (!GlassScope.isActive(context)) return tile;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              tile,
+              const Padding(
+                padding: EdgeInsets.only(left: 78, right: 16),
+                child: Divider(height: 1, thickness: 1, color: kGlassDivider),
+              ),
+            ],
           );
         },
       ),

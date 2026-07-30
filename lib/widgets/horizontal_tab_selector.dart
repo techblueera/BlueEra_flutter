@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -46,6 +47,20 @@ class HorizontalTabSelector<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Under a [GlassScope] these chips sit on the frosted header rather than on
+    // a solid page (the Connect tab — docs/chat_new.jpeg), so an unselected chip
+    // gets a translucent white fill and a white rim to lift it off the banner.
+    // The LABEL stays dark: the fill is what it reads against, so it needs no
+    // restyling. Explicit colour overrides from the caller still win, leaving
+    // the 27 other placements untouched.
+    final bool glass = GlassScope.isActive(context);
+    final Color unselectedBorder = unSelectedBorderColor ??
+        (glass
+            ? Colors.white.withValues(alpha: 0.75)
+            : AppColors.secondaryTextColor);
+    final Color unselectedFill = unSelectedBackgroundColor ??
+        (glass ? Colors.white.withValues(alpha: 0.30) : Colors.transparent);
+
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
           horizontal: horizontalMargin ?? SizeConfig.paddingXSL,
@@ -82,12 +97,12 @@ class HorizontalTabSelector<T> extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (selectedBackgroundColor ?? AppColors.primaryColor)
-                        : (unSelectedBackgroundColor ?? Colors.transparent),
+                        : unselectedFill,
                     borderRadius: BorderRadius.circular(tabBorderRadius),
 
                     border: isSelected
                         ? null
-                        : Border.all(color: unSelectedBorderColor ?? AppColors.secondaryTextColor),
+                        : Border.all(color: unselectedBorder),
                     boxShadow: boxShadow ?? null
                   ),
                   child: Row(

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -211,6 +212,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _locationResolved = LocationService.hasUsableLocation;
     if (!_locationResolved) _ensureLocationThenBuild();
 
+    _ensureProfileBannerLoaded();
+
     // Put a ride that was running when the app was killed back on screen, so
     // the ongoing chip below the search bar is there on a cold start too. The
     // Connect tab does the same — the first tab to mount wins, the other call
@@ -218,6 +221,46 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     OngoingRideRestorer.restoreIfNeeded();
 
     _maybeShowSharePromo();
+  }
+
+  /// Pulls in the profile the header banner is built from.
+  ///
+  /// The banner slide is the account's backend-generated marketing card
+  /// (`marketing_card.url` on the profile response), so the header needs that
+  /// profile in memory. Discover is a landing tab — a user can spend a whole
+  /// session here without ever opening "Me", which is where these two fetches
+  /// are normally triggered from — so without this the banner would never show
+  /// anything but the static promo artwork.
+  ///
+  /// Both calls are cheap to repeat, which is why this can run on every mount:
+  ///
+  ///  * `viewPersonalProfile()` (GET `user-service/user/get?contact_no=…`) is
+  ///    cache-first — with a cached payload it replays that and makes no
+  ///    request at all; only a cold profile hits the network.
+  ///  * `viewBusinessProfile()` (GET `user-service/business/{businessId}`)
+  ///    coalesces concurrent non-silent callers onto one in-flight request, so
+  ///    it cannot double up with the bottom-nav / joining-bonus callers that
+  ///    already fire it at startup.
+  ///
+  /// Guests are skipped: they have no profile, so there is nothing to fetch and
+  /// nothing to share.
+  void _ensureProfileBannerLoaded() {
+    if (!isLoggedIn() || isGuestUser()) return;
+    if (isBusinessUser()) {
+      // permanent: true matches every other registration of this controller —
+      // registering it non-permanently here would let a later Get.delete on
+      // route change tear down the instance the rest of the app shares.
+      final controller =
+          getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      if (controller.businessProfileDetails.value?.data == null) {
+        controller.viewBusinessProfile();
+      }
+    } else {
+      final controller = getOrPut(() => ViewPersonalDetailsController());
+      if (controller.personalProfileDetails.value.user == null) {
+        controller.viewPersonalProfile();
+      }
+    }
   }
 
   /// How long the promo waits for the profile it renders from before giving up
@@ -671,12 +714,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// bar sits in [bottom] so it stays pinned just below the status bar. Using a
   /// SliverAppBar (rather than a manual persistent header) lets Flutter handle
   /// the status-bar inset automatically as the header collapses.
-  /// Marketing banners cycled in the header. Two entries so the slider actually
-  /// slides; drop a second artwork in here to replace the repeat.
-  static const List<String> _kHeaderBanners = [
-    AppImageAssets.selfProfileBanner,
-    AppImageAssets.selfProfileBanner,
-  ];
+  /// Fallback artwork, and the last slide in the header slider.
+  ///
+  /// The slider used to be this one asset listed TWICE, purely so the carousel
+  /// had something to slide between. The first slide is now the account's own
+  /// marketing card off the profile API — see [_DiscoverHeaderBannerHost] — and
+  /// this stays as the brand/CTA slide behind it, which is also what a profile
+  /// with no generated card yet falls back to on its own.
+  static const String _kFallbackHeaderBanner = AppImageAssets.selfProfileBanner;
 
   /// Aspect ratio of the banner artwork (960x640).
   static const double _kHeaderBannerAspect = 3 / 2;
@@ -716,9 +761,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         // Search row + its padding (always pinned at the bottom of the glass).
         searchAreaHeight: 78,
         locationRow: _locationRow(context),
-        banner: _DiscoverHeaderBanner(
-          images: _kHeaderBanners,
+        banner: _DiscoverHeaderBannerHost(
           height: bannerHeight,
+          fallbackAsset: _kFallbackHeaderBanner,
         ),
         tabs: const SizedBox.shrink(),
         // tabs: _quickAccessTabs(),
@@ -954,6 +999,72 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 }
 
+/// Feeds the header slider its slides from the signed-in profile, and repaints
+/// when that profile lands.
+///
+/// The first slide is the account's **marketing card** — the poster the backend
+/// composes for sharing a profile, delivered as `marketing_card.url` on
+/// GET `user-service/user/get?contact_no=…` (individual) and
+/// GET `user-service/business/{businessId}` (business). [_kFallbackHeaderBanner]
+/// follows it as the brand slide, and stands alone when the account has no
+/// generated card yet — so this degrades to exactly the old header rather than
+/// to an empty strip.
+///
+/// Which profile is read follows the account type, the same split
+/// [SharePromoSheet] uses to build its card, so the poster in the header and
+/// the poster in the share sheet are always the same artwork.
+class _DiscoverHeaderBannerHost extends StatelessWidget {
+  const _DiscoverHeaderBannerHost({
+    required this.height,
+    required this.fallbackAsset,
+  });
+
+  final double height;
+  final String fallbackAsset;
+
+  @override
+  Widget build(BuildContext context) {
+    // getOrPut rather than find: this is the same instance the promo sheet
+    // composes its card from. Resolving it OUTSIDE the Obx also guarantees the
+    // builder below always has at least one observable to read — a business
+    // account whose own controller isn't registered on this entry path would
+    // otherwise touch no Rx at all and trip GetX's "improper Obx use" check.
+    final personal = getOrPut(() => ViewPersonalDetailsController());
+
+    return Obx(() {
+      final personalPoster =
+          personal.personalProfileDetails.value.user?.marketingCard?.readyUrl;
+
+      String? poster = personalPoster;
+      if (isBusinessUser() &&
+          Get.isRegistered<ViewBusinessDetailsController>()) {
+        // Falls back to the personal poster: a business account still has a
+        // personal profile behind it, and that is where the card is generated
+        // for some of them.
+        poster = Get.find<ViewBusinessDetailsController>()
+                .businessProfileDetails
+                .value
+                ?.data
+                ?.marketingCard
+                ?.readyUrl ??
+            personalPoster;
+      }
+
+      final hasPoster = poster?.trim().isNotEmpty ?? false;
+      return _DiscoverHeaderBanner(
+        height: height,
+        images: [
+          if (hasPoster) poster!.trim(),
+          // fallbackAsset,
+        ],
+        // Guests have no profile to share, so they get the strip without the
+        // button rather than one that opens a card composed out of nothing.
+        onShare: isGuestUser() ? null : () => SharePromoSheet.show(context),
+      );
+    });
+  }
+}
+
 /// Auto-playing promo strip in the Discover header, between the location row
 /// and the pinned search bar.
 ///
@@ -963,10 +1074,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 /// auto-play timer stops paying rent while it isn't on screen and restarts from
 /// the first banner when the user scrolls back up.
 class _DiscoverHeaderBanner extends StatefulWidget {
-  const _DiscoverHeaderBanner({required this.images, required this.height});
+  const _DiscoverHeaderBanner({
+    required this.images,
+    required this.height,
+    this.onShare,
+  });
 
+  /// Slide sources, in order. Bundled asset paths and backend URLs are both
+  /// accepted — the first slide is normally the marketing card off the profile
+  /// API, the last is the bundled promo artwork.
   final List<String> images;
   final double height;
+
+  /// Opens the profile share card. Null hides the share button entirely.
+  final VoidCallback? onShare;
 
   @override
   State<_DiscoverHeaderBanner> createState() => _DiscoverHeaderBannerState();
@@ -1006,6 +1127,14 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
               ),
               itemBuilder: (_, index, __) => _banner(widget.images[index]),
             ),
+          // Share — sits on the artwork itself so the profile poster and the
+          // action on it are one thing. Top-right, clear of the page dots.
+          if (widget.onShare != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _shareButton(widget.onShare!),
+            ),
           // Page dots. With two runs of the same artwork they're the only cue
           // that the strip is moving at all.
           if (sliding)
@@ -1036,6 +1165,32 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
     );
   }
 
+  /// Dark glass pill over the artwork. Deliberately NOT the light glass the
+  /// header's other chips use: those sit on the frosted header, this sits on a
+  /// full-bleed image of unknown brightness, and a white-on-white chip would
+  /// disappear on a light poster.
+  Widget _shareButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.42),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+          ),
+          child: const Icon(Icons.share_rounded, color: Colors.white, size: 16),
+        ),
+      ),
+    );
+  }
+
   Widget _banner(String path) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
@@ -1045,7 +1200,24 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
         // The height is derived from this width at the art's own aspect ratio
         // (see `_headerBannerHeight`), so cover fills the box exactly — no
         // crop, no letterbox bars showing the glass through the banner.
-        child: LocalAssets(imagePath: path, boxFix: BoxFit.cover),
+        //
+        // The marketing-card slide is a backend URL while the promo slide is a
+        // bundled asset, so the source is resolved per slide. A card that fails
+        // to load falls back to the bundled artwork rather than to a hole in
+        // the header.
+        child: isNetworkImage(path)
+            ? CachedNetworkImage(
+                imageUrl: path,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => const ColoredBox(
+                  color: Color(0x1AFFFFFF),
+                ),
+                errorWidget: (_, __, ___) => LocalAssets(
+                  imagePath: AppImageAssets.selfProfileBanner,
+                  boxFix: BoxFit.cover,
+                ),
+              )
+            : LocalAssets(imagePath: path, boxFix: BoxFit.cover),
       ),
     );
   }

@@ -51,8 +51,28 @@ class ProfileTopBar extends StatelessWidget {
               SizeConfig.size10,
             ),
             decoration: BoxDecoration(
-              color: const Color(0x33FFFFFF),
-              border: Border.all(color: Colors.white, width: 1.0),
+              // Frosted band, matching the Connect header and the reference
+              // (docs/chat_new.jpeg). It used to be a 20% white fill, which
+              // over a busy banner left the bar reading as part of the photo
+              // rather than as a surface sitting on it — the blur was doing all
+              // the work and the controls had no plate to sit on.
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withValues(alpha: 0.52),
+                  Colors.white.withValues(alpha: 0.42),
+                ],
+              ),
+              // Bottom hairline only. `Border.all` drew a hard white rule down
+              // both sides and across the top of the bar — visible as a box
+              // outline against the banner, which is not what the design shows.
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.55),
+                  width: 1.0,
+                ),
+              ),
             ),
             child: Row(
               children: [

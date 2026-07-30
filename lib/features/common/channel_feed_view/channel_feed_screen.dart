@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
@@ -78,8 +79,21 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Under a [GlassScope] (the Connect screen) the page drops its opaque white
+    // fill, which covered the app-wide banner edge to edge, for a frosted
+    // sheet.
+    //
+    // A sheet and not full transparency: the rows on this page
+    // ([ChannelCardWidget]) are already transparent and draw their channel name
+    // and description in near-black, having leaned on the white fill behind
+    // them for contrast. Over a bare banner that text lands on whatever image
+    // the user picked. The wash keeps the banner visible while still giving
+    // those rows a surface to be legible against.
+    final bool glass = GlassScope.isActive(context);
     final myWidget = Material(
-      color: AppColors.white,
+      color: glass
+          ? Colors.white.withValues(alpha: 0.62)
+          : AppColors.white,
       child: RefreshIndicator(
           onRefresh: () async {
             channelFeedController.clearList();
@@ -99,6 +113,13 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     child: CustomFormCard(
+                      // Sits on the frosted sheet above, so it takes a lighter
+                      // wash than a standalone glass card would — two full
+                      // translucencies stacked would add back up to opaque
+                      // white.
+                      color: glass
+                          ? Colors.white.withValues(alpha: 0.55)
+                          : null,
                       padding: EdgeInsets.symmetric(
                         horizontal: SizeConfig.size16,
                         vertical: SizeConfig.size10,
@@ -148,6 +169,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                   height: SizeConfig.size16,
                                 ),
                                 _buildContainerOverlay(
+                                  glass: glass,
                                   child: Row(
                                     children: [
                                       CustomText(
@@ -375,18 +397,26 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
     );
   }
 
-  Widget _buildContainerOverlay({required Widget child}) {
+  Widget _buildContainerOverlay({required Widget child, bool glass = false}) {
     return Container(
       width: SizeConfig.screenWidth,
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size16,
         vertical: SizeConfig.size10,
       ),
-      decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.greyE5, width: 1),
-          boxShadow: [AppShadows.textFieldShadow]),
+      // Innermost of three stacked surfaces (sheet → card → this), so it takes
+      // the inset wash — see [kGlassInsetGradient].
+      decoration: glass
+          ? glassDecoration(
+              colors: kGlassInsetGradient,
+              borderRadius: BorderRadius.circular(8),
+              shadow: const [],
+            )
+          : BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyE5, width: 1),
+              boxShadow: [AppShadows.textFieldShadow]),
       child: child,
     );
   }

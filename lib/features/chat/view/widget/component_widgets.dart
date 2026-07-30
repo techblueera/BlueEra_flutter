@@ -45,6 +45,7 @@ import '../group_chat/widgets/delete_chat_history_dialog.dart';
 import '../group_chat/widgets/pin_message_dialoge_widget.dart';
 import '../symbol_view/symbol_view_images.dart';
 import 'chat_shortcut_service.dart';
+import '../../../../widgets/glass_surface.dart';
 import 'common_delete_message.dart';
 import '../media_view_page/conversation_media_page.dart';
 
@@ -259,7 +260,8 @@ Widget _buildChatListName({
 /// tiny thumbnail of the quoted symbol (image content / coloured tile / icon)
 /// followed by "Symbol reply: <text>". Reads from the snapshot the server
 /// puts on `chat.repliedSymbol` per docs/reply-to-symbol-integration-guide.md.
-Widget _buildSymbolReplyPreview(ChatList? chat, String? lastMessage) {
+Widget _buildSymbolReplyPreview(
+    ChatList? chat, String? lastMessage, Color secondary) {
   final symbol = chat?.repliedSymbol;
   final type = symbol?.type;
   final content = symbol?.content ?? '';
@@ -292,7 +294,7 @@ Widget _buildSymbolReplyPreview(ChatList? chat, String? lastMessage) {
     thumb = Icon(
       Icons.chat_bubble_outline,
       size: SizeConfig.size16,
-      color: AppColors.grey9A,
+      color: secondary,
     );
   }
 
@@ -306,7 +308,7 @@ Widget _buildSymbolReplyPreview(ChatList? chat, String? lastMessage) {
               ? AppStrings.symbolReply.tr
               : AppStrings.symbolReplyFmt.trParams({'message': lastMessage ?? ''}),
           fontSize: SizeConfig.size14,
-          color: AppColors.grey9A,
+          color: secondary,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -335,6 +337,17 @@ Widget  ChatListTile({
   // created within the last 4 hours (uses `chat.createdAt`).
   bool showNewIfRecentlyCreated = false,
 }) {
+  // The row stays dark-on-light in both looks — on the Connect tab it sits on
+  // the frosted chat sheet (docs/chat_new.jpeg), which supplies its background.
+  //
+  // The one thing that does change is the secondary grey. AppColors.grey9A was
+  // chosen against solid white; on the translucent sheet over a dark banner it
+  // measures ~1.3:1, i.e. gone. See [kGlassSheetSecondaryText]. The NAME needs
+  // no adjustment — it is near-black and clears 9:1 on either surface.
+  final Color secondaryText = GlassScope.isActive(context)
+      ? kGlassSheetSecondaryText
+      : AppColors.grey9A;
+
   final sender = chat?.sender;
   // Group rows can surface inside the personal/business list payloads
   // (`type:"group"`). For those, the conversation is identified by
@@ -715,7 +728,8 @@ Widget  ChatListTile({
                   return SizedBox(
                     width: SizeConfig.size260,
                     child: lastMessageType == "reply_to_symbol"
-                        ? _buildSymbolReplyPreview(chat, lastMessage)
+                        ? _buildSymbolReplyPreview(
+                            chat, lastMessage, secondaryText)
                         : (lastMessageType == "document" ||
                         lastMessageType == "contact" ||
                         lastMessageType == "audio" ||
@@ -741,7 +755,7 @@ Widget  ChatListTile({
                                   ? Icons.location_off_rounded
                                   : Icons.share_location_rounded)
                               : Icons.camera_alt,
-                          color: AppColors.grey9A,
+                          color: secondaryText,
                           size: SizeConfig.size16,
                         ),
                         SizedBox(width: SizeConfig.size4),
@@ -762,7 +776,7 @@ Widget  ChatListTile({
                                   : AppStrings.liveLocationMsgType.tr)
                               : AppStrings.imageLabel.tr,
                           fontSize: SizeConfig.size14,
-                          color: AppColors.grey9A,
+                          color: secondaryText,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -773,13 +787,16 @@ Widget  ChatListTile({
                           ? senderContactNo
                           : senderDesignation}",
                       fontSize: SizeConfig.size14,
-                      color: AppColors.grey9A,
+                      color: secondaryText,
                       overflow: TextOverflow.ellipsis,
                     )
                         : Builder(builder: (_) {
                       final msg = lastMessage;
                       final lowerMsg = msg.toLowerCase();
-                      Color msgColor = AppColors.grey9A;
+                      // The status colours (missed call / ongoing / calling)
+                      // are semantic and stay put in both looks — only the
+                      // neutral default follows the surface.
+                      Color msgColor = secondaryText;
                       if (lowerMsg.contains('missed call')) {
                         msgColor = Colors.red;
                       } else if (lowerMsg.contains('ongoing')) {
@@ -815,13 +832,13 @@ Widget  ChatListTile({
                       child: Icon(
                         Icons.access_time,
                         size: SizeConfig.size12,
-                        color: AppColors.grey9A,
+                        color: secondaryText,
                       ),
                     ),
                   CustomText(
                     "${formatTimeFromUtc(updatedAt)}",
                     fontSize: SizeConfig.size11,
-                    color: AppColors.grey9A,
+                    color: secondaryText,
                   ),
                 ],
               ),

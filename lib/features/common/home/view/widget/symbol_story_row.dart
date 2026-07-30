@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
@@ -63,8 +64,25 @@ class SymbolStoryRow extends StatelessWidget {
         controller.fetchSymbolFeed();
       }
 
+      // Panel-weight glass under a [GlassScope] (the Connect screen): the rail
+      // is chrome behind the story cards, not a surface carrying text, so it
+      // takes the lighter wash and lets the banner read through between cards.
+      // Outside the scope it stays the solid white band the other feed hosts
+      // are built around.
+      final bool glass = GlassScope.isActive(context);
       return Container(
-        decoration: const BoxDecoration(color: Colors.white),
+        // Full-bleed band, so it takes the wash on its own rather than through
+        // glassDecoration() — a rounded rim and a lift shadow are for panels
+        // that have edges to define, and this one runs to both screen edges.
+        decoration: glass
+            ? const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: kGlassPanelGradient,
+                ),
+              )
+            : const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.only(top: 10, bottom: 12),
         height: 168,
         child: ListView.separated(

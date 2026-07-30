@@ -23,6 +23,7 @@ import '../flag_chat/business_flag_chat_list.dart';
 import '../pin_chat/business_pin_chat_list.dart';
 import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
+import '../../../../widgets/glass_surface.dart';
 
 /// Where a business-list row belongs:
 ///   [chats] — the main Chat tab (buyers, normal chats, groups)
@@ -244,7 +245,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // if (!widget.isInParentScroll) const SizedBox(height: 10),
-              HorizontalTabSelector(
+           /*   HorizontalTabSelector(
                 horizontalMargin: 14,
                 horizontalPadding: 10,
                 verticalMargin: widget.isInParentScroll ? 0 : null,
@@ -269,25 +270,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                   }
                 },
                 labelBuilder: (value) => value,
-              ),
+              ),*/
               const SizedBox(height: 8),
-              if (chatViewController.businessChatTabSelectedIndex.value == 0)
-                widget.isInParentScroll
-                    ? _businessChatListWidget(data, theme)
-                    : Expanded(child: _businessChatListWidget(data, theme))
-              else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                BusinessPinChatList(isInParentScroll: widget.isInParentScroll)
-              else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                  ReminderChatList(isInParentScroll: widget.isInParentScroll)
-                else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                    BusinessFlagChatList(
-                        isInParentScroll: widget.isInParentScroll)
-                  else if (chatViewController.businessChatTabSelectedIndex.value == 4)
-                      _buildArchiveTab()
-                    else if (chatViewController.businessChatTabSelectedIndex.value == 5)
-                        widget.isInParentScroll
-                            ? _historyChatListWidget(theme)
-                            : Expanded(child: _historyChatListWidget(theme)),
+              _sheeted(_buildActiveTabBody(data, theme)),
             ],
           ),
         );
@@ -656,17 +641,26 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   /// the list is [Expanded] to fill the card; in parent-scroll mode it
   /// shrink-wraps so the card sizes to its content.
   Widget _wrapInListCard({Widget? header, required Widget list}) {
+    // Under a [GlassScope] this card IS the chat sheet (docs/chat_new.jpeg) —
+    // same frosted surface, just keeping its own card geometry (all four
+    // corners rounded, margins on every side) because here it sits inside a
+    // scrolling tab with other cards above it rather than running off the
+    // bottom of the screen.
+    final bool glass = GlassScope.isActive(context);
     return Container(
       margin: EdgeInsets.only(
         left: SizeConfig.size12,
         right: SizeConfig.size12,
         bottom: SizeConfig.size70,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
-        border: Border.all(color: AppColors.greyE6),
-      ),
+      decoration: glass
+          ? glassSheetDecoration(
+              borderRadius: BorderRadius.circular(SizeConfig.size16))
+          : BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(SizeConfig.size16),
+              border: Border.all(color: AppColors.greyE6),
+            ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize:
@@ -677,7 +671,10 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             header
           else
             SizedBox(height: SizeConfig.size8),
-          Divider(height: 1, thickness: 1, color: AppColors.greyE6),
+          Divider(
+              height: 1,
+              thickness: 1,
+              color: glass ? kGlassDivider : AppColors.greyE6),
           widget.isInParentScroll ? list : Expanded(child: list),
         ],
       ),
@@ -905,6 +902,53 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     );
   }
 
+  /// The body under the filter chips for whichever sub-tab is selected. Lifted
+  /// out of the build's collection-if chain so [_sheeted] has a single widget to
+  /// wrap — the chain itself is unchanged.
+  Widget _buildActiveTabBody(GetChatListModel? data, ThemeData theme) {
+    switch (chatViewController.businessChatTabSelectedIndex.value) {
+      case 1:
+        return BusinessPinChatList(isInParentScroll: widget.isInParentScroll);
+      case 2:
+        return ReminderChatList(isInParentScroll: widget.isInParentScroll);
+      case 3:
+        return BusinessFlagChatList(isInParentScroll: widget.isInParentScroll);
+      case 4:
+        return _buildArchiveTab();
+      case 5:
+        return widget.isInParentScroll
+            ? _historyChatListWidget(theme)
+            : Expanded(child: _historyChatListWidget(theme));
+      case 0:
+      default:
+        return widget.isInParentScroll
+            ? _businessChatListWidget(data, theme)
+            : Expanded(child: _businessChatListWidget(data, theme));
+    }
+  }
+
+  /// Drops the list body onto the frosted sheet when this list is rendering on
+  /// the Connect tab — its top edge lands directly under the filter chips above
+  /// it (docs/chat_new.jpeg). Embedded anywhere else (the merchant dashboards
+  /// pass `isInParentScroll`), the body is returned untouched.
+  ///
+  /// The body is an [Expanded] on most branches, and an Expanded has to stay a
+  /// direct child of the Column — so the sheet is slipped INSIDE it rather than
+  /// wrapped around it, which would put an Expanded under a non-Flex parent and
+  /// throw.
+  Widget _sheeted(Widget body) {
+    if (!GlassScope.isActive(context)) return body;
+    // Me-side lists (the provider dashboards, which pass excludeSenderId)
+    // already render their own card, and [_wrapInListCard] turns THAT into the
+    // sheet. Wrapping again would put a sheet inside a sheet — two stacked
+    // translucencies reading as an opaque white slab.
+    if (widget.excludeSenderId != null) return body;
+    if (body is Expanded) {
+      return Expanded(flex: body.flex, child: GlassSheet(child: body.child));
+    }
+    return GlassSheet(child: body);
+  }
+
   /// A live ("Today") chat row — carries the pinned highlight and the optional
   /// "New" badge, matching the original All-tab list behaviour.
   Widget _buildCurrentChatTile(ChatList? chat, int chatIndex, ThemeData theme) {
@@ -914,7 +958,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     final isPinned =
         pinArchiveController.businessPinnedIds.contains(chat?.conversationId);
 
-    return ChatListTile(
+    return _withGlassDivider(ChatListTile(
       isFromGroupSelect: widget.isNewGroupUI,
       onLongPress: () {
         if (!isInSelectionMode) {
@@ -935,6 +979,25 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       showFlagBadge: true,
       showNewIfRecentlyCreated: widget.showNewIfRecentlyCreated,
       context: context,
+    ));
+  }
+
+  /// Adds the separator under a row when this list is rendering its glass
+  /// variant (the Connect tab). The frosted sheet has no per-row edge, so
+  /// without a rule the entries run together into one column of text; the inset
+  /// clears the avatar so the line separates entries rather than cutting across
+  /// the sheet. Outside the scope the row is returned untouched.
+  Widget _withGlassDivider(Widget tile) {
+    if (!GlassScope.isActive(context)) return tile;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        tile,
+        const Padding(
+          padding: EdgeInsets.only(left: 78, right: 16),
+          child: Divider(height: 1, thickness: 1, color: kGlassDivider),
+        ),
+      ],
     );
   }
 
@@ -946,7 +1009,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     final isChatSelected = chatViewController.selectedConversationIds
         .contains(chat?.conversationId ?? '');
 
-    return ChatListTile(
+    return _withGlassDivider(ChatListTile(
       isFromGroupSelect: widget.isNewGroupUI,
       onLongPress: () {
         if (!isInSelectionMode) {
@@ -965,7 +1028,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       isForwardUI: widget.isForwardUI,
       showFlagBadge: true,
       context: context,
-    );
+    ));
   }
 
   Widget _buildRecordsRow() {

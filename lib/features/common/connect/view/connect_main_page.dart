@@ -61,6 +61,7 @@ import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
+import '../../../../widgets/glass_surface.dart';
 import 'inquiry_ride_order_selection_screen.dart';
 import '../widget/customer_ongoing_ride_card.dart';
 import '../widget/ongoing_call_banner.dart';
@@ -79,7 +80,8 @@ class ConnectMainPage extends StatefulWidget {
   State<ConnectMainPage> createState() => _ConnectMainPageState();
 }
 
-class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProviderStateMixin {
+class _ConnectMainPageState extends State<ConnectMainPage>
+    with SingleTickerProviderStateMixin {
   /// Business profiles — plus the individual Social and Skill Worker profile
   /// types — trade the Call tab for an Order tab that mirrors the merchant
   /// dashboard's first tab (see [OrdersTabBody]); everyone else keeps the
@@ -106,11 +108,16 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   final TextEditingController searchController = TextEditingController();
   final symbolFeedController = Get.put(SymbolFeedController());
   final addSymbolController = getOrPut(() => AddChatSymbolController());
-  final ChatViewController chatViewController = getOrPut(() => ChatViewController());
-  final ChatPinArchiveController chatPinArchiveController = getOrPut(() => ChatPinArchiveController());
-  final ChatFlagController chatFlagController = getOrPut(() => ChatFlagController());
-  final ChatLockController chatLockController = getOrPut(() => ChatLockController());
-  final LanguageListController langController = getOrPut(() => LanguageListController());
+  final ChatViewController chatViewController =
+      getOrPut(() => ChatViewController());
+  final ChatPinArchiveController chatPinArchiveController =
+      getOrPut(() => ChatPinArchiveController());
+  final ChatFlagController chatFlagController =
+      getOrPut(() => ChatFlagController());
+  final ChatLockController chatLockController =
+      getOrPut(() => ChatLockController());
+  final LanguageListController langController =
+      getOrPut(() => LanguageListController());
 
   /// Owns the additive `contact-service` sync (see [_syncContactsIfNeeded]).
   /// Separate from [chatViewController]'s `chat-service/connections/sync`.
@@ -147,7 +154,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     // Chat unless explicitly requested again.
     addSymbolController.getSymbolsForPartUser(userId);
     final pendingTab = chatViewController.selectedChatTabIndex.value;
-    final initialTab = (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
+    final initialTab =
+        (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
     selectedIndex = initialTab;
     chatViewController.selectedChatTabIndex.value = 0;
 
@@ -302,9 +310,11 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   }
 
   Future<void> _loadContactsFromStorage() async {
-    String? storedData = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.saved_contacts);
+    String? storedData = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
-      Map<String, dynamic> decoded = await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      Map<String, dynamic> decoded =
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     }
   }
@@ -315,7 +325,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
       // Switching tabs while a selection is active would strand the user
       // with no AppBar affordance to exit it — and the previous tab's
       // selection wouldn't apply to the new list anyway.
-      if ((selectedIndex == 0 || selectedIndex == 1) && chatViewController.isChatListSelectionMode.value) {
+      if ((selectedIndex == 0 || selectedIndex == 1) &&
+          chatViewController.isChatListSelectionMode.value) {
         chatViewController.exitChatListSelectionMode();
       }
       setState(() {
@@ -400,10 +411,12 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
 
     if (sharedText != null && sharedText.isNotEmpty) {
       _isHandlingShare = true;
-      Get.to(() => ChatForwardScreen(sharedText: sharedText))?.then((_) => _isHandlingShare = false);
+      Get.to(() => ChatForwardScreen(sharedText: sharedText))
+          ?.then((_) => _isHandlingShare = false);
     } else if (attachments.isNotEmpty) {
       _isHandlingShare = true;
-      Get.to(() => ChatForwardScreen(sharedFiles: attachments))?.then((_) => _isHandlingShare = false);
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments))
+          ?.then((_) => _isHandlingShare = false);
     }
   }
 
@@ -413,31 +426,38 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     _checkForUpdate(context, _packageInfo);
   }
 
-  Future<void> _checkForUpdate(BuildContext context, PackageInfo packageInfo) async {
+  Future<void> _checkForUpdate(
+      BuildContext context, PackageInfo packageInfo) async {
     try {
       if (Platform.isAndroid) {
         InAppUpdateManager manager = InAppUpdateManager();
         AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
         if (appUpdateInfo == null) return;
-        if (appUpdateInfo.updateAvailability == UpdateAvailability.developerTriggeredUpdateInProgress) {
+        if (appUpdateInfo.updateAvailability ==
+            UpdateAvailability.developerTriggeredUpdateInProgress) {
           //If an in-app update is already running, resume the update.
-          String? message = await manager.startAnUpdate(type: AppUpdateType.immediate);
+          String? message =
+              await manager.startAnUpdate(type: AppUpdateType.immediate);
           debugPrint(message ?? '');
-        } else if (appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        } else if (appUpdateInfo.updateAvailability ==
+            UpdateAvailability.updateAvailable) {
           ///Update available
           if (appUpdateInfo.immediateAllowed) {
-            String? message = await manager.startAnUpdate(type: AppUpdateType.immediate);
+            String? message =
+                await manager.startAnUpdate(type: AppUpdateType.immediate);
             debugPrint(message ?? '');
           } else if (appUpdateInfo.flexibleAllowed) {
-            String? message = await manager.startAnUpdate(type: AppUpdateType.flexible);
+            String? message =
+                await manager.startAnUpdate(type: AppUpdateType.flexible);
             debugPrint(message ?? '');
           } else {
-            debugPrint('Update available. Immediate & Flexible Update Flow not allow');
+            debugPrint(
+                'Update available. Immediate & Flexible Update Flow not allow');
           }
         }
       } else if (Platform.isIOS) {
-        VersionInfo? _versionInfo =
-            await UpgradeVersion.getiOSStoreVersion(packageInfo: packageInfo, regionCode: "US");
+        VersionInfo? _versionInfo = await UpgradeVersion.getiOSStoreVersion(
+            packageInfo: packageInfo, regionCode: "US");
         debugPrint(_versionInfo.toJson().toString());
       }
     } catch (e) {
@@ -490,8 +510,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
               // inquiry-order selection screen for the chosen drop location.
               final drop = await showRideDropLocationSheet(context);
               if (drop != null) {
-                Get.to(() =>
-                    InquiryRideOrderSelectionScreen(dropAddress: drop));
+                Get.to(
+                    () => InquiryRideOrderSelectionScreen(dropAddress: drop));
               }
             },
             customBorder: const CircleBorder(),
@@ -628,7 +648,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         // Inquiry). The Orders tab uses its own filter UI and never enters
         // selection mode.
         final bool isSelectionMode =
-            chatViewController.isChatListSelectionMode.value && (selectedIndex == 0 || selectedIndex == 1);
+            chatViewController.isChatListSelectionMode.value &&
+                (selectedIndex == 0 || selectedIndex == 1);
         return WillPopScope(
           onWillPop: () async {
             if (isSelectionMode) {
@@ -647,10 +668,13 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                 ? null
                 : SafeArea(
                     child: Padding(
-                        padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                        padding: const EdgeInsets.only(
+                            bottom: kBottomNavigationBarHeight),
                         child: InkWell(
                           onTap: () {
-                            if (chatViewController.personalTabSelectedIndex.value == 1) {
+                            if (chatViewController
+                                    .personalTabSelectedIndex.value ==
+                                1) {
                               Get.to(() => ContactsPage(from: "group"));
                             } else {
                               Get.toNamed(RouteHelper.getChatContactsRoute());
@@ -669,7 +693,9 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                if (chatViewController.personalTabSelectedIndex.value == 1)
+                                if (chatViewController
+                                        .personalTabSelectedIndex.value ==
+                                    1)
                                   CustomText(
                                     "New Group ",
                                     color: AppColors.white,
@@ -691,134 +717,157 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                         )),
                   ),
             body: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    // Frosted status-bar strip — always pinned so the glass
-                    // extends behind the notch and the app bar / tabs never
-                    // slide under the status bar.
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  // Frosted status-bar strip — always pinned so the glass
+                  // extends behind the notch and the app bar / tabs never
+                  // slide under the status bar.
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StatusBarGlassDelegate(topInset),
+                  ),
+                  if (isSelectionMode)
+                    _buildSelectionSliverAppBar()
+                  else
+                    SliverAppBar(
+                      backgroundColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      floating: true,
+                      snap: true,
+                      pinned: false,
+                      // Status-bar inset is owned by the strip above.
+                      primary: false,
+                      automaticallyImplyLeading: false,
+                      titleSpacing: 0,
+                      // Snug to the app bar (~56) so there isn't a big empty
+                      // band below the header before the tabs.
+                      expandedHeight: 56,
+                      // Frosted-glass header that blurs the app-wide banner,
+                      // mirroring the Me-screen headers. removePadding stops
+                      // the inner AppBar from re-adding the status-bar inset
+                      // (already handled by the strip above).
+                      flexibleSpace: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                          child: Container(
+                            color: Colors.white.withValues(alpha: 0.45),
+                            child: MediaQuery.removePadding(
+                              context: context,
+                              removeTop: true,
+                              child: _buildCustomAppBar(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isSelectionMode)
                     SliverPersistentHeader(
                       pinned: true,
-                      delegate: _StatusBarGlassDelegate(topInset),
+                      delegate: _HomeTabBarDelegate(
+                        tabController: _tabController,
+                        iconTab: iconTab,
+                        postTab: postTab,
+                        selectedIndex: selectedIndex,
+                        onTabTapped: _onTabTapped,
+                      ),
                     ),
-                    if (isSelectionMode)
-                      _buildSelectionSliverAppBar()
-                    else
-                      SliverAppBar(
-                        backgroundColor: Colors.transparent,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        floating: true,
-                        snap: true,
-                        pinned: false,
-                        // Status-bar inset is owned by the strip above.
-                        primary: false,
-                        automaticallyImplyLeading: false,
-                        titleSpacing: 0,
-                        // Snug to the app bar (~56) so there isn't a big empty
-                        // band below the header before the tabs.
-                        expandedHeight: 56,
-                        // Frosted-glass header that blurs the app-wide banner,
-                        // mirroring the Me-screen headers. removePadding stops
-                        // the inner AppBar from re-adding the status-bar inset
-                        // (already handled by the strip above).
-                        flexibleSpace: ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-                            child: Container(
-                              color: Colors.white.withValues(alpha: 0.45),
-                              child: MediaQuery.removePadding(
-                                context: context,
-                                removeTop: true,
-                                child: _buildCustomAppBar(),
-                              ),
-                            ),
+                ];
+              },
+              // Was `Container(color: Colors.white)` — an opaque fill over the
+              // whole tab body, covering the app-wide banner edge to edge,
+              // which is why only the header ever looked like glass.
+              //
+              // The frosted sheet the rows sit on ([GlassSheet]) is NOT here:
+              // in the reference its top edge starts below the filter chips,
+              // and those are rendered inside each list. Each tab puts the
+              // sheet around its own scrolling list instead — see
+              // PersonalChatsList / BusinessChatsList and the third tab below.
+              //
+              // [GlassScope] marks the subtree as being on that sheet, which
+              // is what drives the glass filter chips and the row dividers.
+              // Every other screen showing the same lists and tiles (forward,
+              // archive, flagged, pin, new-group) is outside the scope and
+              // keeps its solid look.
+              body: GlassScope(
+                enabled: true,
+                child: TabBarView(
+                  // Lock swiping while selecting — otherwise an accidental
+                  // pan would leave selection mode on a non-Chat tab.
+                  physics: isSelectionMode
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
+                  controller: _tabController,
+                  children: [
+                    // Chat tab: same customer "Your Ongoing Ride/Booking"
+                    // card sits above the personal chat list (collapses to
+                    // nothing when there is no ongoing ride).
+                    Column(
+                      children: [
+                        const OngoingCallBanner(),
+                        const CustomerOngoingRideCard(),
+                        Expanded(
+                          child: PersonalChatsList(isForwardUI: false),
+                        ),
+                      ],
+                    ),
+                    // Inquiry tab: the business lane. Now that `order` is
+                    // merged into `business`, former order threads also
+                    // surface here. This is the buyer/general business view,
+                    // so it renders the [ChatBucket.chats] bucket (my buyer
+                    // orders, friends' orders, groups) via the default
+                    // `bucketChat` routing — the inverse of the provider-side
+                    // Grocery/self-employed views which pass
+                    // `excludeSenderId: userId` to show the seller's "me"
+                    // (stranger customers) bucket.
+                    //
+                    // NOTE: do NOT pass `onlySenderId` here. It is a legacy
+                    // last-message-author filter that predates `bucketChat`
+                    // and silently drops every row whose latest message was
+                    // sent by the other party (e.g. "New self-pickup food
+                    // order" from a customer), emptying the tab.
+                    // Inquiry tab: a customer "Your Ongoing Ride/Booking"
+                    // card (when a ride/goods booking is being tracked) sits
+                    // above the business chat list. The card collapses to
+                    // nothing when there is no ongoing ride.
+                    Column(
+                      children: [
+                        const OngoingCallBanner(),
+                        const CustomerOngoingRideCard(),
+                        Expanded(
+                          child: BusinessChatsList(
+                            isForwardUI: false,
+                            // Flag conversations created in the last 4 hours
+                            // with a "New" label below the time in the
+                            // Inquiry tab.
+                            showNewIfRecentlyCreated: true,
                           ),
                         ),
-                      ),
-                    if (!isSelectionMode)
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: _HomeTabBarDelegate(
-                          tabController: _tabController,
-                          iconTab: iconTab,
-                          postTab: postTab,
-                          selectedIndex: selectedIndex,
-                          onTabTapped: _onTabTapped,
-                        ),
-                      ),
-                  ];
-                },
-                body: Container(
-                  color: Colors.white,
-                  child: TabBarView(
-                    // Lock swiping while selecting — otherwise an accidental
-                    // pan would leave selection mode on a non-Chat tab.
-                    physics: isSelectionMode ? const NeverScrollableScrollPhysics() : null,
-                    controller: _tabController,
-                    children: [
-                      // Chat tab: same customer "Your Ongoing Ride/Booking"
-                      // card sits above the personal chat list (collapses to
-                      // nothing when there is no ongoing ride).
-                      Column(
-                        children: [
-                          const OngoingCallBanner(),
-                          const CustomerOngoingRideCard(),
-                          Expanded(
-                            child: PersonalChatsList(isForwardUI: false),
-                          ),
-                        ],
-                      ),
-                      // Inquiry tab: the business lane. Now that `order` is
-                      // merged into `business`, former order threads also
-                      // surface here. This is the buyer/general business view,
-                      // so it renders the [ChatBucket.chats] bucket (my buyer
-                      // orders, friends' orders, groups) via the default
-                      // `bucketChat` routing — the inverse of the provider-side
-                      // Grocery/self-employed views which pass
-                      // `excludeSenderId: userId` to show the seller's "me"
-                      // (stranger customers) bucket.
-                      //
-                      // NOTE: do NOT pass `onlySenderId` here. It is a legacy
-                      // last-message-author filter that predates `bucketChat`
-                      // and silently drops every row whose latest message was
-                      // sent by the other party (e.g. "New self-pickup food
-                      // order" from a customer), emptying the tab.
-                      // Inquiry tab: a customer "Your Ongoing Ride/Booking"
-                      // card (when a ride/goods booking is being tracked) sits
-                      // above the business chat list. The card collapses to
-                      // nothing when there is no ongoing ride.
-                      Column(
-                        children: [
-                          const OngoingCallBanner(),
-                          const CustomerOngoingRideCard(),
-                          Expanded(
-                            child: BusinessChatsList(
-                              isForwardUI: false,
-                              // Flag conversations created in the last 4 hours
-                              // with a "New" label below the time in the
-                              // Inquiry tab.
-                              showNewIfRecentlyCreated: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Third tab. Business / Social / Skill Worker profiles
-                      // get the merchant Order tab (identical to the Me-tab
-                      // dashboard's first tab); everyone else gets call
-                      // history. Both own their own
-                      // scrollable, so detach them from the parent
-                      // NestedScrollView's inherited PrimaryScrollController —
-                      // otherwise the inner scrollable recursively tries to
-                      // attach to it (which blows the stack).
-                      PrimaryScrollController.none(
+                      ],
+                    ),
+                    // Third tab. Business / Social / Skill Worker profiles
+                    // get the merchant Order tab (identical to the Me-tab
+                    // dashboard's first tab); everyone else gets call
+                    // history. Both own their own
+                    // scrollable, so detach them from the parent
+                    // NestedScrollView's inherited PrimaryScrollController —
+                    // otherwise the inner scrollable recursively tries to
+                    // attach to it (which blows the stack).
+                    // No filter chips on this tab, so the sheet wraps the
+                    // whole thing — its top edge lands directly under the
+                    // Chat/Inquiry/Call strip, where the other two tabs put
+                    // it under their chips.
+                    GlassSheet(
+                      child: PrimaryScrollController.none(
                         child: _showsOrderTab
                             ? _buildOrderTab()
                             : const CallHistoryScreen(),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ),
         );
       }),
@@ -899,7 +948,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         _selectionActionIcon(Icons.push_pin_outlined, () {
           final ids = chatViewController.selectedConversationIds.toList();
           final isBiz = selectedIndex == 1;
-          final allPinned = ids.every((id) => chatPinArchiveController.isPinned(id, isBusiness: isBiz));
+          final allPinned = ids.every(
+              (id) => chatPinArchiveController.isPinned(id, isBusiness: isBiz));
           if (allPinned) {
             chatPinArchiveController.unpinMultiple(ids, isBusiness: isBiz);
           } else {
@@ -938,11 +988,13 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                 final isBiz = selectedIndex == 1;
                 final lockedIds = chatLockController.lockedIds(isBiz);
                 final allChats = (isBiz
-                        ? chatViewController.getBusinessChatListModel?.value.chatList
+                        ? chatViewController
+                                .getBusinessChatListModel?.value.chatList
                                 ?.whereType<ChatList>()
                                 .toList() ??
                             []
-                        : chatViewController.getPersonalChatListModel?.value.chatList
+                        : chatViewController
+                                .getPersonalChatListModel?.value.chatList
                                 ?.whereType<ChatList>()
                                 .toList() ??
                             [])
@@ -959,11 +1011,14 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'mark_unread', child: Text('Mark as unread')),
+            const PopupMenuItem(
+                value: 'mark_unread', child: Text('Mark as unread')),
             const PopupMenuItem(value: 'select_all', child: Text('Select all')),
             const PopupMenuItem(value: 'lock_chats', child: Text('Lock chats')),
-            const PopupMenuItem(value: 'add_favourites', child: Text('Add to Favourites')),
-            const PopupMenuItem(value: 'clear_chats', child: Text('Clear chats')),
+            const PopupMenuItem(
+                value: 'add_favourites', child: Text('Add to Favourites')),
+            const PopupMenuItem(
+                value: 'clear_chats', child: Text('Clear chats')),
           ],
         ),
       ],
@@ -974,7 +1029,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   /// user through the [LockedChatsScreen] to create one first — once they
   /// land there a snackbar reminds them to come back and re-select. If a
   /// PIN does exist we just confirm and lock.
-  Future<void> _handleLockSelectedChats(List<String> ids, bool isBusiness) async {
+  Future<void> _handleLockSelectedChats(
+      List<String> ids, bool isBusiness) async {
     if (!chatLockController.hasPin.value) {
       final created = await Get.to<bool>(() => const LockedChatsScreen());
       // The PIN screen returns nothing on back; recheck the reactive state.
@@ -989,7 +1045,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     if (confirmed != true) return;
     await chatLockController.lockMultiple(ids, isBusiness: isBusiness);
     chatViewController.exitChatListSelectionMode();
-    commonSnackBar(message: "Locked ${ids.length} chat${ids.length > 1 ? 's' : ''}");
+    commonSnackBar(
+        message: "Locked ${ids.length} chat${ids.length > 1 ? 's' : ''}");
   }
 
   Future<bool?> _confirmLockDialog(int count) {
@@ -1094,7 +1151,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                             onTap: () {
                               Navigator.pop(context);
 
-                              Get.to(() => SymbolViewImages(mySymbols: ctrl.mySymbols));
+                              Get.to(() =>
+                                  SymbolViewImages(mySymbols: ctrl.mySymbols));
                             },
                             child: Container(
                               padding: const EdgeInsets.all(2.5),
@@ -1351,14 +1409,15 @@ class _StatusBarGlassDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     if (height <= 0) return const SizedBox.shrink();
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
         child: Container(
           height: height,
-          color: Colors.white.withValues(alpha: 0.45),
+          // color: Colors.white.withValues(alpha: 0.45),
         ),
       ),
     );
@@ -1393,9 +1452,13 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => _tabsHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white,
+      // Continues the frosted header above rather than cutting a solid white
+      // bar across it — the status strip and app bar are both
+      // `white @ 0.45` glass, so the tab strip matches them.
+      // color: Colors.white.withValues(alpha: 0.45),
       child: SizedBox(
         height: _tabsHeight,
         child: Padding(
@@ -1428,7 +1491,9 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
                                   imagePath: iconTab[index],
                                   width: 16,
                                   height: 16,
-                                  imgColor: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                                  imgColor: isSelected
+                                      ? AppColors.black28
+                                      : AppColors.secondaryTextColor,
                                 ),
                                 const SizedBox(width: 3),
                                 Flexible(
@@ -1438,7 +1503,9 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
                                     maxLines: 1,
                                     fontWeight: FontWeight.w500,
                                     overflow: TextOverflow.ellipsis,
-                                    color: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                                    color: isSelected
+                                        ? AppColors.black28
+                                        : AppColors.secondaryTextColor,
                                   ),
                                 ),
                               ],
@@ -1465,7 +1532,8 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _HomeTabBarDelegate oldDelegate) =>
-      selectedIndex != oldDelegate.selectedIndex || tabController != oldDelegate.tabController;
+      selectedIndex != oldDelegate.selectedIndex ||
+      tabController != oldDelegate.tabController;
 }
 
 /// Bottom sheet to apply a flag to multiple selected conversations.
@@ -1491,7 +1559,9 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
   @override
   void initState() {
     super.initState();
-    final flags = widget.conversationIds.map((id) => flagController.getFlagForConversation(id)).toSet();
+    final flags = widget.conversationIds
+        .map((id) => flagController.getFlagForConversation(id))
+        .toSet();
     if (flags.length == 1 && flags.first != null) {
       selectedFlagId = flags.first!.id;
     }
@@ -1558,12 +1628,17 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
                       margin: const EdgeInsets.only(bottom: 4),
                       decoration: BoxDecoration(
-                        color: isSelected ? flag.color.withValues(alpha: 0.1) : Colors.transparent,
+                        color: isSelected
+                            ? flag.color.withValues(alpha: 0.1)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
-                        border: isSelected ? Border.all(color: flag.color, width: 1.5) : null,
+                        border: isSelected
+                            ? Border.all(color: flag.color, width: 1.5)
+                            : null,
                       ),
                       child: Row(
                         children: [
@@ -1588,7 +1663,9 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (isSelected) Icon(Icons.check_circle, color: flag.color, size: 22),
+                          if (isSelected)
+                            Icon(Icons.check_circle,
+                                color: flag.color, size: 22),
                         ],
                       ),
                     ),
@@ -1629,7 +1706,8 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                   onPressed: selectedFlagId == null
                       ? null
                       : () {
-                          final flag = flagController.allFlags.firstWhere((f) => f.id == selectedFlagId);
+                          final flag = flagController.allFlags
+                              .firstWhere((f) => f.id == selectedFlagId);
                           for (final id in widget.conversationIds) {
                             flagController.assignFlagToConversation(id, flag);
                           }
