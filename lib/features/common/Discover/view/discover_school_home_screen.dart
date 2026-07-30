@@ -160,9 +160,9 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// mode).
                     SchoolQuickInfoCard(controller: schoolAboutUsController),
 
-                    if (data?.aboutId?.management?.isEmpty ?? false) ...[
-                      SizedBox(height: SizeConfig.paddingXS),
-                    ],
+                    // if (data?.aboutId?.management?.isEmpty ?? false) ...[
+                    //   SizedBox(height: SizeConfig.paddingXS),
+                    // ],
 
                     /// MANAGEMENT
                     _ManagementSection(data: data),
@@ -179,9 +179,9 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
 
                     /// COURSES
                     _CoursesSection(data: data),
-                    if (data?.campusLife?.isEmpty ?? false) ...[
-                      SizedBox(height: SizeConfig.paddingXS),
-                    ],
+                    // if (data?.campusLife?.isNotEmpty ?? false) ...[
+                    //   SizedBox(height: SizeConfig.size10),
+                    // ],
 
                     /// CAMPUS GALLERY (social-style grid)
                     _GallerySection(data: data),
@@ -220,17 +220,24 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     }),
 
                     /// WEBSITE PREVIEW
-                    SizedBox(height: SizeConfig.size10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: WebsitePreviewCard(
-                        url: viewBusinessDetailsController
-                                .visitedBusinessProfileDetails
-                                ?.data
-                                ?.websiteUrl ??
-                            '',
+                    if (viewBusinessDetailsController
+                            .visitedBusinessProfileDetails
+                            ?.data
+                            ?.websiteUrl
+                            ?.isEmpty ??
+                        false) ...[
+                      SizedBox(height: SizeConfig.size10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: WebsitePreviewCard(
+                          url: viewBusinessDetailsController
+                                  .visitedBusinessProfileDetails
+                                  ?.data
+                                  ?.websiteUrl ??
+                              '',
+                        ),
                       ),
-                    ),
+                    ],
 
                     // SizedBox(height: SizeConfig.size10),
 
@@ -595,70 +602,80 @@ class _CoursesSection extends StatelessWidget {
     // right (no leading icon). Each card is fixed at 340px so the
     // right column stays ~155px wide, keeping the "Direct Admission"
     // pill on its own line rather than being squeezed into the corner.
-    return CommonCardWidget(
-      padding: 0,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.paddingS,
-                  vertical: SizeConfig.paddingXS),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      AppStrings.coursesLabel.tr,
-                      fontSize: SizeConfig.size18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black22,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (courses.length > 1)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _openAllCoursesSheet(context, courses),
+    //
+    // Drop the default top margin so the gap to the Management card
+    // above is 10px (from its bottom margin) instead of 20px. Keep
+    // horizontal + bottom at 10 to preserve the card's previous
+    // position and its spacing to the Gallery card below.
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+      child: CommonCardWidget(
+        padding: 0,
+        cardMargin: 0,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.paddingS,
+                    vertical: SizeConfig.paddingXS),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
                       child: CustomText(
-                        AppStrings.viewAll.tr,
-                        fontSize: SizeConfig.size14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
+                        AppStrings.coursesLabel.tr,
+                        fontSize: SizeConfig.size18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.black22,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                ],
+                    if (courses.length > 1)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _openAllCoursesSheet(context, courses),
+                        child: CustomText(
+                          AppStrings.viewAll.tr,
+                          fontSize: SizeConfig.size14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            // 240px covers the tallest natural card height: 165px image +
-            // 16px card padding + slack for a card whose right column runs
-            // longer than the image (title + fee + 2-line description +
-            // chips + divider + admission pill). Bumped from 210 after a
-            // 4px overflow on cards with the admission pill visible.
-            // Align each card to top so shorter cards don't stretch.
-            SizedBox(
-              height: 240,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.zero,
-                itemCount: courses.length,
-                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-                itemBuilder: (_, i) => SizedBox(
-                  width: 340,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SchoolCourseListItemCard(
-                      course: courses[i],
-                      showBorder: true,
+              // 240px covers the tallest natural card height: 165px image +
+              // 16px card padding + slack for a card whose right column runs
+              // longer than the image (title + fee + 2-line description +
+              // chips + divider + admission pill). Bumped from 210 after a
+              // 4px overflow on cards with the admission pill visible.
+              // Align each card to top so shorter cards don't stretch.
+              SizedBox(
+                height: 240,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  itemCount: courses.length,
+                  separatorBuilder: (_, __) =>
+                      SizedBox(width: SizeConfig.size10),
+                  itemBuilder: (_, i) => SizedBox(
+                    width: 340,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SchoolCourseListItemCard(
+                        course: courses[i],
+                        showBorder: true,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

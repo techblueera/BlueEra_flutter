@@ -103,6 +103,7 @@ class OtherServiceBusinessItem {
 
 class OtherBusinessProfile {
   String? id;
+  String? businessId;
   String? userId;
   String? profileName;
   String? businessName;
@@ -119,6 +120,7 @@ class OtherBusinessProfile {
 
   OtherBusinessProfile({
     this.id,
+    this.businessId,
     this.userId,
     this.profileName,
     this.businessName,
@@ -136,6 +138,7 @@ class OtherBusinessProfile {
 
   OtherBusinessProfile.fromJson(Map<String, dynamic> json) {
     id = json['_id']?.toString();
+    businessId = json['businessId']?.toString();
     userId = json['userId']?.toString();
     profileName = json['profileName']?.toString();
     businessName = (json['business_name'] ?? json['businessName'])?.toString();

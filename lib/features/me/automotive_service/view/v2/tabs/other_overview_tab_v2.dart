@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
@@ -13,11 +12,10 @@ import 'package:BlueEra/features/me/automotive_service/view/management/managemen
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_branch_only_screen.dart';
-import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/other_service_photos_screen.dart';
-import 'package:BlueEra/features/me/automotive_service/view/v2/widgets/other_banner_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
+    hide Location;
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -28,6 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../business/widgets/business_contact_map_card.dart';
+import '../../../../../business/widgets/business_joined_profile_card.dart';
 import '../../../../others/view/timing_screen.dart';
 
 /// Overview tab for the redesigned other-business "me" profile.
@@ -42,11 +42,12 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController =
+        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final data = controller.businessProfile.value;
-      final coordinates = data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
+      final coordinates = data?.profile?.location?.coordinates;
       final hasCoords = coordinates != null &&
           coordinates.length >= 2 &&
           (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
@@ -55,13 +56,20 @@ class OtherOverviewTabV2 extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: SizeConfig.size12),
-          OtherBannerWidget(controller: controller),
+          SizedBox(height: SizeConfig.size10),
+          Padding(
+            padding: EdgeInsets.only(
+              left: SizeConfig.size20,
+            ),
+            child: BusinessJoinedProfileCard(
+                businessController: businessController),
+          ),
           SizedBox(height: SizeConfig.size12),
 
           // ── Management ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                left: SizeConfig.size30, right: SizeConfig.size12),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -94,7 +102,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── Career / Jobs ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                left: SizeConfig.size30, right: SizeConfig.size12),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -124,7 +133,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── Gallery ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                left: SizeConfig.size30, right: SizeConfig.size12),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -155,74 +165,93 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── Timings ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                left: SizeConfig.size30, right: SizeConfig.size12),
             child: _TimingCard(
               timings: data?.timings,
-              onEditTap: () => Get.to(() => TimingScreen())?.then((_) => controller.getBusinessProfileFull()),
+              onEditTap: () => Get.to(() => TimingScreen())
+                  ?.then((_) => controller.getBusinessProfileFull()),
             ),
           ),
 
           SizedBox(height: SizeConfig.size10),
-
-          // ── Contact Us ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: CommonCardWidget(
-              padding: 10,
-              cardMargin: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SectionHeader(
-                    title: AppStrings.contactUs.tr,
-                    actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () =>
-                        Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
-                  ),
-                  const SizedBox(height: 10),
-                  if ((data?.contactUs?.isNotEmpty ?? false))
-                    _ContactUs(
-                      contacts: data!.contactUs!.first,
-                    )
-                  else
-                    EmptySectionPlaceholder(
-                      imageAsset: 'assets/images/other_gallery.png',
-                      ctaLabel: AppStrings.contactUs.tr,
-                      ctaIcon: Icons.contact_phone_outlined,
-                      onTap: () => Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
-                    ),
-                ],
-              ),
-            ),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size30),
+            child: Obx(() {
+              final details =
+                  businessController.businessProfileDetails.value?.data;
+              return BusinessContactMapCard(businessProfileDetails: details);
+            }),
           ),
+          // // ── Contact Us ──
+          // Padding(
+          //   padding: EdgeInsets.only(
+          //       left: SizeConfig.size20, top: SizeConfig.size10),
+          //   child: CommonCardWidget(
+          //     padding: 10,
+          //     cardMargin: 0,
+          //     child: Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         _SectionHeader(
+          //           title: AppStrings.contactUs.tr,
+          //           actionLabel: AppStrings.otherAddEdit.tr,
+          //           onAction: () => Get.to(OtherContactUs())
+          //               ?.then((_) => controller.getBusinessProfileFull()),
+          //         ),
+          //         const SizedBox(height: 10),
+          //         if ((data?.contactUs?.isNotEmpty ?? false))
+          //           _ContactUs(
+          //             contacts: data!.contactUs!.first,
+          //           )
+          //         else
+          //           EmptySectionPlaceholder(
+          //             imageAsset: 'assets/images/other_gallery.png',
+          //             ctaLabel: AppStrings.contactUs.tr,
+          //             ctaIcon: Icons.contact_phone_outlined,
+          //             onTap: () => Get.to(OtherContactUs())
+          //                 ?.then((_) => controller.getBusinessProfileFull()),
+          //           ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          //
+          // SizedBox(height: SizeConfig.size10),
+          //
+          // if (hasCoords)
+          //   Padding(
+          //     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          //     child: ClipRRect(
+          //       borderRadius: BorderRadius.circular(12),
+          //       child: BusinessLocationWidget(
+          //         locationText:
+          //             data?.contactUs?.firstOrNull?.branch?.location?.name,
+          //         latitude: double.parse(coordinates[0].toString()),
+          //         longitude: double.parse(coordinates[1].toString()),
+          //         businessName: data?.profile?.profileName ?? '',
+          //         padding: 10,
+          //         isTitleShow: true,
+          //       ),
+          //     ),
+          //   ),
 
-          SizedBox(height: SizeConfig.size10),
-
-          if (hasCoords)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: BusinessLocationWidget(
-                  locationText: data?.contactUs?.firstOrNull?.branch?.location?.name,
-                  latitude: double.parse(coordinates[0].toString()),
-                  longitude: double.parse(coordinates[1].toString()),
-                  businessName: data?.profile?.profileName ?? '',
-                  padding: 10,
-                  isTitleShow: true,
-                ),
-              ),
-            ),
-
-          const ProfileShareBanner(),
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size30, right: SizeConfig.size12),
+            child: const ProfileShareBanner(),
+          ),
           SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {
-            final details = businessController.businessProfileDetails.value?.data;
+            final details =
+                businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             return Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size30, right: SizeConfig.size12),
               child: BusinessQrCodeWidget(data: details),
             );
           }),
@@ -296,7 +325,8 @@ class _ManagementList extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         color: Colors.grey[300],
                         child: const Center(
-                          child: Icon(Icons.person, size: 50, color: Colors.white),
+                          child:
+                              Icon(Icons.person, size: 50, color: Colors.white),
                         ),
                       ),
                     ),
@@ -409,8 +439,10 @@ class _GalleryLayout extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.5),
                     alignment: Alignment.center,
                     child: Text('+$extra',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -478,7 +510,9 @@ class _ContactUs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false) ? contacts.departments!.first : null;
+    final firstDept = (contacts.departments?.isNotEmpty ?? false)
+        ? contacts.departments!.first
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,7 +530,8 @@ class _ContactUs extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined,
+                      size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -514,7 +549,8 @@ class _ContactUs extends StatelessWidget {
                           name: contacts.branch?.name,
                           location: SchoolLocation(
                             name: contacts.branch?.location?.name,
-                            coordinates: contacts.branch?.location?.coordinates ?? [],
+                            coordinates:
+                                contacts.branch?.location?.coordinates ?? [],
                           ),
                           website: contacts.branch?.website,
                         ),
@@ -524,7 +560,8 @@ class _ContactUs extends StatelessWidget {
                       ),
                     )),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -532,9 +569,11 @@ class _ContactUs extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit,
+                              fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -543,12 +582,16 @@ class _ContactUs extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!, AppColors.primaryColor, isLink: true),
+                _row(AppIconAssets.website_click, branch.website!,
+                    AppColors.primaryColor,
+                    isLink: true),
               if (firstDept != null) ...[
                 if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!, AppColors.mainTextColor),
+                  _row(AppIconAssets.phone_outline, firstDept.phone!,
+                      AppColors.mainTextColor),
                 if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!, AppColors.mainTextColor),
+                  _row(AppIconAssets.email, firstDept.email!,
+                      AppColors.mainTextColor),
               ],
             ],
           ),
@@ -562,7 +605,8 @@ class _ContactUs extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -570,7 +614,9 @@ class _ContactUs extends StatelessWidget {
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
                 CustomText(AppStrings.addMore,
-                    fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                    fontSize: 13,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
               ],
             ),
           ),
@@ -579,7 +625,8 @@ class _ContactUs extends StatelessWidget {
     );
   }
 
-  Widget _row(String icon, String text, Color textColor, {bool isLink = false}) {
+  Widget _row(String icon, String text, Color textColor,
+      {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -729,7 +776,9 @@ class _TimingStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isOpen ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6;
+    final bg = isOpen
+        ? AppColors.greenShade.withValues(alpha: 0.12)
+        : AppColors.greyE6;
     final fg = isOpen ? AppColors.greenShade : AppColors.grey83;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
