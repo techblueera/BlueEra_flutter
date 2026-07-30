@@ -52,24 +52,41 @@ class RecentOrdersSection extends StatelessWidget {
 
       final rows = orders.take(maxRows).toList();
       return Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12),
+        margin: EdgeInsets.only(bottom: SizeConfig.size12, left: 12, right: 12),
         // Uniform inset now that the card ends on the last order row — the
         // tighter bottom value existed only to offset the Book-a-Ride button's
         // own padding.
         padding: EdgeInsets.all(SizeConfig.size14),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
+          // Glass panel, matching the rest of the redesigned Discover page: a
+          // translucent white wash over the blurred profile photo behind the
+          // feed, NOT a solid card. Kept high-alpha because this panel is dense
+          // dark text — the folder tiles can sit at 0.22, a list of shop names
+          // and messages cannot.
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.1),
+              Colors.white.withValues(alpha: 0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+          boxShadow: _kGlassCardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _header(orders.length),
             SizedBox(height: SizeConfig.size12),
+            // Each order on its own frosted plate instead of divider-separated
+            // rows: the plates read as glass-on-glass and give the tap target a
+            // visible edge, which a hairline divider over a translucent panel
+            // does not.
             for (var i = 0; i < rows.length; i++) ...[
               _OrderRow(chat: rows[i]),
-              if (i != rows.length - 1)
-                Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
+              if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
             ],
           ],
         ),
@@ -85,34 +102,57 @@ class RecentOrdersSection extends StatelessWidget {
             'Orders in ${_window.inHours} Hrs.',
             fontSize: SizeConfig.large18,
             fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
+            color: AppColors.white,
           ),
         ),
         if (total > maxRows)
-          InkWell(
-            // The Inquiry tab is the full list — same rows, same lane, with
-            // search and filters this rail deliberately doesn't repeat.
-            onTap: () => getOrPut(() => BottomBarController()).currentIndex.value =
-                _kConnectTabIndex,
+          // Frosted pill rather than bare text, so the link reads as a control
+          // on the glass panel.
+          Material(
+            color: Colors.white.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              child: CustomText(
-                'View All',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor,
+            child: InkWell(
+              // The Inquiry tab is the full list — same rows, same lane, with
+              // search and filters this rail deliberately doesn't repeat.
+              onTap: () => getOrPut(() => BottomBarController())
+                  .currentIndex
+                  .value = _kConnectTabIndex,
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                child: CustomText(
+                  'View All',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
               ),
             ),
           ),
       ],
     );
   }
-
 }
 
 /// Bottom-nav index the Connect (chat / inquiry) tab lives at.
 const int _kConnectTabIndex = 2;
+
+/// Lift under the glass panel. A translucent panel has no fill of its own to
+/// separate it from the photo behind the feed, so the shadow is what makes it
+/// read as a pane floating above the page rather than a tint painted on it.
+const List<BoxShadow> _kGlassCardShadow = [
+  BoxShadow(
+    color: Color(0x1F101828),
+    blurRadius: 18,
+    offset: Offset(0, 8),
+  ),
+  BoxShadow(
+    color: Color(0x14101828),
+    blurRadius: 4,
+    offset: Offset(0, 1),
+  ),
+];
 
 class _OrderRow extends StatelessWidget {
   const _OrderRow({required this.chat});
@@ -123,78 +163,101 @@ class _OrderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final unread = (chat.unreadCount ?? 0).toInt();
 
-    return InkWell(
-      onTap: () => getOrPut(() => BottomBarController()).currentIndex.value =
-          _kConnectTabIndex,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CachedAvatarWidget(
-            imageUrl: (chat.sender?.profileImage?.isEmpty ?? true)
-                ? null
-                : chat.sender?.profileImage,
-            size: SizeConfig.size44,
-            borderRadius: SizeConfig.size22,
-            showProfileOnFullScreen: false,
+    // Material + InkWell rather than a decorated Container: the plate's fill
+    // has to come from the Material itself, otherwise the tap ripple paints on
+    // the Scaffold underneath and is hidden behind the plate.
+    return Material(
+      color: Colors.white.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => getOrPut(() => BottomBarController()).currentIndex.value =
+            _kConnectTabIndex,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10,
+            vertical: SizeConfig.size10,
           ),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  chat.sender?.name ?? 'Shop',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: SizeConfig.size2),
-                // The last message is the order itself — the item list, the
-                // shop's reply, or whatever the conversation last said.
-                CustomText(
-                  (chat.lastMessage?.isNotEmpty ?? false)
-                      ? chat.lastMessage!
-                      : 'Order placed',
-                  fontSize: SizeConfig.small11,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: SizeConfig.size8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                _timeLabel(chat),
-                fontSize: SizeConfig.small11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
+              CachedAvatarWidget(
+                imageUrl: (chat.sender?.profileImage?.isEmpty ?? true)
+                    ? null
+                    : chat.sender?.profileImage,
+                size: SizeConfig.size44,
+                borderRadius: SizeConfig.size22,
+                showProfileOnFullScreen: false,
               ),
-              SizedBox(height: SizeConfig.size4),
-              if (unread > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: CustomText(
-                    '$unread new',
-                    fontSize: SizeConfig.extraSmall,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
-                  ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      chat.sender?.name ?? 'Shop',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: SizeConfig.size2),
+                    // The last message is the order itself — the item list, the
+                    // shop's reply, or whatever the conversation last said.
+                    CustomText(
+                      (chat.lastMessage?.isNotEmpty ?? false)
+                          ? chat.lastMessage!
+                          : 'Order placed',
+                      fontSize: SizeConfig.small11,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    _timeLabel(chat),
+                    fontSize: SizeConfig.small11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size4),
+                  if (unread > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(100),
+                        // Solid brand blue is the one opaque thing on the panel —
+                        // it's the alert, so it stays loud against the glass.
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x330086FF),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: CustomText(
+                        '$unread new',
+                        fontSize: SizeConfig.extraSmall,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

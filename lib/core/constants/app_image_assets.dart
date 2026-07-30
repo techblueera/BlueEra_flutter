@@ -4,6 +4,10 @@ class AppImageAssets {
   static const imgPath = AppConstants.baseImageAssetsPath;
   static const String noImageFound = '${imgPath}noImageFound.png';
   static const String shopBanner = '${imgPath}shop_banner.png';
+
+  /// "Ab Hum Bhi Online" marketing banner — the promo card in the Discover
+  /// header slider.
+  static const String selfProfileBanner = '${imgPath}self_profile_banner.jpeg';
   static const String tearDrop = '${imgPath}tear_drop.png';
   static const String chating_bg = 'assets/images/chatting_bg_light.png';
   static const String splashBgImage = "assets/images/bg_splash.png";

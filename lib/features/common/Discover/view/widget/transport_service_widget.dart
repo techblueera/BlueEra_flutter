@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,26 @@ class TransportServiceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Landing grid (see [DiscoverFolderScope]): this is the one section with a
+    // hand-rolled card rather than a DiscoverGridSection, so it opts into
+    // folder mode itself. The pickup/drop card lives inside the sheet.
+    if (DiscoverFolderScope.isActive(context)) {
+      final host = DiscoverFolderHost.sectionOf(context);
+      return DiscoverFolderTile(
+        title: AppStrings.bookYourTransport.tr,
+        iconPaths:
+            transportItemsCategories.map((e) => e.icon ?? '').toList(),
+        expandedBuilder: (ctx) => host ?? _fullCard(ctx),
+      );
+    }
     return Builder(
       key: targetRiderKey,
-      builder: (context) {
-        return Container(
+      builder: _fullCard,
+    );
+  }
+
+  Widget _fullCard(BuildContext context) {
+    return Container(
           width: double.infinity,
           decoration: BoxDecoration(
             color: AppColors.white,
@@ -73,8 +90,6 @@ class TransportServiceWidget extends StatelessWidget {
             ],
           ),
         );
-      },
-    );
   }
 
   Widget _pickupDropCard() {

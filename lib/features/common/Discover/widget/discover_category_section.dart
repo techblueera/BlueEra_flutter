@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -82,6 +83,23 @@ class DiscoverCategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Landing grid (see [DiscoverFolderScope]): collapse to a folder tile whose
+    // sheet re-renders this very card, so routing below is untouched.
+    if (DiscoverFolderScope.isActive(context)) {
+      // Prefer the owning section widget so the sheet gets a live instance of
+      // it — see [DiscoverFolderHost]. Falls back to this card when the section
+      // IS this widget (grocery / food / home services are listed directly).
+      final host = DiscoverFolderHost.sectionOf(context);
+      return DiscoverFolderTile(
+        title: title,
+        iconPaths: items.map((e) => e.icon ?? '').toList(),
+        expandedBuilder: (_) => host ?? _fullCard(),
+      );
+    }
+    return _fullCard();
+  }
+
+  Widget _fullCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
@@ -237,6 +255,19 @@ class DiscoverGridSection<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // See [DiscoverCategorySection.build] — same folder collapse, same reason.
+    if (DiscoverFolderScope.isActive(context)) {
+      final host = DiscoverFolderHost.sectionOf(context);
+      return DiscoverFolderTile(
+        title: title,
+        iconPaths: items.map(getIcon).toList(),
+        expandedBuilder: (_) => host ?? _fullCard(),
+      );
+    }
+    return _fullCard();
+  }
+
+  Widget _fullCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(

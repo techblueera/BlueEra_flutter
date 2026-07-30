@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -44,8 +46,11 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -89,22 +94,29 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// shows everything, so it's not listed; the other tabs filter down to the
   /// sections tagged with their index.
   ///
-  /// Every section renders as the same uniform circular-icon grid, but each
-  /// keeps its original data source and tap routing untouched.
-  List<({Widget widget, Set<int> tabs})> get _sections {
+  /// Every section keeps its original data source and tap routing untouched —
+  /// the redesign only changes how it is presented.
+  ///
+  /// `folder: true` — the section collapses to one launcher-style folder tile
+  /// in the landing grid (see [DiscoverFolderScope]) and opens its full card in
+  /// a sheet. `folder: false` is for the live rails ("Near You", "Recently
+  /// Visited"), which carry their own layout, self-manage their card, and stay
+  /// full-width between the folder rows.
+  List<({Widget widget, Set<int> tabs, bool folder})> get _sections {
     return [
       // --- Tab 1 · Grocery & Food (ref: g1.jpeg) ---
       // "Near You" rail — sits above the grocery grid. ONE rail over the whole
       // nearby-discover response: grocery/food/product stores + service workers
       // + riders, distance-sorted, each routed to its own screen by card type.
       // Self-manages its own white card and collapses when nothing is nearby.
-      (
-        widget: NearestStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-        ),
-        tabs: {1}
-      ),
+      // (
+      //   widget: NearestStoresSection(
+      //     onViewAll: () =>
+      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+      //   ),
+      //   tabs: {1},
+      //   folder: false
+      // ),
       (
         widget: DiscoverCategorySection(
           title: AppStrings.groceryGeneralStore.tr,
@@ -115,7 +127,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           onItemTap: (_) =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
         ),
-        tabs: {1}
+        tabs: {1},
+        folder: true
       ),
       (
         widget: DiscoverCategorySection(
@@ -124,7 +137,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           columns: 5,
           onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
         ),
-        tabs: {1}
+        tabs: {1},
+        folder: true
       ),
       (
         widget: DiscoverCategorySection(
@@ -133,40 +147,43 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           columns: 5,
           onItemTap: (_) => Get.to(() => const HmfCategoryDiscoverScreen()),
         ),
-        tabs: {1}
+        tabs: {1},
+        folder: true
       ),
-      (
-        widget: RecentlyVisitedStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-        ),
-        tabs: {1}
-      ),
+      // (
+      //   widget: RecentlyVisitedStoresSection(
+      //     onViewAll: () =>
+      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+      //   ),
+      //   tabs: {1},
+      //   folder: false
+      // ),
 
       // --- Tab 2 · Travel & Booking (ref: t1.jpeg) ---
-      (widget: const TransportServiceWidget(), tabs: {2}),
-      (widget: HotelStayServiceCard(), tabs: {2}),
+      (widget: const TransportServiceWidget(), tabs: {2}, folder: true),
+      (widget: HotelStayServiceCard(), tabs: {2}, folder: true),
 
       // --- Tab 3 · Shopping & Sell (ref: s1.jpeg) ---
-      (widget: HomeMadeProductAndServiceWidget(), tabs: {3}),
-      (widget: ShoppingCardWidget(), tabs: {3}),
-      (widget: RentalCardWidget(), tabs: {3}),
-      (widget: AutomotiveServiceCardWidget(), tabs: {3}),
-      (
-        widget: RecentlyVisitedStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-        ),
-        tabs: {3}
-      ),
+      (widget: HomeMadeProductAndServiceWidget(), tabs: {3}, folder: true),
+      (widget: ShoppingCardWidget(), tabs: {3}, folder: true),
+      (widget: RentalCardWidget(), tabs: {3}, folder: true),
+      (widget: AutomotiveServiceCardWidget(), tabs: {3}, folder: true),
+      // (
+      //   widget: RecentlyVisitedStoresSection(
+      //     onViewAll: () =>
+      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+      //   ),
+      //   tabs: {3},
+      //   folder: false
+      // ),
 
       // --- Tab 4 · Services & Professional (ref: ss2.jpeg) ---
       // Pharmacy is a tile inside Healthcare (see `healthCareList`) rather than
       // its own section — tapping it opens `PharmacyStoresScreen`.
-      (widget: HealthServiceCardWidget(), tabs: {4}),
-      (widget: FindServiceCardWidget(), tabs: {4}),
+      (widget: HealthServiceCardWidget(), tabs: {4}, folder: true),
+      (widget: FindServiceCardWidget(), tabs: {4}, folder: true),
 
-      (widget: BookHomeServiceWidget(), tabs: {4}),
+      (widget: BookHomeServiceWidget(), tabs: {4}, folder: true),
       (
         widget: DiscoverCategorySection(
           title: AppStrings.homeServices.tr,
@@ -174,14 +191,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           columns: 5,
           onItemTap: (_) => Get.to(() => HomeServiceDiscoverScreenV2()),
         ),
-        tabs: {4}
+        tabs: {4},
+        folder: true
       ),
-      (widget: ProfessionalsCardWidget(), tabs: {4}),
-      (widget: FinancialSectors(), tabs: {4}),
+      (widget: ProfessionalsCardWidget(), tabs: {4}, folder: true),
+      (widget: FinancialSectors(), tabs: {4}, folder: true),
 
       // --- Tab 5 · Jobs & Other (ref: j1.jpeg) ---
-      (widget: JobServiceCardWidget(), tabs: {5}),
-      (widget: EducationServiceCardWidget(), tabs: {5}),
+      (widget: JobServiceCardWidget(), tabs: {5}, folder: true),
+      (widget: EducationServiceCardWidget(), tabs: {5}, folder: true),
     ];
   }
 
@@ -396,12 +414,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        body: RefreshIndicator(
-          onRefresh: _onRefresh,
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
+        // Transparent so the user's blurred profile photo behind the whole
+        // page shows through every gap between the glass panels.
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            _profileBackdrop(),
+            RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
               /// Light-blue header: location + wishlist, quick-access tabs,
               /// search bar. Covers the status bar area. The location row and
               /// quick-access tabs collapse away on scroll while the search bar
@@ -456,9 +480,84 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ),
               ] else
                 const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-            ],
-          ),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Backdrop
+  // ---------------------------------------------------------------------------
+
+  /// The user's own profile photo, blurred, filling the page behind every glass
+  /// panel — the surface the whole redesign sits on (`docs/new_discov.jpeg`).
+  ///
+  /// The blur is applied with [ImageFiltered] to a STATIC, non-scrolling image
+  /// rather than with a [BackdropFilter] over the feed. That distinction is the
+  /// whole point: a BackdropFilter re-samples whatever is painted beneath it
+  /// every frame, which is what smeared the section labels on some Android
+  /// GPU/driver combos (see the note on [_DiscoverHeaderDelegate]). Here there
+  /// is nothing scrolling underneath to sample — one image, blurred once,
+  /// cached behind a [RepaintBoundary] — so the glass look is free of that
+  /// hazard, and the panels above get their translucency from plain alpha.
+  Widget _profileBackdrop() {
+    return Positioned.fill(
+      child: RepaintBoundary(
+        child: Obx(() {
+          final controllerImage = Get.find<AuthController>().imgPath.value.trim();
+          final url = controllerImage.isNotEmpty
+              ? controllerImage
+              : userProfileGlobal.trim();
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Base wash — what a guest, a photo-less account or a still
+              // loading image falls back to, so the glass always has a
+              // coloured surface under it instead of bare white.
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  // gradient: LinearGradient(
+                  //   begin: Alignment.topCenter,
+                  //   end: Alignment.bottomCenter,
+                  //   colors: [Colors.transparent,Colors.transparent],
+                  //   // colors: [Color(0xFFDCE8F7), Color(0xFFB9CBDF)],
+                  // ),
+                ),
+              ),
+              if (url.isNotEmpty)
+                ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: 10,
+                    sigmaY: 10,
+                    tileMode: TileMode.mirror,
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.cover,
+                    // Nothing on failure: the wash below stays visible.
+                    placeholder: (_, __) => const SizedBox.shrink(),
+                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              // Scrim. A profile photo can be any brightness, so this keeps the
+              // white folder labels and dark pill text readable over all of
+              // them, and stops the photo competing with the content.
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x59000000), Color(0x33000000)],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -485,31 +584,72 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  /// Gap between folders, both across a row and between rows.
+  static const double _kFolderGap = 14.0;
+
+  /// The landing grid: the live rails ("Near You", "Recently Visited") on top,
+  /// then every folder section in ONE uninterrupted two-per-row grid.
+  ///
+  /// The rails are hoisted above the grid rather than kept in their old
+  /// interleaved positions on purpose. A full-width rail dropped mid-grid ends
+  /// the row it lands in, so the folders around it would sit in ragged groups
+  /// of three and five with holes between them. Above the grid they read as
+  /// what they are — what's near you and what you were just looking at — and
+  /// the folders below stay the continuous grid the redesign is built around.
+  /// Each rail still collapses to nothing when it has no data.
+  ///
+  /// The whole column sits inside a [DiscoverFolderScope], which is what makes
+  /// each section render as a folder tile instead of its full card — see that
+  /// class for why the switch lives there rather than in ~15 section widgets.
   Widget _buildSectionsColumn() {
     final visible = _sections
         .where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex))
         .toList();
-    return Column(
-      children: [
-        for (final s in visible)
-          // The recently-visited and nearest-stores rails are self-managing: each
-          // carries its OWN white card + bottom spacing (matching the other
-          // sections) when it has data, and collapses to zero when empty. Skip
-          // the wrapper here so an EMPTY rail leaves no leftover white card.
-          if (s.widget is RecentlyVisitedStoresSection ||
-              s.widget is NearestStoresSection)
-            s.widget
-          else ...[
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: s.widget,
-            ),
-            SizedBox(height: SizeConfig.size12),
-          ],
-      ],
+
+    // The rails are self-managing: each carries its OWN card + bottom spacing
+    // when it has data and collapses to zero when empty, so they go in bare.
+    //
+    // Deduped by type: "Recently Visited" is listed under both Grocery & Food
+    // and Shopping & Sell, so the overview tab picks it up twice. Interleaved
+    // in the old layout those two copies sat pages apart; stacked together at
+    // the top they'd be the same rail printed twice.
+    final railTypes = <Type>{};
+    final rails = visible
+        .where((s) => !s.folder && railTypes.add(s.widget.runtimeType))
+        .map((s) => s.widget)
+        .toList();
+    // The host lets a folder's sheet mount that very section again, live —
+    // see [DiscoverFolderHost].
+    final folders = visible
+        .where((s) => s.folder)
+        .map((s) => DiscoverFolderHost(section: s.widget) as Widget)
+        .toList();
+
+    final children = <Widget>[...rails];
+    // Two per row; a trailing odd folder keeps its half-width slot rather than
+    // stretching across the row.
+    for (int i = 0; i < folders.length; i += 2) {
+      children.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: folders[i]),
+          const SizedBox(width: _kFolderGap),
+          Expanded(
+            child: i + 1 < folders.length
+                ? folders[i + 1]
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ));
+      children.add(const SizedBox(height: _kFolderGap));
+    }
+
+    return DiscoverFolderScope(
+      enabled: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: _kFolderGap),
+        child: Column(children: children),
+      ),
     );
   }
 
@@ -522,23 +662,57 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// bar sits in [bottom] so it stays pinned just below the status bar. Using a
   /// SliverAppBar (rather than a manual persistent header) lets Flutter handle
   /// the status-bar inset automatically as the header collapses.
+  /// Marketing banners cycled in the header. Two entries so the slider actually
+  /// slides; drop a second artwork in here to replace the repeat.
+  static const List<String> _kHeaderBanners = [
+    AppImageAssets.selfProfileBanner,
+    AppImageAssets.selfProfileBanner,
+  ];
+
+  /// Aspect ratio of the banner artwork (960x640).
+  static const double _kHeaderBannerAspect = 3 / 2;
+
+  /// Banner height that shows the WHOLE artwork rather than a cropped strip:
+  /// derived from the width it actually gets (screen minus the header's 12px
+  /// side padding) at the art's own aspect ratio, so nothing is cut off.
+  ///
+  /// Capped at 32% of the screen height as a backstop. The header is a
+  /// collapsing sliver, but it is still the first thing on the page — on a very
+  /// wide or very short viewport (tablet, landscape) the exact-aspect height
+  /// would push the search bar off the fold. Only that case crops, and only by
+  /// the overflow.
+  double _headerBannerHeight(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final exact = (size.width - 24) / _kHeaderBannerAspect;
+    return exact > size.height * 0.32 ? size.height * 0.32 : exact;
+  }
+
   Widget _buildHeaderSliver(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final bannerHeight = _headerBannerHeight(context);
 
-    // ONE continuous panel for the WHOLE header, so the location row, tabs and
-    // search bar share a seamless background. As it collapses the tabs fade /
-    // slide up while the search bar stays pinned at the bottom of the SAME
-    // panel, so the tint is identical at every scroll position.
+    // ONE continuous panel for the WHOLE header, so the location row, banner
+    // and search bar share a seamless background. As it collapses the location
+    // row + banner fade / slide up while the search bar stays pinned at the
+    // bottom of the SAME panel, so the tint is identical at every scroll
+    // position.
     return SliverPersistentHeader(
       pinned: true,
       delegate: _DiscoverHeaderDelegate(
         statusBarHeight: statusBarHeight,
-        // Location row + tabs + top/bottom padding (the collapsing part).
-        headerBlockHeight: 158,
+        // The collapsing part, summed from its pieces so the header can't crop
+        // its own content when any one of them changes:
+        //   12 top padding + location row + 14 gap + banner.
+        headerBlockHeight: 12 + 46 + 14 + bannerHeight,
         // Search row + its padding (always pinned at the bottom of the glass).
         searchAreaHeight: 78,
         locationRow: _locationRow(context),
-        tabs: _quickAccessTabs(),
+        banner: _DiscoverHeaderBanner(
+          images: _kHeaderBanners,
+          height: bannerHeight,
+        ),
+        tabs: const SizedBox.shrink(),
+        // tabs: _quickAccessTabs(),
         searchRow: _searchRow(context),
       ),
     );
@@ -555,17 +729,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         Flexible(
           fit: FlexFit.loose,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              // Glass pill: light enough that the dark address text stays
+              // readable over any profile photo behind it.
+              // color: Colors.white.withValues(alpha: 0.86),
               borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
               boxShadow: _kTopViewShadow,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.location_on,
-                    color: AppColors.primaryColor, size: 20),
+                    color: AppColors.white, size: 20),
                 SizedBox(width: SizeConfig.size6),
                 Flexible(
                   child: Obx(
@@ -575,7 +752,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         LocationService.userCurrentAddress.value.city,
                       ].where((e) => e.isNotEmpty).join(', '),
                       fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w600,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -592,7 +769,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         _circleIconButton(
           boxShadow: _kTopViewShadow,
           child: const Icon(Icons.favorite_border,
-              color: AppColors.primaryColor, size: 22),
+              color: AppColors.primaryColor, size: 15),
           onTap: () {
             Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute());
           },
@@ -612,8 +789,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Colors.white.withValues(alpha: 0.86),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
           boxShadow: boxShadow,
         ),
         child: child,
@@ -661,17 +839,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             // one flat blue.
                             colors: [Color(0xFF33A6FF), Color(0xFF004E96)],
                           )
-                        : const LinearGradient(
+                        : LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            // Light-blue gradient — clearly blue but stays soft.
-                            colors: [Color(0xFFDCEEFF), Color(0xFFBFDCFA)],
+                            // Glass chip — the illustrated icon supplies the
+                            // colour, the tile just holds a frosted plate.
+                            colors: [
+                              Colors.white.withValues(alpha: 0.9),
+                              Colors.white.withValues(alpha: 0.7),
+                            ],
                           ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isActive
                           ? AppColors.primaryColor
-                          : const Color(0xFFCFE3FA),
+                          : Colors.white.withValues(alpha: 0.75),
                       width: isActive ? 1.6 : 1,
                     ),
                     boxShadow:
@@ -688,10 +870,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 CustomText(
                   item['title']!,
                   fontSize: SizeConfig.small11,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  // Label follows the same light→dark blue theme as the tile:
-                  // deep blue + bold when selected, brand blue when not.
-                  color: isActive ? AppColors.blue5CAF : AppColors.primaryColor,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+                  // The label sits on the header glass rather than on a solid
+                  // fill, so it takes the deep blue (selected) / near-black
+                  // (unselected) that holds up over any photo behind it.
+                  color: isActive ? AppColors.blue5CAF : AppColors.mainTextColor,
                   maxLines: 2,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -707,16 +890,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _searchRow(BuildContext context) {
     return Row(
       children: [
-        _circleIconButton(
-          boxShadow: _kTopViewShadow,
-          child: LocalAssets(
-            imagePath: AppIconAssets.transport_bike,
-            width: 24,
-            height: 24,
-          ),
-          onTap: () => Get.to(() => const RideHomeScreen()),
-        ),
-        SizedBox(width: SizeConfig.size10),
+        // _circleIconButton(
+        //   boxShadow: _kTopViewShadow,
+        //   child: LocalAssets(
+        //     imagePath: AppIconAssets.transport_bike,
+        //     width: 24,
+        //     height: 24,
+        //   ),
+        //   onTap: () => Get.to(() => const RideHomeScreen()),
+        // ),
+        // SizedBox(width: SizeConfig.size10),
         Expanded(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -727,8 +910,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: Colors.white.withValues(alpha: 0.86),
                 borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
                 boxShadow: _kTopViewShadow,
               ),
               child: Row(
@@ -761,13 +945,110 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 }
 
+/// Auto-playing promo strip in the Discover header, between the location row
+/// and the pinned search bar.
+///
+/// It loops forever and swipes by hand as well. The carousel is unmounted
+/// entirely once the header finishes collapsing (see [_DiscoverHeaderDelegate]
+/// — the block is replaced by a `SizedBox.shrink()` at zero opacity), so its
+/// auto-play timer stops paying rent while it isn't on screen and restarts from
+/// the first banner when the user scrolls back up.
+class _DiscoverHeaderBanner extends StatefulWidget {
+  const _DiscoverHeaderBanner({required this.images, required this.height});
+
+  final List<String> images;
+  final double height;
+
+  @override
+  State<_DiscoverHeaderBanner> createState() => _DiscoverHeaderBannerState();
+}
+
+class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
+  int _current = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.images.isEmpty) return const SizedBox.shrink();
+    // One banner has nothing to slide to: draw it flat and skip the carousel
+    // (and its timer) altogether.
+    final bool sliding = widget.images.length > 1;
+
+    return SizedBox(
+      height: widget.height,
+      child: Stack(
+        children: [
+          if (!sliding)
+            Positioned.fill(child: _banner(widget.images.first))
+          else
+            CarouselSlider.builder(
+              itemCount: widget.images.length,
+              options: CarouselOptions(
+                height: widget.height,
+                viewportFraction: 1.0,
+                autoPlay: true,
+                autoPlayInterval: const Duration(seconds: 4),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.easeInOutCubic,
+                enableInfiniteScroll: true,
+                scrollPhysics: const BouncingScrollPhysics(),
+                onPageChanged: (index, _) {
+                  if (mounted) setState(() => _current = index);
+                },
+              ),
+              itemBuilder: (_, index, __) => _banner(widget.images[index]),
+            ),
+          // Page dots. With two runs of the same artwork they're the only cue
+          // that the strip is moving at all.
+          if (sliding)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(widget.images.length, (i) {
+                  final active = i == _current;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: active ? 16 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white
+                          .withValues(alpha: active ? 0.95 : 0.55),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _banner(String path) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
+        width: double.infinity,
+        height: widget.height,
+        // The height is derived from this width at the art's own aspect ratio
+        // (see `_headerBannerHeight`), so cover fills the box exactly — no
+        // crop, no letterbox bars showing the glass through the banner.
+        child: LocalAssets(imagePath: path, boxFix: BoxFit.cover),
+      ),
+    );
+  }
+}
+
 /// One continuous Discover header. It fills the whole (pinned) header extent —
 /// so location + tabs + search read as ONE background — while the location row
 /// and tabs fade/slide up as the header collapses and the search bar stays
 /// pinned at the bottom. The tint is identical at every scroll position (no
 /// seam, and no colour change when the search sticks).
 ///
-/// ## Why this is an opaque gradient and NOT a frosted-glass [BackdropFilter]
+/// ## Why the glass is plain alpha and NOT a frosted-glass [BackdropFilter]
 ///
 /// It used to be `BackdropFilter(blur 24)` over a translucent white tint. A
 /// BackdropFilter forces a `saveLayer` and re-samples everything painted
@@ -777,16 +1058,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 /// invalidated correctly, so stale text tiles get re-blitted: the section
 /// labels smeared and repeated horizontally down the page.
 ///
-/// An opaque background gives the same "one continuous header" read with
-/// nothing to sample, so the artifact can't occur. If frosted glass is ever
-/// reinstated here, it needs testing on low-end Android — this is a
-/// device-dependent bug that will not reproduce on most dev hardware.
+/// The glass redesign gets the same frosted read without that hazard: the blur
+/// is baked into the page's own backdrop instead (one static profile photo,
+/// blurred once — see `_DiscoverScreenState._profileBackdrop`), and this header
+/// is simply translucent over it. Nothing is sampled per frame, so the artifact
+/// can't occur. If a real BackdropFilter is ever reinstated here, it needs
+/// testing on low-end Android — this is a device-dependent bug that will not
+/// reproduce on most dev hardware.
 class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
   _DiscoverHeaderDelegate({
     required this.statusBarHeight,
     required this.headerBlockHeight,
     required this.searchAreaHeight,
     required this.locationRow,
+    required this.banner,
     required this.tabs,
     required this.searchRow,
   });
@@ -795,6 +1080,7 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double headerBlockHeight;
   final double searchAreaHeight;
   final Widget locationRow;
+  final Widget banner;
   final Widget tabs;
   final Widget searchRow;
 
@@ -814,15 +1100,22 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
         range == 0 ? 1.0 : (1 - collapse / range).clamp(0.0, 1.0);
 
     return Container(
-      decoration: const BoxDecoration(
-        // Opaque, so nothing behind it is sampled. The soft vertical gradient
-        // keeps the light, airy read the frosted panel had.
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFF3F7FD), Color(0xFFE8F0FA)],
+      decoration: BoxDecoration(
+        // Translucent white over the blurred profile photo behind the page —
+        // the glass read comes from plain alpha, NOT from sampling the feed.
+        // gradient: LinearGradient(
+        //   begin: Alignment.topCenter,
+        //   end: Alignment.bottomCenter,
+        //   colors: [
+        //     Colors.white.withValues(alpha: 0.52),
+        //     Colors.white.withValues(alpha: 0.34),
+        //   ],
+        // ),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.4)),
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+        borderRadius:
+            const BorderRadius.vertical(bottom: Radius.circular(22)),
         // Replaces the depth the blur used to imply, so the header still
         // reads as floating above the feed.
         boxShadow: [
@@ -870,7 +1163,8 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
       mainAxisSize: MainAxisSize.min,
       children: [
         locationRow,
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+        banner,
         tabs,
       ],
     );
@@ -882,77 +1176,56 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
       headerBlockHeight != oldDelegate.headerBlockHeight ||
       searchAreaHeight != oldDelegate.searchAreaHeight ||
       locationRow != oldDelegate.locationRow ||
+      banner != oldDelegate.banner ||
       tabs != oldDelegate.tabs ||
       searchRow != oldDelegate.searchRow;
 }
 
 /// Shimmer skeleton shown in place of the Discover content while location and
-/// the initial fetch are still resolving. Mirrors the card layout — a stack of
-/// white cards each with a short title bar and a grid of round placeholders —
-/// so the swap to real content reads as a content load, not a layout shift.
+/// the initial fetch are still resolving. Mirrors the landing grid — rows of
+/// two square folders each with a caption bar under it — so the swap to real
+/// content reads as a content load, not a layout shift.
 class _DiscoverSectionsShimmer extends StatelessWidget {
   const _DiscoverSectionsShimmer();
 
-  static const int _cardCount = 3;
-  static const int _columns = 5;
-  static const int _tilesPerCard = 5;
-  static const double _tileSpacing = 8;
+  static const int _rows = 4;
+  static const double _gap = 14;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (int i = 0; i < _cardCount; i++) ...[
-          _shimmerCard(),
-          SizedBox(height: SizeConfig.size12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _gap),
+      child: Column(
+        children: [
+          for (int i = 0; i < _rows; i++) ...[
+            Row(
+              children: [
+                Expanded(child: _shimmerFolder()),
+                const SizedBox(width: _gap),
+                Expanded(child: _shimmerFolder()),
+              ],
+            ),
+            const SizedBox(height: _gap),
+          ],
         ],
-      ],
+      ),
     );
   }
 
-  Widget _shimmerCard() {
-    return Container(
-      width: double.infinity,
-      color: AppColors.white,
-      padding: EdgeInsets.all(SizeConfig.size16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildLoadingShimmer(
-            child: shimmerContainer(height: 22, width: 140),
+  Widget _shimmerFolder() {
+    return Column(
+      children: [
+        AspectRatio(
+          aspectRatio: 1,
+          child: buildLoadingShimmer(
+            child: shimmerContainer(radius: 26),
           ),
-          SizedBox(height: SizeConfig.size16),
-          LayoutBuilder(builder: (context, constraints) {
-            final double itemWidth =
-                (constraints.maxWidth - _tileSpacing * (_columns - 1)) /
-                    _columns;
-            return Wrap(
-              spacing: _tileSpacing,
-              runSpacing: _tileSpacing,
-              children: List.generate(_tilesPerCard, (_) {
-                return SizedBox(
-                  width: itemWidth,
-                  child: Column(
-                    children: [
-                      buildLoadingShimmer(
-                        child: shimmerContainer(
-                          height: itemWidth * 0.9,
-                          width: itemWidth * 0.9,
-                          radius: itemWidth,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      buildLoadingShimmer(
-                        child: shimmerContainer(height: 10, radius: 4),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            );
-          }),
-        ],
-      ),
+        ),
+        SizedBox(height: SizeConfig.size8),
+        buildLoadingShimmer(
+          child: shimmerContainer(height: 12, width: 90, radius: 4),
+        ),
+      ],
     );
   }
 }
