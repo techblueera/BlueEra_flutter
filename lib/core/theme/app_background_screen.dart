@@ -40,7 +40,6 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
   void _apply() {
     // Exactly one background is committed: banner if chosen, else colour.
     ctrl.applyBackground(color: _bgColor, asset: _bannerAsset);
-    commonSnackBar(message: 'Background applied');
     Get.back();
   }
 

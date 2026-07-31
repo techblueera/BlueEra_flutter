@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -50,6 +49,7 @@ import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.da
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
+import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -482,12 +482,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        // Transparent so the user's blurred profile photo behind the whole
-        // page shows through every gap between the glass panels.
+        // Transparent so the app background behind the whole page shows
+        // through every gap between the glass panels.
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            _profileBackdrop(),
+            _appBackdrop(),
             RefreshIndicator(
               onRefresh: _onRefresh,
               child: CustomScrollView(
@@ -561,79 +561,34 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   // Backdrop
   // ---------------------------------------------------------------------------
 
-  /// The user's own profile photo, blurred, filling the page behind every glass
-  /// panel — the surface the whole redesign sits on (`docs/new_discov.jpeg`).
+  /// The app-wide background — the one the user picks in [AppBackgroundScreen]
+  /// (colour OR banner, see [AppBackgroundController]) — filling the page.
   ///
-  /// The blur is applied with [ImageFiltered] to a STATIC, non-scrolling image
-  /// rather than with a [BackdropFilter] over the feed. That distinction is the
-  /// whole point: a BackdropFilter re-samples whatever is painted beneath it
-  /// every frame, which is what smeared the section labels on some Android
-  /// GPU/driver combos (see the note on [_DiscoverHeaderDelegate]). Here there
-  /// is nothing scrolling underneath to sample — one image, blurred once,
-  /// cached behind a [RepaintBoundary] — so the glass look is free of that
-  /// hazard, and the panels above get their translucency from plain alpha.
-  Widget _profileBackdrop() {
-    return Positioned.fill(
-      child: RepaintBoundary(
-        child: Obx(() {
-          final controllerImage = Get.find<AuthController>().imgPath.value.trim();
-          final url = controllerImage.isNotEmpty
-              ? controllerImage
-              : userProfileGlobal.trim();
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // Base wash — what a guest, a photo-less account or a still
-              // loading image falls back to, so the glass always has a
-              // coloured surface under it instead of bare white.
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  // gradient: LinearGradient(
-                  //   begin: Alignment.topCenter,
-                  //   end: Alignment.bottomCenter,
-                  //   colors: [Colors.transparent,Colors.transparent],
-                  //   // colors: [Color(0xFFDCE8F7), Color(0xFFB9CBDF)],
-                  // ),
-                ),
-              ),
-              if (url.isNotEmpty)
-                ImageFiltered(
-                  imageFilter: ImageFilter.blur(
-                    sigmaX: 10,
-                    sigmaY: 10,
-                    tileMode: TileMode.mirror,
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: url,
-                    fit: BoxFit.cover,
-                    // Nothing on failure: the wash below stays visible.
-                    placeholder: (_, __) => const SizedBox.shrink(),
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                  ),
-                ),
-              // Scrim. A profile photo can be any brightness, so this keeps the
-              // white folder labels and dark pill text readable over all of
-              // them, and stops the photo competing with the content.
-              //
-              // Lighter than it was: the folders now carry their own colour and
-              // their labels their own shadow (see [DiscoverFolderTheme]), so
-              // legibility no longer has to be bought by darkening the whole
-              // page — which had been washing the photo out to grey.
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x40000000), Color(0x26000000)],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
-  }
+  /// Shown STRAIGHT, at full strength: no blur, no tint, no scrim. This used to
+  /// be the account's own profile photo blurred under a dark gradient, which
+  /// made Discover the one screen that both ignored the user's background choice
+  /// and dulled whatever it painted. It now renders the SAME [AppHomeBackground]
+  /// the rest of the app sits on, and reactively — applying a new colour/banner
+  /// repaints this page too, with no restart.
+  ///
+  /// Because nothing dims the background any more, the two bits of text that sat
+  /// directly on it can no longer borrow contrast from a scrim, so they supply
+  /// their own: the location pill got its white fill back (see [_locationRow])
+  /// and the folder captions follow the background's brightness (see
+  /// [DiscoverFolderTile]).
+  ///
+  /// Painted here rather than left to the global instance in
+  /// `GetMaterialApp.builder` so the layer order on this page is explicit: the
+  /// background, then the whole feed on top of it. Nothing scrolls underneath
+  /// it, so it costs one paint, not one per frame (see the note on
+  /// [_DiscoverHeaderDelegate] for why a per-frame [BackdropFilter] is avoided
+  /// on this page).
+  ///
+  /// Returned bare, NOT wrapped: [AppHomeBackground] is itself a
+  /// [Positioned.fill] and has to land directly in the body's [Stack]. Putting
+  /// anything between the two (a RepaintBoundary, a second Positioned) detaches
+  /// it from the Stack and throws "Incorrect use of ParentDataWidget".
+  Widget _appBackdrop() => const AppHomeBackground();
 
   // ---------------------------------------------------------------------------
   // Sections
@@ -810,9 +765,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              // Glass pill: light enough that the dark address text stays
-              // readable over any profile photo behind it.
-              // color: Colors.white.withValues(alpha: 0.86),
+              // White pill, same fill as the search bar below it. The page no
+              // longer dims the background behind this row (see [_appBackdrop]),
+              // so the address can't be white-on-whatever any more — it carries
+              // its own plate and takes dark text, which reads on every
+              // background the picker offers, pale pastel or dark slate alike.
+              color: Colors.white.withValues(alpha: 0.86),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
               boxShadow: _kTopViewShadow,
@@ -821,7 +779,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.location_on,
-                    color: AppColors.white, size: 20),
+                    color: AppColors.primaryColor, size: 20),
                 SizedBox(width: SizeConfig.size6),
                 Flexible(
                   child: Obx(
@@ -831,7 +789,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         LocationService.userCurrentAddress.value.city,
                       ].where((e) => e.isNotEmpty).join(', '),
                       fontSize: SizeConfig.medium,
-                      color: AppColors.white,
+                      color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w600,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1254,23 +1212,32 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
 /// pinned at the bottom. The tint is identical at every scroll position (no
 /// seam, and no colour change when the search sticks).
 ///
-/// ## Why the glass is plain alpha and NOT a frosted-glass [BackdropFilter]
+/// ## Do NOT put a [BackdropFilter] here. It has now failed twice.
 ///
-/// It used to be `BackdropFilter(blur 24)` over a translucent white tint. A
-/// BackdropFilter forces a `saveLayer` and re-samples everything painted
-/// beneath it on every frame — and here it sits in a PINNED sliver with the
-/// whole feed scrolling underneath it. On a lot of Android GPU/driver combos
-/// (and differently again on Impeller vs Skia) that sampled backdrop isn't
-/// invalidated correctly, so stale text tiles get re-blitted: the section
-/// labels smeared and repeated horizontally down the page.
+/// The obvious way to get the iOS frosted-glass read is `BackdropFilter(blur)`
+/// under a translucent white. It has been tried in this header twice and been
+/// reverted twice, both times for the same reason: a BackdropFilter forces a
+/// `saveLayer` and re-samples everything painted beneath it on EVERY frame — and
+/// here it sits in a PINNED sliver with the whole feed scrolling under it. On
+/// some Android GPU/driver combos (and differently again on Impeller vs Skia)
+/// that sampled backdrop is not invalidated correctly, so stale tiles get
+/// re-blitted: content smears and scatters horizontally as you scroll.
 ///
-/// The glass redesign gets the same frosted read without that hazard: the blur
-/// is baked into the page's own backdrop instead (one static profile photo,
-/// blurred once — see `_DiscoverScreenState._profileBackdrop`), and this header
-/// is simply translucent over it. Nothing is sampled per frame, so the artifact
-/// can't occur. If a real BackdropFilter is ever reinstated here, it needs
-/// testing on low-end Android — this is a device-dependent bug that will not
-/// reproduce on most dev hardware.
+/// The second attempt bounded the filter inside the [ClipRRect] below and ran it
+/// over a plain static page backdrop, on the theory that the artifact needed a
+/// second blurred layer beneath it. It did not — the scattering came straight
+/// back on affected devices. The blur itself is the cause, and no amount of
+/// clipping around it helps.
+///
+/// So the glass here is plain alpha: a white gradient held at a high enough
+/// opacity that content passing under the header is muted to a wash instead of
+/// reading through crisply. It is not a true blur, but it is the same surface at
+/// every scroll position on every device, and nothing is sampled per frame.
+///
+/// If a frosted look is wanted again, it has to come from something static — the
+/// page background blurred ONCE into an image, say — never from sampling the
+/// live feed. And note this will NOT reproduce on most dev hardware: "it looks
+/// fine on my phone" is not evidence.
 class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
   _DiscoverHeaderDelegate({
     required this.statusBarHeight,
@@ -1307,24 +1274,14 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
 
     return Container(
       decoration: BoxDecoration(
-        // Translucent white over the blurred profile photo behind the page —
-        // the glass read comes from plain alpha, NOT from sampling the feed.
-        // gradient: LinearGradient(
-        //   begin: Alignment.topCenter,
-        //   end: Alignment.bottomCenter,
-        //   colors: [
-        //     Colors.white.withValues(alpha: 0.52),
-        //     Colors.white.withValues(alpha: 0.34),
-        //   ],
-        // ),
         border: Border(
           bottom: BorderSide(color: Colors.white.withValues(alpha: 0.4)),
         ),
         borderRadius:
             const BorderRadius.vertical(bottom: Radius.circular(22)),
-        // Replaces the depth the blur used to imply, so the header still
-        // reads as floating above the feed.
-        boxShadow: [
+        // Lift, so the glass reads as floating above the feed it is blurring
+        // rather than being pasted onto it.
+        boxShadow: const [
           BoxShadow(
             color: Color(0x1A101828),
             blurRadius: 14,
@@ -1334,31 +1291,48 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            // Location + tabs — slide up & fade out as the header collapses.
-            Positioned(
-              top: statusBarHeight + 12 - collapse,
-              left: 12,
-              right: 12,
-              // Skip the Opacity layer entirely at the extremes: fully
-              // expanded and fully collapsed are the two states the header
-              // rests in, and Opacity forces its own saveLayer.
-              child: opacity >= 1.0
-                  ? _collapsingBlock()
-                  : opacity <= 0.0
-                      ? const SizedBox.shrink()
-                      : Opacity(opacity: opacity, child: _collapsingBlock()),
+        // Plain alpha, NOT a BackdropFilter — see the class doc. The frosted
+        // read comes from the white's opacity alone: held high enough that
+        // whatever scrolls under the header is muted to a soft wash rather than
+        // staying crisply legible through it. Graded top-to-bottom so the panel
+        // doesn't read as one flat sheet of paint.
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: 0.78),
+                Colors.white.withValues(alpha: 0.66),
+              ],
             ),
-            // Search bar — always pinned to the bottom of the header.
-            Positioned(
-              left: 12,
-              right: 12,
-              bottom: 16,
-              child: searchRow,
-            ),
-          ],
+          ),
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              // Location + tabs — slide up & fade out as the header collapses.
+              Positioned(
+                top: statusBarHeight + 12 - collapse,
+                left: 12,
+                right: 12,
+                // Skip the Opacity layer entirely at the extremes: fully
+                // expanded and fully collapsed are the two states the header
+                // rests in, and Opacity forces its own saveLayer.
+                child: opacity >= 1.0
+                    ? _collapsingBlock()
+                    : opacity <= 0.0
+                        ? const SizedBox.shrink()
+                        : Opacity(opacity: opacity, child: _collapsingBlock()),
+              ),
+              // Search bar — always pinned to the bottom of the header.
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 16,
+                child: searchRow,
+              ),
+            ],
+          ),
         ),
       ),
     );

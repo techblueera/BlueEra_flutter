@@ -21,17 +21,17 @@ class DiscoverFolderTheme {
   /// below is a softened derivation of it.
   final Color base;
 
-  /// Wash over the blurred profile photo behind the page. Translucent rather
-  /// than solid, so the grid keeps the glass character of the redesign and the
-  /// photo still reads through it.
+  /// Wash over the app background behind the page. Translucent rather than
+  /// solid, so the grid keeps the glass character of the redesign and the
+  /// background still reads through it.
   ///
-  /// Held high enough that the hue survives the photo underneath. The wash
+  /// Held high enough that the hue survives whatever is underneath. The wash
   /// started far lighter and the folders came out muddy and near-identical:
-  /// a mid-tone colour laid at ~30% over a mid-tone photo lands back at the
-  /// photo, so Grocery's green and Book Home Services' olive were the same
+  /// a mid-tone colour laid at ~30% over a mid-tone backdrop lands back at the
+  /// backdrop, so Grocery's green and Book Home Services' olive were the same
   /// grey-green rectangle. The whole point is that a folder is identifiable by
-  /// colour, and the colour cannot be at the mercy of whose profile photo is
-  /// behind it.
+  /// colour, and the colour cannot be at the mercy of the background the user
+  /// happens to have picked.
   List<Color> get tileGradient => [
         base.withValues(alpha: 0.80),
         base.withValues(alpha: 0.55),

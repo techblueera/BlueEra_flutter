@@ -20,6 +20,10 @@ import 'package:get/get.dart';
 ///    so busy photos read softly behind the app's white cards ([Image.file]).
 ///  - No banner ('')        → the chosen background colour ([ctrl.bgColor]).
 ///
+/// The blur is applied with [ImageFiltered] — a static, one-off filter on the
+/// photo itself. A [BackdropFilter] must NEVER be used here: see the note in
+/// [build].
+///
 /// Asset vs. file is decided by [AppBackgroundController.bannerIsAsset].
 class AppHomeBackground extends StatelessWidget {
   const AppHomeBackground({super.key});
@@ -46,19 +50,30 @@ class AppHomeBackground extends StatelessWidget {
 
         // User-picked gallery photo: light blur + frost so it sits well under
         // the app's white cards.
+        //
+        // [ImageFiltered], NOT [BackdropFilter]. The two look identical here
+        // but do very different work: ImageFiltered blurs THIS image once, as
+        // it paints, while a BackdropFilter forces a full-screen `saveLayer`
+        // and re-samples the backdrop every frame — behind EVERY route in the
+        // app, since this widget lives in `GetMaterialApp.builder`, and
+        // unclipped at that. On some Android GPU/driver combos those samples
+        // are not invalidated correctly and stale tiles get re-blitted, which
+        // showed up as the whole page smearing and repeating horizontally
+        // while scrolling (`assets/discover_bg.jpeg`). Nothing here needs live
+        // sampling: the only thing being blurred is a static photo.
         return Stack(
           fit: StackFit.expand,
           children: [
-            Image.file(File(banner),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(color: color)),
-            BackdropFilter(
-              filter:
+            ImageFiltered(
+              imageFilter:
                   ui.ImageFilter.blur(sigmaX: _blurSigma, sigmaY: _blurSigma),
-              child: Container(
-                color: Colors.white.withValues(alpha: _frostAlpha),
-              ),
+              child: Image.file(File(banner),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(color: color)),
             ),
+            // The frost, now a plain overlay — it was only ever the tint laid
+            // over the blur, never the thing doing the blurring.
+            Container(color: Colors.white.withValues(alpha: _frostAlpha)),
           ],
         );
       }),
