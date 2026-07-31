@@ -47,9 +47,13 @@ class _HomeServiceDiscoverScreenV2State
   late ServiceCategoryOption _selected = _categories.first;
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/young-handyman-installing-kitchen-cabinet_155003-37938.jpg?w=1380",
-    "https://img.freepik.com/free-photo/medium-shot-woman-cleaning-home_23-2150454566.jpg?w=1380",
-    "https://img.freepik.com/free-photo/plumber-man-fixing-kitchen-sink_53876-27.jpg?w=1380",
+    // Electrical repair, home cleaning, plumbing. Each URL was downloaded and
+    // viewed before committing — the freepik links these replace ignored their
+    // slugs (the "handyman" one served a beauty portrait) and watermarked
+    // whatever they did serve.
+    "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1380&q=80",
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1380&q=80",
+    "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=1380&q=80",
   ];
 
   @override

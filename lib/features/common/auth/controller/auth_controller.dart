@@ -1306,14 +1306,6 @@ class AuthController extends GetxController {
     businessOnboardingFoodsCategories.assignAll(foods);
     businessOnboardingManufacturingCategories.assignAll(manufacturing);
     businessOnboardingAutomotiveServicesCategories.assignAll(automotive);
-    // // DEBUG: dump the automotive-services categories so we can see exactly what
-    // log('[AutomotiveCat] total=${automotive.length}');
-    // for (final c in automotive) {
-    //   log('[AutomotiveCat] name="${c.name}" tagId="${c.tagId}" id="${c.id}" '
-    //       'type="${c.type}" '
-    //       'subs=${c.subCategories?.map((s) => s.name).toList()}');
-    // }
-
     businessOnboardingHealthcareSectorsCategories.assignAll(healthcare);
     businessOnboardingHospitalityStayCategories.assignAll(hospitality);
     businessOnboardingEducationTrainingCategories.assignAll(education);

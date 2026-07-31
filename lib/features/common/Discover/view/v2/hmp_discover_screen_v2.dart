@@ -50,9 +50,13 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
       );
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/arrangement-handmade-soap-bars_23-2148990916.jpg?w=1380",
-    "https://img.freepik.com/free-photo/composition-aromatic-handmade-candles_23-2148906327.jpg?w=1380",
-    "https://img.freepik.com/free-photo/handmade-pottery-arrangement-still-life_23-2149385017.jpg?w=1380",
+    // Handmade soap, a potter at the wheel, hand-thrown vases. Each URL was
+    // downloaded and viewed before committing — the freepik links these
+    // replace served vaccination poster templates, a business-card mockup and
+    // a "BEST 5 GUITAR STYLES" thumbnail.
+    "https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=1380&q=80",
+    "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?w=1380&q=80",
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1380&q=80",
   ];
 
   @override

@@ -48,6 +48,10 @@ class _AutomotiveCategoryDiscoverScreenState
   Worker? _catWorker;
   Worker? _selWorker;
 
+  /// Sentinel for the leading "All" tab — no category filter on the products
+  /// call, so it lists every automotive part across the catalog.
+  static const String _allCategoriesId = 'ALL_AUTOMOTIVE_CATEGORIES';
+
   // Session cart — same instance the store-details cart bar watches, so a
   // confirm-on-exit prompt here reflects items added anywhere in the flow.
   final AutomotiveProductSelfPickupController _cartController =
@@ -67,13 +71,19 @@ class _AutomotiveCategoryDiscoverScreenState
         ],
       );
 
-  // Same automotive banners used by AllVehicleServiceScreen so the
-  // Vehicle-Parts flow stays visually consistent with the rest of the
-  // automotive section.
+  // Parts, not vehicles: an engine bay, an oil change and a workshop parts
+  // wall. This screen sells components, so whole-car photography sold the
+  // wrong thing even when it loaded.
+  //
+  // The previous three URLs were freepik hotlinks shared with the vehicle
+  // sales screen; their ids resolved to a monkey, dried fruit and a flower,
+  // watermarked. Each URL below was downloaded and viewed before committing —
+  // do the same for any replacement, since the slug in a stock URL is
+  // decorative and proves nothing about what is served.
   final List<String> _bannerImages = const [
-    'https://img.freepik.com/free-photo/red-car-with-trunk-that-says-toyota-it_1340-39044.jpg?w=1380',
-    'https://img.freepik.com/free-photo/black-suv-car-front-view_114579-4153.jpg?w=1380',
-    'https://img.freepik.com/free-photo/big-truck-road_181624-37941.jpg?w=1380',
+    'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1380&q=80',
+    'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1380&q=80',
+    'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=1380&q=80',
   ];
 
   @override
@@ -89,7 +99,7 @@ class _AutomotiveCategoryDiscoverScreenState
     _catWorker = ever(controller.level0Categories, (_) {
       if (mounted) setState(() {});
     });
-    _selWorker = ever(controller.selectedCategoryIndex, (_) {
+    _selWorker = ever(controller.selectedCategoryId, (_) {
       if (mounted) setState(() {});
     });
   }
@@ -207,11 +217,22 @@ class _AutomotiveCategoryDiscoverScreenState
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final categories = controller.level0Categories;
-    final selIndex = controller.selectedCategoryIndex.value;
-    final selectedId = (selIndex >= 0 && selIndex < categories.length)
-        ? categories[selIndex].sId
-        : null;
+    // "All" leads, then the level-0 categories off the API. It is a real tab
+    // rather than a placeholder for a list that hasn't loaded: it maps to the
+    // products call WITHOUT a categoryId, so it is the one tab that is always
+    // valid — the strip renders and is usable before (and even without) the
+    // category call landing.
+    final tabs = <StickyCategory>[
+      const StickyCategory(id: _allCategoriesId, name: 'All'),
+      ...controller.level0Categories.map(
+        (c) => StickyCategory(
+          id: c.sId ?? '',
+          name: c.name ?? '',
+          imageUrl: c.image,
+        ),
+      ),
+    ];
+    final selectedId = controller.selectedCategoryId.value ?? _allCategoriesId;
 
     return PopScope(
       canPop: false,
@@ -244,32 +265,22 @@ class _AutomotiveCategoryDiscoverScreenState
                 ),
               ),
             ),
-            if (categories.isNotEmpty)
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: StickyCategoryHeaderDelegate(
-                  topPadding: statusBarHeight,
-                  // Let multi-word category names wrap to two lines before
-                  // ellipsising, instead of clamping to a single line.
-                  singleLineLabel: false,
-                  categories: categories
-                      .map((c) => StickyCategory(
-                            id: c.sId ?? '',
-                            name: c.name ?? '',
-                            imageUrl: c.image,
-                          ))
-                      .toList(),
-                  selectedId: selectedId,
-                  onCategoryTap: (item) {
-                    final idx =
-                        categories.indexWhere((c) => (c.sId ?? '') == item.id);
-                    if (idx >= 0) controller.onCategorySelected(idx);
-                  },
-                  onBack: _handleBackWithCartWarning,
-                  backgroundGradient: _bgGradient,
-                  expandedLabelColor: AppColors.white,
-                ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                // Let multi-word category names wrap to two lines before
+                // ellipsising, instead of clamping to a single line.
+                singleLineLabel: false,
+                categories: tabs,
+                selectedId: selectedId,
+                onCategoryTap: (item) => controller.onCategorySelected(
+                    item.id == _allCategoriesId ? null : item.id),
+                onBack: _handleBackWithCartWarning,
+                backgroundGradient: _bgGradient,
+                expandedLabelColor: AppColors.white,
               ),
+            ),
           ],
             body: NotificationListener<ScrollNotification>(
               onNotification: _onScrollNotification,
@@ -294,13 +305,11 @@ class _AutomotiveCategoryDiscoverScreenState
 
   Widget _buildBody() {
     return Obx(() {
-      if (controller.isCategoriesLoading.value &&
-          controller.level0Categories.isEmpty) {
-        return _loader();
-      }
-      if (controller.level0Categories.isEmpty) {
-        return _empty('No categories found');
-      }
+      // Gated on the PRODUCTS call alone. It used to block on categories
+      // first — spinner until they arrived, then "No categories found" if the
+      // strip came back empty — but the grid opens on "All", which doesn't need
+      // a category id, so an empty or slow category list has no bearing on
+      // whether there are parts to show.
       if (controller.isProductsFirstLoading.value) {
         return _loader();
       }

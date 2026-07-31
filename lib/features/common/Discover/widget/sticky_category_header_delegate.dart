@@ -280,21 +280,34 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                                 textAlign: TextAlign.center,
                                               ),
                                             )
-                                          : CustomText(
-                                              displayName,
-                                              fontSize: labelFontSize,
-                                              fontWeight: isActive
-                                                  ? FontWeight.w600
-                                                  : FontWeight.w500,
-                                              color: expandedLabelColor ??
-                                                  (isActive
-                                                      ? AppColors.primaryColor
-                                                      : AppColors
-                                                          .secondaryTextColor),
-                                              maxLines: 2,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              textAlign: TextAlign.center,
+                                          // Wrapping happens at the FIRST
+                                          // space, so a three-word label like
+                                          // "All New Vehicle" leaves "New
+                                          // Vehicle" on line two — wider than
+                                          // the tile, and it used to ellipsize
+                                          // to "New Vehic…". Scale the block
+                                          // down instead; this is a no-op for
+                                          // labels that already fit.
+                                          : FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              alignment: Alignment.topCenter,
+                                              child: CustomText(
+                                                displayName,
+                                                fontSize: labelFontSize,
+                                                fontWeight: isActive
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: expandedLabelColor ??
+                                                    (isActive
+                                                        ? AppColors
+                                                            .primaryColor
+                                                        : AppColors
+                                                            .secondaryTextColor),
+                                                maxLines: 2,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
                                     ),
                                   ],

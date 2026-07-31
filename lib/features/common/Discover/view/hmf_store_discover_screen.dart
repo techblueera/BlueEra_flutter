@@ -39,9 +39,13 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
   final cartController = getOrPut(() => HmfCartController());
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/top-view-indian-food-arrangement_23-2148723455.jpg?w=1380",
-    "https://img.freepik.com/free-photo/high-angle-pakistani-meal-composition_23-2148825105.jpg?w=1380",
-    "https://img.freepik.com/free-photo/delicious-indian-dosa-composition_23-2149086052.jpg?w=1380",
+    // Thali, biryani, paneer tikka — all downloaded and viewed before
+    // committing. The freepik links these replace did serve food, but every
+    // freepik hotlink comes back tiled with a "Magnific" watermark, and two of
+    // the three were portrait crops that lost their subject in a 16:8 banner.
+    "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1380&q=80",
+    "https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=1380&q=80",
+    "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=1380&q=80",
   ];
 
   @override
