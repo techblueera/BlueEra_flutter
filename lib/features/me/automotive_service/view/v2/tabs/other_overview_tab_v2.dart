@@ -26,8 +26,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../../widgets/common_business_live_photo.dart';
 import '../../../../../business/widgets/business_contact_map_card.dart';
 import '../../../../../business/widgets/business_joined_profile_card.dart';
+import '../../../../../business/widgets/website_overview_card.dart';
 import '../../../../others/view/timing_screen.dart';
 
 /// Overview tab for the redesigned other-business "me" profile.
@@ -129,6 +132,13 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
+          // SizedBox(height: SizeConfig.size10),
+
+          Padding(
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size30, right: SizeConfig.size12),
+              child: CommonBusinessLivePhoto(controller: businessController)),
+
           SizedBox(height: SizeConfig.size10),
 
           // ── Gallery ──
@@ -174,7 +184,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
           Padding(
             padding: EdgeInsets.only(
                 right: SizeConfig.size12, left: SizeConfig.size30),
@@ -239,10 +249,21 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           Padding(
             padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size30),
+            child: WebsiteOverviewCard(
+              websiteUrl: businessController
+                  .businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController
+                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.only(
                 left: SizeConfig.size30, right: SizeConfig.size12),
             child: const ProfileShareBanner(),
           ),
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {

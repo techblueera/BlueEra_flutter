@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -18,10 +17,13 @@ import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overvi
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_stats_tab_v2.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../../widgets/business_live_photo_bottom_sheet.dart';
 
 /// Automotive-service "me" profile home (v2) — structural twin of the generic
 /// `OtherHomeScreenV2` (under `me/others/`). Uses the shared [HomeTabScaffold]
@@ -69,7 +71,8 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     registerMeTabBackHandler(_tabController!);
-    _otherController = getOrPut(() => AutomotiveBusinessProfileFullController());
+    _otherController =
+        getOrPut(() => AutomotiveBusinessProfileFullController());
     if (_otherController.businessProfile.value == null) {
       _otherController.getBusinessProfileFull();
     }
@@ -82,6 +85,16 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+
+    // Deferred to post-frame — the helper reads `ModalRoute.of(context)`,
+    // which can't run before initState completes (inherited-widget lookup).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showBusinessLivePhotoBottomSheetIfNeeded(
+        context: context,
+        controller: _businessController,
+      );
+    });
   }
 
   @override

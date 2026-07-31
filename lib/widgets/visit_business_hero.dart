@@ -10,6 +10,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/widgets/business_availability_widget.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
@@ -30,11 +31,23 @@ class VisitBusinessHero extends StatefulWidget {
   final VoidCallback? onFollowChanged;
   final VoidCallback? onRated;
 
+  /// Category-specific timings override. When non-null and non-empty this
+  /// replaces `details.availability?.schedule` in the availability row —
+  /// used by the Discover education / other-service / finance detail
+  /// screens whose canonical timings live on their own endpoints
+  /// (`/education-service/schools/{id}/timings`,
+  /// `/other-service/business-profile/{id}/full`) rather than on the
+  /// user-service availability document. Every other host (hotel, lab,
+  /// healthcare) keeps passing `null` and falls back to the user-service
+  /// schedule as before.
+  final List<Schedule>? scheduleOverride;
+
   const VisitBusinessHero({
     super.key,
     required this.details,
     this.onFollowChanged,
     this.onRated,
+    this.scheduleOverride,
   });
 
   @override
@@ -85,8 +98,12 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
       d?.businessLocation?.lon?.toDouble() ?? 0.0,
     );
     final hasDistance = distanceKm != null && distanceKm > 0;
-    final hasAvailability = d?.availability?.schedule != null &&
-        d!.availability!.schedule!.isNotEmpty;
+    final override = widget.scheduleOverride;
+    final effectiveSchedule = (override != null && override.isNotEmpty)
+        ? override
+        : d?.availability?.schedule;
+    final hasAvailability =
+        effectiveSchedule != null && effectiveSchedule.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -196,7 +213,7 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
                   const SizedBox(height: 12),
                   BusinessAvailabilityWidget(
                     hasAvailability: true,
-                    schedule: d.availability?.schedule,
+                    schedule: effectiveSchedule,
                   ),
                 ],
                 if (description.isNotEmpty) ...[

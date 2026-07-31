@@ -11,6 +11,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
@@ -182,6 +183,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                     .visitedBusinessProfileDetails?.data;
                 return VisitBusinessHero(
                   details: details,
+                  scheduleOverride: _financeTimingsToSchedule(data.timings),
                   onRated: () =>
                       viewBusinessDetailsController.viewBusinessProfileById(
                     data.userId ?? '',
@@ -1339,4 +1341,35 @@ class _ServicesHorizontalList extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Convert the finance/other-service `/full` timings block (weekday-keyed
+/// `{isOpen, openTime, closeTime}`) into the `List<Schedule>` shape the
+/// shared `BusinessAvailabilityWidget` renders. Skips days that are
+/// closed or have no hours so the widget's `openSchedules` filter has a
+/// clean input.
+List<Schedule>? _financeTimingsToSchedule(FinanceTimings? t) {
+  if (t == null) return null;
+  const days = [
+    ('Monday', 1),
+    ('Tuesday', 2),
+    ('Wednesday', 3),
+    ('Thursday', 4),
+    ('Friday', 5),
+    ('Saturday', 6),
+    ('Sunday', 7),
+  ];
+  final out = <Schedule>[];
+  for (final entry in days) {
+    final d = t.forWeekday(entry.$2);
+    if (d == null || !d.hasHours) continue;
+    out.add(Schedule(
+      day: entry.$1,
+      isOpen: true,
+      shopOpenTime: d.openTime,
+      shopCloseTime: d.closeTime,
+      timeSlots: [TimeSlots(startTime: d.openTime, endTime: d.closeTime)],
+    ));
+  }
+  return out;
 }

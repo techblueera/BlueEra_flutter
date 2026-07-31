@@ -10,13 +10,20 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/controller/other_service_business_search_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/others/widget/business_enquiry_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/visit_business_hero.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -120,7 +127,198 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
           ),
         );
       }),
-      body: RefreshIndicator(
+      body: _buildBody(),
+    );
+  }
+
+  /// Look up the current listing in the shared search controller by
+  /// matching `profile.userId`. Returns null when the controller isn't
+  /// registered (deep-link entry) or the item isn't in the current page —
+  /// callers then skip the management / gallery sections.
+  OtherServiceBusinessItem? _searchItem() {
+    if (!Get.isRegistered<OtherServiceBusinessSearchController>()) return null;
+    final ctrl = Get.find<OtherServiceBusinessSearchController>();
+    for (final p in ctrl.profiles) {
+      if ((p.profile?.userId ?? '') == widget.visitUserId) return p;
+    }
+    return null;
+  }
+
+  List<String> _flattenGallery(List<OtherGalleryItem>? galleryList) {
+    final all = <String>[];
+    for (final g in galleryList ?? const <OtherGalleryItem>[]) {
+      for (final url in g.imageUrls) {
+        if (url.trim().isNotEmpty) all.add(url);
+      }
+    }
+    return all;
+  }
+
+  // ─── MANAGEMENT ────────────────────────────────────────────────────
+  Widget _buildManagementSection(List<OtherManagementItem> members) {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.managementLabel),
+          SizedBox(height: SizeConfig.size12),
+          ...members.asMap().entries.map((entry) {
+            final isLast = entry.key == members.length - 1;
+            final m = entry.value;
+            return Container(
+              margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: m.imageUrl ?? '',
+                      height: 64,
+                      width: 64,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => Container(
+                        height: 64,
+                        width: 64,
+                        color: Colors.grey[200],
+                        child: Icon(Icons.person,
+                            color: AppColors.secondaryTextColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          m.name ?? '',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if ((m.position ?? '').isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: CustomText(
+                              m.position ?? '',
+                              fontSize: 12,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // ─── JOBS ──────────────────────────────────────────────────────────
+  Widget _buildJobsSection() {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.jobVacancy.tr),
+          SizedBox(height: SizeConfig.size12),
+          InkWell(
+            onTap: () => Get.to(() => const FinanceJobListingScreen()),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.work_outline,
+                      size: 20, color: AppColors.primaryColor),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.jobVacancy.tr,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14, color: AppColors.primaryColor),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── GALLERY ───────────────────────────────────────────────────────
+  Widget _buildGallerySection(List<String> images) {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.gallery),
+          SizedBox(height: SizeConfig.size12),
+          if (images.isEmpty)
+            EmptyStateWidget(
+              message: AppStrings.noPhotosAvailableMsg.tr,
+              imageSize: 60,
+            )
+          else
+            SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl: images[index],
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => Container(
+                          width: 120,
+                          height: 120,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return RefreshIndicator(
         onRefresh: () async {
           viewBusinessDetailsController
               .viewBusinessProfileById(widget.visitUserId);
@@ -146,6 +344,9 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                     .visitedBusinessProfileDetails?.data;
                 return VisitBusinessHero(
                   details: details,
+                  scheduleOverride: _otherTimingsToSchedule(
+                    _searchItem()?.timings,
+                  ),
                   onFollowChanged: () =>
                       viewBusinessDetailsController.viewBusinessProfileById(
                     widget.visitUserId,
@@ -247,6 +448,38 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                       );
                     }),
 
+                    // ─── Management ───
+                    // Sourced from the search-list item (not the profile
+                    // response). Read reactively from the shared search
+                    // controller so it appears once the list has loaded.
+                    Obx(() {
+                      final item = _searchItem();
+                      if (item == null || item.management.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                        child: _buildManagementSection(item.management),
+                      );
+                    }),
+
+                    // ─── Jobs ───
+                    Padding(
+                      padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                      child: _buildJobsSection(),
+                    ),
+
+                    // ─── Gallery ───
+                    Obx(() {
+                      final item = _searchItem();
+                      final images = _flattenGallery(item?.gallery);
+                      if (images.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                        child: _buildGallerySection(images),
+                      );
+                    }),
+
                     // ─── 5. Contact & Map ───
                     Obx(() {
                       if (viewBusinessDetailsController
@@ -279,8 +512,7 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -375,4 +607,36 @@ class _ServicesHorizontalList extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Convert the other-service `/full` (also present on `/search`) timings
+/// block (weekday-keyed `{isOpen, openTime, closeTime}`) into the
+/// `List<Schedule>` shape [BusinessAvailabilityWidget] renders. Mirrors
+/// `_financeTimingsToSchedule` in `finance_detail_screen.dart` — kept
+/// separate because [OtherTimings] and [FinanceTimings] are distinct
+/// types even though the payload shape matches.
+List<Schedule>? _otherTimingsToSchedule(OtherTimings? t) {
+  if (t == null) return null;
+  const days = [
+    ('Monday', 1),
+    ('Tuesday', 2),
+    ('Wednesday', 3),
+    ('Thursday', 4),
+    ('Friday', 5),
+    ('Saturday', 6),
+    ('Sunday', 7),
+  ];
+  final out = <Schedule>[];
+  for (final entry in days) {
+    final d = t.forWeekday(entry.$2);
+    if (d == null || !d.hasHours) continue;
+    out.add(Schedule(
+      day: entry.$1,
+      isOpen: true,
+      shopOpenTime: d.openTime,
+      shopCloseTime: d.closeTime,
+      timeSlots: [TimeSlots(startTime: d.openTime, endTime: d.closeTime)],
+    ));
+  }
+  return out;
 }

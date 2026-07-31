@@ -32,6 +32,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../../core/constants/app_enum.dart';
 import '../../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../../widgets/common_business_live_photo.dart';
 import '../../../../../business/widgets/business_contact_map_card.dart';
 import '../../../../../business/widgets/business_joined_profile_card.dart';
 
@@ -134,6 +135,11 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
+          // SizedBox(height: SizeConfig.size10),
+          Padding(
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size30, right: SizeConfig.size12),
+              child: CommonBusinessLivePhoto(controller: businessController)),
           SizedBox(height: SizeConfig.size10),
 
           // ── Gallery ──
