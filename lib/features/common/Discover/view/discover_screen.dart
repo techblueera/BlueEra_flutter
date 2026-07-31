@@ -703,22 +703,50 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// with no generated card yet falls back to on its own.
   static const String _kFallbackHeaderBanner = AppImageAssets.selfProfileBanner;
 
-  /// Aspect ratio of the banner artwork (960x640).
+  /// Aspect ratio of the BUNDLED banner artwork (960x640), and the assumption
+  /// the header sizes itself on until the real slide has loaded.
   static const double _kHeaderBannerAspect = 3 / 2;
+
+  /// Real width/height of the slide currently in the header, once it has
+  /// decoded — see [_onBannerAspect].
+  double? _bannerAspect;
 
   /// Banner height that shows the WHOLE artwork rather than a cropped strip:
   /// derived from the width it actually gets (screen minus the header's 12px
   /// side padding) at the art's own aspect ratio, so nothing is cut off.
   ///
+  /// The ratio is the LOADED slide's own, not a fixed 3:2 — the marketing card
+  /// is composed server-side at whatever shape the backend likes. Sizing the
+  /// box to it is what keeps the banner free of letterbox strips: with the box
+  /// at the image's ratio there is nothing left over for `BoxFit.contain` to
+  /// pad, so the artwork fills it edge to edge and the overlays on it (the
+  /// promo line, the share button) sit ON the card instead of floating in a
+  /// blank band above it.
+  ///
   /// Capped at 32% of the screen height as a backstop. The header is a
   /// collapsing sliver, but it is still the first thing on the page — on a very
-  /// wide or very short viewport (tablet, landscape) the exact-aspect height
-  /// would push the search bar off the fold. Only that case crops, and only by
-  /// the overflow.
+  /// wide or very short viewport (tablet, landscape), or with a portrait card,
+  /// the exact-aspect height would push the search bar off the fold. Only that
+  /// case letterboxes, and only by the overflow.
   double _headerBannerHeight(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final exact = (size.width - 24) / _kHeaderBannerAspect;
+    final exact = (size.width - 24) / (_bannerAspect ?? _kHeaderBannerAspect);
     return exact > size.height * 0.32 ? size.height * 0.32 : exact;
+  }
+
+  /// The banner reporting the decoded size of its slide, which re-sizes the
+  /// header to match it.
+  ///
+  /// Deferred to after the frame: an image already in the cache resolves
+  /// SYNCHRONOUSLY inside the banner's build, and calling setState on this
+  /// ancestor from there is a "markNeedsBuild during build" crash.
+  void _onBannerAspect(double aspect) {
+    if (!aspect.isFinite || aspect <= 0) return;
+    if (_bannerAspect != null && (_bannerAspect! - aspect).abs() < 0.01) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _bannerAspect = aspect);
+    });
   }
 
   Widget _buildHeaderSliver(BuildContext context) {
@@ -744,6 +772,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         banner: _DiscoverHeaderBannerHost(
           height: bannerHeight,
           fallbackAsset: _kFallbackHeaderBanner,
+          onAspectRatio: _onBannerAspect,
         ),
         tabs: const SizedBox.shrink(),
         // tabs: _quickAccessTabs(),
@@ -1000,10 +1029,15 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
   const _DiscoverHeaderBannerHost({
     required this.height,
     required this.fallbackAsset,
+    this.onAspectRatio,
   });
 
   final double height;
   final String fallbackAsset;
+
+  /// Reports the decoded slide's width/height so the header can size its box to
+  /// the artwork — see [_DiscoverScreenState._onBannerAspect].
+  final ValueChanged<double>? onAspectRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -1043,6 +1077,7 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
         // Guests have no profile to share, so they get the strip without the
         // button rather than one that opens a card composed out of nothing.
         onShare: isGuestUser() ? null : () => SharePromoSheet.show(context),
+        onAspectRatio: onAspectRatio,
       );
     });
   }
@@ -1061,6 +1096,7 @@ class _DiscoverHeaderBanner extends StatefulWidget {
     required this.images,
     required this.height,
     this.onShare,
+    this.onAspectRatio,
   });
 
   /// Slide sources, in order. Bundled asset paths and backend URLs are both
@@ -1072,12 +1108,79 @@ class _DiscoverHeaderBanner extends StatefulWidget {
   /// Opens the profile share card. Null hides the share button entirely.
   final VoidCallback? onShare;
 
+  /// Reports the first slide's decoded width/height once it is available.
+  final ValueChanged<double>? onAspectRatio;
+
   @override
   State<_DiscoverHeaderBanner> createState() => _DiscoverHeaderBannerState();
 }
 
 class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
   int _current = 0;
+
+  ImageStream? _aspectStream;
+  ImageStreamListener? _aspectListener;
+
+  /// The slide [_aspectStream] is measuring, so a rebuild with the same artwork
+  /// doesn't re-resolve it.
+  String? _measuredSlide;
+
+  /// Decodes the first slide purely to learn its dimensions, and hands them up
+  /// so the header can size its box to the artwork instead of to an assumed
+  /// 3:2 — see [_DiscoverScreenState._headerBannerHeight]. Measuring the first
+  /// slide is enough: every slide shares the one box.
+  ///
+  /// This is a metadata read, not a second download — it resolves through the
+  /// same provider and cache the widget below paints from.
+  void _measureFirstSlide() {
+    final slide = widget.images.isEmpty ? null : widget.images.first;
+    if (slide == null || slide == _measuredSlide) return;
+    _detachAspectListener();
+    _measuredSlide = slide;
+
+    final ImageProvider provider = isNetworkImage(slide)
+        ? CachedNetworkImageProvider(slide) as ImageProvider
+        : AssetImage(slide);
+    final stream = provider.resolve(const ImageConfiguration());
+    final listener = ImageStreamListener(
+      (info, _) {
+        final h = info.image.height;
+        if (h > 0) widget.onAspectRatio?.call(info.image.width / h);
+      },
+      // A slide that won't decode falls back to the bundled artwork below, so
+      // the assumed 3:2 is the right box for it anyway.
+      onError: (_, __) {},
+    );
+    _aspectStream = stream;
+    _aspectListener = listener;
+    stream.addListener(listener);
+  }
+
+  void _detachAspectListener() {
+    if (_aspectStream != null && _aspectListener != null) {
+      _aspectStream!.removeListener(_aspectListener!);
+    }
+    _aspectStream = null;
+    _aspectListener = null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _measureFirstSlide();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiscoverHeaderBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _measureFirstSlide();
+  }
+
+  @override
+  void dispose() {
+    _detachAspectListener();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1110,6 +1213,41 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
               ),
               itemBuilder: (_, index, __) => _banner(widget.images[index]),
             ),
+          // The referral hook, ON the artwork: this banner IS the card the user
+          // shares, so the reward for sharing it is stated on the card rather
+          // than captioned above it. Top-LEFT, so it can never collide with the
+          // share button opposite. It lands on the image and not in a blank
+          // band because the box is sized to the artwork — see
+          // [_measureFirstSlide].
+          //
+          // Yellow can't carry itself over a poster of unknown brightness, so
+          // it takes a dark shadow — the same trick the folder captions use
+          // over the page background.
+          Positioned(
+            top: 10,
+            left: 14,
+            right: 52,
+            // Broken over three lines with explicit newlines rather than left
+            // to soft-wrap: the breaks belong after the comma and before the
+            // amount, and the phrase is short enough that its natural wrap
+            // points would move with the font scale and the width the share
+            // button leaves it.
+            child: CustomText(
+              'Share It,\nGet 100\nRupees',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w700,
+              color: AppColors.yellow00,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              shadows: const [
+                Shadow(
+                  color: Color(0xB3000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+          ),
           // Share — sits on the artwork itself so the profile poster and the
           // action on it are one thing. Top-right, clear of the page dots.
           if (widget.onShare != null)
@@ -1180,9 +1318,19 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
       child: SizedBox(
         width: double.infinity,
         height: widget.height,
-        // The height is derived from this width at the art's own aspect ratio
-        // (see `_headerBannerHeight`), so cover fills the box exactly — no
-        // crop, no letterbox bars showing the glass through the banner.
+        // CONTAIN, not cover. The first slide is the account's
+        // backend-generated marketing card, at whatever aspect ratio the server
+        // composed it: `cover` filled the box by cropping off whatever didn't
+        // fit, which on a wider-than-3:2 card sliced the left and right edges
+        // away — taking the brand strip and part of the phone mockup with them.
+        //
+        // The box itself is sized to this artwork's measured ratio (see
+        // [_measureFirstSlide] and `_headerBannerHeight`), so in the settled
+        // state contain has nothing left to pad and the card fills the box edge
+        // to edge. Contain is what covers the two moments where that isn't yet
+        // true — the frame before the measurement lands, and the capped height
+        // on a very short viewport — by scaling the whole card down rather than
+        // cropping into it.
         //
         // The marketing-card slide is a backend URL while the promo slide is a
         // bundled asset, so the source is resolved per slide. A card that fails
@@ -1191,16 +1339,16 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
         child: isNetworkImage(path)
             ? CachedNetworkImage(
                 imageUrl: path,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 placeholder: (_, __) => const ColoredBox(
                   color: Color(0x1AFFFFFF),
                 ),
                 errorWidget: (_, __, ___) => LocalAssets(
                   imagePath: AppImageAssets.selfProfileBanner,
-                  boxFix: BoxFit.cover,
+                  boxFix: BoxFit.contain,
                 ),
               )
-            : LocalAssets(imagePath: path, boxFix: BoxFit.cover),
+            : LocalAssets(imagePath: path, boxFix: BoxFit.contain),
       ),
     );
   }

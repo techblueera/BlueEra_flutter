@@ -297,7 +297,18 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           // simply shows the rest of the card without a poster.
           if (poster != null) ...[
             SizedBox(height: SizeConfig.size12),
-            RepaintBoundary(key: _bannerKey, child: _backendPoster(poster)),
+            // The promo line is stacked OUTSIDE the [RepaintBoundary], over the
+            // poster rather than inside it: everything within the boundary is
+            // what gets captured and sent, and "Share It, Get 100 Rupees" is
+            // addressed to the person holding the phone, not to whoever
+            // receives the card. On screen it reads as part of the artwork; the
+            // shared PNG stays exactly the poster the backend built.
+            Stack(
+              children: [
+                RepaintBoundary(key: _bannerKey, child: _backendPoster(poster)),
+                Positioned(top: 10, left: 14, right: 14, child: _promoLine()),
+              ],
+            ),
           ],
           SizedBox(height: SizeConfig.size14),
           _shareViaPanel(referralCode),
@@ -306,21 +317,59 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     );
   }
 
-  /// The backend-generated poster, rendered directly. Sits in the 3:2 slot the
-  /// server art is composed at, and lives inside the [RepaintBoundary] so the
-  /// existing "capture → share as PNG" flow still works unchanged.
+  /// The backend-generated poster, rendered directly and WHOLE, inside the
+  /// [RepaintBoundary] so the existing "capture → share as PNG" flow still
+  /// works unchanged.
+  ///
+  /// It used to be pinned into a 3:2 slot with `BoxFit.cover`. 3:2 is only what
+  /// the bundled promo artwork is drawn at — the server composes these cards at
+  /// whatever ratio it likes, so anything wider than 3:2 had its left and right
+  /// edges cropped away, and the crop went into the shared PNG as well as onto
+  /// the screen.
+  ///
+  /// So the poster now takes the card's full width and derives its own height
+  /// from the image's real aspect ratio: nothing cropped, no letterbox bars,
+  /// and the capture is the poster exactly as the backend built it. The 3:2 box
+  /// survives only as the placeholder/error footprint, which keeps the card
+  /// from jumping while the image loads.
   Widget _backendPoster(String url) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: AspectRatio(
-        aspectRatio: 3 / 2,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => Container(color: AppColors.greyE5),
-          errorWidget: (_, __, ___) => Container(color: AppColors.greyE5),
-        ),
+      child: CachedNetworkImage(
+        imageUrl: url,
+        width: double.infinity,
+        // fitWidth against an unbounded height: the render box takes the full
+        // width and scales its height with the image's own ratio.
+        fit: BoxFit.fitWidth,
+        placeholder: (_, __) => _posterPlaceholder(),
+        errorWidget: (_, __, ___) => _posterPlaceholder(),
       ),
+    );
+  }
+
+  Widget _posterPlaceholder() => AspectRatio(
+        aspectRatio: 3 / 2,
+        child: Container(color: AppColors.greyE5),
+      );
+
+  /// The referral hook sitting on the poster's top-left corner — the same line
+  /// the Discover header banner carries, so the card reads the same wherever it
+  /// is placed. Broken over three lines with explicit newlines rather than left
+  /// to soft-wrap, so the breaks don't move with the font scale.
+  ///
+  /// Yellow can't carry itself over a poster of unknown brightness, so it takes
+  /// a dark shadow.
+  Widget _promoLine() {
+    return CustomText(
+      'Share It,\nGet 100\nRupees',
+      fontSize: SizeConfig.medium,
+      fontWeight: FontWeight.w700,
+      color: AppColors.yellow00,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+      shadows: const [
+        Shadow(color: Color(0xB3000000), blurRadius: 4, offset: Offset(0, 1)),
+      ],
     );
   }
 
@@ -333,14 +382,16 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     }
   }
 
-  // ───── Header (referral code + optional close) ────────────────────
+  // ───── Header (headline + optional close) ─────────────────────────
 
-  /// Headline on the left, Learn More pill (and the dialog's ✕) trailing.
+  /// Headline on the left, the dialog's ✕ trailing.
   ///
-  /// The headline is the only flexible child, so the pill and the close button
-  /// always get their intrinsic width and the row can't overflow on narrow
-  /// screens. The pill is centred against the two-line headline rather than
-  /// pinned to its baseline, which left it sitting low and detached.
+  /// Learn More used to sit up here beside the headline, competing with it for
+  /// the row's width — it now lives under the share panel, next to the terms it
+  /// opens (see [_learnMoreButton]).
+  ///
+  /// The headline is the only flexible child, so the close button always gets
+  /// its intrinsic width and the row can't overflow on narrow screens.
   ///
   /// The two lines are authored with an explicit `\n` and then scaled down as a
   /// whole to whatever width is left over. At a hard 24px, "Share One-Time,"
@@ -375,8 +426,6 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
             ),
           ),
         ),
-        SizedBox(width: SizeConfig.size8),
-        _learnMoreButton(),
         if (widget.showCloseButton) ...[
           SizedBox(width: SizeConfig.size4),
           InkWell(
@@ -447,45 +496,37 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           ),
           SizedBox(width: SizeConfig.size4),
         ],
+        SizedBox(width: SizeConfig.size8),
+        _learnMoreLink(),
       ],
     );
   }
 
-  /// Compact tinted pill. It used to be a white box with a drop shadow, which
-  /// on the card's own white surface read as a smudge rather than a control —
-  /// the tint carries the affordance instead, and the smaller type keeps it
-  /// subordinate to the 24px headline it sits beside.
-  Widget _learnMoreButton() {
-    final accent = AppColors.blueAF;
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: _openTermsAndConditions,
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: accent.withValues(alpha: 0.35),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                AppStrings.learnMore.tr,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: accent,
-              ),
-              const SizedBox(width: 2),
-              Icon(Icons.chevron_right_rounded, size: 16, color: accent),
-            ],
-          ),
+  /// Learn More as bare underlined text, trailing the referral-code line.
+  ///
+  /// It has moved twice and shrunk each time, for the same reason: it is a link
+  /// to the terms, not an action. As a tinted pill beside the 24px headline it
+  /// read as a second call to action and took width the headline needed; as
+  /// plain text at the end of the code row it sits with the small print it
+  /// belongs to and costs the card nothing.
+  ///
+  /// The underline is what carries the affordance now that there is no pill —
+  /// blue text alone on this card would be indistinguishable from the code
+  /// beside it. The padding is dead space around the glyphs purely to keep the
+  /// tap target reachable.
+  Widget _learnMoreLink() {
+    return InkWell(
+      onTap: _openTermsAndConditions,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: CustomText(
+          AppStrings.learnMore.tr,
+          fontSize: SizeConfig.small11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.blueAF,
+          decoration: TextDecoration.underline,
+          decorationColor: AppColors.blueAF,
         ),
       ),
     );
