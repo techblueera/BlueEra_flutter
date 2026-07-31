@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -11,7 +13,6 @@ import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/food/view/customer/food_self_pickup_cart_screen.dart';
-import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -1101,9 +1102,17 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
+  /// Routed through [openVisitProfile] so the type→screen mapping stays in one
+  /// place. The food store screen hydrates from the business id alone, so
+  /// there's nothing to hand over beyond it.
   void _navigateToDetail(GetAllStoreResModel store) {
     if (store.id == null) return;
-    Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: store.id!));
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: BusinessType.Food.name,
+      businessId: store.id,
+      userId: store.userId,
+    );
   }
 
   // ignore: unused_element

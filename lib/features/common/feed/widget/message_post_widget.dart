@@ -11,13 +11,11 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/translator_function.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
@@ -26,8 +24,6 @@ import 'package:BlueEra/features/common/post/message_post/create_message_repost_
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -38,7 +34,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/shared_preference_utils.dart';
 import 'social_message_post_grid_widget.dart';
 
 bool shouldShowTranslate(String text) {
@@ -937,33 +932,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     );
   }
 
+  /// Author of the reposted (`children_post`) card. Same shared resolver as
+  /// every other feed profile tap — which also fixes the business branch: it
+  /// used to pass the author's *user* id as the business id, opening an empty
+  /// business profile.
   openProfileToClickUser() {
-    Post? data = widget.post?.children_post;
-    String? authorId = data?.user?.id;
-    String? userBusinessId = data?.user?.id;
-    String? userAccountType = data?.user?.accountType?.toUpperCase();
-    if (userAccountType == AppConstants.individual) {
-      if (userId == authorId) {
-        openMeOverview();
-
-        // navigatePushTo(context, PersonalProfileSetupNewScreen());
-      } else {
-        Get.to(() => NewVisitProfileScreen(
-              authorId: authorId ?? "",
-              screenFromName: AppConstants.feedScreen,
-            ));
-      }
-    }
-    if (userAccountType == AppConstants.business) {
-      if (businessId == userBusinessId) {
-        navigatePushTo(context, BusinessOwnProfileScreen());
-      } else {
-        Get.to(() => VisitBusinessProfileNew(
-              businessId: userBusinessId ?? "",
-              screenName: AppConstants.feedScreen,
-            ));
-      }
-    }
+    openFeedProfile(widget.post?.children_post?.user);
   }
 }
 

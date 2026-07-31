@@ -14,6 +14,8 @@ import 'package:BlueEra/core/services/ongoing_ride_restorer.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/recent_shops_models.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
@@ -139,6 +141,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         widget: RecentlyVisitedStoresSection(
           onViewAll: () =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          onStoreTap: _openRecentShop,
         ),
         tabs: {1}
       ),
@@ -156,6 +159,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         widget: RecentlyVisitedStoresSection(
           onViewAll: () =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          onStoreTap: _openRecentShop,
         ),
         tabs: {3}
       ),
@@ -183,6 +187,27 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: JobServiceCardWidget(), tabs: {5}),
       (widget: EducationServiceCardWidget(), tabs: {5}),
     ];
+  }
+
+  /// Opens a shop the user has ordered from before. Every store-opening tap in
+  /// Discover goes through [openVisitProfile] so the type→screen mapping lives
+  /// in one place.
+  ///
+  /// `vertical` is the rail's own grocery/product/food bucket, which is exactly
+  /// what `type_of_business` means to the resolver.
+  ///
+  /// The two ids are NOT interchangeable and this endpoint reports both under
+  /// the same name: the nested `business` object comes from user-service, so
+  /// `business.businessId` is the business `_id` (what the profile fetch
+  /// wants), while the top-level `businessId` is the vertical service's own
+  /// key — the owner **user** id (what the inventory fetch wants).
+  void _openRecentShop(RecentShop shop) {
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: shop.vertical.name,
+      businessId: shop.business?.businessId ?? shop.businessId,
+      userId: shop.businessId,
+    );
   }
 
   @override

@@ -1,18 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/qa_post_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:dio/dio.dart';
@@ -20,8 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-
-import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
 class FeedCard extends StatefulWidget {
   final Post? post;
@@ -78,33 +74,10 @@ class _FeedCardState extends State<FeedCard> {
 
   void _navigateToProfile({required String authorId}) {
     if (!_shouldShowProfileNavigation()) return;
-    if (authorId == userId) {
-      if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => NewVisitProfileScreen(
-              authorId: authorId,
-              screenFromName: AppConstants.feedScreen,
-            ));
-      } else if (_post?.user?.accountType?.toUpperCase() ==
-          AppConstants.business) {
-        Get.to(() => VisitBusinessProfileNew(
-              businessId: _post?.user?.business_id ?? "",
-              screenName: AppConstants.feedScreen,
-            ));
-      }
-    } else {
-      if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => NewVisitProfileScreen(
-              authorId: authorId,
-              screenFromName: AppConstants.feedScreen,
-            ));
-      } else if (_post?.user?.accountType?.toUpperCase() ==
-          AppConstants.business) {
-        Get.to(() => VisitBusinessProfileNew(
-              businessId: _post?.user?.business_id ?? "",
-              screenName: AppConstants.feedScreen,
-            ));
-      }
-    }
+    // One resolver for every feed profile tap — see [openFeedProfile]. It
+    // routes on the author's type + sub-category, so a business author reaches
+    // its own store / lab / pharmacy screen instead of the generic profile.
+    openFeedProfile(_post?.user?.copyWith(id: authorId));
   }
 
   final feedController = Get.isRegistered<FeedController>()

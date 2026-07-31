@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -11,7 +13,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
-import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -164,11 +165,17 @@ class _FinanceCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
       child: InkWell(
-        onTap: () {
-          final controller = Get.find<FinanceDiscoverController>();
-          controller.selectedDetail.value = item;
-          Get.to(() => const FinanceDetailScreen());
-        },
+        // Routed through openVisitProfile so the type→screen mapping stays in
+        // one place. The lightweight list item goes with it and seeds
+        // `selectedDetail`, so the detail screen renders at once and upgrades
+        // itself to the full record.
+        onTap: () => openVisitProfile(
+          accountType: AppConstants.business,
+          typeOfBusiness: BusinessType.Finance.name,
+          businessId: item.businessProfileId ?? item.id,
+          userId: item.userId,
+          financeData: item,
+        ),
         child: CommonCardWidget(
           cardMargin: 0,
           padding: 0,

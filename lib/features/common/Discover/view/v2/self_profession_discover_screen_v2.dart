@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -373,7 +374,12 @@ class _SelfProfessionDiscoverScreenV2State
                           userId: service.id ?? '',
                           source: ChatClickSource.searchResult,
                         );
-                        Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
+                        openVisitProfile(
+        accountType: AppConstants.individual,
+        profileType: SELF_EMPLOYED,
+        userId: service.id,
+        serviceData: service,
+      );
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
@@ -707,7 +713,12 @@ class _SelfProfessionDiscoverScreenV2State
         userId: service.id ?? '',
         source: ChatClickSource.searchResult,
       );
-      Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
+      openVisitProfile(
+        accountType: AppConstants.individual,
+        profileType: SELF_EMPLOYED,
+        userId: service.id,
+        serviceData: service,
+      );
     }
 
     return InkWell(

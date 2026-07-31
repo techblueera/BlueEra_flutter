@@ -7,14 +7,13 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/image_post_feed_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -146,20 +145,9 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
 
   List<String> get _images => _post.media ?? const [];
 
-  void _openProfile() {
-    final accountType = _post.user?.accountType?.toUpperCase();
-    if (accountType == AppConstants.individual) {
-      Get.to(() => NewVisitProfileScreen(
-            authorId: _post.user?.id ?? '',
-            screenFromName: AppConstants.feedScreen,
-          ));
-    } else if (accountType == AppConstants.business) {
-      Get.to(() => VisitBusinessProfileNew(
-            businessId: _post.user?.business_id ?? '',
-            screenName: AppConstants.feedScreen,
-          ));
-    }
-  }
+  /// Same shared resolver as the feed list, so the author opens on whichever
+  /// screen their profile type / sub-category owns.
+  void _openProfile() => openFeedProfile(_post.user);
 
   void _openComments() {
     if (isGuestUser()) {

@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
@@ -14,7 +16,6 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../business/widgets/rating_widget.dart';
-import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
 ///
@@ -628,10 +629,15 @@ class ServiceBusinessCard extends StatelessWidget {
     );
   }
 
+  /// Routed through [openVisitProfile] so the type→screen mapping stays in one
+  /// place. The service detail screen hydrates from the owner id alone.
   void _openStore() {
-    Get.to(() => OthersServiceDetailScreen(
-          visitUserId: _profile?.userId ?? '',
-        ));
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: BusinessType.Service.name,
+      businessId: _profile?.id,
+      userId: _profile?.userId,
+    );
   }
 
   Future<void> _onRateTap() async {

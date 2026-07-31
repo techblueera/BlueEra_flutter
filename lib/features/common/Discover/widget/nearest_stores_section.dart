@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -7,12 +8,8 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/quick_rider_book_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
-import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
-import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -94,38 +91,38 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
   void _open(_NearbyEntry e) {
     final store = e.store;
     if (store != null) {
-      switch (store.type.toLowerCase()) {
-        case 'food':
-          Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: store.id));
-          break;
-        case 'product':
-          Get.to(() =>
-              VisitProductStoreDetailsScreen(visitUserId: store.userId ?? ''));
-          break;
-        case 'grocery':
-        default:
-          Get.to(() => VisitGroceryStoreScreen(
-                visitBusinessId: store.id,
-                userId: store.userId ?? '',
-              ));
-      }
+      // `type` (Grocery | Food | Product) is the BUCKET the backend put this
+      // store in, not `typeOfBusiness` — a Service business that lists products
+      // arrives here as `type: Product, typeOfBusiness: Service`, and the
+      // product store is what the user wants. So route on the bucket, exactly
+      // as this rail always has.
+      openVisitProfile(
+        accountType: AppConstants.business,
+        typeOfBusiness: store.type,
+        categoryOfBusiness: store.categoryName,
+        businessId: store.id,
+        userId: store.userId,
+      );
       return;
     }
     final worker = e.worker!;
     if (worker.userId.isEmpty) return;
     // Riders (gig workers) → the quick-book flow instead of a profile: the user
     // wants to hire THIS rider, not view them. Enter drop location on a map and
-    // connect to the rider.
+    // connect to the rider. Deliberately NOT routed through openVisitProfile —
+    // that opens profiles, and this is a booking.
     if (worker.isRider) {
       Get.to(() => QuickRiderBookScreen(rider: worker));
       return;
     }
-    // Professional → consultant view; self-employed → the self-employee view.
-    if (worker.isProfessional) {
-      Get.to(() => DiscoverProfessionalsViewScreen(userId: worker.userId));
-    } else {
-      Get.to(() => SelfEmployeeViewDiscoverScreen(userId: worker.userId));
-    }
+    // `profession` is the coarse SELF_EMPLOYED / PROFESSIONAL enum the guide
+    // says to route on (`profileType` is the display string "Self Employed" /
+    // "GigWork"), so that's what the resolver gets.
+    openVisitProfile(
+      accountType: AppConstants.individual,
+      profileType: worker.profession,
+      userId: worker.userId,
+    );
   }
 
   @override

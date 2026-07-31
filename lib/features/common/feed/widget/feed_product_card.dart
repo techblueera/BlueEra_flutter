@@ -1,13 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Renders one `type: "product"` entry from the mixed `/feed` response
 /// (see docs/backend/FRONTEND_FEED_INTEGRATION.md §4.6) as a banner-style
@@ -15,9 +12,9 @@ import 'package:get/get.dart';
 /// (image on top, title, prominent price, store row).
 ///
 /// The card carries no visible action buttons, but tapping it opens the
-/// seller's profile — the business profile when the seller's `account_type` is
-/// business, otherwise the individual visiting profile — mirroring the feed
-/// author-header routing.
+/// seller's profile through the same resolver every other feed profile tap
+/// uses ([openFeedProfile]), so the seller's own store screen wins when its
+/// type/sub-category has one.
 class FeedProductCard extends StatelessWidget {
   final Post post;
   final double? horizontalPadding;
@@ -32,29 +29,11 @@ class FeedProductCard extends StatelessWidget {
 
   FeedProduct? get _product => post.product;
 
-  /// Opens the seller's profile, routing on the author's `account_type`:
-  /// business → [VisitBusinessProfileNew], individual (default) →
-  /// [NewVisitProfileScreen].
-  void _openSeller() {
-    final user = post.user;
-    final accountType = user?.accountType?.toUpperCase();
-
-    if (accountType == AppConstants.business) {
-      final businessId = user?.business_id ?? '';
-      if (businessId.isEmpty) return;
-      Get.to(() => VisitBusinessProfileNew(
-            businessId: businessId,
-            screenName: AppConstants.feedScreen,
-          ));
-    } else {
-      final authorId = user?.id ?? '';
-      if (authorId.isEmpty) return;
-      Get.to(() => NewVisitProfileScreen(
-            authorId: authorId,
-            screenFromName: AppConstants.feedScreen,
-          ));
-    }
-  }
+  /// Opens the seller through the shared feed profile resolver
+  /// ([openFeedProfile]), which routes on the seller's account type *and*
+  /// sub-category — so a product listed by a grocery store opens that store,
+  /// not the generic business profile.
+  void _openSeller() => openFeedProfile(post.user);
 
   @override
   Widget build(BuildContext context) {

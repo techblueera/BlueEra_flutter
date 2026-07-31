@@ -782,6 +782,10 @@ class User {
     String? accountType,
     String? name,
     String? businessName,
+    // Carried through like every other field: dropping it turned a copied
+    // business author into an id-less one, which is exactly what profile
+    // routing keys on.
+    String? business_id,
     String? categoryOfBusiness,
     String? natureOfBusiness,
   }) {
@@ -793,6 +797,7 @@ class User {
       accountType: accountType ?? this.accountType,
       name: name ?? this.name,
       businessName: businessName ?? this.businessName,
+      business_id: business_id ?? this.business_id,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
     );
   }

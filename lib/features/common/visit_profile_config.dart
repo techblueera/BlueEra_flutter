@@ -3,11 +3,17 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
@@ -88,12 +94,13 @@ Future<void> openVisitProfile({
   String? profileType,
 
   /// Individual only: the profession tag (`CONTENT_CREATOR`, `ARTIST`,
-  /// `JOURNALIST`, …).
+  /// `JOURNALIST`, …) or its display designation (`"Bike Rider"`).
   ///
-  /// Kept in the signature because callers have it and it's what the *own*
-  /// profile resolver branches on — but there is currently no per-profession
-  /// **visit** screen (a visited content creator and a visited journalist both
-  /// open [NewVisitProfileScreen]), so it doesn't change the target today.
+  /// There is no per-profession **visit** screen (a visited content creator and
+  /// a visited journalist both open [NewVisitProfileScreen]), but the
+  /// profession *decides* [profileType] — so when a caller only has this (the
+  /// feed sends `designation` and no `profile_type`) it's looked up in the
+  /// master profession list and routes the same as a full payload would.
   String? profession,
 
   /// Individual only: entries from `earnProfileTypes` — `HOME_MADE_FOOD`,
@@ -122,6 +129,43 @@ Future<void> openVisitProfile({
   /// Passed through to the generic profile screens for their back/analytics
   /// behaviour.
   String screenFrom = AppConstants.feedScreen,
+
+  // ── Optional pre-fetched payloads ────────────────────────────────────────
+  //
+  // Listing screens usually already hold the record behind the card they were
+  // tapped on. Handing it over here means the detail screen renders instantly
+  // instead of showing its loader and refetching what the caller had in hand.
+  // Every one is optional: pass nothing and the id-only path still works.
+  //
+  // Do NOT add a payload param for a screen that can already hydrate from an
+  // id — it just widens the signature for no gain.
+
+  /// `Motel` — skips the blocking fetch dialog in
+  /// [DeepLinkNetworkResources.navigateToHotelDetail] entirely.
+  HotelServiceData? hotelData,
+
+  /// `Siksha` — seeds [SchoolAboutUsController] so the header paints
+  /// immediately; the screen still loads the full record itself.
+  SchoolDetailsData? schoolData,
+
+  /// `Healthcare` + hospital categories — seeds [HospitalServiceAiController]
+  /// with the real record instead of an id-only stub.
+  HospitalFullData? hospitalData,
+
+  /// `Finance` — seeds [FinanceDiscoverController.selectedDetail], which also
+  /// stops [FinanceDetailScreen] firing its own fetch.
+  FinanceBusinessItem? financeData,
+
+  /// Individual `SELF_EMPLOYED` — the provider's fetched service document.
+  ServiceData? serviceData,
+
+  /// Individual `PROFESSIONAL` — the consultant's fetched listing.
+  ProfessionalConsData? professionalData,
+
+  /// Individual home-made store — name/logo for an instant header while the
+  /// store hydrates.
+  String? storeName,
+  String? storeLogo,
 }) async {
   final String bid = _pick(businessId, userId);
   final String uid = _pick(userId, businessId);
@@ -132,11 +176,23 @@ Future<void> openVisitProfile({
   }
 
   final String account = _norm(accountType);
-  final String type = _norm(typeOfBusiness);
-  final String category = _norm(categoryOfBusiness);
+  String type = _norm(typeOfBusiness);
+  final String category = _norm(canonicalBusinessCategory(categoryOfBusiness));
+
+  // Light payloads (`/feed`, search, chat) carry only the sub-category and the
+  // designation — never `type_of_business` / `profile_type`, which is what the
+  // tables below key on. Recover them from the master category lists so those
+  // callers land on the same dedicated screen a full profile payload would,
+  // instead of dead-ending on the generic profile.
+  if (type.isEmpty && account != _normConst(AppConstants.individual)) {
+    type = _norm(businessTypeForCategory(category));
+  }
+  final String individualType = _norm(individualProfileTypeFor(profileType) ??
+      individualProfileTypeFor(profession) ??
+      profileType);
 
   logs('openVisitProfile: account=$account type=$type category=$category '
-      'profileType=${_norm(profileType)} bid=$bid uid=$uid');
+      'profileType=$individualType bid=$bid uid=$uid');
 
   // BUSINESS is decided by `account_type`, but a payload that carries a
   // `type_of_business` is a business profile regardless of what (or whether)
@@ -151,15 +207,23 @@ Future<void> openVisitProfile({
       businessId: bid,
       userId: uid,
       screenFrom: screenFrom,
+      hotelData: hotelData,
+      schoolData: schoolData,
+      hospitalData: hospitalData,
+      financeData: financeData,
     );
     return;
   }
 
   _openIndividual(
-    profileType: _norm(profileType),
+    profileType: individualType,
     earnProfileTypes: earnProfileTypes,
     userId: uid,
     screenFrom: screenFrom,
+    serviceData: serviceData,
+    professionalData: professionalData,
+    storeName: storeName,
+    storeLogo: storeLogo,
   );
 }
 
@@ -172,6 +236,10 @@ void _openIndividual({
   required List<String>? earnProfileTypes,
   required String userId,
   required String screenFrom,
+  ServiceData? serviceData,
+  ProfessionalConsData? professionalData,
+  String? storeName,
+  String? storeLogo,
 }) {
   // Home-made stores win over the person's own profile type: the tap came from
   // a store rail, so the user wants the storefront.
@@ -181,7 +249,11 @@ void _openIndividual({
     return;
   }
   if (earn.contains(_normConst(HOME_MADE_PRODUCTS))) {
-    Get.to(() => HmpStoreDetailsDiscoverScreenV2(userId: userId));
+    Get.to(() => HmpStoreDetailsDiscoverScreenV2(
+          userId: userId,
+          serviceName: storeName,
+          serviceLogo: storeLogo,
+        ));
     return;
   }
   // HOME_SERVICES deliberately has no branch: its detail screen
@@ -190,10 +262,18 @@ void _openIndividual({
 
   switch (profileType) {
     case SELF_EMPLOYED:
-      Get.to(() => SelfEmployeeViewDiscoverScreen(userId: userId));
+      // `service` non-null → renders immediately; null → screen self-fetches
+      // from `userId` behind its own loader.
+      Get.to(() => SelfEmployeeViewDiscoverScreen(
+            service: serviceData,
+            userId: userId,
+          ));
       return;
     case PROFESSIONAL:
-      Get.to(() => DiscoverProfessionalsViewScreen(userId: userId));
+      Get.to(() => DiscoverProfessionalsViewScreen(
+            professionalConsData: professionalData,
+            userId: userId,
+          ));
       return;
     case GIG_WORKER:
     case SOCIAL_PROFILE:
@@ -218,6 +298,10 @@ Future<void> _openBusiness({
   required String businessId,
   required String userId,
   required String screenFrom,
+  HotelServiceData? hotelData,
+  SchoolDetailsData? schoolData,
+  HospitalFullData? hospitalData,
+  FinanceBusinessItem? financeData,
 }) async {
   // Every dedicated visit screen below does `Get.find<ViewBusinessDetailsController>()`
   // in its initState/field initialisers, so register it once up front — this is
@@ -253,24 +337,32 @@ Future<void> _openBusiness({
       category: category,
       businessId: businessId,
       screenFrom: screenFrom,
+      hospitalData: hospitalData,
     );
     return;
   }
 
   if (type == _enum(BusinessType.Siksha)) {
-    _openSchool(businessId);
+    _openSchool(businessId, schoolData);
     return;
   }
 
   if (type == _enum(BusinessType.Motel)) {
-    // The hotel screen needs a fully fetched HotelServiceData, so this shows
-    // its own blocking loader and snackbars on failure.
+    // Caller already has the record (a hotel list) → push straight through.
+    if (hotelData != null) {
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      Get.to(() => HotelDiscoverHomeScreen(data: hotelData));
+      return;
+    }
+    // Id-only entry (deep link, nearby rail): the hotel screen REQUIRES a full
+    // HotelServiceData, so this fetches it behind a blocking dialog and
+    // snackbars on failure.
     await deepLinkNetworkResources.navigateToHotelDetail(businessId);
     return;
   }
 
   if (type == _enum(BusinessType.Finance)) {
-    _openFinance(businessId);
+    _openFinance(businessId, financeData);
     return;
   }
 
@@ -301,6 +393,7 @@ void _openHealthcare({
   required String category,
   required String businessId,
   required String screenFrom,
+  HospitalFullData? hospitalData,
 }) {
   if (category == 'PHARMACY') {
     // Self-hydrates (profile + inventory) from the business id.
@@ -322,13 +415,14 @@ void _openHealthcare({
     'ALTERNATIVE_HEALTH',
   };
   if (hospitalCategories.contains(category)) {
-    // DiscoverHospitalHomeScreen reads from HospitalServiceAiController. Seed
-    // the model with just the id — its initState fetches the full profile and
-    // merges the hospital sections.
+    // DiscoverHospitalHomeScreen reads from HospitalServiceAiController, so
+    // seed it before the push. With a caller-supplied record the header paints
+    // at once; without one an id-only stub is enough — the screen's initState
+    // fetches the full profile and merges the hospital sections either way.
     final hospitalController = getOrPut(() => HospitalServiceAiController());
     hospitalController.hospitalDataResModel?.value = HospitalFullDetailsResModel(
       success: true,
-      data: HospitalFullData(id: businessId),
+      data: hospitalData ?? HospitalFullData(id: businessId),
     );
     Get.to(() => const DiscoverHospitalHomeScreen());
     return;
@@ -337,26 +431,35 @@ void _openHealthcare({
   _openGenericBusiness(businessId, screenFrom);
 }
 
-/// DiscoverSchoolHomeScreen reads from SchoolAboutUsController. Reset it first
-/// so a previously-viewed school doesn't flash, then push and fetch. The id is
-/// passed as BOTH `schoolID` and `ownerID` — the controller tries the school-id
-/// lookup and transparently falls back to the owner-id one, so it resolves
-/// whichever kind of id the caller happened to hold.
-void _openSchool(String id) {
+/// DiscoverSchoolHomeScreen reads from [SchoolAboutUsController], so it's
+/// always seeded before the push.
+///
+/// With a caller-supplied [data] (a school list item) the header renders at
+/// once and the screen loads the full record itself. Without one we seed an
+/// EMPTY record — so a previously-viewed school can't flash — and kick off the
+/// lookup here. The id goes in as BOTH `schoolID` and `ownerID`: the controller
+/// tries the school-id lookup and transparently falls back to the owner-id one,
+/// so it resolves whichever kind of id the caller happened to hold.
+void _openSchool(String id, SchoolDetailsData? data) {
   final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
-  schoolAboutUsController.schoolDetailsData?.value = SchoolDetailsData();
+  schoolAboutUsController.schoolDetailsData?.value = data ?? SchoolDetailsData();
   Get.to(() => DiscoverSchoolHomeScreen());
-  schoolAboutUsController.getSchoolByIdController(schoolID: id, ownerID: id);
+  if (data == null) {
+    schoolAboutUsController.getSchoolByIdController(schoolID: id, ownerID: id);
+  }
 }
 
-/// FinanceDetailScreen reads from FinanceDiscoverController. Clear the previous
-/// selection and kick the fetch off up front so the screen shows its own loader
-/// instead of a half-empty header; leaving `selectedDetail` null also stops its
-/// initState firing a second fetch.
-void _openFinance(String id) {
+/// FinanceDetailScreen reads from [FinanceDiscoverController].
+///
+/// A caller-supplied [data] (the lightweight list item) goes straight into
+/// `selectedDetail`; the screen then upgrades it to the full record itself.
+/// Without one we clear the previous selection and fetch here — leaving
+/// `selectedDetail` null is also what stops the screen's initState firing a
+/// second, duplicate fetch.
+void _openFinance(String id, FinanceBusinessItem? data) {
   final controller = getOrPut(() => FinanceDiscoverController());
-  controller.selectedDetail.value = null;
-  controller.fetchDetail(id);
+  controller.selectedDetail.value = data;
+  if (data == null) controller.fetchDetail(id);
   Get.to(() => const FinanceDetailScreen());
 }
 
@@ -371,11 +474,13 @@ void _openGenericBusiness(String businessId, String screenFrom) {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// First non-blank of the two, else `''`.
+/// First usable of the two, else `''`.
+///
+/// "Usable" excludes the placeholder text the feed sends for an absent
+/// relation (`"business_id":"null"` on every individual author) — treating
+/// that as an id opens a business profile for the literal string `null`.
 String _pick(String? a, String? b) {
-  final first = (a ?? '').trim();
-  if (first.isNotEmpty) return first;
-  return (b ?? '').trim();
+  return cleanTaxonomyValue(a) ?? cleanTaxonomyValue(b) ?? '';
 }
 
 /// Uppercases and collapses whitespace to underscores so the API's two spellings

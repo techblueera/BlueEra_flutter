@@ -2,6 +2,8 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -12,12 +14,10 @@ import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -278,13 +278,17 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     return InkWell(
       onTap: () {
-        // Seed the lighter list item so the header renders instantly; the
-        // school home screen then loads the full record from
+        // Routed through openVisitProfile so the type→screen mapping stays in
+        // one place. The lighter list item goes with it, so the header renders
+        // instantly; the school home screen then loads the full record from
         // `education-service/schools/{id}` itself (in its initState).
-        final schoolAboutUsController =
-            getOrPut(() => SchoolAboutUsController());
-        schoolAboutUsController.schoolDetailsData?.value = service;
-        Get.to(DiscoverSchoolHomeScreen());
+        openVisitProfile(
+          accountType: AppConstants.business,
+          typeOfBusiness: BusinessType.Siksha.name,
+          businessId: service.id,
+          userId: service.ownerId,
+          schoolData: service,
+        );
       },
       child: CustomFormCard(
         padding: EdgeInsets.zero,

@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -16,17 +15,15 @@ import 'package:BlueEra/features/common/comment/controller/comment_controller.da
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -1118,17 +1115,8 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
     );
   }
 
-  void _openProfile(User? user) {
-    if (user?.id == null) return;
-    if (userId == user?.id) {
-      openMeOverview();
-
-      // navigatePushTo(context, PersonalProfileSetupNewScreen());
-    } else {
-      Get.to(() => NewVisitProfileScreen(
-            authorId: user?.id ?? '',
-            screenFromName: AppConstants.feedScreen,
-          ));
-    }
-  }
+  /// Shared feed resolver — which also fixes business authors: this used to
+  /// push the individual visiting profile for everyone, so tapping a business
+  /// here opened an empty personal profile.
+  void _openProfile(User? user) => openFeedProfile(user);
 }
