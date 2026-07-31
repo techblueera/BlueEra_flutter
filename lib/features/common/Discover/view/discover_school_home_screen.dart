@@ -180,13 +180,13 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     // on top of those two margins, producing a ~30px gap
                     // between the cards instead of the intended ~10px.
 
-                    if (data?.courses?.isEmpty ?? false) ...[
-                      SizedBox(height: SizeConfig.size10),
-                    ],
+                    // if (data?.courses?.isEmpty ?? false) ...[
+                    SizedBox(height: SizeConfig.size10),
+                    // ],
 
                     /// COURSES
                     _CoursesSection(data: data),
-                    SizedBox(height: SizeConfig.size5),
+                    // SizedBox(height: SizeConfig.size5),
 
                     /// LIVE PHOTOS — self-contained: collapses fully
                     /// (SizedBox.shrink, no orphan spacer) when the
