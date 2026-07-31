@@ -193,7 +193,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size6),
               CustomText(
-                '($reviews ${reviews == 1 ? AppStrings.review.tr : AppStrings.reviews.tr})',
+                '($reviews ${reviews == 1 ? AppStrings.review.tr : AppStrings.review.tr})',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -202,6 +202,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
           ),
         ],
 
+    ),
     );
   }
 
