@@ -1,10 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -17,7 +17,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../business/widgets/rating_widget.dart';
 import '../controller/other_service_business_search_controller.dart';
-import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
 ///
@@ -62,7 +61,7 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   String get _avatarUrl {
-    final cover = _profile?.coverUrl?.trim() ?? '';
+    final cover = _profile?.logoUrl?.trim() ?? '';
     if (cover.isNotEmpty) return cover;
     return item.management
         .map((m) => m.imageUrl ?? '')

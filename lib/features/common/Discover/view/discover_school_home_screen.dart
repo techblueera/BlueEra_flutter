@@ -8,10 +8,12 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
@@ -19,10 +21,13 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_dire
 import 'package:BlueEra/features/me/school/view/category/school_home/school_management_view.dart';
 import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/school/widget/school_course_list_item_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart'
+    as avail;
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
@@ -135,6 +140,8 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                           .visitedBusinessProfileDetails?.data;
                       return VisitBusinessHero(
                         details: details,
+                        scheduleOverride:
+                            _schoolTimingsToSchedule(data?.availability),
                         onRated: () => viewBusinessDetailsController
                             .viewBusinessProfileById(
                           data?.ownerId ?? '',
@@ -179,14 +186,77 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
 
                     /// COURSES
                     _CoursesSection(data: data),
-                    // if (data?.campusLife?.isNotEmpty ?? false) ...[
-                    //   SizedBox(height: SizeConfig.size10),
-                    // ],
+                    SizedBox(height: SizeConfig.size5),
+
+                    /// LIVE PHOTOS — self-contained: collapses fully
+                    /// (SizedBox.shrink, no orphan spacer) when the
+                    /// profile has none; owns its top/bottom gap when
+                    /// it renders so it can't touch neighbouring cards.
+                    Obx(() {
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      final details = viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data;
+                      final photos = (details?.livePhotos ?? const <String>[])
+                          .where((p) => p.trim().isNotEmpty)
+                          .toList();
+                      if (photos.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.paddingXSL,
+                          vertical: 5,
+                        ),
+                        child: CustomFormCard(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CustomText(
+                                'Live Photos',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              const SizedBox(height: 10),
+                              StoreLivePhotoWidget(
+                                livePhotos: photos,
+                                natureOfBusiness:
+                                    details?.subCategoryDetails?.name ??
+                                        details?.natureOfBusiness ??
+                                        'OTHER',
+                                onViewFullScreen: ({
+                                  required int index,
+                                  required List<String> storeImage,
+                                  required String natureOfBusiness,
+                                }) {
+                                  navigatePushTo(
+                                    context,
+                                    ImageViewScreen(
+                                      appBarTitle: details?.businessName ?? '',
+                                      subTitle: natureOfBusiness,
+                                      imageUrls: storeImage,
+                                      initialIndex: index,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    if (_hasGalleryImages(data))
+                      SizedBox(height: SizeConfig.size5),
 
                     /// CAMPUS GALLERY (social-style grid)
                     _GallerySection(data: data),
 
                     SizedBox(height: SizeConfig.size10),
+
+                    // Only pad below the gallery when it actually rendered
+                    // an image grid — the empty-state gallery card should
+                    // sit tight against Job Vacancy, no extra breathing room.
 
                     /// QUICK LINKS — Job Vacancy only (Academics /
                     /// Student Corner / Notices removed per product ask).
@@ -608,7 +678,7 @@ class _CoursesSection extends StatelessWidget {
     // horizontal + bottom at 10 to preserve the card's previous
     // position and its spacing to the Gallery card below.
     return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+      padding: const EdgeInsets.only(left: 10, right: 10),
       child: CommonCardWidget(
         padding: 0,
         cardMargin: 0,
@@ -1051,4 +1121,45 @@ Widget _emptySection(IconData icon, String title, String message) {
       ),
     ),
   );
+}
+
+/// True when the school's `campusLife` block contains at least one
+/// non-null image URL — mirror of the flatten `_GallerySection.build`
+/// does internally, so the outer scaffold can gate the spacer above
+/// Job Vacancy without duplicating the walk.
+bool _hasGalleryImages(SchoolDetailsData? data) {
+  for (final item in data?.campusLife ?? const <CampusLife>[]) {
+    for (final img in item.images ?? const <Images>[]) {
+      if (img.url != null) return true;
+    }
+  }
+  return false;
+}
+
+/// Convert `education-service/schools/{id}` (and `.../timings`) rows
+/// (`{day, isOpen, openTime, closeTime}`) into the `List<Schedule>` shape
+/// `BusinessAvailabilityWidget` renders inside `VisitBusinessHero`.
+/// School rows use `openTime`/`closeTime`; the widget reads
+/// `timeSlots[0].startTime/endTime`, so we mint a single-slot entry per
+/// open day. Returns null when the school hasn't published timings, so
+/// the hero falls back to the user-service availability document.
+List<avail.Schedule>? _schoolTimingsToSchedule(List<Availability>? timings) {
+  if (timings == null || timings.isEmpty) return null;
+  final out = <avail.Schedule>[];
+  for (final t in timings) {
+    if (t.isOpen != true) continue;
+    final open = t.openTime;
+    final close = t.closeTime;
+    if ((open == null || open.isEmpty) && (close == null || close.isEmpty)) {
+      continue;
+    }
+    out.add(avail.Schedule(
+      day: t.day,
+      isOpen: true,
+      shopOpenTime: open,
+      shopCloseTime: close,
+      timeSlots: [avail.TimeSlots(startTime: open, endTime: close)],
+    ));
+  }
+  return out;
 }

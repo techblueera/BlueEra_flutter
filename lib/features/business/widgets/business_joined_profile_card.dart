@@ -56,7 +56,6 @@ class BusinessJoinedProfileCard extends StatelessWidget {
             _section1JoinedDate(details),
             SizedBox(height: SizeConfig.size12),
             IntrinsicWidth(
-
               child: _profileCardWrap(
                 child: _section2IdentityRating(context, details),
               ),
@@ -122,7 +121,8 @@ class BusinessJoinedProfileCard extends StatelessWidget {
   }
 
   Widget _section2IdentityRating(BuildContext context, dynamic details) {
-    final logo = businessController.imagePath?.value ?? details?.logo ?? '';
+    // final logo = businessController.imagePath?.value ?? details?.logo?? '';
+    final logo = businessController.businessProfileDetails.value?.data?.logo;
     final rating =
         double.tryParse(details?.avg_rating?.toString() ?? '0.0') ?? 0.0;
     final reviews = (details?.total_ratings ?? 0).toInt();
@@ -141,67 +141,68 @@ class BusinessJoinedProfileCard extends StatelessWidget {
         SizeConfig.size14,
         SizeConfig.size12,
       ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _avatarWithEditPin(context, logo),
-                SizedBox(width: SizeConfig.size12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomText(
-                        details?.businessName ?? '',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: SizeConfig.size4),
-                      CustomText(
-                        subCat,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _avatarWithEditPin(context, logo.toString()),
+              SizedBox(width: SizeConfig.size12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      details?.businessName ?? '',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: SizeConfig.size4),
+                    CustomText(
+                      subCat,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size12),
-            Container(height: 1, color: Colors.grey.shade200),
-            SizedBox(height: SizeConfig.size10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.star_rounded, size: 18, color: Color(0xFFFFB400)),
-                SizedBox(width: SizeConfig.size4),
-                CustomText(
-                  rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                CustomText(
-                  '($reviews ${reviews == 1 ? 'review' : 'reviews'})',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          Container(height: 1, color: Colors.grey.shade200),
+          SizedBox(height: SizeConfig.size10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.star_rounded,
+                  size: 18, color: Color(0xFFFFB400)),
+              SizedBox(width: SizeConfig.size4),
+              CustomText(
+                rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+              ),
+              SizedBox(width: SizeConfig.size6),
+              CustomText(
+                '($reviews ${reviews == 1 ? 'review' : 'reviews'})',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

@@ -84,8 +84,8 @@ class OtherServiceBusinessItem {
     if (m is List) {
       management = m
           .whereType<Map>()
-          .map((e) =>
-              OtherManagementItem.fromJson(Map<String, dynamic>.from(e)))
+          .map(
+              (e) => OtherManagementItem.fromJson(Map<String, dynamic>.from(e)))
           .toList();
     }
 
@@ -113,6 +113,7 @@ class OtherBusinessProfile {
   String? subCategoryOfBusiness;
   double? rating;
   String? coverUrl;
+  String? logoUrl;
   String? address;
   OtherLatLng? businessLocation;
   OtherProfileLocation? location;
@@ -130,6 +131,7 @@ class OtherBusinessProfile {
     this.subCategoryOfBusiness,
     this.rating,
     this.coverUrl,
+    this.logoUrl,
     this.address,
     this.businessLocation,
     this.location,
@@ -149,6 +151,7 @@ class OtherBusinessProfile {
     final r = json['rating'];
     rating = r is num ? r.toDouble() : null;
     coverUrl = json['coverUrl']?.toString();
+    logoUrl = json['logoUrl']?.toString();
     address = (json['address'] ?? json['full_address'])?.toString();
     businessLocation = OtherLatLng.fromRaw(json['business_location']);
     final l = json['location'];
@@ -157,8 +160,8 @@ class OtherBusinessProfile {
     }
     final doi = json['date_of_incorporation'];
     if (doi is Map) {
-      dateOfIncorporation = OtherDateOfIncorporation.fromJson(
-          Map<String, dynamic>.from(doi));
+      dateOfIncorporation =
+          OtherDateOfIncorporation.fromJson(Map<String, dynamic>.from(doi));
     }
   }
 }
@@ -192,8 +195,7 @@ class OtherLatLng {
 
   OtherLatLng({this.lat, this.lng});
 
-  bool get isValid =>
-      lat != null && lng != null && lat != 0.0 && lng != 0.0;
+  bool get isValid => lat != null && lng != null && lat != 0.0 && lng != 0.0;
 
   static OtherLatLng? fromRaw(dynamic raw) {
     if (raw == null) return null;
@@ -276,7 +278,10 @@ class OtherServiceItem {
     perUnit = json['perUnit']?.toString();
     final ph = json['photos'];
     if (ph is List) {
-      photos = ph.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+      photos = ph
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
     isActive = json['isActive'] as bool?;
     isDeleted = json['isDeleted'] as bool?;
@@ -454,7 +459,8 @@ class OtherGalleryItem {
     title = json['title']?.toString();
     final u = json['imageUrls'];
     if (u is List) {
-      imageUrls = u.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+      imageUrls =
+          u.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
     }
   }
 }
