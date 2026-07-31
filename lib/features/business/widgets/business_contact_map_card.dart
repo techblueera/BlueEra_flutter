@@ -275,7 +275,8 @@ class BusinessContactMapCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        'Update Business Name',
+                        // 'Update Business Name',
+                        AppStrings.businessName,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -286,8 +287,8 @@ class BusinessContactMapCard extends StatelessWidget {
                   const SizedBox(height: 16),
                   CommonTextField(
                     textEditController: nameController,
-                    title: 'Business Name',
-                    hintText: 'Enter business name',
+                    title:                         AppStrings.businessName,
+                    hintText:                         AppStrings.pleaseEnterBusinessDetails,
                     keyBoardType: TextInputType.text,
                     inputLength: AppConstants.inputCharterLimit50,
                     isValidate: false,
@@ -340,7 +341,7 @@ class BusinessContactMapCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
-              label.isEmpty ? 'Category not set' : label,
+              label.isEmpty ? AppStrings.businessCategoryNotSet : label,
               fontSize: 15,
               color: AppColors.mainTextColor,
             ),
@@ -365,7 +366,7 @@ class BusinessContactMapCard extends StatelessWidget {
           ),
         ),
         child: CustomText(
-          'Update',
+          AppStrings.update,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           color: AppColors.primaryColor,
@@ -466,7 +467,7 @@ class BusinessContactMapCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      'Update Category',
+                      AppStrings.businessUpdateCategory,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -475,7 +476,7 @@ class BusinessContactMapCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                CustomText('Category of Business', fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                CustomText(AppStrings.categoryOfBusiness, fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                 const SizedBox(height: 8),
                 Obx(() {
                   if (controller.isCategoriesLoading.value) {
@@ -491,8 +492,8 @@ class BusinessContactMapCard extends StatelessWidget {
                   return CommonDropdownDialog<CategoryData>(
                     items: controller.categoryList.toList(),
                     selectedValue: controller.selectedCategory.value,
-                    hintText: 'Select Category',
-                    title: 'Category of Business',
+                    hintText: AppStrings.selectCategory,
+                    title: AppStrings.categoryOfBusiness,
                     displayValue: (c) => c.name ?? '',
                     onChanged: (c) {
                       if (c != null) controller.onCategorySelected(c);
@@ -500,7 +501,7 @@ class BusinessContactMapCard extends StatelessWidget {
                   );
                 }),
                 const SizedBox(height: 16),
-                CustomText('Sub-category', fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                CustomText(AppStrings.subCategoryLabel, fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                 const SizedBox(height: 8),
                 // Sub-category stays locked until a category is chosen.
                 Obx(() {
@@ -512,8 +513,10 @@ class BusinessContactMapCard extends StatelessWidget {
                       child: CommonDropdownDialog<SubCategories>(
                         items: controller.subCategoryList.toList(),
                         selectedValue: controller.selectedSubCategory.value,
-                        hintText: hasCategory ? 'Select Sub-category' : 'Select a category first',
-                        title: 'Sub-category',
+                        hintText: hasCategory
+                            ? AppStrings.selectSubCategory
+                            : AppStrings.businessSelectCategoryFirst,
+                        title: AppStrings.subCategoryLabel,
                         displayValue: (s) => s.name ?? '',
                         onChanged: (s) => controller.selectedSubCategory.value = s,
                       ),
@@ -531,7 +534,7 @@ class BusinessContactMapCard extends StatelessWidget {
                       onTap: () async {
                         final cat = controller.selectedCategory.value;
                         if (cat?.id == null || cat!.id!.isEmpty) {
-                          commonSnackBar(message: 'Please select a category');
+                          commonSnackBar(message: AppStrings.pleaseSelectCategory.tr);
                           return;
                         }
                         final params = <String, dynamic>{
@@ -578,7 +581,7 @@ class BusinessContactMapCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
-              address.isEmpty ? 'Location not set' : address,
+              address.isEmpty ? AppStrings.businessLocationNotSet : address,
               fontSize: 15,
               color: AppColors.mainTextColor,
             ),

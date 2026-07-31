@@ -1,0 +1,13 @@
+{
+  "doctorDiscoverTitle": "क्लिनिक डॉक्टर",
+  "doctorDiscoverEmpty": "कोई डॉक्टर नहीं मिला",
+  "doctorDiscoverFallbackName": "डॉक्टर",
+  "doctorDiscoverAvailability": "उपलब्धता",
+  "doctorDiscoverTimingNotSet": "समय निर्धारित नहीं",
+  "doctorDiscoverClosedToday": "आज बंद",
+  "doctorDiscoverExperienceYearFmt": "@count वर्ष का अनुभव",
+  "doctorDiscoverExperienceYearsFmt": "@count वर्ष का अनुभव",
+  "doctorDiscoverMoreFmt": "+@count और",
+  "doctorDiscoverShareFmt": "BlueEra पर @name को देखें",
+  "bookNow": "अभी बुक करें"
+}

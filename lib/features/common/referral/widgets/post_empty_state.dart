@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ class PostEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             CustomText(
-              'No videos yet',
+              AppStrings.noVideosYetTitle,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -47,7 +48,7 @@ class PostEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             CustomText(
-              'Tap "Add Your Links" above to add your first one.',
+              AppStrings.addYourLinksHint,
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
               textAlign: TextAlign.center,

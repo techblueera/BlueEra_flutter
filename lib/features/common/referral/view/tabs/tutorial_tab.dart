@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/widgets/media_autoplay_list.dart';
@@ -54,7 +55,7 @@ class _TutorialTabState extends State<TutorialTab>
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Center(
                   child: CustomText(
-                    'Oops, something went wrong',
+                    AppStrings.somethingWentWrong,
                     color: AppColors.secondaryTextColor,
                     fontSize: SizeConfig.small,
                   ),
@@ -67,7 +68,7 @@ class _TutorialTabState extends State<TutorialTab>
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Center(
                   child: CustomText(
-                    'No tutorials yet.',
+                    AppStrings.noTutorialsYet,
                     color: AppColors.secondaryTextColor,
                     fontSize: SizeConfig.small,
                   ),

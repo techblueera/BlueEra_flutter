@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Off-screen referral *invite poster* captured to a PNG and shared as
 /// an image (paired with the download/referral text body). This is the
@@ -147,7 +149,7 @@ class ReferralShareCard extends StatelessWidget {
                       const SizedBox(height: 14),
                       Center(
                         child: Text(
-                          'Download BlueEra & enter this code at sign-up',
+                          AppStrings.downloadBlueEraEnterCode.tr,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.75),
@@ -210,8 +212,8 @@ class ReferralShareCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
             ),
-            child: const Text(
-              'REFER & EARN',
+            child: Text(
+              AppStrings.referAndEarnCaps.tr,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 10,
@@ -234,8 +236,8 @@ class ReferralShareCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
           child: Column(
             children: [
-              const Text(
-                'YOUR REFERRAL CODE',
+              Text(
+                AppStrings.yourReferralCodeCaps.tr,
                 style: TextStyle(
                   color: _inkSoft,
                   fontSize: 10.5,
@@ -267,7 +269,7 @@ class ReferralShareCard extends StatelessWidget {
                       size: 15, color: _gold),
                   const SizedBox(width: 6),
                   Text(
-                    'Apply at sign-up & get rewarded',
+                    AppStrings.applyAtSignupRewarded.tr,
                     style: TextStyle(
                       color: _ink.withValues(alpha: 0.85),
                       fontSize: 11.5,

@@ -62,6 +62,22 @@ class DoctorAppointmentRepo extends BaseService {
     );
   }
 
+  /// Picker paths → [File], dropping anything that no longer exists on disk.
+  ///
+  /// A stale path is normal: the OS can evict a camera temp file between the
+  /// pick and the submit. Sending it would make `MultipartFile.fromFile` throw
+  /// mid-upload and fail the whole booking, so a vanished photo is silently
+  /// skipped instead — the appointment still goes through.
+  static List<File> filesFromPaths(List<String> paths) {
+    final out = <File>[];
+    for (final path in paths) {
+      if (path.trim().isEmpty) continue;
+      final file = File(path);
+      if (file.existsSync()) out.add(file);
+    }
+    return out;
+  }
+
   /// `POST /doctor-appointments` — the customer requests an appointment.
   ///
   /// With [photos] this becomes multipart, and the multipart shape is

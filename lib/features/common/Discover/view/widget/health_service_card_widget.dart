@@ -28,7 +28,7 @@ class HealthServiceCardWidget extends StatelessWidget {
       return;
     }
     if (categoryItem.slugId == CLINIC_DOCTORS) {
-      Get.to(() => DoctorDiscoverListScreen(title: categoryItem.name));
+      Get.to(() => DoctorDiscoverListScreen(title: categoryItem.name.tr));
       return;
     }
     Get.to(() => HealthCareListingScreen(
@@ -44,7 +44,9 @@ class HealthServiceCardWidget extends StatelessWidget {
     return DiscoverGridSection(
       title: AppStrings.healthcareServices.tr,
       items: healthCareList,
-      getName: (item) => item.name,
+      // `healthCareList` stores translation keys in `name` — resolve here, at
+      // render time, so the labels follow a language change.
+      getName: (item) => item.name.tr,
       getIcon: (item) => item.icon ?? '',
       onItemTap: (item) => _open(item),
     );

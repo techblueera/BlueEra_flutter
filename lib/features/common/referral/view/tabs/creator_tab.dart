@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -56,7 +57,7 @@ class _CreatorTabState extends State<CreatorTab>
         return const Center(child: CircularProgressIndicator());
       }
       if (status == Status.ERROR && data == null) {
-        return _centerMsg('Oops, something went wrong');
+        return _centerMsg(AppStrings.somethingWentWrong);
       }
 
       final creator = data ?? const CreatorData();
@@ -102,7 +103,7 @@ class _CreatorTabState extends State<CreatorTab>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CustomText(
-            'Welcome Content Creator',
+            AppStrings.welcomeContentCreator,
             textAlign: TextAlign.center,
             fontSize: SizeConfig.extraLarge,
             fontWeight: FontWeight.w800,
@@ -141,15 +142,14 @@ class _CreatorTabState extends State<CreatorTab>
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CustomText(
-                  "Yay! You've won",
+                  AppStrings.yayYouWon,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size6),
                 CustomText(
-                  'This will be credited to your wallet. You can use it at the '
-                  'time of order payment.',
+                  AppStrings.creditedToWalletNote,
                   textAlign: TextAlign.center,
                   fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
@@ -163,14 +163,14 @@ class _CreatorTabState extends State<CreatorTab>
             onTap: () => _showProgramInfo(program),
             child: Text.rich(
               TextSpan(
-                text: 'By Clicking You Accept the ',
+                text: '${AppStrings.byClickingYouAccept.tr} ',
                 style: TextStyle(
                   fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
                 ),
                 children: [
                   TextSpan(
-                    text: 'Terms & Conditions',
+                    text: AppStrings.termsConditions.tr,
                     style: TextStyle(
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w700,
@@ -193,7 +193,7 @@ class _CreatorTabState extends State<CreatorTab>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CustomText(
-                'Join Now',
+                AppStrings.joinNow,
                 fontSize: SizeConfig.medium15,
                 fontWeight: FontWeight.w700,
                 color: AppColors.white,
@@ -221,26 +221,28 @@ class _CreatorTabState extends State<CreatorTab>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                'Creator Program',
+                AppStrings.creatorProgram,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(height: SizeConfig.size4),
               CustomText(
-                'Earn ₹${program.perApprovalAmount} per approved video, up to '
-                '₹${program.totalAmount}.',
+                AppStrings.creatorEarnPerVideoFmt.trParams({
+                  'amount': '₹${program.perApprovalAmount}',
+                  'total': '₹${program.totalAmount}',
+                }),
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
               ),
               if (program.requirements.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size16),
-                _bulletTitle('Requirements'),
+                _bulletTitle(AppStrings.requirementsLabel),
                 ...program.requirements.map((r) => _bullet(r)),
               ],
               if (program.termsAndConditions.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size16),
-                _bulletTitle('Terms & Conditions'),
+                _bulletTitle(AppStrings.termsConditions),
                 ...program.termsAndConditions.map((t) => _bullet(t)),
               ],
               SizedBox(height: SizeConfig.size16),
@@ -256,7 +258,7 @@ class _CreatorTabState extends State<CreatorTab>
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: CustomText('Add Your Video',
+                  child: CustomText(AppStrings.addYourVideo,
                       fontSize: SizeConfig.medium15,
                       fontWeight: FontWeight.w700,
                       color: AppColors.white),
@@ -322,7 +324,7 @@ class _CreatorTabState extends State<CreatorTab>
             children: [
               Icon(Icons.link_rounded, color: AppColors.primaryColor, size: 18),
               const SizedBox(width: 8),
-              CustomText('Add Your Links',
+              CustomText(AppStrings.addYourLinks,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor),
@@ -337,7 +339,7 @@ class _CreatorTabState extends State<CreatorTab>
   Widget _myVideosHeader() {
     return Row(
       children: [
-        CustomText('My Videos',
+        CustomText(AppStrings.myVideos,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor),
@@ -353,7 +355,7 @@ class _CreatorTabState extends State<CreatorTab>
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: CustomText(
-            'No videos yet — add your first link above.',
+            AppStrings.noVideosYet,
             color: AppColors.secondaryTextColor,
             fontSize: SizeConfig.small,
           ),
@@ -444,7 +446,8 @@ class _CreatorTabState extends State<CreatorTab>
                   if (v.creditedAmount > 0) ...[
                     SizedBox(height: SizeConfig.size6),
                     CustomText(
-                      'Credited ₹${v.creditedAmount}',
+                      AppStrings.creditedAmountFmt
+                          .trParams({'amount': '₹${v.creditedAmount}'}),
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF16A34A),
@@ -496,7 +499,9 @@ class _CreatorTabState extends State<CreatorTab>
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomText(
-        status.isEmpty ? 'Pending' : (status.capitalizeFirst ?? status),
+        status.isEmpty
+            ? AppStrings.pending.tr
+            : (status.capitalizeFirst ?? status),
         fontSize: SizeConfig.extraSmall,
         fontWeight: FontWeight.w700,
         color: Colors.white,

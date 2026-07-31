@@ -1,0 +1,20 @@
+{
+  "doctorAppointmentTitle": "Doctor Appointment",
+  "doctorAppointmentDate": "Appointment Date",
+  "doctorPreferredTime": "Preferred Time",
+  "doctorPatientNameLabel": "Patient Name",
+  "doctorPatientNameHint": "Who is the appointment for?",
+  "doctorPickDate": "Pick a date",
+  "doctorPickDateError": "Please pick an appointment date",
+  "doctorEndTimeError": "End time must be after start time",
+  "doctorFeeNoticeFmt": "You will be charged @fee at the clinic",
+  "doctorMyAppointments": "My Appointments",
+  "doctorNoMyAppointments": "You haven't booked any appointments yet",
+  "doctorCancelAppointment": "Cancel Appointment",
+  "doctorCancelConfirmTitle": "Cancel this appointment?",
+  "doctorCancelConfirmBody": "The doctor will be notified that you cancelled.",
+  "doctorKeepIt": "Keep it",
+  "requiredLabel": "required",
+  "bookAppointment": "Book Appointment",
+  "optionalLabel": "optional"
+}

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/model/admin_post_model.dart';
@@ -412,7 +414,7 @@ class _AdminPostCardState extends State<AdminPostCard> {
                         ),
                         const SizedBox(height: 8),
                         CustomText(
-                          'Preview not available',
+                          AppStrings.previewNotAvailable,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor,
@@ -463,7 +465,7 @@ class _AdminPostCardState extends State<AdminPostCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Instagram link',
+                  AppStrings.instagramLink,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -478,9 +480,7 @@ class _AdminPostCardState extends State<AdminPostCard> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: CustomText(
-                        'Instagram limits link previews, so the thumbnail '
-                        'and caption couldn’t be loaded. Your link is saved '
-                        'and opens in the Instagram app.',
+                        AppStrings.instagramPreviewLimitSaved,
                         fontSize: SizeConfig.small,
                         color: AppColors.secondaryTextColor,
                         height: 1.4,
@@ -503,14 +503,14 @@ class _AdminPostCardState extends State<AdminPostCard> {
                             color: igBrand.withValues(alpha: 0.45)),
                       ),
                       alignment: Alignment.center,
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.open_in_new_rounded,
+                          const Icon(Icons.open_in_new_rounded,
                               size: 16, color: igBrand),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
-                            'Open in Instagram',
+                            AppStrings.openInInstagram.tr,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,

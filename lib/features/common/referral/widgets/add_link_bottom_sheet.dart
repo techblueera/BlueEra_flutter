@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/repo/referral_repo.dart';
@@ -66,7 +67,8 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
     ),
     _PlatformOption(
       key: 'other',
-      label: 'Other',
+      // Brand names above stay untranslated; only the catch-all is copy.
+      label: AppStrings.categoryOther,
       icon: Icons.public,
       brand: Color(0xFF64748B),
     ),
@@ -189,11 +191,11 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                   SizedBox(height: SizeConfig.size12),
                   _header(),
                   SizedBox(height: SizeConfig.paddingM),
-                  _stepLabel(1, 'PICK A PLATFORM'),
+                  _stepLabel(1, AppStrings.pickAPlatform),
                   const SizedBox(height: 10),
                   _platformRow(),
                   SizedBox(height: SizeConfig.paddingM),
-                  _stepLabel(2, 'PASTE YOUR URL'),
+                  _stepLabel(2, AppStrings.pasteYourUrl),
                   const SizedBox(height: 10),
                   _urlField(),
                   _validationBanner(),
@@ -247,14 +249,14 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                'Add a video link',
+                AppStrings.addAVideoLink,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
               ),
               const SizedBox(height: 2),
               CustomText(
-                'Bring your reels in from anywhere.',
+                AppStrings.bringYourReels,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
               ),
@@ -417,7 +419,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
-        hintText: 'Paste your link here',
+        hintText: AppStrings.pasteYourLinkHere.tr,
         hintStyle: TextStyle(
           fontSize: SizeConfig.medium,
           color: AppColors.secondaryTextColor.withValues(alpha: 0.7),
@@ -471,12 +473,12 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
   Widget _validationBanner() {
     String? message;
     if (_hasMismatch) {
-      message = 'You picked ${_labelFor(_platform)}, but this looks '
-          'like a ${_labelFor(_detectedFromUrl)} link. Switch the '
-          'platform above or paste a ${_labelFor(_platform)} URL.';
+      message = AppStrings.platformMismatchFmt.trParams({
+        'picked': _labelFor(_platform).tr,
+        'detected': _labelFor(_detectedFromUrl).tr,
+      });
     } else if (_hasUnsupportedUrl) {
-      message = "We can only add Instagram, X / Twitter, Facebook or "
-          "YouTube links right now.";
+      message = AppStrings.unsupportedLinkPlatform.tr;
     }
     return AnimatedSize(
       duration: const Duration(milliseconds: 180),
@@ -559,7 +561,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               CustomText(
-                                'Will be saved as',
+                                AppStrings.willBeSavedAs,
                                 fontSize: SizeConfig.extraSmall,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.primaryColor,
@@ -580,7 +582,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                         ),
                         const SizedBox(width: 8),
                         CustomText(
-                          'Apply',
+                          AppStrings.applyLabel,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primaryColor,
@@ -631,9 +633,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: CustomText(
-                      'Instagram limits link previews, so the thumbnail '
-                      'and caption may not load. Your link will still be '
-                      'saved and will open in Instagram.',
+                      AppStrings.instagramPreviewLimitWillSave,
                       fontSize: SizeConfig.small,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w500,
@@ -676,7 +676,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                       .createUserPost(_urlCtrl.text, platform: _platform);
                   if (ok && mounted) Navigator.of(context).pop();
                 },
-          title: 'Add Link',
+          title: AppStrings.addLink,
         ),
       );
     });

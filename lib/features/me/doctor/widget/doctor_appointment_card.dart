@@ -7,24 +7,47 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// One appointment request in the doctor's Booking tab.
+/// One appointment request — rendered in the doctor's Booking tab (owner) and
+/// in the customer's My Appointments list.
 ///
-/// Accept / Decline are shown only while the request is `pending` — they are
-/// the doctor's transitions, and the server rejects them from any other state.
-/// Cancel belongs to the customer and never appears here.
+/// The two sides never share actions, so the card picks its footer from which
+/// callbacks it was given rather than from a flag:
+///   • [onAccept] / [onDecline] — the DOCTOR's transitions, shown only while
+///     `pending`. The server rejects them from any other state, and rejects
+///     them outright from a customer (403).
+///   • [onCancel] — the CUSTOMER's transition, allowed while `pending` AND
+///     `accepted` (guide §3.4). The server rejects it from the doctor (403).
+///
+/// Passing neither renders a read-only card, which is what a terminal
+/// (`declined` / `cancelled`) row should be on both sides.
 class DoctorAppointmentCard extends StatelessWidget {
   final DoctorAppointment appointment;
   final bool isUpdating;
-  final VoidCallback onAccept;
-  final VoidCallback onDecline;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
+  final VoidCallback? onCancel;
 
   const DoctorAppointmentCard({
     super.key,
     required this.appointment,
     required this.isUpdating,
-    required this.onAccept,
-    required this.onDecline,
+    this.onAccept,
+    this.onDecline,
+    this.onCancel,
   });
+
+  /// Owner footer: only while pending, and only when the owner callbacks
+  /// were supplied.
+  bool get _showOwnerActions =>
+      appointment.canOwnerAct && onAccept != null && onDecline != null;
+
+  /// Customer footer: `cancelled` and `declined` are terminal, so Cancel is
+  /// offered from `pending` and `accepted` only — matching what the server
+  /// will actually accept instead of showing a button that 409s.
+  bool get _showCancelAction =>
+      onCancel != null &&
+      (appointment.status == DoctorAppointmentStatus.pending ||
+          appointment.status == DoctorAppointmentStatus.accepted);
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +88,10 @@ class DoctorAppointmentCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.size10),
+          // Customer view only — on the doctor's own inbox this row would just
+          // repeat their own name on every card.
+          if (onCancel != null && (appointment.doctorName ?? '').isNotEmpty)
+            _row(Icons.medical_services_outlined, appointment.doctorName!),
           _row(
             Icons.calendar_today_outlined,
             _formatDate(appointment.appointmentDate),
@@ -78,7 +105,7 @@ class DoctorAppointmentCard extends StatelessWidget {
               Icons.attach_file,
               '${appointment.photos.length} ${AppStrings.doctorAttachments.tr}',
             ),
-          if (appointment.canOwnerAct) ...[
+          if (_showOwnerActions) ...[
             SizedBox(height: SizeConfig.size12),
             Row(
               children: [
@@ -136,6 +163,38 @@ class DoctorAppointmentCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+          if (_showCancelAction) ...[
+            SizedBox(height: SizeConfig.size12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: isUpdating ? null : onCancel,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                  side: const BorderSide(color: Color(0xFFEA4335)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: isUpdating
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFFEA4335)),
+                        ),
+                      )
+                    : CustomText(
+                        AppStrings.doctorCancelAppointment.tr,
+                        color: const Color(0xFFEA4335),
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.small,
+                      ),
+              ),
             ),
           ],
         ],

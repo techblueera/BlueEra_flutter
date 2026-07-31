@@ -12,6 +12,7 @@ import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/model/doctor_discover_summary.dart';
 import 'package:BlueEra/features/me/doctor/model/doctor_certificate_model.dart';
+import 'package:BlueEra/features/me/doctor/widget/doctor_appointment_sheet.dart';
 import 'package:BlueEra/features/me/doctor/model/doctor_profile_model.dart';
 import 'package:BlueEra/features/me/doctor/repo/doctor_profile_repo.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
@@ -269,14 +270,16 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
                 children: [
                   if (experience.isNotEmpty)
                     Expanded(
-                      child: _statTile('Experience', experience),
+                      child: _statTile(
+                          AppStrings.doctorExperience.tr, experience),
                     ),
                   if (experience.isNotEmpty && fee.isNotEmpty)
                     SizedBox(width: SizeConfig.size10),
                   // Fee tile is omitted entirely when unset — never "₹0".
                   if (fee.isNotEmpty)
                     Expanded(
-                      child: _statTile('Consultation Fee', fee),
+                      child: _statTile(
+                          AppStrings.doctorConsultationFee.tr, fee),
                     ),
                 ],
               ),
@@ -322,12 +325,16 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
   }
 
   // ── About the doctor ────────────────────────────────────────────────
+  /// Built from the year count rather than from `summary.experienceLabel`,
+  /// which bakes in the English "Years" — the fallback has to go through the
+  /// same translated unit as the primary path or the label flips language
+  /// depending on whether `/doctors/full` answered.
   String get _experienceLabel {
-    final years = _doctorProfile?.experienceYears;
-    if (years != null && years > 0) {
-      return years == 1 ? '1 Year' : '$years Years';
-    }
-    return widget.summary?.experienceLabel ?? '';
+    final years = _doctorProfile?.experienceYears ??
+        widget.summary?.experienceYears ??
+        0;
+    if (years <= 0) return '';
+    return '$years ${(years == 1 ? AppStrings.yearLabel : AppStrings.doctorYears).tr}';
   }
 
   /// Every row is optional — a doctor may have filled in only some of them.
@@ -347,16 +354,19 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
         : (_business?.address ?? widget.summary?.address ?? '').trim();
 
     return [
-      if (degree.isNotEmpty) MapEntry('Degree', degree),
+      if (degree.isNotEmpty) MapEntry(AppStrings.doctorDegree.tr, degree),
       if (specialization.isNotEmpty)
-        MapEntry('Specialization', specialization),
+        MapEntry(AppStrings.doctorSpecialization.tr, specialization),
       if (_experienceLabel.isNotEmpty)
-        MapEntry('Experience', _experienceLabel),
+        MapEntry(AppStrings.doctorExperience.tr, _experienceLabel),
       if ((p?.registrationNumber ?? '').trim().isNotEmpty)
-        MapEntry('Registration Number', p!.registrationNumber!.trim()),
-      if (_feeLabel.isNotEmpty) MapEntry('Consultation Fee', _feeLabel),
-      if (languages.isNotEmpty) MapEntry('Languages Spoken', languages),
-      if (address.isNotEmpty) MapEntry('Address', address),
+        MapEntry(AppStrings.doctorRegistrationNumber.tr,
+            p!.registrationNumber!.trim()),
+      if (_feeLabel.isNotEmpty)
+        MapEntry(AppStrings.doctorConsultationFee.tr, _feeLabel),
+      if (languages.isNotEmpty)
+        MapEntry(AppStrings.doctorLanguagesSpoken.tr, languages),
+      if (address.isNotEmpty) MapEntry(AppStrings.addressLabel.tr, address),
     ];
   }
 
@@ -374,7 +384,7 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle('About the Doctor'),
+            _sectionTitle(AppStrings.doctorAboutTheDoctor.tr),
             SizedBox(height: SizeConfig.size8),
             ..._aboutRows.map(
               (row) => Padding(
@@ -433,7 +443,7 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle('Expertise'),
+            _sectionTitle(AppStrings.doctorExpertise.tr),
             SizedBox(height: SizeConfig.size8),
             ...expertise.map(
               (item) => Padding(
@@ -479,7 +489,7 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle('Certificate & Awards'),
+            _sectionTitle(AppStrings.doctorCertificateAwards.tr),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
               height: SizeConfig.size180,
@@ -511,7 +521,8 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
                 : () => Get.to(() => ImageViewScreen(
                       imageUrls: [image],
                       initialIndex: 0,
-                      appBarTitle: certificate.title ?? 'Certificate',
+                      appBarTitle:
+                          certificate.title ?? AppStrings.certificate.tr,
                     )),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -633,16 +644,57 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
     if (ownerId.isEmpty) return null;
     if (ownerId == userId) return const SizedBox.shrink();
 
+    // Two CTAs, not one: an enquiry is a question, a booking is a request for
+    // a specific date. Before this, a customer viewing a doctor could only
+    // enquire, which is why `doctorappointments` was empty — nothing in the
+    // app ever called `createAppointment()` (guide §3.1).
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size12,
           vertical: SizeConfig.size10,
         ),
-        child: PositiveCustomBtn(
-          onTap: () => _openEnquirySheet(profile, ownerId),
-          title: AppStrings.inquiry.tr,
+        child: Row(
+          children: [
+            Expanded(
+              child: PositiveCustomBtn(
+                onTap: () => _openEnquirySheet(profile, ownerId),
+                title: AppStrings.inquiry.tr,
+                bgColor: AppColors.white,
+                textColor: AppColors.primaryColor,
+                borderColor: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: PositiveCustomBtn(
+                onTap: () => _openAppointmentSheet(profile, ownerId),
+                title: AppStrings.bookAppointment.tr,
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  /// Direct booking — no `enquiry_id`, since the customer never raised an
+  /// enquiry on this path. The enquiry-first path goes through the chat card
+  /// instead and does pass one.
+  void _openAppointmentSheet(BusinessProfileDetails? profile, String ownerId) {
+    final name = (profile?.businessName ?? widget.summary?.name ?? '').trim();
+    DoctorAppointmentSheet.open(
+      context,
+      listing: DoctorAppointmentListing(
+        // Business._id, never DoctorProfile._id — different id spaces, and
+        // the profile id 404s (guide §6.3).
+        businessId: widget.businessId,
+        ownerId: ownerId,
+        doctorName: name,
+        doctorImage: profile?.logo ?? widget.summary?.logo,
+        location: (profile?.address ?? widget.summary?.address ?? '').trim(),
+        // Display only — shown as "You will be charged … at the clinic".
+        feeLabel: _feeLabel,
       ),
     );
   }

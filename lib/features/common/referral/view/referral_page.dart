@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -64,7 +65,7 @@ class _ReferralPageState extends State<ReferralPage> {
         final status = controller.statsResponse.value.status;
         return Scaffold(
           appBar: CommonBackAppBar(
-            title: 'My code',
+            title: AppStrings.myCode,
             isShadowShow: false,
             buildCustomActionWidget: () => Padding(
               padding: EdgeInsets.only(right: SizeConfig.size10),

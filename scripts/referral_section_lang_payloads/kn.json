@@ -1,0 +1,11 @@
+{
+  "updateReferralCode": "ರೆಫರಲ್ ಕೋಡ್ ನವೀಕರಿಸಿ",
+  "referralCodeAlphanumericError": "ಕೋಡ್‌ನಲ್ಲಿ ಅಕ್ಷರಗಳು ಮತ್ತು ಸಂಖ್ಯೆಗಳು ಎರಡೂ ಇರಬೇಕು",
+  "generateYourReferralCode": "ನಿಮ್ಮ ರೆಫರಲ್ ಕೋಡ್ ರಚಿಸಿ",
+  "enterYourReferralCode": "ನಿಮ್ಮ ರೆಫರಲ್ ಕೋಡ್ ನಮೂದಿಸಿ",
+  "referralTip": "ಸಲಹೆ: 4-10 ಅಕ್ಷರಗಳನ್ನು ಬಳಸಿ, ಅಕ್ಷರಗಳು ಮತ್ತು ಸಂಖ್ಯೆಗಳನ್ನು ಬೆರೆಸಿ (ಉದಾ., SAVE50).",
+  "referralSuggestions": "ರೆಫರಲ್ ಸಲಹೆಗಳು",
+  "iAcceptAll": "ನಾನು ಎಲ್ಲವನ್ನೂ ಒಪ್ಪುತ್ತೇನೆ",
+  "termsAndCondition": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು",
+  "authorizationMessage": "ಮತ್ತು SMS/RCS ಸಂದೇಶಗಳು/ಪ್ರಚಾರ/ಮಾಹಿತಿ ಸಂದೇಶಗಳ ಮೂಲಕ ಅಧಿಸೂಚನೆಗಳನ್ನು ಕಳುಹಿಸಲು ನಾನು ನಿಮಗೆ ಅಧಿಕಾರ ನೀಡುತ್ತೇನೆ."
+}

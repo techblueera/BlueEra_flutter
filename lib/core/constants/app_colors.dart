@@ -162,4 +162,5 @@ class AppColors {
   static const geryFC = Color(0xFFF5F7FC);
   static const yellowCB = Color(0xFFE7E0CB);
   static const blueAF = Color(0xFF015caf);
+  static const skyE7 = Color(0xffD8DDE7);
 }

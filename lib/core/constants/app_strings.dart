@@ -2691,6 +2691,12 @@ class AppStrings {
   static const addLiveStorePhoto = "add_live_store_photo";
   static const updateLocation = "update_location";
   static const updateLocationWarning = "update_location_warning";
+
+  /// Contact-us card on the business profile (`BusinessContactMapCard`).
+  static const businessUpdateCategory = "business_update_category";
+  static const businessCategoryNotSet = "business_category_not_set";
+  static const businessLocationNotSet = "business_location_not_set";
+  static const businessSelectCategoryFirst = "business_select_category_first";
   static const noRatingsFound = "no_ratings_found";
 
   static const livePhotos = "live_photos";
@@ -4288,6 +4294,60 @@ class AppStrings {
   static const String doctorTotalRequests = "doctorTotalRequests";
   static const String doctorUpcomingVisits = "doctorUpcomingVisits";
   static const String doctorCertificates = "doctorCertificates";
+
+  /// Customer-side doctor booking flow (appointment sheet, My Appointments,
+  /// the profile's second CTA, the DOCTOR enquiry-card branch).
+  static const String doctorAppointmentTitle = "doctorAppointmentTitle";
+  static const String doctorAppointmentDate = "doctorAppointmentDate";
+  static const String doctorPreferredTime = "doctorPreferredTime";
+  static const String doctorPatientNameLabel = "doctorPatientNameLabel";
+  static const String doctorPatientNameHint = "doctorPatientNameHint";
+  static const String doctorPickDate = "doctorPickDate";
+  static const String doctorPickDateError = "doctorPickDateError";
+  static const String doctorEndTimeError = "doctorEndTimeError";
+  static const String doctorFeeNoticeFmt = "doctorFeeNoticeFmt";
+  static const String doctorMyAppointments = "doctorMyAppointments";
+  static const String doctorNoMyAppointments = "doctorNoMyAppointments";
+  static const String doctorCancelAppointment = "doctorCancelAppointment";
+  static const String doctorCancelConfirmTitle = "doctorCancelConfirmTitle";
+  static const String doctorCancelConfirmBody = "doctorCancelConfirmBody";
+  static const String doctorKeepIt = "doctorKeepIt";
+  static const String requiredLabel = "requiredLabel";
+  static const String bookAppointment = "bookAppointment";
+
+  /// Discover doctor list + card (doctor_discover_list_screen.dart,
+  /// doctor_discover_card.dart). The card also reuses `viewProfile`, `share`,
+  /// `bookNow`, `doctorConsultationFee`, `closed` and `monday`..`sunday`.
+  static const String doctorDiscoverTitle = "doctorDiscoverTitle";
+  static const String doctorDiscoverEmpty = "doctorDiscoverEmpty";
+  static const String doctorDiscoverFallbackName = "doctorDiscoverFallbackName";
+  static const String doctorDiscoverAvailability = "doctorDiscoverAvailability";
+  static const String doctorDiscoverTimingNotSet = "doctorDiscoverTimingNotSet";
+  static const String doctorDiscoverClosedToday = "doctorDiscoverClosedToday";
+  static const String doctorDiscoverExperienceYearFmt =
+      "doctorDiscoverExperienceYearFmt";
+  static const String doctorDiscoverExperienceYearsFmt =
+      "doctorDiscoverExperienceYearsFmt";
+  static const String doctorDiscoverMoreFmt = "doctorDiscoverMoreFmt";
+  static const String doctorDiscoverShareFmt = "doctorDiscoverShareFmt";
+
+  /// Discover doctor public profile (doctor_public_profile_screen.dart). Every
+  /// other label there reuses an existing key — `doctorDegree`,
+  /// `doctorSpecialization`, `doctorExperience`, `doctorRegistrationNumber`,
+  /// `doctorConsultationFee`, `doctorLanguagesSpoken`, `addressLabel`,
+  /// `doctorExpertise`, `doctorCertificateAwards`, `certificate`, `gallery`
+  /// and `inquiry`.
+  static const String doctorAboutTheDoctor = "doctorAboutTheDoctor";
+
+  /// `healthCareList` category tiles (app_constant.dart). These are stored as
+  /// the model's `name` and resolved with `.tr` at each render site — the list
+  /// is a top-level `final`, so a `.tr` inside it would be evaluated once and
+  /// never follow a language change.
+  static const String healthcareHospitals = "healthcareHospitals";
+  static const String healthcareDoctors = "healthcareDoctors";
+  static const String healthcareLabs = "healthcareLabs";
+  static const String healthcarePharmacy = "healthcarePharmacy";
+  static const String healthcareSurgical = "healthcareSurgical";
 
   /// Social module controllers — snackbar results and form validation copy
   static const String locationRequired = "locationRequired";
@@ -6194,6 +6254,140 @@ class AppStrings {
   static const String iAcceptAll = "iAcceptAll";
   static const String termsAndCondition = "termsAndCondition";
   static const String authorizationMessage = "authorizationMessage";
+
+  /// "Update Referral Code" screen + the dashboard affordance that opens it.
+  static const String updateReferralCode = "updateReferralCode";
+  static const String referralCodeAlphanumericError =
+      "referralCodeAlphanumericError";
+
+  // ─── Referral module: entry screen, history, testimonials, tabs ───
+  /// The `requirements` catalogue key predates any Dart constant.
+  static const String requirementsLabel = "requirements";
+  // `myCode` is declared further down — it was a dangling constant with no
+  // catalogue entry until this pass added one.
+  static const String allTestimonials = "allTestimonials";
+  static const String noTestimonialsSubtitle = "noTestimonialsSubtitle";
+
+  // History screen — date filter, export sheet, PDF, status + header copy.
+  static const String noReferralsInDateRange = "noReferralsInDateRange";
+  static const String noFilterResultsFmt = "noFilterResultsFmt";
+  static const String filterByDate = "filterByDate";
+  static const String dateFilterOn = "dateFilterOn";
+  static const String dateFilterOptions = "dateFilterOptions";
+  static const String dateFilterRemoved = "dateFilterRemoved";
+  static const String dateFilterCleared = "dateFilterCleared";
+  static const String changeDateRange = "changeDateRange";
+  static const String removeFilter = "removeFilter";
+  static const String filterByDateRange = "filterByDateRange";
+  static const String dateFilter = "dateFilter";
+  static const String tapToChangeLabel = "tapToChangeLabel";
+  static const String nothingToExport = "nothingToExport";
+  static const String exportReferralHistory = "exportReferralHistory";
+  static const String saveToDevice = "saveToDevice";
+  static const String saveToDeviceSubtitle = "saveToDeviceSubtitle";
+  static const String sharePdf = "sharePdf";
+  static const String sharePdfSubtitle = "sharePdfSubtitle";
+  static const String savedToFmt = "savedToFmt";
+  static const String exportFailedFmt = "exportFailedFmt";
+  static const String referralHistory = "referralHistory";
+  static const String allDates = "allDates";
+  static const String pdfFilterFmt = "pdfFilterFmt";
+  static const String pdfRangeFmt = "pdfRangeFmt";
+  static const String statusLabel = "statusLabel";
+  static const String earnedLabel = "earnedLabel";
+  static const String planLabel = "planLabel";
+  static const String statusSubscribed = "statusSubscribed";
+  static const String statusUnsubscribed = "statusUnsubscribed";
+  static const String statusExpired = "statusExpired";
+  static const String pendingUser = "pendingUser";
+  static const String subscribeUser = "subscribeUser";
+  static const String unSubscribeUser = "unSubscribeUser";
+  static const String referredUsersFmt = "referredUsersFmt";
+  static const String noReferredUsersYet = "noReferredUsersYet";
+  static const String referredCountFmt = "referredCountFmt";
+
+  /// Display labels for the history filter tabs. The tab *values* stay as
+  /// the English identifiers in `ReferralController.filters` — they drive
+  /// the query-param switch in `fetchHistory`, so they must not be
+  /// translated; only their rendered label goes through these keys.
+  static const String filterAll = "filterAll";
+  static const String filterSubscribe = "filterSubscribe";
+  static const String filterUnSubscribe = "filterUnSubscribe";
+
+  // Overview + tutorial tabs.
+  static const String subscriptionOutOfReferralFmt =
+      "subscriptionOutOfReferralFmt";
+  static const String noOverviewPostsYet = "noOverviewPostsYet";
+  static const String noTutorialsYet = "noTutorialsYet";
+
+  // Creator tab.
+  static const String welcomeContentCreator = "welcomeContentCreator";
+  static const String yayYouWon = "yayYouWon";
+  static const String creditedToWalletNote = "creditedToWalletNote";
+  static const String byClickingYouAccept = "byClickingYouAccept";
+  static const String joinNow = "joinNow";
+  static const String creatorProgram = "creatorProgram";
+  static const String creatorEarnPerVideoFmt = "creatorEarnPerVideoFmt";
+  static const String addYourVideo = "addYourVideo";
+  static const String addYourLinks = "addYourLinks";
+  static const String myVideos = "myVideos";
+  static const String noVideosYet = "noVideosYet";
+  static const String creditedAmountFmt = "creditedAmountFmt";
+
+  // Statics tab — filter menu, donut legends, footers.
+  static const String myStatics = "myStatics";
+  static const String directReferralIncome = "directReferralIncome";
+  static const String orderIncome = "orderIncome";
+  static const String contentCreationIncome = "contentCreationIncome";
+  static const String totalBonus = "totalBonus";
+  static const String daysLabel = "daysLabel";
+  static const String workHours = "workHours";
+  static const String assignTask = "assignTask";
+  static const String hrsUnit = "hrsUnit";
+  static const String tasksUnit = "tasksUnit";
+  static const String totalAmountLabel = "totalAmountLabel";
+  static const String referralOrder = "referralOrder";
+  static const String totalIncomeLabel = "totalIncomeLabel";
+  static const String totalVideo = "totalVideo";
+  static const String viewCount = "viewCount";
+  static const String balanceDashFmt = "balanceDashFmt";
+
+  // ─── Referral widgets ───
+  // Code pill (my_code_header).
+  static const String referralCodeCopiedToClipboard =
+      "referralCodeCopiedToClipboard";
+  static const String copyCode = "copyCode";
+  static const String shareCode = "shareCode";
+
+  // "My Videos" empty state (post_empty_state).
+  static const String noVideosYetTitle = "noVideosYetTitle";
+  static const String addYourLinksHint = "addYourLinksHint";
+
+  /// Shareable referral poster. Brand names ("BlueEra", "Google Play",
+  /// "App Store") stay untranslated by design.
+  static const String referAndEarnCaps = "referAndEarnCaps";
+  static const String yourReferralCodeCaps = "yourReferralCodeCaps";
+  static const String applyAtSignupRewarded = "applyAtSignupRewarded";
+  static const String downloadBlueEraEnterCode = "downloadBlueEraEnterCode";
+
+  // Instagram fallback card (admin_post_card).
+  static const String previewNotAvailable = "previewNotAvailable";
+  static const String instagramLink = "instagramLink";
+  static const String instagramPreviewLimitSaved =
+      "instagramPreviewLimitSaved";
+  static const String openInInstagram = "openInInstagram";
+
+  // Add-link sheet (add_link_bottom_sheet).
+  static const String pickAPlatform = "pickAPlatform";
+  static const String pasteYourUrl = "pasteYourUrl";
+  static const String addAVideoLink = "addAVideoLink";
+  static const String bringYourReels = "bringYourReels";
+  static const String pasteYourLinkHere = "pasteYourLinkHere";
+  static const String platformMismatchFmt = "platformMismatchFmt";
+  static const String unsupportedLinkPlatform = "unsupportedLinkPlatform";
+  static const String willBeSavedAs = "willBeSavedAs";
+  static const String instagramPreviewLimitWillSave =
+      "instagramPreviewLimitWillSave";
   static const String balance = "balance";
   static const String totalEarn = "totalEarn";
   static const String estdEarning = "estdEarning";
@@ -6357,6 +6551,10 @@ class AppStrings {
   static const String productsTab = "productsTab";
   static const String postTabLabel = "postTabLabel";
   static const String staticsTab = "staticsTab";
+
+  /// Referral dashboard tab strip (pairs with `overviewTab`/`staticsTab`).
+  static const String tutorialTab = "tutorialTab";
+  static const String creatorTab = "creatorTab";
   static const String memberCapsPrefixFmt = "memberCapsPrefixFmt";
   static const String perksRemainingWithTypeFmt = "perksRemainingWithTypeFmt";
   static const String perksOfTotalFmt = "perksOfTotalFmt";

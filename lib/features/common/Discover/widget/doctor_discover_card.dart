@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -6,12 +7,19 @@ import 'package:BlueEra/features/common/Discover/model/doctor_discover_summary.d
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-/// Discover card for one standalone doctor — laid out to `docs/drcard.png`:
+/// Discover card for one standalone doctor — laid out to `docs/drcard_new.png`:
 /// square photo with a rating pill, name + overflow menu, specialization pill,
-/// experience and degree rows behind soft blue icon tiles, a tag chip strip
+/// experience and degree rows behind soft grey icon tiles, a tag chip strip
 /// capped at three with a red "+N More", an expandable availability bar, and a
 /// fee + "Book Now" footer.
+///
+/// Sizes and colours below are MEASURED off that reference rather than guessed.
+/// The mock renders a ~412dp-wide screen, and this card is `screen − 24` (the
+/// list's own padding, see [DoctorDiscoverListScreen]), so each pixel value in
+/// the file was converted at that card width — hence the odd-looking exact
+/// numbers (130 photo, 24 tiles) instead of round ones.
 ///
 /// Every line is driven by the doctor enrichment on the business listing
 /// (guide §14). Two rules the card must honour:
@@ -22,6 +30,22 @@ import 'package:flutter/material.dart';
 ///    empty arrays, zero counts and `timing: null` when the doctor service is
 ///    briefly unavailable, so each row hides itself (or says "Timing not set")
 ///    instead of printing a placeholder.
+/// Card corner, and therefore the footer's bottom corners too — the footer
+/// paints its own fill, so the two radii have to stay in step.
+const double _kCardRadius = 12;
+
+/// Hairline round the specialization pill and the tag chips. Cooler than
+/// [AppColors.greyE5]; the reference draws every outline in this blue-grey.
+const Color _kHairline = Color(0xFFE5E9F2);
+
+/// Slightly darker hairline for the availability box, which is a container
+/// rather than a chip and reads a step heavier in the reference.
+const Color _kAvailBorder = Color(0xFFDDE2EE);
+
+/// The reference's red — a pink-leaning one used for "+N More" and for the
+/// closing time / "Closed today". NOT [Colors.red], which is duller and warmer.
+const Color _kAccentRed = Color(0xFFFF2C55);
+
 class DoctorDiscoverCard extends StatefulWidget {
   final DoctorDiscoverSummary doctor;
   final VoidCallback onTap;
@@ -53,9 +77,10 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
 
   DoctorDiscoverSummary get doctor => widget.doctor;
 
-  /// Soft blue wash behind the small leading icon tiles.
-  static Color get _iconTileBg =>
-      AppColors.primaryColor.withValues(alpha: 0.10);
+  /// Wash behind the small leading icon tiles. Sampled off the reference as
+  /// the SAME pale grey the footer uses (#F5F7FD ≈ [AppColors.geryFC]), not the
+  /// blue tint this card carried before — only the glyph inside is blue.
+  static const Color _iconTileBg = AppColors.geryFC;
 
   static const int _maxChips = 3;
 
@@ -65,6 +90,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
       onTap: widget.onTap,
       child: CustomFormCard(
         padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(_kCardRadius),
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,9 +133,11 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      doctor.name.isNotEmpty ? doctor.name : 'Doctor',
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w700,
+                      doctor.name.isNotEmpty
+                          ? doctor.name
+                          : AppStrings.doctorDiscoverFallbackName.tr,
+                      fontSize: SizeConfig.large18,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -122,12 +150,16 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 SizedBox(height: SizeConfig.size6),
                 _specializationPill(),
               ],
-              if (doctor.experienceLabel.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
+              // Composed here rather than read off `doctor.experienceLabel`,
+              // which hardcodes the English "Years" — the whole line has to
+              // come from one translated pattern so languages that put the
+              // count elsewhere can move it.
+              if (_experienceYears > 0) ...[
+                SizedBox(height: SizeConfig.size12),
                 _iconLine(
-                  icon: Icons.person_outline,
+                  icon: _experienceGlyph(),
                   child: CustomText(
-                    '${doctor.experienceLabel} Experience',
+                    _experienceText,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -137,14 +169,17 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 ),
               ],
               if (doctor.degreeLabel.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size8),
+                SizedBox(height: SizeConfig.size10),
                 _iconLine(
-                  icon: Icons.school_outlined,
+                  // Filled mortarboard, as in the reference — the outlined
+                  // school glyph disappears at 15px inside the tile.
+                  icon: const Icon(Icons.school,
+                      size: 15, color: AppColors.primaryColor),
                   child: CustomText(
                     doctor.degreeLabel,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
+                    color: AppColors.grey7E,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -157,19 +192,32 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     );
   }
 
+  /// `0` and `null` are treated alike — both mean "not filled in" rather than
+  /// "no experience", so the row hides itself either way.
+  int get _experienceYears => doctor.experienceYears ?? 0;
+
+  String get _experienceText => (_experienceYears == 1
+          ? AppStrings.doctorDiscoverExperienceYearFmt
+          : AppStrings.doctorDiscoverExperienceYearsFmt)
+      .trParams({'count': '$_experienceYears'});
+
   /// Square portrait with the rating pill floating over its top-left corner.
+  ///
+  /// 130 rather than the 110 this card used to draw: in the reference the photo
+  /// is ~36% of the card, which is what makes the degree line wrap to the two
+  /// ellipsized rows shown there instead of running long.
   Widget _photo() {
     final image = doctor.logo.isNotEmpty ? doctor.logo : doctor.coverPicture;
     return SizedBox(
-      width: SizeConfig.size110,
-      height: SizeConfig.size110,
+      width: SizeConfig.size130,
+      height: SizeConfig.size130,
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             child: SizedBox(
-              width: SizeConfig.size110,
-              height: SizeConfig.size110,
+              width: SizeConfig.size130,
+              height: SizeConfig.size130,
               child: image.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: image,
@@ -204,7 +252,11 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
+        // The reference's scrim measures ~20% black, which only works because
+        // its mock photo is a mid-grey studio backdrop — over a light portrait
+        // that leaves white text on near-white. 0.40 is the lightest value that
+        // still holds the reference's airy look on any photo.
+        color: Colors.black.withValues(alpha: 0.40),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -227,22 +279,21 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     if (widget.onMenuTap != null) {
       return GestureDetector(
         onTap: widget.onMenuTap,
-        child: Icon(Icons.more_vert,
-            size: 20, color: AppColors.secondaryTextColor),
+        child: Icon(Icons.more_vert, size: 20, color: AppColors.grey7E),
       );
     }
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       splashRadius: 18,
       constraints: const BoxConstraints(minWidth: 140),
-      icon: Icon(Icons.more_vert,
-          size: 20, color: AppColors.secondaryTextColor),
+      icon: Icon(Icons.more_vert, size: 20, color: AppColors.grey7E),
       onSelected: (value) {
         if (value == 'profile') {
           widget.onTap();
         } else {
           ShareService.instance.openShareSheet(
-            text: 'Check out ${doctor.name} on BlueEra',
+            text: AppStrings.doctorDiscoverShareFmt
+                .trParams({'name': doctor.name}),
             subject: doctor.name,
           );
         }
@@ -250,51 +301,91 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
       itemBuilder: (_) => [
         PopupMenuItem(
           value: 'profile',
-          child: CustomText('View Profile', fontSize: SizeConfig.small),
+          child:
+              CustomText(AppStrings.viewProfile.tr, fontSize: SizeConfig.small),
         ),
         PopupMenuItem(
           value: 'share',
-          child: CustomText('Share', fontSize: SizeConfig.small),
+          child: CustomText(AppStrings.share.tr, fontSize: SizeConfig.small),
         ),
       ],
     );
   }
 
+  /// Hugging outlined pill — the reference sizes it to the text, so a long
+  /// specialization stretches it and a short one leaves the row bare.
   Widget _specializationPill() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size4,
+        vertical: SizeConfig.size3,
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.greyE5),
+        border: Border.all(color: _kHairline),
       ),
       child: CustomText(
         doctor.headline,
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w500,
-        color: AppColors.secondaryTextColor,
+        color: AppColors.grey7E,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  /// One "soft blue tile + text" line, used for experience and degree.
-  Widget _iconLine({required IconData icon, required Widget child}) {
+  /// The experience glyph: a person outline wearing a small star, which is one
+  /// icon in the reference's own set and none in Material's. Stacked here — the
+  /// star sits in a tile-coloured disc so the two outlines don't run together
+  /// at this size — rather than shipped as a new asset for a single card.
+  Widget _experienceGlyph() {
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Positioned(
+            top: 0,
+            left: 0,
+            child: Icon(Icons.person_outline,
+                size: 14, color: AppColors.primaryColor),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: _iconTileBg,
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(0.5),
+              child: const Icon(Icons.star,
+                  size: 8, color: AppColors.primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// One "pale tile + text" line, used for experience and degree. The tile is
+  /// 24 square in the reference — small enough that the degree's second line
+  /// clears it, which is what keeps that row's text block centred against it.
+  Widget _iconLine({required Widget icon, required Widget child}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: SizeConfig.size30,
-          height: SizeConfig.size30,
+          width: SizeConfig.size24,
+          height: SizeConfig.size24,
           decoration: BoxDecoration(
             color: _iconTileBg,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
-          child: Icon(icon, size: 16, color: AppColors.primaryColor),
+          child: icon,
         ),
         SizedBox(width: SizeConfig.size8),
         Expanded(child: child),
@@ -310,28 +401,44 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     final visible = chips.take(_maxChips).toList();
     final more = chips.length - visible.length;
 
-    return Wrap(
-      spacing: SizeConfig.size8,
-      runSpacing: SizeConfig.size8,
+    // ONE strip, never two: three chips sharing the row with "+N More" pinned
+    // at its end, exactly as the reference draws it. A [Wrap] was the obvious
+    // choice and the wrong one — three chips of real tag text plus the counter
+    // overrun the row by a few points on most phones, and the counter drops to
+    // a second line, which is the one thing the reference never shows.
+    //
+    // Each chip is [Flexible], so a long tag ellipsizes inside its share of the
+    // row instead of pushing the counter off the end.
+    return Row(
       children: [
-        ...visible.map((label) => _chip(label)),
+        for (int i = 0; i < visible.length; i++) ...[
+          if (i > 0) SizedBox(width: SizeConfig.size5),
+          Flexible(child: _chip(visible[i])),
+        ],
         // "+N More" repeats the card tap rather than expanding in place — the
-        // full list lives on the profile, which is one tap away anyway.
-        if (more > 0) _chip('+$more More', accent: true),
+        // full list lives on the profile, which is one tap away anyway. Left
+        // unflexed so it always keeps its full width.
+        if (more > 0) ...[
+          SizedBox(width: SizeConfig.size5),
+          _chip(
+            AppStrings.doctorDiscoverMoreFmt.trParams({'count': '$more'}),
+            accent: true,
+          ),
+        ],
       ],
     );
   }
 
   Widget _chip(String label, {bool accent = false}) {
-    final color = accent ? AppColors.red : AppColors.secondaryTextColor;
+    final color = accent ? _kAccentRed : AppColors.grey7E;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size6,
+        vertical: SizeConfig.size4,
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent ? AppColors.red : AppColors.greyE5),
+        border: Border.all(color: accent ? _kAccentRed : _kHairline),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: SizeConfig.screenWidth * 0.38),
@@ -355,7 +462,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
+        border: Border.all(color: _kAvailBorder),
       ),
       child: Column(
         children: [
@@ -367,16 +474,16 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
             borderRadius: BorderRadius.circular(10),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
+                horizontal: SizeConfig.size12,
                 vertical: SizeConfig.size10,
               ),
               child: Row(
                 children: [
                   Icon(Icons.calendar_month_outlined,
-                      size: 18, color: AppColors.primaryColor),
-                  SizedBox(width: SizeConfig.size8),
+                      size: 16, color: AppColors.primaryColor),
+                  SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'Availability',
+                    AppStrings.doctorDiscoverAvailability.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
@@ -394,14 +501,14 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
                       size: 20,
-                      color: AppColors.secondaryTextColor,
+                      color: AppColors.grey7E,
                     ),
                 ],
               ),
             ),
           ),
           if (_availabilityExpanded && canExpand) ...[
-            Container(height: 0.5, color: AppColors.greyE5),
+            Container(height: 0.5, color: _kAvailBorder),
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size10,
@@ -423,7 +530,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
   Widget _todayLabel() {
     if (!doctor.hasTiming) {
       return CustomText(
-        'Timing not set',
+        AppStrings.doctorDiscoverTimingNotSet.tr,
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w400,
         color: AppColors.grey7E,
@@ -436,16 +543,16 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     final close = doctor.todayCloseLabel;
     if (!doctor.isOpenToday || (open.isEmpty && close.isEmpty)) {
       return CustomText(
-        'Closed today',
+        AppStrings.doctorDiscoverClosedToday.tr,
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
-        color: AppColors.red,
+        color: _kAccentRed,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
     }
 
-    final day = doctor.todayDayLabel;
+    final day = _dayLabel(doctor.todayDayLabel);
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerRight,
@@ -459,7 +566,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 style: TextStyle(
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.secondaryTextColor,
+                  color: AppColors.grey7E,
                 ),
               ),
             TextSpan(
@@ -474,7 +581,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
               text: ' – ',
               style: TextStyle(
                 fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
+                color: AppColors.grey7E,
               ),
             ),
             TextSpan(
@@ -482,7 +589,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
               style: TextStyle(
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
-                color: AppColors.red,
+                color: _kAccentRed,
               ),
             ),
           ],
@@ -491,8 +598,32 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     );
   }
 
+  /// The server sends weekday names in English (`timing.today.day` and each
+  /// `timing.schedule[].day`). Only the visible text is translated — anything
+  /// that keys off the day still uses the raw value. Unknown input falls
+  /// through untouched rather than rendering blank.
+  static String _dayLabel(String day) {
+    switch (day) {
+      case 'Monday':
+        return AppStrings.monday.tr;
+      case 'Tuesday':
+        return AppStrings.tuesday.tr;
+      case 'Wednesday':
+        return AppStrings.wednesday.tr;
+      case 'Thursday':
+        return AppStrings.thursday.tr;
+      case 'Friday':
+        return AppStrings.friday.tr;
+      case 'Saturday':
+        return AppStrings.saturday.tr;
+      case 'Sunday':
+        return AppStrings.sunday.tr;
+    }
+    return day;
+  }
+
   Widget _weeklyRow(Map row) {
-    final day = row['day']?.toString() ?? '';
+    final day = _dayLabel(row['day']?.toString() ?? '');
     final isOpen = row['isOpen'] == true;
     final open = DoctorDiscoverSummary.formatClock(row['shopOpenTime']);
     final close = DoctorDiscoverSummary.formatClock(row['shopCloseTime']);
@@ -507,11 +638,11 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
               day,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
+              color: AppColors.grey7E,
             ),
           ),
           CustomText(
-            hasWindow ? '$open – $close' : 'Closed',
+            hasWindow ? '$open – $close' : AppStrings.closed.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600,
             color: hasWindow ? AppColors.mainTextColor : AppColors.grey7E,
@@ -526,25 +657,30 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size12,
+        vertical: SizeConfig.size14,
       ),
       decoration: const BoxDecoration(
         color: AppColors.geryFC,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(10),
+          bottomLeft: Radius.circular(_kCardRadius),
+          bottomRight: Radius.circular(_kCardRadius),
         ),
       ),
       child: Row(
         children: [
           // Fee block only when the doctor actually set one. With no fee the
           // CTA simply takes the full width — no "₹0", no "N/A".
+          //
+          // The split is even rather than "fee takes what it needs": in the
+          // reference the button is ~47% of the card, which a hugging button
+          // never reaches — it would sit at roughly 40% and leave the footer
+          // looking lopsided next to the mock.
           if (doctor.hasFee) ...[
             Expanded(child: _feeBlock()),
             SizedBox(width: SizeConfig.size10),
-            _bookNowButton(),
+            Expanded(child: _bookNowButton()),
           ] else
-            Expanded(child: _bookNowButton(fullWidth: true)),
+            Expanded(child: _bookNowButton()),
         ],
       ),
     );
@@ -563,10 +699,10 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
       mainAxisSize: MainAxisSize.min,
       children: [
         CustomText(
-          'Consultation Fee',
+          AppStrings.doctorConsultationFee.tr,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w400,
-          color: AppColors.secondaryTextColor,
+          color: AppColors.grey7E,
         ),
         SizedBox(height: SizeConfig.size2),
         FittedBox(
@@ -579,7 +715,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 TextSpan(
                   text: amount,
                   style: TextStyle(
-                    fontSize: SizeConfig.large,
+                    fontSize: SizeConfig.large18,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryColor,
                   ),
@@ -601,27 +737,36 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     );
   }
 
-  Widget _bookNowButton({bool fullWidth = false}) {
+  /// Fills whatever slot the footer gives it — the footer owns the width.
+  Widget _bookNowButton() {
     return GestureDetector(
       onTap: widget.onBookNow ?? widget.onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: fullWidth ? SizeConfig.size12 : SizeConfig.size24,
-          vertical: SizeConfig.size12,
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size10,
         ),
         decoration: BoxDecoration(
           color: AppColors.primaryColor,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
-          mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomText(
-              'Book Now',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
+            // Flexible + FittedBox: at `large` the label is the widest thing in
+            // the footer, and on a narrow phone (or with a long fee) it would
+            // otherwise overflow its half of the row rather than shrink.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: CustomText(
+                  AppStrings.bookNow.tr,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+              ),
             ),
             SizedBox(width: SizeConfig.size8),
             const Icon(Icons.arrow_forward, size: 18, color: AppColors.white),

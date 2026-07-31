@@ -2411,23 +2411,30 @@ String getIndividualProfessionIcon(String? tagId) {
   return individualProfessionIcons[tagId] ?? '';
 }
 
+/// `name` holds a TRANSLATION KEY, not display text — every render site
+/// (`HealthServiceCardWidget`, `HealthCareListingScreen`'s sticky header)
+/// resolves it with `.tr`. This list is a top-level `final`, so it is built
+/// once on first access and cached for the process lifetime; a `.tr` inside
+/// the entries would freeze each label in whatever language was active then
+/// and never follow a language change. Routing and selection key off
+/// [OnboardingCategoryModel.slugId], which is untouched.
 final List<OnboardingCategoryModel> healthCareList = [
   OnboardingCategoryModel(
-    name: 'Hospitals',
+    name: AppStrings.healthcareHospitals,
     slugId: HOSPITAL,
     icon: "assets/category/medical/health_hospitals.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
-    name: 'Doctors',
+    name: AppStrings.healthcareDoctors,
     slugId: CLINIC_DOCTORS,
     icon: "assets/category/medical/health_doctors.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
-    name: 'Labs',
+    name: AppStrings.healthcareLabs,
     slugId: LABTEST,
     icon: "assets/category/medical/health_labs.png",
     individualType: IndividualProfileType.PROFESSIONAL,
@@ -2440,14 +2447,14 @@ final List<OnboardingCategoryModel> healthCareList = [
   // the listing's `rightContent()` has no PHARMACY branch — without the
   // special-case the tile would land on "Coming soon".
   OnboardingCategoryModel(
-    name: 'Pharmacy',
+    name: AppStrings.healthcarePharmacy,
     slugId: PHARMACY,
     icon: "assets/category/medical/health_pharmacy.png",
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
-    name: 'Surgical',
+    name: AppStrings.healthcareSurgical,
     slugId: SURGICAL,
     icon: "assets/category/medical/health_surgical.png",
     individualType: IndividualProfileType.PROFESSIONAL,

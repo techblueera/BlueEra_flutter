@@ -1,0 +1,20 @@
+{
+  "doctorAppointmentTitle": "डॉक्टर अपॉइंटमेंट",
+  "doctorAppointmentDate": "अपॉइंटमेंट तारीख",
+  "doctorPreferredTime": "पसंतीची वेळ",
+  "doctorPatientNameLabel": "रुग्णाचे नाव",
+  "doctorPatientNameHint": "अपॉइंटमेंट कोणासाठी आहे?",
+  "doctorPickDate": "तारीख निवडा",
+  "doctorPickDateError": "कृपया अपॉइंटमेंटची तारीख निवडा",
+  "doctorEndTimeError": "समाप्तीची वेळ सुरुवातीच्या वेळेनंतर असावी",
+  "doctorFeeNoticeFmt": "क्लिनिकमध्ये तुमच्याकडून @fee आकारले जाईल",
+  "doctorMyAppointments": "माझ्या अपॉइंटमेंट",
+  "doctorNoMyAppointments": "तुम्ही अद्याप कोणतीही अपॉइंटमेंट बुक केलेली नाही",
+  "doctorCancelAppointment": "अपॉइंटमेंट रद्द करा",
+  "doctorCancelConfirmTitle": "ही अपॉइंटमेंट रद्द करायची?",
+  "doctorCancelConfirmBody": "तुम्ही रद्द केल्याचे डॉक्टरांना कळवले जाईल.",
+  "doctorKeepIt": "राहू द्या",
+  "requiredLabel": "आवश्यक",
+  "bookAppointment": "अपॉइंटमेंट बुक करा",
+  "optionalLabel": "पर्यायी"
+}

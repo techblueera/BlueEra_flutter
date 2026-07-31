@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_booking_model.dart';
+import 'package:BlueEra/features/me/doctor/controller/doctor_booking_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_booking_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -63,8 +64,23 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
           .toUpperCase();
   bool get _isLab => _category == 'LABORATORY' || _category == 'LAB';
 
-  String get _cardTitle =>
-      _isLab ? 'Lab Test Booking' : 'Hospital Appointment';
+  /// Standalone-doctor bookings also arrive as `healthcare_booking`, but they
+  /// live in `doctorappointments` and are settled through
+  /// `/doctor-appointments/:id/status` — NOT the hospital path this card used
+  /// to fall back to for anything non-lab. Without this branch the doctor's
+  /// Accept posted a doctor-appointment id to the hospital endpoint and the
+  /// tap silently did nothing.
+  ///
+  /// Both spellings are accepted: the booking record carries `DOCTOR`
+  /// (singular) while an enquiry-derived card can fall back to the enquiry's
+  /// `DOCTORS` (plural).
+  bool get _isDoctor => _category == 'DOCTOR' || _category == 'DOCTORS';
+
+  String get _cardTitle => _isLab
+      ? 'Lab Test Booking'
+      : _isDoctor
+          ? AppStrings.doctorAppointmentTitle.tr
+          : 'Hospital Appointment';
   String get _acceptedLabel =>
       _isLab ? 'Booking accepted' : 'Appointment accepted';
   String get _declinedLabel =>
@@ -170,6 +186,12 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       ok = cancel
           ? await lab.cancelLabBooking(bookingId: id)
           : await lab.respondToLabBooking(bookingId: id, accept: accept);
+    } else if (_isDoctor) {
+      final doctor = getOrPut(() => DoctorBookingController());
+      ok = cancel
+          ? await doctor.cancelAppointment(id)
+          : await doctor.respondToAppointment(
+              appointmentId: id, accept: accept);
     } else {
       final hosp = getOrPut(() => HospitalAppointmentController());
       ok = cancel
