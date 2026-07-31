@@ -159,7 +159,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
           onStoreTap: _openRecentShop,
         ),
-        tabs: {1}
+        tabs: {1},
+      folder: false
       ),
 
       // --- Tab 2 · Travel & Booking (ref: t1.jpeg) ---
@@ -178,7 +179,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           onStoreTap: _openRecentShop,
         ),
         tabs: {3},
-        // folder: false
+        folder: false
       ),
 
       // --- Tab 4 · Services & Professional (ref: ss2.jpeg) ---
