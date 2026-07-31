@@ -1,11 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/app_background_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_palette.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Marks the subtree where Discover sections render as **folders** instead of
 /// full-width cards — the launcher-style landing grid (see `docs/new_discov.jpeg`).
@@ -127,9 +130,9 @@ class DiscoverFolderTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                // Coloured wash over the blurred profile photo behind the page:
-                // still translucent, so the folder keeps picking up whatever it
-                // sits on, but tinted with this folder's own hue.
+                // Coloured wash over the app background behind the page: still
+                // translucent, so the folder keeps picking up whatever it sits
+                // on, but tinted with this folder's own hue.
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -143,25 +146,14 @@ class DiscoverFolderTile extends StatelessWidget {
             ),
           ),
           SizedBox(height: SizeConfig.size8),
-          CustomText(
-            title,
-            textAlign: TextAlign.center,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            // The label sits on the profile photo, not on the tile, so it has no
-            // guaranteed contrast of its own — a dark halo keeps it readable
-            // over a light photo without darkening the whole page for it.
-            shadows: const [
-              Shadow(
-                color: Color(0x8C000000),
-                blurRadius: 6,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          // The label sits on the app background, not on the tile, so it has no
+          // plate of its own to borrow contrast from — and the page no longer
+          // dims that background. It therefore draws itself OUTLINED (see
+          // [_FolderCaption]) in whichever pairing the background's brightness
+          // calls for, which covers the pale swatches, the dark ones, and an
+          // arbitrary gallery photo alike. Obx: repaints the moment a new
+          // background is applied.
+          Obx(() => _FolderCaption(title: title, onDark: _folderLabelOnDark())),
         ],
       ),
     );
@@ -245,6 +237,114 @@ class DiscoverFolderTile extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The section title under a folder, drawn with an outline around the letters
+/// rather than a soft halo behind them.
+///
+/// Two passes of the same string in the same style: a stroked one underneath
+/// and the filled one on top. Flutter can't do both in one [Text] — [TextStyle]
+/// takes `color` OR a `foreground` [Paint], never both — so the border has to be
+/// a second layer. Both passes share [_style] and identical layout parameters,
+/// which is what keeps them registered on top of each other; changing the
+/// alignment, `maxLines` or the font of one without the other would ghost the
+/// label.
+///
+/// The stroke is always the opposite tone to the fill, so it does the whole job
+/// of separating the letters from the background: white ringing dark text on the
+/// pale backgrounds, dark ringing white text on the dark ones — see
+/// [_folderLabelOnDark]. Crisper than the blurred [Shadow] this replaced, which
+/// went muddy against a busy banner.
+class _FolderCaption extends StatelessWidget {
+  const _FolderCaption({required this.title, required this.onDark});
+
+  final String title;
+
+  /// Whether the background under this caption is dark — flips the fill/stroke
+  /// pair over.
+  final bool onDark;
+
+  /// Ring thickness. Centred on the glyph outline, so half of it eats into the
+  /// letter: past ~3 the counters of a bold 'a'/'e' start closing up at this
+  /// size.
+  static const double _strokeWidth = 3.0;
+
+  /// Shared metrics. Anything that affects layout MUST live here so the two
+  /// passes lay out identically — only the paint differs between them.
+  TextStyle get _style => TextStyle(
+        fontFamily: AppConstants.OpenSans,
+        fontSize: SizeConfig.medium,
+        fontWeight: FontWeight.w700,
+        overflow: TextOverflow.ellipsis,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    // .tr to match [CustomText], which translates every string it is handed —
+    // the callers pass titles that are already localised, but a raw key handed
+    // to a folder would otherwise start rendering as the key.
+    final text = title.tr;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          style: _style.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = _strokeWidth
+              // Round joins: mitred corners spike off the diagonals of a 'w'/'y'
+              // at this weight.
+              ..strokeJoin = StrokeJoin.round
+              ..color = onDark ? const Color(0xE6000000) : AppColors.white,
+            // Keeps the outlined label lifted off a busy background — the ring
+            // gives it an edge, this gives it depth.
+            shadows: [
+              Shadow(
+                color: onDark ? const Color(0x73000000) : const Color(0x40000000),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          style: _style.copyWith(
+            color: onDark ? AppColors.white : AppColors.mainTextColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Whether a folder caption should be drawn light-on-dark.
+///
+/// The caption sits directly on the app background ([AppHomeBackground]) — the
+/// one picked in `AppBackgroundScreen` — which Discover deliberately paints at
+/// full strength with nothing dimming it, so the only thing that can guarantee
+/// the caption's contrast is the background itself:
+///
+///  * colour background → its own luminance decides.
+///  * bundled banner → every asset in [AppBackgroundController.bannerOptions] is
+///    pale artwork, so the caption goes dark.
+///  * gallery photo → unknown brightness, so it takes the light-on-dark subtitle
+///    treatment (white text, dark halo) — the one pairing that survives a photo
+///    of any tone.
+///
+/// Call from inside an [Obx]: it reads the controller's observables, so the
+/// captions re-colour the moment a new background is applied.
+bool _folderLabelOnDark() {
+  final ctrl = getOrPut(() => AppBackgroundController(), permanent: true);
+  final banner = ctrl.bannerAsset.value;
+  final color = ctrl.bgColor.value;
+  if (banner.isEmpty) return color.computeLuminance() < 0.5;
+  return !AppBackgroundController.bannerIsAsset(banner);
 }
 
 /// One rounded pastel plate inside a folder, holding a single category icon.
