@@ -42,127 +42,127 @@ class DoctorOverviewTab extends StatelessWidget {
     final businessController =
         getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: SizeConfig.size10),
+    return Padding(
+      padding: EdgeInsets.only(left: SizeConfig.size30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: SizeConfig.size10),
 
-        // ── Joined date + name + rating (business identity) ──
-        Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size16),
-          child: BusinessJoinedProfileCard(
+          // ── Joined date + name + rating (business identity) ──
+          BusinessJoinedProfileCard(
             businessController: businessController,
           ),
-        ),
-        SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size12),
+          //
+          // // ── Cover Photo (+ Edit) ──
+          // Padding(
+          //   padding: _hPad,
+          //   child: const DoctorCoverPhotoCard(),
+          // ),
+          SizedBox(height: SizeConfig.size12),
 
-        // ── Cover Photo (+ Edit) ──
-        Padding(
-          padding: _hPad,
-          child: const DoctorCoverPhotoCard(),
-        ),
-        SizedBox(height: SizeConfig.size12),
-
-        // ── Expertise ──
-        Padding(
-          padding: _hPad,
-          // The observable must be READ INSIDE this builder — reading it in
-          // the child's build() instead leaves Obx with nothing to subscribe
-          // to and throws "improper use of a GetX".
-          child: Obx(
-            () => _ExpertiseSection(
-              controller: controller,
-              expertise: controller.profile.value?.expertise ?? const [],
+          // ── Expertise ──
+          Padding(
+            padding: _hPad,
+            // The observable must be READ INSIDE this builder — reading it in
+            // the child's build() instead leaves Obx with nothing to subscribe
+            // to and throws "improper use of a GetX".
+            child: Obx(
+              () => _ExpertiseSection(
+                controller: controller,
+                expertise: controller.profile.value?.expertise ?? const [],
+              ),
             ),
           ),
-        ),
-        SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size12),
 
-        // ── Certificate & Awards ──
-        Padding(
-          padding: _hPad,
-          child: Obx(
-            () => _CertificatesSection(
-              certificates: controller.certificates,
-              onViewAll: () => Get.to(() => const DoctorCertificatesScreen()),
+          // ── Certificate & Awards ──
+          Padding(
+            padding: _hPad,
+            child: Obx(
+              () => _CertificatesSection(
+                certificates: controller.certificates,
+                onViewAll: () => Get.to(() => const DoctorCertificatesScreen()),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size12),
 
-        // ── Gallery (Business.live_photos) ──
-        Padding(
-          padding: _hPad,
-          child: const DoctorGallerySection(),
-        ),
-        SizedBox(height: SizeConfig.size12),
+          // ── Gallery (Business.live_photos) ──
+          Padding(
+            padding: _hPad,
+            child: const DoctorGallerySection(),
+          ),
+          SizedBox(height: SizeConfig.size12),
 
-        // ── Testimonials ──
-        Padding(
-          padding: _hPad,
-          child: _Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: CustomText(
-                    AppStrings.testimonials.tr,
-                    fontWeight: FontWeight.w700,
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.mainTextColor,
+  /*        // ── Testimonials ──
+          Padding(
+            padding: _hPad,
+            child: _Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: CustomText(
+                      AppStrings.testimonials.tr,
+                      fontWeight: FontWeight.w700,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                    ),
                   ),
-                ),
-                SizedBox(height: SizeConfig.size10),
-                TestimonialListingWidget(
-                  showBorder: false,
-                  callApi: true,
-                  userId: userId,
-                ),
-              ],
+                  SizedBox(height: SizeConfig.size10),
+                  TestimonialListingWidget(
+                    showBorder: false,
+                    callApi: true,
+                    userId: userId,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size12),
+*/
+          // ── Contact Us + map ──
+          Padding(
+            padding: _hPad,
+            child: Obx(() {
+              final details =
+                  businessController.businessProfileDetails.value?.data;
+              return BusinessContactMapCard(businessProfileDetails: details);
+            }),
+          ),
+          SizedBox(height: SizeConfig.size12),
 
-        // ── Contact Us + map ──
-        Padding(
-          padding: _hPad,
-          child: Obx(() {
+          Padding(
+            padding: _hPad,
+            child: Obx(
+              () => WebsiteOverviewCard(
+                websiteUrl:
+                    businessController.businessProfileDetails.value?.data?.websiteUrl,
+                onSave: (url) => businessController
+                    .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              ),
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+
+          Padding(padding: _hPad, child: const ProfileShareBanner()),
+          SizedBox(height: SizeConfig.size12),
+
+          Obx(() {
             final details =
                 businessController.businessProfileDetails.value?.data;
-            return BusinessContactMapCard(businessProfileDetails: details);
+            if (details == null) return const SizedBox.shrink();
+            return Padding(
+              padding: _hPad,
+              child: BusinessQrCodeWidget(data: details),
+            );
           }),
-        ),
-        SizedBox(height: SizeConfig.size12),
 
-        Padding(
-          padding: _hPad,
-          child: Obx(
-            () => WebsiteOverviewCard(
-              websiteUrl:
-                  businessController.businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController
-                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
-            ),
-          ),
-        ),
-        SizedBox(height: SizeConfig.size12),
-
-        Padding(padding: _hPad, child: const ProfileShareBanner()),
-        SizedBox(height: SizeConfig.size12),
-
-        Obx(() {
-          final details =
-              businessController.businessProfileDetails.value?.data;
-          if (details == null) return const SizedBox.shrink();
-          return Padding(
-            padding: _hPad,
-            child: BusinessQrCodeWidget(data: details),
-          );
-        }),
-
-        SizedBox(height: kBottomNavigationBarHeight + 10),
-      ],
+          SizedBox(height: kBottomNavigationBarHeight + 10),
+        ],
+      ),
     );
   }
 

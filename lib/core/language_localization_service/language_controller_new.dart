@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
@@ -203,9 +204,13 @@ class LanguageControllerNew extends GetxController {
         showProgress: false,
       );
       if (responseModel.isSuccess) {
-        // final upgraded = IndividualUserResponseModel.fromJson(responseModel.response?.data ?? {});
-        // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
-        // await getUserAuthToken();
+        // `updateIndividualAccountUser` re-issues the JWT on every successful
+        // update — its payload embeds the user snapshot, so the token we hold
+        // goes stale the moment the profile changes. Persist the new one
+        // before the profile refreshes below, since `ApiBaseHelper` reads
+        // `authTokenGlobal` live on each request.
+        await _persistRefreshedToken(responseModel);
+
         if (accountTypeGlobal.toUpperCase() == "INDIVIDUAL") {
           await Get.find<ViewPersonalDetailsController>()
               .viewPersonalProfile(forceRefresh: true);
@@ -213,13 +218,36 @@ class LanguageControllerNew extends GetxController {
         if (accountTypeGlobal.toUpperCase() == "BUSINESS") {
           final viewProfileController =
               getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-          final pending = <Future<void>>[
-            viewProfileController.viewBusinessProfile(),
-          ];
+          await viewProfileController.viewBusinessProfile();
         }
       }
     } catch (e) {
       log('Failed to sync language preference to server: $e');
     }
+  }
+
+  /// Stores the JWT that `updateIndividualAccountUser` returns alongside
+  /// `{status, message, user}` into secure storage and [authTokenGlobal].
+  ///
+  /// No-ops when the body carries no token. A 2xx without one is a partial
+  /// response, and writing an empty value would sign the user out of a
+  /// background language sync they never asked to be logged out by — the
+  /// previous token stays valid in that case.
+  Future<void> _persistRefreshedToken(ResponseModel responseModel) async {
+    final upgraded = IndividualUserResponseModel.fromJson(
+        (responseModel.response?.data is Map)
+            ? Map<String, dynamic>.from(responseModel.response!.data as Map)
+            : <String, dynamic>{});
+
+    final refreshedToken = upgraded.token;
+    if (refreshedToken == null || refreshedToken.isEmpty) return;
+    if (refreshedToken == authTokenGlobal) return;
+
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.authToken, refreshedToken);
+    // Set the global straight from the response rather than re-reading the key
+    // we just wrote — flutter_secure_storage round-trips are the slow part of
+    // this path, and the written value is what the read would return anyway.
+    authTokenGlobal = refreshedToken;
   }
 }

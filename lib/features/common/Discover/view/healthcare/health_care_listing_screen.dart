@@ -91,7 +91,8 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     singleLineLabel: true,
                     categories: _professionalConsultantCategories.map((c) => StickyCategory(
                       id: c.slugId,
-                      name: c.name,
+                      // `healthCareList` stores translation keys in `name`.
+                      name: c.name.tr,
                       imageUrl: c.icon,
                     )).toList(),
                     selectedId: controller.selectedProfessionalConsultantData.value?.slugId,

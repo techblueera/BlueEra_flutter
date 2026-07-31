@@ -1,0 +1,13 @@
+{
+  "doctorDiscoverTitle": "ಕ್ಲಿನಿಕ್ ವೈದ್ಯರು",
+  "doctorDiscoverEmpty": "ಯಾವುದೇ ವೈದ್ಯರು ಕಂಡುಬಂದಿಲ್ಲ",
+  "doctorDiscoverFallbackName": "ವೈದ್ಯರು",
+  "doctorDiscoverAvailability": "ಲಭ್ಯತೆ",
+  "doctorDiscoverTimingNotSet": "ಸಮಯ ಹೊಂದಿಸಿಲ್ಲ",
+  "doctorDiscoverClosedToday": "ಇಂದು ಮುಚ್ಚಲಾಗಿದೆ",
+  "doctorDiscoverExperienceYearFmt": "@count ವರ್ಷದ ಅನುಭವ",
+  "doctorDiscoverExperienceYearsFmt": "@count ವರ್ಷಗಳ ಅನುಭವ",
+  "doctorDiscoverMoreFmt": "+@count ಇನ್ನಷ್ಟು",
+  "doctorDiscoverShareFmt": "BlueEra ನಲ್ಲಿ @name ಅನ್ನು ನೋಡಿ",
+  "bookNow": "ಈಗ ಬುಕ್ ಮಾಡಿ"
+}

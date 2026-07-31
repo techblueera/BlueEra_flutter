@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/creator_tab.dart';
@@ -23,7 +24,14 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
   late final TabController _tabController;
   int _selectedTab = 0;
 
-  static const _tabs = ['Overview', 'Tutorial', 'Creator', 'Statics'];
+  // Raw keys, not `.tr` values — `CustomText` translates on build, so the
+  // strip re-renders in the new language on a locale switch.
+  static const _tabs = [
+    AppStrings.overviewTab,
+    AppStrings.tutorialTab,
+    AppStrings.creatorTab,
+    AppStrings.staticsTab,
+  ];
 
   @override
   void initState() {
@@ -106,7 +114,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
                 const SizedBox(width: 8),
                 Expanded(
                   child: CustomText(
-                    'Update Referral Code',
+                    AppStrings.updateReferralCode,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/widgets/referral_share_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -33,8 +34,8 @@ class MyCodeHeader extends StatelessWidget {
     if (code.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: code));
     Get.snackbar(
-      'Copied',
-      'Referral code copied to clipboard',
+      AppStrings.copiedLabel.tr,
+      AppStrings.referralCodeCopiedToClipboard.tr,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: AppColors.white,
       colorText: AppColors.mainTextColor,
@@ -89,7 +90,7 @@ class MyCodeHeader extends StatelessWidget {
             _IconAction(
               materialIcon: Icons.copy_rounded,
               onTap: hasCode ? _copy : null,
-              tooltip: 'Copy code',
+              tooltip: AppStrings.copyCode.tr,
             ),
             const SizedBox(width: 8),
             divider,
@@ -97,7 +98,7 @@ class MyCodeHeader extends StatelessWidget {
             _IconAction(
               assetPath: AppIconAssets.reelShare,
               onTap: hasCode ? () => _share(context) : null,
-              tooltip: 'Share code',
+              tooltip: AppStrings.shareCode.tr,
             ),
           ],
         ),

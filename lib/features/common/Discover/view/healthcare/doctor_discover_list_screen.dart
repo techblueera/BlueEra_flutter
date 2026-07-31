@@ -33,7 +33,8 @@ class DoctorDiscoverListScreen extends StatelessWidget {
     SizeConfig.init(context);
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CommonBackAppBar(title: title ?? 'Clinic Doctors'),
+      appBar:
+          CommonBackAppBar(title: title ?? AppStrings.doctorDiscoverTitle.tr),
       body: DoctorDiscoverListView(category: category),
     );
   }
@@ -101,7 +102,7 @@ class _DoctorDiscoverListViewState extends State<DoctorDiscoverListView> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Material(
-      color: Colors.transparent,
+      color: AppColors.skyE7,
       child: Obx(() {
         if (controller.isLoading.value && controller.doctors.isEmpty) {
           return const Center(
@@ -122,7 +123,8 @@ class _DoctorDiscoverListViewState extends State<DoctorDiscoverListView> {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 SizedBox(height: SizeConfig.size100),
-                _centeredMessage('No doctors found', color: AppColors.grey9B),
+                _centeredMessage(AppStrings.doctorDiscoverEmpty.tr,
+                    color: AppColors.grey9B),
               ],
             ),
           );

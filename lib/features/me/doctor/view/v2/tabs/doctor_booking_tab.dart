@@ -140,18 +140,20 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
-      child: Column(
-        children: [
-          Icon(Icons.event_note_outlined, size: 56, color: Colors.grey[300]),
-          SizedBox(height: SizeConfig.size12),
-          CustomText(
-            AppStrings.doctorNoAppointments.tr,
-            color: AppColors.secondaryTextColor,
-            fontSize: SizeConfig.medium,
-          ),
-        ],
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
+        child: Column(
+          children: [
+            Icon(Icons.event_note_outlined, size: 56, color: Colors.grey[300]),
+            SizedBox(height: SizeConfig.size12),
+            CustomText(
+              AppStrings.doctorNoAppointments.tr,
+              color: AppColors.secondaryTextColor,
+              fontSize: SizeConfig.medium,
+            ),
+          ],
+        ),
       ),
     );
   }

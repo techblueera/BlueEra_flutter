@@ -69,6 +69,12 @@ class RouteConstant {
   static const String ResumeTemplateScreen = "/ResumeTemplateScreen";
   static const String ProductListingScreen = "/product-listing";
   static const String MyBookingScreen = "/MyBookingScreen";
+
+  /// Customer's own standalone-doctor appointment requests, with Cancel.
+  /// Named (rather than `Get.to`-only) so a `healthcare_booking` push can
+  /// deep-link into it later.
+  static const String DoctorMyAppointmentsScreen =
+      "/DoctorMyAppointmentsScreen";
   static const String ReceivedBookingScreen = "/ReceivedBookingsScreen";
   static const String VideographyTutorialScreen = "/VideographyTutorialScreen";
   static const String ReceivedEnquiriesScreen = "/ReceivedEnquiriesScreen";

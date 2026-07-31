@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/widgets/balance_total_earn_row.dart';
@@ -45,7 +46,7 @@ class _UpdateReferralPageState extends State<UpdateReferralPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Update Referral Code',
+        title: AppStrings.updateReferralCode,
         isShadowShow: false,
       ),
       body: Column(

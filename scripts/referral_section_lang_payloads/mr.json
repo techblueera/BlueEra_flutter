@@ -1,0 +1,11 @@
+{
+  "updateReferralCode": "रेफरल कोड अपडेट करा",
+  "referralCodeAlphanumericError": "कोडमध्ये अक्षरे आणि अंक दोन्ही असणे आवश्यक आहे",
+  "generateYourReferralCode": "तुमचा रेफरल कोड तयार करा",
+  "enterYourReferralCode": "तुमचा रेफरल कोड टाका",
+  "referralTip": "टिप: 4-10 अक्षरे वापरा, अक्षरे आणि अंक मिसळून (उदा., SAVE50).",
+  "referralSuggestions": "रेफरल सूचना",
+  "iAcceptAll": "मी सर्व स्वीकारतो",
+  "termsAndCondition": "नियम व अटी",
+  "authorizationMessage": "आणि मी तुम्हाला SMS/RCS संदेश/प्रचारात्मक/माहितीपर संदेशांद्वारे सूचना पाठवण्यास अधिकृत करतो."
+}

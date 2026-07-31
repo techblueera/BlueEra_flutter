@@ -33,6 +33,7 @@ import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/groc
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/doctor/view/doctor_my_appointments_screen.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_category_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_screen.dart';
@@ -1239,6 +1240,11 @@ class RouteHelper {
       case RouteConstant.MyBookingScreen:
         return MaterialPageRoute(
           builder: (_) => const MyBookingsScreen(),
+          settings: settings, // Pass the settings to preserve arguments
+        );
+      case RouteConstant.DoctorMyAppointmentsScreen:
+        return MaterialPageRoute(
+          builder: (_) => const DoctorMyAppointmentsScreen(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.ReceivedBookingScreen:

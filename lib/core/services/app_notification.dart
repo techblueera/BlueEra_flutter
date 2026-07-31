@@ -3233,6 +3233,14 @@ class AppNotificationHandler {
       case 'business_enquiry_status':
       case 'healthcare_enquiry':
       case 'healthcare_enquiry_status':
+      // Healthcare BOOKINGS (hospital appointment, lab test, doctor
+      // appointment) were missing here: the push was delivered and shown, but
+      // tapping it fell through to `default:` and went nowhere. Note the
+      // suffix — healthcare uses `_update`, not the `_status` that hotel and
+      // vehicle use above. Adding these repairs all three healthcare
+      // verticals at once, not just doctors.
+      case 'healthcare_booking':
+      case 'healthcare_booking_update':
       case 'hotel_enquiry':
       case 'hotel_enquiry_status':
       case 'hotel_booking':

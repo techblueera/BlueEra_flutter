@@ -88,7 +88,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
                 size: 14, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
             CustomText(
-              'Joined - $joined',
+              '${AppStrings.joined.tr} - $joined',
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -183,8 +183,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.star_rounded,
-                  size: 18, color: Color(0xFFFFB400)),
+              const Icon(Icons.star_rounded, size: 18, color: Color(0xFFFFB400)),
               SizedBox(width: SizeConfig.size4),
               CustomText(
                 rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
@@ -194,7 +193,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size6),
               CustomText(
-                '($reviews ${reviews == 1 ? 'review' : 'reviews'})',
+                '($reviews ${reviews == 1 ? AppStrings.review.tr : AppStrings.reviews.tr})',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -202,7 +201,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
+
     );
   }
 
@@ -324,7 +323,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Cover Photo',
+                      AppStrings.coverPhoto,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: AppColors.mainTextColor,

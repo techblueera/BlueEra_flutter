@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -31,11 +32,13 @@ class _StaticsTabState extends State<StaticsTab> {
   /// see docs/backend/JOINING_BOUNCE_FLUTTER_GUIDE.md.
   final _joiningBounceController = getOrPut(() => JoiningBounceController());
 
-  static const _filterAll = 'All';
-  static const _filterJoining = 'Joining Bonus';
-  static const _filterDirectReferral = 'Direct Referral Income';
-  static const _filterOrder = 'Order Income';
-  static const _filterContent = 'Content Creation Income';
+  // Translation keys, not display text — these double as the selected-filter
+  // identity, and `CustomText` resolves them at render time.
+  static const _filterAll = AppStrings.filterAll;
+  static const _filterJoining = AppStrings.joiningBonus;
+  static const _filterDirectReferral = AppStrings.directReferralIncome;
+  static const _filterOrder = AppStrings.orderIncome;
+  static const _filterContent = AppStrings.contentCreationIncome;
   static const _filters = <String>[
     _filterAll,
     _filterJoining,
@@ -121,7 +124,7 @@ class _StaticsTabState extends State<StaticsTab> {
     return Row(
       children: [
         CustomText(
-          'My Statics',
+          AppStrings.myStatics,
           fontSize: SizeConfig.extraLarge,
           fontWeight: FontWeight.w800,
           color: AppColors.mainTextColor,
@@ -129,7 +132,7 @@ class _StaticsTabState extends State<StaticsTab> {
         const Spacer(),
         PopupMenuButton<String>(
           initialValue: _selectedFilter,
-          tooltip: 'Filter',
+          tooltip: AppStrings.filterLabel.tr,
           position: PopupMenuPosition.under,
           padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
@@ -190,7 +193,7 @@ class _StaticsTabState extends State<StaticsTab> {
       final hours = req?.hours;
       final tasks = req?.tasks;
       return _StatsCard(
-        title: 'Joining Bonus',
+        title: AppStrings.joiningBonus,
         onViewDetails: () {},
         body: _ChartRow(
           donut: StatDonutChart(
@@ -201,27 +204,27 @@ class _StaticsTabState extends State<StaticsTab> {
             ],
             center: _CenterText(
               value: _money(jb?.bonusInr),
-              label: 'Total Bonus',
+              label: AppStrings.totalBonus,
             ),
           ),
           rows: [
             _LegendRow(
               color: _grey,
-              label: 'Days',
+              label: AppStrings.daysLabel,
               value:
-                  '${_count(days?.current)}/${_count(days?.required)} Days',
+                  '${_count(days?.current)}/${_count(days?.required)} ${AppStrings.daysLabel.tr}',
             ),
             _LegendRow(
               color: _green,
-              label: 'Work Hours',
+              label: AppStrings.workHours,
               value:
-                  '${_count(hours?.current)}/${_count(hours?.required)} hrs.',
+                  '${_count(hours?.current)}/${_count(hours?.required)} ${AppStrings.hrsUnit.tr}',
             ),
             _LegendRow(
               color: _yellow,
-              label: 'Assign Task',
+              label: AppStrings.assignTask,
               value:
-                  '${_count(tasks?.current)}/${_count(tasks?.required)} Tasks',
+                  '${_count(tasks?.current)}/${_count(tasks?.required)} ${AppStrings.tasksUnit.tr}',
             ),
           ],
         ),
@@ -237,7 +240,7 @@ class _StaticsTabState extends State<StaticsTab> {
       final bk = dr?.breakdown;
       final earn = dr?.earnings;
       return _StatsCard(
-        title: 'Direct Referral Income',
+        title: AppStrings.directReferralIncome,
         onViewDetails: () => Get.to(() => const ReferralHistoryScreenNew()),
         body: _ChartRow(
           donut: StatDonutChart(
@@ -249,25 +252,25 @@ class _StaticsTabState extends State<StaticsTab> {
             ],
             center: _CenterText(
               value: _count(dr?.referralCount),
-              label: 'Referral Count',
+              label: AppStrings.referralCount,
             ),
           ),
           rows: [
             _LegendRow(
                 color: _green,
-                label: 'Subscribe',
+                label: AppStrings.filterSubscribe,
                 value: _count(bk?.subscribed)),
             _LegendRow(
                 color: _yellow,
-                label: 'Pending',
+                label: AppStrings.pending,
                 value: _count(bk?.pending)),
             _LegendRow(
                 color: _grey,
-                label: 'Un-Subscribe',
+                label: AppStrings.filterUnSubscribe,
                 value: _count(bk?.unsubscribed)),
             _LegendRow(
                 color: _red,
-                label: 'Expired',
+                label: AppStrings.statusExpired,
                 value: _count(bk?.expired)),
           ],
         ),
@@ -286,7 +289,7 @@ class _StaticsTabState extends State<StaticsTab> {
       final oi = controller.walletStatics.value?.orderIncome;
       final bk = oi?.breakdown;
       return _StatsCard(
-        title: 'Order Income',
+        title: AppStrings.orderIncome,
         onViewDetails: () {},
         body: _ChartRow(
           donut: StatDonutChart(
@@ -297,21 +300,21 @@ class _StaticsTabState extends State<StaticsTab> {
             ],
             center: _CenterText(
               value: _money(oi?.totalAmount),
-              label: 'Total Amount',
+              label: AppStrings.totalAmountLabel,
             ),
           ),
           rows: [
             _LegendRow(
                 color: _grey,
-                label: 'My Order',
+                label: AppStrings.myOrder,
                 value: _money(bk?.myOrder)),
             _LegendRow(
                 color: _green,
-                label: 'Referral Order',
+                label: AppStrings.referralOrder,
                 value: _money(bk?.referralOrder)),
             _LegendRow(
                 color: _yellow,
-                label: 'Bonus',
+                label: AppStrings.bonusLabel,
                 value: _money(bk?.bonus)),
           ],
         ),
@@ -325,7 +328,7 @@ class _StaticsTabState extends State<StaticsTab> {
     return Obx(() {
       final cc = controller.walletStatics.value?.contentCreationIncome;
       return _StatsCard(
-        title: 'Content Creation Income',
+        title: AppStrings.contentCreationIncome,
         onViewDetails: () {},
         body: _ChartRow(
           donut: StatDonutChart(
@@ -336,21 +339,21 @@ class _StaticsTabState extends State<StaticsTab> {
             ],
             center: _CenterText(
               value: _money(cc?.totalIncome),
-              label: 'Total Income',
+              label: AppStrings.totalIncomeLabel,
             ),
           ),
           rows: [
             _LegendRow(
                 color: _grey,
-                label: 'Total Video',
+                label: AppStrings.totalVideo,
                 value: _count(cc?.totalVideo)),
             _LegendRow(
                 color: _green,
-                label: 'View Count',
+                label: AppStrings.viewCount,
                 value: _count(cc?.viewCount)),
             _LegendRow(
                 color: _yellow,
-                label: 'Bonus',
+                label: AppStrings.bonusLabel,
                 value: _money(cc?.bonus)),
           ],
         ),
@@ -412,7 +415,7 @@ class _StatsCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 4, vertical: 2),
                     child: CustomText(
-                      'View Details',
+                      AppStrings.viewDetails,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.primaryColor,
@@ -595,11 +598,12 @@ class _FooterReferral extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: _summaryCell('Estd. Earning', estdEarning)),
+              Expanded(
+                  child: _summaryCell(AppStrings.estdEarning, estdEarning)),
               _vDivider(),
-              Expanded(child: _summaryCell('Total Earn', totalEarn)),
+              Expanded(child: _summaryCell(AppStrings.totalEarn, totalEarn)),
               _vDivider(),
-              Expanded(child: _summaryCell('Balance', balance)),
+              Expanded(child: _summaryCell(AppStrings.balance, balance)),
             ],
           ),
           SizedBox(height: SizeConfig.size12),
@@ -671,7 +675,7 @@ class _FooterBalanceWithdraw extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: CustomText(
-                'Balance - $balance',
+                AppStrings.balanceDashFmt.trParams({'amount': balance}),
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -713,7 +717,7 @@ class _WithdrawButton extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: CustomText(
-          'Withdraw',
+          AppStrings.withdraw,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w500,
           color: AppColors.white,

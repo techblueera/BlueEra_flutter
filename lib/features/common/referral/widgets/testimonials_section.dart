@@ -100,7 +100,7 @@ class TestimonialsSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
           child: Center(
             child: CustomText(
-              'No testimonials yet.',
+              AppStrings.noTestimonialsYet,
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.small,
             ),

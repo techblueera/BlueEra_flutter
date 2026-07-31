@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/widgets/testimonial_video_grid.dart';
@@ -33,7 +34,7 @@ class _AllTestimonialsScreenState extends State<AllTestimonialsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
-        title: 'All Testimonials',
+        title: AppStrings.allTestimonials,
         isShadowShow: false,
       ),
       body: Obx(() {
@@ -67,14 +68,14 @@ class _AllTestimonialsScreenState extends State<AllTestimonialsScreen> {
                 size: 56, color: AppColors.primaryColor.withValues(alpha: 0.3)),
             const SizedBox(height: 12),
             CustomText(
-              'No testimonials yet',
+              AppStrings.noTestimonialsYet,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
             ),
             const SizedBox(height: 4),
             CustomText(
-              'Check back later — new stories from BlueEra land here.',
+              AppStrings.noTestimonialsSubtitle,
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.small,
               textAlign: TextAlign.center,

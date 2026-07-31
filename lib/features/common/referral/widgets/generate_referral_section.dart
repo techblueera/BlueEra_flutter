@@ -114,13 +114,13 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
               validator: (value) {
                 final trimmed = value?.trim();
                 if (trimmed == null || trimmed.isEmpty) {
-                  return 'Referral code cannot be empty';
+                  return AppStrings.pleaseEnterReferralCode.tr;
                 }
                 if (trimmed.length < 4 || trimmed.length > 10) {
-                  return 'Referral code must be between 4 to 10 characters';
+                  return AppStrings.referralCodeLengthError.tr;
                 }
                 if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmed)) {
-                  return 'Code must contain both letters and numbers';
+                  return AppStrings.referralCodeAlphanumericError.tr;
                 }
                 return null;
               },
@@ -156,7 +156,9 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                           }
                         }
                       : null,
-                  title: loading ? null : (widget.isUpdate ? 'Update' : 'Submit'),
+                  title: loading
+                      ? null
+                      : (widget.isUpdate ? AppStrings.update : AppStrings.submit),
                 ),
               );
             }),

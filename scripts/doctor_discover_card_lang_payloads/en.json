@@ -1,0 +1,13 @@
+{
+  "doctorDiscoverTitle": "Clinic Doctors",
+  "doctorDiscoverEmpty": "No doctors found",
+  "doctorDiscoverFallbackName": "Doctor",
+  "doctorDiscoverAvailability": "Availability",
+  "doctorDiscoverTimingNotSet": "Timing not set",
+  "doctorDiscoverClosedToday": "Closed today",
+  "doctorDiscoverExperienceYearFmt": "@count Year Experience",
+  "doctorDiscoverExperienceYearsFmt": "@count Years Experience",
+  "doctorDiscoverMoreFmt": "+@count More",
+  "doctorDiscoverShareFmt": "Check out @name on BlueEra",
+  "bookNow": "Book Now"
+}

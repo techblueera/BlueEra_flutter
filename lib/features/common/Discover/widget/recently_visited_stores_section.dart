@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/recent_shops_models.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +25,41 @@ const double _kCardImageHeight = 105;
 /// (title gap) and below it (section padding) stay symmetric. The card's drop
 /// shadow is allowed to paint past the row via the list's `Clip.none`.
 const double _kRowHeight = _kCardHeight;
+
+/// ─── Glass tokens ───────────────────────────────────────────────────────────
+/// Same frosted language as the rest of the redesigned Discover page (see
+/// `recent_orders_section.dart` and [DiscoverFolderTile]): a translucent white
+/// wash over the app background rather than a solid card, a bright hairline
+/// border for the pane's edge, and a lift shadow underneath.
+///
+/// No [BackdropFilter] anywhere — Discover deliberately avoids per-frame blur on
+/// this page (it forces a save-layer over a scrolling sliver list and has been
+/// reverted twice); the frosted read comes from plain alpha.
+
+/// Lift under a translucent panel. A glass pane has no fill of its own to
+/// separate it from the background, so the shadow is what makes it float.
+const List<BoxShadow> _kGlassShadow = [
+  BoxShadow(
+    color: Color(0x1F101828),
+    blurRadius: 18,
+    offset: Offset(0, 8),
+  ),
+  BoxShadow(
+    color: Color(0x14101828),
+    blurRadius: 4,
+    offset: Offset(0, 1),
+  ),
+];
+
+/// Tighter contact shadow for the cards sitting ON the panel — glass-on-glass,
+/// so the lift has to be smaller than the panel's own or the two pile up.
+const List<BoxShadow> _kGlassCardShadow = [
+  BoxShadow(
+    color: Color(0x14101828),
+    blurRadius: 10,
+    offset: Offset(0, 4),
+  ),
+];
 
 /// Horizontally scrolling carousel of the user's recently-visited stores
 /// ("order again"). Backed by [RecentShopsController], which compiles the
@@ -67,17 +101,26 @@ class _RecentlyVisitedStoresSectionState
         return const SizedBox.shrink();
       }
 
-      // White rounded card matching the other Discover sections. It lives INSIDE
-      // the widget (not in the parent's wrapper) so an empty rail still collapses
-      // to SizedBox.shrink() above — no leftover white card or gap. The bottom
-      // margin gives the same inter-section spacing the wrapped cards get.
+      // Glass panel matching the rest of the redesigned Discover page. It lives
+      // INSIDE the widget (not in the parent's wrapper) so an empty rail still
+      // collapses to SizedBox.shrink() above — no leftover pane or gap. The
+      // bottom margin gives the same inter-section spacing the folders get.
       return Container(
         width: double.infinity,
         margin: EdgeInsets.only(bottom: SizeConfig.size12),
         padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.10),
+              Colors.white.withValues(alpha: 0.10),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+          boxShadow: _kGlassShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,15 +130,18 @@ class _RecentlyVisitedStoresSectionState
               child: Row(
                 children: [
                   Expanded(
+                    // White, like the other glass-panel headings: the title sits
+                    // on the translucent pane, which carries the background
+                    // through — dark ink on it reads as a smudge on a photo.
                     child: CustomText(
                       AppStrings.recentlyVisitedStores.tr,
                       fontSize: SizeConfig.large18,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (widget.onViewAll != null)
-                    ViewAllButton(onTap: widget.onViewAll!),
+                    _GlassViewAllButton(onTap: widget.onViewAll!),
                 ],
               ),
             ),
@@ -146,7 +192,7 @@ class _RecentlyVisitedStoresSectionState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             shimmerContainer(
-                height: _kCardImageHeight, width: _kCardWidth, radius: 16),
+                height: _kCardImageHeight, width: _kCardWidth, radius: 18),
             const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 11),
@@ -164,6 +210,39 @@ class _RecentlyVisitedStoresSectionState
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "View All" as a frosted pill instead of the pale-blue [ViewAllButton] chip.
+///
+/// That chip's fill is `primaryColor.withAlpha(10)` — near-invisible on a
+/// translucent pane, which has no white card behind it to sit on. A high-alpha
+/// white plate gives the link its own surface and keeps the brand-blue label
+/// legible whatever background the user picked.
+class _GlassViewAllButton extends StatelessWidget {
+  const _GlassViewAllButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          child: CustomText(
+            AppStrings.viewAll,
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
+          ),
         ),
       ),
     );
@@ -221,16 +300,21 @@ class _StoreCard extends StatelessWidget {
         width: _kCardWidth,
         height: _kCardHeight,
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDEFF4)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x14101828),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
+          // Frosted plate on the panel — glass on glass. Kept at a high alpha
+          // (unlike the panel's 0.10) because this card is dense dark text: a
+          // shop name, a distance and two stat rows need a surface to sit on,
+          // not a tint.
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.72),
+              Colors.white.withValues(alpha: 0.58),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+          boxShadow: _kGlassCardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,8 +323,10 @@ class _StoreCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
+                  // One less than the card's 18 — the inner edge of a 1px
+                  // border, so no sliver of image creeps past the corner.
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
+                      const BorderRadius.vertical(top: Radius.circular(17)),
                   child: logo.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: logo,
@@ -260,8 +346,13 @@ class _StoreCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        // Frosted, not solid — but only slightly: these two
+                        // badges sit on the shop's own photo, which can be any
+                        // colour, so they keep most of their fill.
+                        color: Colors.white.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(20),
+                        border:
+                            Border.all(color: Colors.white.withValues(alpha: 0.6)),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x1A101828),
@@ -292,8 +383,10 @@ class _StoreCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Colors.white.withValues(alpha: 0.85),
                       shape: BoxShape.circle,
+                      border:
+                          Border.all(color: Colors.white.withValues(alpha: 0.6)),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x1A101828),
@@ -373,10 +466,13 @@ class _StoreCard extends StatelessWidget {
     );
   }
 
+  /// No-logo placeholder. Translucent so the card stays glass all the way to
+  /// its top edge instead of turning into a solid block when a shop has no
+  /// picture — which, on this rail, is common.
   Widget _imageFallback() => Container(
         height: _kCardImageHeight,
         width: double.infinity,
-        color: AppColors.lightBlue,
+        color: AppColors.lightBlue.withValues(alpha: 0.55),
         alignment: Alignment.center,
         child: const Icon(Icons.storefront_outlined,
             size: 34, color: AppColors.primaryColor),
@@ -404,9 +500,12 @@ class _StatRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 4, 10, 4),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        // Third layer of glass (background → panel → card → pill), so it is the
+        // brightest of the three: a plate this small needs its edge to read at
+        // a glance, and a hairline grey border doesn't survive on translucency.
+        color: Colors.white.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: const Color(0xFFEDEFF4)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.75)),
       ),
       // Hugs its content — NOT full width.
       child: Row(
@@ -462,10 +561,12 @@ class _DashedDivider extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(
             count,
+            // Lighter than the old solid `0xFFDDE2EC`: on a translucent plate a
+            // hard grey rule reads as a scratch, an alpha one as a seam.
             (_) => Container(
               width: dashWidth,
               height: 1,
-              color: const Color(0xFFDDE2EC),
+              color: const Color(0x33101828),
             ),
           ),
         );

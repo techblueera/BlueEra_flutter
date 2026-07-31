@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -100,8 +101,10 @@ class _OverviewTabState extends State<OverviewTab>
         ),
         alignment: Alignment.center,
         child: CustomText(
-          '${subscribed.toString().padLeft(2, '0')} Subscription Out of '
-          '${total.toString().padLeft(2, '0')} Referral',
+          AppStrings.subscriptionOutOfReferralFmt.trParams({
+            'subscribed': subscribed.toString().padLeft(2, '0'),
+            'total': total.toString().padLeft(2, '0'),
+          }),
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w500,
           color: AppColors.secondaryTextColor,
@@ -121,7 +124,7 @@ class _OverviewTabState extends State<OverviewTab>
             textColor: AppColors.primaryColor,
             borderColor: AppColors.primaryColor,
             onTap: () => Get.to(() => const ReferralHistoryScreenNew()),
-            title: 'History',
+            title: AppStrings.history,
           ),
         ),
         const SizedBox(width: 10),
@@ -133,7 +136,7 @@ class _OverviewTabState extends State<OverviewTab>
             bgColor: AppColors.primaryColor,
             textColor: AppColors.white,
             onTap: () {},
-            title: 'Withdraw',
+            title: AppStrings.withdraw,
           ),
         ),
       ],
@@ -154,7 +157,7 @@ class _OverviewTabState extends State<OverviewTab>
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Center(
             child: CustomText(
-              'Oops, something went wrong',
+              AppStrings.somethingWentWrong,
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.small,
             ),
@@ -167,7 +170,7 @@ class _OverviewTabState extends State<OverviewTab>
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Center(
             child: CustomText(
-              'No overview posts yet.',
+              AppStrings.noOverviewPostsYet,
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.small,
             ),

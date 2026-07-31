@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
+import 'package:BlueEra/features/me/doctor/widget/doctor_appointment_sheet.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_booking_sheet.dart';
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/medical/widget/hospital_appointment_sheet.dart';
@@ -413,6 +414,8 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
           ),
           if (_isMyMessage && _canOpenAppointmentSheet) _bookAppointmentRow(),
           if (_isMyMessage && _canOpenLabBookingSheet) _bookTestRow(),
+          if (_isMyMessage && _canOpenDoctorBookingSheet)
+            _bookDoctorAppointmentRow(),
         ],
       );
     }
@@ -692,6 +695,83 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
         location: (e.location ?? '').trim(),
       ),
       enquiryId: (e.enquiryId ?? '').trim(),
+    );
+  }
+
+  // ── Standalone-doctor booking (DOCTOR/DOCTORS enquiry-first flow) ──
+
+  /// The third vertical. Before this the card handled only HOSPITAL and
+  /// LABORATORY, so a doctor enquiry matched neither branch and the customer
+  /// hit a dead end right after the doctor accepted (guide §3.2).
+  ///
+  /// The category string is the trap here. The ENQUIRY record carries
+  /// `"DOCTORS"` (plural — copied from `Business.category_Of_Business`) while
+  /// the BOOKING record carries `"DOCTOR"` (singular). Matching only one of
+  /// them leaves the button permanently hidden with no error anywhere, so
+  /// both are accepted, case-insensitively.
+  static const Set<String> _doctorCategories = {'DOCTOR', 'DOCTORS'};
+
+  bool get _canOpenDoctorBookingSheet {
+    final e = _e;
+    if (e == null) return false;
+    if (!_doctorCategories.contains((e.category ?? '').trim().toUpperCase())) {
+      return false;
+    }
+    // Any missing id → hide the button rather than open a sheet that can only
+    // fail. Same guard style as the two branches above.
+    return (e.listingId ?? '').trim().isNotEmpty &&
+        (e.ownerId ?? '').trim().isNotEmpty &&
+        (e.enquiryId ?? '').trim().isNotEmpty;
+  }
+
+  void _openDoctorBookingSheet() {
+    final e = _e!;
+    DoctorAppointmentSheet.open(
+      context,
+      listing: DoctorAppointmentListing(
+        // The enquiry's `listingId` IS `Business._id` — the same id the
+        // booking keys on.
+        businessId: (e.listingId ?? '').trim(),
+        ownerId: (e.ownerId ?? '').trim(),
+        doctorName: (e.listingName ?? '').trim(),
+        doctorImage: (e.listingImage ?? '').trim(),
+        location: (e.location ?? '').trim(),
+        // The enquiry record carries no fee, so the sheet's fee notice is
+        // simply omitted on this path.
+      ),
+      enquiryId: (e.enquiryId ?? '').trim(),
+    );
+  }
+
+  Widget _bookDoctorAppointmentRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      child: InkWell(
+        onTap: _openDoctorBookingSheet,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_accentDeep, _accent]),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.event_available_rounded,
+                  size: 15, color: Colors.white),
+              const SizedBox(width: 5),
+              CustomText(
+                AppStrings.bookAppointment.tr,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

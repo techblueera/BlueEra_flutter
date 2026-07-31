@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -90,7 +91,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               if (status == Status.ERROR) {
                 return Center(
                   child: CustomText(
-                    'Oops Something went wrong',
+                    AppStrings.somethingWentWrong,
                     fontSize: SizeConfig.extraLarge,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -100,8 +101,12 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               if (rows.isEmpty) {
                 return EmptyStateWidget(
                   message: _dateRange != null
-                      ? 'No referrals in the selected date range.'
-                      : 'No ${controller.selectedFilter.value} found.',
+                      ? AppStrings.noReferralsInDateRange.tr
+                      : AppStrings.noFilterResultsFmt.trParams({
+                          'filter':
+                              _filterLabelKey(controller.selectedFilter.value)
+                                  .tr,
+                        }),
                 );
               }
               return SingleChildScrollView(
@@ -136,7 +141,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   // --- APP BAR -------------------------------------------------------------
   PreferredSizeWidget _buildAppBar() {
     return CommonBackAppBar(
-      title: 'History',
+      title: AppStrings.history,
       buildCustomActionWidget: () => Row(
         children: [
           _buildCalendarAction(),
@@ -145,7 +150,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
             Icons.ios_share,
             onTap: _isExporting ? null : _exportToPdf,
             loading: _isExporting,
-            tooltip: 'Export',
+            tooltip: AppStrings.export.tr,
           ),
           const SizedBox(width: 16),
         ],
@@ -159,11 +164,13 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       active ? Icons.event_available_outlined : Icons.calendar_today_outlined,
       onTap: active ? null : _pickDateRange,
       tinted: active,
-      tooltip: active ? 'Date filter on' : 'Filter by date',
+      tooltip: active
+          ? AppStrings.dateFilterOn.tr
+          : AppStrings.filterByDate.tr,
     );
     if (!active) return iconBox;
     return PopupMenuButton<String>(
-      tooltip: 'Date filter options',
+      tooltip: AppStrings.dateFilterOptions.tr,
       position: PopupMenuPosition.under,
       offset: const Offset(0, 8),
       shape: RoundedRectangleBorder(
@@ -174,7 +181,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
           _pickDateRange();
         } else if (value == 'remove') {
           setState(() => _dateRange = null);
-          commonSnackBar(message: 'Date filter removed');
+          commonSnackBar(message: AppStrings.dateFilterRemoved.tr);
         }
       },
       itemBuilder: (_) => [
@@ -185,7 +192,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               Icon(Icons.edit_calendar_outlined,
                   size: 18, color: AppColors.primaryColor),
               const SizedBox(width: 10),
-              const Text('Change date range'),
+              Text(AppStrings.changeDateRange.tr),
             ],
           ),
         ),
@@ -197,7 +204,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                   size: 18, color: AppColors.red),
               const SizedBox(width: 10),
               Text(
-                'Remove filter',
+                AppStrings.removeFilter.tr,
                 style: TextStyle(
                   color: AppColors.red,
                   fontWeight: FontWeight.w600,
@@ -295,7 +302,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       initialDateRange: initial,
       firstDate: DateTime(2020),
       lastDate: now,
-      helpText: 'Filter by date range',
+      helpText: AppStrings.filterByDateRange.tr,
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(ctx).colorScheme.copyWith(
@@ -346,7 +353,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              'Date filter',
+                              AppStrings.dateFilter,
                               fontSize: SizeConfig.extraSmall,
                               fontWeight: FontWeight.w500,
                               color: AppColors.secondaryTextColor,
@@ -363,7 +370,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                         ),
                       ),
                       CustomText(
-                        'Tap to change',
+                        AppStrings.tapToChangeLabel,
                         fontSize: SizeConfig.extraSmall,
                         fontWeight: FontWeight.w500,
                         color: AppColors.primaryColor,
@@ -382,7 +389,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               borderRadius: BorderRadius.circular(10),
               onTap: () {
                 setState(() => _dateRange = null);
-                commonSnackBar(message: 'Date filter cleared');
+                commonSnackBar(message: AppStrings.dateFilterCleared.tr);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -400,7 +407,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                         size: 16, color: AppColors.red),
                     const SizedBox(width: 4),
                     CustomText(
-                      'Clear',
+                      AppStrings.clear,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w700,
                       color: AppColors.red,
@@ -419,7 +426,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   Future<void> _exportToPdf() async {
     final rows = _visibleRows;
     if (rows.isEmpty) {
-      commonSnackBar(message: 'Nothing to export.');
+      commonSnackBar(message: AppStrings.nothingToExport.tr);
       return;
     }
     final choice = await showModalBottomSheet<String>(
@@ -450,7 +457,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                       color: AppColors.primaryColor),
                   const SizedBox(width: 8),
                   CustomText(
-                    'Export referral history',
+                    AppStrings.exportReferralHistory,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -460,14 +467,14 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
             ),
             ListTile(
               leading: Icon(Icons.save_alt, color: AppColors.primaryColor),
-              title: const Text('Save to device'),
-              subtitle: const Text('Store the PDF in your app files'),
+              title: Text(AppStrings.saveToDevice.tr),
+              subtitle: Text(AppStrings.saveToDeviceSubtitle.tr),
               onTap: () => Navigator.of(ctx).pop('save'),
             ),
             ListTile(
               leading: Icon(Icons.ios_share, color: AppColors.primaryColor),
-              title: const Text('Share PDF'),
-              subtitle: const Text('Send via WhatsApp, Email, etc.'),
+              title: Text(AppStrings.sharePdf.tr),
+              subtitle: Text(AppStrings.sharePdfSubtitle.tr),
               onTap: () => Navigator.of(ctx).pop('share'),
             ),
             const SizedBox(height: 8),
@@ -487,18 +494,20 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
         final baseDir = await getApplicationDocumentsDirectory();
         final file = File('${baseDir.path}/$filename');
         await file.writeAsBytes(bytes);
-        commonSnackBar(message: 'Saved to ${file.path}');
+        commonSnackBar(
+            message: AppStrings.savedToFmt.trParams({'path': file.path}));
       } else {
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/$filename');
         await file.writeAsBytes(bytes);
         await Share.shareXFiles(
           [XFile(file.path, mimeType: 'application/pdf', name: filename)],
-          subject: 'Referral History',
+          subject: AppStrings.referralHistory.tr,
         );
       }
     } catch (e) {
-      commonSnackBar(message: 'Export failed: $e');
+      commonSnackBar(
+          message: AppStrings.exportFailedFmt.trParams({'error': '$e'}));
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -507,9 +516,9 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   Future<List<int>> _buildPdfBytes(
       List<WalletReferralHistoryItem> rows) async {
     final pdf = pw.Document();
-    final filterLabel = controller.selectedFilter.value;
+    final filterLabel = _filterLabelKey(controller.selectedFilter.value).tr;
     final rangeLabel = _dateRange == null
-        ? 'All dates'
+        ? AppStrings.allDates.tr
         : '${_dateRange!.start.day}/${_dateRange!.start.month}/${_dateRange!.start.year}'
             ' — ${_dateRange!.end.day}/${_dateRange!.end.month}/${_dateRange!.end.year}';
     pdf.addPage(
@@ -517,13 +526,13 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         build: (ctx) => [
-          pw.Text('Referral History',
+          pw.Text(AppStrings.referralHistory.tr,
               style:
                   pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
-          pw.Text('Filter: $filterLabel',
+          pw.Text(AppStrings.pdfFilterFmt.trParams({'filter': filterLabel}),
               style: const pw.TextStyle(fontSize: 10)),
-          pw.Text('Range: $rangeLabel',
+          pw.Text(AppStrings.pdfRangeFmt.trParams({'range': rangeLabel}),
               style: const pw.TextStyle(fontSize: 10)),
           pw.SizedBox(height: 16),
           pw.Table.fromTextArray(
@@ -532,13 +541,13 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                 const pw.BoxDecoration(color: PdfColors.grey300),
             cellAlignment: pw.Alignment.centerLeft,
             cellStyle: const pw.TextStyle(fontSize: 10),
-            headers: const [
-              'Name',
-              'Profession',
-              'Status',
-              'Earned',
-              'Plan',
-              'Date',
+            headers: [
+              AppStrings.labelName.tr,
+              AppStrings.professionLabel.tr,
+              AppStrings.statusLabel.tr,
+              AppStrings.earnedLabel.tr,
+              AppStrings.planLabel.tr,
+              AppStrings.date.tr,
             ],
             data: rows
                 .map((r) => [
@@ -565,6 +574,25 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   }
 
   // --- FILTER TABS --------------------------------------------------------
+  /// Maps a `ReferralController.filters` identifier to its display key.
+  /// The identifiers themselves are query-param switches in `fetchHistory`
+  /// and must never be translated.
+  static String _filterLabelKey(String filter) {
+    switch (filter) {
+      case 'Pending':
+        return AppStrings.pending;
+      case 'Subscribe':
+        return AppStrings.filterSubscribe;
+      case 'Un-Subscribe':
+        return AppStrings.filterUnSubscribe;
+      case 'Expired':
+        return AppStrings.statusExpired;
+      case 'All':
+      default:
+        return AppStrings.filterAll;
+    }
+  }
+
   Widget _buildFilterTabs() {
     return Obx(() {
       final selectedIdx = controller.filters.indexOf(
@@ -573,11 +601,15 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       return HorizontalTabSelector<String>(
         tabs: controller.filters,
         selectedIndex: selectedIdx < 0 ? 0 : selectedIdx,
-        labelBuilder: (f) => f,
+        labelBuilder: _filterLabelKey,
         unSelectedBackgroundColor: Colors.white,
-        onTabSelected: (index, label) {
-          if (controller.selectedFilter.value == label) return;
-          controller.fetchHistory(label);
+        // Select by index, not by the label the builder produced — the
+        // label is now a translation key, while `fetchHistory` expects the
+        // untranslated identifier.
+        onTabSelected: (index, _) {
+          final filter = controller.filters[index];
+          if (controller.selectedFilter.value == filter) return;
+          controller.fetchHistory(filter);
         },
       );
     });
@@ -589,20 +621,20 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
         return (
           bg: AppColors.primaryColor.withValues(alpha: 0.10),
           fg: AppColors.primaryColor,
-          label: 'Subscribed',
+          label: AppStrings.statusSubscribed,
         );
       case 'unsubscribed':
       case 'un-subscribe':
         return (
           bg: AppColors.orange27.withValues(alpha: 0.12),
           fg: AppColors.orange27,
-          label: 'Un-subscribed',
+          label: AppStrings.statusUnsubscribed,
         );
       case 'expired':
         return (
           bg: AppColors.red.withValues(alpha: 0.10),
           fg: AppColors.red,
-          label: 'Expired',
+          label: AppStrings.statusExpired,
         );
       default:
         return (
@@ -627,15 +659,15 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
           () {
             switch (controller.selectedFilter.value) {
               case 'Pending':
-                return 'Pending User';
+                return AppStrings.pendingUser;
               case 'Un-Subscribe':
-                return 'Un-Subscribe User';
+                return AppStrings.unSubscribeUser;
               case 'Expired':
-                return 'Expired';
+                return AppStrings.statusExpired;
               case 'All':
               case 'Subscribe':
               default:
-                return 'Subscribe User';
+                return AppStrings.subscribeUser;
             }
           }(),
           fontSize: SizeConfig.large,
@@ -713,7 +745,8 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                           ),
                           const SizedBox(height: 2),
                           CustomText(
-                            'Referred users (${children.length})',
+                            AppStrings.referredUsersFmt
+                                .trParams({'count': '${children.length}'}),
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w500,
                             color: AppColors.secondaryTextColor,
@@ -732,7 +765,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                             vertical: 36, horizontal: 16),
                         child: Center(
                           child: CustomText(
-                            'No referred users yet.',
+                            AppStrings.noReferredUsersYet,
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                           ),
@@ -881,7 +914,8 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CustomText(
-                      '${grandChildren.length} referred',
+                      AppStrings.referredCountFmt
+                          .trParams({'count': '${grandChildren.length}'}),
                       fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryColor,
