@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/emergency/repo/emergency_service_repo.dart';
@@ -67,25 +68,20 @@ class EmergencyBasicInfoController extends GetxController {
     return re.hasMatch(v);
   }
 
-  /// [State 2 letters][District 1-2 digits][Series 1-2 letters][Number 1-4 digits]
-  static final vehicleNumberRegExp =
-      RegExp(r'^[A-Za-z]{2}[0-9]{1,2}[A-Za-z]{1,2}[0-9]{1,4}$');
-
-  bool _isValidVehicle(String value) {
-    final v = value.trim();
-    if (v.isEmpty) return true;
-    return vehicleNumberRegExp.hasMatch(v);
-  }
+  /// Both the "is the form complete" gate and the field's own validator read
+  /// the SAME rule ([VehicleNumber]) — this used to be a private regex here
+  /// that had drifted from the two in [ValidationMethod], so the same plate was
+  /// accepted on one screen and rejected on another.
+  ///
+  /// Required, not optional. This used to accept an EMPTY value, which left the
+  /// Next button enabled on a form with no vehicle number — the user tapped it
+  /// and got the "fill vehicle" snackbar from [submit] instead of moving on.
+  /// [submit] has always treated the field as mandatory, so the gate now agrees
+  /// with it.
+  bool _isValidVehicle(String value) => VehicleNumber.validate(value) == null;
 
   /// Field-level validator for the vehicle number text field.
-  String? validateVehicleNumber(String? value) {
-    final v = (value ?? '').trim();
-    if (v.isEmpty) return AppStrings.emergencyFillVehicle.tr;
-    if (!vehicleNumberRegExp.hasMatch(v)) {
-      return AppStrings.emergencyInvalidVehicle.tr;
-    }
-    return null;
-  }
+  String? validateVehicleNumber(String? value) => VehicleNumber.validate(value);
 
   String get mergedBloodGroup =>
       '${selectedBloodGroupType.value ?? ''}${selectedBloodGroupSign.value ?? ''}';
@@ -134,7 +130,12 @@ class EmergencyBasicInfoController extends GetxController {
         "mobileNumber": mobileController.text.trim(),
         "alternateNumber": alternateController.text.trim(),
         "emailId": emailController.text.trim(),
-        "vehicleNumber": vehicleController.text.trim().toUpperCase(),
+        // Normalised, not just upper-cased. The field lets the plate be typed
+        // with the spaces/dashes people write (`MH 12 AB 1234`), so the raw
+        // text would reach the backend in a different shape from every other
+        // screen — all of which store `MH12AB1234`. Validation already compares
+        // the normalised form, so this stores exactly what was validated.
+        "vehicleNumber": VehicleNumber.normalize(vehicleController.text),
       };
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {

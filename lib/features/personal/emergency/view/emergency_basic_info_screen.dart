@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -69,9 +70,13 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   hintText: AppStrings.emergencyVehicleHint.tr,
                   textEditController: controller.vehicleController,
                   isCapitalize: true,
-                  maxLength: 10,
-                  regularExpression: r'[A-Za-z0-9]',
-                  validator: controller.validateVehicleNumber,
+                  maxLength: VehicleNumber.maxLength,
+                  // First two characters are letters (the state code); anything
+                  // may follow, so a plate can be typed with the spaces or
+                  // dashes people naturally write. The validator still requires
+                  // a real plate — it strips those separators first.
+                  inputFormatters: VehicleNumber.relaxedInputFormatters,
+                  validator: VehicleNumber.validate,
                 ),
                 SizedBox(height: 16),
                 Obx(() => CustomBtn(
