@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -19,7 +20,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
-import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
@@ -40,6 +40,22 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
+
+/// Opens a hotel from this listing. Routed through [openVisitProfile] so the
+/// type→screen mapping stays in one place, and shared by the list card and the
+/// map sheet.
+///
+/// The fetched [HotelServiceData] is handed over, so the detail screen renders
+/// straight away instead of taking the id-only path (a blocking dialog while it
+/// refetches a record this screen already has).
+void _openHotelDetails(HotelServiceData service) {
+  openVisitProfile(
+    accountType: AppConstants.business,
+    typeOfBusiness: BusinessType.Motel.name,
+    businessId: service.businessId ?? service.profile?.businessId,
+    hotelData: service,
+  );
+}
 
 class AllStayServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> stayCategories;
@@ -784,7 +800,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       ..sort();
     final startingPrice = roomPrices.isNotEmpty ? roomPrices.first : null;
 
-    void openDetails() => Get.to(() => HotelDiscoverHomeScreen(data: service));
+    void openDetails() => _openHotelDetails(service);
 
     return InkWell(
       onTap: openDetails,
@@ -2103,10 +2119,6 @@ class _StayMapScreenState extends State<_StayMapScreen> {
     } else {
       Get.to(VehicleDetailsWidget(service: service));
     }
-  }
-
-  void _openHotelDetails(HotelServiceData service) {
-    Get.to(() => HotelDiscoverHomeScreen(data: service));
   }
 
   Future<void> _zoomToCluster(Cluster cluster) async {

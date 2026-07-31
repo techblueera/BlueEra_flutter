@@ -8,13 +8,11 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -23,7 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+
 void openMeOverview() {
   if (Get.isRegistered<BottomBarController>()) {
     Get.until((route) => route.isFirst);
@@ -105,31 +103,13 @@ class PostAuthorHeader extends StatelessWidget {
                         postType == PostType.saved)) {
                   return;
                 }
-                if (post?.user?.accountType?.toUpperCase() ==
-                    AppConstants.individual) {
-                  if (userId == authorId) {
-                    openMeOverview();
-                    // navigatePushTo(context, PersonalProfileSetupNewScreen());
-                  } else {
-                    Get.to(() => NewVisitProfileScreen(
-                          authorId: authorId,
-                          screenFromName: AppConstants.feedScreen,
-                        ));
-                  }
-                }
-                if (post?.user?.accountType?.toUpperCase() ==
-                    AppConstants.business) {
-                  if (businessId == post?.user?.business_id) {
-                    openMeOverview();
-
-                    // navigatePushTo(context, BusinessOwnProfileScreen());
-                  } else {
-                    Get.to(() => VisitBusinessProfileNew(
-                          businessId: post?.user?.business_id ?? "",
-                          screenName: AppConstants.feedScreen,
-                        ));
-                  }
-                }
+                // Every feed profile tap goes through the one resolver, so a
+                // tapped lab/restaurant/pharmacy opens ITS screen rather than
+                // the generic business profile. `authorId` is passed
+                // explicitly: on a channel post the header shows the channel
+                // but the tap must still open the author this widget was built
+                // for.
+                openFeedProfile(post?.user?.copyWith(id: authorId));
               },
               child: ChannelProfileHeader(
                   imageUrl: post?.user?.profileImage ?? '',

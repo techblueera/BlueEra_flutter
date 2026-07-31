@@ -69,7 +69,16 @@
       "Bash(echo \"---EXIT=$?---\")",
       "Bash(sed -i \"s#import 'package:BlueEra/features/ride_booking/view/ride_on_trip_screen.dart';#import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';#\" lib/features/ride_booking/view/ride_tracking_screen.dart)",
       "Bash(sed -i \"/import 'package:BlueEra\\\\/features\\\\/ride_booking\\\\/view\\\\/ride_on_trip_screen.dart';/d\" lib/core/services/ride_notification_router.dart)",
-      "Bash(rm lib/features/ride_booking/view/ride_on_trip_screen.dart)"
+      "Bash(rm lib/features/ride_booking/view/ride_on_trip_screen.dart)",
+      "Bash(sed -i '' \"/^import 'package:BlueEra\\\\/features\\\\/common\\\\/Discover\\\\/view\\\\/finance\\\\/finance_detail_screen.dart';$/d\" lib/features/common/Discover/view/finance/finance_list_screen.dart)",
+      "Bash(sed -i '' \"/^import 'package:BlueEra\\\\/features\\\\/common\\\\/Discover\\\\/view\\\\/healthcare\\\\/discover_hospital_home_screen.dart';$/d\" lib/features/common/Discover/view/healthcare/hospital_list_screen.dart)",
+      "Bash(perl -0pi -e 's{Get\\\\.to\\\\\\(\\\\\\(\\\\\\) => SelfEmployeeViewDiscoverScreen\\\\\\(service: service\\\\\\)\\\\\\);}{openVisitProfile\\(\\\\n        accountType: AppConstants.individual,\\\\n        profileType: SELF_EMPLOYED,\\\\n        userId: service.id,\\\\n        serviceData: service,\\\\n      \\);}g' lib/features/common/Discover/view/v2/self_profession_discover_screen_v2.dart)",
+      "Bash(perl -0pi -e 's{Get\\\\.to\\\\\\(\\\\\\(\\\\\\) => DiscoverProfessionalsViewScreen\\\\\\(\\\\n\\(\\\\s*\\)professionalConsData: service,\\\\n\\\\s*\\\\\\)\\\\\\);}{openVisitProfile\\(\\\\n$1accountType: AppConstants.individual,\\\\n$1profileType: PROFESSIONAL,\\\\n$1userId: service.userId,\\\\n$1professionalData: service,\\\\n$1\\);}g' lib/features/common/Discover/view/v2/profession_consultant_discover_screen_v2.dart)",
+      "Bash(sed -i '' \"3d\" lib/features/common/Discover/view/hmf_category_discover_screen.dart)",
+      "Bash(sed -i '' \"3d\" lib/features/common/Discover/view/v2/hmp_discover_screen_v2.dart)",
+      "Bash(sed -i '' \"4d\" lib/features/common/Discover/view/v2/profession_consultant_discover_screen_v2.dart)",
+      "Bash(sed -i '' \"4d\" lib/features/common/Discover/view/v2/self_profession_discover_screen_v2.dart)",
+      "Bash(sed -i '' \"/^import 'package:BlueEra\\\\/features\\\\/common\\\\/Discover\\\\/view\\\\/hmf_store_details_discover_screen.dart';$/d\" lib/features/common/Discover/view/hmf_category_discover_screen.dart)"
     ]
   }
 }

@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -11,7 +13,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
@@ -222,15 +223,18 @@ class _HospitalCard extends StatelessWidget {
     return '${km.toStringAsFixed(km < 10 ? 1 : 0)} km away';
   }
 
+  /// Routed through [openVisitProfile] so the type→screen mapping stays in one
+  /// place. The fetched list item goes with it, so the hospital screen seeds
+  /// its controller with the real record rather than an id-only stub.
   void _openDetail() {
-    try {
-      final controller = Get.find<HospitalServiceAiController>();
-      controller.hospitalDataResModel?.value =
-          HospitalFullDetailsResModel(success: true, data: item);
-      Get.to(() => DiscoverHospitalHomeScreen());
-    } on Exception catch (e) {
-      logs("ERROR $e");
-    }
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: BusinessType.Healthcare.name,
+      categoryOfBusiness: 'HOSPITALS',
+      businessId: item.id,
+      userId: item.userId,
+      hospitalData: item,
+    );
   }
 
   void _openChat() {
@@ -275,7 +279,7 @@ class _HospitalCard extends StatelessWidget {
         destinationAddress: item.location?.name ?? '',
         destinationLat: _destLat(),
         destinationLng: _destLng(),
-        visitCallback: () => Get.to(() => DiscoverHospitalHomeScreen()));
+        visitCallback: _openDetail);
   }
 
   void _openImageViewer(BuildContext context) {

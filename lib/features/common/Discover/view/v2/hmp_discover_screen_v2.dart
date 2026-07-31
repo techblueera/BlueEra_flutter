@@ -1,11 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_products_discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/v2/hmp_store_details_discover_screen_v2.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -221,11 +221,16 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
         ? rawUserId
         : (data.product.businessId ?? '').trim();
     if (userId.isEmpty) return;
-    Get.to(() => HmpStoreDetailsDiscoverScreenV2(
-          userId: userId,
-          serviceName: data.product.business_name,
-          serviceLogo: data.product.business_logo,
-        ));
+    // Routed through openVisitProfile: `HOME_MADE_PRODUCTS` is what picks the
+    // home-made storefront over the owner's personal profile. Name/logo go with
+    // it so the header paints before the store finishes hydrating.
+    openVisitProfile(
+      accountType: AppConstants.individual,
+      earnProfileTypes: const [HOME_MADE_PRODUCTS],
+      userId: userId,
+      storeName: data.product.business_name,
+      storeLogo: data.product.business_logo,
+    );
   }
 
   /// Floating "Post Product" action — a gradient extended FAB pill, so the add

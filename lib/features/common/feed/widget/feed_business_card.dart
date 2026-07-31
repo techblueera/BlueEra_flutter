@@ -1,12 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Renders one `type: "business"` entry from the mixed `/feed` response
 /// (see docs/backend/FRONTEND_FEED_INTEGRATION.md §4.5) as a banner-style
@@ -14,11 +14,13 @@ import 'package:get/get.dart';
 /// rating and address below.
 ///
 /// The card carries no visible action buttons, but tapping it opens the
-/// business's visiting profile ([VisitBusinessProfileNew]) — a `type:
-/// "business"` feed item always represents a business. Business items only
-/// arrive when the feed request carries `lat`/`long` (guide §6.1), and their
-/// author often resolves to "Unknown User" (guide §4.1), so the card is built
-/// entirely from the business payload for display.
+/// business — routed through the shared feed profile resolver
+/// ([openFeedProfile]), so it lands on that business's own screen when its
+/// sub-category has one, and on the generic visiting profile otherwise.
+/// Business items only arrive when the feed request carries `lat`/`long`
+/// (guide §6.1), and their author often resolves to "Unknown User" (guide
+/// §4.1), so the card is built entirely from the business payload for
+/// display.
 class FeedBusinessCard extends StatelessWidget {
   final Post post;
   final double? horizontalPadding;
@@ -36,17 +38,34 @@ class FeedBusinessCard extends StatelessWidget {
   /// The business feed item's own `_id` is the business id. We prefer the
   /// author's `business_id` when the user service resolved it, and fall back to
   /// the item id so the card stays tappable for the "Unknown User" case.
-  String get _businessId {
-    final fromAuthor = post.user?.business_id ?? '';
-    return fromAuthor.isNotEmpty ? fromAuthor : post.id;
-  }
+  String get _businessId =>
+      cleanTaxonomyValue(post.user?.business_id) ?? post.id;
 
   void _openBusiness() {
-    if (_businessId.isEmpty) return;
-    Get.to(() => VisitBusinessProfileNew(
-          businessId: _businessId,
-          screenName: AppConstants.feedScreen,
-        ));
+    // Through the shared feed resolver, so this card lands on the business's
+    // own screen (food store / lab / pharmacy / school …) picked from its
+    // sub-category, instead of always the generic business profile.
+    //
+    // A `type: "business"` item IS a business even when the user service
+    // couldn't resolve its author ("Unknown User", guide §4.1) — hence the
+    // explicit account type, and the item's own `category` / `_id` standing in
+    // for the author fields that came back empty.
+    final author = post.user;
+    openFeedProfile(
+      User(
+        id: author?.id,
+        accountType: AppConstants.business,
+        name: author?.name,
+        businessName: author?.businessName ?? _business?.name,
+        business_id: _businessId,
+        designation: author?.designation,
+        profileImage: author?.profileImage,
+        username: author?.username,
+        categoryOfBusiness: cleanTaxonomyValue(author?.categoryOfBusiness) ??
+            _business?.category,
+      ),
+      fallbackBusinessId: _businessId,
+    );
   }
 
   @override

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
+import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
@@ -433,31 +434,41 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
     return Row(
       children: [
         if (uploader.isNotEmpty) ...[
-          _buildUploaderAvatar(),
+          // Avatar + name open the uploader's profile (same resolver as the
+          // post author header); the rest of the card still opens the player.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => openFeedProfile(post.user),
+            child: _buildUploaderAvatar(),
+          ),
           SizedBox(width: SizeConfig.size8),
           Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  uploader,
-                  color: AppColors.white,
-                  fontSize: SizeConfig.size12,
-                  fontWeight: FontWeight.w600,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (showChannel)
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => openFeedProfile(post.user),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   CustomText(
-                    channelName,
-                    color: AppColors.white.withValues(alpha: 0.75),
-                    fontSize: SizeConfig.size10,
-                    fontWeight: FontWeight.w500,
+                    uploader,
+                    color: AppColors.white,
+                    fontSize: SizeConfig.size12,
+                    fontWeight: FontWeight.w600,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-              ],
+                  if (showChannel)
+                    CustomText(
+                      channelName,
+                      color: AppColors.white.withValues(alpha: 0.75),
+                      fontSize: SizeConfig.size10,
+                      fontWeight: FontWeight.w500,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
           ),
           SizedBox(width: SizeConfig.size8),

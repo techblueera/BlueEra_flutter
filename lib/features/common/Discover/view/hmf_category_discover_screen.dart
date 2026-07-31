@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigat
 import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
@@ -321,7 +321,13 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       commonSnackBar(message: AppStrings.storeDetailsNotAvailable.tr);
       return;
     }
-    Get.to(() => HmfStoreDetailsDiscoverScreen(userId: userId));
+    // Routed through openVisitProfile: `HOME_MADE_FOOD` is what picks the
+    // home-made storefront over the owner's personal profile.
+    openVisitProfile(
+      accountType: AppConstants.individual,
+      earnProfileTypes: const [HOME_MADE_FOOD],
+      userId: userId,
+    );
   }
 
   // ── Right Content ──
