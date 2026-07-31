@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class RegularExpressionUtils {
@@ -343,48 +344,11 @@ class ValidationMethod {
     return null;
   }
 
-  static String? validateVehicleNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Vehicle number is required.';
-    }
-
-    // Standard Indian plate (e.g. MH12AB1234) OR a `DF` prefix followed by
-    // digits (e.g. DF1234) used for special/temporary registrations.
-    final regex =
-        RegExp(r'^([A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}|DF[0-9]+)$');
-
-    if (!regex.hasMatch(value.trim().toUpperCase())) {
-      return 'Please enter a valid vehicle number (e.g. MH12AB1234 or DF1234).';
-    }
-
-    return null;
-  }
-
-  /// Delivery-partner vehicle number: first 2 characters must be letters,
-  /// followed by 8 to 10 digits (e.g. MH1234567890).
-  /// This accepts:
-  /// ✅ GJ01AB1234
-  /// ✅ GJ 01 AB 1234
-  /// ✅ GJ-01-AB-1234
-  /// ✅ MH12A1234
-  /// ✅ DL1CAB1234
-  /// ✅ KA05MC1234
-  /// ✅ 22BH1234AA
-  /// ✅ 22 BH 1234 AA
-  static String? validateDeliveryVehicleNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Vehicle number is required.';
-    }
-
-    /// [State 2 letters][District 1-2 digits][Series 1-2 letters][Number 1-4 digits]
-    final regex = RegExp(r'^[A-Za-z]{2}[0-9]{1,2}[A-Za-z]{1,2}[0-9]{1,4}$');
-
-    if (!regex.hasMatch(value.trim())) {
-      return 'Please enter a valid vehicle number (e.g. MH12AB1234)';
-    }
-
-    return null;
-  }
+  /// Vehicle registration number — see [VehicleNumber], which is the single
+  /// definition of what the app accepts. Kept as a named entry point so form
+  /// fields can pass `ValidationMethod.validateVehicleNumber` directly.
+  static String? validateVehicleNumber(String? value) =>
+      VehicleNumber.validate(value);
 
   String? validatePropertyDescription(String? value) {
     if (value == null || value.isEmpty)
@@ -675,4 +639,168 @@ class ValidationMethod {
 
 String removeSpaceFromString(String data) {
   return data.toLowerCase().replaceAll(' ', '');
+}
+
+/// The single definition of a vehicle registration number: what the user is
+/// allowed to type, and what counts as valid on submit.
+///
+/// Before this existed the rule lived in three places that had drifted apart —
+/// `ValidationMethod.validateVehicleNumber` (uppercased, allowed a `DF` prefix),
+/// `ValidationMethod.validateDeliveryVehicleNumber` (case-insensitive, no `DF`,
+/// series capped at 2 letters), and a private `vehicleNumberRegExp` on
+/// `EmergencyBasicInfoController`. The same plate was accepted on one screen and
+/// rejected on another. Everything now routes through here.
+///
+/// ## Typing rule
+///
+/// [inputFormatters] enforces it as the user types, so an invalid character
+/// simply never appears in the field:
+///
+///  * the first two characters are letters only (the state code),
+///  * everything after is letters or digits,
+///  * input is upper-cased,
+///  * total length is capped at [maxLength].
+///
+/// ## What validates
+///
+/// [validate] applies the SAME rule as the typing filter — two leading letters,
+/// then any letters/digits, within [maxLength]. Validation and input agree by
+/// construction, so a field can never accept a keystroke it will later reject.
+///
+/// It deliberately does not model plate structure. Earlier versions required
+/// `[state][district][series][number]` (and a `DF…` special case), which turned
+/// out to reject real plates users typed — a longer series, extra trailing
+/// characters, or any layout outside that one template. See [_plate].
+///
+/// Separators are normalised away first, so `GJ-01-AB-1234` and `GJ 01 AB 1234`
+/// both validate and both store as `GJ01AB1234`.
+///
+/// The BH series (`22BH1234AA`) is still rejected: it starts with two digits,
+/// which the letters-first rule forbids at the input stage too.
+///
+/// Note this accepts a bare `MH` — the rule as specified puts no lower bound on
+/// what follows the two letters.
+class VehicleNumber {
+  const VehicleNumber._();
+
+  /// Hard cap on the field, matching the `maxLength` the forms pass.
+  static const int maxLength = 15;
+
+  /// Two leading letters, then anything — run against the normalised value.
+  ///
+  /// This deliberately does NOT model `[state][district][series][number]`. It
+  /// used to (`^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$`), and that rigid shape
+  /// rejected real plates the user could legitimately type: anything with a
+  /// longer series, extra trailing characters, or a layout outside that one
+  /// template failed validation even though the field had accepted every
+  /// keystroke. The rule is the same one the typing filter enforces — first two
+  /// characters are letters, the rest is free — so what can be typed is exactly
+  /// what validates.
+  ///
+  /// Because [normalize] strips separators first, `[A-Z0-9]*` here covers "any
+  /// character or digit" as typed: `MH 12 AB 1234` arrives as `MH12AB1234`.
+  ///
+  /// The old `DF[0-9]+` special case is gone — it is subsumed by this rule.
+  static final RegExp _plate = RegExp(r'^[A-Z]{2}[A-Z0-9]*$');
+
+  /// Upper-cases and strips anything that isn't a letter or a digit, so values
+  /// that arrive from outside the field — a saved profile, a pasted plate with
+  /// spaces or dashes — are compared in the same shape the field produces.
+  static String normalize(String? value) =>
+      (value ?? '').toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
+  /// Formatters for the field. Pass to `CommonTextField.inputFormatters`.
+  ///
+  /// Note this REPLACES that widget's default formatter list, so the length
+  /// limit is included here rather than relying on `inputLength`.
+  static List<TextInputFormatter> get inputFormatters => [
+        const _VehicleNumberFormatter(),
+        LengthLimitingTextInputFormatter(maxLength),
+      ];
+
+  /// Same two-letter prefix rule, but anything goes after it — spaces, dashes,
+  /// punctuation — instead of letters and digits only.
+  ///
+  /// Used by the emergency profile, where the plate is typed once by someone
+  /// recalling it rather than copied off a document, so `MH 12 AB 1234` and
+  /// `MH-12-AB-1234` should be typeable as written.
+  ///
+  /// [validate] is UNCHANGED for these fields and still requires a real plate:
+  /// it strips the separators via [normalize] before matching, so the relaxed
+  /// input is about what the user may type, not about accepting a looser value.
+  static List<TextInputFormatter> get relaxedInputFormatters => [
+        const _VehicleNumberFormatter(allowAnyAfterPrefix: true),
+        LengthLimitingTextInputFormatter(maxLength),
+      ];
+
+  /// Form-field validator.
+  static String? validate(String? value) {
+    final plate = normalize(value);
+    if (plate.isEmpty) return AppStrings.emergencyFillVehicle.tr;
+    // The length bound is re-checked here, not just left to the field: a value
+    // can reach this from a saved profile or an API payload, which never went
+    // through the formatters.
+    if (plate.length > maxLength || !_plate.hasMatch(plate)) {
+      return AppStrings.emergencyInvalidVehicle.tr;
+    }
+    return null;
+  }
+
+  /// Whether [value] is a well-formed plate. Empty counts as valid so callers
+  /// driving an "is the form complete" flag can treat a blank optional field as
+  /// not-yet-an-error; use [validate] for the field itself.
+  static bool isValidOrEmpty(String? value) =>
+      normalize(value).isEmpty || validate(value) == null;
+}
+
+/// Applies [VehicleNumber]'s typing rule on every keystroke.
+///
+/// Positional rather than a flat character filter: the first two slots take
+/// letters only, so a digit typed into an empty field is dropped instead of
+/// landing where the state code belongs. Characters are tested against the
+/// position they would occupy in the RESULT, not in the raw input, so deleting
+/// the leading letters of `MH12` correctly re-tests `1` and `2`.
+class _VehicleNumberFormatter extends TextInputFormatter {
+  const _VehicleNumberFormatter({this.allowAnyAfterPrefix = false});
+
+  /// When true, only the two-letter prefix is policed and everything after it
+  /// is accepted as typed — see [VehicleNumber.relaxedInputFormatters].
+  final bool allowAnyAfterPrefix;
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final input = newValue.text.toUpperCase();
+    final buffer = StringBuffer();
+    // Track the caret: every character dropped from before it shifts it left,
+    // otherwise the cursor drifts to the end on any mid-string edit.
+    final int caret = newValue.selection.end;
+    int newCaret = caret;
+
+    for (int i = 0; i < input.length; i++) {
+      final int code = input.codeUnitAt(i);
+      final bool isLetter = code >= 0x41 && code <= 0x5A; // A-Z
+      final bool isDigit = code >= 0x30 && code <= 0x39; // 0-9
+      // Position in the OUTPUT decides what is allowed here. The first two
+      // slots are letters-only in both modes; what may follow them is what the
+      // two modes differ on.
+      final bool allowed = buffer.length < 2
+          ? isLetter
+          : (allowAnyAfterPrefix || isLetter || isDigit);
+
+      if (allowed && buffer.length < VehicleNumber.maxLength) {
+        buffer.write(input[i]);
+      } else if (i < caret) {
+        newCaret--;
+      }
+    }
+
+    final text = buffer.toString();
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(
+        offset: newCaret.clamp(0, text.length),
+      ),
+    );
+  }
 }

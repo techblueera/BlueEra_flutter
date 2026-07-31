@@ -163,10 +163,13 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       title: AppStrings.vehicleNumber.tr,
                       hintText: AppStrings.egWB5454.tr,
                       textEditController: controller.vehicleRegistrationNumberController,
-                      validator: ValidationMethod.validateDeliveryVehicleNumber,
                       isCapitalize: true,
-                      maxLength: 10,
-                      regularExpression: r'[A-Za-z0-9]',
+                      maxLength: VehicleNumber.maxLength,
+                      // Replaces the old `regularExpression: [A-Za-z0-9]`,
+                      // which let a digit be typed into the state-code slot.
+
+                      inputFormatters: VehicleNumber.relaxedInputFormatters,
+                      validator: VehicleNumber.validate,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 

@@ -164,10 +164,15 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         hintText: AppStrings.egWB5454,
                         textEditController:
                             controller.vehicleRegistrationNumberController,
-                        validator: ValidationMethod.validateDeliveryVehicleNumber,
                         isCapitalize: true,
-                        maxLength: 10,
-                        regularExpression: r'[A-Za-z0-9]',
+                        maxLength: VehicleNumber.maxLength,
+                        // Replaces the old `regularExpression: [A-Za-z0-9]`,
+                        // which let a digit be typed into the state-code slot.
+                        // inputFormatters: VehicleNumber.inputFormatters,
+
+
+                        inputFormatters: VehicleNumber.relaxedInputFormatters,
+                        validator: VehicleNumber.validate,
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 

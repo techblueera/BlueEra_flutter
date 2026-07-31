@@ -508,9 +508,11 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   title: AppStrings.vehicleNumber,
                   hintText: AppStrings.egWB5454,
                   textEditController: controller.vehicleRegistrationNumberCtrl,
-                  validator: ValidationMethod.validateVehicleNumber,
                   isCapitalize: true,
-                  maxLength: 10,
+                  maxLength: VehicleNumber.maxLength,
+
+                  inputFormatters: VehicleNumber.relaxedInputFormatters,
+                  validator: VehicleNumber.validate,
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
