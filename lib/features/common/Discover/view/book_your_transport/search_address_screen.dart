@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
@@ -15,7 +14,6 @@ import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dar
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,6 +49,10 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
   String _searchQuery = '';
   bool _isLoadingPredictions = false;
   List<PlacePrediction> _predictions = [];
+
+  /// `place_id` currently being resolved by a row tap, or null. Drives the row
+  /// spinner and blocks a second tap while a lookup is in flight.
+  String? _resolvingPlaceId;
 
   List<Map<String, dynamic>> _recentSearches = [];
   List<FavoriteLocation> _favourites = [];
@@ -148,32 +150,19 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         final data = responseModel.response?.data;
         final predictionsJson = (data['predictions'] as List?) ?? [];
         final results = PlacePrediction.fromList(predictionsJson);
+        // Render the predictions as they arrive and resolve NOTHING here.
+        //
+        // This used to loop over every prediction calling Place Details, to fill
+        // in lat/lng and a "x km away" label — 5 billed lookups per keystroke
+        // burst, for a list the user takes one row from. Coordinates are now
+        // fetched in the tap handler (see [_selectPrediction]) and the ordering
+        // that the distance label used to convey comes from the location bias on
+        // the autocomplete request itself, which is free.
+        // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
         setState(() {
           _predictions = results;
           _isLoadingPredictions = false;
         });
-        for (final prediction in results) {
-          try {
-            final detailsResponse = await PlaceRepo()
-                .getCompletePlaceDetails(placeId: prediction.placeId ?? '');
-            final detailsData = detailsResponse.response?.data;
-            final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-            final location = placeDetails.result?.geometry?.location;
-            final distance = Geolocator.distanceBetween(
-                  LocationService.lat,
-                  LocationService.lng,
-                  location?.lat ?? 0.0,
-                  location?.lng ?? 0.0,
-                ) /
-                1000;
-            prediction.lat = location?.lat ?? 0.0;
-            prediction.lng = location?.lng ?? 0.0;
-            prediction.distanceInKm = "${distance.toStringAsFixed(1)} km";
-          } catch (e) {
-            log('Place details error: $e');
-          }
-        }
-        if (mounted) setState(() {});
       } else {
         setState(() {
           _predictions = [];
@@ -189,6 +178,28 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         });
       }
     }
+  }
+
+  /// Resolve the tapped prediction's coordinates, then pick it.
+  ///
+  /// The one Place Details call this screen makes. [PlaceRepo.resolvePlace]
+  /// caches per `place_id` for the session, so re-picking a place already used
+  /// as a pickup costs nothing.
+  Future<void> _selectPrediction(PlacePrediction p) async {
+    if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
+    setState(() => _resolvingPlaceId = p.placeId);
+    final resolved = await PlaceRepo().resolvePlace(p.placeId);
+    if (!mounted) return;
+    setState(() => _resolvingPlaceId = null);
+    if (resolved == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    // Cache it back onto the prediction so the favourite button on this row
+    // doesn't have to look it up again.
+    p.lat = resolved.lat;
+    p.lng = resolved.lng;
+    await _pick(resolved.lat, resolved.lng, p.description ?? '');
   }
 
   // ─── Pick / submit ──────────────────────────────────────────────────────
@@ -622,14 +633,14 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
 
   Widget _buildPredictionTile(PlacePrediction p) {
     final desc = p.description ?? '';
-    final lat = p.lat ?? 0.0;
-    final lng = p.lng ?? 0.0;
     final favourited = _isFavourited(desc);
+    final resolving = _resolvingPlaceId != null && _resolvingPlaceId == p.placeId;
+    // Coordinates are no longer pre-fetched for the list, so the tap resolves
+    // them — see [_selectPrediction]. The distance column that used to sit under
+    // this icon went with that pre-fetch; nearby results now come back first
+    // because the autocomplete request is location-biased.
     return InkWell(
-      onTap: () {
-        if (lat == 0.0 && lng == 0.0) return;
-        _pick(lat, lng, desc);
-      },
+      onTap: resolving ? null : () => _selectPrediction(p),
       child: Padding(
         padding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -638,31 +649,37 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
           children: [
             SizedBox(
               width: 56,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(Icons.location_on,
+              child: resolving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor),
+                      ),
+                    )
+                  : const Icon(Icons.location_on,
                       size: 22, color: AppColors.black),
-                  if ((p.distanceInKm ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    CustomText(
-                      p.distanceInKm ?? '',
-                      fontSize: 11,
-                      color: AppColors.grayText,
-                    ),
-                  ],
-                ],
-              ),
             ),
             const SizedBox(width: 6),
             Expanded(child: _addressTwoLine(desc)),
             const SizedBox(width: 8),
             InkWell(
-              onTap: () => _toggleFavourite(
-                lat: lat,
-                lng: lng,
-                address: desc,
-              ),
+              // Favouriting needs coordinates too, and this row may not have
+              // been resolved yet — so resolve on demand here as well (cached,
+              // so favouriting then picking the same row costs one lookup).
+              onTap: () async {
+                var lat = p.lat ?? 0.0;
+                var lng = p.lng ?? 0.0;
+                if (lat == 0.0 && lng == 0.0) {
+                  final resolved = await PlaceRepo().resolvePlace(p.placeId);
+                  if (resolved == null || !mounted) return;
+                  p.lat = lat = resolved.lat;
+                  p.lng = lng = resolved.lng;
+                }
+                _toggleFavourite(lat: lat, lng: lng, address: desc);
+              },
               borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.all(4),

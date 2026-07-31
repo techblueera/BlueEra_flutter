@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -35,7 +34,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1802,42 +1801,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  GoogleMapController? mapController;
-  LatLng? _currentPosition;
-  Set<Marker> _markers = {};
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    if (_currentPosition != null && _currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0) {
-      try {
-        final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-          const ImageConfiguration(size: Size(30, 30)),
-          AppImageAssets.markerBlue,
-        );
-
-        final Marker customMarker = Marker(
-          markerId: const MarkerId("custom_marker_id"),
-          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          icon: customIcon,
-        );
-
-        setState(() {
-          _markers.add(customMarker);
-        });
-
-        await mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(LatLng(_currentPosition!.latitude, _currentPosition!.longitude), 15.0),
-        );
-      } catch (e) {
-        debugPrint("Error loading marker: $e");
-      }
-    }
-  }
-
   Widget _buildMapMessage(
       Messages? messages, String? message, double lat, double long, String time, bool isReceiveMsg) {
-    _currentPosition = LatLng(lat, long);
     Theme.of(context);
     return Container(
       height: 260,
@@ -1873,18 +1838,21 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                         width: 254,
                         child: Stack(
                           children: [
-                            GoogleMap(
-                              onMapCreated: _onMapCreated,
-                              initialCameraPosition: CameraPosition(
-                                target: _currentPosition ?? LatLng(lat, long),
-                                zoom: 15.0,
-                              ),
-                              myLocationEnabled: false,
-                              compassEnabled: false,
-                              rotateGesturesEnabled: true,
-                              tiltGesturesEnabled: true,
-                              zoomGesturesEnabled: true,
-                              scrollGesturesEnabled: true,
+                            // A picture, not a live `GoogleMap`. Chat rows are
+                            // disposed on scroll-out and rebuilt on scroll-in,
+                            // so an interactive map here bought a Dynamic Maps
+                            // load on every pass — and this is the ordinary
+                            // "shared a location" bubble, so threads hold
+                            // several. Disk-cached, so the second view onwards
+                            // is free. The directions button beside it still
+                            // opens the real Google Maps app, which is where
+                            // anyone actually pans and zooms.
+                            // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.5.
+                            StaticMapPreview(
+                              latitude: lat,
+                              longitude: long,
+                              width: 254,
+                              height: (message != null) ? 160 : 238,
                             ),
                             Positioned(
                               right: SizeConfig.size10,
@@ -1892,7 +1860,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                               child: InkWell(
                                 onTap: () async {
                                   final Uri googleMapUrl = Uri.parse(
-                                      "https://www.google.com/maps/search/?api=1&query=${_currentPosition?.latitude},${_currentPosition?.longitude}");
+                                      "https://www.google.com/maps/search/?api=1&query=$lat,$long");
 
                                   if (await canLaunchUrl(googleMapUrl)) {
                                     await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);

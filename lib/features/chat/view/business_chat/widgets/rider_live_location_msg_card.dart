@@ -1,10 +1,9 @@
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -31,38 +30,6 @@ class RiderLiveLocationMsgCard extends StatefulWidget {
 
 class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   final chatViewController = Get.find<ChatViewController>();
-  late GoogleMapController mapController;
-  Set<Marker> _markers = {};
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-    try {
-
-      final markerIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 40)),
-        AppImageAssets.locationMarkerIcon, // Your PNG path
-      );
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(26.7836, 80.9013),
-        icon: markerIcon,
-      );
-
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(26.7836, 80.9013), 14.0),
-      );
-
-    } catch (e, stackTrace) {
-      debugPrint("Error: $e");
-      debugPrint("StackTrace: $stackTrace");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,25 +60,29 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
           // mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // A picture, not a live `GoogleMap`. Chat rows are disposed on
+            // scroll-out and rebuilt on scroll-in, so the interactive map this
+            // replaced bought a Dynamic Maps load on every pass.
+            // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.5.
+            //
+            // NOTE: the coordinate below is HARD-CODED and always has been —
+            // it is not the rider's position, it is a fixed point in Lucknow
+            // shown to every user in every thread. Preserved verbatim so this
+            // change stays a like-for-like swap, but it needs wiring to the
+            // real rider location (or the map removing altogether).
             Container(
               decoration: BoxDecoration(
                 color: AppColors.blueLightShade,
                 borderRadius: BorderRadius.circular(10),
               ),
               height: 160,
-              child: GoogleMap(
-                onMapCreated: (controller) => _onMapCreated(controller),
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(26.7836, 80.9013),
-                  zoom: 14.0,
-                ),
-                markers: _markers,
-                myLocationEnabled: false,
-                compassEnabled: false,
-                rotateGesturesEnabled: true,
-                tiltGesturesEnabled: true,
-                zoomGesturesEnabled: true,
-                scrollGesturesEnabled: true,
+              child: const StaticMapPreview(
+                latitude: 26.7836,
+                longitude: 80.9013,
+                width: 400,
+                height: 160,
+                zoom: 14,
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
             ),
             // Title & price

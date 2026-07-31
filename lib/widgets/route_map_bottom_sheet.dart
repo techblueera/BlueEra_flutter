@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -11,6 +10,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -128,18 +128,15 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
 
   Future<void> _fetchRoute() async {
     try {
-      final polylinePoints = PolylinePoints(apiKey: googleMapKey);
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(_userLatLng.latitude, _userLatLng.longitude),
-          destination: PointLatLng(_destinationLatLng.latitude, _destinationLatLng.longitude),
-          mode: TravelMode.driving,
-        ),
+      final result = await RoutePolylineService.fetch(
+        origin: PointLatLng(_userLatLng.latitude, _userLatLng.longitude),
+        destination: PointLatLng(
+            _destinationLatLng.latitude, _destinationLatLng.longitude),
       );
 
       if (!mounted) return;
 
-      if (result.points.isNotEmpty) {
+      if (result != null && result.points.isNotEmpty) {
         final routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();

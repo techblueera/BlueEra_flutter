@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -107,18 +107,12 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
 
   Future<void> _fetchRoute() async {
     try {
-      final polylinePoints = PolylinePoints(apiKey: googleMapKey);
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin:
-              PointLatLng(_pickupLatLng.latitude, _pickupLatLng.longitude),
-          destination:
-              PointLatLng(_dropLatLng.latitude, _dropLatLng.longitude),
-          mode: TravelMode.driving,
-        ),
+      final result = await RoutePolylineService.fetch(
+        origin: PointLatLng(_pickupLatLng.latitude, _pickupLatLng.longitude),
+        destination: PointLatLng(_dropLatLng.latitude, _dropLatLng.longitude),
       );
 
-      if (result.points.isNotEmpty) {
+      if (result != null && result.points.isNotEmpty) {
         _routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();

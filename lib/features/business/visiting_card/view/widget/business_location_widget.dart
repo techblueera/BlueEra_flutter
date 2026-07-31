@@ -1,13 +1,12 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'dart:async';
 class BusinessLocationWidget extends StatefulWidget {
   final double latitude;
   final double longitude;
@@ -31,68 +30,9 @@ class BusinessLocationWidget extends StatefulWidget {
 }
 
 class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
-  // Use a nullable controller to avoid LateInitializationErrors
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _setInitialMarker();
-  }
-
-  // Pre-set the marker so it appears immediately without waiting for the controller
-  void _setInitialMarker() {
-    setState(() {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId("business_location"),
-          position: LatLng(widget.latitude, widget.longitude),
-          infoWindow: InfoWindow(title: widget.businessName),
-        ),
-      );
-    });
-  }
-
-  // Improved map created callback
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-
-    // Optional: Load custom icon if needed
-    _loadCustomMarkerIcon();
-  }
-
-  Future<void> _loadCustomMarkerIcon() async {
-    try {
-      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 30)),
-        AppImageAssets.markerBlue,
-      );
-
-      if (mounted) {
-        setState(() {
-          _markers.clear();
-          _markers.add(
-            Marker(
-              markerId: const MarkerId("business_location"),
-              position: LatLng(widget.latitude, widget.longitude),
-              icon: customIcon,
-              infoWindow: InfoWindow(title: widget.businessName),
-            ),
-          );
-        });
-      }
-    } catch (e) {
-      debugPrint("Error loading custom marker: $e");
-    }
-  }
-
-  @override
-  void dispose() {
-    // CRITICAL: This stops the iOS crash when navigating away
-    _mapController?.dispose();
-    super.dispose();
-  }
+  // No GoogleMapController, markers or custom-icon loading any more: the map is
+  // a static image (see build). That also removes the iOS controller-disposal
+  // crash this widget used to have to guard against.
 
   @override
   Widget build(BuildContext context) {
@@ -127,19 +67,19 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
               height: 180,
               child: Stack(
                 children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.latitude, widget.longitude),
-                      zoom: 14.0,
-                    ),
-                    markers: _markers,
-                    myLocationEnabled: false,
-                    compassEnabled: false,
-                    // Fix for iOS gesture conflicts
-                    // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                    //   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                    // },
+                  // A picture, not a live `GoogleMap`. This is the strongest
+                  // case for it in the app: a business's location is IDENTICAL
+                  // for every person who opens the profile, so a live map means
+                  // buying the same image once per viewer. As a static image it
+                  // is a cheaper SKU and disk-cached per device — and once the
+                  // backend serves these from our own storage (backend guide
+                  // §B5) Google is paid once per location, ever.
+                  StaticMapPreview(
+                    latitude: widget.latitude,
+                    longitude: widget.longitude,
+                    width: MediaQuery.of(context).size.width,
+                    height: 180,
+                    zoom: 14,
                   ),
                   // ... rest of your UI (Send button)
                 ],

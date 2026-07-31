@@ -17,9 +17,9 @@ import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -285,23 +285,24 @@ class _GoodsMultiOrderBookingMainState
     _routeSignature = signature;
 
     try {
-      final result =
-          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(
-              stops.first.position.latitude, stops.first.position.longitude),
-          destination: PointLatLng(
-              stops.last.position.latitude, stops.last.position.longitude),
-          mode: TravelMode.driving,
-          wayPoints: [
-            for (final stop in stops.sublist(1, stops.length - 1))
-              PolylineWayPoint(
-                location:
-                    '${stop.position.latitude},${stop.position.longitude}',
-              ),
-          ],
-        ),
+      final result = await RoutePolylineService.fetch(
+        origin: PointLatLng(
+            stops.first.position.latitude, stops.first.position.longitude),
+        destination: PointLatLng(
+            stops.last.position.latitude, stops.last.position.longitude),
+        wayPoints: [
+          for (final stop in stops.sublist(1, stops.length - 1))
+            PolylineWayPoint(
+              location: '${stop.position.latitude},${stop.position.longitude}',
+            ),
+        ],
       );
+      // Null = throttled or failed. Clear the signature so the next refresh
+      // retries rather than treating this leg as already drawn.
+      if (result == null) {
+        _routeSignature = null;
+        return;
+      }
       if (!mounted || result.points.length < 2) return;
       _roadRoute =
           result.points.map((p) => LatLng(p.latitude, p.longitude)).toList();

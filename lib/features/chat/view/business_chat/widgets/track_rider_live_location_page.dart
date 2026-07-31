@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -10,7 +11,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../../../environment_config.dart';
 import '../../../../common/Discover/controller/rider_location_poll_controller.dart';
 import '../../call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
@@ -228,22 +228,19 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     _fetchingRoute = true;
 
     try {
-      PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapKey);
-
-      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(riderLat, riderLng), // 🔥 LIVE rider location
-          destination: PointLatLng(widget.endLat, widget.endLng),
-          mode: TravelMode.driving,
-        ),
+      final PolylineResult? result = await RoutePolylineService.fetch(
+        origin: PointLatLng(riderLat, riderLng), // 🔥 LIVE rider location
+        destination: PointLatLng(widget.endLat, widget.endLng),
       );
 
-      if (result.points.isNotEmpty) {
+      if (result != null && result.points.isNotEmpty) {
         _setRoute(result.points
             .map((point) => LatLng(point.latitude, point.longitude))
             .toList());
       } else {
-        print("NO ROUTE FOUND: ${result.errorMessage}");
+        // Null means throttled or failed — keep whatever line is already drawn
+        // rather than clearing the map.
+        print("NO ROUTE THIS TICK: ${result?.errorMessage ?? 'throttled'}");
       }
     } finally {
       _fetchingRoute = false;

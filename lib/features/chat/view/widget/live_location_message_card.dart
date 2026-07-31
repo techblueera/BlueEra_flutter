@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:developer';
 
+import 'package:BlueEra/widgets/static_map_preview.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -10,8 +11,6 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../track_live_location/track_live_location.dart';
 import 'component_widgets.dart';
-import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
-import 'package:flutter/services.dart';
 import '../../../common/auth/controller/auth_controller.dart';
 
 class LiveLocationMessageCard extends StatefulWidget {
@@ -40,8 +39,9 @@ class LiveLocationMessageCard extends StatefulWidget {
 }
 
 class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
-  GoogleMapController? mapController;
-  Set<Marker> _markers = {};
+  /// Where the share was when the message was sent. Fixed for the life of this
+  /// card — the moving position is [TrackLiveLocationPage]'s job, which is what
+  /// the bubble taps through to.
   late LatLng _currentPosition;
   Timer? _expiryTimer;
   bool _isExpired = false;
@@ -221,68 +221,77 @@ class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
     );
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    try {
-      final Uint8List profileBytes =
-          await ProfileLocationMarkerGenerator.createMarker(
-        imageUrl: (widget.messages?.myMessage == true)
-            ? Get.find<AuthController>().imgPath.value
-            : widget.messages?.sender?.profileImage ?? "",
-        imageSize: 60,
-        borderWidth: 2,
-      );
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("profile-circle-icon"),
-        position: _currentPosition,
-        icon: BitmapDescriptor.bytes(profileBytes),
-        anchor: const Offset(0.5, 0.5),
-      );
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentPosition, 15.0),
-      );
-    } catch (e) {
-      debugPrint("Marker error: $e");
-    }
-  }
-
+  /// The map thumbnail in the bubble.
+  ///
+  /// A **picture**, not a live `GoogleMap`. Chat rows are disposed when they
+  /// scroll out of view and rebuilt when they scroll back, so the interactive
+  /// map this replaced bought a Dynamic Maps load on every single pass — and a
+  /// busy thread can hold several location shares. [StaticMapPreview] is a
+  /// cheaper SKU *and* disk-cached, so the second view onwards is free.
+  /// See `docs/GOOGLE_MAPS_COST_GUIDE.md` §3.5.
+  ///
+  /// Nothing is lost by it: the coordinate here is fixed at [initState] and
+  /// never updates (the live position lives on [TrackLiveLocationPage], which
+  /// this taps through to), and in-bubble pan/zoom on a 254px thumbnail was not
+  /// how anyone read this card.
   Widget _buildMapView(BuildContext context) {
-    return ColorFiltered(
-      colorFilter: _isExpired
-          ? const ColorFilter.mode(Colors.grey, BlendMode.saturation)
-          : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
+    final height = widget.message != null ? 160.0 : 238.0;
+    return GestureDetector(
+      onTap: () {
+        if (_isExpired) return;
+        Get.to(() => TrackLiveLocationPage(messages: widget.messages));
+      },
       child: SizedBox(
-        height: widget.message != null ? 160 : 238,
+        height: height,
         width: 254,
-        child: GoogleMap(
-          onTap: (latLng) {
-            if (!_isExpired) {
-              log('clicked');
-              Get.to(() => TrackLiveLocationPage(messages: widget.messages));
-            }
-          },
-          onMapCreated: _onMapCreated,
-          markers: _markers,
-          initialCameraPosition: CameraPosition(
-            target: _currentPosition,
-            zoom: 15,
-          ),
-          myLocationEnabled: false,
-          compassEnabled: false,
-          zoomControlsEnabled: false,
-          zoomGesturesEnabled: !_isExpired,
-          rotateGesturesEnabled: !_isExpired,
-          tiltGesturesEnabled: !_isExpired,
-          scrollGesturesEnabled: !_isExpired,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            StaticMapPreview(
+              latitude: _currentPosition.latitude,
+              longitude: _currentPosition.longitude,
+              width: 254,
+              height: height,
+              desaturated: _isExpired,
+              // The avatar below is the marker; Google's pin would sit on top
+              // of it.
+              showMarker: false,
+            ),
+            _profileMarker(),
+          ],
         ),
       ),
+    );
+  }
+
+  /// The sender's photo, centred on the map — the same cue the custom
+  /// [BitmapDescriptor] marker used to give, now drawn as a plain widget over
+  /// the static image instead of being rasterised into a live map.
+  Widget _profileMarker() {
+    final imageUrl = (widget.messages?.myMessage == true)
+        ? Get.find<AuthController>().imgPath.value
+        : widget.messages?.sender?.profileImage ?? '';
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.white,
+        border: Border.all(color: AppColors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: imageUrl.trim().isEmpty
+          ? const Icon(Icons.person, size: 24, color: AppColors.grayText)
+          : CachedNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => const ColoredBox(color: AppColors.greyE5),
+              errorWidget: (_, __, ___) =>
+                  const Icon(Icons.person, size: 24, color: AppColors.grayText),
+            ),
     );
   }
 

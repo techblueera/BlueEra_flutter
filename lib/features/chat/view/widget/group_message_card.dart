@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
@@ -9,7 +8,7 @@ import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -284,44 +283,9 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
   }
 
 
-  GoogleMapController? mapController;
-  LatLng? _currentPosition;
-  Set<Marker> _markers = {};
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    if(_currentPosition!=null && _currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0){
-      try {
-        final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-          const ImageConfiguration(size: Size(30, 30)),
-          AppImageAssets.markerBlue,
-        );
-
-        final Marker customMarker = Marker(
-          markerId: const MarkerId("custom_marker_id"),
-          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          icon: customIcon,
-        );
-
-        setState(() {
-          _markers.add(customMarker);
-        });
-
-        await mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(LatLng(_currentPosition!.latitude, _currentPosition!.longitude), 15.0),
-        );
-
-      } catch (e) {
-        debugPrint("Error loading marker: $e");
-      }
-    }
-
-  }
 
   Widget _buildMapMessage(Messages? messages,String? message, double lat, double long, String time,
       bool isReceiveMsg) {
-    _currentPosition = LatLng(lat, long);
     Theme.of(context);
     // Marker _currentMarker = Marker(
     //   markerId: const MarkerId('me'),
@@ -397,21 +361,19 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // A picture, not a live `GoogleMap` — same reason as
+                            // the 1:1 chat card. Group threads make it worse:
+                            // one shared location is re-bought by every member
+                            // who scrolls past it.
+                            // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.5.
                             SizedBox(
                               height: (message != null) ? 154 : 218,
                               width:  SizeConfig.screenWidth*0.72,
-                              child: GoogleMap(
-                                onMapCreated: _onMapCreated,
-                                initialCameraPosition: CameraPosition(
-                                  target: _currentPosition ?? LatLng(lat, long),
-                                  zoom: 15.0,
-                                ),
-                                myLocationEnabled: false,
-                                compassEnabled: false,
-                                rotateGesturesEnabled: true,
-                                tiltGesturesEnabled: true,
-                                zoomGesturesEnabled: true,
-                                scrollGesturesEnabled: true,
+                              child: StaticMapPreview(
+                                latitude: lat,
+                                longitude: long,
+                                width: SizeConfig.screenWidth * 0.72,
+                                height: (message != null) ? 154 : 218,
                               ),
                             ),
 

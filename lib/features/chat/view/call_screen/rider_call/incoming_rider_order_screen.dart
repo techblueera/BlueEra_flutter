@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../../../environment_config.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
@@ -289,14 +289,11 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     if (!_hasRouteCoordinates) return;
     try {
       final result =
-          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(_pickupLat, _pickupLng),
-          destination: PointLatLng(_dropLat, _dropLng),
-          mode: TravelMode.driving,
-        ),
+          await RoutePolylineService.fetch(
+        origin: PointLatLng(_pickupLat, _pickupLng),
+        destination: PointLatLng(_dropLat, _dropLng),
       );
-      if (!mounted || result.points.length < 2) return;
+      if (!mounted || result == null || result.points.length < 2) return;
       setState(() {
         _routePoints = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
