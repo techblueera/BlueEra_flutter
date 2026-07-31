@@ -47,6 +47,7 @@ class HiveServices{
   static const String _savedMedicalNestedCategoryBox = 'savedMedicalNestedCategoryBox';
   static const String _savedProductNestedCategoryBox = 'savedProductNestedCategoryBox';
   static const String _savedFoodNestedCategoryBox = 'savedFoodNestedCategoryBox';
+  static const String _savedVehicleCategoryBox = 'savedVehicleCategoryBox';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -63,6 +64,7 @@ class HiveServices{
     await Hive.openBox(_savedMedicalNestedCategoryBox);
     await Hive.openBox(_savedProductNestedCategoryBox);
     await Hive.openBox(_savedFoodNestedCategoryBox);
+    await Hive.openBox(_savedVehicleCategoryBox);
   }
 
   static List<String> get allBoxNames => [
@@ -79,6 +81,7 @@ class HiveServices{
     _savedMedicalNestedCategoryBox,
     _savedProductNestedCategoryBox,
     _savedFoodNestedCategoryBox,
+    _savedVehicleCategoryBox,
   ];
 
   // ── Category-tree caches (raw JSON) ──────────────────────────────────────
@@ -109,6 +112,39 @@ class HiveServices{
     }
   }
 
+  /// Default life of a cached category tree. Catalog levels change on the order
+  /// of weeks, so anything inside this window is served from Hive and the
+  /// endpoint is not called at all — see [_isFresh].
+  static const Duration categoryCacheTtl = Duration(hours: 24);
+
+  /// Records when [key] was last written, alongside the payload itself.
+  /// A sibling `<key>__ts` entry keeps [_getRawList] returning a plain list.
+  Future<void> _stamp(String boxName, String key) async {
+    try {
+      final box = Hive.isBoxOpen(boxName)
+          ? Hive.box(boxName)
+          : await Hive.openBox(boxName);
+      await box.put('${key}__ts', DateTime.now().millisecondsSinceEpoch);
+    } catch (e) {
+      log('Hive _stamp($boxName/$key) error: $e');
+    }
+  }
+
+  /// True when [key] was written less than [ttl] ago. False when it was never
+  /// stamped, so a cache written before stamping existed simply refreshes once.
+  bool _isFresh(String boxName, String key, Duration ttl) {
+    try {
+      if (!Hive.isBoxOpen(boxName)) return false;
+      final ts = Hive.box(boxName).get('${key}__ts');
+      if (ts is! int) return false;
+      final age = DateTime.now().millisecondsSinceEpoch - ts;
+      return age >= 0 && age < ttl.inMilliseconds;
+    } catch (e) {
+      log('Hive _isFresh($boxName/$key) error: $e');
+      return false;
+    }
+  }
+
   Future<void> saveFoodSuperCategoriesRaw(List<dynamic> raw) =>
       _putRawList(_savedFoodNestedCategoryBox, 'foodSuper', raw);
   List<dynamic>? getFoodSuperCategoriesRaw() =>
@@ -128,10 +164,36 @@ class HiveServices{
   // category-discover tabs. Cache-first so the tabs render instantly and
   // the network refresh stays silent. Reuses the product nested-category
   // box with a distinct key (no extra box to register).
-  Future<void> saveAutomotiveDiscoverCategoriesRaw(List<dynamic> raw) =>
-      _putRawList(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw', raw);
+  Future<void> saveAutomotiveDiscoverCategoriesRaw(List<dynamic> raw) async {
+    await _putRawList(
+        _savedProductNestedCategoryBox, 'automotiveDiscoverRaw', raw);
+    await _stamp(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw');
+  }
+
   List<dynamic>? getAutomotiveDiscoverCategoriesRaw() =>
       _getRawList(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw');
+
+  /// Within the TTL the tabs are served from Hive only — the nested-category
+  /// call is skipped outright rather than run silently in the background.
+  bool isAutomotiveDiscoverCategoriesFresh(
+          {Duration ttl = categoryCacheTtl}) =>
+      _isFresh(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw', ttl);
+
+  // Vehicle-service (v3) catalog levels backing the buyer discover strips:
+  // level 0 = types, level 1 = brands under a type. One entry per [key] —
+  // `vehicleLevel0`, `vehicleLevel1_<parentId|all>` — because each is a
+  // separate endpoint read the buyer switches between constantly.
+  Future<void> saveVehicleCategoriesRaw(String key, List<dynamic> raw) async {
+    await _putRawList(_savedVehicleCategoryBox, key, raw);
+    await _stamp(_savedVehicleCategoryBox, key);
+  }
+
+  List<dynamic>? getVehicleCategoriesRaw(String key) =>
+      _getRawList(_savedVehicleCategoryBox, key);
+
+  bool isVehicleCategoriesFresh(String key,
+          {Duration ttl = categoryCacheTtl}) =>
+      _isFresh(_savedVehicleCategoryBox, key, ttl);
 
   bool isPostSaved(String id) {
     if (!Hive.isBoxOpen(_savedPosts)) return false;

@@ -68,9 +68,10 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   ];
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/top-view-indian-food-arrangement_23-2148723455.jpg?w=1380",
-    "https://img.freepik.com/free-photo/high-angle-pakistani-meal-composition_23-2148825105.jpg?w=1380",
-    "https://img.freepik.com/free-photo/delicious-indian-dosa-composition_23-2149086052.jpg?w=1380",
+    // Same verified set as [HmfStoreDiscoverScreen] — see the note there.
+    "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1380&q=80",
+    "https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=1380&q=80",
+    "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=1380&q=80",
   ];
 
   @override

@@ -193,7 +193,10 @@ class BusinessJoinedProfileCard extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size6),
               CustomText(
-                '($reviews ${reviews == 1 ? AppStrings.review.tr : AppStrings.reviews.tr})',
+                // reviewSingular/reviewsPlural, not `review` — these two are
+                // the lowercase mid-sentence pair ("3 reviews"), where
+                // `AppStrings.review` is the capitalised standalone label.
+                '($reviews ${reviews == 1 ? AppStrings.reviewSingular.tr : AppStrings.reviewsPlural.tr})',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -201,7 +204,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
             ],
           ),
         ],
-
+      )
     );
   }
 

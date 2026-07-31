@@ -47,9 +47,9 @@ class VehicleListingsTabV3 extends StatelessWidget {
         SizedBox(height: SizeConfig.size16),
         _summaryStrip(controller),
         SizedBox(height: SizeConfig.size20),
-        _listingsSection(context, controller),
-        SizedBox(height: SizeConfig.size20),
-        _categorySection(controller),
+        // Listings and categories are ONE block, not two independent sections
+        // — see [_listingsAndCategories] for why they have to decide together.
+        Obx(() => _listingsAndCategories(context, controller)),
         SizedBox(height: SizeConfig.size16),
       ],
     );
@@ -125,73 +125,151 @@ class VehicleListingsTabV3 extends StatelessWidget {
     );
   }
 
+  // ───── Listings + categories ──────────────────────────────────────
+
+  /// The two sections resolved TOGETHER, because their two endpoints describe
+  /// one thing.
+  ///
+  /// `/inventory/my` and `/categories/nested/with-inventory` are derived from
+  /// the same stock: a showroom with listings necessarily has the categories
+  /// those listings sit in. So the only honest states are "has stock" and "has
+  /// no stock" — and letting each section answer for itself produced neither.
+  ///
+  ///  * Both empty → ONE empty state for the whole block. Two separate ones
+  ///    ("No vehicles listed yet" / "You have not listed any vehicles yet")
+  ///    said the same thing twice, in two different sentences, one screen
+  ///    apart.
+  ///  * Listings present but categories empty → the categories section is
+  ///    dropped entirely, header and all. That combination is a backend
+  ///    hiccup, not a state worth a prompt: telling a seller who is looking at
+  ///    their own car that they "have not listed any vehicles yet" is simply
+  ///    wrong (this is the screenshotted bug).
+  ///
+  /// Nothing is decided until BOTH calls have landed — while either is in
+  /// flight the sections render their own skeletons, so a slow categories call
+  /// can't flash the empty state under listings that are already on screen.
+  Widget _listingsAndCategories(
+      BuildContext context, VehicleV3Controller controller) {
+    final listingsLoading =
+        controller.listingsStatus.value == Status.LOADING ||
+            controller.listingsStatus.value == Status.INITIAL;
+    final categoriesLoading =
+        controller.stockedCategoriesStatus.value == Status.LOADING ||
+            controller.stockedCategoriesStatus.value == Status.INITIAL;
+    final listings = controller.myListings;
+    final categories =
+        List<VehicleCategoryV3>.from(controller.myStockedCategories);
+
+    final nothingListed = !listingsLoading &&
+        !categoriesLoading &&
+        listings.isEmpty &&
+        categories.isEmpty;
+
+    if (nothingListed) return _emptyShowroom(controller);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _listingsSection(context, controller, listingsLoading, listings),
+        if (categoriesLoading || categories.isNotEmpty) ...[
+          SizedBox(height: SizeConfig.size20),
+          _categorySection(controller, categoriesLoading, categories),
+        ],
+      ],
+    );
+  }
+
+  /// The one empty state for a showroom with no stock at all — the listings
+  /// header over a single prompt, carrying the add CTA the categories section
+  /// used to own.
+  Widget _emptyShowroom(VehicleV3Controller controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProductsSectionHeader(
+          title: 'Your vehicles',
+          subtitle: 'Everything you have listed, live or paused',
+        ),
+        SizedBox(height: SizeConfig.size12),
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20,
+            vertical: SizeConfig.size10,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: EmptyStateWidget(
+              message: 'No vehicles listed yet. Add your first one.',
+              actionText: AppStrings.addVehicleLabel.tr,
+              actionCallback: () => _onAddVehicle(controller),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ───── Listings rail ──────────────────────────────────────────────
 
   Widget _listingsSection(
-      BuildContext context, VehicleV3Controller controller) {
-    return Obx(() {
-      final isLoading = controller.listingsStatus.value == Status.LOADING ||
-          controller.listingsStatus.value == Status.INITIAL;
-      final listings = controller.myListings;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProductsSectionHeader(
-            title: 'Your vehicles',
-            subtitle: 'Everything you have listed, live or paused',
-            action: listings.isEmpty
-                ? null
-                : ProductsViewAllPill(
-                    label: AppStrings.groceryViewViewAll.tr,
-                    onTap: () => Get.to(
-                      () => MyVehicleListingsScreenV3(businessId: businessId),
-                    ),
+    BuildContext context,
+    VehicleV3Controller controller,
+    bool isLoading,
+    List<VehicleListingV3> listings,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProductsSectionHeader(
+          title: 'Your vehicles',
+          subtitle: 'Everything you have listed, live or paused',
+          action: listings.isEmpty
+              ? null
+              : ProductsViewAllPill(
+                  label: AppStrings.groceryViewViewAll.tr,
+                  onTap: () => Get.to(
+                    () => MyVehicleListingsScreenV3(businessId: businessId),
                   ),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          if (isLoading)
-            const ProductsRailLoader(
-              height: VehicleListingCardV3.railHeight,
-              cardWidth: VehicleListingCardV3.cardWidth,
-            )
-          else if (listings.isEmpty)
-            Padding(
-              padding: EdgeInsets.only(
-                right: SizeConfig.size20,
-                top: SizeConfig.size10,
-                bottom: SizeConfig.size10,
-              ),
-              child: EmptyStateWidget(
-                message: 'No vehicles listed yet. Add your first one.',
-              ),
-            )
-          else
-            ProductsRail(
-              height: VehicleListingCardV3.railHeight,
-              itemCount: listings.length >
-                      VehicleV3Controller.listingsPreviewLimit
-                  ? VehicleV3Controller.listingsPreviewLimit
-                  : listings.length,
-              spacing: 12,
-              itemBuilder: (_, index) => Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: VehicleListingCardV3.cardWidth,
-                  child: VehicleListingCardV3(
-                    listing: listings[index],
-                    compact: true,
-                    showStatus: true,
-                    onTap: () => Get.to(
-                      () => MyVehicleListingsScreenV3(businessId: businessId),
-                    ),
-                  ),
+                ),
+        ),
+        SizedBox(height: SizeConfig.size12),
+        if (isLoading)
+          const ProductsRailLoader(
+            height: VehicleListingCardV3.railHeight,
+            cardWidth: VehicleListingCardV3.cardWidth,
+          )
+        // No empty branch here any more: with listings empty the whole block
+        // renders as [_emptyShowroom] instead, so this section only ever draws
+        // the loader or the rail.
+        else
+          ProductsRail(
+            // sizeToContent — the rail takes the height of the tallest card
+            // rather than the 244 the constant reserves for a two-line title.
+            // Top-aligned in a fixed box, a one-line card left ~30px of dead
+            // rail under it, which is the gap that opened up between the card
+            // and "Manage Via Categories". Safe here because the rail is
+            // capped at listingsPreviewLimit cards.
+            sizeToContent: true,
+            height: VehicleListingCardV3.railHeight,
+            itemCount:
+                listings.length > VehicleV3Controller.listingsPreviewLimit
+                    ? VehicleV3Controller.listingsPreviewLimit
+                    : listings.length,
+            spacing: 12,
+            itemBuilder: (_, index) => SizedBox(
+              width: VehicleListingCardV3.cardWidth,
+              child: VehicleListingCardV3(
+                listing: listings[index],
+                compact: true,
+                showStatus: true,
+                onTap: () => Get.to(
+                  () => MyVehicleListingsScreenV3(businessId: businessId),
                 ),
               ),
             ),
-        ],
-      );
-    });
+          ),
+      ],
+    );
   }
 
   // ───── Manage via categories ──────────────────────────────────────
@@ -204,53 +282,34 @@ class VehicleListingsTabV3 extends StatelessWidget {
   /// vehicle type in existence rather than the ones this shop sells. Tapping
   /// a tile now drills into that category's listings instead of jumping
   /// straight into the add flow — "manage", as the header says.
-  Widget _categorySection(VehicleV3Controller controller) {
-    return Obx(() {
-      final isLoading =
-          controller.stockedCategoriesStatus.value == Status.LOADING ||
-              controller.stockedCategoriesStatus.value == Status.INITIAL;
-      final categories =
-          List<VehicleCategoryV3>.from(controller.myStockedCategories);
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProductsSectionHeader(title: AppStrings.manageViaCategories.tr),
-          SizedBox(height: SizeConfig.size12),
-          if (isLoading)
-            const ProductCategoryRailSkeleton()
-          else if (categories.isEmpty)
-            // Kept as an empty state rather than hidden, same as grocery: an
-            // empty catalog is the merchant's cue to add stock, so hiding the
-            // section would hide the prompt with it.
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size20,
-                vertical: SizeConfig.size10,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: EmptyStateWidget(
-                  message: 'You have not listed any vehicles yet.',
-                  actionText: AppStrings.addVehicleLabel.tr,
-                  actionCallback: () => _onAddVehicle(controller),
-                ),
-              ),
-            )
-          else
-            ProductsRail(
-              height: ProductCategoryTile.railHeight,
-              itemCount: categories.length,
-              spacing: SizeConfig.size8,
-              itemBuilder: (_, i) => ProductCategoryTile(
-                image: categories[i].image,
-                name: categories[i].name,
-                onTap: () => _openCategory(controller, categories[i]),
-              ),
+  ///
+  /// Only ever built with categories to show or the call still in flight —
+  /// [_listingsAndCategories] owns the empty case for the whole block.
+  Widget _categorySection(
+    VehicleV3Controller controller,
+    bool isLoading,
+    List<VehicleCategoryV3> categories,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProductsSectionHeader(title: AppStrings.manageViaCategories.tr),
+        SizedBox(height: SizeConfig.size12),
+        if (isLoading)
+          const ProductCategoryRailSkeleton()
+        else
+          ProductsRail(
+            height: ProductCategoryTile.railHeight,
+            itemCount: categories.length,
+            spacing: SizeConfig.size8,
+            itemBuilder: (_, i) => ProductCategoryTile(
+              image: categories[i].image,
+              name: categories[i].name,
+              onTap: () => _openCategory(controller, categories[i]),
             ),
-        ],
-      );
-    });
+          ),
+      ],
+    );
   }
 
   /// Opens the seller's listings filtered to this branch of the catalog.

@@ -36,9 +36,13 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
   List<CategoryData> get _categories => _authController.businessOnboardingServicesCategories;
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/portrait-smiling-female-doctor-with-stethoscope_1262-21077.jpg?w=1380",
-    "https://img.freepik.com/free-photo/handyman-tools-isolated-white-background_1232-3596.jpg?w=1380",
-    "https://img.freepik.com/free-photo/woman-getting-haircut-salon_23-2148928677.jpg?w=1380",
+    // A doctor, a tool rack and a salon — the three service kinds this screen
+    // lists. Each URL was downloaded and viewed before committing; the freepik
+    // links they replace served a businesswoman by an office block, an
+    // "I LOVE YOU" greeting card and a gold geometric wallpaper pattern.
+    "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1380&q=80",
+    "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1380&q=80",
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1380&q=80",
   ];
 
   String? get _initialCategoryId {
