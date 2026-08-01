@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
+import 'package:BlueEra/features/chat/chat_profile_navigation.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
@@ -319,38 +319,15 @@ class _PhoneUserSheet extends StatelessWidget {
     );
   }
 
-  /// Open the resolved user's visiting profile, routing to the dedicated
-  /// vertical screen (grocery / food / product / … store) when the account is a
-  /// business, or the individual visit screen otherwise. Uses the canonical
-  /// [VisitProfileResolver] — the same type/category → screen mapping used
-  /// everywhere else in the app — so a business opens its store view instead of
-  /// the generic business profile.
+  /// Open the resolved user's visiting profile through the app-wide visit
+  /// resolver ([openVisitProfile], reached via [openPhoneUserProfile]) — the
+  /// same one the feed, Discover and the chat app bars use. It routes on this
+  /// record's business type + sub-category (and, for individuals, the
+  /// designation), so a lab opens the lab screen and a grocery its store,
+  /// rather than the generic business profile.
   void _onViewProfile() {
     Get.back();
-    final isBusiness =
-        (user.accountType ?? '').toUpperCase() == AppConstants.business;
-    if (isBusiness) {
-      final businessId = (user.businessId?.isNotEmpty == true)
-          ? user.businessId!
-          : user.id;
-      if (businessId.isEmpty) return;
-      VisitProfileResolver.open(
-        accountType: AppConstants.business,
-        businessType: user.businessType,
-        businessCategory: user.categoryOfBusiness,
-        businessId: businessId,
-        userId: user.id,
-        screenFrom: AppConstants.chatScreen,
-      );
-    } else {
-      if (user.id.isEmpty) return;
-      VisitProfileResolver.open(
-        accountType: AppConstants.individual,
-        businessId: user.id,
-        userId: user.id,
-        screenFrom: AppConstants.chatScreen,
-      );
-    }
+    openPhoneUserProfile(user);
   }
 
   Widget _infoRow(IconData icon, String value, {Widget? trailing}) {
