@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/chat_language.dart';
-import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -27,13 +26,12 @@ import '../../../../core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
-import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/ai_chat_profile_controller.dart';
 import '../chat_theme/chat_background_screen.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../chat_profile_navigation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../auth/controller/order_controllar.dart';
@@ -1292,26 +1290,31 @@ Widget messageTypeIconWithLabel(Messages message) {
   );
 }
 
-/// Public entry so chat widgets (e.g. tapping an @mention) can open a member's
-/// profile using the same routing as the chat list.
-void navigateToProfileFromChat(
-        {required String authorId, required String type}) =>
-    _navigateToProfile(authorId: authorId, type: type);
+/// Public entry so chat widgets (an @mention, a group member row) can open
+/// someone's profile through the same resolver the chat app bars use.
+///
+/// Pass [contactNo] whenever the caller holds one — that's what lets the
+/// resolver fetch the member's business type / sub-category and open their own
+/// screen. Without it the routing falls back to the id + account type.
+void navigateToProfileFromChat({
+  required String authorId,
+  required String type,
+  String? contactNo,
+}) =>
+    _navigateToProfile(authorId: authorId, type: type, contactNo: contactNo);
 
-void _navigateToProfile({required String authorId, required String type}) {
-  if (type.toUpperCase() == AppConstants.business) {
-    Get.to(() =>
-        VisitBusinessProfileNew(
-          businessId: authorId,
-          screenName: AppConstants.chatScreen,
-        ));
-  } else if (type.toUpperCase() == AppConstants.individual) {
-    Get.to(() =>
-        NewVisitProfileScreen(
-          authorId: authorId,
-          screenFromName: AppConstants.chatScreen,
-        ));
-  }
+void _navigateToProfile({
+  required String authorId,
+  required String type,
+  String? contactNo,
+}) {
+  openChatProfile(
+    contactNo: contactNo,
+    userId: authorId,
+    businessId:
+        type.toUpperCase() == AppConstants.business ? authorId : null,
+    accountType: type,
+  );
 }
 
 void _refreshChatAfterOutgoingCall(String? conversationId) {
@@ -1987,13 +1990,24 @@ AppBar getChatTitleAppBar(BuildContext context, {
               },
             ),
           );
-        } else if (socketType == "business") {
-          // Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId:  userId ?? ""));
-          Get.to(() => VisitProductStoreDetailsScreen(
-                visitUserId: userId ?? "",
-              ));
         } else {
-          _navigateToProfile(authorId: userId ?? '', type: type ?? "");
+          // Personal AND business chats now share one destination resolver.
+          // The business lane used to hard-push the product store for every
+          // business, so a chat with a lab, pharmacy, restaurant or school
+          // opened a product catalogue. [openChatProfile] looks the participant
+          // up by their number (the one call that returns account type +
+          // business type + sub-category) and opens the screen that profile
+          // actually owns, falling back to these ids when there's no number.
+          openChatProfile(
+            contactNo: contactNo,
+            userId: userId,
+            // The business lane carries the business under `userId`, so it
+            // doubles as the business id; `_pick` inside the resolver drops
+            // whichever is blank.
+            businessId: socketType == "business" ? userId : null,
+            accountType:
+                socketType == "business" ? AppConstants.business : type,
+          );
         }
       }
 

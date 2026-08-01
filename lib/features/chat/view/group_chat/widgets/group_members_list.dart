@@ -122,27 +122,28 @@ class _GroupMembersListState extends State<GroupMembersList> {
     );
   }
 
-  /// Open the member's visiting profile, reusing the app-wide chat profile
-  /// navigation (business → [VisitBusinessProfileNew], individual →
-  /// [NewVisitProfileScreen]). Business members route through their
-  /// [businessId]; everyone else through their user [id].
+  /// Open the member's visiting profile through the app-wide chat profile
+  /// navigation, which routes on their type + sub-category (so a business
+  /// member opens its own store / lab / pharmacy screen). Their contact number
+  /// is handed over when the group has one — that's what lets the resolver
+  /// fetch that taxonomy; otherwise it falls back to the id + account type.
   void _openMemberProfile(BuildContext context, GroupMembersListModel member) {
     Navigator.pop(context); // close the member bottom sheet
 
     final isBusiness =
         (member.accountType ?? '').toUpperCase() == AppConstants.business;
-    if (isBusiness) {
-      final businessId = (member.businessId?.isNotEmpty == true)
-          ? member.businessId!
-          : (member.id ?? '');
-      if (businessId.isEmpty) return;
-      navigateToProfileFromChat(
-          authorId: businessId, type: AppConstants.business);
-    } else {
-      final id = member.id ?? '';
-      if (id.isEmpty) return;
-      navigateToProfileFromChat(authorId: id, type: AppConstants.individual);
-    }
+    final id = isBusiness
+        ? ((member.businessId?.isNotEmpty == true)
+            ? member.businessId!
+            : (member.id ?? ''))
+        : (member.id ?? '');
+    if (id.isEmpty) return;
+
+    navigateToProfileFromChat(
+      authorId: id,
+      type: isBusiness ? AppConstants.business : AppConstants.individual,
+      contactNo: member.contact,
+    );
   }
 
   /// Open (or create) a 1-to-1 chat with [member] from the group info screen.

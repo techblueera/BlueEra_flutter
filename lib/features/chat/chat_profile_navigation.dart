@@ -1,0 +1,108 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+/// ONE entry point for every profile tap in chat — the name/avatar in a chat
+/// screen's app bar, an @mention inside a group message, and the "Visit
+/// profile" CTA on the sheet a tapped 10-digit number opens.
+///
+/// All of them end at [openVisitProfile], the app-wide visit resolver, so a
+/// chat with a lab / pharmacy / restaurant opens THAT business's screen rather
+/// than the generic business profile every chat surface used to push.
+///
+/// ## Why the phone lookup
+///
+/// A chat screen only holds what the chat list gave it — name, avatar, contact
+/// number, conversation type. It has no `type_of_business`, no
+/// sub-category, and often no business id, which is exactly what the visit
+/// routing keys on. `user-service/user/by-phone/{phone}` returns all of it, and
+/// the app already calls it (that's the sheet behind a tapped number). So when
+/// a contact number is at hand, [openChatProfile] resolves the profile through
+/// that same endpoint first and routes on the real record.
+///
+/// Without a usable number — or when the lookup finds nobody — it falls back to
+/// the ids the caller already had, which is exactly the old behaviour.
+Future<void> openChatProfile({
+  /// The other participant's number. When present and 10 digits, this is what
+  /// gets the full profile.
+  String? contactNo,
+
+  /// Fallbacks used when the lookup can't run or finds nobody.
+  String? userId,
+  String? businessId,
+
+  /// `INDIVIDUAL` / `BUSINESS` — the conversation's account type, as the chat
+  /// list reported it.
+  String? accountType,
+}) async {
+  final String? number = _tenDigits(contactNo);
+  if (number != null) {
+    final controller = getOrPut(() => ChatViewController());
+    // A lookup is already in flight (double tap) — let it finish rather than
+    // silently falling through to the id-only path, which would open a
+    // different screen for the same tap.
+    if (controller.isFetchingUserByPhone.value) return;
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+    UserByPhoneModel? user;
+    try {
+      user = await controller.resolveBlueEraUserByPhone(number);
+    } catch (e) {
+      logs('openChatProfile: by-phone lookup failed — $e');
+    } finally {
+      if (Get.isDialogOpen ?? false) Get.back();
+    }
+
+    if (user != null) {
+      openPhoneUserProfile(user);
+      return;
+    }
+    // Not a BlueEra user / lookup failed → fall through to the ids below.
+  }
+
+  await openVisitProfile(
+    accountType: accountType,
+    businessId: businessId,
+    userId: userId,
+    screenFrom: AppConstants.chatScreen,
+  );
+}
+
+/// Routes an already-resolved `by-phone` record — used by the sheet a tapped
+/// number opens, which holds the very same model.
+Future<void> openPhoneUserProfile(UserByPhoneModel user) {
+  return openVisitProfile(
+    accountType: user.accountType,
+    typeOfBusiness: user.businessType,
+    // `category_Of_Business` is the tag; `category_details.name` is its display
+    // name. Either resolves — the visit resolver normalises both.
+    categoryOfBusiness:
+        cleanTaxonomyValue(user.categoryOfBusiness) ?? user.categoryName,
+    // Individuals arrive with a designation and no `profile_type`; the resolver
+    // maps it back to one, so a self-employed plumber opens their service
+    // profile rather than the generic one.
+    profession: user.designation,
+    businessId: user.businessId,
+    userId: user.id,
+    screenFrom: AppConstants.chatScreen,
+  );
+}
+
+/// The last 10 digits of [raw], or `null` when there aren't 10 — the shape the
+/// by-phone endpoint takes. Checked here rather than in the controller so a
+/// tap on a chat with no number just falls back quietly instead of raising the
+/// controller's "Invalid mobile number" snackbar.
+String? _tenDigits(String? raw) {
+  final digits = (raw ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+  if (digits.length < 10) return null;
+  return digits.substring(digits.length - 10);
+}
