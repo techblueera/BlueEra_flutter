@@ -202,7 +202,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
     await _pick(resolved.lat, resolved.lng, p.description ?? '');
   }
 
-  // ─── Pick / submit ──────────────────────────────────────────────────────
+//  ─── Pick / submit ──────────────────────────────────────────────────────
 
   Future<void> _pick(double lat, double lng, String address) async {
     if (address.isNotEmpty) await _saveRecentSearch(lat, lng, address);
