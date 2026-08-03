@@ -700,7 +700,9 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
         filename: fileName,
       );
     }
-    final locationData = await locationController.checkPermissionAndSetData();
+    final locationData = await locationController.checkPermissionAndSetData(
+      preferNativeGeocoding: true,
+    );
     if (locationData != null) {
       log("Business Type    : ${authController.selectedTypeOfBusiness}");
       log("Category Slug Id  : ${authController.selectedCategorySlugId}");

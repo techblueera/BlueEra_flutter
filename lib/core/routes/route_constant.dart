@@ -260,4 +260,8 @@ class RouteConstant {
   // Earn Pages
   static const String chooseEarnServiceScreen = "/ChooseEarnServiceScreen";
   static const String earnServiceDashboardView = "/EarnServiceDashboardView";
+
+  // Saved addresses (user-service/addresses)
+  static const String savedAddressListScreen = "/SavedAddressListScreen";
+  static const String addEditAddressScreen = "/AddEditAddressScreen";
 }

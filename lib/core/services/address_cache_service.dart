@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:BlueEra/features/chat/auth/model/get_adress_details_model.dart';
+import 'package:BlueEra/features/common/address/model/user_address_model.dart';
 import 'package:hive/hive.dart';
 
 /// Hive-based local storage for user delivery addresses.
@@ -35,19 +35,19 @@ class AddressCacheService {
   // ─── Read ──────────────────────────────────────────────────────
 
   /// Retrieve all saved addresses for [currentUserId].
-  List<AddressDetails> getAddresses(String currentUserId) {
+  List<UserAddress> getAddresses(String currentUserId) {
     try {
       final raw = _safeBox.get('${currentUserId}_$_addressListKey');
       if (raw == null) return [];
       final List decoded = jsonDecode(raw);
-      return decoded.map((e) => AddressDetails.fromJson(e)).toList();
+      return decoded.map((e) => UserAddress.fromJson(e)).toList();
     } catch (_) {
       return [];
     }
   }
 
   /// Get the currently selected delivery address, or the default, or first.
-  AddressDetails? getSelectedAddress(String currentUserId) {
+  UserAddress? getSelectedAddress(String currentUserId) {
     final addresses = getAddresses(currentUserId);
     if (addresses.isEmpty) return null;
 
@@ -65,13 +65,23 @@ class AddressCacheService {
   // ─── Write ─────────────────────────────────────────────────────
 
   /// Save a list of addresses to Hive.
-  Future<void> _persist(List<AddressDetails> addresses, String currentUserId) async {
+  Future<void> _persist(List<UserAddress> addresses, String currentUserId) async {
     final jsonList = addresses.map((a) => a.toJson()).toList();
     await _safeBox.put('${currentUserId}_$_addressListKey', jsonEncode(jsonList));
   }
 
+  /// Replace the whole cached list with what the server just returned.
+  ///
+  /// Used after `GET user-service/addresses` so the list screen can paint
+  /// instantly on the next open (and stay usable offline) without the local
+  /// id/default bookkeeping that [addAddress] does for locally-created rows.
+  Future<void> saveAddresses(
+      String currentUserId, List<UserAddress> addresses) async {
+    await _persist(addresses, currentUserId);
+  }
+
   /// Add a new address. Returns `false` if max limit reached.
-  Future<bool> addAddress(String currentUserId, AddressDetails address) async {
+  Future<bool> addAddress(String currentUserId, UserAddress address) async {
     final addresses = getAddresses(currentUserId);
     if (addresses.length >= maxAddresses) return false;
 
@@ -95,7 +105,7 @@ class AddressCacheService {
   }
 
   /// Update an existing address by id.
-  Future<void> updateAddress(String currentUserId, AddressDetails updated) async {
+  Future<void> updateAddress(String currentUserId, UserAddress updated) async {
     final addresses = getAddresses(currentUserId);
     final idx = addresses.indexWhere((a) => a.id == updated.id);
     if (idx < 0) return;

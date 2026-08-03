@@ -20,6 +20,17 @@ class CommonLocationSearchField extends StatefulWidget {
   final Function(String placeId, double lat, double lng, String address)?
       onSelected;
 
+  /// Raw `place/details` body for the tapped suggestion, so a caller that
+  /// needs the structured `address_components` (street / city / state /
+  /// pincode) can read them off the call this widget already makes instead
+  /// of paying for a second Places Details request.
+  ///
+  /// `details` is null when the suggestion carried no place id or the
+  /// lookup failed — the caller should fall back to [description].
+  final void Function(
+      String placeId, String description, Map<String, dynamic>? details)?
+      onPlaceDetails;
+
   const CommonLocationSearchField({
     super.key,
     required this.controller,
@@ -27,6 +38,7 @@ class CommonLocationSearchField extends StatefulWidget {
     this.hintText = 'E.g. Lucknow, Gomti Nagar...',
     this.isShowLeading=true,
     this.onSelected,
+    this.onPlaceDetails,
   });
 
   @override
@@ -58,18 +70,6 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     super.dispose();
   }
 
-  /// Shortest query that is allowed to reach Places Autocomplete.
-  ///
-  /// One or two characters cannot produce a useful, location-biased result —
-  /// "d" matches most of India — but each one is a **separately billed
-  /// Autocomplete request**. Typing "Dehradun" used to buy 8 searches; it now
-  /// buys 6, and the two it drops were the two that could never have been
-  /// tapped.
-  ///
-  /// Matches [RideBookingController.minSearchChars], so every search surface in
-  /// the app has the same floor.
-  static const int _kMinSearchChars = 3;
-
   void onSearchChanged(String query) {
     debounce?.cancel();
 
@@ -81,12 +81,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
 
   /// API CALL
   Future<void> _fetchPredictions(String query) async {
-    final trimmed = query.trim();
-
-    // Below the floor is treated as "not searching yet", not as an error: the
-    // user is mid-word, and an error message under a two-letter query reads as
-    // a bug.
-    if (trimmed.length < _kMinSearchChars) {
+    if (query.trim().isEmpty) {
       predictions.clear();
       _removeOverlay();
       return;
@@ -252,21 +247,21 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
 
                 double latitude = 0.0;
                 double longitude = 0.0;
+                Map<String, dynamic>? details;
                 if (placeId.isNotEmpty) {
                   try {
                     isLoading.value = true;
-                    // resolvePlace, NOT getCompletePlaceDetails: it caches by
-                    // place_id for the app session, so the second lookup of the
-                    // same place is free. This widget is embedded in ~30
-                    // screens and users pick the same landmarks repeatedly
-                    // (home, office, the shop they always order from), so the
-                    // uncached call was buying Place Details again and again
-                    // for coordinates we already had.
-                    final resolved = await PlaceRepo()
-                        .resolvePlace(placeId)
+                    final res = await PlaceRepo()
+                        .getCompletePlaceDetails(placeId: placeId)
                         .timeout(const Duration(seconds: 12));
-                    latitude = resolved?.lat ?? 0.0;
-                    longitude = resolved?.lng ?? 0.0;
+                    final body = res.response?.data;
+                    if (body is Map) {
+                      details = Map<String, dynamic>.from(body);
+                    }
+                    final loc = res.response?.data?['result']?['geometry']
+                        ?['location'];
+                    latitude = (loc?['lat'] as num?)?.toDouble() ?? 0.0;
+                    longitude = (loc?['lng'] as num?)?.toDouble() ?? 0.0;
                     logs('PlaceDetails → lat=$latitude lng=$longitude');
                   } catch (e) {
                     logs('PlaceDetails failed: $e');
@@ -277,6 +272,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
 
                 widget.onSelected
                     ?.call(placeId, latitude, longitude, currentAddress);
+                widget.onPlaceDetails?.call(placeId, currentAddress, details);
               },
             );
           },

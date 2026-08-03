@@ -35,7 +35,9 @@ class _BusinessOnboardingAddressScreenState
 
   Future<void> _maybeOfferCurrentLocation() async {
     if (controller.fullAddress.value.isNotEmpty) return;
-    final loc = await locationController.checkPermissionAndSetData();
+    final loc = await locationController.checkPermissionAndSetData(
+      preferNativeGeocoding: true,
+    );
     if (!mounted || loc == null) return;
     final detected = loc.fullAddress.trim();
     if (detected.isEmpty) return;
