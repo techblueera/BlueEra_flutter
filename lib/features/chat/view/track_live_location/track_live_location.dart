@@ -1,11 +1,13 @@
-import 'dart:async';
 import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -33,7 +35,7 @@ class TrackLiveLocationPage extends StatefulWidget {
 }
 
 class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
-  GoogleMapController? mapController;
+  BlueMapController? mapController;
   final chatThemeController = getOrPut(() => ChatThemeController());
   final chatViewController = getOrPut(() => ChatViewController());
   LatLng? currentLatLng;
@@ -146,97 +148,64 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
           widget.messages?.senderId ?? '';
       chatThemeController.connectSocket(widget.messages?.senderId ?? '');
 
-      _buildCustomMarkers();
+      // Markers derive from state — nothing to build up front.
     }
   }
 
   // ---- Custom profile-picture markers ----
-  final Set<Marker> _markers = {};
+  // These used to be rasterised through ProfileLocationMarkerGenerator, which
+  // downloaded the avatar, drew it on a canvas and PNG-encoded it because the
+  // map would only accept bitmaps. Marker children are widgets now, so an
+  // avatar is just an avatar — no encode step, and no default pin showing while
+  // it runs.
 
-  Future<void> _buildCustomMarkers() async {
-    if (currentLatLng == null) return;
+  /// The sender's pin, once a live position has arrived.
+  LatLng? _senderLatLng;
 
-    // Build my marker
-    try {
-      if (_myImage.isNotEmpty) {
-        final Uint8List myBytes = await ProfileLocationMarkerGenerator
-            .createMarker(
-                imageUrl: _myImage,
-                imageSize: 70,
-                borderWidth: 3,
-                borderColor: AppColors.primaryColor);
-        _markers.add(Marker(
-          markerId: const MarkerId('my_marker'),
-          position: currentLatLng!,
-          icon: BitmapDescriptor.bytes(myBytes),
-          anchor: const Offset(0.5, 0.5),
-        ));
-      } else {
-        _markers.add(Marker(
-          markerId: const MarkerId('my_marker'),
-          position: currentLatLng!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        ));
-      }
-    } catch (_) {
-      _markers.add(Marker(
-        markerId: const MarkerId('my_marker'),
-        position: currentLatLng!,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-      ));
-    }
+  Widget _avatarMarker(String imageUrl, Color borderColor) => Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: borderColor, width: 3),
+        ),
+        child: ClipOval(
+          child: imageUrl.isEmpty
+              ? Container(color: borderColor)
+              : CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => Container(color: borderColor),
+                ),
+        ),
+      );
 
-    if (mounted) setState(() {});
-  }
-
-  Future<BitmapDescriptor> _getSenderMarkerIcon() async {
-    try {
-      if (_senderImage.isNotEmpty) {
-        final Uint8List bytes = await ProfileLocationMarkerGenerator
-            .createMarker(
-                imageUrl: _senderImage,
-                imageSize: 70,
-                borderWidth: 3,
-                borderColor: Colors.green);
-        return BitmapDescriptor.bytes(bytes);
-      }
-    } catch (_) {}
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-  }
+  List<BlueMapMarker> get _markers => [
+        if (currentLatLng != null)
+          BlueMapMarker(
+            id: 'my_marker',
+            position: currentLatLng!,
+            child: _avatarMarker(_myImage, AppColors.primaryColor),
+          ),
+        if (_senderLatLng != null)
+          BlueMapMarker(
+            id: 'sender_marker',
+            position: _senderLatLng!,
+            child: _avatarMarker(_senderImage, Colors.green),
+          ),
+      ];
 
   void _updateSenderMarker(double lat, double lng) async {
-    final senderIcon = await _getSenderMarkerIcon();
-    _markers.removeWhere((m) => m.markerId.value == 'sender_marker');
-    _markers.add(Marker(
-      markerId: const MarkerId('sender_marker'),
-      position: LatLng(lat, lng),
-      icon: senderIcon,
-      anchor: const Offset(0.5, 0.5),
-    ));
-    if (mounted) setState(() {});
+    if (mounted) setState(() => _senderLatLng = LatLng(lat, lng));
 
     // Fit both markers
     _fitBothMarkers(LatLng(lat, lng));
   }
 
   void _fitBothMarkers(LatLng senderPos) {
-    if (currentLatLng == null || mapController == null) return;
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        min(currentLatLng!.latitude, senderPos.latitude),
-        min(currentLatLng!.longitude, senderPos.longitude),
-      ),
-      northeast: LatLng(
-        max(currentLatLng!.latitude, senderPos.latitude),
-        max(currentLatLng!.longitude, senderPos.longitude),
-      ),
-    );
-
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
-    );
+    final me = currentLatLng;
+    if (me == null) return;
+    mapController?.fitPoints([me, senderPos], padding: 80);
   }
 
   /// Haversine distance in km
@@ -362,27 +331,19 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
           children: [
             // ---- Map ----
             Expanded(
-              child: GoogleMap(
+              child: BlueMap(
+                initialCenter: initialTarget,
+                initialZoom: 15,
+                markers: _markers,
                 onMapCreated: (controller) {
                   mapController = controller;
-                  // If sender location already available, fit bounds
+                  // If sender location is already available, fit bounds. No
+                  // delay: BlueMap queues camera work until the map is ready,
+                  // which is what the 500ms was guessing at.
                   if (senderLat != null && senderLng != null && senderLat != 0) {
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      _fitBothMarkers(LatLng(senderLat, senderLng));
-                    });
+                    _fitBothMarkers(LatLng(senderLat, senderLng));
                   }
                 },
-                initialCameraPosition: CameraPosition(
-                  target: initialTarget,
-                  zoom: 15.0,
-                ),
-                myLocationEnabled: false,
-                myLocationButtonEnabled: false,
-                compassEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                markers: _markers,
-                padding: const EdgeInsets.only(bottom: 200),
               ),
             ),
 
@@ -574,9 +535,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
                 final lng =
                     chatThemeController.senderLiveLocation.value.longitude;
                 if (lat != null && lng != null) {
-                  mapController?.animateCamera(
-                    CameraUpdate.newLatLngZoom(LatLng(lat, lng), 16),
-                  );
+                  mapController?.moveTo(LatLng(lat, lng), zoom: 16);
                 }
               },
               borderRadius: BorderRadius.circular(20),

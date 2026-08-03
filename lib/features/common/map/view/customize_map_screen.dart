@@ -22,9 +22,11 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import '../controller/getplace_list_controller.dart';
 
 class CustomizeMapScreen extends StatefulWidget {
@@ -44,8 +46,23 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   final MapServiceController mapServiceController =
       Get.put(MapServiceController());
 
-  late GoogleMapController _mapController;
-  Set<Marker> _markers = {};
+  BlueMapController? _mapController;
+
+  /// Pin for the picked location, and the tear-drop for nearby places. Widgets
+  /// held in fields: correct on the first frame, and stable by identity so
+  /// BlueMap does not redraw every pin on every rebuild.
+  static final Widget _selectedLocationIcon = LocalAssets(
+    imagePath: AppImageAssets.markerBlue,
+    width: 48,
+    height: 48,
+  );
+  static final Widget _placeIcon = LocalAssets(
+    imagePath: AppImageAssets.tearDrop,
+    width: 40,
+    height: 40,
+  );
+
+  List<BlueMapMarker> _markers = [];
   LatLng _currentPosition = const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
   final List<MapServiceCategory> categories = MapServiceCategory.values.where((category) {
@@ -140,7 +157,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   // }
 
   // inside onMapCreated
-  void _onMapCreated(GoogleMapController mapController) async {
+  void _onMapCreated(BlueMapController mapController) async {
     _mapController = mapController;
     _initializeLocationAndMarkers();
   }
@@ -189,21 +206,15 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         _lat, _lng, _currentPosition.latitude, _currentPosition.longitude
     );
 
-    // 2. Prepare the marker (Load icon only once if possible)
-    final BitmapDescriptor locationIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
-      AppImageAssets.markerBlue,
-    );
-
-    Marker? selectedMarker;
+    BlueMapMarker? selectedMarker;
 
     // 3. Logic: Only create marker if > 50m away from current location
     if (distanceInMeters >= 50.0) {
-      selectedMarker = Marker(
-        markerId: const MarkerId('selected_location'),
+      selectedMarker = BlueMapMarker(
+        id: 'selected_location',
         position: LatLng(_lat, _lng),
-        icon: locationIcon,
-        infoWindow: const InfoWindow(title: "Selected Location"),
+        child: _selectedLocationIcon,
+        anchor: BlueMarkerAnchor.bottom,
       );
     } else {
       debugPrint("Selected location is within 50m. Hiding marker.");
@@ -212,7 +223,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     // 4. Update State (Add/Remove logic)
     setState(() {
       // Always remove old one first to avoid duplicates
-      _markers.removeWhere((m) => m.markerId.value == 'selected_location');
+      _markers.removeWhere((m) => m.id == 'selected_location');
 
       // Add new one if it exists
       if (selectedMarker != null) {
@@ -230,31 +241,19 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     // 1. Fetch Data (Assuming this is an async API call)
     await placeController.fetchPlaces(lat, lng);
 
-    // 2. Load Icon
-    final BitmapDescriptor placeIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(40, 40)),
-      AppImageAssets.tearDrop,
-    );
-
-    // 3. Convert List<Place> to Set<Marker>
-    final Set<Marker> newPlaceMarkers = placeController.allPlaces.map((place) {
-      return Marker(
-        markerId: MarkerId(place.id.toString()), // Unique ID per place
+    // 2. Convert List<Place> to markers. Icons are widgets, so there is no
+    //    async raster load to await first.
+    final newPlaceMarkers = placeController.allPlaces.map((place) {
+      return BlueMapMarker(
+        id: place.id.toString(), // Unique ID per place
         position: LatLng(
           place.location.coordinates.latitude,
           place.location.coordinates.longitude,
         ),
-        icon: placeIcon,
-        // Google Maps standard: Show name on Tap
-        infoWindow: InfoWindow(
-          title: place.name,
-          snippet: "Tap for details", // Optional subtitle
-        ),
-        onTap: () {
-          print("Tapped on place: ${place.name}");
-        },
+        child: _placeIcon,
+        anchor: BlueMarkerAnchor.bottom,
       );
-    }).toSet();
+    }).toList();
 
     // 4. Update Map State
     setState(() {
@@ -263,7 +262,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       // (Assuming place IDs are numeric, we can clear logic, or just rebuild the set)
 
       // Option A: If you want to keep the "Selected Location" marker but clear others:
-      _markers.removeWhere((m) => m.markerId.value != 'selected_location' && m.markerId.value != 'profile-circle-icon');
+      _markers.removeWhere((m) =>
+          m.id != "selected_location" && m.id != "profile-circle-icon");
 
       // Add the new batch
       _markers.addAll(newPlaceMarkers);
@@ -316,8 +316,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
 
   /// Moves camera to current location
   void _moveCameraTo(LatLng position) {
-    _mapController.animateCamera(CameraUpdate.newLatLngZoom(position, _zoom),
-        duration: Duration(milliseconds: 300));
+    _mapController?.moveTo(position, zoom: _zoom);
 
     setState(() {});
   }
@@ -396,11 +395,10 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
             child: Stack(
               children: [
                 // 🗺 Google Map
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _currentPosition,
-                    zoom: _zoom,
-                  ),
+                BlueMap(
+                  initialCenter: _currentPosition,
+                  initialZoom: _zoom,
+                  markers: _markers,
                   myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
                 ),
@@ -455,9 +453,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         heroTag: "zoom-in",
                         onPressed: () {
                           _zoom++;
-                          _mapController.animateCamera(
-                            CameraUpdate.zoomTo(_zoom),
-                          );
+                          _mapController?.setZoom(_zoom);
                         },
                         child: const Icon(Icons.add,
                             color: AppColors.primaryColor),
@@ -471,9 +467,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         heroTag: "zoom-out",
                         onPressed: () {
                           _zoom--;
-                          _mapController.animateCamera(
-                            CameraUpdate.zoomTo(_zoom),
-                          );
+                          _mapController?.setZoom(_zoom);
                         },
                         child: const Icon(Icons.remove,
                             color: AppColors.primaryColor),
