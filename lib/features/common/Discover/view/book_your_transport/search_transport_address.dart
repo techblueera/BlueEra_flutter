@@ -24,10 +24,11 @@ import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-// MapPickAddressScreen is already migrated and speaks the app's own coordinate
-// type. Prefixed until this screen's own map follows.
-import 'package:BlueEra/core/map/lat_lng.dart' as osm;
+import 'package:BlueEra/core/map/blue_map.dart';
+// SearchAddressScreen has not been migrated yet and still takes the Google
+// coordinate type. Prefixed; goes when that screen follows.
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
@@ -56,8 +57,19 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   final authController = getOrPut(() => AuthController());
   final discoverController = getOrPut(() => DiscoverController());
 
-  GoogleMapController? mapController;
-  Set<Polyline> _polylines = {};
+  BlueMapController? mapController;
+  /// Road route between pickup and drop, once fetched.
+  List<LatLng> _routeCoords = const [];
+
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'route',
+            points: _routeCoords,
+            width: 6,
+            color: AppColors.primaryColor,
+          ),
+      ];
 
   LatLng? fromLatLng;
   LatLng? toLatLng;
@@ -210,54 +222,55 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       final pickup = LatLng(LocationService.lat, LocationService.lng);
       fromLatLng = pickup;
 
-      discoverController.markers.clear();
-      discoverController.markers.add(
-        Marker(
-          markerId: const MarkerId("from"),
-          position: pickup,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        ),
-      );
-
-      if (mapController != null) {
-        await mapController!.animateCamera(
-          CameraUpdate.newLatLngZoom(pickup, 15),
+      discoverController.markers
+        ..clear()
+        ..add(
+          BlueMapMarker(
+            id: 'from',
+            position: pickup,
+            icon: Icons.location_on,
+            color: Colors.blue,
+            anchor: BlueMarkerAnchor.bottom,
+          ),
         );
-      }
+
+      await mapController?.moveTo(pickup, zoom: 15);
       if (mounted) setState(() {});
     } catch (e) {
       log("Error setting initial location: $e");
     }
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
+  Future<void> _onMapCreated(BlueMapController controller) async {
     mapController = controller;
     if (!mounted) return;
-    try {
-      final target = fromLatLng ?? toLatLng ?? _currentLatLng;
-      await mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(target, 15.0),
-      );
-    } catch (e) {
-      debugPrint("Error animating camera: $e");
-    }
+    final target = fromLatLng ?? toLatLng ?? _currentLatLng;
+    await mapController?.moveTo(target, zoom: 15);
   }
 
   void _addMarkers(LatLng pickup, LatLng drop) {
-    discoverController.markers.add(
-      Marker(
-        markerId: const MarkerId("pickup"),
-        position: pickup,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      ),
-    );
-    discoverController.markers.add(
-      Marker(
-        markerId: const MarkerId("drop"),
-        position: drop,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      ),
-    );
+    // Ids are stable, so re-selecting a place replaces its pin rather than
+    // stacking a second one on top.
+    discoverController.markers
+      ..removeWhere((m) => m.id == 'pickup' || m.id == 'drop')
+      ..add(
+        BlueMapMarker(
+          id: 'pickup',
+          position: pickup,
+          icon: Icons.location_on,
+          color: Colors.blue,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      )
+      ..add(
+        BlueMapMarker(
+          id: 'drop',
+          position: drop,
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      );
   }
 
   void onLocationsSelected(LatLng pickup, LatLng drop) {
@@ -299,19 +312,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         _distanceText = totalKm < 1
             ? '${(totalKm * 1000).round()} m'
             : '${totalKm.toStringAsFixed(1)} km';
-        _polylines.clear();
-        _polylines.add(
-          Polyline(
-            polylineId: const PolylineId("route"),
-            points: routeCoords,
-            width: 6,
-            color: AppColors.primaryColor,
-            geodesic: true,
-            jointType: JointType.round,
-            startCap: Cap.roundCap,
-            endCap: Cap.roundCap,
-          ),
-        );
+        _routeCoords = routeCoords;
       });
 
       _fitBounds(start, end);
@@ -319,18 +320,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   }
 
   void _fitBounds(LatLng start, LatLng end) {
-    if (mapController == null) return;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        start.latitude < end.latitude ? start.latitude : end.latitude,
-        start.longitude < end.longitude ? start.longitude : end.longitude,
-      ),
-      northeast: LatLng(
-        start.latitude > end.latitude ? start.latitude : end.latitude,
-        start.longitude > end.longitude ? start.longitude : end.longitude,
-      ),
-    );
-    mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+    mapController?.fitPoints([start, end], padding: 80);
   }
 
   void _updateMarkersAndRoute() {
@@ -347,11 +337,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         discoverController.selectedFromLong!.value,
       );
       discoverController.markers.add(
-        Marker(
-          markerId: const MarkerId("from"),
+        BlueMapMarker(
+          id: "from",
           position: fromLatLng!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: Icons.location_on,
+          color: Colors.blue,
+          anchor: BlueMarkerAnchor.bottom,
         ),
       );
     } else {
@@ -364,11 +355,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         discoverController.selectedToLong!.value,
       );
       discoverController.markers.add(
-        Marker(
-          markerId: const MarkerId("to"),
+        BlueMapMarker(
+          id: "to",
           position: toLatLng!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
         ),
       );
     } else {
@@ -387,9 +379,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       discoverController.roadDistanceKm.value = 0.0;
       final target = fromLatLng ?? toLatLng;
       if (target != null) {
-        mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(target, 15.0),
-        );
+        mapController?.moveTo(target, zoom: 15);
       }
     }
     if (mounted) setState(() {});
@@ -415,7 +405,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       MaterialPageRoute(
         builder: (_) => SearchAddressScreen(
           isPickup: isPickup,
-          initialMapCenter: start,
+          initialMapCenter: gmaps.LatLng(start.latitude, start.longitude),
         ),
       ),
     );
@@ -574,9 +564,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     // guarantees the map visibly moves to the just-selected address even
     // in the both-set case, then the route fit will follow once it loads.
     final newPoint = LatLng(lat, lng);
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(newPoint, 15.0),
-    );
+    mapController?.moveTo(newPoint, zoom: 15);
   }
 
   void _useCurrentLocation() {
@@ -615,11 +603,11 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
         builder: (_) => MapPickAddressScreen(
-          initialLatLng: osm.LatLng(start.latitude, start.longitude),
+          initialLatLng: LatLng(start.latitude, start.longitude),
           isPickup: isPickup,
           otherEndLatLng: otherEnd == null
               ? null
-              : osm.LatLng(otherEnd.latitude, otherEnd.longitude),
+              : LatLng(otherEnd.latitude, otherEnd.longitude),
         ),
       ),
     );
@@ -635,24 +623,26 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   /// While picking on the map, keep the *other* already-selected marker
   /// visible so the user has a reference point. The active field's pin is
   /// represented by the floating center indicator, not a marker.
-  Set<Marker> _referenceMarkersWhilePicking() {
-    final markers = <Marker>{};
+  List<BlueMapMarker> _referenceMarkersWhilePicking() {
+    final markers = <BlueMapMarker>[];
     if (_activeField == _ActiveField.pickup) {
       if (toLatLng != null) {
-        markers.add(Marker(
-          markerId: const MarkerId("to"),
+        markers.add(BlueMapMarker(
+          id: 'to',
           position: toLatLng!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
         ));
       }
     } else if (_activeField == _ActiveField.drop) {
       if (fromLatLng != null) {
-        markers.add(Marker(
-          markerId: const MarkerId("from"),
+        markers.add(BlueMapMarker(
+          id: 'from',
           position: fromLatLng!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: Icons.location_on,
+          color: Colors.blue,
+          anchor: BlueMarkerAnchor.bottom,
         ));
       }
     }
@@ -767,27 +757,22 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
             children: [
             /// Full-screen map
             Positioned.fill(
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                initialCameraPosition: CameraPosition(
-                  target: _currentLatLng,
-                  zoom: 15.0,
-                ),
+              child: BlueMap(
+                initialCenter: _currentLatLng,
+                initialZoom: 15,
                 myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                compassEnabled: false,
-                zoomControlsEnabled: false,
-                // Always hand the GoogleMap a fresh Set instance so any
-                // change in the underlying marker/polyline collections
-                // re-renders the map immediately.
+                onMapCreated: _onMapCreated,
+                // A fresh list instance each build, so any change in the
+                // underlying collections is picked up by BlueMap's diff.
                 markers: _isPickingOnMap
                     ? _referenceMarkersWhilePicking()
-                    : Set<Marker>.from(discoverController.markers),
+                    : List<BlueMapMarker>.from(discoverController.markers),
                 polylines: _isPickingOnMap
-                    ? const {}
-                    : Set<Polyline>.from(_polylines),
-                onCameraMoveStarted: _isPickingOnMap
-                    ? () {
+                    ? const []
+                    : List<BlueMapPolyline>.from(_polylines),
+                onCameraMoved: _isPickingOnMap
+                    ? (centre) {
+                        _pickedLatLng = centre;
                         // Lift the pin + clear stale address as soon as
                         // the user starts panning, so the header reads
                         // "Fetching address..." in real time.
@@ -800,19 +785,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         }
                       }
                     : null,
-                onCameraMove: _isPickingOnMap
-                    ? (pos) {
-                        _pickedLatLng = pos.target;
-                      }
-                    : null,
                 onCameraIdle: _isPickingOnMap
-                    ? () {
+                    ? (centre) {
                         if (_isPinDragging) {
                           setState(() => _isPinDragging = false);
                         }
-                        if (_pickedLatLng != null) {
-                          _resolvePickedAddress(_pickedLatLng!);
-                        }
+                        _resolvePickedAddress(centre);
                       }
                     : null,
                 // Any tap on the map enters pick-on-map mode at that
@@ -922,9 +900,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                     final target = _isPickingOnMap
                         ? _currentLatLng
                         : (fromLatLng ?? _currentLatLng);
-                    mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(target, 15.0),
-                    );
+                    mapController?.moveTo(target, zoom: 15);
                   },
                   child: const Icon(Icons.my_location,
                       color: AppColors.primaryColor, size: 20),
@@ -1022,16 +998,17 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         discoverController.selectedFromAddress?.value = "";
                         fromLatLng = null;
                         discoverController.markers.clear();
-                        _polylines.clear();
+                        _routeCoords = const [];
                         _distanceText = null;
                         discoverController.roadDistanceKm.value = 0.0;
                         if (toLatLng != null) {
                           discoverController.markers.add(
-                            Marker(
-                              markerId: const MarkerId("to"),
+                            BlueMapMarker(
+                              id: "to",
                               position: toLatLng!,
-                              icon: BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueRed),
+                              icon: Icons.location_on,
+                              color: Colors.red,
+                              anchor: BlueMarkerAnchor.bottom,
                             ),
                           );
                         }
@@ -1066,7 +1043,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         discoverController.selectedToLong?.value = 0.0;
                         discoverController.selectedToAddress?.value = "";
                         toLatLng = null;
-                        _polylines.clear();
+                        _routeCoords = const [];
                         _distanceText = null;
                         discoverController.roadDistanceKm.value = 0.0;
                         _updateMarkersAndRoute();

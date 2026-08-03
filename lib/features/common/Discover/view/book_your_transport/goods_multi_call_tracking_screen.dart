@@ -14,10 +14,8 @@ import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-// RideNavigationOverlayController is already migrated and speaks the app's own
-// coordinate type. Prefixed until this screen's own map follows.
-import 'package:BlueEra/core/map/lat_lng.dart' as osm;
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -75,9 +73,18 @@ class _GoodsMultiCallTrackingScreenState
   Map<String, dynamic>? _acceptedRiderInfo;
 
   // Map state (after rider accepted)
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
+  BlueMapController? _mapController;
+  /// The active route leg — rider→pickup before the ride starts, pickup→drop
+  /// after.
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'route',
+            points: _routeCoords,
+            width: 5,
+            color: const Color(0xFF4285F4),
+          ),
+      ];
   List<LatLng> _routeCoords = [];
   RiderLocationPollController? _liveTrackController;
   Worker? _riderLatWorker;
@@ -227,7 +234,7 @@ class _GoodsMultiCallTrackingScreenState
         });
       }
 
-      _setupPickupMarker();
+      // Pickup marker follows from state — nothing to set up.
       _observeRideStarted();
       // Fallback in case the ride:started socket/FCM signal is missed.
       discoverController.startRideStartedFallbackPoll(widget.orderId);
@@ -270,7 +277,7 @@ class _GoodsMultiCallTrackingScreenState
     }
 
     // Setup initial markers for customer pickup location
-    _setupPickupMarker();
+    // Pickup marker follows from state — nothing to set up.
     _observeRideStarted();
     // Fallback in case the ride:started socket/FCM signal is missed — polls the
     // order status and flips isFareCallRideStarted so the delivery OTP, the
@@ -298,23 +305,48 @@ class _GoodsMultiCallTrackingScreenState
     _rideCompleted.value = true;
   }
 
-  void _setupPickupMarker() {
+  /// Pickup, drop (once the ride starts) and the rider's live position.
+  ///
+  /// Derived from state rather than mutated. The old code kept a `Set<Marker>`
+  /// and hand-removed the rider pin by id on every position tick — a missed
+  /// `removeWhere` leaks a marker per tick for the whole journey.
+  List<BlueMapMarker> get _markers {
     final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
     final pickupLng = discoverController.selectedFromLong?.value ?? 0.0;
-    if (pickupLat == 0.0 && pickupLng == 0.0) return;
+    final dropLat = discoverController.selectedToLat?.value ?? 0.0;
+    final dropLng = discoverController.selectedToLong?.value ?? 0.0;
 
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: LatLng(pickupLat, pickupLng),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: InfoWindow(
-          title: AppStrings.yourPickup.tr,
-          snippet: discoverController.selectedFromAddress?.value ?? '',
+    return [
+      if (pickupLat != 0.0 || pickupLng != 0.0)
+        BlueMapMarker(
+          id: 'pickup',
+          position: LatLng(pickupLat, pickupLng),
+          icon: Icons.location_on,
+          color: Colors.green,
+          anchor: BlueMarkerAnchor.bottom,
         ),
-      ),
-    );
+      // The drop only matters once the ride is under way — before that the map
+      // is about the rider reaching the pickup.
+      if (_rideStartedMapSynced && (dropLat != 0.0 || dropLng != 0.0))
+        BlueMapMarker(
+          id: 'drop',
+          position: LatLng(dropLat, dropLng),
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      if (_riderPos != null)
+        BlueMapMarker(
+          id: 'rider',
+          position: _riderPos!,
+          icon: Icons.two_wheeler,
+          color: Colors.blue,
+        ),
+    ];
   }
+
+  /// Rider's last known position, or null before the first fix.
+  LatLng? _riderPos;
 
   void _updateRiderOnMap() {
     if (_liveTrackController == null) return;
@@ -323,20 +355,7 @@ class _GoodsMultiCallTrackingScreenState
     if (riderLat == 0.0 || riderLng == 0.0) return;
 
     final riderPos = LatLng(riderLat, riderLng);
-
-    setState(() {
-      _markers.removeWhere((m) => m.markerId.value == 'rider');
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('rider'),
-          position: riderPos,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: InfoWindow(
-            title: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
-          ),
-        ),
-      );
-    });
+    setState(() => _riderPos = riderPos);
 
     // After the rider has started the ride, both sides mirror the same
     // pickup → drop route. Only the rider marker moves — don't re-fetch
@@ -382,36 +401,9 @@ class _GoodsMultiCallTrackingScreenState
     final dropPos = LatLng(dropLat, dropLng);
     _rideStartedMapSynced = true;
 
-    setState(() {
-      _markers
-        ..removeWhere((m) =>
-            m.markerId.value == 'pickup' || m.markerId.value == 'drop')
-        ..add(
-          Marker(
-            markerId: const MarkerId('pickup'),
-            position: pickupPos,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueGreen),
-            infoWindow: InfoWindow(
-              title: AppStrings.yourPickup.tr,
-              snippet: discoverController.selectedFromAddress?.value ?? '',
-            ),
-          ),
-        )
-        ..add(
-          Marker(
-            markerId: const MarkerId('drop'),
-            position: dropPos,
-            icon:
-                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-            infoWindow: InfoWindow(
-              title: AppStrings.dropLabel.tr,
-              snippet: discoverController.selectedToAddress?.value ?? '',
-            ),
-          ),
-        );
-      _polylines.clear();
-    });
+    // Markers follow from _rideStartedMapSynced — the drop pin appears and the
+    // route is re-fetched for the pickup→drop leg below.
+    setState(() => _routeCoords = const []);
 
     await _fetchRoute(pickupPos, dropPos);
     _fitBounds(pickupPos, dropPos);
@@ -425,43 +417,17 @@ class _GoodsMultiCallTrackingScreenState
       );
 
       if (result != null && result.points.isNotEmpty) {
-        final routeCoords = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList();
-        _routeCoords = routeCoords;
-
         setState(() {
-          _polylines.clear();
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('rider_to_pickup'),
-              points: routeCoords,
-              width: 5,
-              color: const Color(0xFF4285F4),
-              geodesic: true,
-              jointType: JointType.round,
-              startCap: Cap.roundCap,
-              endCap: Cap.roundCap,
-            ),
-          );
+          _routeCoords = result.points
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList();
         });
       }
     } catch (_) {}
   }
 
   void _fitBounds(LatLng a, LatLng b) {
-    if (_mapController == null) return;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        a.latitude < b.latitude ? a.latitude : b.latitude,
-        a.longitude < b.longitude ? a.longitude : b.longitude,
-      ),
-      northeast: LatLng(
-        a.latitude > b.latitude ? a.latitude : b.latitude,
-        a.longitude > b.longitude ? a.longitude : b.longitude,
-      ),
-    );
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+    _mapController?.fitPoints([a, b], padding: 80);
   }
 
   double _calculateRiderDistance() {
@@ -582,7 +548,7 @@ class _GoodsMultiCallTrackingScreenState
       destLabelVal: discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
       customerNameVal: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
       fareAmountVal: 0,
-      routePoints: _routeCoords.map((p) => osm.LatLng(p.latitude, p.longitude)).toList(),
+      routePoints: _routeCoords.map((p) => LatLng(p.latitude, p.longitude)).toList(),
       type: 'customer_tracking',
       params: {
         'orderId': widget.orderId,
@@ -678,17 +644,12 @@ class _GoodsMultiCallTrackingScreenState
     return Stack(
       children: [
         // Full-screen map
-        GoogleMap(
-          initialCameraPosition: CameraPosition(
-            target: LatLng(pickupLat, pickupLng),
-            zoom: 14,
-          ),
+        BlueMap(
+          initialCenter: LatLng(pickupLat, pickupLng),
+          initialZoom: 14,
           markers: _markers,
           polylines: _polylines,
           myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-          mapToolbarEnabled: false,
           onMapCreated: (controller) {
             _mapController = controller;
           },

@@ -38,7 +38,8 @@ import '../../../business/auth/repo/business_profile_repo.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/auth/model/saved_address_model.dart';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
@@ -90,7 +91,10 @@ class DiscoverController extends GetxController {
   // var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
   var rentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
-  Set<Marker> markers = {};
+  /// Pins for the transport address map. A list, not a set: BlueMapMarker
+  /// identity is its id, so two pins sharing a coordinate are still two pins
+  /// and a Set would silently drop one.
+  List<BlueMapMarker> markers = [];
   final ScrollController scrollController = ScrollController();
   Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
