@@ -1,3 +1,16 @@
+> **⚠️ HISTORICAL — describes a system that no longer exists.**
+>
+> BlueEra was migrated off Google Maps Platform to OpenStreetMap on 2026-08-03.
+> There is no `google_maps_flutter`, no Places/Geocoding/Directions/Static Maps
+> usage, and no Google Maps API key in the app any more.
+>
+> Kept because the cost analysis explains **why** the current design looks the
+> way it does (session caches, rate floors, static previews). Do not follow it
+> as instructions.
+>
+> Current docs: `OSM_DEVOPS_GUIDE.md`, `OSM_BACKEND_GUIDE.md`,
+> `OSM_FRONTEND_GUIDE.md`.
+
 # Google Maps Billing — What We Call, Why It Costs, How To Cut It
 
 Written after an unexpectedly large bill on `GOOGLE_MAP_KEY`. This is an audit of
