@@ -198,9 +198,37 @@ class PlaceRepo{
   static const String _detailsFields =
       'geometry,formatted_address,address_components,name';
 
+  /// Raw Place Details replies for this session, keyed by `place_id`.
+  ///
+  /// [resolvePlace] already caches, but it only keeps lat/lng/address — and 17
+  /// call sites do NOT go through it, because they read `address_components`
+  /// (postal code, locality) which `resolvePlace` discards. Those screens were
+  /// therefore re-buying Place Details for a place the app had already looked
+  /// up moments earlier.
+  ///
+  /// Caching the whole `ResponseModel` here fixes every one of them without a
+  /// single call-site change, whatever fields they happen to read.
+  ///
+  /// In-memory only, deliberately: Google's Maps Platform Terms restrict how
+  /// long Places *content* may be persisted, and a process-lifetime map
+  /// sidesteps that question entirely. A durable cache belongs on our backend —
+  /// see `docs/GOOGLE_MAPS_COST_GUIDE.md` §3A.2.
+  static final Map<String, ResponseModel> _placeDetailsCache = {};
+
+  /// Bound on [_placeDetailsCache]. A user cannot meaningfully touch more
+  /// places than this in one session; the cap only stops a very long-lived
+  /// process growing without limit.
+  static const int _kMaxPlaceDetailsEntries = 100;
+
   Future<ResponseModel> getCompletePlaceDetails({
     required String placeId,
   }) async {
+    // Seen this place already this session — free, and instant. Note this does
+    // NOT close the Places session: no network call happened, so there is
+    // nothing for Google to bill against the token.
+    final cached = _placeDetailsCache[placeId];
+    if (cached != null) return cached;
+
     // The token must be the SAME one the autocomplete requests carried, or
     // Google bills both halves separately — worse than sending none at all.
     // Sent only when a session is actually open: resolving a saved place with
@@ -219,6 +247,16 @@ class PlaceRepo{
       onError: (error) {},
       onSuccess: (data) {},
     );
+
+    // Only a real answer is worth remembering — caching a failure would pin one
+    // dropped connection in place for the rest of the session, and the user
+    // would have no way to retry that address.
+    if (response.statusCode == 200 && response.response?.data != null) {
+      if (_placeDetailsCache.length >= _kMaxPlaceDetailsEntries) {
+        _placeDetailsCache.remove(_placeDetailsCache.keys.first);
+      }
+      _placeDetailsCache[placeId] = response;
+    }
 
     // Session closes on the details request whether or not it succeeded — the
     // next search starts a new one.
