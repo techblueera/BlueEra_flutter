@@ -728,7 +728,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// wide or very short viewport (tablet, landscape), or with a portrait card,
   /// the exact-aspect height would push the search bar off the fold. Only that
   /// case letterboxes, and only by the overflow.
+  /// Height of the guest sign-up card that stands in for the banner.
+  ///
+  /// Deliberately NOT the artwork aspect. A guest has no marketing card, so
+  /// there is no artwork to size the box to — reserving a 3:2 block for a
+  /// one-line CTA left a tall empty panel with the text floating in the middle
+  /// of it, which read as a broken image rather than a prompt.
+  ///
+  /// This is a banner-shaped strip instead: tall enough for the icon, two lines
+  /// of copy and the button, short enough that the category grid starts near
+  /// the fold where a guest can actually see there is an app under the nag.
+  static const double _kGuestPromptHeight = 128;
+
   double _headerBannerHeight(BuildContext context) {
+    if (isGuestUser()) return _kGuestPromptHeight;
     final size = MediaQuery.of(context).size;
     final exact = (size.width - 24) / (_bannerAspect ?? _kHeaderBannerAspect);
     return exact > size.height * 0.32 ? size.height * 0.32 : exact;
@@ -1075,9 +1088,9 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
       // they sign up) the slot is filled with a sign-up prompt of the SAME
       // height. The header's `headerBlockHeight` is computed from `bannerHeight`
       // regardless of what fills it, so this keeps that arithmetic honest.
-      if (isGuestUser()) {
+      // if (isGuestUser()) {
         return _GuestProfilePromptCard(height: height);
-      }
+      // }
 
       final hasPoster = poster?.trim().isNotEmpty ?? false;
       return _DiscoverHeaderBanner(
@@ -1120,11 +1133,19 @@ class _GuestProfilePromptCard extends StatelessWidget {
         child: InkWell(
           onTap: createProfileScreen,
           borderRadius: BorderRadius.circular(16),
+          // SOLID brand blue, not a tint.
+          //
+          // Everything else in this header — the location pill, the search bar,
+          // the glass panel itself — is white on near-white. A pale card here
+          // made the one element asking the user to act the faintest thing on
+          // screen, while the category tiles below it are fully saturated. One
+          // solid block of the app's own blue makes this the only weighted
+          // object in the header, which is the hierarchy a single conversion
+          // CTA should have.
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.primaryColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primaryColor, width: 1.4),
             ),
             padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size16,
@@ -1132,58 +1153,60 @@ class _GuestProfilePromptCard extends StatelessWidget {
             ),
             child: Row(
               children: [
+                // Same gift motif as GuestClaimBonusDialog, inverted to sit on
+                // the blue — so the two guest prompts read as one idea.
                 Icon(
                   Icons.card_giftcard_rounded,
-                  size: 40,
-                  color: AppColors.primaryColor,
+                  size: 34,
+                  color: AppColors.white,
                 ),
-                SizedBox(width: SizeConfig.size14),
-                // The copy has to survive a banner height driven by the
-                // artwork's aspect ratio, so it flexes and ellipsises rather
-                // than assuming the room it had at design time.
+                SizedBox(width: SizeConfig.size12),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Benefit in the heading, action on the button — so the
+                      // two are not saying the same words twice.
                       CustomText(
-                        'Create your profile',
-                        fontSize: SizeConfig.large,
+                        'Unlock your rewards',
+                        fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
+                        color: AppColors.white,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: SizeConfig.size4),
-                      Flexible(
-                        child: CustomText(
-                          'Unlock your own promo card, rewards and '
-                          'personalised services.',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      SizedBox(height: SizeConfig.size2),
+                      CustomText(
+                        'Your own promo card and wallet bonus',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.white.withValues(alpha: 0.85),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
+                // White pill on blue — inverted from every other button in the
+                // app, which is what makes it read as the primary action here.
+                // Wording matches where it goes (createProfileScreen), so the
+                // label the user taps is the screen they land on.
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: SizeConfig.size14,
-                    vertical: SizeConfig.size8,
+                    vertical: SizeConfig.size10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: CustomText(
-                    'Sign up',
+                    'Create profile',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.white,
+                    color: AppColors.primaryColor,
                   ),
                 ),
               ],
