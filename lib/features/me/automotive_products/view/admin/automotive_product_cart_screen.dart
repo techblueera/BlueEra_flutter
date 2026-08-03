@@ -53,7 +53,9 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
     if (parsed != null && parsed > mrp) {
       setState(() {
         _priceErrors[variantId] =
-            'Selling price can’t exceed MRP (${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)})';
+            AppStrings.automotiveSellingCannotExceedMrpFmt.trParams({
+          'mrp': '${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)}'
+        });
       });
       // Don't persist an invalid price — the existing value stays so
       // publish still uses something sensible.
@@ -69,7 +71,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Review & Publish',
+        title: AppStrings.automotiveReviewAndPublish,
       ),
       bottomNavigationBar: _buildBottomBar(context),
       body: Obx(() {
@@ -87,7 +89,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                 ),
                 SizedBox(height: SizeConfig.size15),
                 CustomText(
-                  'No products selected',
+                  AppStrings.automotiveNoProductsSelected,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
@@ -121,6 +123,15 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
     );
   }
 
+  /// "3 products" / "1 product" — composed here rather than inside the
+  /// translation string, because the plural form is a separate word in each
+  /// language and the @param slots take a ready-made phrase.
+  String _productCountLabel(int count) =>
+      '$count ${(count == 1 ? AppStrings.automotiveProductLabel : AppStrings.automotiveProductsLabel).tr}';
+
+  String _variantCountLabel(int count) =>
+      '$count ${(count == 1 ? AppStrings.automotiveVariantLabel : AppStrings.automotiveVariantsLabel).tr}';
+
   Widget _buildHeader(int count) {
     return Container(
       color: AppColors.white,
@@ -140,7 +151,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
               borderRadius: BorderRadius.circular(20),
             ),
             child: CustomText(
-              '$count ${count == 1 ? 'AutomotiveProduct' : 'AutomotiveProducts'}',
+              _productCountLabel(count),
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
@@ -148,7 +159,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
           ),
           Spacer(),
           CustomText(
-            'Set selling price for each variant',
+            AppStrings.automotiveSetSellingPriceHint,
             fontSize: SizeConfig.extraSmall,
             color: AppColors.secondaryTextColor,
           ),
@@ -269,7 +280,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                       PriceRow(
                         sellingPrice: '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
                         mrp: '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
-                        discount: '$discount% off',
+                        discount: '$discount% ${AppStrings.offCaps.tr}',
                       ),
                     ],
                   ),
@@ -325,7 +336,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                     ),
                     SizedBox(width: SizeConfig.size6),
                     CustomText(
-                      'Your Selling AutomotivePrice',
+                      AppStrings.automotiveYourSellingPrice,
                       fontSize: SizeConfig.small,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w500,
@@ -464,7 +475,8 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    '${products.length} ${products.length == 1 ? 'variant' : 'variants'} selected',
+                    AppStrings.automotiveVariantsSelectedFmt.trParams(
+                        {'variants': _variantCountLabel(products.length)}),
                     fontSize: SizeConfig.small,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,
@@ -478,7 +490,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                       ),
                       SizedBox(width: 4),
                       CustomText(
-                        'Ready to publish',
+                        AppStrings.automotiveReadyToPublish,
                         fontSize: SizeConfig.small,
                         color: AppColors.green00,
                         fontWeight: FontWeight.w500,
@@ -497,7 +509,8 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                 radius: SizeConfig.size8,
                 title: inventoryController.cloneProductVariantLoading.value
                     ? null
-                    : 'Publish ${products.length} AutomotiveProducts',
+                    : AppStrings.automotivePublishProductsFmt.trParams(
+                        {'products': _productCountLabel(products.length)}),
                 isLoading: inventoryController.cloneProductVariantLoading.value,
               ),
             ],
@@ -518,7 +531,7 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const CustomText(
-            'Fix selling prices that exceed MRP before publishing.',
+            AppStrings.automotiveFixPricesBeforePublish,
             color: AppColors.white,
           ),
           backgroundColor: AppColors.red,

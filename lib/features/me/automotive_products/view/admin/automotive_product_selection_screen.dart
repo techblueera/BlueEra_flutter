@@ -193,7 +193,8 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
                         ),
                         SizedBox(width: SizeConfig.size8),
                         CustomText(
-                          'You can\'t select more than ${controller.productMaxLimit} products at a time.',
+                          AppStrings.automotiveMaxLimitWarningFmt.trParams(
+                              {'count': '${controller.productMaxLimit}'}),
                           color: AppColors.redLite,
                           fontSize: SizeConfig.extraSmall,
                           fontWeight: FontWeight.w400,
@@ -216,7 +217,7 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
       final children = _selectedCategory.value?.children ?? [];
       if (children.isEmpty) return const SizedBox.shrink();
 
-      final List<dynamic> tabData = ["All", ...children];
+      final List<dynamic> tabData = [AppStrings.all.tr, ...children];
 
       return HorizontalTabSelector<dynamic>(
         tabs: tabData,
@@ -248,7 +249,7 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
       if (products.isEmpty) {
         return Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
-          child: EmptyStateWidget(message: 'No products found.'),
+          child: EmptyStateWidget(message: AppStrings.noProductsFound),
         );
       }
 

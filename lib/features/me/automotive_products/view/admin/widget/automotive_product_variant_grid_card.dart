@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AutomotiveProductVariantGridCard extends StatelessWidget {
   final AutomotiveSelectedVariant variantData;
@@ -156,7 +158,7 @@ class AutomotiveProductVariantGridCard extends StatelessWidget {
                     sellingPrice:
                         '₹${variant.sellingPrice.toStringAsFixed(0)}',
                     mrp: '₹${variant.mrp.toStringAsFixed(0)}',
-                    discount: '$discount% off',
+                    discount: '$discount% ${AppStrings.off.tr}',
                   ),
                 ],
               ),

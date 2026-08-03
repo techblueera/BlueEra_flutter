@@ -185,7 +185,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                     ),
                     const SizedBox(height: 2),
                     CustomText(
-                      'Enter a few details and let AI build your listing',
+                      AppStrings.automotiveAiHeaderSubtitle,
                       fontSize: 11,
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
@@ -291,7 +291,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
               borderRadius: BorderRadius.circular(20),
             ),
             child: CustomText(
-              'Optional',
+              AppStrings.optional,
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -364,7 +364,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
               ),
               SizedBox(height: SizeConfig.size12),
               CustomText(
-                'Add product photo',
+                AppStrings.automotiveAddProductPhoto,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -376,7 +376,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                   Icon(Icons.travel_explore,
                       size: 13, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 4),
-                  CustomText('Search Google',
+                  CustomText(AppStrings.automotiveSearchGoogle,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor),
                   SizedBox(width: SizeConfig.size8),
@@ -392,7 +392,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                   Icon(Icons.upload_outlined,
                       size: 13, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 4),
-                  CustomText('Upload',
+                  CustomText(AppStrings.upload,
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor),
                 ],
@@ -474,7 +474,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
             children: [
               Icon(Icons.add, color: AppColors.primaryColor, size: 28),
               const SizedBox(height: 4),
-              CustomText('Add another photo',
+              CustomText(AppStrings.automotiveAddAnotherPhoto,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primaryColor),
@@ -565,7 +565,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                 _sheetHandle(),
                 SizedBox(height: SizeConfig.size14),
                 CustomText(
-                  'Add product photo',
+                  AppStrings.automotiveAddProductPhoto,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -573,8 +573,8 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                 SizedBox(height: SizeConfig.size14),
                 _imageSourceCard(
                   icon: Icons.travel_explore,
-                  title: 'Search from Google',
-                  subtitle: 'Find a photo by product name / brand',
+                  title: AppStrings.automotiveSearchFromGoogle,
+                  subtitle: AppStrings.automotiveSearchFromGoogleHint,
                   highlighted: true,
                   onTap: () {
                     Navigator.pop(sheetCtx);
@@ -584,8 +584,8 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                 SizedBox(height: SizeConfig.size10),
                 _imageSourceCard(
                   icon: Icons.photo_library_outlined,
-                  title: 'Camera or Gallery',
-                  subtitle: 'Capture or pick from your device',
+                  title: AppStrings.automotiveCameraOrGallery,
+                  subtitle: AppStrings.automotiveCameraOrGalleryHint,
                   highlighted: false,
                   onTap: () {
                     Navigator.pop(sheetCtx);
@@ -712,7 +712,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
                           size: 18, color: AppColors.primaryColor),
                       SizedBox(width: SizeConfig.size8),
                       CustomText(
-                        'Tap an image to use it',
+                        AppStrings.automotiveTapImageToUse,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.mainTextColor,
@@ -858,7 +858,8 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
               Expanded(
                 child: hasSelection
                     ? _buildSelectionPath()
-                    : CustomText("Choose AutomotiveCategory", color: Colors.grey[400]),
+                    : CustomText(AppStrings.automotiveChooseCategory,
+                        color: Colors.grey[400]),
               ),
               const Icon(
                 Icons.keyboard_arrow_down_outlined,
@@ -992,7 +993,8 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const CustomText("Select AutomotiveCategory", fontWeight: FontWeight.bold, fontSize: 16),
+            const CustomText(AppStrings.automotiveSelectCategory,
+                fontWeight: FontWeight.bold, fontSize: 16),
             IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
           ],
         ),
@@ -1001,7 +1003,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
           runSpacing: 4,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            _pathStep("All", () {
+            _pathStep(AppStrings.all.tr, () {
               controller.selectedProductLevel0.value = null;
               controller.selectedProductLevel1.value = null;
               controller.selectedProductLevel2.value = null;

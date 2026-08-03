@@ -119,7 +119,7 @@ class _AutomotiveProductSuperCategoryScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'Add AutomotiveProducts',
+                      AppStrings.addProducts,
                       fontSize: SizeConfig.large,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w600,
@@ -145,7 +145,7 @@ class _AutomotiveProductSuperCategoryScreenState
               padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size4,
                   SizeConfig.size12, SizeConfig.size8),
               child: CustomText(
-                'Quick Upload',
+                AppStrings.automotiveQuickUpload,
                 fontSize: SizeConfig.large,
                 color: AppColors.mainTextColor,
                 fontWeight: FontWeight.w600,
@@ -189,7 +189,7 @@ class _AutomotiveProductSuperCategoryScreenState
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
-            child: CustomText('No categories found.'),
+            child: CustomText(AppStrings.automotiveNoCategoriesFound),
           ),
         ),
       );
@@ -438,7 +438,7 @@ class _AutomotiveProductSuperCategoryScreenState
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    'Search products by photo',
+                    AppStrings.automotiveSearchByPhoto,
                     fontSize: SizeConfig.small,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
@@ -447,7 +447,7 @@ class _AutomotiveProductSuperCategoryScreenState
                   ),
                   SizedBox(height: 2),
                   CustomText(
-                    'Upload a picture to find products instantly.',
+                    AppStrings.automotiveSearchByPhotoHint,
                     fontSize: SizeConfig.extraSmall,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,

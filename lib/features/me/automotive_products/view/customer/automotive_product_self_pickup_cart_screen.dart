@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -10,6 +11,18 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// "3 items" / "1 item" — the count and its noun are composed here rather
+/// than inside the translation string, because the plural is a separate word
+/// in each language and the `@param` slots take a ready-made phrase.
+String _itemCountLabel(int count) =>
+    '$count ${(count == 1 ? AppStrings.automotiveItemLabel : AppStrings.automotiveItemsLabel).tr}';
+
+String _shopCountLabel(int count) =>
+    '$count ${(count == 1 ? AppStrings.automotiveShopLabel : AppStrings.automotiveShopsLabel).tr}';
+
+String _productCountLabel(int count) =>
+    '$count ${(count == 1 ? AppStrings.automotiveProductLabel : AppStrings.automotiveProductsLabel).tr}';
 
 /// Self-pickup cart for the product flow. Mirrors the grocery cart —
 /// pastel store cards, framed thumbnails, vertical dashed dividers,
@@ -169,7 +182,8 @@ class _AutomotiveProductSelfPickUpCartScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: Obx(() => CustomText(
-              'Self Pick-Up (${controller.totalItemsCount})',
+              AppStrings.automotiveSelfPickUpFmt
+                  .trParams({'count': '${controller.totalItemsCount}'}),
               fontSize: SizeConfig.extraLarge,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -190,7 +204,7 @@ class _AutomotiveProductSelfPickUpCartScreenState
                     size: 64, color: AppColors.greyCA),
                 const SizedBox(height: 16),
                 CustomText(
-                  'No items in self pick-up',
+                  AppStrings.automotiveNoItemsSelfPickup,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -217,8 +231,8 @@ class _AutomotiveProductSelfPickUpCartScreenState
                       : (controller.cartBusinessInfo[firstId] ?? {});
 
                   return _AutomotiveStoreGroupCard(
-                    businessName:
-                        businessInfo['businessName'] ?? 'Unknown Store',
+                    businessName: businessInfo['businessName'] ??
+                        AppStrings.automotiveUnknownStore.tr,
                     businessLogo: businessInfo['logo'] ?? '',
                     businessAddress: businessInfo['address'] ?? '',
                     items: groupItems,
@@ -352,7 +366,7 @@ class _AutomotiveStoreGroupCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: CustomText(
-                    '${items.length} ${items.length == 1 ? 'item' : 'items'}',
+                    _itemCountLabel(items.length),
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
@@ -463,7 +477,8 @@ class _AutomotiveProductRow extends StatelessWidget {
     // qty is about to drop to 0 — confirm with the user before
     // evicting the item from the cart. Mirrors the grocery cart's
     // confirm flow so destructive actions look consistent.
-    final productName = product.product.details?.name ?? 'This product';
+    final productName = product.product.details?.name ??
+        AppStrings.automotiveThisProduct.tr;
     Get.dialog(
       Dialog(
         shape:
@@ -490,7 +505,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: CustomText(
-                      'Remove from cart?',
+                      AppStrings.automotiveRemoveFromCart,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
@@ -500,7 +515,8 @@ class _AutomotiveProductRow extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               CustomText(
-                '"$productName" will be removed from your cart.',
+                AppStrings.automotiveRemoveFromCartMsgFmt
+                    .trParams({'name': productName}),
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -519,7 +535,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                         ),
                       ),
                       child: CustomText(
-                        'Cancel',
+                        AppStrings.cancel,
                         color: AppColors.secondaryTextColor,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w700,
@@ -541,7 +557,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                         ),
                       ),
                       child: CustomText(
-                        'Remove',
+                        AppStrings.remove,
                         color: AppColors.white,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w800,
@@ -702,7 +718,8 @@ class _AutomotiveProductRow extends StatelessWidget {
                 if (sellingPrice != 0) ...[
                   const SizedBox(height: 5),
                   CustomText(
-                    '${AppConstants.rupeeSymbol}$sellingPrice each',
+                    AppStrings.automotiveEachPriceFmt.trParams(
+                        {'price': '${AppConstants.rupeeSymbol}$sellingPrice'}),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
@@ -746,7 +763,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: CustomText(
-                        '$discountPct% off',
+                        '$discountPct% ${AppStrings.offCaps.tr}',
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF1FB35A),
@@ -912,11 +929,11 @@ class _AutomotiveDiscountRibbon extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 1),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 1),
                   child: Text(
-                    'Off',
-                    style: TextStyle(
+                    AppStrings.offCaps.tr,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
@@ -928,7 +945,7 @@ class _AutomotiveDiscountRibbon extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'On All AutomotiveItems',
+              AppStrings.automotiveOnAllItems.tr,
               style: TextStyle(
                 fontSize: 9,
                 color: Colors.white.withValues(alpha: 0.95),
@@ -1023,8 +1040,8 @@ class _AutomotiveBottomBillSection extends StatelessWidget {
                   final businessInfo = firstId == null
                       ? <String, dynamic>{}
                       : (controller.cartBusinessInfo[firstId] ?? {});
-                  final shopName =
-                      businessInfo['businessName'] ?? 'Unknown Store';
+                  final shopName = businessInfo['businessName'] ??
+                      AppStrings.automotiveUnknownStore.tr;
                   final shopTotal = calcTotal(items, controller);
                   final shopItems = calcItemCount(items, controller);
                   final isChecked =
@@ -1067,7 +1084,10 @@ class _AutomotiveBottomBillSection extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: CustomText(
-                              '$shopName ($shopItems ${shopItems == 1 ? 'item' : 'items'})',
+                              AppStrings.automotiveShopItemsFmt.trParams({
+                                'shop': shopName,
+                                'items': _itemCountLabel(shopItems),
+                              }),
                               fontSize: SizeConfig.small,
                               color: isChecked
                                   ? AppColors.primaryColor
@@ -1098,7 +1118,10 @@ class _AutomotiveBottomBillSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            '$selectedShopCount ${selectedShopCount == 1 ? 'Shop' : 'Shops'} | $grandItemCount ${grandItemCount == 1 ? 'AutomotiveProduct' : 'AutomotiveProducts'}',
+                            AppStrings.automotiveShopsProductsFmt.trParams({
+                              'shops': _shopCountLabel(selectedShopCount),
+                              'products': _productCountLabel(grandItemCount),
+                            }),
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w500,
@@ -1160,7 +1183,7 @@ class _AutomotiveBottomBillSection extends StatelessWidget {
                                     ),
                                   )
                                 : CustomText(
-                                    'Place Order',
+                                    AppStrings.placeOrder,
                                     fontSize: SizeConfig.medium,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.white,

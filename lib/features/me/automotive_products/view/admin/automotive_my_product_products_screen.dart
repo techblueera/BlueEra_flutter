@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
@@ -97,11 +98,11 @@ class _AutomotiveMyProductProductsScreenState extends State<AutomotiveMyProductP
                     onClearCallback: () {
                       searchController.clear();
                     },
-                    hintText: "Search products...",
+                    hintText: AppStrings.automotiveSearchProductsHint,
                   )
                 : CustomText(
                     controller.selectedProductCategoryData.value?.name ??
-                        "AutomotiveProducts",
+                        AppStrings.automotiveProducts,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -171,7 +172,7 @@ class _AutomotiveMyProductProductsScreenState extends State<AutomotiveMyProductP
 
             if (children.isEmpty) return const SizedBox.shrink();
 
-            final List<dynamic> tabData = ["All", ...children];
+            final List<dynamic> tabData = [AppStrings.all.tr, ...children];
 
             return HorizontalTabSelector<dynamic>(
               tabs: tabData,
@@ -243,7 +244,7 @@ class _AutomotiveMyProductProductsScreenState extends State<AutomotiveMyProductP
                     : Padding(
                         padding: EdgeInsets.all(SizeConfig.size20),
                         child: EmptyStateWidget(
-                          message: 'No products found.',
+                          message: AppStrings.noProductsFound,
                         ),
                       ),
             ),

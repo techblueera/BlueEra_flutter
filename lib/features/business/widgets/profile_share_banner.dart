@@ -415,13 +415,8 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
                   height: 1.12,
                   color: AppColors.mainTextColor,
                 ),
-                children: [
-                  const TextSpan(text: 'Share One-Time,\nEarn '),
-                  TextSpan(
-                    text: 'Full Year',
-                    style: TextStyle(color: AppColors.blueAF),
-                  ),
-                ],
+                children:
+                    _highlightedSpans(AppStrings.shareOneTimeEarnFullYear.tr),
               ),
             ),
           ),
@@ -442,6 +437,37 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     );
   }
 
+  /// Splits a headline template into spans, tinting whatever sits inside `{}`.
+  ///
+  /// The headline used to be two hard-coded spans — a plain prefix and the blue
+  /// "Full Year" that always trailed it. That shape only works for English:
+  /// Hindi, Gujarati, Marathi and Kannada all put the duration BEFORE the verb,
+  /// so pinning the tinted run to the tail would have forced every translation
+  /// into English word order. The marker travels with the string instead, and
+  /// each language positions it where its own grammar wants it.
+  ///
+  /// A string with no marker simply comes back as one plain span, so a locale
+  /// whose value hasn't been translated yet still renders — just untinted.
+  List<TextSpan> _highlightedSpans(String template) {
+    final spans = <TextSpan>[];
+    final pattern = RegExp(r'\{([^}]*)\}');
+    var index = 0;
+    for (final match in pattern.allMatches(template)) {
+      if (match.start > index) {
+        spans.add(TextSpan(text: template.substring(index, match.start)));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: TextStyle(color: AppColors.blueAF),
+      ));
+      index = match.end;
+    }
+    if (index < template.length) {
+      spans.add(TextSpan(text: template.substring(index)));
+    }
+    return spans;
+  }
+
   // ───── Headline + Learn More ──────────────────────────────────────
 
   Widget _headline(String? referralCode, bool referralCodeEditable) {
@@ -458,7 +484,8 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: 'Your Referral Code: ',
+                  text: AppStrings.yourReferralCode.tr,
+                  // text: 'Your Referral Code: ',
                   style: TextStyle(
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
@@ -561,7 +588,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-            'Share Your Referral Code Via',
+            AppStrings.shareYourReferralCodeVia.tr,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,

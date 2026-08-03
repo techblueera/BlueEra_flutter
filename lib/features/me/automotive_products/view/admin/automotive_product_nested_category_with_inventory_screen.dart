@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -161,7 +162,8 @@ class _AutomotiveProductNestedCategoryWithInventoryScreenState
         child: Obx(() => _inventoryController.productNestedCategoryLoading.value
             ? const Center(child: CircularProgressIndicator())
             : _inventoryController.productNestedCategoryList.isEmpty
-                ? const Center(child: Text('No categories found'))
+                ? Center(
+                    child: Text(AppStrings.automotiveNoCategoriesFound.tr))
                 : MasonryGridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 6,
@@ -257,7 +259,10 @@ class _AutomotiveProductNestedCategoryWithInventoryScreenState
                                   color: AppColors.boxBg,
                                 ),
                                 child: CustomText(
-                                  '${item.children?.length ?? 0} AutomotiveCategory',
+                                  AppStrings.automotiveCategoryCountFmt
+                                      .trParams({
+                                    'count': '${item.children?.length ?? 0}'
+                                  }),
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.secondaryTextColor,

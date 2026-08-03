@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -200,7 +201,7 @@ class _AutomotiveProductsStoreDetailsScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const CustomText(
-                              'Live Photos',
+                              AppStrings.automotiveLivePhotos,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -212,7 +213,7 @@ class _AutomotiveProductsStoreDetailsScreenState
                               natureOfBusiness:
                                   details.subCategoryDetails?.name ??
                                       details.natureOfBusiness ??
-                                      'OTHER',
+                                      AppStrings.other.tr,
                               onViewFullScreen: ({
                                 required int index,
                                 required List<String> storeImage,
@@ -279,7 +280,7 @@ class _AutomotiveProductsStoreDetailsScreenState
             children: [
               Expanded(
                 child: CustomText(
-                  'Top Selling Product',
+                  AppStrings.automotiveTopSellingProduct,
                   fontSize: SizeConfig.large,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w600,
@@ -293,7 +294,7 @@ class _AutomotiveProductsStoreDetailsScreenState
                   ),
                 ),
                 child: CustomText(
-                  'View All',
+                  AppStrings.viewAll,
                   fontSize: SizeConfig.medium,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
@@ -387,7 +388,7 @@ class _AutomotiveProductsStoreDetailsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Category',
+            AppStrings.category,
             fontSize: SizeConfig.large,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,
@@ -422,7 +423,7 @@ class _AutomotiveProductsStoreDetailsScreenState
                   },
                 )
               : EmptyStateWidget(
-                  message: 'This store has no products yet.',
+                  message: AppStrings.automotiveStoreNoProducts,
                 ),
           SizedBox(height: SizeConfig.paddingXSL),
         ],
