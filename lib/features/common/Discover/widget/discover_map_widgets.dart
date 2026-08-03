@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -9,9 +8,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// TEMPORARY — only for DiscoverMarkerIcons.circleBitmap, which unmigrated
-// GoogleMap screens still use. Goes when they do.
-import 'package:google_maps_flutter/google_maps_flutter.dart' show BitmapDescriptor;
 
 /// Banner-style circular icon button (black 35% backdrop, white icon).
 /// Reused across the inline map preview and full-screen map screens so
@@ -282,63 +278,4 @@ class DiscoverMarkerIcons {
     );
   }
 
-  /// The old raster form, for screens still rendering a `GoogleMap`.
-  ///
-  /// TEMPORARY — delete along with the last `google_maps_flutter` import. It
-  /// exists only so the widget form above can land before every Discover map
-  /// screen has been migrated, rather than requiring all six to change in one
-  /// commit.
-  static final Map<int, BitmapDescriptor> _bitmapCache = {};
-
-  static Future<BitmapDescriptor> circleBitmap({
-    required IconData icon,
-    Color? color,
-    int size = 110,
-  }) async {
-    final fillColor = color ?? AppColors.primaryColor;
-    final cacheKey = Object.hash(
-      icon.codePoint,
-      icon.fontFamily,
-      // ignore: deprecated_member_use
-      fillColor.value,
-      size,
-    );
-    final cached = _bitmapCache[cacheKey];
-    if (cached != null) return cached;
-
-    final pictureRecorder = ui.PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-
-    final cx = size / 2.0;
-    final cy = size / 2.0;
-
-    canvas.drawCircle(Offset(cx, cy), size / 2.0,
-        Paint()..color = fillColor.withValues(alpha: 0.18));
-    canvas.drawCircle(
-        Offset(cx, cy), size / 2.0 - 8, Paint()..color = Colors.white);
-    canvas.drawCircle(
-        Offset(cx, cy), size / 2.0 - 14, Paint()..color = fillColor);
-
-    final painter = TextPainter(textDirection: TextDirection.ltr);
-    painter.text = TextSpan(
-      text: String.fromCharCode(icon.codePoint),
-      style: TextStyle(
-        fontSize: size / 2.6,
-        fontFamily: icon.fontFamily,
-        package: icon.fontPackage,
-        color: Colors.white,
-      ),
-    );
-    painter.layout();
-    painter.paint(
-      canvas,
-      Offset(cx - painter.width / 2, cy - painter.height / 2),
-    );
-
-    final img = await pictureRecorder.endRecording().toImage(size, size);
-    final data = await img.toByteData(format: ui.ImageByteFormat.png);
-    final descriptor = BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
-    _bitmapCache[cacheKey] = descriptor;
-    return descriptor;
-  }
 }

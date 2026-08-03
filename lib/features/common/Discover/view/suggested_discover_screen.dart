@@ -16,7 +16,6 @@
 // import 'package:BlueEra/widgets/local_assets.dart';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
 // // import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 //
 // class SuggestedDiscoverScreen extends StatefulWidget {

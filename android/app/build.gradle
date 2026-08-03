@@ -29,10 +29,10 @@ if (flutterVersionName == null) {
     flutterVersionName = '14.0.48'
 }
 
-def mapApiKey = localProperties.getProperty('MAP_API_KEY')
-if (!mapApiKey || mapApiKey.isEmpty()) {
-    throw new GradleException("Missing MAP_API_KEY in local.properties")
-}
+// MAP_API_KEY is gone with Google Maps — maps are OpenStreetMap now and the
+// tile/geocoding/routing hosts are configured in Dart (lib/core/map/osm_config.dart),
+// not through a native key. The old build refused to configure without this in
+// local.properties, so removing it also unblocks a fresh clone.
 
 android {
     namespace "ai.bluecs.app"
@@ -62,9 +62,6 @@ android {
         targetSdkVersion 36
         versionCode 307
         versionName "14.0.48"
-        manifestPlaceholders = [
-                mapApiKey: mapApiKey
-        ]
     }
 
     signingConfigs {

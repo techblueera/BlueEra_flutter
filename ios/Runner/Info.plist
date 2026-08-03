@@ -58,8 +58,6 @@
 	<true/>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
-	<key>GoogleMapsApiKey</key>
-	<string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

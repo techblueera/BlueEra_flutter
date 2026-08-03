@@ -36,7 +36,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
@@ -2033,23 +2034,19 @@ class _StayMapScreen extends StatefulWidget {
 }
 
 class _StayMapScreenState extends State<_StayMapScreen> {
-  GoogleMapController? _mapController;
-  BitmapDescriptor? _stayIcon;
+  BlueMapController? _mapController;
+
+  /// Stay pin, as a widget: correct on the first frame and stable by identity,
+  /// so BlueMap does not redraw every pin on every rebuild.
+  late final Widget _stayIcon = DiscoverMarkerIcons.circle(
+    icon: widget.isIndividual ? Icons.home_work_outlined : Icons.hotel_outlined,
+  );
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('stay_services');
 
-  @override
-  void initState() {
-    super.initState();
-    DiscoverMarkerIcons.circleBitmap(
-      icon:
-          widget.isIndividual ? Icons.home_work_outlined : Icons.hotel_outlined,
-    ).then((d) {
-      if (mounted) setState(() => _stayIcon = d);
-    });
-  }
+  /// Rentals/hotels on the map, keyed by marker id, so a tap resolves back to
+  /// the listing it represents.
+  final Map<String, Object> _itemsByMarkerId = {};
 
   @override
   void dispose() {
@@ -2057,8 +2054,9 @@ class _StayMapScreenState extends State<_StayMapScreen> {
     super.dispose();
   }
 
-  Set<Marker> _buildMarkers() {
-    final markers = <Marker>{};
+  List<BlueMapMarker> _buildMarkers() {
+    _itemsByMarkerId.clear();
+    final markers = <BlueMapMarker>[];
     if (widget.isIndividual) {
       for (final s in _ctrl.rentalServicesMapList) {
         final coords = s.location?.coordinates;
@@ -2066,18 +2064,13 @@ class _StayMapScreenState extends State<_StayMapScreen> {
         final lng = coords[0].toDouble();
         final lat = coords[1].toDouble();
         if (lat == 0 && lng == 0) continue;
+        final id = s.sId ?? '${s.name}_$lat,$lng';
+        _itemsByMarkerId[id] = s;
         markers.add(
-          Marker(
-            markerId: MarkerId(s.sId ?? '${s.name}_$lat,$lng'),
+          BlueMapMarker(
+            id: id,
             position: LatLng(lat, lng),
-            clusterManagerId: _clusterManagerId,
-            icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
-            infoWindow: InfoWindow(
-              title: s.name ?? AppStrings.unknownUser.tr,
-              snippet: s.type ?? '',
-              onTap: () => _openRentalDetails(s),
-            ),
-            onTap: () => _openRentalDetails(s),
+            child: _stayIcon,
           ),
         );
       }
@@ -2091,20 +2084,14 @@ class _StayMapScreenState extends State<_StayMapScreen> {
         final lat = coords[0].toDouble();
         final lng = coords[1].toDouble();
         if (lat == 0 && lng == 0) continue;
+        final id =
+            s.profile?.businessId ?? '${s.profile?.name}_$lat,$lng';
+        _itemsByMarkerId[id] = s;
         markers.add(
-          Marker(
-            markerId: MarkerId(
-                s.profile?.businessId ?? '${s.profile?.name}_$lat,$lng'),
+          BlueMapMarker(
+            id: id,
             position: LatLng(lat, lng),
-            clusterManagerId: _clusterManagerId,
-            icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
-            infoWindow: InfoWindow(
-              title: s.profile?.name ?? AppStrings.na,
-              snippet:
-                  s.rooms?.firstOrNull?.bedType ?? AppStrings.hotelLabel.tr,
-              onTap: () => _openHotelDetails(s),
-            ),
-            onTap: () => _openHotelDetails(s),
+            child: _stayIcon,
           ),
         );
       }
@@ -2121,17 +2108,15 @@ class _StayMapScreenState extends State<_StayMapScreen> {
     }
   }
 
-  Future<void> _zoomToCluster(Cluster cluster) async {
-    if (_mapController == null) return;
-    if (cluster.markerIds.length <= 1) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(cluster.position, 15),
-      );
-      return;
+  /// Resolves a tapped marker back to its listing. Cluster pins are expanded
+  /// by BlueMap itself and never reach here.
+  void _onMarkerTap(String markerId) {
+    final item = _itemsByMarkerId[markerId];
+    if (item is RentalServiceData) {
+      _openRentalDetails(item);
+    } else if (item != null) {
+      _openHotelDetails(item as dynamic);
     }
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(cluster.bounds, 80),
-    );
   }
 
   @override
@@ -2151,23 +2136,14 @@ class _StayMapScreenState extends State<_StayMapScreen> {
                 ? _ctrl.rentalServicesMapList.length
                 : _ctrl.hotelServicesMapList.length;
             final markers = _buildMarkers();
-            return GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(initialLat, initialLng),
-                zoom: 12,
-              ),
+            return BlueMap(
+              initialCenter: LatLng(initialLat, initialLng),
+              initialZoom: 12,
               markers: markers,
-              clusterManagers: {
-                ClusterManager(
-                  clusterManagerId: _clusterManagerId,
-                  onClusterTap: _zoomToCluster,
-                ),
-              },
+              // Replaces Google's platform-side ClusterManager.
+              clusterMarkers: true,
               myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              compassEnabled: true,
-              mapToolbarEnabled: false,
+              onMarkerTap: _onMarkerTap,
               onMapCreated: (c) => _mapController = c,
             );
           }),
@@ -2199,11 +2175,9 @@ class _StayMapScreenState extends State<_StayMapScreen> {
                 bannerMapCircleIconButton(
                   icon: Icons.my_location,
                   onTap: () {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        LatLng(initialLat, initialLng),
-                        13,
-                      ),
+                    _mapController?.moveTo(
+                      LatLng(initialLat, initialLng),
+                      zoom: 13,
                     );
                   },
                 ),

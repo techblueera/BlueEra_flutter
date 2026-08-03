@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -22,7 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Multi-shop (multi-stop) ride booking screen.
 ///
@@ -60,14 +60,12 @@ class _GoodsMultiOrderBookingMainState
     extends State<GoodsMultiOrderBookingMain> {
   final discoverController = getOrPut(() => DiscoverController());
 
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
-  // Replaced wholesale on every rebuild, never mutated in place: GoogleMap
-  // diffs the new set against the old one to decide what to redraw, and
-  // handing it the SAME Set instance twice makes that diff a no-op — which is
-  // how markers and the route line could silently fail to appear.
-  Set<Marker> _markers = const {};
-  Set<Polyline> _polylines = const {};
+  // Replaced wholesale on every rebuild, never mutated in place: BlueMap diffs
+  // the new list against the drawn one to decide what to redraw.
+  List<BlueMapMarker> _markers = const [];
+  List<BlueMapPolyline> _polylines = const [];
 
   /// Rebuilds the pins whenever the sorted-shop list changes (first load and
   /// every refresh).
@@ -146,7 +144,7 @@ class _GoodsMultiOrderBookingMainState
     // was given, with the bitmaps it was given. Editing the pins then looks
     // like it changed nothing until a full restart. Debug-only (Flutter never
     // calls reassemble in release).
-    _pinCache.clear();
+    // Pins are widgets now — a hot reload rebuilds them like any other widget.
     _rebuildMap();
   }
 
@@ -198,28 +196,21 @@ class _GoodsMultiOrderBookingMainState
     final stops = _stops;
     if (stops.isEmpty || !mounted) return;
 
-    // Marker bitmaps are sized in device pixels; see [_circlePin].
-    final dpr = MediaQuery.of(context).devicePixelRatio;
-
-    final markers = <Marker>{};
-    for (final stop in stops) {
-      markers.add(
-        Marker(
-          markerId: MarkerId('stop_${stop.label}'),
+    final markers = <BlueMapMarker>[
+      for (final stop in stops)
+        BlueMapMarker(
+          id: 'stop_${stop.label}',
           position: stop.position,
-          icon: await _circlePin(
+          child: _circlePin(
             label: stop.isDrop ? null : stop.label,
             icon: stop.isDrop ? Icons.person : null,
             color: stop.color,
-            dpr: dpr,
           ),
           // Anchored at the pin's tail, not its centre, so the point of the
           // pin sits on the coordinate.
-          anchor: const Offset(0.5, 1),
-          infoWindow: InfoWindow(title: stop.title, snippet: stop.subtitle),
+          anchor: BlueMarkerAnchor.bottom,
         ),
-      );
-    }
+    ];
 
     if (!mounted) return;
     setState(() {
@@ -234,36 +225,29 @@ class _GoodsMultiOrderBookingMainState
 
   /// The route line. Uses the real driving geometry once [_loadRoadRoute] has
   /// it, and a straight connector until then.
-  Set<Polyline> _buildPolylines(List<_Stop> stops) {
+  List<BlueMapPolyline> _buildPolylines(List<_Stop> stops) {
     final onRoads = _roadRoute.isNotEmpty;
     final points = onRoads ? _roadRoute : stops.map((s) => s.position).toList();
-    if (points.length < 2) return const {};
+    if (points.length < 2) return const [];
 
-    return {
-      // White casing underneath, so the line stays readable over roads, parks
-      // and satellite imagery alike.
-      Polyline(
-        polylineId: const PolylineId('route_casing'),
-        points: points,
-        color: Colors.white,
-        width: 10,
-        zIndex: 0,
-      ),
-      Polyline(
-        polylineId: const PolylineId('route'),
+    return [
+      BlueMapPolyline(
+        id: 'route',
         points: points,
         color: AppColors.primaryColor,
         width: 5,
-        zIndex: 1,
+        // White casing, so the line stays readable over roads and parks alike.
+        // One bordered line rather than two stacked ones: the plugin draws the
+        // casing natively, so the two can never disagree about geometry.
+        borderColor: Colors.white,
+        borderWidth: 2.5,
         // Solid once it follows the roads, because then it IS the path the
         // rider drives. While it is still the straight placeholder it stays
-        // dashed — a solid straight line would claim a route through the
+        // dotted — a solid straight line would claim a route through the
         // buildings between two shops.
-        patterns: onRoads
-            ? const <PatternItem>[]
-            : [PatternItem.dash(30), PatternItem.gap(16)],
+        isDotted: !onRoads,
       ),
-    };
+    ];
   }
 
   /// Fetch the driving geometry through every stop in order.
@@ -320,138 +304,73 @@ class _GoodsMultiOrderBookingMainState
     if (map == null || stops.isEmpty) return;
 
     if (stops.length == 1) {
-      await map.animateCamera(
-        CameraUpdate.newLatLngZoom(stops.first.position, 15),
-      );
+      await map.moveTo(stops.first.position, zoom: 15);
       return;
     }
 
-    var minLat = stops.first.position.latitude;
-    var maxLat = minLat;
-    var minLng = stops.first.position.longitude;
-    var maxLng = minLng;
-    for (final s in stops) {
-      minLat = s.position.latitude < minLat ? s.position.latitude : minLat;
-      maxLat = s.position.latitude > maxLat ? s.position.latitude : maxLat;
-      minLng = s.position.longitude < minLng ? s.position.longitude : minLng;
-      maxLng = s.position.longitude > maxLng ? s.position.longitude : maxLng;
-    }
-    try {
-      await map.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          64,
-        ),
-      );
-    } catch (_) {
-      // Map not laid out yet — the next rebuild/recentre retries.
-    }
+    // The hand-rolled min/max sweep this used to do now lives in
+    // LatLngBounds.containing, behind fitPoints.
+    await map.fitPoints(stops.map((s) => s.position), padding: 64);
   }
-
-  /// Cache keyed on label+colour: the same four pins are rebuilt on every
-  /// riders refresh, and each one costs a canvas rasterisation.
-  static final Map<String, BitmapDescriptor> _pinCache = {};
 
   /// A compact circular map pin: white ring, coloured disc, and either the
   /// stop's visit number or a glyph inside.
   ///
   /// Sized so several can sit close together without covering the streets
-  /// between the shops — the earlier pins were wide enough that two nearby
-  /// stops merged into one blob.
-  ///
-  /// ### Why [dpr] is threaded through instead of drawing at a fixed size
-  /// `BitmapDescriptor.bytes` defaults to `imagePixelRatio: 1`, which means
-  /// every pixel of the bitmap becomes one LOGICAL pixel — so a 90px image
-  /// rendered ~90dp wide, roughly a third of the screen on a phone. Drawing at
-  /// `logical × dpr` and declaring that ratio is what makes [_kPinDiameter]
-  /// mean 34dp on every device instead of "34 times whatever this screen's
-  /// density happens to be".
+  /// between the shops.
   ///
   /// Numbered rather than identical dots because the ORDER is the information:
   /// the rider starts at the farthest shop and works back, and a customer
   /// checking the fare wants to see that path.
-  Future<BitmapDescriptor> _circlePin({
+  ///
+  /// This used to rasterise onto a ui.Canvas, with a cache and a devicePixelRatio
+  /// threaded through it, purely because the map would only accept bitmaps and
+  /// `BitmapDescriptor.bytes` measures in physical pixels. Marker children are
+  /// widgets now, so the pin is laid out in logical pixels like everything else
+  /// and none of that machinery is needed.
+  Widget _circlePin({
     String? label,
     IconData? icon,
     required Color color,
-    required double dpr,
-  }) async {
-    // ignore: deprecated_member_use
-    final cacheKey = '${label ?? icon?.codePoint}:${color.value}:$dpr';
-    final cached = _pinCache[cacheKey];
-    if (cached != null) return cached;
-
-    // Logical (dp) geometry — multiplied by [dpr] for the canvas.
-    const double diameter = _kPinDiameter;
-    const double tail = 7;
-    const double ring = 2.5;
-
-    final double size = diameter * dpr;
-    final double tailPx = tail * dpr;
-    final double ringPx = ring * dpr;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final center = Offset(size / 2, size / 2);
-
-    // Tail first, so the disc paints over its blunt end.
-    canvas.drawPath(
-      Path()
-        ..moveTo(size / 2 - 4.5 * dpr, size - 6 * dpr)
-        ..lineTo(size / 2 + 4.5 * dpr, size - 6 * dpr)
-        ..lineTo(size / 2, size + tailPx)
-        ..close(),
-      Paint()..color = Colors.white,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(size / 2 - 3 * dpr, size - 7 * dpr)
-        ..lineTo(size / 2 + 3 * dpr, size - 7 * dpr)
-        ..lineTo(size / 2, size + tailPx - 2.5 * dpr)
-        ..close(),
-      Paint()..color = color,
-    );
-
-    canvas.drawCircle(center, size / 2, Paint()..color = Colors.white);
-    canvas.drawCircle(center, size / 2 - ringPx, Paint()..color = color);
-
-    final painter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: icon != null ? String.fromCharCode(icon.codePoint) : (label ?? ''),
-        style: TextStyle(
-          fontSize: (icon != null ? 17 : 15) * dpr,
-          fontFamily: icon?.fontFamily,
-          package: icon?.fontPackage,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
+  }) {
+    return SizedBox(
+      width: _kPinDiameter,
+      height: _kPinDiameter + 7,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: _kPinDiameter,
+            height: _kPinDiameter,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                    color: Colors.black26, blurRadius: 3, offset: Offset(0, 1)),
+              ],
+            ),
+            child: icon != null
+                ? Icon(icon, color: Colors.white, size: _kPinDiameter * 0.5)
+                : Text(
+                    label ?? "",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: _kPinDiameter * 0.42,
+                    ),
+                  ),
+          ),
+          // Tail, so the pin points at its coordinate.
+          CustomPaint(
+            size: const Size(9, 7),
+            painter: _PinTailPainter(color: Colors.white),
+          ),
+        ],
       ),
-    )..layout();
-    painter.paint(
-      canvas,
-      center - Offset(painter.width / 2, painter.height / 2),
     );
-
-    final image = await recorder
-        .endRecording()
-        .toImage(size.ceil(), (size + tailPx).ceil());
-    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final descriptor = BitmapDescriptor.bytes(
-      bytes!.buffer.asUint8List(),
-      // The display size, stated outright in logical pixels. `imagePixelRatio`
-      // alone would also work (it defaults to 1.0, which is what made the pins
-      // render at their raw pixel count — a third of the screen), but `width`
-      // pins the result to 34dp no matter what raster size this method draws
-      // at. The bitmap is still rasterised at `dpr` scale above, so it
-      // downscales to that width sharply.
-      width: diameter,
-    );
-    _pinCache[cacheKey] = descriptor;
-    return descriptor;
   }
 
   // ------------------------------------------------------------------ actions
@@ -524,19 +443,12 @@ class _GoodsMultiOrderBookingMainState
       final center = shops.isNotEmpty
           ? LatLng(shops.first.latitude, shops.first.longitude)
           : _fallbackCenter;
-      return GoogleMap(
-        initialCameraPosition: CameraPosition(target: center, zoom: 13),
+      return BlueMap(
+        initialCenter: center,
+        initialZoom: 13,
         myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        mapToolbarEnabled: false,
         markers: _markers,
         polylines: _polylines,
-        // Room for the sheet: keeps the pins and the Google logo clear of it.
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height * _sheetRestExtent,
-          top: 8,
-        ),
         onMapCreated: (c) {
           _mapController = c;
           _fitStops();
@@ -1255,4 +1167,28 @@ class _Stop {
 
   bool get hasPosition =>
       position.latitude != 0 || position.longitude != 0;
+}
+
+/// The downward tail under a map pin, so the pin points at its coordinate.
+///
+/// A tiny painter rather than part of the pin's decoration because a triangle
+/// is not expressible as a BoxDecoration, and rotating a square would soften
+/// the tip.
+class _PinTailPainter extends CustomPainter {
+  const _PinTailPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_PinTailPainter oldDelegate) => oldDelegate.color != color;
 }

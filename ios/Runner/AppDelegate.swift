@@ -1,7 +1,6 @@
 import UIKit
 import Flutter
 import FirebaseCore
-import GoogleMaps
 import PushKit
 import AVFoundation
 import UserNotifications
@@ -13,7 +12,6 @@ import flutter_callkit_incoming
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        GMSServices.provideAPIKey("AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU")
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
 

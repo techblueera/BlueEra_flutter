@@ -7,9 +7,11 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import '../../../../common/Discover/controller/rider_location_poll_controller.dart';
 import '../../call_screen/rider_call/ride_navigation_overlay_controller.dart';
@@ -170,14 +172,48 @@ class SimpleGoogleMapsTracking extends StatefulWidget {
 
 class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   List<LatLng> polylineCoordinates = []; // Store road points here
-  GoogleMapController? mapController;
-  Marker? startMarker;
-  Marker? endMarker;
+  BlueMapController? mapController;
 
-  /// Vehicle glyph for [startMarker], built once from the shared SVG.
-  BitmapDescriptor? _riderIcon;
-  Set<Polyline> _polylines = {};
-  Circle? liveLocationCircle;
+  /// Rider position, once a fix has arrived. Markers derive from this.
+  LatLng? _riderPos;
+
+  /// Vehicle glyph for the rider marker, as a widget: correct on the first
+  /// frame rather than after an async raster encode, and stable by identity so
+  /// BlueMap does not redraw it on every rebuild.
+  static const Widget _riderIcon = LocalAssets(
+    imagePath: 'assets/svg/2_wheeler.svg',
+    width: kVehicleMarkerSize,
+    height: kVehicleMarkerSize,
+  );
+
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'rider_marker',
+          position: _riderPos ?? LatLng(widget.startLat, widget.startLng),
+          // Centred: a vehicle sits ON the road, it doesn't hang above a point.
+          child: _riderIcon,
+        ),
+        if (_hasDestination)
+          BlueMapMarker(
+            id: 'drop_marker',
+            position: LatLng(widget.endLat, widget.endLng),
+            icon: Icons.location_on,
+            color: Colors.red,
+            anchor: BlueMarkerAnchor.bottom,
+          ),
+      ];
+
+  BlueMapCircle? _liveLocationCircle;
+
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'route',
+            points: _routeCoords,
+            width: 6,
+            color: Colors.blue,
+          ),
+      ];
   final riderController = Get.find<RiderLocationPollController>();
 
   StreamSubscription<Position>? positionStream;
@@ -249,21 +285,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
   void _setRoute(List<LatLng> coords) {
     if (!mounted) return;
-    setState(() {
-      _routeCoords = coords;
-      _polylines = {
-        Polyline(
-          polylineId: const PolylineId("route"),
-          points: coords,
-          width: 6,
-          color: Colors.blue,
-          geodesic: true,
-          jointType: JointType.round,
-          startCap: Cap.roundCap,
-          endCap: Cap.roundCap,
-        ),
-      };
-    });
+    setState(() => _routeCoords = coords);
   }
 
   /// Keeps the drawn route in step with the rider WITHOUT a network call.
@@ -317,48 +339,10 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
 
 
-  void _onMapCreated(GoogleMapController controller) {
+  void _onMapCreated(BlueMapController controller) {
     mapController = controller;
     _getRoutePolyline(); // Call the road-fetching function here
-    _loadRiderIcon();
-    _addInitialMarkers();
-  }
-
-  /// Two-wheeler glyph for the rider marker — matches the customer's pre-pickup
-  /// tracking screen, so the same vehicle doesn't change shape when the ride
-  /// starts. Falls back to the default pin if the SVG can't be rendered.
-  Future<void> _loadRiderIcon() async {
-    try {
-      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
-      if (!mounted || bytes.isEmpty) return;
-      setState(() {
-        _riderIcon = BitmapDescriptor.bytes(bytes);
-        startMarker = startMarker?.copyWith(iconParam: _riderIcon);
-      });
-    } catch (_) {
-      // Keep the default marker.
-    }
-  }
-
-  void _addInitialMarkers() {
-    setState(() {
-      startMarker = Marker(
-        markerId: const MarkerId('rider_marker'),
-        position: LatLng(widget.startLat, widget.startLng),
-        icon: _riderIcon ??
-            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        // Centred + flat: a vehicle sits ON the road, it doesn't hang above a
-        // point like a pin.
-        anchor: const Offset(0.5, 0.5),
-        flat: true,
-      );
-      endMarker = _hasDestination
-          ? Marker(
-              markerId: const MarkerId('drop_marker'),
-              position: LatLng(widget.endLat, widget.endLng),
-            )
-          : null;
-    });
+    // Markers and the rider glyph derive from state — nothing to preload.
   }
 
   Future<void> _updateRiderOnMap() async {
@@ -368,9 +352,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
     final newPosition = LatLng(newLat, newLng);
 
-    setState(() {
-      startMarker = startMarker?.copyWith(positionParam: newPosition);
-    });
+    setState(() => _riderPos = newPosition);
 
     // Trim the drawn route to what's left; only re-fetches when the rider has
     // actually left it.
@@ -384,7 +366,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     final controller = mapController;
     if (controller == null) return;
     _programmaticCamera = true;
-    await controller.animateCamera(CameraUpdate.newLatLng(target));
+    await controller.moveTo(target);
   }
 
   /// Re-attaches the camera to the rider after the user has panned away.
@@ -425,12 +407,12 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
     try {
     setState(() {
-      liveLocationCircle = Circle(
-        circleId: CircleId('live_location_circle'),
+      _liveLocationCircle = BlueMapCircle(
+        id: "live_location_circle",
         center: currentPosition!,
-        radius: 15.0,
-        fillColor: Colors.blue.withValues(alpha: 0.5),
-        strokeColor: Colors.white,
+        radiusMetres: 15.0,
+        color: Colors.blue.withValues(alpha: 0.5),
+        borderColor: Colors.white,
         strokeWidth: 3,
       );
     });
@@ -490,29 +472,23 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        GoogleMap(
-          onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(widget.startLat, widget.startLng),
-            zoom: 14.0,
-          ),
+        BlueMap(
+          initialCenter: LatLng(widget.startLat, widget.startLng),
+          initialZoom: 14,
+          markers: _markers,
+          polylines: _polylines, // 🔥 THIS WILL SHOW REAL ROAD ROUTE
+          circles: [
+            if (_liveLocationCircle != null) _liveLocationCircle!,
+          ],
           myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          // A user pan releases the camera from the rider; our own animations
-          // are flagged so they don't count as one.
-          onCameraMoveStarted: () {
+          onMapCreated: _onMapCreated,
+          // A user pan releases the camera from the rider; our own moves are
+          // flagged so they don't count as one.
+          onCameraMoved: (_) {
             if (_programmaticCamera) return;
             if (_followRider) setState(() => _followRider = false);
           },
-          onCameraIdle: () => _programmaticCamera = false,
-          markers: {
-            if (startMarker != null) startMarker!,
-            if (endMarker != null) endMarker!,
-          },
-          polylines: _polylines, // 🔥 THIS WILL SHOW REAL ROAD ROUTE
-          circles: {
-            if (liveLocationCircle != null) liveLocationCircle!,
-          },
+          onCameraIdle: (_) => _programmaticCamera = false,
         ),
         // Only offered once the camera has been released — while following, it
         // would do nothing.
