@@ -1318,7 +1318,7 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
 /// on [SelfProfessionDiscoverScreenV2]. Loads every provider (unpaginated) via
 /// [DiscoverController.fetchAllEarnServicesForMap] and renders them through
-/// `google_maps_flutter`'s built-in clustering so 100+ pins stay smooth —
+/// BlueMap's client-side clustering so 100+ pins stay smooth —
 /// nearby providers collapse into a count badge that splits open on zoom-in.
 ///
 /// Initial zoom is `12` — roughly a 25–50 km frame around the user, matching

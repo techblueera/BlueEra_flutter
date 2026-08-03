@@ -1157,7 +1157,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
 /// Full-screen map page reached by tapping the inline preview on
 /// [SelfProfessionDiscoverScreen]. Loads every provider (unpaginated) via
 /// [DiscoverController.fetchAllEarnServicesForMap] and renders them
-/// through `google_maps_flutter`'s built-in clustering so 100+ pins
+/// through BlueMap's client-side clustering so 100+ pins
 /// stay smooth — nearby providers collapse into a count badge that
 /// splits open as the user zooms in.
 ///

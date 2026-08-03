@@ -1409,7 +1409,7 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
 /// on [ProfessionConsultantDiscoverScreenV2]. Loads every consultant
 /// (unpaginated) via [DiscoverController.fetchAllProfessionalConsForMap] and
-/// renders them through `google_maps_flutter`'s built-in clustering so 100+ pins
+/// renders them through BlueMap's client-side clustering so 100+ pins
 /// stay smooth — nearby consultants collapse into a count badge that splits open
 /// on zoom-in.
 ///
