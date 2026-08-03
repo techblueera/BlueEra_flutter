@@ -6,7 +6,7 @@ import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigatio
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
@@ -43,11 +43,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// lands — the map falls back to a dashed straight hint so it never reads as
   /// a real route.
   List<LatLng> _captainRoute = const [];
-
-  /// The captain leg the [_captainRoute] was fetched for, rounded to ~11 m.
-  /// The captain's position is re-polled every 5 s; without this the screen
-  /// would fire a Directions request on every tick.
-  String? _routeKey;
 
   /// Two-wheeler glyph for the captain marker, built once.
   BitmapDescriptor? _captainIcon;
@@ -119,42 +114,30 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
 
   /// Fetches the driving route captain → pickup so the line follows roads.
   ///
-  /// Best-effort: a failure leaves the dashed hint in place. Skipped when the
-  /// captain hasn't moved enough to change the route.
+  /// Best-effort: when [RoutePolylineService] declines (throttled) or fails, the
+  /// line already on screen stays put rather than being cleared. The caching and
+  /// rate limiting that used to live here now live in that service, so every
+  /// screen drawing a route gets them — and so two screens drawing the SAME leg
+  /// share one call. See docs/GOOGLE_MAPS_COST_GUIDE.md §3.4.
   Future<void> _refreshCaptainRoute(LatLng captain, LatLng pickup) async {
-    final key = '${captain.latitude.toStringAsFixed(4)},'
-        '${captain.longitude.toStringAsFixed(4)}>'
-        '${pickup.latitude.toStringAsFixed(4)},'
-        '${pickup.longitude.toStringAsFixed(4)}';
-    if (key == _routeKey) return;
-    _routeKey = key;
+    final result = await RoutePolylineService.fetch(
+      origin: PointLatLng(captain.latitude, captain.longitude),
+      destination: PointLatLng(pickup.latitude, pickup.longitude),
+    );
+    if (!mounted || result == null || result.points.length < 2) return;
 
-    try {
-      final result =
-          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(captain.latitude, captain.longitude),
-          destination: PointLatLng(pickup.latitude, pickup.longitude),
-          mode: TravelMode.driving,
-        ),
-      );
-      if (!mounted || result.points.length < 2) return;
-      final seconds = result.totalDurationValue;
-      setState(() {
-        _captainRoute = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList(growable: false);
-        // Drives the on-trip "Reaching drop location in N mins" line. The
-        // booking payload carries a PICKUP eta only, so once moving the ETA has
-        // to come off the route we just measured.
-        if (seconds != null && seconds > 0) {
-          _routeEtaMinutes = (seconds / 60).round();
-        }
-      });
-    } catch (_) {
-      // Allow a retry on the next position change.
-      _routeKey = null;
-    }
+    final seconds = result.totalDurationValue;
+    setState(() {
+      _captainRoute = result.points
+          .map((p) => LatLng(p.latitude, p.longitude))
+          .toList(growable: false);
+      // Drives the on-trip "Reaching drop location in N mins" line. The
+      // booking payload carries a PICKUP eta only, so once moving the ETA has
+      // to come off the route we just measured.
+      if (seconds != null && seconds > 0) {
+        _routeEtaMinutes = (seconds / 60).round();
+      }
+    });
   }
 
   @override

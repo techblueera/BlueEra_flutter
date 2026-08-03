@@ -1,10 +1,9 @@
-import 'dart:developer';
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
@@ -13,7 +12,6 @@ import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 
@@ -45,6 +43,10 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   bool isGettingCurrentLocation = false; // New state for current location loading
   String? errorMessage;
   List<PlacePrediction> predictions = [];
+
+  /// `place_id` currently being resolved by a row tap, or null. Drives the row
+  /// spinner and blocks a second tap while a lookup is in flight.
+  String? _resolvingPlaceId;
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
   LatLng? targetLocation;
@@ -110,34 +112,13 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
         final data = responseModel.response?.data;
         final predictionsJson = data['predictions'] as List;
         final results = PlacePrediction.fromList(predictionsJson);
+        // Predictions render straight away; nothing is resolved here. This used
+        // to call Place Details for EVERY prediction to fill in lat/lng and a
+        // distance label — one billed lookup per row, per search — when the user
+        // only ever opens one of them. [_selectPrediction] resolves that one.
+        // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
         setState(() {
           isLoading = false;
-          predictions = results;
-        });
-
-        for (final prediction in results) {
-          final detailsResponse = await PlaceRepo()
-              .getCompletePlaceDetails(placeId: prediction.placeId ?? '');
-          final detailsData = detailsResponse.response?.data;
-          logs("detailsResponse====== $detailsData");
-
-          final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-          final location = placeDetails.result?.geometry?.location;
-
-          final distance = Geolocator.distanceBetween(
-            widget.lat,
-            widget.lng,
-            location?.lat ?? 0.0,
-            location?.lng ?? 0.0,
-          ) /
-              1000;
-
-          prediction.lat = location?.lat ?? 0.0;
-          prediction.lng = location?.lng ?? 0.0;
-          prediction.distanceInKm = "${distance.toStringAsFixed(2)} km";
-        }
-
-        setState(() {
           predictions = results;
         });
       } else {
@@ -154,6 +135,32 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
         isLoading = false;
       });
     }
+  }
+
+  /// Resolve the tapped prediction, then hand it on.
+  ///
+  /// Resolving matters more here than elsewhere: this screen's tap used to fall
+  /// back to `widget.lat/lng` — the map centre — when a prediction had no
+  /// coordinates, so a failed lookup silently selected the WRONG place instead
+  /// of reporting anything. It now resolves first and refuses to navigate
+  /// without real coordinates.
+  Future<void> _selectPrediction(PlacePrediction item) async {
+    if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
+    setState(() => _resolvingPlaceId = item.placeId);
+    final resolved = await PlaceRepo().resolvePlace(item.placeId);
+    if (!mounted) return;
+    setState(() => _resolvingPlaceId = null);
+    if (resolved == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return;
+    }
+    item.lat = resolved.lat;
+    item.lng = resolved.lng;
+    navigateToAddPlaceScreen(
+      resolved.lat,
+      resolved.lng,
+      item.description ?? widget.currentAddress,
+    );
   }
 
   Future<void> _handleCurrentLocationTap() async {
@@ -325,15 +332,10 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     final item = predictions[index];
+                    final resolving = _resolvingPlaceId != null &&
+                        _resolvingPlaceId == item.placeId;
                     return InkWell(
-                      onTap: () {
-                        log("lat --> lng--> description--> ${item.lat} ${item.lng} ${item.description}");
-                        navigateToAddPlaceScreen(
-                          item.lat ?? widget.lat,
-                          item.lng ?? widget.lng,
-                          item.description ?? widget.currentAddress,
-                        );
-                      },
+                      onTap: resolving ? null : () => _selectPrediction(item),
                       child: Padding(
                         padding: EdgeInsets.symmetric(
                             horizontal: SizeConfig.size20,
@@ -341,34 +343,39 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            LocalAssets(
-                              imagePath:
-                              AppIconAssets.locationOutlineIconGreyIcon,
-                              imgColor: AppColors.black,
+                            SizedBox(
                               width: SizeConfig.size34,
                               height: SizeConfig.size34,
-                              boxFix: BoxFit.cover,
+                              child: resolving
+                                  ? const Center(
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.primaryColor),
+                                        ),
+                                      ),
+                                    )
+                                  : LocalAssets(
+                                      imagePath: AppIconAssets
+                                          .locationOutlineIconGreyIcon,
+                                      imgColor: AppColors.black,
+                                      boxFix: BoxFit.cover,
+                                    ),
                             ),
                             SizedBox(width: SizeConfig.size10),
+                            // The distance subtitle is gone with the per-row
+                            // Place Details lookup that produced it — it read
+                            // "0.0 Km" until those ~5 calls came back anyway.
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                    item.description,
-                                    fontSize: SizeConfig.large,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: SizeConfig.size5),
-                                  CustomText(
-                                    item.distanceInKm != null
-                                        ? item.distanceInKm
-                                        : '0.0 Km',
-                                    color: AppColors.grey9A,
-                                    fontSize: SizeConfig.medium,
-                                  ),
-                                ],
+                              child: CustomText(
+                                item.description,
+                                fontSize: SizeConfig.large,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

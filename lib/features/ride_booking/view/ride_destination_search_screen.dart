@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
@@ -41,9 +43,37 @@ class _RideDestinationSearchScreenState
     super.dispose();
   }
 
-  void _choose(RidePlace place) {
+  /// `id` of the row being resolved, or null. Drives the row spinner and blocks
+  /// a second tap while a lookup is in flight.
+  String? _resolvingId;
+
+  /// Resolve the tapped row's coordinates, then pop with it.
+  ///
+  /// Search rows arrive WITHOUT coordinates — resolving all of them just to
+  /// build the list was costing a billed Place Details per row, per keystroke
+  /// burst (see [RideBookingController.resolveSearchResult] and
+  /// docs/GOOGLE_MAPS_COST_GUIDE.md §3.1). Recents and saved places already
+  /// carry coordinates and resolve instantly.
+  Future<void> _choose(RidePlace place) async {
+    if (_resolvingId != null) return;
+    setState(() => _resolvingId = place.id);
+    final resolved = await controller.resolveSearchResult(place);
+    if (!mounted) return;
+    setState(() => _resolvingId = null);
+    if (resolved == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
     _focusNode.unfocus();
-    Get.back(result: place);
+    Get.back(result: resolved);
+  }
+
+  /// Hearting a row also needs its coordinates — a saved place with none is a
+  /// row the user can never travel to.
+  Future<void> _toggleSave(RidePlace place) async {
+    final resolved = await controller.resolveSearchResult(place);
+    if (!mounted || resolved == null) return;
+    controller.toggleSavedPlace(resolved);
   }
 
   @override
@@ -140,7 +170,9 @@ class _RideDestinationSearchScreenState
       // latter isn't reactive, so Obx couldn't see a keystroke that didn't
       // also move searchResults/isSearching.
       final query = controller.searchQuery.value;
-      final showRecents = query.length < 2;
+      // Must match the controller's own minimum, or a 2-character query shows
+      // an empty "no results" list instead of the recents it used to.
+      final showRecents = query.length < RideBookingController.minSearchChars;
       final places =
           showRecents ? controller.recentPlaces : controller.searchResults;
 
@@ -178,8 +210,9 @@ class _RideDestinationSearchScreenState
             place: place,
             // Recents keep the clock glyph; live results get a pin.
             leading: showRecents ? Icons.history : Icons.location_on_outlined,
+            resolving: _resolvingId == place.id,
             onTap: () => _choose(place),
-            onToggleSave: () => controller.toggleSavedPlace(place),
+            onToggleSave: () => _toggleSave(place),
           );
         },
       );
@@ -193,6 +226,7 @@ class _PlaceResultTile extends StatelessWidget {
     required this.leading,
     required this.onTap,
     required this.onToggleSave,
+    this.resolving = false,
   });
 
   final RidePlace place;
@@ -200,16 +234,29 @@ class _PlaceResultTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onToggleSave;
 
+  /// This row's coordinates are being fetched — swaps the glyph for a spinner
+  /// and disables the tap.
+  final bool resolving;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: resolving ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(leading, size: 24, color: RideStyle.inkMuted),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: resolving
+                  ? const Padding(
+                      padding: EdgeInsets.all(3),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(leading, size: 24, color: RideStyle.inkMuted),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

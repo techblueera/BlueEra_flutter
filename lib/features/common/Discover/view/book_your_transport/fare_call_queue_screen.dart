@@ -7,10 +7,10 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
@@ -418,16 +418,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   Future<void> _fetchRoute(LatLng from, LatLng to) async {
     try {
-      final polylinePoints = PolylinePoints(apiKey: googleMapKey);
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(from.latitude, from.longitude),
-          destination: PointLatLng(to.latitude, to.longitude),
-          mode: TravelMode.driving,
-        ),
+      final result = await RoutePolylineService.fetch(
+        origin: PointLatLng(from.latitude, from.longitude),
+        destination: PointLatLng(to.latitude, to.longitude),
       );
 
-      if (result.points.isNotEmpty) {
+      if (result != null && result.points.isNotEmpty) {
         final routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();

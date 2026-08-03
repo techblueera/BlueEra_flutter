@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -476,22 +475,37 @@ class RideBookingController extends GetxController {
 
   // ---------------------------------------------------------------- search
 
-  /// Debounced autocomplete — 350ms after the last keystroke, so a fast typist
-  /// costs one request instead of one per character.
+  /// Shortest query worth paying Google for.
+  ///
+  /// Was 2. A two-character query returns results nobody taps — it is not a
+  /// search yet, it is the user still typing — so every one of them was a
+  /// billed request that could not succeed.
+  ///
+  /// Public because the search screen decides between "recents" and "results"
+  /// on the same threshold; if the two disagree, a 2-character query shows an
+  /// empty results list instead of recents.
+  static const int minSearchChars = 3;
+
+  /// Quiet period after the last keystroke before we search.
+  ///
+  /// Raised from 350ms: each burst that survives the debounce is a billed
+  /// request, and at 350ms an average typist produces several per address. The
+  /// extra quarter-second is barely perceptible and removes most of them.
+  static const Duration _kSearchDebounce = Duration(milliseconds: 600);
+
+  /// Debounced autocomplete, so a fast typist costs one request instead of one
+  /// per character.
   void onSearchQueryChanged(String query) {
     _searchDebounce?.cancel();
     final trimmed = query.trim();
     searchQuery.value = trimmed;
-    if (trimmed.length < 2) {
+    if (trimmed.length < minSearchChars) {
       searchResults.clear();
       isSearching.value = false;
       return;
     }
     isSearching.value = true;
-    _searchDebounce = Timer(
-      const Duration(milliseconds: 350),
-      () => _runSearch(trimmed),
-    );
+    _searchDebounce = Timer(_kSearchDebounce, () => _runSearch(trimmed));
   }
 
   /// Google Places autocomplete, via the app's existing [PlaceRepo].
@@ -500,9 +514,13 @@ class RideBookingController extends GetxController {
   /// needs pickup/drop lat-lng, and the source is our choice. This reuses the
   /// same path the older booking screens already use.
   ///
-  /// Autocomplete returns place_ids without coordinates, so each result needs
-  /// a details lookup. Those run in parallel and the list is published once,
-  /// rather than one setState per resolved row.
+  /// Autocomplete returns place_ids WITHOUT coordinates, and this used to
+  /// resolve every one of them (in parallel, `Future.wait`) so the list could be
+  /// published with lat/lng attached. That bought up to 5 billed Place Details
+  /// per keystroke burst for a list the rider takes one row from — the single
+  /// most expensive pattern in the app. Rows are now published coordinate-less
+  /// and resolved on tap by [resolveSearchResult].
+  /// See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
   Future<void> _runSearch(String query) async {
     try {
       final response = await PlaceRepo().autoCompleteSearch(query: query);
@@ -516,15 +534,11 @@ class RideBookingController extends GetxController {
         searchResults.clear();
         return;
       }
-      final predictions = PlacePrediction.fromList(predictionsJson);
-
-      final resolved = await Future.wait(
-        predictions.map(_resolvePrediction),
-        eagerError: false,
+      searchResults.assignAll(
+        PlacePrediction.fromList(predictionsJson)
+            .map(_toUnresolvedPlace)
+            .whereType<RidePlace>(),
       );
-      // Drop anything whose coordinates didn't resolve — a place we can't
-      // locate can't be a pickup or drop.
-      searchResults.assignAll(resolved.whereType<RidePlace>());
     } catch (_) {
       searchResults.clear();
     } finally {
@@ -532,38 +546,41 @@ class RideBookingController extends GetxController {
     }
   }
 
-  /// Turn one autocomplete prediction into a [RidePlace] with coordinates.
-  /// Returns null when the details lookup fails.
-  Future<RidePlace?> _resolvePrediction(PlacePrediction prediction) async {
+  /// Fill in the coordinates for the row the rider actually picked.
+  ///
+  /// Returns the same [place] when it already has coordinates (a recent/
+  /// favourite, or a row resolved earlier this session — [PlaceRepo.resolvePlace]
+  /// caches by `place_id`), a resolved copy when the lookup succeeds, and null
+  /// when it fails. A place we cannot locate cannot be a pickup or drop, so
+  /// callers must handle null rather than booking against 0,0.
+  Future<RidePlace?> resolveSearchResult(RidePlace place) async {
+    if (place.hasCoordinates) return place;
+    final resolved = await PlaceRepo().resolvePlace(place.id);
+    if (resolved == null) return null;
+    return place.copyWith(
+      latitude: resolved.lat,
+      longitude: resolved.lng,
+    );
+  }
+
+  /// Turn one autocomplete prediction into a [RidePlace] with NO coordinates
+  /// yet — see [resolveSearchResult].
+  RidePlace? _toUnresolvedPlace(PlacePrediction prediction) {
     final placeId = prediction.placeId ?? '';
     if (placeId.isEmpty) return null;
-    try {
-      final details = await PlaceRepo().getCompletePlaceDetails(
-        placeId: placeId,
-      );
-      final location = PlaceDetailsResponse.fromJson(details.response?.data)
-          .result
-          ?.geometry
-          ?.location;
-      final lat = location?.lat;
-      final lng = location?.lng;
-      if (lat == null || lng == null) return null;
-
-      // Google's `description` is "Name, Area, City, State, Country" — split
-      // on the first comma so the UI's two-line title/subtitle stays honest
-      // instead of repeating the whole string twice.
-      final description = prediction.description ?? '';
-      final comma = description.indexOf(',');
-      return RidePlace(
-        id: placeId,
-        title: comma > 0 ? description.substring(0, comma) : description,
-        subtitle: comma > 0 ? description.substring(comma + 1).trim() : '',
-        latitude: lat,
-        longitude: lng,
-      );
-    } catch (_) {
-      return null;
-    }
+    // Google's `description` is "Name, Area, City, State, Country" — split
+    // on the first comma so the UI's two-line title/subtitle stays honest
+    // instead of repeating the whole string twice.
+    final description = prediction.description ?? '';
+    final comma = description.indexOf(',');
+    return RidePlace(
+      id: placeId,
+      title: comma > 0 ? description.substring(0, comma) : description,
+      subtitle: comma > 0 ? description.substring(comma + 1).trim() : '',
+      // Filled in on tap — see [resolveSearchResult].
+      latitude: 0,
+      longitude: 0,
+    );
   }
 
   void clearSearch() {

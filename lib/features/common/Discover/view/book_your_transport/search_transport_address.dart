@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -11,7 +10,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
@@ -23,8 +21,8 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,6 +68,10 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   String _searchQuery = '';
   bool _isLoadingPredictions = false;
   List<PlacePrediction> _predictions = [];
+
+  /// `place_id` currently being resolved by a row tap, or null. Drives the row
+  /// spinner and blocks a second tap while a lookup is in flight.
+  String? _resolvingPlaceId;
   List<Map<String, dynamic>> _recentSearches = [];
 
   // ─── Pick-on-map state ──────────────────────────────────────────────────
@@ -266,19 +268,14 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   }
 
   Future<void> _getRoutePolyline(LatLng start, LatLng end) async {
-    PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapKey);
-
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      request: PolylineRequest(
-        origin: PointLatLng(start.latitude, start.longitude),
-        destination: PointLatLng(end.latitude, end.longitude),
-        mode: TravelMode.driving,
-      ),
+    final PolylineResult? result = await RoutePolylineService.fetch(
+      origin: PointLatLng(start.latitude, start.longitude),
+      destination: PointLatLng(end.latitude, end.longitude),
     );
 
     if (!mounted) return;
 
-    if (result.points.isNotEmpty) {
+    if (result != null && result.points.isNotEmpty) {
       List<LatLng> routeCoords = result.points
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
@@ -471,36 +468,16 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
         final data = responseModel.response?.data;
         final predictionsJson = (data['predictions'] as List?) ?? [];
         final results = PlacePrediction.fromList(predictionsJson);
+        // Predictions render immediately and NOTHING is resolved here. The
+        // lat/lng + distance hydration that used to run over every prediction
+        // cost one billed Place Details per row, per keystroke burst; the tap
+        // handler now resolves the single row the user picks. Nearby results
+        // still come first — the autocomplete request is location-biased, which
+        // is free. See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
         setState(() {
           _predictions = results;
           _isLoadingPredictions = false;
         });
-
-        // Hydrate lat/lng + distance for each prediction
-        for (final prediction in results) {
-          try {
-            final detailsResponse = await PlaceRepo()
-                .getCompletePlaceDetails(placeId: prediction.placeId ?? '');
-            final detailsData = detailsResponse.response?.data;
-            final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-            final location = placeDetails.result?.geometry?.location;
-
-            final distance = Geolocator.distanceBetween(
-                  LocationService.lat,
-                  LocationService.lng,
-                  location?.lat ?? 0.0,
-                  location?.lng ?? 0.0,
-                ) /
-                1000;
-
-            prediction.lat = location?.lat ?? 0.0;
-            prediction.lng = location?.lng ?? 0.0;
-            prediction.distanceInKm = "${distance.toStringAsFixed(2)} km";
-          } catch (e) {
-            log("Place details error: $e");
-          }
-        }
-        if (mounted) setState(() {});
       } else {
         setState(() {
           _predictions = [];
@@ -1388,15 +1365,29 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     );
   }
 
+  /// Resolve the tapped row's coordinates, then apply it. The one Place Details
+  /// call this screen makes — cached per `place_id` for the session by
+  /// [PlaceRepo.resolvePlace].
+  Future<void> _selectPrediction(PlacePrediction item) async {
+    if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
+    setState(() => _resolvingPlaceId = item.placeId);
+    final resolved = await PlaceRepo().resolvePlace(item.placeId);
+    if (!mounted) return;
+    setState(() => _resolvingPlaceId = null);
+    if (resolved == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    item.lat = resolved.lat;
+    item.lng = resolved.lng;
+    _applySelectedLocation(resolved.lat, resolved.lng, item.description ?? '');
+  }
+
   Widget _buildPredictionTile(PlacePrediction item) {
+    final resolving =
+        _resolvingPlaceId != null && _resolvingPlaceId == item.placeId;
     return InkWell(
-      onTap: () {
-        final lat = item.lat ?? 0.0;
-        final lng = item.lng ?? 0.0;
-        final address = item.description ?? '';
-        if (lat == 0.0 && lng == 0.0) return;
-        _applySelectedLocation(lat, lng, address);
-      },
+      onTap: resolving ? null : () => _selectPrediction(item),
       child: Padding(
         padding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1408,30 +1399,29 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.location_on_outlined,
-                  color: AppColors.primaryColor, size: 18),
+              child: resolving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                      ),
+                    )
+                  : const Icon(Icons.location_on_outlined,
+                      color: AppColors.primaryColor, size: 18),
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    item.description ?? '',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if ((item.distanceInKm ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    CustomText(
-                      item.distanceInKm ?? '',
-                      fontSize: 12,
-                      color: AppColors.grayText,
-                    ),
-                  ],
-                ],
+              // The "x km away" subtitle is gone with the per-row Place Details
+              // lookup that produced it — see [_fetchPredictions].
+              child: CustomText(
+                item.description ?? '',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Icon(Icons.north_west,

@@ -8,9 +8,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -251,17 +251,13 @@ class _RiderPickupNavigationScreenState
 
   Future<void> _fetchRoute() async {
     try {
-      final polylinePoints = PolylinePoints(apiKey: googleMapKey);
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: PointLatLng(_riderLatLng.latitude, _riderLatLng.longitude),
-          destination:
-              PointLatLng(_pickupLatLng.latitude, _pickupLatLng.longitude),
-          mode: TravelMode.driving,
-        ),
+      final result = await RoutePolylineService.fetch(
+        origin: PointLatLng(_riderLatLng.latitude, _riderLatLng.longitude),
+        destination:
+            PointLatLng(_pickupLatLng.latitude, _pickupLatLng.longitude),
       );
 
-      if (result.points.isNotEmpty) {
+      if (result != null && result.points.isNotEmpty) {
         _routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();
