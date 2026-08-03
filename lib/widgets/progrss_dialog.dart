@@ -35,7 +35,13 @@ class ProgressDialog {
       if (kDebugMode) {
         print('|--------------->🕙️ Loader end 🕑️<---------------|');
       }
-      Get.back();
+      // Bypass Get.back() — it routes through closeCurrentSnackbar() which
+      // crashes with LateInitializationError when the GetX snackbar queue has
+      // a stale entry whose animation controller was never initialized.
+      final ctx = Get.overlayContext ?? Get.context;
+      if (ctx != null) {
+        Navigator.of(ctx, rootNavigator: true).pop();
+      }
       isOpen = false;
     }
   }

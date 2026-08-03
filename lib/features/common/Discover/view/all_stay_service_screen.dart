@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -28,6 +27,7 @@ import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widge
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -784,13 +784,18 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     final distance = (coords != null && coords.length >= 2)
         ? calculateDistanceInt(coords[1].toDouble(), coords[0].toDouble())
         : 0;
-    List<String> allImages = service.profile?.photos
-            ?.expand((photo) =>
-                photo.imageReferences ?? []) // Flatten all image lists
-            .map((url) => url.toString()) // Ensure they are strings
-            .take(5) // Stop after 5 items
-            .toList() ??
-        []; // Fallback to empty list
+    // Prefer the profile's coverUrl for the card hero. Fall back to the
+    // flattened photos list (up to 5) when no cover has been set, so cards
+    // still show something for hotels that only uploaded gallery photos.
+    final coverUrl = service.profile?.coverUrl ?? '';
+    final List<String> allImages = coverUrl.isNotEmpty
+        ? [coverUrl]
+        : (service.profile?.photos
+                ?.expand((photo) => photo.imageReferences ?? [])
+                .map((url) => url.toString())
+                .take(5)
+                .toList() ??
+            []);
 
     // "Starting From" → cheapest room across the listing.
     final roomPrices = (service.rooms ?? [])
@@ -816,8 +821,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         ].where((e) => e != null && e.isNotEmpty).join(', '),
         distance: distance.toString(),
         rent: startingPrice?.toString() ?? '',
-        rating: (service.profile?.rating ?? 0).toDouble(),
-        reviews: service.profile?.reviews ?? 0,
+        rating: service.rating ?? 0.0,
+        reviews: service.reviews ?? 0,
         checkInTime: service.profile?.policy?.checkInTime ?? '',
         checkOutTime: service.profile?.policy?.checkOutTime ?? '',
         amenities: _hotelAmenities(service.profile?.amenities),
@@ -1372,7 +1377,7 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ),
           ),
-          if (widget.rating > 0 && _businessId.isNotEmpty)
+          if (_businessId.isNotEmpty)
             Positioned(
               left: 10,
               top: 10,
@@ -1385,7 +1390,9 @@ class _PropertyCardState extends State<PropertyCard> {
                       Icon(Icons.star_rounded, size: 14, color: Colors.yellow),
                       SizedBox(width: SizeConfig.size2),
                       CustomText(
-                        widget.rating.toStringAsFixed(1),
+                        widget.reviews > 0
+                            ? '${widget.rating.toStringAsFixed(1)}'
+                            : widget.rating.toStringAsFixed(1),
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: AppColors.white,
