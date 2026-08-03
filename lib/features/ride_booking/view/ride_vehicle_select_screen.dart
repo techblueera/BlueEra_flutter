@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
@@ -7,7 +9,6 @@ import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Vehicle + fare selection (screenshot 3).
 ///
@@ -23,7 +24,7 @@ class RideVehicleSelectScreen extends StatefulWidget {
 
 class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   /// Re-frames the camera when the road route lands, so the view fits the
   /// actual path rather than the straight line between the endpoints.
@@ -66,24 +67,10 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
     ];
     if (points.length < 2) return;
 
-    var minLat = points.first.latitude, maxLat = points.first.latitude;
-    var minLng = points.first.longitude, maxLng = points.first.longitude;
-    for (final p in points) {
-      if (p.latitude < minLat) minLat = p.latitude;
-      if (p.latitude > maxLat) maxLat = p.latitude;
-      if (p.longitude < minLng) minLng = p.longitude;
-      if (p.longitude > maxLng) maxLng = p.longitude;
-    }
-
-    await map.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
-        ),
-        70,
-      ),
-    );
+    // The min/max sweep this used to do by hand now lives in
+    // LatLngBounds.containing — one implementation, and one place for the
+    // inverted-box bug that costs an afternoon every time it is rewritten.
+    await map.fitPoints(points, padding: 70);
   }
 
   Future<void> _book() async {
@@ -122,34 +109,32 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
 
       return Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(target: center, zoom: 13),
+          BlueMap(
+            initialCenter: center,
+            initialZoom: 13,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
             onMapCreated: (c) {
               _mapController = c;
               _fitBounds();
             },
-            markers: {
+            markers: [
               if (from != null && from.hasCoordinates)
-                Marker(
-                  markerId: const MarkerId('pickup'),
+                BlueMapMarker(
+                  id: 'pickup',
                   position: LatLng(from.latitude, from.longitude),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueGreen,
-                  ),
+                  icon: Icons.location_on,
+                  color: Colors.green,
+                  anchor: BlueMarkerAnchor.bottom,
                 ),
               if (to != null && to.hasCoordinates)
-                Marker(
-                  markerId: const MarkerId('drop'),
+                BlueMapMarker(
+                  id: 'drop',
                   position: LatLng(to.latitude, to.longitude),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ),
+                  icon: Icons.location_on,
+                  color: Colors.red,
+                  anchor: BlueMarkerAnchor.bottom,
                 ),
-            },
+            ],
             polylines: _routePolylines(from, to),
           ),
           _addressChips(from, to),
@@ -170,50 +155,43 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
 
   /// The road route once the controller has it, else a straight placeholder.
   ///
-  /// The placeholder is drawn dashed-thin and muted on purpose — a solid line
+  /// The placeholder is drawn dotted-thin and muted on purpose — a solid line
   /// straight through the city reads as "this is your route", which it isn't.
   ///
-  /// Two overlapping lines make the real route: a wide light casing under a
-  /// narrower dark stroke, so the path stays legible over dense map tiles.
-  Set<Polyline> _routePolylines(RidePlace? from, RidePlace? to) {
+  /// The real route carries a white border so the path stays legible over dense
+  /// map tiles.
+  List<BlueMapPolyline> _routePolylines(RidePlace? from, RidePlace? to) {
     final route = controller.routePoints;
     if (route.length >= 2) {
       final points = route.toList(growable: false);
-      return {
-        Polyline(
-          polylineId: const PolylineId('route_casing'),
-          points: points,
-          color: AppColors.white,
-          width: 9,
-          startCap: Cap.roundCap,
-          endCap: Cap.roundCap,
-          jointType: JointType.round,
-        ),
-        Polyline(
-          polylineId: const PolylineId('route'),
+      // One line with a border, rather than two stacked lines. The plugin draws
+      // a casing natively, which is both cheaper and immune to the two lines
+      // disagreeing about their geometry.
+      return [
+        BlueMapPolyline(
+          id: 'route',
           points: points,
           color: RideStyle.ink,
           width: 5,
-          startCap: Cap.roundCap,
-          endCap: Cap.roundCap,
-          jointType: JointType.round,
+          borderColor: AppColors.white,
+          borderWidth: 2,
         ),
-      };
+      ];
     }
 
-    if (from == null || to == null) return const {};
-    return {
-      Polyline(
-        polylineId: const PolylineId('route_pending'),
+    if (from == null || to == null) return const [];
+    return [
+      BlueMapPolyline(
+        id: 'route_pending',
         points: [
           LatLng(from.latitude, from.longitude),
           LatLng(to.latitude, to.longitude),
         ],
         color: RideStyle.inkMuted,
         width: 3,
-        patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+        isDotted: true,
       ),
-    };
+    ];
   }
 
   Widget _addressChips(RidePlace? from, RidePlace? to) {

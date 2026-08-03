@@ -2,7 +2,8 @@ import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller
 import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import '../../../../common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
 import '../../business_chat/widgets/track_rider_live_location_page.dart';
@@ -38,7 +39,7 @@ class _DraggableMiniMap extends StatefulWidget {
 class _DraggableMiniMapState extends State<_DraggableMiniMap> {
   double _xPos = 16;
   double _yPos = 120;
-  GoogleMapController? _miniMapController;
+  BlueMapController? _miniMapController;
 
   static const double _width = 180;
   static const double _height = 200;
@@ -48,47 +49,37 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
   LatLng get _riderLatLng => LatLng(ctrl.riderLat.value, ctrl.riderLng.value);
   LatLng get _destLatLng => LatLng(ctrl.destLat.value, ctrl.destLng.value);
 
-  Set<Marker> get _markers => {
-        Marker(
-          markerId: const MarkerId('rider_mini'),
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'rider_mini',
           position: _riderLatLng,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: Icons.location_on,
+          color: Colors.blue,
+          size: 28,
+          anchor: BlueMarkerAnchor.bottom,
         ),
-        Marker(
-          markerId: const MarkerId('dest_mini'),
+        BlueMapMarker(
+          id: 'dest_mini',
           position: _destLatLng,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          icon: Icons.location_on,
+          color: Colors.green,
+          size: 28,
+          anchor: BlueMarkerAnchor.bottom,
         ),
-      };
+      ];
 
-  Set<Polyline> get _polylines => {
+  List<BlueMapPolyline> get _polylines => [
         if (ctrl.polylinePoints.isNotEmpty)
-          Polyline(
-            polylineId: const PolylineId('mini_route'),
+          BlueMapPolyline(
+            id: 'mini_route',
             points: ctrl.polylinePoints.toList(),
             width: 3,
             color: const Color(0xFF4285F4),
-            geodesic: true,
           ),
-      };
+      ];
 
   void _fitBounds() {
-    if (_miniMapController == null) return;
-    final a = _riderLatLng;
-    final b = _destLatLng;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        a.latitude < b.latitude ? a.latitude : b.latitude,
-        a.longitude < b.longitude ? a.longitude : b.longitude,
-      ),
-      northeast: LatLng(
-        a.latitude > b.latitude ? a.latitude : b.latitude,
-        a.longitude > b.longitude ? a.longitude : b.longitude,
-      ),
-    );
-    _miniMapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 30));
+    _miniMapController?.fitPoints([_riderLatLng, _destLatLng], padding: 30);
   }
 
   void _onTap() {
@@ -208,29 +199,23 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
                 children: [
                   // Mini map
                   AbsorbPointer(
-                    child: GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: _riderLatLng,
-                        zoom: 13,
-                      ),
+                    child: BlueMap(
+                      initialCenter: _riderLatLng,
+                      initialZoom: 13,
                       markers: _markers,
                       polylines: _polylines,
-                      myLocationEnabled: false,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      mapToolbarEnabled: false,
-                      compassEnabled: false,
-                      rotateGesturesEnabled: false,
-                      scrollGesturesEnabled: false,
-                      tiltGesturesEnabled: false,
-                      zoomGesturesEnabled: false,
-                      liteModeEnabled: false,
+                      // The whole overlay is a tap target that reopens the
+                      // full navigation screen.
+                      interactive: false,
+                      // A 180x200 thumbnail has no room for the attribution
+                      // label; the full-screen map it opens carries it.
+                      showAttribution: false,
                       onMapCreated: (c) {
                         _miniMapController = c;
-                        Future.delayed(
-                          const Duration(milliseconds: 500),
-                          _fitBounds,
-                        );
+                        // No delay needed any more — BlueMap queues camera work
+                        // until the map is ready, which is what the 500ms was
+                        // really guessing at.
+                        _fitBounds();
                       },
                     ),
                   ),

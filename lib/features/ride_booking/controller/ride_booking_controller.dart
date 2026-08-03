@@ -8,15 +8,14 @@ import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
-import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Drives the whole Rapido-style ride-booking flow: home → destination search
 /// → confirm pickup → vehicle select → searching → tracking → cancel.
@@ -701,75 +700,63 @@ class RideBookingController extends GetxController {
   /// enough to land the quote in the wrong fare slab, and it draws a line
   /// through buildings.
   ///
-  /// Prefers the **Routes API with `TRAFFIC_AWARE`**, so the geometry is the
-  /// route a driver would actually take right now, and `distanceMeters` /
-  /// `duration` come back measured by Google rather than summed off the
-  /// polyline. Falls back to the legacy Directions call the old flow uses when
-  /// Routes is unavailable — it is a separately-enabled API on the Cloud
-  /// project, so this must not become a hard dependency.
+  /// Routes over OSRM, which returns the geometry, the measured road distance
+  /// and a duration in one reply — so the two-tier Routes-API-then-Directions
+  /// fallback this used to need is gone. There is no second API to be
+  /// separately enabled, and therefore nothing to fall back to.
   ///
-  /// Returns the road distance in km, or null when neither API answers; the
-  /// quote then goes out without `distance_in_km` and the server derives it.
+  /// ### The ETA is no longer traffic-aware
+  ///
+  /// This previously asked Google's Routes API for `TRAFFIC_AWARE` geometry, so
+  /// `tripDurationMinutes` reflected conditions at the moment of the quote.
+  /// **OSRM has no live traffic input** — its durations come from per-road-class
+  /// speed profiles, i.e. a free-flow estimate.
+  ///
+  /// In practice that means drop ETAs shown on the vehicle rows will read
+  /// optimistically during rush hour. The *distance* is unaffected, so fare
+  /// slabs — the thing money depends on — are as accurate as before. If
+  /// traffic-aware ETAs turn out to matter commercially, the options are a
+  /// routing provider that models traffic (Mapbox, HERE, TomTom all expose
+  /// OSRM-shaped APIs) or a server-side multiplier by time of day; both are a
+  /// change to [OsmConfig.osrmBaseUrl] or to this method, and nothing else.
+  ///
+  /// Returns the road distance in km, or null when routing fails; the quote then
+  /// goes out without `distance_in_km` and the server derives it.
+  ///
+  /// Deliberately calls [OsrmRouting] directly rather than going through
+  /// `RoutePolylineService`: that class can return null when throttled, which is
+  /// the right answer for a map line but the wrong answer for a quote. The user
+  /// tapped a button and is owed a distance.
   Future<double?> _resolveRoute(RidePlace from, RidePlace to) async {
     // Selecting Parcel re-quotes, and the route for an unchanged pickup/drop
-    // pair is the same route — don't pay for it twice.
+    // pair is the same route — don't fetch it twice.
     final key = '${from.latitude},${from.longitude}'
         '>${to.latitude},${to.longitude}';
     if (key == _routeCacheKey && routePoints.isNotEmpty) {
       return tripDistanceKm.value > 0 ? tripDistanceKm.value : null;
     }
 
-    final origin = PointLatLng(from.latitude, from.longitude);
-    final destination = PointLatLng(to.latitude, to.longitude);
-    final polylinePoints = PolylinePoints(apiKey: googleMapKey);
+    final result = await OsrmRouting.route(
+      origin: PointLatLng(from.latitude, from.longitude),
+      destination: PointLatLng(to.latitude, to.longitude),
+      mode: TravelMode.driving,
+    );
 
-    try {
-      final response = await polylinePoints.getRouteBetweenCoordinatesV2(
-        request: RoutesApiRequest(
-          origin: origin,
-          destination: destination,
-          travelMode: TravelMode.driving,
-          // The whole point of this call: pick the road geometry by current
-          // traffic, not by raw distance.
-          routingPreference: RoutingPreference.trafficAware,
-          // Detail matters here — OVERVIEW simplifies enough that the line
-          // visibly cuts corners at junctions on a city-scale zoom.
-          polylineQuality: PolylineQuality.highQuality,
-        ),
-      );
-      final route =
-          response.routes.isNotEmpty ? response.routes.first : null;
-      final points = route?.polylinePoints;
-      if (route != null && points != null && points.length >= 2) {
-        _publishRoute(key, points);
-        // Traffic-aware ETA — `duration` includes traffic, `staticDuration`
-        // does not. Surfaced so the vehicle rows can show a real drop time.
-        tripDurationMinutes.value = route.durationMinutes?.round() ?? 0;
-        final km = route.distanceKm ?? _sumKm(points);
-        return km > 0 ? km : null;
-      }
-    } catch (_) {
-      // Routes API not enabled on the key, quota, or offline — fall through.
-    }
+    final points = result?.points ?? const <PointLatLng>[];
+    if (points.length < 2) return null;
 
-    try {
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: origin,
-          destination: destination,
-          mode: TravelMode.driving,
-        ),
-      );
-      final points = result.points;
-      if (points.length < 2) return null;
-      _publishRoute(key, points);
-      // Legacy Directions gives no traffic duration.
-      tripDurationMinutes.value = 0;
-      final km = _sumKm(points);
-      return km > 0 ? km : null;
-    } catch (_) {
-      return null;
-    }
+    _publishRoute(key, points);
+
+    // Free-flow, not traffic-aware — see the note above.
+    tripDurationMinutes.value = (result!.totalDurationValue / 60).round();
+
+    // OSRM measures the distance along the road, so summing the polyline is
+    // only a fallback for a reply that somehow carried geometry but no
+    // distance.
+    final km = result.totalDistanceValue > 0
+        ? result.totalDistanceValue / 1000.0
+        : _sumKm(points);
+    return km > 0 ? km : null;
   }
 
   void _publishRoute(String key, List<PointLatLng> points) {

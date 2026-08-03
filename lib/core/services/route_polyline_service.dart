@@ -1,44 +1,57 @@
-import 'package:BlueEra/environment_config.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 
-/// The app's single entry point to the Google **Directions** API.
+/// The app's single entry point to road routing.
 ///
-/// Directions is one of the most expensive things we buy, and before this
-/// existed twelve screens called it directly, each with its own idea of when a
-/// refetch was justified — or no idea at all. During a ride the rider's phone
-/// and the customer's phone were both refetching the whole route every few
-/// seconds, for the same journey. See `docs/GOOGLE_MAPS_COST_GUIDE.md` §3.4.
+/// Before this existed twelve screens fetched routes directly, each with its own
+/// idea of when a refetch was justified — or no idea at all. During a ride the
+/// rider's phone and the customer's phone were both refetching the whole route
+/// every few seconds, for the same journey.
 ///
-/// Everything goes through [fetch] now, which applies three protections that no
+/// Everything goes through [fetch], which applies three protections that no
 /// caller can forget:
 ///
 ///  1. **Coordinate rounding.** Origin/destination are rounded to
 ///     [_kKeyPrecision] decimals (~110 m) to form a cache key, so a vehicle
 ///     creeping forward does not buy a new route.
 ///  2. **A session cache.** A key that has been fetched before returns instantly
-///     and for free — which also means re-entering a tracking screen, or two
-///     screens drawing the same leg, costs nothing.
-///  3. **A minimum interval.** Even a genuinely new key waits
-///     [_kMinInterval] since the last network call. On a fast road 110 m passes
-///     in seconds, so the distance guard alone is not a ceiling.
+///     — which also means re-entering a tracking screen, or two screens drawing
+///     the same leg, costs nothing.
+///  3. **A minimum interval.** Even a genuinely new key waits [_kMinInterval]
+///     since the last network call. On a fast road 110 m passes in seconds, so
+///     the distance guard alone is not a ceiling.
 ///
-/// Returns the raw [PolylineResult] so call sites keep reading `points`,
-/// `totalDistanceValue` and `totalDurationValue` exactly as before — but the
-/// result is now **nullable**: null means "no route this time" (throttled or
+/// Returns [PolylineResult] so call sites keep reading `points`,
+/// `totalDistanceValue` and `totalDurationValue` exactly as before — and the
+/// result stays **nullable**: null means "no route this time" (throttled or
 /// failed), and callers should keep whatever line they are already drawing
 /// rather than clearing it.
 ///
-/// This is a stopgap. The real fix is the backend computing each ride's route
-/// once and putting the encoded polyline in the order payload, so neither app
-/// calls Directions at all — see `docs/GOOGLE_MAPS_BACKEND_DEVOPS_GUIDE.md` §B3.
+/// ## Why the throttling survived the move off Google
+///
+/// These guards were built to control a **bill**. Routing now goes to OSRM,
+/// where a self-hosted instance costs nothing per request — so the obvious move
+/// is to delete them.
+///
+/// They stay, for two reasons that outlast the billing one:
+///
+///  * Until [OsmConfig.osrmBaseUrl] points somewhere we control, this traffic
+///    lands on the **public OSRM demo server**, whose usage policy is far
+///    stricter than anything Google enforced. Removing the throttle would get
+///    the app's users IP-blocked, which fails harder than a bill.
+///  * A self-hosted router still has a CPU. Two phones per ride, each asking
+///    for a full route every few seconds, is load we would simply be moving
+///    onto our own machine rather than eliminating.
+///
+/// The real fix is still the backend computing each ride's route once and
+/// putting the encoded polyline in the order payload, so neither app routes at
+/// all — see `docs/GOOGLE_MAPS_BACKEND_DEVOPS_GUIDE.md` §B3. That is now a
+/// latency and simplicity win rather than a cost one, but it is still the right
+/// destination.
 class RoutePolylineService {
   RoutePolylineService._();
 
   /// Decimal places kept when building the cache key. 3 ≈ 110 m, which at the
   /// zoom these maps sit at is a few pixels of line.
-  ///
-  /// Was effectively 4 (~11 m) in the one screen that had a guard at all, which
-  /// a moving vehicle clears every second or two — so that guard never held.
   static const int _kKeyPrecision = 3;
 
   /// Hard floor between two network calls, whatever the distance says.
@@ -108,43 +121,20 @@ class RoutePolylineService {
     final cached = _cache[key];
     if (cached != null) return cached;
 
-    // New leg, but we bought a route too recently. The caller keeps its current
-    // line; the next position update will try again.
+    // New leg, but we routed too recently. The caller keeps its current line;
+    // the next position update will try again.
     if (!_claimSlot()) return null;
 
-    try {
-      final result =
-          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
-        request: PolylineRequest(
-          origin: origin,
-          destination: destination,
-          mode: mode,
-          wayPoints: wayPoints,
-        ),
-      );
-      return _remember(key, result);
-    } catch (_) {
-      // Let the next update retry; nothing cached, nothing thrown at the UI.
-      return null;
-    }
-  }
+    final result = await OsrmRouting.route(
+      origin: origin,
+      destination: destination,
+      mode: mode,
+      wayPoints: wayPoints,
+    );
+    if (result == null) return null;
 
-  /// ## Deliberately NOT routed through here
-  ///
-  /// `RideBookingController._resolveRoute` still calls Directions itself, and
-  /// should keep doing so:
-  ///
-  ///  * It runs **once per fare quote**, when the user picks pickup + drop — not
-  ///    on a timer, so it is not part of the per-tick problem this class exists
-  ///    to solve.
-  ///  * It already guards with its own pickup→drop cache key.
-  ///  * It uses the **Routes API** (`getRouteBetweenCoordinatesV2`), a different
-  ///    endpoint returning a different shape, with a legacy Directions fallback.
-  ///
-  /// Most importantly, [fetch] can return null when throttled, and that is the
-  /// right answer for a map line but the wrong answer for a quote: the user
-  /// tapped a button and is owed a distance. Silently rate-limiting that path
-  /// would turn a cost optimisation into a broken booking.
+    return _remember(key, result);
+  }
 
   /// Drop everything remembered. For logout / account switch, where holding
   /// another user's journeys in memory serves no purpose.

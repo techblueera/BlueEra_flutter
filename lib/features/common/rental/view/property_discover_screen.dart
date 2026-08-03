@@ -747,7 +747,7 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
   @override
   void initState() {
     super.initState();
-    DiscoverMarkerIcons.circle(icon: Icons.home_work_outlined).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.home_work_outlined).then((d) {
       if (mounted) setState(() => _propertyIcon = d);
     });
   }

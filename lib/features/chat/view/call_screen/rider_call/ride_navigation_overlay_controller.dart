@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Controller that holds the state for the floating mini-map overlay
 /// shown when the rider minimises the pickup/ride navigation screen.

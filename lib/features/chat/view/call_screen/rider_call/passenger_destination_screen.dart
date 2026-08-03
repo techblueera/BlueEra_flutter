@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -7,11 +8,13 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -105,9 +108,23 @@ class PassengerDestinationScreen extends StatefulWidget {
 
 class _PassengerDestinationScreenState
     extends State<PassengerDestinationScreen> {
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
+  BlueMapController? _mapController;
+  /// The road route to the drop.
+  ///
+  /// One line with a border rather than two stacked lines: the plugin draws the
+  /// casing natively, so the route keeps its edge over any basemap without two
+  /// polylines that can disagree about their geometry.
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'ride_route',
+            points: _routeCoords,
+            width: 6,
+            color: _kRouteColor,
+            borderColor: _kRouteCasingColor,
+            borderWidth: 2,
+          ),
+      ];
   List<LatLng> _routeCoords = [];
 
   StreamSubscription<Position>? _locationSubscription;
@@ -138,12 +155,6 @@ class _PassengerDestinationScreenState
   /// panning ahead to check a turn was undone a second later, which made the
   /// map feel broken rather than helpful.
   bool _followRider = true;
-
-  MapType _mapType = MapType.normal;
-
-  /// On by default: this is a working navigation map, and the traffic layer is
-  /// the single most useful thing on it for choosing a lane or a turn.
-  bool _trafficEnabled = true;
 
   /// True when the position stream can't run (permission denied, location
   /// services off) or has errored. Surfaced in the status bar because the
@@ -189,9 +200,7 @@ class _PassengerDestinationScreenState
         ? LatLng(seedLat, seedLng)
         : LatLng(widget.pickupLat, widget.pickupLng);
     _recomputeRemaining();
-    _setupStaticMarkers();
     _updateRiderMarker(heading: 0);
-    _loadRiderIcon();
     _fetchRoute(_currentRiderPosition!);
     // Publish the rider's live position to the customer's tracking stream for
     // the duration of the ride (heartbeat + retry handled by the publisher).
@@ -226,55 +235,50 @@ class _PassengerDestinationScreenState
     super.dispose();
   }
 
-  void _setupStaticMarkers() {
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('drop'),
-        position: _dropLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow:
-            InfoWindow(title: 'Destination', snippet: widget.dropLocation),
-      ),
-    );
-  }
+  /// Vehicle glyph for the rider's own marker. Same asset the customer sees, so
+  /// both sides of the ride show the same vehicle.
+  ///
+  /// A widget held in a field, not a rasterised bitmap loaded asynchronously —
+  /// [BlueMap] compares marker children by identity, so rebuilding it per frame
+  /// would redraw the glyph continuously.
+  static const Widget _riderIcon = LocalAssets(
+    imagePath: 'assets/svg/2_wheeler.svg',
+    width: kVehicleMarkerSize,
+    height: kVehicleMarkerSize,
+  );
 
-  /// Vehicle glyph for the rider's own marker, built once. Same asset the
-  /// customer sees, so both sides of the ride show the same vehicle.
-  BitmapDescriptor? _riderIcon;
-  double _lastHeading = 0;
+  /// Heading in radians, wrapped into [0, 2π) — the plugin asserts that range
+  /// and a raw GPS heading can arrive negative.
+  double _headingRadians = 0;
 
-  Future<void> _loadRiderIcon() async {
-    try {
-      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
-      if (!mounted || bytes.isEmpty) return;
-      setState(() {
-        _riderIcon = BitmapDescriptor.bytes(bytes);
-        _updateRiderMarker(heading: _lastHeading);
-      });
-    } catch (_) {
-      // Keep the default marker.
-    }
-  }
+  /// Destination, plus the rider once a fix exists.
+  ///
+  /// Derived from state rather than mutated: the old code hand-removed the
+  /// rider pin by id before re-adding it on every GPS tick, and a missed
+  /// `removeWhere` leaks a marker per tick for the whole ride.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'drop',
+          position: _dropLatLng,
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+        if (_currentRiderPosition != null)
+          BlueMapMarker(
+            id: 'rider_live',
+            position: _currentRiderPosition!,
+            child: _riderIcon,
+            // Centred and rotated, so the glyph lies along the direction of
+            // travel instead of spinning like a pin.
+            angle: _headingRadians,
+          ),
+      ];
 
   void _updateRiderMarker({required double heading}) {
-    final pos = _currentRiderPosition;
-    if (pos == null) return;
-    _lastHeading = heading;
-    _markers.removeWhere((m) => m.markerId.value == 'rider_live');
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('rider_live'),
-        position: pos,
-        icon: _riderIcon ??
-            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: const InfoWindow(title: 'You'),
-        // flat so the glyph lies on the road and `rotation` points it along the
-        // direction of travel instead of spinning a pin.
-        flat: true,
-        rotation: heading,
-        anchor: const Offset(0.5, 0.5),
-      ),
-    );
+    final degrees = heading % 360;
+    _headingRadians =
+        (degrees < 0 ? degrees + 360 : degrees) * math.pi / 180.0;
   }
 
   void _recomputeRemaining() {
@@ -301,44 +305,10 @@ class _PassengerDestinationScreenState
       );
       if (!mounted) return;
       if (result != null && result.points.isNotEmpty) {
-        _routeCoords =
-            result.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
         setState(() {
-          _polylines
-            ..removeWhere((p) =>
-                p.polylineId.value == 'ride_route' ||
-                p.polylineId.value == 'ride_route_casing')
-            // Drawn as two stacked lines: a dark casing under a brighter core.
-            // A single flat line disappears into whatever it crosses — that is
-            // what a green route did over green trunk roads — whereas the
-            // casing gives the route its own edge on any basemap, including the
-            // satellite/hybrid view.
-            ..add(
-              Polyline(
-                polylineId: const PolylineId('ride_route_casing'),
-                points: _routeCoords,
-                width: 10,
-                color: _kRouteCasingColor,
-                geodesic: true,
-                jointType: JointType.round,
-                startCap: Cap.roundCap,
-                endCap: Cap.roundCap,
-                zIndex: 0,
-              ),
-            )
-            ..add(
-              Polyline(
-                polylineId: const PolylineId('ride_route'),
-                points: _routeCoords,
-                width: 6,
-                color: _kRouteColor,
-                geodesic: true,
-                jointType: JointType.round,
-                startCap: Cap.roundCap,
-                endCap: Cap.roundCap,
-                zIndex: 1,
-              ),
-            );
+          _routeCoords = result.points
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList();
         });
         // Redrawing the line must not move the camera. This runs again every
         // ~150 m of travel, and refitting the whole trip each time dragged the
@@ -385,7 +355,7 @@ class _PassengerDestinationScreenState
             .updatePosition(newPos.latitude, newPos.longitude);
         // Follow the rider — unless they've taken manual control of the camera.
         if (_followRider) {
-          _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
+          _mapController?.moveTo(newPos);
         }
         // Refresh the drawn route once the rider has moved ~150 m from the
         // origin it was last computed for, so the polyline stays on-road without
@@ -423,18 +393,7 @@ class _PassengerDestinationScreenState
   }
 
   void _fitBounds(LatLng a, LatLng b) {
-    if (_mapController == null) return;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        a.latitude < b.latitude ? a.latitude : b.latitude,
-        a.longitude < b.longitude ? a.longitude : b.longitude,
-      ),
-      northeast: LatLng(
-        a.latitude > b.latitude ? a.latitude : b.latitude,
-        a.longitude > b.longitude ? a.longitude : b.longitude,
-      ),
-    );
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+    _mapController?.fitPoints([a, b], padding: 80);
   }
 
   Future<void> _completeRide() async {
@@ -587,7 +546,7 @@ class _PassengerDestinationScreenState
       destLabelVal: widget.dropLocation,
       customerNameVal: widget.customerName,
       fareAmountVal: widget.fareAmount,
-      routePoints: _routeCoords,
+      routePoints: _routeCoords.map((p) => LatLng(p.latitude, p.longitude)).toList(),
       type: 'ride',
       params: {
         'pickupLocation': widget.pickupLocation,
@@ -640,31 +599,24 @@ class _PassengerDestinationScreenState
               onPointerDown: (_) {
                 if (_followRider) setState(() => _followRider = false);
               },
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: _currentRiderPosition ?? _dropLatLng,
-                  zoom: _kNavZoom,
-                ),
+              // NOTE: `mapType` (satellite/hybrid) and `trafficEnabled` are gone
+              // with Google Maps. OSM has no live-traffic layer at all, and the
+              // satellite basemap would need a separate imagery provider — see
+              // OsmConfig.tileUrlTemplate. The toggles that drove them have been
+              // removed rather than left as controls that do nothing.
+              child: BlueMap(
+                initialCenter: _currentRiderPosition ?? _dropLatLng,
+                initialZoom: _kNavZoom,
                 markers: _markers,
                 polylines: _polylines,
-                mapType: _mapType,
-                trafficEnabled: _trafficEnabled,
                 myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
                 onMapCreated: (controller) {
                   _mapController = controller;
-                  // Settle on the rider once the controller is ready. The
-                  // initial camera is already there, so this only corrects for
-                  // a GPS fix that landed between build and map creation.
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    if (!mounted || !_followRider) return;
-                    final pos = _currentRiderPosition;
-                    if (pos == null) return;
-                    _mapController
-                        ?.animateCamera(CameraUpdate.newLatLngZoom(pos, _kNavZoom));
-                  });
+                  // Settle on the rider once the map is ready. No delay needed:
+                  // BlueMap queues camera work until it genuinely is.
+                  if (!_followRider) return;
+                  final pos = _currentRiderPosition;
+                  if (pos != null) controller.moveTo(pos, zoom: _kNavZoom);
                 },
               ),
             ),
@@ -821,22 +773,9 @@ class _PassengerDestinationScreenState
           foreground: Colors.white,
           background: const Color(0xFF00C853),
         ),
-        const SizedBox(height: 8),
-        _mapButton(
-          icon: _mapType == MapType.normal
-              ? Icons.layers_outlined
-              : Icons.layers_rounded,
-          tooltip: 'Map type',
-          onTap: _toggleMapType,
-          active: _mapType != MapType.normal,
-        ),
-        const SizedBox(height: 8),
-        _mapButton(
-          icon: Icons.traffic_rounded,
-          tooltip: 'Traffic',
-          onTap: () => setState(() => _trafficEnabled = !_trafficEnabled),
-          active: _trafficEnabled,
-        ),
+        // Map-type and traffic toggles removed with Google Maps: OSM has no
+        // live-traffic layer, and satellite imagery needs a separate provider.
+        // A control that does nothing is worse than no control.
         const SizedBox(height: 8),
         _buildZoomPill(),
         const SizedBox(height: 8),
@@ -939,7 +878,7 @@ class _PassengerDestinationScreenState
     if (pos == null) return;
     // Zoom in as well as centre: the rider taps this to see the road they're
     // on, and leaving them at a whole-route zoom answers a different question.
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(pos, _kNavZoom));
+    _mapController?.moveTo(pos, zoom: _kNavZoom);
   }
 
   /// Whole-trip view. Leaves follow OFF — re-enabling it would animate straight
@@ -952,16 +891,11 @@ class _PassengerDestinationScreenState
   void _zoom({required bool zoomIn}) {
     // Manual zoom is manual control; following would fight the next GPS tick.
     if (_followRider) setState(() => _followRider = false);
-    _mapController
-        ?.animateCamera(zoomIn ? CameraUpdate.zoomIn() : CameraUpdate.zoomOut());
-  }
-
-  /// normal → hybrid → normal. Satellite without labels is skipped: street
-  /// names are the reason a rider switches to imagery in the first place.
-  void _toggleMapType() {
-    setState(() {
-      _mapType = _mapType == MapType.normal ? MapType.hybrid : MapType.normal;
-    });
+    if (zoomIn) {
+      _mapController?.zoomIn();
+    } else {
+      _mapController?.zoomOut();
+    }
   }
 
   /// Hand off to Google Maps for turn-by-turn. The in-app map shows the route

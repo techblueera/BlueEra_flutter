@@ -92,9 +92,17 @@ dependencies:
   translator: ^1.0.4+1
 #  pip_view: ^0.9.7
   speech_to_text: ^7.3.0
+  # OpenStreetMap maps. Pinned to the 1.x line deliberately: 2.x requires
+  # Android minSdk 32 and this app ships minSdk 26, so upgrading would drop
+  # every Android 8-11 device. All map rendering goes through
+  # lib/core/map/blue_map.dart, so moving to 2.x later is a change to that one
+  # file rather than to every screen.
+  flutter_osm_plugin: ^1.4.2
+  # TEMPORARY — still imported by the map screens not yet migrated to BlueMap.
+  # Remove this line (and run `flutter pub get`) once no `lib/` file imports
+  # google_maps_flutter; that is the checkpoint that the migration is complete.
   google_maps_flutter: ^2.14.2
   percent_indicator: ^4.2.5
-  flutter_polyline_points: ^3.1.0
   record: ^6.2.0
   google_generative_ai: ^0.4.7
   envied: ^1.3.3

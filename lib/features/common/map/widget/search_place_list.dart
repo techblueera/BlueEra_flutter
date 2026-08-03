@@ -12,7 +12,8 @@ import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 
 class SearchPlaceList extends StatefulWidget {
@@ -47,9 +48,23 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   /// `place_id` currently being resolved by a row tap, or null. Drives the row
   /// spinner and blocks a second tap while a lookup is in flight.
   String? _resolvingPlaceId;
-  late GoogleMapController mapController;
-  Set<Marker> _markers = {};
   LatLng? targetLocation;
+
+  /// The searched place. Built from the widget's coordinates rather than
+  /// assembled asynchronously once the map exists, so the pin is present on the
+  /// first frame instead of appearing a beat later.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'target',
+          position: LatLng(widget.lat, widget.lng),
+          child: LocalAssets(
+            imagePath: AppImageAssets.markerBlue,
+            width: 30,
+            height: 30,
+          ),
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      ];
 
   @override
   void didUpdateWidget(covariant SearchPlaceList oldWidget) {
@@ -66,34 +81,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     super.initState();
     _handleCurrentLocationTap();
     targetLocation=LatLng(widget.lat, widget.lng);
-  }
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-    try {
-      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 30)),
-        AppImageAssets.markerBlue,
-      );
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(widget.lat, widget.lng),
-        icon: customIcon,
-      );
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      // Smoothly animate camera to marker
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.lng), 14.0),
-      );
-
-    } catch (e) {
-      debugPrint("Error loading marker: $e");
-    }
   }
 
   Future<void> _fetchPredictions() async {
@@ -308,12 +295,9 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                 height: 240,
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(widget.lat, widget.lng),
-                    zoom: 14.0,
-                  ),
+                child: BlueMap(
+                  initialCenter: LatLng(widget.lat, widget.lng),
+                  initialZoom: 14,
                   myLocationEnabled: true,
                   markers: _markers,
                 )

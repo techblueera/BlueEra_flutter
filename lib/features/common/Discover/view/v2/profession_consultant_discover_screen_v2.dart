@@ -137,7 +137,7 @@ class _ProfessionConsultantDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchProfessionalConsultantServicesIfNeeded();
     _ensureOrigin();
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _markerIcon = d);
     });
   }
@@ -1444,7 +1444,7 @@ class _ProfessionConsultantMapScreenV2State
     _ctrl.fetchAllProfessionalConsForMap();
     // Pre-render the custom marker icon once; cluster taps pop the unclustered
     // marker so this is what the user actually sees.
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _serviceIcon = d);
     });
   }

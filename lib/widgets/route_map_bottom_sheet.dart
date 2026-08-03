@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// A reusable bottom sheet that shows a Google Map with a driving route

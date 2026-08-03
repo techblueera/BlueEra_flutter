@@ -15,10 +15,12 @@ import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_trip_details_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Captain assigned + live tracking (screenshot 5).
@@ -37,20 +39,37 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
   late final Worker _terminalWorker;
   late final Worker _rideStartedWorker;
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   /// Road route from the captain to the pickup. Empty until the Directions call
   /// lands — the map falls back to a dashed straight hint so it never reads as
   /// a real route.
   List<LatLng> _captainRoute = const [];
 
-  /// Two-wheeler glyph for the captain marker, built once.
-  BitmapDescriptor? _captainIcon;
+  /// Two-wheeler glyph for the captain marker, and the pin for the route
+  /// target. A place gets a pin — only the moving vehicle gets a glyph.
+  ///
+  /// Built once and held, because [BlueMap] compares marker children by
+  /// identity: rebuilding these in `build` would make every frame look like a
+  /// visual change and redraw both markers continuously.
+  ///
+  /// They are plain widgets now. The map used to need rasterised
+  /// `BitmapDescriptor`s, so both were produced asynchronously in `initState`
+  /// and written back with `setState` — meaning the first frames of a live ride
+  /// drew default pins until the encode finished. Widgets are correct from the
+  /// first frame.
+  static const Widget _captainIcon = LocalAssets(
+    imagePath: 'assets/svg/2_wheeler.svg',
+    width: kVehicleMarkerSize,
+    height: kVehicleMarkerSize,
+  );
 
-  /// Pin for the pickup marker. A place gets a pin — only the moving vehicle
-  /// gets a glyph. Uses the app's own marker asset rather than Google's default
-  /// teardrop.
-  BitmapDescriptor? _pickupIcon;
+  // Not const: AppImageAssets paths are runtime strings.
+  static final Widget _targetPin = LocalAssets(
+    imagePath: AppImageAssets.locationMarkerIcon,
+    width: 30,
+    height: 40,
+  );
 
   /// The in-ride issue the customer flagged, if any. Kept so the chip shows an
   /// acknowledged state instead of silently resetting.
@@ -68,26 +87,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     // The ride can already be in progress when this screen is built — e.g.
     // re-entering after a background kill — so don't wait for a change.
     _onBookingChanged(controller.activeBooking.value);
-    _loadCaptainIcon();
-  }
-
-  /// Builds both markers from the app's own assets: a vehicle glyph for the
-  /// moving captain, a pin for the pickup.
-  Future<void> _loadCaptainIcon() async {
-    try {
-      final captain = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
-      final pickup = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 40)),
-        AppImageAssets.locationMarkerIcon,
-      );
-      if (!mounted) return;
-      setState(() {
-        if (captain.isNotEmpty) _captainIcon = BitmapDescriptor.bytes(captain);
-        _pickupIcon = pickup;
-      });
-    } catch (_) {
-      // Keep the default markers — a missing glyph must not blank the map.
-    }
   }
 
   /// The end of the leg the captain is currently driving.
@@ -134,7 +133,8 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
       // Drives the on-trip "Reaching drop location in N mins" line. The
       // booking payload carries a PICKUP eta only, so once moving the ETA has
       // to come off the route we just measured.
-      if (seconds != null && seconds > 0) {
+      // Zero means the router returned no duration — keep the previous ETA.
+      if (seconds > 0) {
         _routeEtaMinutes = (seconds / 60).round();
       }
     });
@@ -366,7 +366,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
       final targetLatLng = (target != null && target.hasCoordinates)
           ? LatLng(target.latitude, target.longitude)
           : const LatLng(23.2599, 77.4126);
-      final onTrip = booking?.status == RideStatus.onTrip;
       final captainLatLng =
           (captain?.latitude != null && captain?.longitude != null)
               ? LatLng(captain!.latitude!, captain.longitude!)
@@ -374,75 +373,57 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
 
       return Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition:
-                CameraPosition(target: targetLatLng, zoom: 15),
+          BlueMap(
+            initialCenter: targetLatLng,
+            initialZoom: 15,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
             onMapCreated: (c) => _mapController = c,
-            markers: {
+            markers: [
               // The pin marks whichever end the captain is currently driving
               // to. Before the ride that is the pickup; once moving it is the
               // drop — and it MUST switch, because the route line switches
               // with it. Leaving a pickup pin up mid-ride left the line running
               // from the bike to an unmarked point while a stale pin sat
               // unconnected beside it.
-              Marker(
-                markerId: const MarkerId('route-target'),
+              BlueMapMarker(
+                id: 'route-target',
                 position: targetLatLng,
-                icon: _pickupIcon ??
-                    BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueGreen,
-                    ),
+                child: _targetPin,
                 // A pin points AT its coordinate — anchor the tip, not the
                 // middle (which is right for the centred vehicle glyph).
-                anchor: const Offset(0.5, 1.0),
-                infoWindow: InfoWindow(title: onTrip ? 'Drop' : 'Pickup'),
+                anchor: BlueMarkerAnchor.bottom,
               ),
               if (captainLatLng != null)
-                Marker(
-                  markerId: const MarkerId('captain'),
+                BlueMapMarker(
+                  id: 'captain',
                   position: captainLatLng,
                   // Vehicle glyph, not a map pin — a pin reads as a place, and
                   // this is the thing that's moving.
-                  icon: _captainIcon ??
-                      BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueAzure,
-                      ),
-                  anchor: const Offset(0.5, 0.5),
-                  flat: true,
-                  infoWindow: InfoWindow(
-                    title: captain?.hasName == true ? captain!.name : 'Captain',
-                  ),
+                  child: _captainIcon,
                 ),
-            },
-            polylines: {
+            ],
+            polylines: [
               if (captainLatLng != null)
                 if (_captainRoute.length >= 2)
-                  Polyline(
-                    polylineId: const PolylineId('captain-route'),
+                  BlueMapPolyline(
+                    id: 'captain-route',
                     points: _captainRoute,
                     color: AppColors.primaryColor,
                     width: 5,
-                    startCap: Cap.roundCap,
-                    endCap: Cap.roundCap,
-                    jointType: JointType.round,
                   )
                 else
-                  // Straight hint until the Directions call lands — dashed so
-                  // it can't be mistaken for the road route.
-                  Polyline(
-                    polylineId: const PolylineId('captain-route-pending'),
+                  // Straight hint until the route lands — dotted so it can't be
+                  // mistaken for the road route.
+                  BlueMapPolyline(
+                    id: 'captain-route-pending',
                     // Same end the real route uses, so the hint doesn't point
                     // somewhere else for the second before it lands.
                     points: [captainLatLng, targetLatLng],
                     color: AppColors.primaryColor.withValues(alpha: 0.45),
                     width: 3,
-                    patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+                    isDotted: true,
                   ),
-            },
+            ],
           ),
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,

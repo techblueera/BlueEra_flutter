@@ -11,7 +11,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Entry screen of the ride-booking flow (`assets/ride_home_screen.jpeg`).
 ///
@@ -35,7 +36,7 @@ class RideHomeScreen extends StatefulWidget {
 
 class _RideHomeScreenState extends State<RideHomeScreen> {
   late final RideBookingController controller;
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   /// Bhopal — a sane frame while the device fix resolves, so the map never
   /// opens on the null island.
@@ -109,22 +110,19 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   Widget _map() {
     return Obx(() {
       final center = _center;
-      return GoogleMap(
-        initialCameraPosition: CameraPosition(target: center, zoom: 15.5),
+      return BlueMap(
+        initialCenter: center,
+        initialZoom: 15.5,
         myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        mapToolbarEnabled: false,
         onMapCreated: (c) => _mapController = c,
-        markers: {
-          Marker(
-            markerId: const MarkerId('pickup'),
+        markers: [
+          BlueMapMarker(
+            id: 'pickup',
             position: center,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueGreen,
-            ),
+            icon: Icons.location_on,
+            color: Colors.green,
           ),
-        },
+        ],
       );
     });
   }

@@ -1,13 +1,14 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
+import 'package:BlueEra/core/map/osm_geocoder.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:uuid/uuid.dart';
 
-/// A `place_id` resolved to something usable — the only part of a Place Details
-/// response any screen in this app actually reads.
+/// A `place_id` resolved to something usable — the only part of a place lookup
+/// any screen in this app actually reads.
 class ResolvedPlace {
   const ResolvedPlace({
     required this.lat,
@@ -20,282 +21,230 @@ class ResolvedPlace {
   final String? formattedAddress;
 }
 
-class PlaceRepo{
+/// Address search, place resolution and reverse geocoding.
+///
+/// ## What changed, and what deliberately did not
+///
+/// This class used to front three Google products — Places Autocomplete, Place
+/// Details and Geocoding — and most of its bulk was machinery for *not spending
+/// money on them*: session tokens to collapse a typing session into one billed
+/// unit, a field mask to avoid being priced at the top tier, and a warning
+/// against ever resolving a prediction inside a loop.
+///
+/// It now runs on OSM services (see [OsmGeocoder]), and that machinery is gone
+/// because the problems it solved are gone with it:
+///
+///  * **Session tokens** existed purely as a billing construct. Nothing outside
+///    Google's pricing model has an opinion about them.
+///  * **The `fields` mask** existed because Place Details was priced by the most
+///    expensive class of field requested. There are no field tiers now.
+///  * **Place Details itself** is no longer a network call at all. Photon
+///    returns coordinates inline with every suggestion, so a tapped row is
+///    resolved by parsing its id — see [OsmPlace.placeIdFor]. The single most
+///    expensive pattern in the old app (five Place Details lookups per keystroke
+///    burst, to render distance labels for rows the user would not tap) is now
+///    *free*, not merely discouraged.
+///
+/// **The method signatures and response shapes are unchanged.** Every caller
+/// still receives a [ResponseModel] whose body carries `predictions` /
+/// `results` / `result` in Google's layout, because ~20 screens and three
+/// response models parse exactly that. Swapping the provider was not a reason to
+/// also rewrite them.
+///
+/// The autocomplete cache stays, for a different reason than it was built: it no
+/// longer saves money, but it does keep the app inside the geocoder's rate limit
+/// — which, on the public servers, is stricter than anything Google enforced.
+/// See [OsmConfig].
+class PlaceRepo {
+  // ------------------------------------------------------------------- cache
 
-  // ---------------------------------------------------------------- sessions
-
-  /// Places **session token** for the search currently in progress.
-  ///
-  /// Google bills Places two ways. Without a token, every autocomplete keystroke
-  /// bills as *Autocomplete – Per Request* AND the Place Details that follows
-  /// bills separately at full price. With one token threaded through the whole
-  /// typing session and its closing details call, the lot bills once as
-  /// *Autocomplete – Per Session*. For a user typing a 10-character address that
-  /// is several requests plus a details lookup, versus one session.
-  ///
-  /// **Why this lives in the repo and not in the screens.** The obvious
-  /// implementation hands every search screen a token to hold, create on focus
-  /// and pass to two different methods — six screens of fiddly state, each able
-  /// to get it subtly wrong. But the flow is always the same shape:
-  /// *n searches, then one resolve*. That is exactly a session, and both halves
-  /// already funnel through this class, so it can own the lifecycle and no
-  /// screen needs to know tokens exist.
-  ///
-  /// Lifecycle: created on the first [autoCompleteSearch] of a session, reused
-  /// by every later search, sent on the closing [getCompletePlaceDetails], then
-  /// discarded. Also rotated after [_kSessionMaxAge] so an abandoned search does
-  /// not keep one token alive forever, which Google treats as abuse.
-  ///
-  /// **Known imprecision, and why it is safe.** Two screens searching at once
-  /// would share a token, and resolving a *recent/favourite* place (rather than
-  /// a freshly searched one) can close a session early. Both are rare, and the
-  /// worst outcome is that Google bills those calls per-request — which is
-  /// exactly what happened before this existed. It degrades to the old
-  /// behaviour, never to something broken.
-  static String? _sessionToken;
-  static DateTime? _sessionStartedAt;
-
-  /// How long one search session may stay open. Comfortably longer than anyone
-  /// spends typing an address, short enough that an abandoned search starts
-  /// fresh rather than reusing a stale token.
-  static const Duration _kSessionMaxAge = Duration(minutes: 3);
-
-  /// The token for the session in progress, starting one if needed.
-  static String _currentSessionToken() {
-    final started = _sessionStartedAt;
-    final expired =
-        started == null || DateTime.now().difference(started) > _kSessionMaxAge;
-    if (_sessionToken == null || expired) {
-      _sessionToken = const Uuid().v4();
-      _sessionStartedAt = DateTime.now();
-    }
-    return _sessionToken!;
-  }
-
-  /// End the session — called once its Place Details has been requested, which
-  /// is what closes a session as far as Google's billing is concerned.
-  static void _endSession() {
-    _sessionToken = null;
-    _sessionStartedAt = null;
-  }
-
-
-  // "geocode" → Returns only addresses. Good for street addresses, not POIs or establishments.
-  //
-  // "address" → Similar to geocode.
-  //
-  // "establishment" → Returns businesses, shops, etc.
-  //
-  // "regions" → Cities, neighborhoods, political regions.
-  //
-  // "cities" → Only cities.
-
-
-  ///Auto complete Search....
-  ///
-  /// Biased towards the user's current location when we have one. This costs
-  /// NOTHING extra — `location`/`radius` are free parameters — and it is what
-  /// lets the result lists drop their per-row "x km away" labels: the nearest
-  /// matches simply come back first. Those labels used to be computed by firing
-  /// a Place Details lookup for every prediction, which was the single most
-  /// expensive pattern in the app (`docs/GOOGLE_MAPS_COST_GUIDE.md` §3.1).
-  ///
-  /// A bias, not a filter: `strictbounds` is deliberately NOT sent, so a user in
-  /// Dehradun can still search an address in Delhi — those results just rank
-  /// below the local ones.
   /// Autocomplete replies for this session, keyed by query + rough location.
   ///
-  /// Typing "deh", backspacing and typing it again used to buy the same search
-  /// twice. So did two screens searching the same thing. The location is part of
-  /// the key because the request is location-biased — the same text genuinely
-  /// returns different results in a different city — but only to ~1 km, so
-  /// walking around does not invalidate it.
+  /// Typing "deh", backspacing and typing it again would otherwise repeat the
+  /// same search. So would two screens searching the same thing. The location is
+  /// part of the key because the request is location-biased — the same text
+  /// genuinely returns different results in a different city — but only to
+  /// ~1 km, so walking around does not invalidate it.
   static final Map<String, ResponseModel> _autocompleteCache = {};
 
-  /// Bound on [_autocompleteCache]. Queries are short-lived by nature; this
-  /// only exists so a very long session cannot grow it without limit.
+  /// Bound on [_autocompleteCache]. Queries are short-lived by nature; this only
+  /// exists so a very long session cannot grow it without limit.
   static const int _kMaxAutocompleteEntries = 100;
 
+  /// Descriptions of places seen during this session, keyed by `place_id`.
+  ///
+  /// [resolvePlace] gets coordinates from the id itself, but callers also want a
+  /// human-readable address, and re-deriving that would mean a reverse-geocode
+  /// round trip for a string we already had in hand when we drew the row. So the
+  /// row's own text is kept here as it goes past.
+  static final Map<String, String> _descriptionsByPlaceId = {};
+
+  /// Wraps a plain map in the [ResponseModel] shape callers expect. The Dio
+  /// [Response] is synthesised rather than real — nothing downstream reads
+  /// anything but `statusCode` and `data`.
+  static ResponseModel _ok(Map<String, dynamic> body) => ResponseModel(
+        statusCode: 200,
+        response: Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: body,
+        ),
+      );
+
+  static ResponseModel _empty({String status = 'ZERO_RESULTS'}) =>
+      _ok({'status': status, 'predictions': const [], 'results': const []});
+
+  // ---------------------------------------------------------------- searching
+
+  /// Type-ahead address search.
+  ///
+  /// Biased towards the user's current location when we have one — a bias, not a
+  /// filter, so a user in Dehradun can still search an address in Delhi; those
+  /// results just rank below the local ones.
+  ///
+  /// Body shape is Google's: `{"predictions": [{"description", "place_id"}]}`.
+  /// Predictions additionally carry `lat`/`lng`, which Google's never did — a
+  /// caller that wants coordinates for a row no longer has to ask for them.
   Future<ResponseModel> autoCompleteSearch({
     required String query,
-
   }) async {
-    final hasFix = LocationService.lat != 0.0 || LocationService.lng != 0.0;
-    final cacheKey = '${query.trim().toLowerCase()}'
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return _empty();
+
+    final cacheKey = '${trimmed.toLowerCase()}'
         '@${LocationService.lat.toStringAsFixed(2)},'
         '${LocationService.lng.toStringAsFixed(2)}';
 
     final cached = _autocompleteCache[cacheKey];
     if (cached != null) return cached;
 
-    ResponseModel response = await ApiBaseHelper().getHTTP(
-      googleAutocomplete,
-      showProgress: false,
-      params: {
-        "input": query,
-        "key": googleMapKey,
-        "types": "geocode|establishment", // You can customize this
-        "language": "en",
-        "components": "country:in", // only India
-        // Bills this and every other search in the session as ONE session
-        // rather than one request each — see [_sessionToken].
-        "sessiontoken": _currentSessionToken(),
-        if (hasFix) ...{
-          "location": "${LocationService.lat},${LocationService.lng}",
-          // 30 km — wide enough to cover a whole city and its outskirts, tight
-          // enough that local results actually win.
-          "radius": "30000",
-        },
-      },
-      onError: (error) {},
-      onSuccess: (data) {},
+    final places = await OsmGeocoder.autocomplete(
+      query: trimmed,
+      near: LatLng(LocationService.lat, LocationService.lng),
     );
 
-    // Only cache a real answer — caching a failure would make one dropped
-    // connection look like "no results" for the rest of the session.
-    if (response.statusCode == 200) {
-      if (_autocompleteCache.length >= _kMaxAutocompleteEntries) {
-        _autocompleteCache.remove(_autocompleteCache.keys.first);
-      }
-      _autocompleteCache[cacheKey] = response;
+    // A failed lookup and a genuinely empty one are indistinguishable here by
+    // design — both mean "nothing to show" to a search field. But only a real
+    // answer is cached: caching a dropped connection would make it look like
+    // "no results" for the rest of the session.
+    if (places.isEmpty) return _empty();
+
+    for (final place in places) {
+      _descriptionsByPlaceId[place.placeId] = place.description;
     }
+
+    final response = _ok({
+      'status': 'OK',
+      'predictions': places.map((p) => p.toPredictionJson()).toList(),
+    });
+
+    if (_autocompleteCache.length >= _kMaxAutocompleteEntries) {
+      _autocompleteCache.remove(_autocompleteCache.keys.first);
+    }
+    _autocompleteCache[cacheKey] = response;
     return response;
   }
 
-
+  /// Cities within an Indian state.
+  ///
+  /// Still a network call for what is a **static dataset** — the cities of
+  /// Uttarakhand do not change between releases. Bundling this as a JSON asset
+  /// remains the right answer (`docs/GOOGLE_MAPS_COST_GUIDE.md` §3A.4); it is
+  /// now a latency and rate-limit argument rather than a billing one.
   Future<ResponseModel> getCitiesByState(String state) async {
-    return await ApiBaseHelper().getHTTP(
-      googleAutocomplete,
-      showProgress: false,
-      params: {
-        "input": "$state",
-        "key": googleMapKey,
-        "types": "(cities)",
-        "components": "country:in",
-        "language": "en",
-      },
-    );
+    final places = await OsmGeocoder.searchCities(state: state);
+    if (places.isEmpty) return _empty();
+
+    for (final place in places) {
+      _descriptionsByPlaceId[place.placeId] = place.description;
+    }
+
+    return _ok({
+      'status': 'OK',
+      'predictions': places.map((p) => p.toPredictionJson()).toList(),
+    });
   }
 
-  /// Fields requested from Place Details.
-  ///
-  /// BILLING — do not widen this casually. Place Details is priced by the most
-  /// expensive *class* of field in the request, and these four are all "Basic
-  /// Data", the cheapest tier:
-  ///
-  ///   geometry, formatted_address, address_components, name
-  ///
-  /// Adding anything from Contact Data (`website`, `formatted_phone_number`) or
-  /// Atmosphere (`rating`, `reviews`, `opening_hours`, `price_level`) re-prices
-  /// EVERY call in the app, because all ~20 call sites share this one method.
-  ///
-  /// Sending no `fields` at all — which is what this did until the billing audit
-  /// (see `docs/GOOGLE_MAPS_COST_GUIDE.md` §3.3) — makes Google return the full
-  /// payload and bill at the top tier. That was the default, and it was silent.
-  ///
-  /// This list is everything [PlaceDetailsResponse] can actually parse, minus
-  /// `website`, which the model has a slot for but no screen ever reads.
-  static const String _detailsFields =
-      'geometry,formatted_address,address_components,name';
+  // --------------------------------------------------------------- resolving
 
+  /// Full details for a `place_id`, in Google's Place Details shape.
+  ///
+  /// Reverse-geocodes the coordinates carried in the id to recover structured
+  /// `address_components`, which is the one thing the id alone cannot supply.
+  /// If you only need coordinates — which is what almost every caller actually
+  /// wants — use [resolvePlace] instead and skip the network entirely.
   Future<ResponseModel> getCompletePlaceDetails({
     required String placeId,
   }) async {
-    // The token must be the SAME one the autocomplete requests carried, or
-    // Google bills both halves separately — worse than sending none at all.
-    // Sent only when a session is actually open: resolving a saved place with
-    // no preceding search legitimately has none.
-    final token = _sessionToken;
+    final location = OsmPlace.locationFromPlaceId(placeId);
+    if (location == null) return _empty(status: 'INVALID_REQUEST');
 
-    ResponseModel response = await ApiBaseHelper().getHTTP(
-      googlePlaceId,
-      showProgress: false,
-      params: {
+    final address = await OsmGeocoder.reverse(location);
+    if (address != null) return _ok(address.toGooglePlaceDetailsJson());
+
+    // Reverse failed, but the id still holds real coordinates and we may have
+    // the row's own text. Returning that beats returning nothing: every caller
+    // reads geometry, and only some read the components.
+    return _ok({
+      'status': 'OK',
+      'result': {
+        'formatted_address': _descriptionsByPlaceId[placeId] ?? '',
+        'address_components': const [],
+        'geometry': {
+          'location': {'lat': location.latitude, 'lng': location.longitude},
+        },
         'place_id': placeId,
-        'key': googleMapKey,
-        'fields': _detailsFields,
-        if (token != null) 'sessiontoken': token,
       },
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-
-    // Session closes on the details request whether or not it succeeded — the
-    // next search starts a new one.
-    _endSession();
-    return response;
+    });
   }
 
-  Future<ResponseModel> getGeoCode({
-    required Position position,
-  }) async {
-    ResponseModel response = await ApiBaseHelper().getHTTP(
-      googleGeoCode,
-      showProgress: false,
-      params: {
-        'latlng': '${position.latitude},${position.longitude}',
-        'key': googleMapKey,
-      },
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  /// Resolved coordinates per `place_id`, for the life of the app session.
+  /// Turn a `place_id` into coordinates.
   ///
-  /// Place geometry does not change, so the second lookup of the same place is
-  /// free. Users search the same landmarks repeatedly (home, office, the station
-  /// they always travel from), and every screen shares this map, so a place
-  /// resolved while setting a pickup is already resolved when setting the drop.
+  /// **This no longer performs any network call.** The coordinates are encoded
+  /// in the id when the suggestion is created, so this is string parsing. The
+  /// old prohibition on calling it in a loop over predictions no longer applies
+  /// — though rendering a distance for every row is still usually the wrong UI,
+  /// it is no longer expensive.
   ///
-  /// In-memory only, deliberately: Google's Maps Platform Terms restrict how
-  /// long Places content may be persisted, and a process-lifetime map sidesteps
-  /// that question entirely. A durable cache belongs on our backend — see
-  /// `docs/GOOGLE_MAPS_COST_GUIDE.md` §3A.2.
-  static final Map<String, ResolvedPlace> _resolvedPlaces = {};
-
-  /// Turn a `place_id` into coordinates, hitting Place Details at most once per
-  /// place per session. Returns null when the lookup fails or carries no
-  /// geometry.
-  ///
-  /// Call this from the row's TAP handler — never in a loop over autocomplete
-  /// predictions. Resolving every prediction to render the list was the single
-  /// most expensive pattern in the app: it bought 5 Place Details per keystroke
-  /// burst to answer a question the user asks about exactly one of them
-  /// (`docs/GOOGLE_MAPS_COST_GUIDE.md` §3.1).
+  /// Returns null when the id is not one of ours — most likely a Google
+  /// `place_id` persisted by an older app version, which cannot be resolved and
+  /// should be re-searched.
   Future<ResolvedPlace?> resolvePlace(String? placeId) async {
     final id = placeId ?? '';
     if (id.isEmpty) return null;
 
-    final cached = _resolvedPlaces[id];
-    if (cached != null) return cached;
+    final location = OsmPlace.locationFromPlaceId(id);
+    if (location == null) return null;
 
-    try {
-      final response = await getCompletePlaceDetails(placeId: id);
-      final data = response.response?.data;
-      if (data is! Map) return null;
-      final result =
-          PlaceDetailsResponse.fromJson(Map<String, dynamic>.from(data)).result;
-      final location = result?.geometry?.location;
-      final lat = location?.lat;
-      final lng = location?.lng;
-      if (lat == null || lng == null) return null;
-
-      final resolved = ResolvedPlace(
-        lat: lat,
-        lng: lng,
-        formattedAddress: result?.formattedAddress,
-      );
-      _resolvedPlaces[id] = resolved;
-      return resolved;
-    } catch (_) {
-      // Caller decides what a failed resolve means for its screen; nothing is
-      // cached, so a retry can still succeed.
-      return null;
-    }
+    return ResolvedPlace(
+      lat: location.latitude,
+      lng: location.longitude,
+      formattedAddress: _descriptionsByPlaceId[id],
+    );
   }
 
+  /// Coordinates to an address, in Google's Geocoding shape.
+  ///
+  /// `LocationController.getAddressDetails` is the one caller, and it picks
+  /// components out by Google's `types` strings. [OsmAddress.toGoogleGeocodeJson]
+  /// emits those, so neither it nor `GeocodingResponse` changes.
+  ///
+  /// Prefer `placemarkFromCoordinates` (the `geocoding` package) where you can —
+  /// it uses the on-device geocoder, works offline, and does not consume the
+  /// shared Nominatim rate limit.
+  Future<ResponseModel> getGeoCode({
+    required Position position,
+  }) async {
+    final address = await OsmGeocoder.reverse(
+      LatLng(position.latitude, position.longitude),
+    );
+    if (address == null) return _empty();
+    return _ok(address.toGoogleGeocodeJson());
+  }
+
+  /// Indian postal-code lookup. Unchanged — `api.postalpincode.in` was never a
+  /// Google service, and it is authoritative for this in a way a general
+  /// geocoder is not.
   Future<ResponseModel> fetchLocationFromPinCodeRepo({
     required String pinCode,
   }) async {
@@ -308,8 +257,9 @@ class PlaceRepo{
     return response;
   }
 
-
-
-
-
+  /// Drop everything remembered. For logout / account switch.
+  static void clear() {
+    _autocompleteCache.clear();
+    _descriptionsByPlaceId.clear();
+  }
 }

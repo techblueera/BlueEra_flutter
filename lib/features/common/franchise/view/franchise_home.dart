@@ -11,7 +11,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
@@ -28,36 +29,23 @@ class FranchiseHome extends StatefulWidget {
 
 class _FranchiseHomeState extends State<FranchiseHome> {
   int selectedTab = 0;
-  late GoogleMapController mapController;
-  Set<Marker> _markers = {};
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-    try {
-      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 30)),
-        AppImageAssets.markerBlue,
-      );
+  /// The franchise office. A fixed coordinate, so the marker is built once
+  /// rather than assembled asynchronously after the map appears.
+  static const LatLng _office = LatLng(26.2389, 73.0243);
 
-      // 2. Create Marker
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(26.2389, 73.0243),
-        icon: customIcon,
-      );
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(26.2389, 73.0243), 14.0),
-      );
-
-    } catch (e) {
-      debugPrint("Error loading marker: $e");
-    }
-  }
+  static final List<BlueMapMarker> _markers = [
+    BlueMapMarker(
+      id: 'franchise_office',
+      position: _office,
+      child: LocalAssets(
+        imagePath: AppImageAssets.markerBlue,
+        width: 30,
+        height: 30,
+      ),
+      anchor: BlueMarkerAnchor.bottom,
+    ),
+  ];
 
   @override
   void initState() {
@@ -459,14 +447,10 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                     child: Stack(
                                       children: [
 
-                                        GoogleMap(
-                                          onMapCreated: _onMapCreated,
-                                          initialCameraPosition: CameraPosition(
-                                            target: LatLng(26.2389, 73.0243),
-                                            zoom: 14.0,
-                                          ),
+                                        BlueMap(
+                                          initialCenter: _office,
+                                          initialZoom: 14,
                                           markers: _markers,
-                                          compassEnabled: false,
                                         ),
 
                                       ],

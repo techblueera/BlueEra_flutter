@@ -5,7 +5,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/static_map_preview.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 class BusinessLocationWidget extends StatefulWidget {
   final double latitude;
@@ -111,26 +112,18 @@ class BusinessLocationMapWidget extends StatefulWidget {
 
 
 class _BusinessLocationMapWidgetState extends State<BusinessLocationMapWidget> {
-  // 1. Move the controller INSIDE the state
-  GoogleMapController? _mapController;
-
-  final Set<Marker> _markers = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMarker();
-  }
-
-  void _loadMarker() {
-    _markers.add(
-      Marker(
-        markerId: const MarkerId("business_id"),
-        position: LatLng(widget.latitude, widget.longitude),
-        infoWindow: InfoWindow(title: widget.businessName),
-      ),
-    );
-  }
+  /// Built once and held, rather than rebuilt in `build`. [BlueMap] diffs the
+  /// list it is given, and a fresh list of fresh markers every frame would
+  /// compare unequal every frame and redraw the pin continuously.
+  late final List<BlueMapMarker> _markers = [
+    BlueMapMarker(
+      id: 'business',
+      position: LatLng(widget.latitude, widget.longitude),
+      icon: Icons.location_on,
+      color: AppColors.primaryColor,
+      size: 44,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -139,30 +132,14 @@ class _BusinessLocationMapWidgetState extends State<BusinessLocationMapWidget> {
       width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: GoogleMap(
-          mapType: MapType.normal,
-          compassEnabled: false,
+        child: BlueMap(
+          initialCenter: LatLng(widget.latitude, widget.longitude),
+          initialZoom: 14,
           myLocationEnabled: true, // Requires Info.plist permissions!
-          myLocationButtonEnabled: false,
-          // Use the widget's actual location for the initial position
-          initialCameraPosition: CameraPosition(
-            target: LatLng(widget.latitude, widget.longitude),
-            zoom: 14.0,
-          ),
           markers: _markers,
-          onMapCreated: (GoogleMapController controller) {
-            _mapController = controller;
-          },
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // 2. CRITICAL: Dispose the controller to stop the iOS crash
-    _mapController?.dispose();
-    super.dispose();
   }
 }
 

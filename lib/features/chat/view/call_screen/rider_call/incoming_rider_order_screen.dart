@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 
 import '../../../../../core/constants/getx_utils.dart';
@@ -80,7 +81,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   /// a ride the server had already given away.
   late final int _totalSeconds;
 
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
   List<LatLng> _routePoints = const [];
 
   /// Road distance/duration of the pickup→drop leg, from the same Directions
@@ -301,8 +302,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         // Metres / seconds → the units the sheet displays.
         final metres = result.totalDistanceValue;
         final seconds = result.totalDurationValue;
-        if (metres != null && metres > 0) _routeDistanceKm = metres / 1000;
-        if (seconds != null && seconds > 0) _routeDurationMin = seconds / 60;
+        // Zero means the router returned no measurement — keep what's shown.
+        if (metres > 0) _routeDistanceKm = metres / 1000;
+        if (seconds > 0) _routeDurationMin = seconds / 60;
       });
       _fitRouteBounds();
     } catch (_) {
@@ -315,32 +317,17 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     final map = _mapController;
     if (map == null || !_hasRouteCoordinates) return;
 
-    final points = <LatLng>[
-      LatLng(_pickupLat, _pickupLng),
-      LatLng(_dropLat, _dropLng),
-      ..._routePoints,
-    ];
-    var minLat = points.first.latitude, maxLat = points.first.latitude;
-    var minLng = points.first.longitude, maxLng = points.first.longitude;
-    for (final p in points) {
-      if (p.latitude < minLat) minLat = p.latitude;
-      if (p.latitude > maxLat) maxLat = p.latitude;
-      if (p.longitude < minLng) minLng = p.longitude;
-      if (p.longitude > maxLng) maxLng = p.longitude;
-    }
-    try {
-      await map.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          60,
-        ),
-      );
-    } catch (_) {
-      // Map not laid out yet — the next call after the route lands retries.
-    }
+    // Padded generously: the visible band is squeezed between the floating
+    // countdown pill at the top and the details sheet covering the lower half,
+    // so a tight fit puts the route under the sheet.
+    await map.fitPoints(
+      [
+        LatLng(_pickupLat, _pickupLng),
+        LatLng(_dropLat, _dropLng),
+        ..._routePoints,
+      ],
+      padding: 120,
+    );
   }
 
   void _stopRingtone() {
@@ -619,66 +606,51 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
       );
     }
 
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: LatLng(_pickupLat, _pickupLng),
-        zoom: 13,
-      ),
+    return BlueMap(
+      initialCenter: LatLng(_pickupLat, _pickupLng),
+      initialZoom: 13,
       onMapCreated: (c) {
         _mapController = c;
         _fitRouteBounds();
       },
-      myLocationEnabled: false,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
-      liteModeEnabled: false,
-      // Keep the fitted route inside the band that is actually visible —
-      // between the floating countdown pill (status bar + its own height) and
-      // the details sheet covering the lower half.
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 76,
-        bottom: 260,
-      ),
-      markers: {
-        Marker(
-          markerId: const MarkerId('pickup'),
+      markers: [
+        BlueMapMarker(
+          id: 'pickup',
           position: LatLng(_pickupLat, _pickupLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: const InfoWindow(title: 'Pickup'),
+          icon: Icons.location_on,
+          color: Colors.green,
+          anchor: BlueMarkerAnchor.bottom,
         ),
-        Marker(
-          markerId: const MarkerId('drop'),
+        BlueMapMarker(
+          id: 'drop',
           position: LatLng(_dropLat, _dropLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: const InfoWindow(title: 'Drop'),
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
         ),
-      },
-      polylines: {
+      ],
+      polylines: [
         if (_routePoints.length >= 2)
-          Polyline(
-            polylineId: const PolylineId('route'),
+          BlueMapPolyline(
+            id: 'route',
             points: _routePoints,
             color: const Color(0xFF0F172A),
             width: 5,
-            startCap: Cap.roundCap,
-            endCap: Cap.roundCap,
-            jointType: JointType.round,
           )
         else
-          // Straight hint until the Directions call lands — dashed so it never
-          // reads as the actual road route.
-          Polyline(
-            polylineId: const PolylineId('route_pending'),
+          // Straight hint until the route lands — dotted so it never reads as
+          // the actual road route.
+          BlueMapPolyline(
+            id: 'route_pending',
             points: [
               LatLng(_pickupLat, _pickupLng),
               LatLng(_dropLat, _dropLng),
             ],
             color: const Color(0xFF94A3B8),
             width: 3,
-            patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+            isDotted: true,
           ),
-      },
+      ],
     );
   }
 

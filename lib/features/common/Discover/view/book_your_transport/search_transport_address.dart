@@ -22,9 +22,12 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+// MapPickAddressScreen is already migrated and speaks the app's own coordinate
+// type. Prefixed until this screen's own map follows.
+import 'package:BlueEra/core/map/lat_lng.dart' as osm;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
@@ -612,9 +615,11 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
         builder: (_) => MapPickAddressScreen(
-          initialLatLng: start,
+          initialLatLng: osm.LatLng(start.latitude, start.longitude),
           isPickup: isPickup,
-          otherEndLatLng: otherEnd,
+          otherEndLatLng: otherEnd == null
+              ? null
+              : osm.LatLng(otherEnd.latitude, otherEnd.longitude),
         ),
       ),
     );

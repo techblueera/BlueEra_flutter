@@ -2,12 +2,16 @@ import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+// TEMPORARY — only for DiscoverMarkerIcons.circleBitmap, which unmigrated
+// GoogleMap screens still use. Goes when they do.
+import 'package:google_maps_flutter/google_maps_flutter.dart' show BitmapDescriptor;
 
 /// Banner-style circular icon button (black 35% backdrop, white icon).
 /// Reused across the inline map preview and full-screen map screens so
@@ -139,19 +143,12 @@ class DiscoverMapPreview extends StatelessWidget {
             ),
             child: Padding(
               padding: EdgeInsets.only(top: statusBarHeight),
-              child: AbsorbPointer(
-                absorbing: true,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: target,
-                    zoom: initialZoom,
-                  ),
-                  myLocationEnabled: false,
-                  myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
-                  compassEnabled: false,
-                  mapToolbarEnabled: false,
-                ),
+              // `interactive: false` absorbs gestures, so the whole preview
+              // behaves as one tap target that opens the full-screen map.
+              child: BlueMap(
+                initialCenter: target,
+                initialZoom: initialZoom,
+                interactive: false,
               ),
             ),
           ),
@@ -217,18 +214,83 @@ class DiscoverMapPreview extends StatelessWidget {
   }
 }
 
-/// Generates `BitmapDescriptor` marker icons that look more polished
-/// than the default red Google pin: a colored circle with a white inner
-/// disc and a category icon at the centre. Results are cached by
-/// `(icon, color, size)` so subsequent calls are free.
+/// Builds the map pin used across the Discover maps: a coloured disc with a
+/// soft halo, a white ring and a category glyph at the centre.
+///
+/// ## Why this is a widget now
+///
+/// It used to paint onto a `ui.Canvas`, encode a PNG and wrap it in a
+/// `BitmapDescriptor` — because Google's maps take marker icons as raster
+/// images. That meant every pin was an async call returning a `Future`, and
+/// every screen using one carried state to hold the resolved descriptor and a
+/// `.then()` to fill it in.
+///
+/// OSM markers take **widgets**, so the whole pipeline collapses: no canvas, no
+/// PNG encode, no cache, no `Future`, and no `setState` when it arrives. The pin
+/// is now built synchronously at the call site and passed straight to
+/// [BlueMapMarker.child].
 class DiscoverMarkerIcons {
-  static final Map<int, BitmapDescriptor> _cache = {};
+  const DiscoverMarkerIcons._();
 
-  /// A circular marker with a soft halo, white ring and a glyph drawn
-  /// from [icon] in the centre. [color] tints the ring and the icon —
-  /// pass [AppColors.primaryColor] for the brand pin or any accent for
-  /// category-specific maps.
-  static Future<BitmapDescriptor> circle({
+  /// A circular marker with a soft halo, white ring and [icon] at the centre.
+  /// [color] tints the ring and the glyph — pass [AppColors.primaryColor] for
+  /// the brand pin, or any accent for category-specific maps.
+  static Widget circle({
+    required IconData icon,
+    Color? color,
+    double size = 44,
+  }) {
+    final fillColor = color ?? AppColors.primaryColor;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Soft halo.
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: fillColor.withValues(alpha: 0.18),
+            ),
+          ),
+          // White ring, which is what keeps the pin legible against dense
+          // map tiles.
+          Container(
+            width: size * 0.85,
+            height: size * 0.85,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+          ),
+          // Coloured disc.
+          Container(
+            width: size * 0.72,
+            height: size * 0.72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: fillColor,
+            ),
+          ),
+          Icon(icon, color: Colors.white, size: size * 0.38),
+        ],
+      ),
+    );
+  }
+
+  /// The old raster form, for screens still rendering a `GoogleMap`.
+  ///
+  /// TEMPORARY — delete along with the last `google_maps_flutter` import. It
+  /// exists only so the widget form above can land before every Discover map
+  /// screen has been migrated, rather than requiring all six to change in one
+  /// commit.
+  static final Map<int, BitmapDescriptor> _bitmapCache = {};
+
+  static Future<BitmapDescriptor> circleBitmap({
     required IconData icon,
     Color? color,
     int size = 110,
@@ -241,7 +303,7 @@ class DiscoverMarkerIcons {
       fillColor.value,
       size,
     );
-    final cached = _cache[cacheKey];
+    final cached = _bitmapCache[cacheKey];
     if (cached != null) return cached;
 
     final pictureRecorder = ui.PictureRecorder();
@@ -250,20 +312,13 @@ class DiscoverMarkerIcons {
     final cx = size / 2.0;
     final cy = size / 2.0;
 
-    // Soft halo
-    final haloPaint = Paint()
-      ..color = fillColor.withValues(alpha: 0.18);
-    canvas.drawCircle(Offset(cx, cy), size / 2.0, haloPaint);
+    canvas.drawCircle(Offset(cx, cy), size / 2.0,
+        Paint()..color = fillColor.withValues(alpha: 0.18));
+    canvas.drawCircle(
+        Offset(cx, cy), size / 2.0 - 8, Paint()..color = Colors.white);
+    canvas.drawCircle(
+        Offset(cx, cy), size / 2.0 - 14, Paint()..color = fillColor);
 
-    // White ring (acts as the border for the inner disc)
-    final ringPaint = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(cx, cy), size / 2.0 - 8, ringPaint);
-
-    // Inner colored disc
-    final fillPaint = Paint()..color = fillColor;
-    canvas.drawCircle(Offset(cx, cy), size / 2.0 - 14, fillPaint);
-
-    // Glyph
     final painter = TextPainter(textDirection: TextDirection.ltr);
     painter.text = TextSpan(
       text: String.fromCharCode(icon.codePoint),
@@ -280,11 +335,10 @@ class DiscoverMarkerIcons {
       Offset(cx - painter.width / 2, cy - painter.height / 2),
     );
 
-    final img =
-        await pictureRecorder.endRecording().toImage(size, size);
+    final img = await pictureRecorder.endRecording().toImage(size, size);
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     final descriptor = BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
-    _cache[cacheKey] = descriptor;
+    _bitmapCache[cacheKey] = descriptor;
     return descriptor;
   }
 }

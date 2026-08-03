@@ -1,13 +1,15 @@
+import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'ride_navigation_overlay_controller.dart';
@@ -49,9 +51,17 @@ class RiderRideNavigationScreen extends StatefulWidget {
 }
 
 class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
+  BlueMapController? _mapController;
+  /// The road route, once fetched.
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'ride_route',
+            points: _routeCoords,
+            width: 5,
+            color: const Color(0xFF00C853),
+          ),
+      ];
   List<LatLng> _routeCoords = [];
 
   StreamSubscription<Position>? _locationSubscription;
@@ -72,7 +82,7 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
   void initState() {
     super.initState();
     _currentRiderPosition = LatLng(LocationService.lat, LocationService.lng);
-    _setupMarkers();
+    // Markers are derived from state now — no setup step to forget.
     _fetchRoute();
     _startLocationTracking();
     _startRideTimer();
@@ -86,24 +96,42 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
     super.dispose();
   }
 
-  void _setupMarkers() {
-    _markers.addAll([
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: _pickupLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow:
-            InfoWindow(title: 'Pickup', snippet: widget.pickupLocation),
-      ),
-      Marker(
-        markerId: const MarkerId('drop'),
-        position: _dropLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow:
-            InfoWindow(title: 'Drop-off', snippet: widget.dropLocation),
-      ),
-    ]);
-  }
+  /// Pickup, drop, and the rider's live position once it is known.
+  ///
+  /// Rebuilt from state on every frame rather than mutated in place. The old
+  /// code kept a `Set<Marker>` and hand-removed the rider pin by id before
+  /// re-adding it — miss that `removeWhere` and every GPS tick leaks another
+  /// pin. [BlueMap] diffs by id, so describing the three markers that should
+  /// exist is enough.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'pickup',
+          position: _pickupLatLng,
+          icon: Icons.location_on,
+          color: Colors.green,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+        BlueMapMarker(
+          id: 'drop',
+          position: _dropLatLng,
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+        if (_currentRiderPosition != null)
+          BlueMapMarker(
+            id: 'rider_live',
+            position: _currentRiderPosition!,
+            icon: Icons.navigation,
+            color: Colors.blue,
+            // Radians — the plugin's unit. `position.heading` is degrees.
+            angle: _riderHeadingRadians,
+          ),
+      ];
+
+  /// Rider heading in radians, normalised into [0, 2π) because the plugin
+  /// asserts that range and a raw compass value can arrive negative.
+  double _riderHeadingRadians = 0;
 
   Future<void> _fetchRoute() async {
     try {
@@ -113,26 +141,11 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
       );
 
       if (result != null && result.points.isNotEmpty) {
-        _routeCoords = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList();
-        final routeCoords = _routeCoords;
-
         setState(() {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('ride_route'),
-              points: routeCoords,
-              width: 5,
-              color: const Color(0xFF00C853),
-              geodesic: true,
-              jointType: JointType.round,
-              startCap: Cap.roundCap,
-              endCap: Cap.roundCap,
-            ),
-          );
+          _routeCoords = result.points
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList();
         });
-
         _fitBounds(_pickupLatLng, _dropLatLng);
       }
     } catch (_) {}
@@ -150,18 +163,12 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
       if (!mounted) return;
       setState(() {
         _currentRiderPosition = LatLng(position.latitude, position.longitude);
-        // Update rider marker
-        _markers.removeWhere((m) => m.markerId.value == 'rider_live');
-        _markers.add(
-          Marker(
-            markerId: const MarkerId('rider_live'),
-            position: _currentRiderPosition!,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueAzure),
-            infoWindow: const InfoWindow(title: 'You'),
-            rotation: position.heading,
-          ),
-        );
+        // Degrees off the GPS, radians onto the map — and wrapped, because a
+        // heading can come back negative and the plugin asserts [0, 2π).
+        final degrees = position.heading % 360;
+        _riderHeadingRadians = (degrees < 0 ? degrees + 360 : degrees) *
+            math.pi /
+            180.0;
       });
     });
   }
@@ -180,18 +187,7 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
   }
 
   void _fitBounds(LatLng a, LatLng b) {
-    if (_mapController == null) return;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        a.latitude < b.latitude ? a.latitude : b.latitude,
-        a.longitude < b.longitude ? a.longitude : b.longitude,
-      ),
-      northeast: LatLng(
-        a.latitude > b.latitude ? a.latitude : b.latitude,
-        a.longitude > b.longitude ? a.longitude : b.longitude,
-      ),
-    );
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+    _mapController?.fitPoints([a, b], padding: 80);
   }
 
   Future<void> _endRide() async {
@@ -264,22 +260,17 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
       body: Stack(
         children: [
           // Full-screen map
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _pickupLatLng,
-              zoom: 14,
-            ),
+          BlueMap(
+            initialCenter: _pickupLatLng,
+            initialZoom: 14,
             markers: _markers,
             polylines: _polylines,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
             onMapCreated: (controller) {
               _mapController = controller;
-              Future.delayed(const Duration(milliseconds: 500), () {
-                _fitBounds(_pickupLatLng, _dropLatLng);
-              });
+              // No delay: BlueMap queues camera work until the map is ready,
+              // which is what the 500ms was guessing at.
+              _fitBounds(_pickupLatLng, _dropLatLng);
             },
           ),
 

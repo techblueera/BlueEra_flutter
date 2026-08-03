@@ -2043,7 +2043,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
   @override
   void initState() {
     super.initState();
-    DiscoverMarkerIcons.circle(
+    DiscoverMarkerIcons.circleBitmap(
       icon:
           widget.isIndividual ? Icons.home_work_outlined : Icons.hotel_outlined,
     ).then((d) {

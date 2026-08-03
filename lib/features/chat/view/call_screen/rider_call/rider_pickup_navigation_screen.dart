@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 import 'dart:io';
 
@@ -9,12 +10,14 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/services.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../../auth/service/ride_location_publisher.dart';
@@ -66,9 +69,17 @@ class RiderPickupNavigationScreen extends StatefulWidget {
 
 class _RiderPickupNavigationScreenState
     extends State<RiderPickupNavigationScreen> with WidgetsBindingObserver {
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
+  BlueMapController? _mapController;
+  /// Road route from the rider to the pickup point.
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: 'to_pickup',
+            points: _routeCoords,
+            width: 5,
+            color: const Color(0xFF4285F4),
+          ),
+      ];
   List<LatLng> _routeCoords = [];
 
   // Live GPS stream so the rider marker + camera follow the rider as they head
@@ -83,7 +94,13 @@ class _RiderPickupNavigationScreenState
   bool _otpError = false;
   bool _isStartingRide = false;
 
+  /// Live position from the GPS stream once it starts, else the last known
+  /// service fix, else a sane fallback so the map never opens on the null island.
+  LatLng? _riderLatLngOverride;
+
   LatLng get _riderLatLng {
+    final live = _riderLatLngOverride;
+    if (live != null) return live;
     final lat = LocationService.lat;
     final lng = LocationService.lng;
     if (lat != 0.0 && lng != 0.0) return LatLng(lat, lng);
@@ -96,8 +113,7 @@ class _RiderPickupNavigationScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _setupMarkers();
-    _loadMarkerIcons();
+    // Markers and their icons are derived from state — nothing to preload.
     _fetchRoute();
     // Publish the rider's live position to the customer's tracking stream while
     // heading to pickup (heartbeat + retry handled by the publisher).
@@ -150,65 +166,44 @@ class _RiderPickupNavigationScreenState
 
   /// Vehicle glyph for the rider's own marker — the same asset the customer
   /// sees tracking this ride, so the vehicle looks identical on both sides.
-  BitmapDescriptor? _riderIcon;
+  ///
+  /// Held as a widget rather than a rasterised bitmap. The old code loaded both
+  /// icons asynchronously, then had to hunt down the markers already on the map
+  /// and "re-stamp" them with the icons once they arrived — a whole
+  /// `_restampMarker` helper existing purely because the map wanted PNGs. Marker
+  /// children are widgets now, so both are right on the first frame.
+  static const Widget _riderIcon = LocalAssets(
+    imagePath: 'assets/svg/2_wheeler.svg',
+    width: kVehicleMarkerSize,
+    height: kVehicleMarkerSize,
+  );
 
-  /// Pin for the pickup marker — a place, so a pin, not a glyph. The app's own
-  /// marker asset rather than Google's default teardrop.
-  BitmapDescriptor? _customerIcon;
+  /// Pin for the pickup marker — a place, so a pin, not a glyph.
+  static final Widget _customerIcon = LocalAssets(
+    imagePath: AppImageAssets.locationMarkerIcon,
+    width: 30,
+    height: 40,
+  );
 
-  Future<void> _loadMarkerIcons() async {
-    try {
-      // Both from the app's own assets: a vehicle glyph for the rider (which
-      // moves and has a heading), a plain pin for the pickup (which doesn't).
-      final rider = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
-      final pickup = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 40)),
-        AppImageAssets.locationMarkerIcon,
-      );
-      if (!mounted) return;
-      setState(() {
-        if (rider.isNotEmpty) _riderIcon = BitmapDescriptor.bytes(rider);
-        _customerIcon = pickup;
-        // Re-stamp the markers already on the map with their icons.
-        _restampMarker('rider', _riderIcon, flat: true);
-        _restampMarker('pickup', _customerIcon);
-      });
-    } catch (_) {
-      // Keep the default markers — a missing glyph must not blank the map.
-    }
-  }
+  /// Heading in radians, wrapped into [0, 2π) as the plugin requires.
+  double _headingRadians = 0;
 
-  void _restampMarker(String id, BitmapDescriptor? icon, {bool flat = false}) {
-    if (icon == null) return;
-    final existing = _markers
-        .where((m) => m.markerId.value == id)
-        .cast<Marker?>()
-        .firstWhere((_) => true, orElse: () => null);
-    if (existing == null) return;
-    _markers.remove(existing);
-    _markers.add(existing.copyWith(iconParam: icon, flatParam: flat));
-  }
-
-  void _setupMarkers() {
-    _markers.addAll([
-      Marker(
-        markerId: const MarkerId('rider'),
-        position: _riderLatLng,
-        icon: _riderIcon ??
-            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        flat: true,
-        anchor: const Offset(0.5, 0.5),
-        infoWindow: const InfoWindow(title: 'Your Location'),
-      ),
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: _pickupLatLng,
-        icon: _customerIcon ??
-            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: InfoWindow(title: 'Pickup', snippet: widget.pickupLocation),
-      ),
-    ]);
-  }
+  /// Rider (moving, heading-aware) and pickup (fixed). Derived from state, so
+  /// there is no add/remove bookkeeping to get wrong on a GPS tick.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'rider',
+          position: _riderLatLng,
+          child: _riderIcon,
+          angle: _headingRadians,
+        ),
+        BlueMapMarker(
+          id: 'pickup',
+          position: _pickupLatLng,
+          child: _customerIcon,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      ];
 
   /// Streams the rider's live GPS location and moves the 'rider' marker + the
   /// camera to follow it, so the map tracks the rider as they travel to the
@@ -224,28 +219,18 @@ class _RiderPickupNavigationScreenState
       if (!mounted) return;
       final newPos = LatLng(position.latitude, position.longitude);
       setState(() {
-        _markers.removeWhere((m) => m.markerId.value == 'rider');
-        _markers.add(
-          Marker(
-            markerId: const MarkerId('rider'),
-            position: newPos,
-            icon: _riderIcon ??
-                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-            infoWindow: const InfoWindow(title: 'Your Location'),
-            // flat so `rotation` points the vehicle along the heading rather
-            // than tipping a pin over.
-            flat: true,
-            rotation: position.heading,
-            anchor: const Offset(0.5, 0.5),
-          ),
-        );
+        _riderLatLngOverride = newPos;
+        // Degrees off the GPS, radians onto the map, wrapped into [0, 2π).
+        final degrees = position.heading % 360;
+        _headingRadians =
+            (degrees < 0 ? degrees + 360 : degrees) * math.pi / 180.0;
       });
       // Push the position to the map-service so the customer's live-tracking
       // map follows the rider on the way to pickup. Throttling/heartbeat/retry
       // live in the publisher.
       RideLocationPublisher().updatePosition(newPos.latitude, newPos.longitude);
       // Gently follow the rider.
-      _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
+      _mapController?.moveTo(newPos);
     });
   }
 
@@ -258,44 +243,18 @@ class _RiderPickupNavigationScreenState
       );
 
       if (result != null && result.points.isNotEmpty) {
-        _routeCoords = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList();
-        final routeCoords = _routeCoords;
-
         setState(() {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('to_pickup'),
-              points: routeCoords,
-              width: 5,
-              color: const Color(0xFF4285F4),
-              geodesic: true,
-              jointType: JointType.round,
-              startCap: Cap.roundCap,
-              endCap: Cap.roundCap,
-            ),
-          );
+          _routeCoords = result.points
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList();
         });
-
         _fitBounds(_riderLatLng, _pickupLatLng);
       }
     } catch (_) {}
   }
 
   void _fitBounds(LatLng a, LatLng b) {
-    if (_mapController == null) return;
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        a.latitude < b.latitude ? a.latitude : b.latitude,
-        a.longitude < b.longitude ? a.longitude : b.longitude,
-      ),
-      northeast: LatLng(
-        a.latitude > b.latitude ? a.latitude : b.latitude,
-        a.longitude > b.longitude ? a.longitude : b.longitude,
-      ),
-    );
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+    _mapController?.fitPoints([a, b], padding: 80);
   }
 
   /// Looks the current order up in the rider-orders controller and, if it is
@@ -551,7 +510,7 @@ class _RiderPickupNavigationScreenState
       destLabelVal: verified ? widget.dropLocation : widget.pickupLocation,
       customerNameVal: widget.customerName,
       fareAmountVal: widget.fareAmount,
-      routePoints: verified ? const [] : _routeCoords,
+      routePoints: verified ? const [] : _routeCoords.map((p) => LatLng(p.latitude, p.longitude)).toList(),
       type: verified ? 'ride' : 'pickup',
       params: {
         'pickupLocation': widget.pickupLocation,
@@ -620,23 +579,17 @@ class _RiderPickupNavigationScreenState
       body: Stack(
         children: [
           // Full-screen map
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _riderLatLng,
-              zoom: 14,
-            ),
+          BlueMap(
+            initialCenter: _riderLatLng,
+            initialZoom: 14,
             markers: _markers,
             polylines: _polylines,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
             onMapCreated: (controller) {
               _mapController = controller;
-              // Fit after map ready
-              Future.delayed(const Duration(milliseconds: 500), () {
-                _fitBounds(_riderLatLng, _pickupLatLng);
-              });
+              // No delay: BlueMap queues camera work until the map is ready,
+              // which is what the 500ms was guessing at.
+              _fitBounds(_riderLatLng, _pickupLatLng);
             },
           ),
 

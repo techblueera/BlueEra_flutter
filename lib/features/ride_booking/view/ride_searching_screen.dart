@@ -8,7 +8,8 @@ import 'package:BlueEra/features/ride_booking/widget/ride_trip_details_sheet.dar
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// "Searching in progress" (screenshot 4).
 ///
@@ -25,7 +26,7 @@ class RideSearchingScreen extends StatefulWidget {
 class _RideSearchingScreenState extends State<RideSearchingScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
   late final Worker _statusWorker;
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   /// Fare bumps offered while searching, matching the reference chips.
   static const List<double> _boostAmounts = [10, 20, 30, 40];
@@ -117,24 +118,22 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
           : const LatLng(23.2599, 77.4126);
       return Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(target: center, zoom: 15),
+          BlueMap(
+            initialCenter: center,
+            initialZoom: 15,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
             onMapCreated: (c) => _mapController = c,
-            circles: {
-              // Pulsing-style search radius around the pickup.
-              Circle(
-                circleId: const CircleId('search-radius'),
+            circles: [
+              // Search radius around the pickup.
+              BlueMapCircle(
+                id: 'search-radius',
                 center: center,
-                radius: 900,
-                fillColor: AppColors.primaryColor.withOpacity(0.10),
-                strokeColor: AppColors.primaryColor.withOpacity(0.35),
+                radiusMetres: 900,
+                color: AppColors.primaryColor.withValues(alpha: 0.10),
+                borderColor: AppColors.primaryColor.withValues(alpha: 0.35),
                 strokeWidth: 1,
               ),
-            },
+            ],
           ),
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/lat_lng.dart' as osm;
 
 // ─── AllSelfProfessionScreen ───
 class SelfProfessionDiscoverScreen extends StatefulWidget {
@@ -141,8 +142,11 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     return DiscoverMapPreview(
       statusBarHeight: statusBarHeight,
       onTap: _openFullMap,
+      // osm.LatLng, not the Google one this file still imports for its
+      // GoogleMap — the preview is already migrated. The prefix goes when the
+      // rest of this screen does.
       center: (lat != null && lng != null && !(lat == 0 && lng == 0))
-          ? LatLng(lat, lng)
+          ? osm.LatLng(lat, lng)
           : null,
       locationLabel: label.isNotEmpty ? label : null,
     );
@@ -1193,7 +1197,7 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
     );
     // Pre-render the custom marker icon once; cluster taps pop the
     // unclustered marker so this is what the user actually sees.
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _serviceIcon = d);
     });
   }

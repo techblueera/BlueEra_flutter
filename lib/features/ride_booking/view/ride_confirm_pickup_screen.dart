@@ -7,7 +7,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// "Check your pickup point" (screenshot 2).
 ///
@@ -24,7 +25,7 @@ class RideConfirmPickupScreen extends StatefulWidget {
 
 class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   /// Coordinate under the centre pin right now. Updated on camera-idle.
   late LatLng _pinPosition;
@@ -75,9 +76,7 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
         final target = LatLng(lat, controller.currentLng.value);
         _pinPosition = target;
         // Camera-idle then fires and resolves the address for it.
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(target, 17),
-        );
+        _mapController?.moveTo(target, zoom: 17);
       });
     }
   }
@@ -193,15 +192,13 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        GoogleMap(
-          initialCameraPosition: CameraPosition(target: _pinPosition, zoom: 17),
+        BlueMap(
+          initialCenter: _pinPosition,
+          initialZoom: 17,
           myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-          mapToolbarEnabled: false,
           onMapCreated: (c) => _mapController = c,
-          onCameraMove: (position) => _pinPosition = position.target,
-          onCameraIdle: _onCameraIdle,
+          onCameraMoved: (centre) => _pinPosition = centre,
+          onCameraIdle: (_) => _onCameraIdle(),
         ),
         // Centre pin sits slightly above true centre so its point, not its
         // body, marks the coordinate.
@@ -231,9 +228,7 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
     final lat = controller.currentLat.value;
     final lng = controller.currentLng.value;
     if (lat == 0 && lng == 0) return;
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(lat, lng), 17),
-    );
+    _mapController?.moveTo(LatLng(lat, lng), zoom: 17);
   }
 
   Widget _bottomPanel() {

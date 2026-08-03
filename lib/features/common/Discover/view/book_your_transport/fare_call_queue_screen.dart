@@ -11,11 +11,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+// RideNavigationOverlayController is already migrated and speaks the app's own
+// coordinate type. Prefixed until this screen's own map follows.
+import 'package:BlueEra/core/map/lat_lng.dart' as osm;
 
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -581,7 +584,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       destLabelVal: discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
       customerNameVal: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
       fareAmountVal: 0,
-      routePoints: _routeCoords,
+      routePoints: _routeCoords.map((p) => osm.LatLng(p.latitude, p.longitude)).toList(),
       type: 'customer_tracking',
       params: {
         'orderId': widget.orderId,

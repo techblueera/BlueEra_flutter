@@ -27,6 +27,7 @@ import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/pending_message_drainer.dart';
 import 'package:BlueEra/core/theme/themes.dart';
+import 'package:BlueEra/core/map/osm_config.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
@@ -673,6 +674,23 @@ Future<void> main() async {
 // PHASE 1 -- Critical path: only what's needed for the first frame
 // ═══════════════════════════════════════════════════════════════════════════
 
+  /// Maps, address search and routing. ALL of it points here — see
+  /// lib/core/map/osm_config.dart.
+  ///
+  /// Fill these in with the self-hosted hosts and this is the only edit needed;
+  /// no screen, repo or service knows a host name. Until then the defaults are
+  /// the public community servers, which are fine for development and **not
+  /// permitted for production traffic** — [_assertOsmConfigured] shouts about
+  /// that in debug rather than letting it reach users as rate-limit errors.
+  ///
+  /// OsmConfig.configure(
+  ///   photonBaseUrl:    'https://photon.<your-domain>',
+  ///   nominatimBaseUrl: 'https://nominatim.<your-domain>',
+  ///   osrmBaseUrl:      'https://osrm.<your-domain>',
+  ///   tileUrlTemplate:  'https://tiles.<your-domain>/{z}/{x}/{y}.png',
+  /// );
+  _assertOsmConfigured();
+
   /// Env config + Firebase + Hive in parallel
   await Future.wait<void>([
     projectKeys(environmentType: AppConstants.prod),
@@ -1169,7 +1187,6 @@ void debugPrintKeys() {
   print('Razorpay Key: $razorpayKey');
   print('Chat Socket URL: $chatSocketUrl');
   print('Live Track Socket: $liveTrackSocket');
-  print('Google Map Key: $googleMapKey');
   print('Gemini API Key: $geminiApiKey');
   print('Firebase Project ID: $projectFireBaseId');
   print(Platform.isAndroid
@@ -1293,6 +1310,28 @@ class _MyAppState extends State<MyApp> {
           return const SplashScreen(); // or SplashScreen / whatever your entry route is
         }),
       ),
+    );
+  }
+}
+
+/// Warns, loudly and only in debug, when the OSM services still point at the
+/// public community servers.
+///
+/// Those servers are excellent for development and their usage policies forbid
+/// the traffic a consumer app generates — Nominatim caps at ~1 req/sec and
+/// blocks autocomplete outright, the OSRM demo box is for testing, and both will
+/// IP-block rather than degrade. Shipping against them does not fail at build
+/// time or in QA; it fails in production, in whichever city is busiest.
+///
+/// Debug-only on purpose: a release build must never be taken down by this, and
+/// a developer running against the public servers is doing the right thing.
+void _assertOsmConfigured() {
+  if (kDebugMode && OsmConfig.isUsingPublicDemoServers) {
+    debugPrint(
+      '⚠️  OSM services are pointing at the PUBLIC demo servers '
+      '(Nominatim / Photon / OSRM). Fine for development, NOT permitted for '
+      'production traffic. Set the self-hosted hosts via OsmConfig.configure() '
+      'in main() before shipping — see lib/core/map/osm_config.dart.',
     );
   }
 }

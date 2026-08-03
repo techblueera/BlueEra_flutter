@@ -23,16 +23,18 @@ String firebaseApiKey = Platform.isAndroid
     : Platform.isIOS
     ? Env.iosFirebaseAPIKey
     : "";
-String googleMapKey = Env.googleMapKey;
 String geminiApiKey = Env.geminiApiKey;
 
-String googleAutocomplete =
-    "https://maps.googleapis.com/maps/api/place/autocomplete/json";
-String googlePlaceId =
-    "https://maps.googleapis.com/maps/api/place/details/json";
-String googleGeoCode =
-    "https://maps.googleapis.com/maps/api/geocode/json";
-String googleCountryCode = "&language=en&components=country:IN";
+/// Maps, address search and routing are served by OpenStreetMap providers —
+/// see `lib/core/map/osm_config.dart`, which holds every map endpoint and the
+/// production checklist for them.
+///
+/// The Google Maps key and the Places/Geocoding URLs that used to live here are
+/// gone along with the APIs they addressed. `Env.googleMapKey` can be dropped
+/// from `.env` once no release in the wild still depends on it — and the key
+/// itself should be **revoked in the Cloud Console**, not merely removed from
+/// the app: a key compiled into a shipped binary keeps working for whoever has
+/// extracted it, and it is still billable.
 String pinCodeUrl(String pinCode) => "https://api.postalpincode.in/pincode/$pinCode";
 
 String takeFranchise = "https://bluecs.in/partner";

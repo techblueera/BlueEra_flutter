@@ -15,7 +15,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// **Book Home Services — entry (v2).**
 ///
@@ -45,7 +46,7 @@ class _SelfProfessionDiscoverEntryScreenState
     extends State<SelfProfessionDiscoverEntryScreen> {
   final _controller = getOrPut(() => DiscoverController());
 
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   // The location the search will scope to. Seeded from the device fix; the
   // user can override it with "current location" or a searched place.
@@ -83,7 +84,7 @@ class _SelfProfessionDiscoverEntryScreenState
       : _fallbackCenter;
 
   void _recenterMap() {
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(_mapTarget, 13));
+    _mapController?.moveTo(_mapTarget, zoom: 13);
   }
 
   // ── Category tap → stamp location + open results ──────────────────────────
@@ -148,16 +149,13 @@ class _SelfProfessionDiscoverEntryScreenState
         children: [
           // Decorative map backdrop (not pannable — the sheet owns gestures).
           Positioned.fill(
-            child: AbsorbPointer(
-              child: GoogleMap(
-                initialCameraPosition:
-                    CameraPosition(target: _mapTarget, zoom: 13),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                onMapCreated: (c) => _mapController = c,
-              ),
+            child: BlueMap(
+              initialCenter: _mapTarget,
+              initialZoom: 13,
+              myLocationEnabled: true,
+              // Not pannable — the sheet above owns gestures.
+              interactive: false,
+              onMapCreated: (c) => _mapController = c,
             ),
           ),
           // Header: back + "Book Home Services" pill.

@@ -129,7 +129,7 @@ class _SelfProfessionDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchEarnServicesIfNeeded(
         earnServiceType: earnServiceType, subType: serviceSubType);
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _markerIcon = d);
     });
   }
@@ -1358,7 +1358,7 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
     );
     // Pre-render the custom marker icon once; cluster taps pop the unclustered
     // marker so this is what the user actually sees.
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
+    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
       if (mounted) setState(() => _serviceIcon = d);
     });
   }

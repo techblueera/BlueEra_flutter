@@ -7,7 +7,8 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Rapido-rider–style address picker.
 ///
@@ -34,7 +35,7 @@ class MapPickAddressScreen extends StatefulWidget {
 }
 
 class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   LatLng? _pickedLatLng;
   String? _pickedAddress;
@@ -85,9 +86,7 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
     final lat = LocationService.lat;
     final lng = LocationService.lng;
     if (lat == 0.0 && lng == 0.0) return;
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(lat, lng), 16.0),
-    );
+    _mapController?.moveTo(LatLng(lat, lng), zoom: 16);
   }
 
   void _openChange() {
@@ -151,19 +150,17 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
     }
   }
 
-  Set<Marker> _referenceMarkers() {
-    if (widget.otherEndLatLng == null) return const {};
-    return {
-      Marker(
-        markerId: MarkerId(widget.isPickup ? 'drop_ref' : 'pickup_ref'),
+  List<BlueMapMarker> _referenceMarkers() {
+    if (widget.otherEndLatLng == null) return const [];
+    return [
+      BlueMapMarker(
+        id: widget.isPickup ? 'drop_ref' : 'pickup_ref',
         position: widget.otherEndLatLng!,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          widget.isPickup
-              ? BitmapDescriptor.hueRed
-              : BitmapDescriptor.hueBlue,
-        ),
+        icon: Icons.location_on,
+        color: widget.isPickup ? Colors.red : Colors.blue,
+        anchor: BlueMarkerAnchor.bottom,
       ),
-    };
+    ];
   }
 
   @override
@@ -176,23 +173,20 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
           children: [
             /// Full-screen map
             Positioned.fill(
-              child: GoogleMap(
+              child: BlueMap(
+                initialCenter: widget.initialLatLng,
+                initialZoom: 16,
+                myLocationEnabled: true,
                 onMapCreated: (c) {
                   _mapController = c;
-                  c.animateCamera(
-                    CameraUpdate.newLatLngZoom(widget.initialLatLng, 16.0),
-                  );
+                  c.moveTo(widget.initialLatLng, zoom: 16);
                 },
-                initialCameraPosition: CameraPosition(
-                  target: widget.initialLatLng,
-                  zoom: 16.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                compassEnabled: false,
-                zoomControlsEnabled: false,
                 markers: _referenceMarkers(),
-                onCameraMoveStarted: () {
+                // BlueMap has no separate "move started" event, so the first
+                // move after a rest doubles as one — which is exactly what the
+                // flag meant anyway.
+                onCameraMoved: (centre) {
+                  _pickedLatLng = centre;
                   if (!_isPinDragging) {
                     setState(() {
                       _isPinDragging = true;
@@ -201,16 +195,11 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
                     });
                   }
                 },
-                onCameraMove: (pos) {
-                  _pickedLatLng = pos.target;
-                },
-                onCameraIdle: () {
+                onCameraIdle: (centre) {
                   if (_isPinDragging) {
                     setState(() => _isPinDragging = false);
                   }
-                  if (_pickedLatLng != null) {
-                    _resolveAddress(_pickedLatLng!);
-                  }
+                  _resolveAddress(centre);
                 },
               ),
             ),

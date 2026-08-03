@@ -28,7 +28,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 class CreateBusinessAccountNewStepTwo extends StatefulWidget {
   const CreateBusinessAccountNewStepTwo({
@@ -55,8 +56,7 @@ class _CreateBusinessAccountNewStepTwoState
 
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
-  GoogleMapController? mapController;
-  Set<Marker> _markers = {};
+  BlueMapController? mapController;
   LocationDataModel? locationData;
 
   @override
@@ -176,40 +176,40 @@ class _CreateBusinessAccountNewStepTwoState
     });
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    if (locationData != null) {
-      _updateMarkerOnMap();
-    }
+  /// The picked business address, or null before one is chosen.
+  ///
+  /// Parsed rather than assumed: `locationData` carries lat/long as strings
+  /// straight off the API, and a malformed pair must leave the map framed on
+  /// India rather than throwing during build.
+  LatLng? get _selectedPosition {
+    final data = locationData;
+    if (data == null) return null;
+    final lat = double.tryParse(data.lat);
+    final lng = double.tryParse(data.long);
+    if (lat == null || lng == null) return null;
+    return LatLng(lat, lng);
   }
 
-  Future<void> _updateMarkerOnMap() async {
-    if (locationData == null) return;
-
-    try {
-      double lat = double.parse(locationData!.lat);
-      double long = double.parse(locationData!.long);
-      LatLng position = LatLng(lat, long);
-
-      // Create the Google Maps Marker
-      final Marker newMarker = Marker(
-        markerId: const MarkerId("selected_location"),
+  List<BlueMapMarker> get _markers {
+    final position = _selectedPosition;
+    if (position == null) return const [];
+    return [
+      BlueMapMarker(
+        id: 'selected_location',
         position: position,
-        icon: BitmapDescriptor.defaultMarker, // Or use custom icon
-      );
+        icon: Icons.location_on,
+        color: AppColors.primaryColor,
+        anchor: BlueMarkerAnchor.bottom,
+      ),
+    ];
+  }
 
-      setState(() {
-        _markers = {newMarker};
-      });
-
-      // Animate Camera
-      await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(position, 14),
-      );
-    } catch (e) {
-      print("Error updating marker: $e");
-    }
+  /// Re-frames the map on a newly picked address. The marker follows
+  /// declaratively from [_markers], so this only moves the camera.
+  void _updateMarkerOnMap() {
+    final position = _selectedPosition;
+    if (position == null) return;
+    mapController?.moveTo(position, zoom: 14);
   }
 
   @override
@@ -300,26 +300,18 @@ class _CreateBusinessAccountNewStepTwoState
                             height: SizeConfig.size160,
                             child: Stack(
                               children: [
-                                /// Google Map
-                                GoogleMap(
-                                  onMapCreated: _onMapCreated,
-                                  initialCameraPosition: CameraPosition(
-                                    target: (locationData != null)
-                                        ? LatLng(
-                                            double.parse(locationData!.lat),
-                                            double.parse(locationData!.long),
-                                          )
-                                        : LatLng(20.5937,
-                                            78.9629), // Center of India
-                                    zoom: (locationData != null) ? 14 : 4,
-                                  ),
+                                /// Map preview of the picked address
+                                BlueMap(
+                                  // Centre of India until an address is picked.
+                                  initialCenter: _selectedPosition ??
+                                      const LatLng(20.5937, 78.9629),
+                                  initialZoom:
+                                      _selectedPosition != null ? 14 : 4,
                                   markers: _markers,
-                                  myLocationEnabled: false,
-                                  compassEnabled: false,
-                                  zoomGesturesEnabled: false,
-                                  rotateGesturesEnabled: true,
-                                  tiltGesturesEnabled: true,
-                                  scrollGesturesEnabled: true,
+                                  onMapCreated: (c) {
+                                    mapController = c;
+                                    _updateMarkerOnMap();
+                                  },
                                 ),
                                 Positioned(
                                   right: SizeConfig.size10,
