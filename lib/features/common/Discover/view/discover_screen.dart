@@ -1088,9 +1088,9 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
       // they sign up) the slot is filled with a sign-up prompt of the SAME
       // height. The header's `headerBlockHeight` is computed from `bannerHeight`
       // regardless of what fills it, so this keeps that arithmetic honest.
-      // if (isGuestUser()) {
+      if (isGuestUser()) {
         return _GuestProfilePromptCard(height: height);
-      // }
+      }
 
       final hasPoster = poster?.trim().isNotEmpty ?? false;
       return _DiscoverHeaderBanner(
