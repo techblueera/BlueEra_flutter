@@ -17,7 +17,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Quick "book this rider" flow launched when a bike rider is tapped in the
 /// "Nearest Stores" rail. Instead of opening a profile, the user picks a DROP
@@ -38,7 +39,7 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
   final _discoverController = getOrPut(() => DiscoverController());
   final TextEditingController _searchController = TextEditingController();
 
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
 
   // Fixed pickup = the user's current location (read-only).
   LatLng? _pickupLatLng;
@@ -123,7 +124,7 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
   void _recenterOnMyLocation() {
     final p = _pickupLatLng;
     if (p == null) return;
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(p, 16.0));
+    _mapController?.moveTo(p, zoom: 16);
   }
 
   // ─── Places search ──────────────────────────────────────────────────────
@@ -200,7 +201,7 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
       // Move the map to the picked place; the centre pin now sits on it. Use the
       // prediction's own description as the drop address (richer than a reverse
       // geocode of the point).
-      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16.0));
+      _mapController?.moveTo(target, zoom: 16);
       if (!mounted) return;
       setState(() {
         _dropLatLng = target;
@@ -327,18 +328,18 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
 
   Widget _buildMap() {
     return Positioned.fill(
-      child: GoogleMap(
+      child: BlueMap(
+        initialCenter: _initialCamera,
+        initialZoom: 16,
+        myLocationEnabled: true,
         onMapCreated: (c) {
           _mapController = c;
-          c.animateCamera(CameraUpdate.newLatLngZoom(_initialCamera, 16.0));
+          c.moveTo(_initialCamera, zoom: 16);
         },
-        initialCameraPosition:
-            CameraPosition(target: _initialCamera, zoom: 16.0),
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        compassEnabled: false,
-        zoomControlsEnabled: false,
-        onCameraMoveStarted: () {
+        // BlueMap has no separate "move started" event — the first move after a
+        // rest is the start, which is all the flag ever meant.
+        onCameraMoved: (centre) {
+          _dropLatLng = centre;
           if (!_isPinDragging) {
             setState(() {
               _isPinDragging = true;
@@ -351,10 +352,9 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
             FocusScope.of(context).unfocus();
           }
         },
-        onCameraMove: (pos) => _dropLatLng = pos.target,
-        onCameraIdle: () {
+        onCameraIdle: (centre) {
           if (_isPinDragging) setState(() => _isPinDragging = false);
-          if (_dropLatLng != null) _resolveDropAddress(_dropLatLng!);
+          _resolveDropAddress(centre);
         },
       ),
     );
