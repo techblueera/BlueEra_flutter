@@ -321,15 +321,32 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
       },
     );
 
-    final bottomBarController = Get.find<BottomBarController>();
+    final bottomNavRoute = RouteHelper.getBottomNavigationBarScreenRoute();
+    final landingIndex = widget.profession == SELF_EMPLOYED ? 2 : 1;
 
-    // Pop everything back down to the BottomNavigation root.
+    // The bottom-nav is only already on the stack when the user came through
+    // as a guest — splash makes it the root for anyone already logged in. A
+    // first-time signup starts at the login screen instead, so nothing ever
+    // built the bottom-nav and its controller was never registered: `Get.find`
+    // threw here, and popping "until" a route that isn't on the stack would
+    // have stranded the brand-new user back on login. Build it as the new root
+    // in that case, which is what splash does for every other entry path.
+    if (!Get.isRegistered<BottomBarController>()) {
+      Get.offAllNamed(
+        bottomNavRoute,
+        arguments: {ApiKeys.initialIndex: landingIndex},
+      );
+      return;
+    }
+
+    // Pop everything back down to the BottomNavigation root. `route.isFirst`
+    // terminates the walk if the named route somehow isn't on the stack, so a
+    // mismatch can't pop the navigator empty.
     Get.until((route) =>
-        route.settings.name ==
-        RouteHelper.getBottomNavigationBarScreenRoute());
+        route.settings.name == bottomNavRoute || route.isFirst);
 
     if (widget.profession == SELF_EMPLOYED) {
-      bottomBarController.currentIndex.value = 2; // Me tab
+      Get.find<BottomBarController>().currentIndex.value = landingIndex;
     }
   }
 }

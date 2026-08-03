@@ -135,7 +135,9 @@ class _CreateBusinessAccountNewStepTwoState
   }
 
   Future<void> updateAddressFromLocation() async {
-    locationData = await locationController.checkPermissionAndSetData();
+    locationData = await locationController.checkPermissionAndSetData(
+      preferNativeGeocoding: true,
+    );
     if (locationData != null) {
       _updateLocationData(locationData);
     }
@@ -275,6 +277,7 @@ class _CreateBusinessAccountNewStepTwoState
                             SizedBox(width: SizeConfig.size8),
                             CommonLocationFetcher(
                               locationController: locationController,
+                              preferNativeGeocoding: true,
                               onLocationFetched: (locationData) {
                                 _updateLocationData(locationData);
                               },
@@ -379,6 +382,7 @@ class _CreateBusinessAccountNewStepTwoState
                           ),
                           CommonLocationFetcher(
                             locationController: locationController,
+                            preferNativeGeocoding: true,
                             onLocationFetched: (locationData) {
                               _updateLocationData(locationData);
                             },
