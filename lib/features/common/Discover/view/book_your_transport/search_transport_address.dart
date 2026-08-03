@@ -25,9 +25,6 @@ import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/core/map/osrm_routing.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/map/blue_map.dart';
-// SearchAddressScreen has not been migrated yet and still takes the Google
-// coordinate type. Prefixed; goes when that screen follows.
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -405,7 +402,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       MaterialPageRoute(
         builder: (_) => SearchAddressScreen(
           isPickup: isPickup,
-          initialMapCenter: gmaps.LatLng(start.latitude, start.longitude),
+          initialMapCenter: start,
         ),
       ),
     );

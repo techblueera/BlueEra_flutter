@@ -14,10 +14,7 @@ import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dar
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-// MapPickAddressScreen is already migrated and speaks the app's own coordinate
-// type. Prefixed until this screen's own map follows.
-import 'package:BlueEra/core/map/lat_lng.dart' as osm;
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -224,7 +221,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
         builder: (_) => MapPickAddressScreen(
-          initialLatLng: osm.LatLng(start.latitude, start.longitude),
+          initialLatLng: LatLng(start.latitude, start.longitude),
           isPickup: widget.isPickup,
         ),
       ),

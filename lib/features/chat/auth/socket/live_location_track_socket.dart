@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
