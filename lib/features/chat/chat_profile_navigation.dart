@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -7,6 +9,14 @@ import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// A lookup that lands inside this window opens the profile with no loading UI
+/// at all — below it a dialog would only flash.
+const Duration _spinnerAfter = Duration(milliseconds: 250);
+
+/// Hard ceiling on how long a profile tap may block. Past this we open from the
+/// ids the caller already had; the lookup still finishes into the cache.
+const Duration _maxLookupWait = Duration(seconds: 3);
 
 /// ONE entry point for every profile tap in chat — the name/avatar in a chat
 /// screen's app bar, an @mention inside a group message, and the "Visit
@@ -28,6 +38,19 @@ import 'package:get/get.dart';
 ///
 /// Without a usable number — or when the lookup finds nobody — it falls back to
 /// the ids the caller already had, which is exactly the old behaviour.
+///
+/// ## Why the tap feels instant
+///
+/// The lookup is cache-first ([ChatViewController.phoneUserCache]), so a number
+/// already resolved this session — by an inline preview, an earlier tap, or a
+/// [ChatViewController.ensurePhoneUserLoaded] prefetch fired when the member
+/// sheet opened — navigates with no network wait and no dialog at all.
+///
+/// On a cold number the spinner is only raised after [_spinnerAfter]; a fast
+/// response never flashes a dialog. And the wait is bounded by [_maxLookupWait]
+/// — past that we open from the ids the caller already had rather than leaving
+/// the user staring at a spinner. The lookup keeps running and lands in the
+/// cache, so the next tap on that person is instant.
 Future<void> openChatProfile({
   /// The other participant's number. When present and 10 digits, this is what
   /// gets the full profile.
@@ -44,29 +67,55 @@ Future<void> openChatProfile({
   final String? number = _tenDigits(contactNo);
   if (number != null) {
     final controller = getOrPut(() => ChatViewController());
-    // A lookup is already in flight (double tap) — let it finish rather than
-    // silently falling through to the id-only path, which would open a
-    // different screen for the same tap.
-    if (controller.isFetchingUserByPhone.value) return;
 
-    Get.dialog(
-      const Center(child: CircularProgressIndicator()),
-      barrierDismissible: false,
-    );
-    UserByPhoneModel? user;
-    try {
-      user = await controller.resolveBlueEraUserByPhone(number);
-    } catch (e) {
-      logs('openChatProfile: by-phone lookup failed — $e');
-    } finally {
-      if (Get.isDialogOpen ?? false) Get.back();
-    }
+    // ── Fast path: already resolved (cached or prefetched) ──────────────────
+    if (controller.isPhoneChecked(number)) {
+      final cached = controller.cachedPhoneUser(number);
+      if (cached != null) {
+        await openPhoneUserProfile(cached);
+        return;
+      }
+      // Checked, no BlueEra account → straight to the id fallback below.
+    } else {
+      // Concurrent callers for the same number share this one future, so a
+      // double tap costs one request instead of dropping the second tap.
+      final Future<UserByPhoneModel?> lookup =
+          controller.resolveBlueEraUserByPhone(number);
 
-    if (user != null) {
-      openPhoneUserProfile(user);
-      return;
+      UserByPhoneModel? user;
+      bool settled = false;
+      try {
+        user = await lookup.timeout(_spinnerAfter);
+        settled = true;
+      } on TimeoutException {
+        // Slow network — fall through and put the spinner up.
+      } catch (e) {
+        settled = true;
+        logs('openChatProfile: by-phone lookup failed — $e');
+      }
+
+      if (!settled) {
+        Get.dialog(
+          const Center(child: CircularProgressIndicator()),
+          barrierDismissible: false,
+        );
+        try {
+          user = await lookup.timeout(_maxLookupWait);
+        } on TimeoutException {
+          logs('openChatProfile: by-phone lookup too slow — opening from ids');
+        } catch (e) {
+          logs('openChatProfile: by-phone lookup failed — $e');
+        } finally {
+          if (Get.isDialogOpen ?? false) Get.back();
+        }
+      }
+
+      if (user != null) {
+        await openPhoneUserProfile(user);
+        return;
+      }
     }
-    // Not a BlueEra user / lookup failed → fall through to the ids below.
+    // Not a BlueEra user / lookup failed or timed out → fall through to the ids.
   }
 
   await openVisitProfile(
