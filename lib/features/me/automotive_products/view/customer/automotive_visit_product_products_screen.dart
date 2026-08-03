@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
@@ -142,7 +143,7 @@ class _AutomotiveVisitProductProductsScreenState
         isCustomTitleWidget: () => Obx(() {
           final name = _selectedCategory.value?.name ??
               widget.parentCategory.name ??
-              'AutomotiveProducts';
+              AppStrings.automotiveProducts.tr;
           return Text(
             name,
             style: const TextStyle(
@@ -203,7 +204,7 @@ class _AutomotiveVisitProductProductsScreenState
             final children = category?.children ?? [];
             if (children.isEmpty) return const SizedBox.shrink();
 
-            final tabData = <dynamic>['All', ...children];
+            final tabData = <dynamic>[AppStrings.all.tr, ...children];
             return HorizontalTabSelector<dynamic>(
               tabs: tabData,
               selectedIndex: _selectedTabIndex.value,
@@ -240,7 +241,7 @@ class _AutomotiveVisitProductProductsScreenState
       if (items.isEmpty) {
         return Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
-          child: EmptyStateWidget(message: 'No products found.'),
+          child: EmptyStateWidget(message: AppStrings.noProductsFound),
         );
       }
 

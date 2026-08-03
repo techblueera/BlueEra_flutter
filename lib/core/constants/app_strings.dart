@@ -7800,4 +7800,165 @@ class AppStrings {
   static const String manageAcademicsCalendar = "manageAcademicsCalendar";
   static const String listItemsCustomersCanOrder = "listItemsCustomersCanOrder";
   static const String newMessage = "newMessage";
+
+  // ── Referral share card ──────────────────────────────────────────
+  /// Headline on the referral share card. The run wrapped in `{}` is the
+  /// highlighted (blue) part, so each language places it where its own
+  /// grammar wants it instead of being pinned to the tail of the line.
+  static const String shareOneTimeEarnFullYear = "shareOneTimeEarnFullYear";
+  static const String shareYourReferralCodeVia = "shareYourReferralCodeVia";
+
+  // ── Post Via chooser (channel vs. personal profile) ──────────────
+  static const String shareWithYourChannelFollowers =
+      "shareWithYourChannelFollowers";
+  static const String postFromYourPersonalProfile =
+      "postFromYourPersonalProfile";
+
+  // ── Automotive products — admin (merchant) flow ──────────────────
+  // Counted nouns are composed as "<count> <label>" and passed into the
+  // @param strings below, because product/variant pluralize differently
+  // across hi/gu/mr/kn.
+  static const String automotiveProductLabel = "automotiveProductLabel";
+  static const String automotiveProductsLabel = "automotiveProductsLabel";
+  static const String automotiveVariantLabel = "automotiveVariantLabel";
+  static const String automotiveVariantsLabel = "automotiveVariantsLabel";
+  static const String automotiveDefaultLabel = "automotiveDefaultLabel";
+  static const String automotiveCountInCart = "automotiveCountInCart";
+  static const String automotiveTextSearch = "automotiveTextSearch";
+  static const String automotiveSnapSearch = "automotiveSnapSearch";
+  static const String automotiveQuickAdd = "automotiveQuickAdd";
+  static const String automotiveUploadBulkProducts =
+      "automotiveUploadBulkProducts";
+  static const String automotiveUploadPhotoHelper =
+      "automotiveUploadPhotoHelper";
+  static const String automotiveUploadLimitNote = "automotiveUploadLimitNote";
+  static const String automotiveSnapNoProductsIdentified =
+      "automotiveSnapNoProductsIdentified";
+  static const String automotiveItemsFoundFmt = "automotiveItemsFoundFmt";
+  static const String automotiveItemsMissingFmt = "automotiveItemsMissingFmt";
+  static const String automotiveKeepTyping = "automotiveKeepTyping";
+  static const String automotiveOneMoreCharacter =
+      "automotiveOneMoreCharacter";
+  static const String automotiveMoreCharactersFmt =
+      "automotiveMoreCharactersFmt";
+  static const String automotiveNoMatchingProducts =
+      "automotiveNoMatchingProducts";
+  static const String automotiveNoProductsForKeywordFmt =
+      "automotiveNoProductsForKeywordFmt";
+  static const String automotiveClearSearch = "automotiveClearSearch";
+  static const String automotiveCouldntLoadResults =
+      "automotiveCouldntLoadResults";
+  static const String automotiveServerTimeout = "automotiveServerTimeout";
+  static const String automotiveReviewAndPublish =
+      "automotiveReviewAndPublish";
+  static const String automotiveConfirmYourPrices =
+      "automotiveConfirmYourPrices";
+  static const String automotiveReadyToPublishFmt =
+      "automotiveReadyToPublishFmt";
+  static const String automotiveNoVariantsInCart =
+      "automotiveNoVariantsInCart";
+  static const String automotiveNoVariantsInCartHint =
+      "automotiveNoVariantsInCartHint";
+  static const String automotiveTotalPayable = "automotiveTotalPayable";
+  static const String automotiveSavesFmt = "automotiveSavesFmt";
+  static const String automotivePublishCountFmt = "automotivePublishCountFmt";
+  static const String automotivePublishProductsFmt =
+      "automotivePublishProductsFmt";
+  static const String automotiveDefaultVariant = "automotiveDefaultVariant";
+  static const String automotiveEnterValidMrp = "automotiveEnterValidMrp";
+  static const String automotiveEnterValidSellingPrice =
+      "automotiveEnterValidSellingPrice";
+  static const String automotiveSellingCannotExceedMrpFmt =
+      "automotiveSellingCannotExceedMrpFmt";
+  static const String automotiveSellingCannotExceedMrp =
+      "automotiveSellingCannotExceedMrp";
+  static const String automotiveEditPrice = "automotiveEditPrice";
+  static const String automotiveVariantPrice = "automotiveVariantPrice";
+  static const String automotiveYouSaveFmt = "automotiveYouSaveFmt";
+  static const String automotiveAddValidMrp = "automotiveAddValidMrp";
+  static const String automotiveAddValidSellingPrice =
+      "automotiveAddValidSellingPrice";
+  static const String automotiveCheckPricesFmt = "automotiveCheckPricesFmt";
+  static const String automotiveNoProductsSelected =
+      "automotiveNoProductsSelected";
+  static const String automotiveSetSellingPriceHint =
+      "automotiveSetSellingPriceHint";
+  static const String automotiveYourSellingPrice =
+      "automotiveYourSellingPrice";
+  static const String automotiveVariantsSelectedFmt =
+      "automotiveVariantsSelectedFmt";
+  static const String automotiveReadyToPublish = "automotiveReadyToPublish";
+  static const String automotiveFixPricesBeforePublish =
+      "automotiveFixPricesBeforePublish";
+  static const String automotiveAiHeaderSubtitle =
+      "automotiveAiHeaderSubtitle";
+  static const String automotiveAddProductPhoto = "automotiveAddProductPhoto";
+  static const String automotiveSearchGoogle = "automotiveSearchGoogle";
+  static const String automotiveAddAnotherPhoto = "automotiveAddAnotherPhoto";
+  static const String automotiveSearchFromGoogle =
+      "automotiveSearchFromGoogle";
+  static const String automotiveSearchFromGoogleHint =
+      "automotiveSearchFromGoogleHint";
+  static const String automotiveCameraOrGallery = "automotiveCameraOrGallery";
+  static const String automotiveCameraOrGalleryHint =
+      "automotiveCameraOrGalleryHint";
+  static const String automotiveTapImageToUse = "automotiveTapImageToUse";
+  static const String automotiveChooseCategory = "automotiveChooseCategory";
+  static const String automotiveSelectCategory = "automotiveSelectCategory";
+  static const String automotiveTopSellingProducts =
+      "automotiveTopSellingProducts";
+  static const String automotiveNoTopSellingYet = "automotiveNoTopSellingYet";
+  static const String automotiveSearchProductsHint =
+      "automotiveSearchProductsHint";
+  static const String automotiveProducts = "automotiveProducts";
+  static const String automotiveNoCategoriesFound =
+      "automotiveNoCategoriesFound";
+  static const String automotiveCategoryCountFmt =
+      "automotiveCategoryCountFmt";
+  static const String automotiveMaxLimitWarningFmt =
+      "automotiveMaxLimitWarningFmt";
+  static const String automotiveQuickUpload = "automotiveQuickUpload";
+  static const String automotiveSearchByPhoto = "automotiveSearchByPhoto";
+  static const String automotiveSearchByPhotoHint =
+      "automotiveSearchByPhotoHint";
+
+  // ── Automotive products — customer (consumer) flow ───────────────
+  static const String automotiveItemLabel = "automotiveItemLabel";
+  static const String automotiveItemsLabel = "automotiveItemsLabel";
+  static const String automotiveShopLabel = "automotiveShopLabel";
+  static const String automotiveShopsLabel = "automotiveShopsLabel";
+  static const String automotiveViewLabel = "automotiveViewLabel";
+  static const String automotiveViewsLabel = "automotiveViewsLabel";
+  static const String automotiveOrderLabel = "automotiveOrderLabel";
+  static const String automotiveOrdersLabel = "automotiveOrdersLabel";
+  static const String automotiveNoCategoryProductsFmt =
+      "automotiveNoCategoryProductsFmt";
+  static const String automotiveLeaveWithoutOrdering =
+      "automotiveLeaveWithoutOrdering";
+  static const String automotiveNoProductsInCategory =
+      "automotiveNoProductsInCategory";
+  static const String automotiveSelfPickUpFmt = "automotiveSelfPickUpFmt";
+  static const String automotiveNoItemsSelfPickup =
+      "automotiveNoItemsSelfPickup";
+  static const String automotiveUnknownStore = "automotiveUnknownStore";
+  static const String automotiveRemoveFromCart = "automotiveRemoveFromCart";
+  static const String automotiveRemoveFromCartMsgFmt =
+      "automotiveRemoveFromCartMsgFmt";
+  static const String automotiveThisProduct = "automotiveThisProduct";
+  static const String automotiveEachPriceFmt = "automotiveEachPriceFmt";
+  static const String automotiveOnAllItems = "automotiveOnAllItems";
+  static const String automotiveShopItemsFmt = "automotiveShopItemsFmt";
+  static const String automotiveShopsProductsFmt =
+      "automotiveShopsProductsFmt";
+  static const String automotiveUnknownBusiness = "automotiveUnknownBusiness";
+  static const String automotiveProductTitle = "automotiveProductTitle";
+  static const String automotiveKmAwayFmt = "automotiveKmAwayFmt";
+  static const String automotiveTotalOnStoreFmt = "automotiveTotalOnStoreFmt";
+  static const String automotiveSinceFmt = "automotiveSinceFmt";
+  static const String automotivePriceLabel = "automotivePriceLabel";
+  static const String automotiveLivePhotos = "automotiveLivePhotos";
+  static const String automotiveTopSellingProduct =
+      "automotiveTopSellingProduct";
+  static const String automotiveStoreNoProducts =
+      "automotiveStoreNoProducts";
 }

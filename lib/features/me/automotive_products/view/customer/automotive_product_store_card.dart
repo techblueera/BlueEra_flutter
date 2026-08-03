@@ -143,7 +143,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
         ? store.avgRating.toString()
         : AppStrings.no.tr;
     final subCategory =
-        store.subCategoryOfBusiness?.name ?? store.natureOfBusiness ?? 'OTHER';
+        store.subCategoryOfBusiness?.name ?? store.natureOfBusiness ?? AppStrings.other.tr;
     final sinceYear = store.dateOfIncorporation?.year;
 
     return Row(
@@ -161,7 +161,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                store.businessName ?? 'Unknown Business',
+                store.businessName ?? AppStrings.automotiveUnknownBusiness.tr,
                 fontSize: SizeConfig.large18,
                 color: AppColors.mainTextColor,
                 fontWeight: FontWeight.w800,
@@ -218,7 +218,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
                         icon: AppIconAssets.staggeredIcon,
                         count: _formatCount(_store.totalCategoryCount ??
                             (_store.categories?.length ?? 0)),
-                        label: 'AutomotiveCategory',
+                        label: AppStrings.category.tr,
                         iconColor: const Color(0xFF9964F4),
                         borderColor: palette.tileBorder,
                       ),
@@ -226,7 +226,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
                       _buildStatBox(
                         icon: AppIconAssets.productCartIcon,
                         count: _formatCount(_store.totalProductCount ?? 0),
-                        label: 'AutomotiveProduct',
+                        label: AppStrings.automotiveProductTitle.tr,
                         iconColor: const Color(0xFF6179CD),
                         borderColor: palette.tileBorder,
                       ),
@@ -284,7 +284,8 @@ class AutomotiveProductStoreCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    '${km.toStringAsFixed(2)} Km Away',
+                    AppStrings.automotiveKmAwayFmt
+                        .trParams({'km': km.toStringAsFixed(2)}),
                     fontSize: 12.0,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w600,
@@ -468,10 +469,16 @@ class AutomotiveProductStoreCard extends StatelessWidget {
   // --- Footer: top-bordered banner with eye icon + total view count.
   Widget _buildLastVisitFooter(_AutomotiveProductCardPalette palette) {
     final views = int.tryParse(_store.views ?? '') ?? 0;
-    final viewLabel = views == 1 ? 'view' : 'views';
+    final viewLabel = (views == 1
+            ? AppStrings.automotiveViewLabel
+            : AppStrings.automotiveViewsLabel)
+        .tr;
     final countText = _formatCount(views);
     final clicks = _store.chatClickCount ?? 0;
-    final clickLabel = clicks == 1 ? 'order' : 'orders';
+    final clickLabel = (clicks == 1
+            ? AppStrings.automotiveOrderLabel
+            : AppStrings.automotiveOrdersLabel)
+        .tr;
     final clickCountText = _formatCount(clicks);
     final quirky = (_store.quirkyMessage ?? '').trim();
     return InkWell(
@@ -520,7 +527,9 @@ class AutomotiveProductStoreCard extends StatelessWidget {
                       text: countText,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    TextSpan(text: ' Total $viewLabel on this store, '),
+                    TextSpan(
+                        text: ' '
+                            '${AppStrings.automotiveTotalOnStoreFmt.trParams({'label': viewLabel})} '),
                     WidgetSpan(
                       alignment: PlaceholderAlignment.middle,
                       child: Padding(
@@ -623,7 +632,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
         border: Border.all(color: AppColors.greyE5, width: 1),
       ),
       child: CustomText(
-        'Since $year',
+        AppStrings.automotiveSinceFmt.trParams({'year': '$year'}),
         fontSize: 11,
         color: AppColors.secondaryTextColor,
         fontWeight: FontWeight.w600,
@@ -696,7 +705,7 @@ class AutomotiveProductStoreCard extends StatelessWidget {
     final store = _store;
     RouteMapBottomSheet.show(
       context: context,
-      destinationName: store.businessName ?? 'Store',
+      destinationName: store.businessName ?? AppStrings.store.tr,
       destinationAddress: store.address ?? '',
       destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,

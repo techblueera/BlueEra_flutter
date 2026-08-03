@@ -80,6 +80,15 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
 
   double _effectiveMrp(AutomotiveSelectedVariant v) => inventoryController.effectiveMrp(v);
 
+  /// "3 products" / "1 product" — composed here rather than inside the
+  /// translation string, because the plural form is a separate word in each
+  /// language and the @param slots take a ready-made phrase.
+  String _productCountLabel(int count) =>
+      '$count ${(count == 1 ? AppStrings.automotiveProductLabel : AppStrings.automotiveProductsLabel).tr}';
+
+  String _variantCountLabel(int count) =>
+      '$count ${(count == 1 ? AppStrings.automotiveVariantLabel : AppStrings.automotiveVariantsLabel).tr}';
+
   int _discountPercent(double mrp, double selling) {
     if (mrp <= 0 || selling >= mrp) return 0;
     return (((mrp - selling) / mrp) * 100).round();
@@ -142,7 +151,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
 
       return Scaffold(
         backgroundColor: _canvas,
-        appBar: CommonBackAppBar(title: 'Review & Publish'),
+        appBar: CommonBackAppBar(title: AppStrings.automotiveReviewAndPublish),
         bottomNavigationBar: _bottomBar(
           selectedCount: selected.length,
           isLoading: isLoading,
@@ -232,7 +241,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomText(
-                  'Confirm your prices',
+                  AppStrings.automotiveConfirmYourPrices,
                   fontSize: SizeConfig.large18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -240,7 +249,10 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                 ),
                 SizedBox(height: SizeConfig.size2),
                 CustomText(
-                  '$productCount ${productCount == 1 ? 'product' : 'products'} • $variantCount ${variantCount == 1 ? 'variant' : 'variants'} ready to publish',
+                  AppStrings.automotiveReadyToPublishFmt.trParams({
+                    'products': _productCountLabel(productCount),
+                    'variants': _variantCountLabel(variantCount),
+                  }),
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w500,
                   color: AppColors.secondaryTextColor,
@@ -275,7 +287,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
             ),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-              'No variants in cart',
+              AppStrings.automotiveNoVariantsInCart,
               fontSize: SizeConfig.large18,
               color: AppColors.mainTextColor,
               fontWeight: FontWeight.w700,
@@ -283,7 +295,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
-              'Pick products and variants from your inventory to publish them to your store.',
+              AppStrings.automotiveNoVariantsInCartHint,
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w400,
@@ -334,7 +346,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    'Total payable',
+                    AppStrings.automotiveTotalPayable,
                     fontSize: SizeConfig.extraSmall,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w500,
@@ -350,7 +362,10 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                   if (totalSavings > 0) ...[
                     SizedBox(height: SizeConfig.size2),
                     CustomText(
-                      'Saves ${AppConstants.rupeeSymbol}${totalSavings.toStringAsFixed(0)}',
+                      AppStrings.automotiveSavesFmt.trParams({
+                        'amount':
+                            '${AppConstants.rupeeSymbol}${totalSavings.toStringAsFixed(0)}'
+                      }),
                       fontSize: SizeConfig.extraSmall,
                       color: Colors.green.shade700,
                       fontWeight: FontWeight.w700,
@@ -417,8 +432,9 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                 children: [
                   CustomText(
                     hasItems
-                        ? 'Publish $count ${count == 1 ? "variant" : "variants"}'
-                        : 'Publish',
+                        ? AppStrings.automotivePublishCountFmt
+                            .trParams({'variants': _variantCountLabel(count)})
+                        : AppStrings.publish.tr,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w800,
                     color: hasItems
@@ -599,7 +615,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                         child: CustomText(
                           variantLabel.isNotEmpty
                               ? variantLabel
-                              : 'Default variant',
+                              : AppStrings.automotiveDefaultVariant.tr,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primaryColor,
@@ -654,7 +670,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
               children: [
                 // Selling price
                 _priceCell(
-                  label: 'Selling price',
+                  label: AppStrings.sellingPrice.tr,
                   value:
                       '${AppConstants.rupeeSymbol}${sellingNum.toStringAsFixed(0)}',
                   valueColor:
@@ -664,7 +680,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                 SizedBox(width: SizeConfig.size16),
                 // MRP
                 _priceCell(
-                  label: 'MRP',
+                  label: AppStrings.mrp.tr,
                   value:
                       '${AppConstants.rupeeSymbol}${mrpNum.toStringAsFixed(0)}',
                   valueColor: AppColors.secondaryTextColor,
@@ -687,7 +703,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                             Border.all(color: Colors.green.shade200, width: 1),
                       ),
                       child: CustomText(
-                        '$discount% OFF',
+                        '$discount% ${AppStrings.offCaps.tr}',
                         fontSize: SizeConfig.extraSmall,
                         color: Colors.green.shade700,
                         fontWeight: FontWeight.w800,
@@ -820,12 +836,16 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
     void recompute() {
       final mrp = double.tryParse(mrpController.text.trim());
       final sp = double.tryParse(sellingController.text.trim());
-      mrpError.value = (mrp == null || mrp <= 0) ? 'Enter a valid MRP' : null;
+      mrpError.value = (mrp == null || mrp <= 0)
+          ? AppStrings.automotiveEnterValidMrp.tr
+          : null;
       if (sp == null || sp <= 0) {
-        sellingError.value = 'Enter a valid selling price';
+        sellingError.value = AppStrings.automotiveEnterValidSellingPrice.tr;
       } else if (mrp != null && sp > mrp) {
         sellingError.value =
-            'Selling price can’t exceed MRP (${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)})';
+            AppStrings.automotiveSellingCannotExceedMrpFmt.trParams({
+          'mrp': '${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)}'
+        });
       } else {
         sellingError.value = null;
       }
@@ -896,7 +916,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomText(
-                            'EDIT PRICE',
+                            AppStrings.automotiveEditPrice,
                             fontSize: SizeConfig.extraSmall - 1,
                             fontWeight: FontWeight.w700,
                             color: Colors.white.withValues(alpha: 0.85),
@@ -906,7 +926,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                           CustomText(
                             variantData.product.name.isNotEmpty
                                 ? variantData.product.name
-                                : 'AutomotiveVariant price',
+                                : AppStrings.automotiveVariantPrice.tr,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -941,14 +961,14 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _priceField(
-                      label: 'MRP',
+                      label: AppStrings.mrp.tr,
                       controller: mrpController,
                       error: mrpError,
                       onChanged: (_) => recompute(),
                     ),
                     SizedBox(height: SizeConfig.size14),
                     _priceField(
-                      label: 'Selling price',
+                      label: AppStrings.sellingPrice.tr,
                       controller: sellingController,
                       error: sellingError,
                       autofocus: true,
@@ -976,14 +996,17 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                                   size: 16, color: Colors.green.shade700),
                               SizedBox(width: SizeConfig.size8),
                               CustomText(
-                                '${discount.value}% OFF',
+                                '${discount.value}% ${AppStrings.offCaps.tr}',
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.green.shade700,
                               ),
                               const Spacer(),
                               CustomText(
-                                'You save ${AppConstants.rupeeSymbol}${savings.value.toStringAsFixed(0)}',
+                                AppStrings.automotiveYouSaveFmt.trParams({
+                                  'amount':
+                                      '${AppConstants.rupeeSymbol}${savings.value.toStringAsFixed(0)}'
+                                }),
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.green.shade700,
@@ -1211,11 +1234,11 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
       final selling = _effectiveSellingPrice(v);
       String? err;
       if (mrp <= 0) {
-        err = 'Add a valid MRP';
+        err = AppStrings.automotiveAddValidMrp.tr;
       } else if (selling <= 0) {
-        err = 'Add a valid selling price';
+        err = AppStrings.automotiveAddValidSellingPrice.tr;
       } else if (selling > mrp) {
-        err = 'Selling price can’t exceed MRP';
+        err = AppStrings.automotiveSellingCannotExceedMrp.tr;
       }
       if (err != null) {
         _priceErrors[v.id] = err;
@@ -1227,7 +1250,8 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: CustomText(
-            'Check MRP & selling price — $firstError.',
+            AppStrings.automotiveCheckPricesFmt
+                .trParams({'error': firstError}),
             color: AppColors.white,
           ),
           backgroundColor: AppColors.red,

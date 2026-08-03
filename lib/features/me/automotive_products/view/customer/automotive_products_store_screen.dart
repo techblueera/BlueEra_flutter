@@ -102,7 +102,7 @@ class _AutomotiveProductsStoreScreenState extends State<AutomotiveProductsStoreS
                   color: AppColors.primaryColor, size: 56),
               const SizedBox(height: 16),
               CustomText(
-                'Leave without ordering?',
+                AppStrings.automotiveLeaveWithoutOrdering,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,

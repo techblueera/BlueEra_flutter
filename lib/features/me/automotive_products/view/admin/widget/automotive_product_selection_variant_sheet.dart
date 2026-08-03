@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -43,7 +44,7 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
     if (parts.isEmpty && v.quantity.trim().isNotEmpty) {
       parts.add(v.quantity.trim());
     }
-    return parts.isEmpty ? 'Default' : parts.join(' · ');
+    return parts.isEmpty ? AppStrings.automotiveDefaultLabel.tr : parts.join(' · ');
   }
 
   void _toggle(AutomotiveVariant variant) {
@@ -110,7 +111,8 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: CustomText(
-                    '$count in cart',
+                    AppStrings.automotiveCountInCart
+                        .trParams({'count': '$count'}),
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
@@ -193,7 +195,9 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         CustomText(
-                          '$discount% OFF',
+                          // `off` reads as "switched off" in hi/kn — the
+                          // discount word is `offCaps`.
+                          '$discount% ${AppStrings.offCaps.tr}',
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.green7F,

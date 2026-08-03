@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
@@ -120,7 +121,7 @@ class AutomotiveProductSelectionProductCard extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   child: CustomText(
-                    '${product.variants.length} variants',
+                    '${product.variants.length} ${AppStrings.variant.tr}',
                     fontSize: 11,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -129,7 +130,7 @@ class AutomotiveProductSelectionProductCard extends StatelessWidget {
                 PriceRow(
                   sellingPrice: '₹${selling.toStringAsFixed(0)}',
                   mrp: '₹${mrp.toStringAsFixed(0)}',
-                  discount: '$discount% off',
+                  discount: '$discount% ${AppStrings.off.tr}',
                 ),
               ],
             ),

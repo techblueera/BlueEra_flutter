@@ -145,7 +145,7 @@ class _AutomotiveCategoryDiscoverScreenState
                   color: AppColors.primaryColor, size: 56),
               const SizedBox(height: 16),
               CustomText(
-                'Leave without ordering?',
+                AppStrings.automotiveLeaveWithoutOrdering,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -223,7 +223,7 @@ class _AutomotiveCategoryDiscoverScreenState
     // valid — the strip renders and is usable before (and even without) the
     // category call landing.
     final tabs = <StickyCategory>[
-      const StickyCategory(id: _allCategoriesId, name: 'All'),
+      StickyCategory(id: _allCategoriesId, name: AppStrings.all.tr),
       ...controller.level0Categories.map(
         (c) => StickyCategory(
           id: c.sId ?? '',
@@ -315,7 +315,7 @@ class _AutomotiveCategoryDiscoverScreenState
       }
       final products = controller.products;
       if (products.isEmpty) {
-        return _empty('No products in this category');
+        return _empty(AppStrings.automotiveNoProductsInCategory.tr);
       }
       final showFooter = controller.isProductsLoadingMore.value;
       return RefreshIndicator(
@@ -532,7 +532,7 @@ class _AutomotiveProductGridCard extends StatelessWidget {
                       sellingPrice: '₹${variants[0].sellingPrice}',
                       mrp: '₹${variants[0].mrp}',
                       discount:
-                          "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
+                          "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% ${AppStrings.offCaps.tr}",
                     ),
                 ],
               ),

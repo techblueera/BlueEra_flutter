@@ -413,7 +413,11 @@ class _AutomotiveAllBusinessProductsScreenState extends State<AutomotiveAllBusin
       if (productList.isEmpty) {
         return Center(
           child: EmptyStateWidget(
-            message: 'No ${_selectedChild.value?.name ?? _selectedCategory.value?.name ?? ''} products found',
+            message: AppStrings.automotiveNoCategoryProductsFmt.trParams({
+              'category': _selectedChild.value?.name ??
+                  _selectedCategory.value?.name ??
+                  ''
+            }),
           ),
         );
       }

@@ -175,7 +175,9 @@ class AutomotiveStoreProductCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                '$discountProduct% ${AppStrings.off.tr.toUpperCase()}',
+                                // `off` reads as "switched off" in hi/kn — the
+                                // discount word is `offCaps`.
+                                '$discountProduct% ${AppStrings.offCaps.tr}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -306,7 +308,7 @@ class AutomotiveStoreProductCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           CustomText(
-                            "AutomotivePrice: ",
+                            AppStrings.automotivePriceLabel,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             color: AppColors.secondaryTextColor
@@ -321,7 +323,7 @@ class AutomotiveStoreProductCard extends StatelessWidget {
                           const SizedBox(width: 6),
                            if (discountProduct > 0) ...[
                           CustomText(
-                            "${discountProduct}% Off",
+                            "$discountProduct% ${AppStrings.offCaps.tr}",
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             color: Colors.green.shade600

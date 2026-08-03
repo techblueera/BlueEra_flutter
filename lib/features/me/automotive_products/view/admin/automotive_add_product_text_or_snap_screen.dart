@@ -196,13 +196,13 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
               children: [
                 _buildModeTab(
                   icon: Icons.search_rounded,
-                  label: 'Text Search',
+                  label: AppStrings.automotiveTextSearch,
                   mode: _AutomotiveAddProductMode.textSearch,
                 ),
                 SizedBox(width: 4),
                 _buildModeTab(
                   icon: Icons.camera_alt_outlined,
-                  label: 'Snap Search',
+                  label: AppStrings.automotiveSnapSearch,
                   mode: _AutomotiveAddProductMode.snapSearch,
                 ),
               ],
@@ -461,7 +461,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                   ),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'Quick Add',
+                    AppStrings.automotiveQuickAdd,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -566,13 +566,13 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CustomText(
-            "Upload Bulk AutomotiveProduct",
+            AppStrings.automotiveUploadBulkProducts,
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
           SizedBox(height: SizeConfig.size4),
           CustomText(
-            "Upload a photo of products or menu to add them instantly",
+            AppStrings.automotiveUploadPhotoHelper,
             fontSize: SizeConfig.small,
             color: AppColors.secondaryTextColor,
           ),
@@ -763,7 +763,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
           ),
           const SizedBox(height: 10),
           const CustomText(
-            "Upload picture/menu containing up to 20 product at time",
+            AppStrings.automotiveUploadLimitNote,
             fontWeight: FontWeight.w400,
             color: AppColors.red,
             textAlign: TextAlign.center,
@@ -793,14 +793,12 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
           children: [
             SizedBox(height: SizeConfig.paddingL),
             const EmptyStateWidget(
-              message:
-                  'We couldn\'t identify any products from this photo. \n'
-                  'Try capturing a clearer shot or searching for individual items!',
+              message: AppStrings.automotiveSnapNoProductsIdentified,
             ),
             SizedBox(height: SizeConfig.paddingL),
             CustomBtn(
               width: SizeConfig.size120,
-              title: "Retry",
+              title: AppStrings.retry,
               textColor: AppColors.white,
               bgColor: AppColors.primaryColor,
               radius: 10.0,
@@ -820,13 +818,16 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  "${searchData.foundCount ?? products.length} AutomotiveItems Found",
+                  AppStrings.automotiveItemsFoundFmt.trParams({
+                    'count': '${searchData.foundCount ?? products.length}'
+                  }),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
                 if ((searchData.missingCount ?? 0) > 0)
                   CustomText(
-                    "${searchData.missingCount} AutomotiveItems missing",
+                    AppStrings.automotiveItemsMissingFmt
+                        .trParams({'count': '${searchData.missingCount}'}),
                     color: AppColors.red,
                     fontWeight: FontWeight.w500,
                   ),
@@ -973,7 +974,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                       PriceRow(
                         sellingPrice: '\u20B9${variant.sellingPrice.toStringAsFixed(0)}',
                         mrp: '\u20B9${variant.mrp.toStringAsFixed(0)}',
-                        discount: "${calculateDiscount('${variant.sellingPrice}', '${variant.mrp}')}% OFF",
+                        discount:
+                            "${calculateDiscount('${variant.sellingPrice}', '${variant.mrp}')}% ${AppStrings.offCaps.tr}",
                       ),
                       AutomotiveAttributeRows(attributeMap: uniqueAttributes),
                     ],
@@ -1202,7 +1204,7 @@ class _AutomotiveSearchTypingHintState extends State<_AutomotiveSearchTypingHint
           ),
           SizedBox(height: SizeConfig.size16),
           CustomText(
-            'Keep typing…',
+            AppStrings.automotiveKeepTyping,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -1211,8 +1213,9 @@ class _AutomotiveSearchTypingHintState extends State<_AutomotiveSearchTypingHint
           SizedBox(height: SizeConfig.size6),
           CustomText(
             remaining == 1
-                ? 'Just 1 more character to start searching'
-                : 'Type $remaining more characters to start searching',
+                ? AppStrings.automotiveOneMoreCharacter.tr
+                : AppStrings.automotiveMoreCharactersFmt
+                    .trParams({'count': '$remaining'}),
             fontSize: SizeConfig.small,
             color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w500,
@@ -1397,15 +1400,14 @@ class _AutomotiveSearchEmptyState extends StatelessWidget {
         SizedBox(height: SizeConfig.paddingL),
         EmptyStateWidget(
           message: trimmed.isEmpty
-              ? "We couldn't find any matching products.\n"
-                  'Try different keywords or check the spelling.'
-              : "We couldn't find any products for \"$trimmed\".\n"
-                  'Try different keywords or check the spelling.',
+              ? AppStrings.automotiveNoMatchingProducts.tr
+              : AppStrings.automotiveNoProductsForKeywordFmt
+                  .trParams({'keyword': trimmed}),
         ),
         SizedBox(height: SizeConfig.paddingL),
         CustomBtn(
           width: SizeConfig.size120,
-          title: 'Clear search',
+          title: AppStrings.automotiveClearSearch,
           textColor: AppColors.white,
           bgColor: AppColors.primaryColor,
           radius: 10.0,
@@ -1463,15 +1465,14 @@ class _AutomotiveSearchErrorState extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size12),
           CustomText(
-            "Couldn't load results",
+            AppStrings.automotiveCouldntLoadResults,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w700,
             color: AppColors.mainTextColor,
           ),
           SizedBox(height: SizeConfig.size6),
           CustomText(
-            'The server is taking too long to respond. '
-            'Please check your connection and try again.',
+            AppStrings.automotiveServerTimeout,
             fontSize: SizeConfig.small,
             color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
@@ -1481,7 +1482,7 @@ class _AutomotiveSearchErrorState extends StatelessWidget {
           SizedBox(height: SizeConfig.size16),
           CustomBtn(
             width: SizeConfig.size120,
-            title: 'Retry',
+            title: AppStrings.retry,
             textColor: AppColors.white,
             bgColor: AppColors.primaryColor,
             radius: 10.0,

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
@@ -61,7 +62,7 @@ class _AutomotiveAdminAllTopSellingProductsScreenState
       backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
-        title: 'Top Selling AutomotiveProducts',
+        title: AppStrings.automotiveTopSellingProducts,
       ),
       body: Obx(() {
         final items = controller.allProducts;
@@ -84,7 +85,7 @@ class _AutomotiveAdminAllTopSellingProductsScreenState
               children: const [
                 SizedBox(height: 80),
                 EmptyStateWidget(
-                  message: 'No top selling products yet.',
+                  message: AppStrings.automotiveNoTopSellingYet,
                 ),
               ],
             ),

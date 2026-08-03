@@ -54,7 +54,7 @@ Future<void> showVideosPickerDialog(BuildContext context,
     {PostVia? type}) async {
   await PhotoPickerService.showSourceChooserDialog(
     context,
-    "Upload Video",
+   AppStrings.uploadVideo,
     onCamera: () async {
       Navigator.pop(Get.context!);
       Navigator.pushNamed(
@@ -122,7 +122,7 @@ Future<void> showPostViaDialog(
                   _PostViaOptionTile(
                     icon: Icons.campaign_rounded,
                     title: AppStrings.channel,
-                    subtitle: 'Share with your channel followers',
+                    subtitle: AppStrings.shareWithYourChannelFollowers,
                     isSelected: selected == PostVia.channel,
                     onTap: () => setState(() => selected = PostVia.channel),
                   ),
@@ -130,7 +130,7 @@ Future<void> showPostViaDialog(
                   _PostViaOptionTile(
                     icon: Icons.person_rounded,
                     title: AppStrings.profile,
-                    subtitle: 'Post from your personal profile',
+                    subtitle: AppStrings.postFromYourPersonalProfile,
                     isSelected: selected == PostVia.profile,
                     onTap: () => setState(() => selected = PostVia.profile),
                   ),
