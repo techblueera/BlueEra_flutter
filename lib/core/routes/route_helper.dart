@@ -56,6 +56,10 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
+import 'package:BlueEra/features/common/address/model/address_ui_model.dart';
+import 'package:BlueEra/features/common/address/model/user_address_model.dart';
+import 'package:BlueEra/features/common/address/view/add_edit_address_screen.dart';
+import 'package:BlueEra/features/common/address/view/saved_address_list_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -801,6 +805,12 @@ class RouteHelper {
 
   static String getEarnServiceDashboardViewRoute() =>
       RouteConstant.earnServiceDashboardView;
+
+  static String getSavedAddressListScreenRoute() =>
+      RouteConstant.savedAddressListScreen;
+
+  static String getAddEditAddressScreenRoute() =>
+      RouteConstant.addEditAddressScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -2591,6 +2601,32 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => const EarnServiceDashboardView(),
           settings: RouteSettings(name: RouteHelper.getEarnServiceDashboardViewRoute()),
+        );
+
+      // Saved addresses. `AddressPicker` is the preferred entry point — these
+      // cases exist for named-route callers (deep links, drawer items).
+      // `onAddressSelected` may be passed through the arguments map when the
+      // caller wants the callback as well as the popped result.
+      case RouteConstant.savedAddressListScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => SavedAddressListScreen(
+            onAddressSelected:
+                args?['onAddressSelected'] as AddressSelectedCallback?,
+            isSelectionMode: args?['isSelectionMode'] as bool? ?? true,
+          ),
+          settings: RouteSettings(
+              name: RouteHelper.getSavedAddressListScreenRoute()),
+        );
+
+      case RouteConstant.addEditAddressScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => AddEditAddressScreen(
+            address: args?['address'] as UserAddress?,
+          ),
+          settings:
+              RouteSettings(name: RouteHelper.getAddEditAddressScreenRoute()),
         );
 
       default:

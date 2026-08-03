@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/account_deletion/controller/account_deletion_controller.dart';
+import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
@@ -52,6 +53,9 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                               urlLink: takeFranchise,
                               urlTitle: AppStrings.applyForFranchise,
                             ))),
+                    _buildTile(
+                        AppIconAssets.location_outline, 'My Addresses',
+                        onTap: () => AddressPicker.manage()),
                     _buildTile(AppIconAssets.referral, AppStrings.referral,
                         onTap: () => Get.to(() => ReferralPage())),
                     _buildTile(

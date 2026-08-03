@@ -84,6 +84,29 @@ class PlaceRepo{
     return response;
   }
 
+  /// Forward geocode — free-text address → lat/lng.
+  ///
+  /// The counterpart to [getGeoCode] (which goes the other way). Used when a
+  /// user types an address by hand instead of picking a Places suggestion,
+  /// so the record still carries coordinates.
+  Future<ResponseModel> getGeoCodeFromAddress({
+    required String address,
+  }) async {
+    ResponseModel response = await ApiBaseHelper().getHTTP(
+      googleGeoCode,
+      showProgress: false,
+      params: {
+        'address': address,
+        'key': googleMapKey,
+        'components': 'country:IN',
+        'language': 'en',
+      },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> fetchLocationFromPinCodeRepo({
     required String pinCode,
   }) async {

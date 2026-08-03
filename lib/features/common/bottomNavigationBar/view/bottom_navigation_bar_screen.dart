@@ -17,6 +17,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
@@ -93,7 +94,8 @@ class BottomNavigationBarScreen extends StatefulWidget {
       this.runRiderGoLiveGate = false});
 
   @override
-  State<BottomNavigationBarScreen> createState() => _BottomNavigationBarScreenState();
+  State<BottomNavigationBarScreen> createState() =>
+      _BottomNavigationBarScreenState();
 }
 
 class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
@@ -102,7 +104,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final bottomBarController = Get.put(BottomBarController());
   final chatViewController = getOrPut(() => ChatViewController());
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewPersonalDetailsController =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
@@ -128,7 +131,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-    _bottomNavVisibilityWorker = ever<bool>(bottomBarController.isBottomNavVisible, (visible) {
+    _bottomNavVisibilityWorker =
+        ever<bool>(bottomBarController.isBottomNavVisible, (visible) {
       _toggleAppBar(visible);
     });
     _checkAndFetchLocationData();
@@ -207,8 +211,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
 
     final bool business = isBusiness();
-    final businessController =
-        business ? getOrPut(() => ViewBusinessDetailsController(), permanent: true) : null;
+    final businessController = business
+        ? getOrPut(() => ViewBusinessDetailsController(), permanent: true)
+        : null;
     final Rxn<JoiningBounce> source = business
         ? businessController!.joiningBounce
         : viewPersonalDetailsController.joiningBounce;
@@ -306,7 +311,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (calls is List) {
       if (calls.isNotEmpty) {
         // Skip voice/video calls — those are handled by CallController
-        final extra = Map<String, dynamic>.from(calls[0]['extra'] as Map? ?? {});
+        final extra =
+            Map<String, dynamic>.from(calls[0]['extra'] as Map? ?? {});
         final operation = (extra['operation'] ?? '').toString();
         if (operation == 'incoming_call') return null;
 
@@ -393,9 +399,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // channelOwner = data.ownership.claimedBy;
 
     await Future.wait([
-      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channel_Id, channelId),
-      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channelName, channelName),
-      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channelOwner, channelOwner),
+      SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.channel_Id, channelId),
+      SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.channelName, channelName),
+      SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.channelOwner, channelOwner),
     ]);
   }
 
@@ -498,8 +507,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       // Already in the business branch — fetch directly (no second isBusiness
       // check), unless it's already loaded.
-      if (boot &&
-          businessCtrl.viewBusinessResponse.status != Status.COMPLETE) {
+      if (boot && businessCtrl.viewBusinessResponse.status != Status.COMPLETE) {
         // whenComplete guarantees the navigate-first Me-tab loader clears once
         // the fetch settles: success flips isBusinessProfileReady via
         // _applyBusinessProfileData, and this also covers failure/timeout so
@@ -519,8 +527,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // method is cache-first and would otherwise skip the network on
         // cached launches) — needed for fresh securityDeposit / go-live gate.
         // It still shows the cached profile first, then updates from the API.
-        final fetch = viewPersonalDetailsController
-            .viewPersonalProfile(forceRefresh: true);
+        final fetch = viewPersonalDetailsController.viewPersonalProfile(
+            forceRefresh: true);
         // whenComplete fires when the fetch settles (success, non-success
         // response, or early return all complete the future) — so the
         // navigate-first Me-tab loader always clears, and on a fresh individual
@@ -567,12 +575,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// a notification deep-link open doesn't fire it behind the target screen.
   void _fetchOwnProfileIfNeeded() {
     if (isBusiness()) {
-      final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-      if (viewProfileController.viewBusinessResponse.status != Status.COMPLETE) {
+      final viewProfileController =
+          getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      if (viewProfileController.viewBusinessResponse.status !=
+          Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      if (viewPersonalDetailsController.viewPersonalResponse.value.status != Status.COMPLETE) {
+      if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
+          Status.COMPLETE) {
         viewPersonalDetailsController.viewPersonalProfile();
       }
     }
@@ -581,7 +592,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   // GET CHANNEL DETAILS...
   Future<ChannelModel?> getChannelDetails() async {
     try {
-      ResponseModel response = await ChannelRepo().getChannelDetails(channelOrUserId: userId);
+      ResponseModel response =
+          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
         return ChannelModel.fromJson(response.response?.data);
@@ -655,6 +667,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
       key: _scaffoldKey,
+
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -665,8 +678,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 // rebuilding the page. A call heartbeat / rider-live refresh no
                 // longer re-runs _getScreen → resolveIndividualScreen.
                 Obx(() {
-                  final hasActiveCall = callController.callStatus.value == CallStatus.connected;
-                  final isRiderLive = viewPersonalDetailsController.shopStatusOpenClose.value;
+                  final hasActiveCall =
+                      callController.callStatus.value == CallStatus.connected;
+                  final isRiderLive =
+                      viewPersonalDetailsController.shopStatusOpenClose.value;
                   // Push content down when live bar or call bar is showing
                   double topOffset = 0;
                   if (hasActiveCall)
@@ -681,14 +696,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
                 // Fixed "I'm Live" bar at top
                 Obx(() {
-                  final isLive = viewPersonalDetailsController.shopStatusOpenClose.value;
+                  final isLive =
+                      viewPersonalDetailsController.shopStatusOpenClose.value;
                   // Hide when call overlay is showing (call takes priority)
-                  final hasActiveCall = callController.callStatus.value != CallStatus.idle;
+                  final hasActiveCall =
+                      callController.callStatus.value != CallStatus.idle;
                   return Positioned(
                     top: 0,
                     left: 0,
                     right: 0,
-                    child: (!isLive || hasActiveCall) ? const SizedBox.shrink() : const _RiderLiveBar(),
+                    child: (!isLive || hasActiveCall)
+                        ? const SizedBox.shrink()
+                        : const _RiderLiveBar(),
                   );
                 }),
 
@@ -717,7 +736,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                           BottomNavigationBarWidget(
                             onHeaderVisibilityChanged: _toggleAppBar,
                             isBottomNavVisible: isVisible,
-                            currentIndex: bottomBarController.currentIndex.value,
+                            currentIndex:
+                                bottomBarController.currentIndex.value,
                             showShadow: true,
                             onTap: (index) async {
                               // Tabs: 0=Me, 1=Discover, 2=Chat, 3=Reels.
@@ -807,13 +827,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     logs("businessTypeGlobal=== ${businessTypeGlobal}");
     logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
     // 1. First, check if it is a Food business
-    if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
+    if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Food.name.toUpperCase()) {
       return const FoodMainScreen(fromBottomNavBar: true);
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Grocery.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Grocery.name.toUpperCase()) {
       return const GroceryScreen(fromBottomNavBar: true);
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Siksha.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Healthcare.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Healthcare.name.toUpperCase()) {
       // DOCTORS / CLINICS are STANDALONE DOCTORS — independent practitioners
       // with their own listing, professional profile and appointment inbox
       // (hospital-service/doctors*). They get their own module; everything
@@ -822,26 +846,34 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       if (_isStandaloneDoctor()) {
         return const DoctorMain();
       } else if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
-          (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase())) {
+          (businessCategoryGlobal.toUpperCase() ==
+              "Alternative Health".toUpperCase())) {
         return const HospitalMain();
-      } else if (businessCategoryGlobal.toUpperCase() == "Diagnostic".toUpperCase()) {
+      } else if (businessCategoryGlobal.toUpperCase() ==
+          "Diagnostic".toUpperCase()) {
         return const LaboratoryMain();
       } else if (businessCategoryGlobal.toUpperCase() == "PHARMACY") {
         return const MedicalScreen(fromBottomNavBar: true);
       }
       return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Motel.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Product.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Product.name.toUpperCase()) {
       return const ProductScreen();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Finance.name.toUpperCase()) {
       return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Service.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
       return const ManufacturerProductScreen();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Automotive.name.toUpperCase()) {
       // All Automotive sub-categories route from this single branch based on
       // the business category. Order matters — a category can satisfy more
       // than one check (e.g. VEHICLE_SALES), and the first match wins, same
@@ -900,7 +932,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+    return businessTypeGlobal.toUpperCase() ==
+            BusinessType.Automotive.name.toUpperCase() &&
         automotiveOthersSectors.contains(category);
   }
 
@@ -919,7 +952,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+    return businessTypeGlobal.toUpperCase() ==
+            BusinessType.Automotive.name.toUpperCase() &&
         automotiveOthersSpecialSectors.contains(category);
   }
 
@@ -928,7 +962,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     // The "AUTO PARTS" category (with its space, as the API returns it) maps
     // to the parts catalog screen.
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+    return businessTypeGlobal.toUpperCase() ==
+            BusinessType.Automotive.name.toUpperCase() &&
         category.toUpperCase().contains('AUTO PARTS');
   }
 
@@ -966,7 +1001,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const GigWorkOptionsScreen(fromBottomNavBar: true);
 
       case SOCIAL_PROFILE:
-        if (userProfessionGlobal == CONTENT_CREATOR || userProfessionGlobal == ARTIST) {
+        if (userProfessionGlobal == CONTENT_CREATOR ||
+            userProfessionGlobal == ARTIST) {
           return const ContentCreatorMainScreen();
         }
         return const SocialMainScreen();
@@ -1111,7 +1147,8 @@ class _UnknownProfileFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = userNameGlobal.isNotEmpty ? userNameGlobal : '—';
     final type = userProfileTypeGlobal.isNotEmpty ? userProfileTypeGlobal : '—';
-    final profession = userProfessionGlobal.isNotEmpty ? userProfessionGlobal : '—';
+    final profession =
+        userProfessionGlobal.isNotEmpty ? userProfessionGlobal : '—';
 
     return SafeArea(
       child: Padding(
@@ -1191,10 +1228,13 @@ class _UnknownBusinessFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = businessNameGlobal.isNotEmpty ? businessNameGlobal : '—';
-    final owner = businessOwnerNameGlobal.isNotEmpty ? businessOwnerNameGlobal : '—';
+    final owner =
+        businessOwnerNameGlobal.isNotEmpty ? businessOwnerNameGlobal : '—';
     final type = businessTypeGlobal.isNotEmpty ? businessTypeGlobal : '—';
-    final category = businessCategoryGlobal.isNotEmpty ? businessCategoryGlobal : '—';
-    final subCategory = businessSubCategoryGlobal.isNotEmpty ? businessSubCategoryGlobal : '—';
+    final category =
+        businessCategoryGlobal.isNotEmpty ? businessCategoryGlobal : '—';
+    final subCategory =
+        businessSubCategoryGlobal.isNotEmpty ? businessSubCategoryGlobal : '—';
 
     return SafeArea(
       child: Padding(
@@ -1277,7 +1317,8 @@ class _RiderLiveBar extends StatefulWidget {
   State<_RiderLiveBar> createState() => _RiderLiveBarState();
 }
 
-class _RiderLiveBarState extends State<_RiderLiveBar> with SingleTickerProviderStateMixin {
+class _RiderLiveBarState extends State<_RiderLiveBar>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
   @override
@@ -1297,7 +1338,8 @@ class _RiderLiveBarState extends State<_RiderLiveBar> with SingleTickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+    final controller =
+        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
     return SafeArea(
       bottom: false,
@@ -1329,7 +1371,8 @@ class _RiderLiveBarState extends State<_RiderLiveBar> with SingleTickerProviderS
                     color: Color(0xFF00C853).withValues(alpha: opacity),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF00C853).withValues(alpha: opacity * 0.5),
+                        color:
+                            Color(0xFF00C853).withValues(alpha: opacity * 0.5),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),
@@ -1357,7 +1400,8 @@ class _RiderLiveBarState extends State<_RiderLiveBar> with SingleTickerProviderS
             GestureDetector(
               onTap: () => controller.toggleShopStatus(),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEA4335),
                   borderRadius: BorderRadius.circular(14),

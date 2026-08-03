@@ -10,8 +10,10 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/common/address/address_picker.dart';
+import 'package:BlueEra/features/common/address/model/address_ui_model.dart';
+import 'package:BlueEra/features/common/address/model/user_address_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -160,27 +162,27 @@ class _LocationTile extends StatelessWidget {
           color: AppColors.mainTextColor,
           fontWeight: FontWeight.w600,
         ),
-        if (hasMap) ...[
+      /*  if (hasMap) ...[
           SizedBox(height: SizeConfig.size12),
           Container(
             height: 1,
             color: const Color(0xFFEDEFF4),
           ),
-          SizedBox(height: SizeConfig.size12),
-          _eyebrow(AppStrings.coordsLabel.tr.toUpperCase()),
-          SizedBox(height: SizeConfig.size6),
-          Text(
-            _formatCoords(lat, lon),
-            style: TextStyle(
-              fontFamily: AppConstants.OpenSans,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.secondaryTextColor,
-              letterSpacing: 0.4,
-              fontFeatures: const [ui.FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
+          // SizedBox(height: SizeConfig.size12),
+          // _eyebrow(AppStrings.coordsLabel.tr.toUpperCase()),
+          // SizedBox(height: SizeConfig.size6),
+          // Text(
+          //   _formatCoords(lat, lon),
+          //   style: TextStyle(
+          //     fontFamily: AppConstants.OpenSans,
+          //     fontSize: 13,
+          //     fontWeight: FontWeight.w700,
+          //     color: AppColors.secondaryTextColor,
+          //     letterSpacing: 0.4,
+          //     fontFeatures: const [ui.FontFeature.tabularFigures()],
+          //   ),
+          // ),
+        ],*/
       ],
     );
   }
@@ -335,6 +337,13 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
   String? _pincode;
   bool _isSaving = false;
 
+  /// The address staged for saving, and where it came from. `_addressController`
+  /// is only the payload holder — these drive what section 02 renders, so the
+  /// tile can't fall back to showing the profile's pre-existing address as if
+  /// the user had just picked it.
+  UserAddress? _pickedAddress;
+  bool _pickedFromGps = false;
+
   @override
   void initState() {
     super.initState();
@@ -362,14 +371,28 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
       _lat = double.tryParse(data.lat) ?? _lat;
       _lon = double.tryParse(data.long) ?? _lon;
       if (data.pinCode.isNotEmpty) _pincode = data.pinCode;
+      // GPS wins over any earlier book pick.
+      _pickedAddress = null;
+      _pickedFromGps = true;
     });
   }
 
-  void _onPlaceSelected(String placeId, double lat, double lng, String addr) {
+  /// Opens the saved-address book. Whatever the user confirms there comes
+  /// back as a [UserAddress] — its formatted address, coordinates and
+  /// pincode become what this sheet will save.
+  Future<void> _pickSavedAddress() async {
+    final picked = await AddressPicker.pick();
+    if (picked == null || !mounted) return;
+
+    final formatted = picked.formattedAddress.trim();
     setState(() {
-      _addressController.text = addr;
-      _lat = lat;
-      _lon = lng;
+      _pickedAddress = picked;
+      _pickedFromGps = false;
+      if (formatted.isNotEmpty) _addressController.text = formatted;
+      _lat = picked.lat?.toDouble() ?? _lat;
+      _lon = picked.long?.toDouble() ?? _lon;
+      final pin = picked.pincode?.trim() ?? '';
+      if (pin.isNotEmpty) _pincode = pin;
     });
   }
 
@@ -442,17 +465,11 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
             ),
             SizedBox(height: SizeConfig.size18),
 
-            // 02 — type-and-pick via autocomplete
+            // 02 — pick one of the addresses the user already saved
             _Section(
               index: 2,
-              label: AppStrings.orSearchAnAddressLabel.tr.toUpperCase(),
-              child: CommonLocationSearchField(
-                controller: _addressController,
-                hintText: AppStrings.egRanchiJharkhand.tr,
-                isShowLeading: false,
-                title: '',
-                onSelected: _onPlaceSelected,
-              ),
+              label: 'OR PICK A SAVED ADDRESS',
+              child: _savedAddressTile(),
             ),
             SizedBox(height: SizeConfig.size18),
 
@@ -625,6 +642,101 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
         ),
       );
     });
+  }
+
+  // Section 02 — opens the saved-address book. Shows the address that is
+  // currently staged so the user can see what tapping "Update" will save.
+  Widget _savedAddressTile() {
+    final picked = _pickedAddress;
+    final currentText = _addressController.text.trim();
+
+    // Three states: a fresh pick from the book, a GPS/existing address
+    // already staged, or nothing yet.
+    final String title;
+    final String subtitle;
+    final bool hasSelection = picked != null;
+
+    if (picked != null) {
+      title = picked.typeLabel;
+      subtitle = picked.formattedAddress.trim().isEmpty
+          ? currentText
+          : picked.formattedAddress.trim();
+    } else if (currentText.isNotEmpty) {
+      title = _pickedFromGps ? 'Current location' : 'Address on your profile';
+      subtitle = currentText;
+    } else {
+      title = 'Choose from saved addresses';
+      subtitle = 'Home, Office or any address you saved';
+    }
+
+    return InkWell(
+      onTap: _pickSavedAddress,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size14,
+          vertical: SizeConfig.size14,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFAFBFE),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: hasSelection
+                ? AppColors.primaryColor.withValues(alpha: 0.28)
+                : const Color(0xFFE6E8EE),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor.withValues(alpha: 0.12),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                hasSelection
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    title,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  ),
+                  const SizedBox(height: 2),
+                  CustomText(
+                    subtitle,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: subtitle.isEmpty
+                        ? AppColors.secondaryTextColor
+                        : AppColors.mainTextColor,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                size: 20, color: AppColors.primaryColor),
+          ],
+        ),
+      ),
+    );
   }
 
   // Placeholder shown in section 03 when no coords have been picked
