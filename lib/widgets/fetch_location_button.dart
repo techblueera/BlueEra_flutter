@@ -12,15 +12,22 @@ class CommonLocationFetcher extends StatelessWidget {
   final Function(LocationDataModel locationData) onLocationFetched; // Replace 'dynamic' with LocationData type
   final Widget Function(VoidCallback triggerFetch) childBuilder;
 
+  /// Resolve the address with the free OS geocoder instead of the billed
+  /// Google Geocoding API. Set on the account-creation screens.
+  final bool preferNativeGeocoding;
+
   const CommonLocationFetcher({
     super.key,
     required this.locationController,
     required this.onLocationFetched,
     required this.childBuilder,
+    this.preferNativeGeocoding = false,
   });
 
   Future<void> _fetchLocation() async {
-    final locationData = await locationController.checkPermissionAndSetData();
+    final locationData = await locationController.checkPermissionAndSetData(
+      preferNativeGeocoding: preferNativeGeocoding,
+    );
     if (locationData != null) {
       onLocationFetched(locationData);
     }

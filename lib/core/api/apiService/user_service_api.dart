@@ -311,9 +311,17 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 6. Addresses
   // ──────────────────────────────────────────────────────────────────────
+  /// Collection path — `POST` creates, `GET` lists the caller's own
+  /// addresses. Every address route is JWT-protected and scoped to the
+  /// token's user server-side, so no userId ever goes on the wire.
   final String getAddressApi = "user-service/addresses";
   String updateExistingAddress(String addressId) =>
       "user-service/addresses/$addressId";
+
+  /// Single-address path — `GET` one, `PUT` partial update, `DELETE`.
+  /// Same URL as [updateExistingAddress]; this name reads correctly at the
+  /// non-update call sites.
+  String addressById(String addressId) => updateExistingAddress(addressId);
 
   // ──────────────────────────────────────────────────────────────────────
   // 7. Individual professions

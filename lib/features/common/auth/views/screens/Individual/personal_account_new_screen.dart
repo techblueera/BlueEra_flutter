@@ -1223,7 +1223,9 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         }
       }
 
-      final locationData = await locationController.checkPermissionAndSetData();
+      final locationData = await locationController.checkPermissionAndSetData(
+        preferNativeGeocoding: true,
+      );
       if (locationData != null) {
         final imageFile = (UserSession().imagePath != null)
             ? File(UserSession().imagePath!)

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/geo_coding_response.dart';
@@ -14,7 +15,17 @@ class LocationController extends GetxController {
   final isFetchingAddress = false.obs;
   final fetchAddressFromGeo = false.obs;
 
-  Future<LocationDataModel?> checkPermissionAndSetData() async {
+  /// [preferNativeGeocoding] resolves lat/lng → address through the OS
+  /// geocoder (the `geocoding` package: Android Geocoder / iOS CLGeocoder)
+  /// instead of the billed Google Geocoding API. Callers on the new-account
+  /// creation path pass true — that flow runs once per signup for every user
+  /// installing the app, so it was the single biggest consumer of the
+  /// Geocoding SKU. The Google call is still used as a fallback when the OS
+  /// geocoder returns nothing (see [getAddressDetails]), so behaviour is
+  /// unchanged for the user either way.
+  Future<LocationDataModel?> checkPermissionAndSetData({
+    bool preferNativeGeocoding = false,
+  }) async {
     isFetchingAddress.value = true;
     HapticFeedback.lightImpact();
 
@@ -23,7 +34,10 @@ class LocationController extends GetxController {
     if (locationResult.isSuccess && locationResult.position != null) {
       final pos = locationResult.position!;
       log("📍 lat: ${pos.latitude}, lng: ${pos.longitude}");
-      LocationDataModel? locationDataModel = await getAddressDetails(position: pos);
+      LocationDataModel? locationDataModel = await getAddressDetails(
+        position: pos,
+        preferNativeGeocoding: preferNativeGeocoding,
+      );
       return locationDataModel;
     } else {
       log("❌ Location error: ${locationResult.message}");
@@ -33,73 +47,23 @@ class LocationController extends GetxController {
     }
   }
 
-  /// Coordinates → address, using the **device's own geocoder first**.
-  ///
-  /// This is the app's only caller of Google's Geocoding API, and it reads
-  /// exactly three things: the formatted address, the city and the pincode.
-  /// All three come out of `placemarkFromCoordinates` (the `geocoding`
-  /// package), which is **free, on-device, and works with no network** —
-  /// whereas every Google call here bills a Geocoding request.
-  ///
-  /// Google is kept only as a fallback for the case the OS geocoder genuinely
-  /// cannot answer (no Play Services geocoder backend, or a coordinate it has
-  /// no data for). In practice that is rare, so Geocoding spend should now sit
-  /// at or near zero — if the Cloud Console shows meaningful Geocoding volume
-  /// after this, it is not coming from this app.
-  Future<LocationDataModel?> getAddressDetails({required Position position}) async {
-    // ── Free path: the OS geocoder ──
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-
-        final city = p.locality?.trim() ?? '';
-        final pinCode = p.postalCode?.trim() ?? '';
-
-        // Composed widest-last the way an Indian address reads, de-duplicated
-        // because the OS repeats values across fields often enough that
-        // "Dehradun, Dehradun, Uttarakhand" is the common case, not the edge.
-        final seen = <String>{};
-        final address = [
-          p.name,
-          p.street,
-          p.subLocality,
-          p.locality,
-          p.administrativeArea,
-          p.postalCode,
-        ]
-            .whereType<String>()
-            .map((s) => s.trim())
-            .where((s) => s.isNotEmpty && seen.add(s.toLowerCase()))
-            .join(', ');
-
-        // Only accept it if it actually answered. An empty address means the
-        // geocoder had nothing for this point, and Google may still.
-        if (address.isNotEmpty) {
-          log("✅ (device geocoder) full address: $address, "
-              "city: $city, PinCode: $pinCode");
-
-          fetchAddressFromGeo.value = true;
-          isFetchingAddress.value = false;
-
-          return LocationDataModel(
-            fullAddress: address,
-            city: city,
-            pinCode: pinCode,
-            lat: position.latitude.toString(),
-            long: position.longitude.toString(),
-          );
-        }
+  Future<LocationDataModel?> getAddressDetails({
+    required Position position,
+    bool preferNativeGeocoding = false,
+  }) async {
+    if (preferNativeGeocoding) {
+      final native = await _addressFromDeviceGeocoder(position);
+      if (native != null) {
+        fetchAddressFromGeo.value = true;
+        isFetchingAddress.value = false;
+        return native;
       }
-    } catch (e) {
-      // Geocoder unavailable on this device/emulator — fall through to Google.
-      log("device geocoder unavailable, falling back to Google: $e");
+      // OS geocoder unavailable (no Play Services / CLGeocoder throttled /
+      // offline). Fall through to the billed Google call rather than failing
+      // the signup — this is the rare path, not the common one.
+      log("ℹ️ Device geocoder gave nothing, falling back to Google Geocoding");
     }
 
-    // ── Paid fallback: Google Geocoding ──
     try {
       final responseModel = await PlaceRepo().getGeoCode(position: position);
 
@@ -156,5 +120,105 @@ class LocationController extends GetxController {
       log("⚠️ Error fetching address: $e");
       return null;
     }
+  }
+
+  /// Reverse-geocode through the OS (Android `Geocoder` / iOS `CLGeocoder`)
+  /// via the `geocoding` package. Free and quota-free, unlike the Geocoding
+  /// API SKU.
+  ///
+  /// Returns null — never throws — when the platform gives us nothing usable,
+  /// so the caller can decide whether to fall back to the paid lookup.
+  static bool _localeApplied = false;
+
+  Future<LocationDataModel?> _addressFromDeviceGeocoder(Position position) async {
+    try {
+      // en_IN keeps the strings in English regardless of device locale; the
+      // Google path we're replacing was implicitly English too, and the
+      // address is sent to the backend as-is. In geocoding 4.x the locale is
+      // process-wide state rather than a per-call argument, so set it once.
+      if (!_localeApplied) {
+        await setLocaleIdentifier('en_IN');
+        _localeApplied = true;
+      }
+
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      ).timeout(const Duration(seconds: 10));
+
+      if (placemarks.isEmpty) return null;
+      final place = placemarks.first;
+
+      final address = _formatPlacemark(place);
+      // An empty line is worse than no result — let the caller fall back.
+      if (address.isEmpty) return null;
+
+      // Matches the Google path, which read `locality` for city. Android often
+      // leaves locality empty outside metros, so mirror the fallback chain
+      // already used for motel creation in AuthController.
+      final city = _firstNonEmpty([
+        place.locality,
+        place.subAdministrativeArea,
+        place.subLocality,
+      ]);
+
+      log("✅ full address (device): $address, "
+          "city: $city, "
+          "PinCode: ${place.postalCode ?? ''}");
+
+      return LocationDataModel(
+        fullAddress: address,
+        city: city,
+        pinCode: place.postalCode?.trim() ?? '',
+        lat: position.latitude.toString(),
+        long: position.longitude.toString(),
+      );
+    } on TimeoutException {
+      log("⚠️ Device geocoder timed out");
+      return null;
+    } catch (e) {
+      log("⚠️ Device geocoder failed: $e");
+      return null;
+    }
+  }
+
+  /// Builds a single readable line that stands in for Google's
+  /// `formatted_address`, e.g. "12, Ring Road, Athwa, Surat, Gujarat, 395007,
+  /// India".
+  static String _formatPlacemark(Placemark place) {
+    final parts = <String>[];
+    for (final raw in [
+      place.name,
+      place.street,
+      place.subLocality,
+      place.locality,
+      place.subAdministrativeArea,
+      place.administrativeArea,
+      place.postalCode,
+      place.country,
+    ]) {
+      final value = raw?.trim() ?? '';
+      if (value.isEmpty) continue;
+      final lower = value.toLowerCase();
+      // The platform repeats itself a lot — Android's `street` usually already
+      // contains `name`, and `locality` frequently equals
+      // `subAdministrativeArea`. Skip anything a part we already kept covers,
+      // and drop earlier parts this longer one subsumes, so the line never
+      // reads "Surat, Surat, Gujarat".
+      if (parts.any((existing) => existing.toLowerCase().contains(lower))) {
+        continue;
+      }
+      parts.removeWhere((existing) => lower.contains(existing.toLowerCase()));
+      parts.add(value);
+    }
+    return parts.join(', ');
+  }
+
+  static String _firstNonEmpty(List<String?> candidates) {
+    for (final candidate in candidates) {
+      final value = candidate?.trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return '';
   }
 }
