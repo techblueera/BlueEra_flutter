@@ -8,11 +8,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/core/map/osrm_routing.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// A reusable bottom sheet that shows a Google Map with a driving route
 /// between the user's current location and a destination.
@@ -88,9 +88,18 @@ class RouteMapBottomSheet extends StatefulWidget {
 }
 
 class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
-  GoogleMapController? _mapController;
-  final Set<Polyline> _polylines = {};
-  final Set<Marker> _markers = {};
+  BlueMapController? _mapController;
+  List<LatLng> _routeCoords = const [];
+
+  List<BlueMapPolyline> get _polylines => [
+        if (_routeCoords.length >= 2)
+          BlueMapPolyline(
+            id: "route",
+            points: _routeCoords,
+            width: 5,
+            color: Colors.blue,
+          ),
+      ];
   bool _isLoadingRoute = true;
 
   LatLng get _userLatLng => LatLng(widget.userLat, widget.userLng);
@@ -99,7 +108,7 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _setupMarkers();
+    // Markers derive from state — nothing to set up.
     _fetchRoute();
   }
 
@@ -109,22 +118,23 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     super.dispose();
   }
 
-  void _setupMarkers() {
-    _markers.addAll({
-      Marker(
-        markerId: const MarkerId('user'),
-        position: _userLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(title: 'Your Location'),
-      ),
-      Marker(
-        markerId: const MarkerId('destination'),
-        position: _destinationLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: InfoWindow(title: widget.destinationName),
-      ),
-    });
-  }
+  /// User position and destination. Derived from state — nothing to set up.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'user',
+          position: _userLatLng,
+          icon: Icons.location_on,
+          color: Colors.blue,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+        BlueMapMarker(
+          id: 'destination',
+          position: _destinationLatLng,
+          icon: Icons.location_on,
+          color: Colors.red,
+          anchor: BlueMarkerAnchor.bottom,
+        ),
+      ];
 
   Future<void> _fetchRoute() async {
     try {
@@ -141,20 +151,7 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();
 
-        setState(() {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('route'),
-              points: routeCoords,
-              width: 5,
-              color: Colors.blue,
-              geodesic: true,
-              jointType: JointType.round,
-              startCap: Cap.roundCap,
-              endCap: Cap.roundCap,
-            ),
-          );
-        });
+        setState(() => _routeCoords = routeCoords);
       }
     } catch (e) {
       debugPrint('Error fetching route: $e');
@@ -166,20 +163,7 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
   }
 
   void _fitBounds() {
-    if (_mapController == null) return;
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        _userLatLng.latitude < _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude < _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
-      ),
-      northeast: LatLng(
-        _userLatLng.latitude > _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude > _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
-      ),
-    );
-
-    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+    _mapController?.fitPoints([_userLatLng, _destinationLatLng], padding: 60);
   }
 
 
@@ -313,26 +297,16 @@ List<String> get _validPhotos =>
                   borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     children: [
-                      GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _destinationLatLng,
-                          zoom: 13,
-                        ),
+                      BlueMap(
+                        initialCenter: _destinationLatLng,
+                        initialZoom: 13,
                         markers: _markers,
                         polylines: _polylines,
-                        myLocationEnabled: false,
-                        zoomControlsEnabled: true,
-                        zoomGesturesEnabled: true,
-                        scrollGesturesEnabled: true,
-                        rotateGesturesEnabled: true,
-                        tiltGesturesEnabled: true,
-                        mapToolbarEnabled: false,
-                        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                          Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                        },
+                        showZoomControls: true,
                         onMapCreated: (controller) {
                           _mapController = controller;
-                          Future.delayed(const Duration(milliseconds: 500), _fitBounds);
+                          // No delay: BlueMap queues camera work until ready.
+                          _fitBounds();
                         },
                       ),
                       if (_isLoadingRoute)

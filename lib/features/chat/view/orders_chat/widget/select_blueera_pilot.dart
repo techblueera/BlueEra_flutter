@@ -8,10 +8,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
@@ -40,52 +42,32 @@ class DeliveryPilotScreen extends StatefulWidget {
 
 class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   final orderController = Get.find<OrderNowController>();
-  GoogleMapController? mapController;
-  Set<Marker> _markers = {};
+  BlueMapController? mapController;
   late Stream<dynamic> _stream;
   StreamSubscription? _subscription;
   List<dynamic> orders = [];
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
+  Future<void> _onMapCreated(BlueMapController controller) async {
     mapController = controller;
-    _showMarkerAndZoom();
+    await controller.moveTo(
+      LatLng(widget.dropLat, widget.dropLong),
+      zoom: 14,
+    );
   }
 
-  Future<void> _showMarkerAndZoom() async {
-    if (mapController == null) return;
-
-    try {
-      final markerBytes = await getBytesFromSvgAsset(
-        'assets/svg/2_wheeler.svg',
-        35,
-      );
-
-      if (markerBytes.isEmpty) {
-        throw Exception("Marker bytes are empty");
-      }
-
-      final markerIcon = BitmapDescriptor.bytes(markerBytes);
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("customMarker"),
-        position: LatLng(widget.dropLat, widget.dropLong),
-        icon: markerIcon,
-      );
-
-
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      await mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(widget.dropLat, widget.dropLong), 14.0),
-      );
-
-    } catch (e, stackTrace) {
-      debugPrint("Error: $e");
-      debugPrint("StackTrace: $stackTrace");
-    }
-  }
+  /// The drop pin. A widget, so there is no async SVG-to-PNG step and no
+  /// try/catch around one — it is simply correct on the first frame.
+  List<BlueMapMarker> get _markers => [
+        BlueMapMarker(
+          id: 'drop',
+          position: LatLng(widget.dropLat, widget.dropLong),
+          child: const LocalAssets(
+            imagePath: 'assets/svg/2_wheeler.svg',
+            width: 35,
+            height: 35,
+          ),
+        ),
+      ];
 
   // Future<void> _showMarkerAndZoom() async {
   //   if (mapController == null) return;
@@ -207,11 +189,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               Container(
                   height: 240,
                   color: AppColors.white,
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.dropLat, widget.dropLong),
-                      zoom: 14.0,
-                    ),
+                  child: BlueMap(
+                    initialCenter: LatLng(widget.dropLat, widget.dropLong),
+                    initialZoom: 14,
                     myLocationEnabled: true,
                     onMapCreated: _onMapCreated,
                     markers: _markers,

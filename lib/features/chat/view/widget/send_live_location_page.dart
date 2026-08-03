@@ -5,10 +5,12 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 
@@ -25,7 +27,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
   LatLng? _currentPosition;
   LatLng? alternatCurrentPos;
   List<Placemark> _nearbyPlaces = [];
-  GoogleMapController? _mapController;
+  BlueMapController? _mapController;
   String _selectedDuration = '15min';
 
   @override
@@ -43,9 +45,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
         _currentPosition = LatLng(pos.latitude, pos.longitude);
         alternatCurrentPos = LatLng(pos.latitude, pos.longitude);
       });
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentPosition!, 16),
-      );
+      _mapController?.moveTo(_currentPosition!, zoom: 16);
       await _fetchNearbyPlaces(pos);
     }
   }
@@ -263,28 +263,16 @@ class _SendLocationPageState extends State<SendLocationPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: GoogleMap(
+              child: BlueMap(
+                initialCenter:
+                    _currentPosition ?? const LatLng(26.7836, 80.9013),
+                initialZoom: 16,
+                myLocationEnabled: true,
                 onMapCreated: (controller) {
                   _mapController = controller;
-                  if (_currentPosition != null) {
-                    controller.animateCamera(
-                      CameraUpdate.newLatLngZoom(_currentPosition!, 16),
-                    );
-                  }
+                  final pos = _currentPosition;
+                  if (pos != null) controller.moveTo(pos, zoom: 16);
                 },
-                initialCameraPosition: CameraPosition(
-                  target: _currentPosition ?? LatLng(26.7836, 80.9013),
-                  zoom: 16.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                compassEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                rotateGesturesEnabled: true,
-                tiltGesturesEnabled: true,
-                zoomGesturesEnabled: true,
-                scrollGesturesEnabled: true,
               ),
             ),
           ),
