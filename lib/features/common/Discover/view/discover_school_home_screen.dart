@@ -264,8 +264,8 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
 
                     SizedBox(height: SizeConfig.size10),
 
-                    /// REVIEWS (placeholder)
-                    _ReviewsSection(),
+                    // /// REVIEWS (placeholder)
+                    // _ReviewsSection(),
 
                     // SizedBox(height: SizeConfig.size10),
 

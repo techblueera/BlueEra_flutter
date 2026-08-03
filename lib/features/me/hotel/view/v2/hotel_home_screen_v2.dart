@@ -101,7 +101,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(
-          left: 20,
+          // left: 20,
           top: SizeConfig.size10,
           bottom: kBottomNavigationBarHeight + 30,
         ),
