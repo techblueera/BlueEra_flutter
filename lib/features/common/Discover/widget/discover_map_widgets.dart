@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -139,19 +140,28 @@ class DiscoverMapPreview extends StatelessWidget {
             ),
             child: Padding(
               padding: EdgeInsets.only(top: statusBarHeight),
-              child: AbsorbPointer(
-                absorbing: true,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: target,
-                    zoom: initialZoom,
-                  ),
-                  myLocationEnabled: false,
-                  myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
-                  compassEnabled: false,
-                  mapToolbarEnabled: false,
-                ),
+              // A picture, not a live GoogleMap.
+              //
+              // This preview is purely decorative — it absorbs every gesture
+              // and a tap anywhere opens the real full-screen map. But a
+              // `GoogleMap` widget bills a **Dynamic Maps load every time it is
+              // created**, and this sits at the top of scrolling Discover
+              // screens that build and rebuild constantly. It was the single
+              // most-created map in the app while showing the least.
+              //
+              // The Static API is a cheaper SKU, and CachedNetworkImage writes
+              // it to disk — so the same locality is free on every later view,
+              // this session and the next launch.
+              child: StaticMapPreview(
+                latitude: target.latitude,
+                longitude: target.longitude,
+                width: MediaQuery.of(context).size.width,
+                height: height,
+                zoom: initialZoom.round(),
+                // No pin: the old map had no marker either, and a lone red
+                // teardrop would read as "this exact spot" when the point is
+                // "roughly here".
+                showMarker: false,
               ),
             ),
           ),

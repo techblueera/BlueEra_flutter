@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -149,14 +150,18 @@ class _SelfProfessionDiscoverEntryScreenState
           // Decorative map backdrop (not pannable — the sheet owns gestures).
           Positioned.fill(
             child: AbsorbPointer(
-              child: GoogleMap(
-                initialCameraPosition:
-                    CameraPosition(target: _mapTarget, zoom: 13),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                onMapCreated: (c) => _mapController = c,
+              // Decorative backdrop only — the sheet above owns every gesture,
+              // so this never needed to be a live map. A GoogleMap bills a
+              // Dynamic Maps load every time it is created; the Static API is a
+              // cheaper SKU and CachedNetworkImage keeps it on disk, so
+              // re-entering this screen costs nothing.
+              child: StaticMapPreview(
+                latitude: _mapTarget.latitude,
+                longitude: _mapTarget.longitude,
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                zoom: 13,
+                showMarker: false,
               ),
             ),
           ),

@@ -44,7 +44,25 @@ class StaticMapPreview extends StatelessWidget {
     this.desaturated = false,
     this.borderRadius,
     this.errorWidget,
+    this.pins = const [],
   });
+
+  /// Extra points to plot, beyond the centre marker.
+  ///
+  /// Lets a decorative "here are the providers near you" backdrop be a static
+  /// image instead of a live `GoogleMap`, which is the difference between a
+  /// cached picture and a billed **Dynamic Maps load every time the widget is
+  /// built**.
+  ///
+  /// Capped at [_kMaxPins]: the Static API takes the whole request as a URL,
+  /// and an unbounded pin list would eventually exceed the URL length limit and
+  /// 4xx. Beyond a couple of dozen dots a decorative backdrop conveys nothing
+  /// extra anyway — the user taps through to the real map to read it.
+  final List<({double lat, double lng})> pins;
+
+  /// Keeps the URL well inside the Static API's ~8 KB limit, and keeps the
+  /// disk-cache key from fragmenting on lists that differ only in their tail.
+  static const int _kMaxPins = 25;
 
   final double latitude;
   final double longitude;
@@ -86,16 +104,66 @@ class StaticMapPreview extends StatelessWidget {
   /// fragment the disk cache.
   static const int _kScale = 2;
 
+  /// Decimal places kept in the centre coordinate, chosen from [zoom].
+  ///
+  /// ## Why the raw coordinate is the expensive part
+  ///
+  /// Moving a preview from `GoogleMap` to a static image removes the Dynamic
+  /// Maps load, but on its own it does NOT make the image cacheable: the URL is
+  /// keyed on the exact device coordinate, so
+  ///
+  ///  * every user gets a different URL for the same neighbourhood, and
+  ///  * the SAME user gets a different URL every time GPS jitters a few metres.
+  ///
+  /// That is a fresh billed request and a fresh disk-cache entry each time — a
+  /// cache with a ~0 % hit rate, which is a cache in name only. On a Discover
+  /// screen that rebuilds as the user scrolls, that is the worst case.
+  ///
+  /// Rounding the centre fixes it. Everyone within the same cell shares one
+  /// image, so the second viewer — and every later rebuild — is free.
+  ///
+  /// The rounding is invisible because it is chosen relative to what a pixel is
+  /// worth at that zoom:
+  ///
+  /// | zoom | rounding | ground error | visible? |
+  /// |------|----------|--------------|----------|
+  /// | ≤ 13 | 2 dp     | ~1.1 km      | sub-pixel on a city-wide view |
+  /// | ≤ 16 | 3 dp     | ~110 m       | a few pixels at neighbourhood zoom |
+  /// | > 16 | exact    | —            | street level: precision matters |
+  ///
+  /// Above zoom 16 nothing is rounded — at that scale the user is looking at a
+  /// specific building, and 110 m would put the pin on the wrong street.
+  int get _centrePrecision {
+    if (zoom <= 13) return 2;
+    if (zoom <= 16) return 3;
+    return 7; // effectively "don't round"
+  }
+
   String get _url {
     final w = width.round().clamp(1, _kMaxSide);
     final h = height.round().clamp(1, _kMaxSide);
-    final centre = '$latitude,$longitude';
+    final p = _centrePrecision;
+    final centre = '${latitude.toStringAsFixed(p)},'
+        '${longitude.toStringAsFixed(p)}';
+    // Extra pins ride in ONE `markers=` group rather than one parameter each:
+    // the Static API charges per request, not per marker, and a single group
+    // keeps the URL — and therefore the disk-cache key — as short as possible.
+    // Coordinates are rounded to 5 decimals (~1 m) so a pin list that shifts by
+    // centimetres between rebuilds still hits the same cached image.
+    final extra = pins.take(_kMaxPins).map(
+          (p) => '${p.lat.toStringAsFixed(5)},${p.lng.toStringAsFixed(5)}',
+        );
+    final pinsParam = extra.isEmpty
+        ? ''
+        : '&markers=${Uri.encodeComponent('size:small|color:0x2F80ED|${extra.join('|')}')}';
+
     return 'https://maps.googleapis.com/maps/api/staticmap'
         '?center=$centre'
         '&zoom=$zoom'
         '&size=${w}x$h'
         '&scale=$_kScale'
         '${showMarker ? '&markers=${Uri.encodeComponent('color:$markerColor|$centre')}' : ''}'
+        '$pinsParam'
         '&key=$googleMapKey';
   }
 

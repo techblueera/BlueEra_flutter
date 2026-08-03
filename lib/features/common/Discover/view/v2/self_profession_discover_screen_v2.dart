@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -217,6 +218,22 @@ class _SelfProfessionDiscoverScreenV2State
 
   /// Pins for the providers already loaded in the list. The full (unpaginated,
   /// clustered) set lives on the dedicated map screen.
+  /// Provider coordinates for the static backdrop.
+  ///
+  /// Plain points rather than [Marker]s — the backdrop is a static image now,
+  /// so there is nothing to attach a tap handler or an info window to. The
+  /// clustered full-screen map behind the tap still builds real markers.
+  List<({double lat, double lng})> _backdropPins() {
+    final pins = <({double lat, double lng})>[];
+    for (final s in controller.earnServiceList) {
+      final lat = s.userLocation?.lat?.toDouble();
+      final lng = s.userLocation?.lon?.toDouble();
+      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
+      pins.add((lat: lat, lng: lng));
+    }
+    return pins;
+  }
+
   Set<Marker> _backdropMarkers() {
     final markers = <Marker>{};
     for (final s in controller.earnServiceList) {
@@ -444,14 +461,18 @@ class _SelfProfessionDiscoverScreenV2State
               child: GestureDetector(
                 onTap: _openFullMap,
                 child: AbsorbPointer(
-                  child: Obx(() => GoogleMap(
-                        initialCameraPosition:
-                            CameraPosition(target: _mapTarget, zoom: 13),
-                        markers: _backdropMarkers(),
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
-                        mapToolbarEnabled: false,
+                  // A picture, not a live GoogleMap. Gestures are absorbed and
+                  // a tap opens the real clustered map, so this was paying a
+                  // Dynamic Maps load per build to render something nobody can
+                  // interact with. The provider pins survive as static markers.
+                  child: Obx(() => StaticMapPreview(
+                        latitude: _mapTarget.latitude,
+                        longitude: _mapTarget.longitude,
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        zoom: 13,
+                        showMarker: false,
+                        pins: _backdropPins(),
                       )),
                 ),
               ),

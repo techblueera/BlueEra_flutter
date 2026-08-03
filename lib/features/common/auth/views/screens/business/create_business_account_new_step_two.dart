@@ -26,6 +26,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/fetch_location_button.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -301,25 +302,33 @@ class _CreateBusinessAccountNewStepTwoState
                             child: Stack(
                               children: [
                                 /// Google Map
-                                GoogleMap(
-                                  onMapCreated: _onMapCreated,
-                                  initialCameraPosition: CameraPosition(
-                                    target: (locationData != null)
-                                        ? LatLng(
-                                            double.parse(locationData!.lat),
-                                            double.parse(locationData!.long),
-                                          )
-                                        : LatLng(20.5937,
-                                            78.9629), // Center of India
-                                    zoom: (locationData != null) ? 14 : 4,
-                                  ),
-                                  markers: _markers,
-                                  myLocationEnabled: false,
-                                  compassEnabled: false,
-                                  zoomGesturesEnabled: false,
-                                  rotateGesturesEnabled: true,
-                                  tiltGesturesEnabled: true,
-                                  scrollGesturesEnabled: true,
+                                // A picture, not a live GoogleMap.
+                                //
+                                // This confirms the address the user just
+                                // picked elsewhere — it is read, not operated
+                                // (zoom gestures were already disabled). A live
+                                // map billed a Dynamic Maps load every time
+                                // this form rebuilt, which on a validating
+                                // signup form is often.
+                                //
+                                // Coordinates are parsed defensively: they
+                                // arrive as strings from the API, and a
+                                // malformed pair must fall back to the
+                                // country view rather than throw during build.
+                                StaticMapPreview(
+                                  latitude: double.tryParse(
+                                          locationData?.lat ?? '') ??
+                                      20.5937,
+                                  longitude: double.tryParse(
+                                          locationData?.long ?? '') ??
+                                      78.9629, // Centre of India
+                                  width: MediaQuery.of(context).size.width,
+                                  height: SizeConfig.size160,
+                                  zoom: locationData != null ? 14 : 4,
+                                  // Only pin a real address; a pin on the
+                                  // country view would claim a precision the
+                                  // screen does not have yet.
+                                  showMarker: locationData != null,
                                 ),
                                 Positioned(
                                   right: SizeConfig.size10,

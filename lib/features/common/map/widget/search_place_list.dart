@@ -11,6 +11,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -308,14 +309,18 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                 height: 240,
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(widget.lat, widget.lng),
-                    zoom: 14.0,
-                  ),
-                  myLocationEnabled: true,
-                  markers: _markers,
+                // A picture, not a live GoogleMap.
+                //
+                // This only appears in the empty state — while the user has not
+                // typed a query — purely to show where the search is anchored.
+                // It was spinning up a map engine on every rebuild of a search
+                // screen, which rebuilds on every keystroke.
+                child: StaticMapPreview(
+                  latitude: widget.lat,
+                  longitude: widget.lng,
+                  width: MediaQuery.of(context).size.width,
+                  height: 240,
+                  zoom: 14,
                 )
               )
 

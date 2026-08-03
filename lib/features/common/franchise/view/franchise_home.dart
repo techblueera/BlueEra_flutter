@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -459,14 +460,22 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                     child: Stack(
                                       children: [
 
-                                        GoogleMap(
-                                          onMapCreated: _onMapCreated,
-                                          initialCameraPosition: CameraPosition(
-                                            target: LatLng(26.2389, 73.0243),
-                                            zoom: 14.0,
-                                          ),
-                                          markers: _markers,
-                                          compassEnabled: false,
+                                        // A picture, not a live GoogleMap.
+                                        //
+                                        // This is a fixed office address in a
+                                        // 160px card — the same coordinate for
+                                        // every user, forever. A live map here
+                                        // billed a Dynamic Maps load per build
+                                        // to show something that never changes
+                                        // and that nobody pans. As a static
+                                        // image it is one request for the whole
+                                        // user base, then disk cache.
+                                        const StaticMapPreview(
+                                          latitude: 26.2389,
+                                          longitude: 73.0243,
+                                          width: 400,
+                                          height: 160,
+                                          zoom: 14,
                                         ),
 
                                       ],

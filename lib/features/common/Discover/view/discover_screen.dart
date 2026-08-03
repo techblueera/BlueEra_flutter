@@ -1067,6 +1067,18 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
             personalPoster;
       }
 
+      // A guest has no profile, so there is no marketing card for the API to
+      // return — the strip would render empty for them, leaving a hole the
+      // exact size of the banner at the top of Discover.
+      //
+      // Rather than collapse the space (which makes the header jump the moment
+      // they sign up) the slot is filled with a sign-up prompt of the SAME
+      // height. The header's `headerBlockHeight` is computed from `bannerHeight`
+      // regardless of what fills it, so this keeps that arithmetic honest.
+      if (isGuestUser()) {
+        return _GuestProfilePromptCard(height: height);
+      }
+
       final hasPoster = poster?.trim().isNotEmpty ?? false;
       return _DiscoverHeaderBanner(
         height: height,
@@ -1074,12 +1086,112 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
           if (hasPoster) poster!.trim(),
           // fallbackAsset,
         ],
-        // Guests have no profile to share, so they get the strip without the
-        // button rather than one that opens a card composed out of nothing.
-        onShare: isGuestUser() ? null : () => SharePromoSheet.show(context),
+        onShare: () => SharePromoSheet.show(context),
         onAspectRatio: onAspectRatio,
       );
     });
+  }
+}
+
+/// What a **guest** sees where the personalised marketing card would be.
+///
+/// Occupies exactly the banner's height, so the Discover header measures the
+/// same before and after sign-up and nothing shifts underneath the user at the
+/// moment they create a profile.
+///
+/// Visual language is lifted from [GuestClaimBonusDialog] — the same gift
+/// badge, the same "sign up to unlock" framing, the same primary-bordered
+/// surface — so the two guest prompts in the app read as one idea rather than
+/// two unrelated nags. It is deliberately NOT a scratch card: scratching is a
+/// reward interaction and belongs to the bonus flow. Here the card IS the CTA,
+/// so the whole surface is tappable.
+class _GuestProfilePromptCard extends StatelessWidget {
+  const _GuestProfilePromptCard({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: createProfileScreen,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.primaryColor, width: 1.4),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16,
+              vertical: SizeConfig.size12,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.card_giftcard_rounded,
+                  size: 40,
+                  color: AppColors.primaryColor,
+                ),
+                SizedBox(width: SizeConfig.size14),
+                // The copy has to survive a banner height driven by the
+                // artwork's aspect ratio, so it flexes and ellipsises rather
+                // than assuming the room it had at design time.
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Create your profile',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: SizeConfig.size4),
+                      Flexible(
+                        child: CustomText(
+                          'Unlock your own promo card, rewards and '
+                          'personalised services.',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size14,
+                    vertical: SizeConfig.size8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: CustomText(
+                    'Sign up',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

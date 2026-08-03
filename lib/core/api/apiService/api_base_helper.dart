@@ -91,7 +91,33 @@ class ApiBaseHelper {
   static BaseOptions opts = BaseOptions(
       baseUrl: baseUrl ?? "",
       responseType: ResponseType.json,
-      receiveTimeout: Duration(seconds: 60),
+
+      // ── Timeouts ──
+      //
+      // Only `receiveTimeout` was set here. That is the least important of the
+      // three, and its absence was not the problem — the missing
+      // `connectTimeout` was.
+      //
+      // `receiveTimeout` only starts counting once a connection exists and
+      // bytes are flowing. If the server is unreachable, the port is
+      // blackholed, or the user is on a captive-portal wifi that accepts the
+      // TCP handshake and then goes silent, Dio never reaches the receive
+      // phase — so it falls back to the OS socket timeout, which on Android
+      // can be minutes and on iOS is ~60–75 s. The user sees the global
+      // progress dialog spin with no way out, and `numberOfReq` stays pinned
+      // above zero so the dialog does not dismiss even when they navigate away.
+      //
+      // 20 s to establish a connection is generous on a 3G-class network and
+      // still bounded. Anything slower is not going to succeed.
+      connectTimeout: const Duration(seconds: 20),
+
+      // Guards the REQUEST body going out. Matters for the JSON posts here;
+      // large uploads use their own Dio with longer values (see
+      // uploadVideoToS3 / workManagerPostHTTP), so this does not cap them.
+      sendTimeout: const Duration(seconds: 60),
+
+      // Time allowed between response bytes once connected.
+      receiveTimeout: const Duration(seconds: 60),
       headers: {
         ApiKeys.authorization: 'Bearer $authTokenGlobal',
         'Content-Type': 'application/json; charset=UTF-8',
