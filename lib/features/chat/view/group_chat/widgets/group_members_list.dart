@@ -28,6 +28,15 @@ class _GroupMembersListState extends State<GroupMembersList> {
   void _showMemberBottomSheet(BuildContext context, GroupMembersListModel member) {
     final amIAdmin = widget.members.firstWhere((m) => m.id == userId, orElse: () => GroupMembersListModel()).isAdmin ?? false;
 
+    // Warm the by-phone lookup while the sheet is still animating in. "View
+    // profile" needs that record to route on (business type / sub-category),
+    // and fetching it here instead of on the tap turns the tap into a cache
+    // hit — the profile opens immediately rather than behind a spinner.
+    final memberContact = member.contact?.trim() ?? '';
+    if (memberContact.isNotEmpty) {
+      chatViewController.ensurePhoneUserLoaded(memberContact);
+    }
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
