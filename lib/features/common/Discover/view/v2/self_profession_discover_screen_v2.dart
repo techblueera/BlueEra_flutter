@@ -28,7 +28,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Tinted surface set for a provider card. Mirrors the grocery/product store
 /// cards so a result card reads as the same family across the app — a soft
@@ -110,7 +111,8 @@ class _SelfProfessionDiscoverScreenV2State
   final String earnServiceType = AppConstants.service;
 
   /// Custom pin for the backdrop map — rendered once, reused for every marker.
-  BitmapDescriptor? _markerIcon;
+  static final Widget _markerIcon =
+      DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded);
 
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
@@ -129,9 +131,6 @@ class _SelfProfessionDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchEarnServicesIfNeeded(
         earnServiceType: earnServiceType, subType: serviceSubType);
-    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _markerIcon = d);
-    });
   }
 
   // ─── Sorting / formatting helpers ──────────────────────────────────────────
@@ -217,16 +216,16 @@ class _SelfProfessionDiscoverScreenV2State
 
   /// Pins for the providers already loaded in the list. The full (unpaginated,
   /// clustered) set lives on the dedicated map screen.
-  Set<Marker> _backdropMarkers() {
-    final markers = <Marker>{};
+  List<BlueMapMarker> _backdropMarkers() {
+    final markers = <BlueMapMarker>[];
     for (final s in controller.earnServiceList) {
       final lat = s.userLocation?.lat?.toDouble();
       final lng = s.userLocation?.lon?.toDouble();
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      markers.add(Marker(
-        markerId: MarkerId(s.id ?? '${s.name}_$lat,$lng'),
+      markers.add(BlueMapMarker(
+        id: s.id ?? '${s.name}_$lat,$lng',
         position: LatLng(lat, lng),
-        icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
+        child: _markerIcon,
       ));
     }
     return markers;
@@ -444,14 +443,12 @@ class _SelfProfessionDiscoverScreenV2State
               child: GestureDetector(
                 onTap: _openFullMap,
                 child: AbsorbPointer(
-                  child: Obx(() => GoogleMap(
-                        initialCameraPosition:
-                            CameraPosition(target: _mapTarget, zoom: 13),
+                  child: Obx(() => BlueMap(
+                        initialCenter: _mapTarget,
+                        initialZoom: 13,
                         markers: _backdropMarkers(),
                         myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
-                        mapToolbarEnabled: false,
+                        interactive: false,
                       )),
                 ),
               ),
@@ -1342,13 +1339,13 @@ class _SelfProfessionMapScreenV2 extends StatefulWidget {
 }
 
 class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> {
-  GoogleMapController? _mapController;
-  BitmapDescriptor? _serviceIcon;
+  BlueMapController? _mapController;
+  /// Category pin, as a widget: correct on the first frame, and stable by
+  /// identity so BlueMap does not redraw every pin on every rebuild.
+  static final Widget _serviceIcon =
+      DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded);
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('self_profession_services_v2');
-
   @override
   void initState() {
     super.initState();
@@ -1356,11 +1353,6 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
       earnServiceType: widget.earnServiceType,
       subType: widget.subType,
     );
-    // Pre-render the custom marker icon once; cluster taps pop the unclustered
-    // marker so this is what the user actually sees.
-    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _serviceIcon = d);
-    });
   }
 
   @override
@@ -1372,40 +1364,33 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
   /// Builds the marker set fed to [GoogleMap.markers]. Each marker is stamped
   /// with [_clusterManagerId] so the platform-side cluster manager can group
   /// nearby ones into a numbered badge automatically.
-  Set<Marker> _buildMarkers(List<ServiceData> services) {
-    final markers = <Marker>{};
+  /// Services on the map, keyed by marker id, so a tap resolves back to the
+  /// service it represents.
+  final Map<String, ServiceData> _servicesByMarkerId = {};
+
+  List<BlueMapMarker> _buildMarkers(List<ServiceData> services) {
+    _servicesByMarkerId.clear();
+    final markers = <BlueMapMarker>[];
     for (final s in services) {
       final lat = s.userLocation?.lat?.toDouble();
       final lng = s.userLocation?.lon?.toDouble();
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
+      final id = s.id ?? '${s.name}_$lat,$lng';
+      _servicesByMarkerId[id] = s;
       markers.add(
-        Marker(
-          markerId: MarkerId(s.id ?? '${s.name}_$lat,$lng'),
+        BlueMapMarker(
+          id: id,
           position: LatLng(lat, lng),
-          clusterManagerId: _clusterManagerId,
-          icon: _serviceIcon ?? BitmapDescriptor.defaultMarker,
-          infoWindow: InfoWindow(
-            title: s.name ?? AppStrings.unknownUser.tr,
-            snippet: s.profession ?? '',
-            onTap: () => widget.onMarkerTap(context, s),
-          ),
-          onTap: () => widget.onMarkerTap(context, s),
+          child: _serviceIcon,
         ),
       );
     }
     return markers;
   }
 
-  /// Frames the camera around every position inside the tapped cluster so the
-  /// cluster expands cleanly into individual pins.
-  Future<void> _zoomToCluster(Cluster cluster) async {
-    if (_mapController == null) return;
-    final markers = cluster.markerIds;
-    if (markers.length <= 1) {
-      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
-      return;
-    }
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
+  void _onMarkerTap(String markerId) {
+    final service = _servicesByMarkerId[markerId];
+    if (service != null) widget.onMarkerTap(context, service);
   }
 
   @override
@@ -1422,23 +1407,14 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
         children: [
           Obx(() {
             final markers = _buildMarkers(_ctrl.earnServiceMapList);
-            return GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(initialLat, initialLng),
-                zoom: 12,
-              ),
+            return BlueMap(
+              initialCenter: LatLng(initialLat, initialLng),
+              initialZoom: 12,
               markers: markers,
-              clusterManagers: {
-                ClusterManager(
-                  clusterManagerId: _clusterManagerId,
-                  onClusterTap: _zoomToCluster,
-                ),
-              },
+              // Replaces Google's platform-side ClusterManager.
+              clusterMarkers: true,
               myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              compassEnabled: true,
-              mapToolbarEnabled: false,
+              onMarkerTap: _onMarkerTap,
               onMapCreated: (c) => _mapController = c,
             );
           }),
@@ -1477,8 +1453,9 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
                 bannerMapCircleIconButton(
                   icon: Icons.my_location,
                   onTap: () {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(LatLng(initialLat, initialLng), 13),
+                    _mapController?.moveTo(
+                      LatLng(initialLat, initialLng),
+                      zoom: 13,
                     );
                   },
                 ),

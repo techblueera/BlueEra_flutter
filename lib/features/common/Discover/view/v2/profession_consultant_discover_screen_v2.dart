@@ -29,7 +29,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 /// Tinted surface set for a consultant card. Mirrors the self-profession v2
 /// cards so a result reads as the same family across both discover flows — a
@@ -110,7 +111,8 @@ class _ProfessionConsultantDiscoverScreenV2State
   final controller = getOrPut(() => DiscoverController());
 
   /// Custom pin for the backdrop map — rendered once, reused for every marker.
-  BitmapDescriptor? _markerIcon;
+  static final Widget _markerIcon =
+      DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded);
 
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
@@ -137,9 +139,6 @@ class _ProfessionConsultantDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchProfessionalConsultantServicesIfNeeded();
     _ensureOrigin();
-    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _markerIcon = d);
-    });
   }
 
   /// Establishes the distance origin: the location picked on the entry screen
@@ -291,16 +290,16 @@ class _ProfessionConsultantDiscoverScreenV2State
 
   /// Pins for the consultants already loaded in the list. The full
   /// (unpaginated, clustered) set lives on the dedicated map screen.
-  Set<Marker> _backdropMarkers() {
-    final markers = <Marker>{};
+  List<BlueMapMarker> _backdropMarkers() {
+    final markers = <BlueMapMarker>[];
     for (final c in controller.professionalConsDataList) {
       final lat = _toDouble(c.userDetails?.userLocation?.lat);
       final lng = _toDouble(c.userDetails?.userLocation?.lon);
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      markers.add(Marker(
-        markerId: MarkerId(c.id ?? c.userId ?? '${c.userDetails?.name}_$lat,$lng'),
+      markers.add(BlueMapMarker(
+        id: c.id ?? c.userId ?? '${c.userDetails?.name}_$lat,$lng',
         position: LatLng(lat, lng),
-        icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
+        child: _markerIcon,
       ));
     }
     return markers;
@@ -501,14 +500,12 @@ class _ProfessionConsultantDiscoverScreenV2State
               child: GestureDetector(
                 onTap: _openFullMap,
                 child: AbsorbPointer(
-                  child: Obx(() => GoogleMap(
-                        initialCameraPosition:
-                            CameraPosition(target: _mapTarget, zoom: 13),
+                  child: Obx(() => BlueMap(
+                        initialCenter: _mapTarget,
+                        initialZoom: 13,
                         markers: _backdropMarkers(),
                         myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
-                        mapToolbarEnabled: false,
+                        interactive: false,
                       )),
                 ),
               ),
@@ -1431,22 +1428,17 @@ class _ProfessionConsultantMapScreenV2 extends StatefulWidget {
 
 class _ProfessionConsultantMapScreenV2State
     extends State<_ProfessionConsultantMapScreenV2> {
-  GoogleMapController? _mapController;
-  BitmapDescriptor? _serviceIcon;
+  BlueMapController? _mapController;
+  /// Category pin, as a widget: correct on the first frame, and stable by
+  /// identity so BlueMap does not redraw every pin on every rebuild.
+  static final Widget _serviceIcon =
+      DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded);
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('profession_consultants_v2');
-
   @override
   void initState() {
     super.initState();
     _ctrl.fetchAllProfessionalConsForMap();
-    // Pre-render the custom marker icon once; cluster taps pop the unclustered
-    // marker so this is what the user actually sees.
-    DiscoverMarkerIcons.circleBitmap(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _serviceIcon = d);
-    });
   }
 
   @override
@@ -1461,11 +1453,16 @@ class _ProfessionConsultantMapScreenV2State
     return double.tryParse(v.toString());
   }
 
-  /// Builds the marker set fed to [GoogleMap.markers]. Each marker is stamped
-  /// with [_clusterManagerId] so the platform-side cluster manager can group
-  /// nearby ones into a numbered badge automatically.
-  Set<Marker> _buildMarkers(List<ProfessionalConsData> services) {
-    final markers = <Marker>{};
+  /// Consultants on the map, keyed by marker id, so a tap resolves back to the
+  /// consultant it represents.
+  final Map<String, ProfessionalConsData> _consultantsByMarkerId = {};
+
+  /// Builds the marker list fed to [BlueMap.markers]. Grouping into numbered
+  /// badges is handled by `clusterMarkers: true`, which replaces Google's
+  /// platform-side ClusterManager.
+  List<BlueMapMarker> _buildMarkers(List<ProfessionalConsData> services) {
+    _consultantsByMarkerId.clear();
+    final markers = <BlueMapMarker>[];
     for (final s in services) {
       final lat = _toDouble(s.userDetails?.userLocation?.lat);
       final lng = _toDouble(s.userDetails?.userLocation?.lon);
@@ -1473,36 +1470,22 @@ class _ProfessionConsultantMapScreenV2State
       final name = (s.basicDetails?.fullName?.trim().isNotEmpty ?? false)
           ? s.basicDetails!.fullName!
           : (s.userDetails?.name ?? AppStrings.unknownUser.tr);
+      final id = s.id ?? s.userId ?? '${name}_$lat,$lng';
+      _consultantsByMarkerId[id] = s;
       markers.add(
-        Marker(
-          markerId: MarkerId(s.id ?? s.userId ?? '${name}_$lat,$lng'),
+        BlueMapMarker(
+          id: id,
           position: LatLng(lat, lng),
-          clusterManagerId: _clusterManagerId,
-          icon: _serviceIcon ?? BitmapDescriptor.defaultMarker,
-          infoWindow: InfoWindow(
-            title: name,
-            snippet: s.basicDetails?.professionalTitle ?? '',
-            onTap: () => widget.onMarkerTap(context, s),
-          ),
-          onTap: () => widget.onMarkerTap(context, s),
+          child: _serviceIcon,
         ),
       );
     }
     return markers;
   }
 
-  /// Frames the camera around every position inside the tapped cluster so the
-  /// cluster expands cleanly into individual pins.
-  Future<void> _zoomToCluster(Cluster cluster) async {
-    if (_mapController == null) return;
-    final markers = cluster.markerIds;
-    if (markers.length <= 1) {
-      _mapController!
-          .animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
-      return;
-    }
-    _mapController!
-        .animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
+  void _onMarkerTap(String markerId) {
+    final consultant = _consultantsByMarkerId[markerId];
+    if (consultant != null) widget.onMarkerTap(context, consultant);
   }
 
   @override
@@ -1519,23 +1502,14 @@ class _ProfessionConsultantMapScreenV2State
         children: [
           Obx(() {
             final markers = _buildMarkers(_ctrl.professionalConsMapList);
-            return GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(initialLat, initialLng),
-                zoom: 12,
-              ),
+            return BlueMap(
+              initialCenter: LatLng(initialLat, initialLng),
+              initialZoom: 12,
               markers: markers,
-              clusterManagers: {
-                ClusterManager(
-                  clusterManagerId: _clusterManagerId,
-                  onClusterTap: _zoomToCluster,
-                ),
-              },
+              // Replaces Google's platform-side ClusterManager.
+              clusterMarkers: true,
               myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              compassEnabled: true,
-              mapToolbarEnabled: false,
+              onMarkerTap: _onMarkerTap,
               onMapCreated: (c) => _mapController = c,
             );
           }),
@@ -1575,9 +1549,9 @@ class _ProfessionConsultantMapScreenV2State
                 bannerMapCircleIconButton(
                   icon: Icons.my_location,
                   onTap: () {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                          LatLng(initialLat, initialLng), 13),
+                    _mapController?.moveTo(
+                      LatLng(initialLat, initialLng),
+                      zoom: 13,
                     );
                   },
                 ),

@@ -19,7 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/map/blue_map.dart';
+import 'package:BlueEra/core/map/lat_lng.dart';
 
 class PropertyDiscoverScreen extends StatefulWidget {
   final int initialCategoryIndex;
@@ -736,20 +737,18 @@ class _PropertyMapScreen extends StatefulWidget {
 }
 
 class _PropertyMapScreenState extends State<_PropertyMapScreen> {
-  GoogleMapController? _mapController;
-  BitmapDescriptor? _propertyIcon;
+  BlueMapController? _mapController;
+  /// Property pin. A widget held in a field so it is correct on the first frame
+  /// and BlueMap (which compares marker children by identity) does not redraw
+  /// every pin on every rebuild.
+  static final Widget _propertyIcon =
+      DiscoverMarkerIcons.circle(icon: Icons.home_work_outlined);
 
   final PropertyDiscoverController _ctrl =
   Get.find<PropertyDiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-  ClusterManagerId('property_listings');
-
   @override
   void initState() {
     super.initState();
-    DiscoverMarkerIcons.circleBitmap(icon: Icons.home_work_outlined).then((d) {
-      if (mounted) setState(() => _propertyIcon = d);
-    });
   }
 
   @override
@@ -758,49 +757,37 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
     super.dispose();
   }
 
-  Set<Marker> _buildMarkers() {
-    final markers = <Marker>{};
+  /// Properties on the map, keyed by marker id, so a tap resolves back to the
+  /// listing it represents.
+  final Map<String, dynamic> _propertiesByMarkerId = {};
+
+  List<BlueMapMarker> _buildMarkers() {
+    _propertiesByMarkerId.clear();
+    final markers = <BlueMapMarker>[];
     for (final p in _ctrl.mapProperties) {
       final coords = p.location?.coordinates;
       if (coords == null || coords.isEmpty) continue;
+      // GeoJSON order: [longitude, latitude].
       final lng = coords.length > 0 ? coords[0] : 0.0;
       final lat = coords.length > 1 ? coords[1] : 0.0;
       if (lat == 0 && lng == 0) continue;
+      final id = p.id ?? '${p.propertyName}_$lat,$lng';
+      _propertiesByMarkerId[id] = p;
       markers.add(
-        Marker(
-          markerId: MarkerId(p.id ?? '${p.propertyName}_$lat,$lng'),
+        BlueMapMarker(
+          id: id,
           position: LatLng(lat, lng),
-          clusterManagerId: _clusterManagerId,
-          icon: _propertyIcon ?? BitmapDescriptor.defaultMarker,
-          infoWindow: InfoWindow(
-            title: p.propertyName,
-            snippet: p.formattedPrice,
-            onTap: () => Get.to(() => PropertyDetailsScreen(
-              property: p,
-              isOwner: false,
-            )),
-          ),
-          onTap: () => Get.to(() => PropertyDetailsScreen(
-            property: p,
-            isOwner: false,
-          )),
+          child: _propertyIcon,
         ),
       );
     }
     return markers;
   }
 
-  Future<void> _zoomToCluster(Cluster cluster) async {
-    if (_mapController == null) return;
-    if (cluster.markerIds.length <= 1) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(cluster.position, 15),
-      );
-      return;
-    }
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(cluster.bounds, 80),
-    );
+  void _onMarkerTap(String markerId) {
+    final property = _propertiesByMarkerId[markerId];
+    if (property == null) return;
+    Get.to(() => PropertyDetailsScreen(property: property, isOwner: false));
   }
 
   @override
@@ -817,23 +804,13 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
           Obx(() {
             _ctrl.mapProperties.length;
             final markers = _buildMarkers();
-            return GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(initialLat, initialLng),
-                zoom: 12,
-              ),
+            return BlueMap(
+              initialCenter: LatLng(initialLat, initialLng),
+              initialZoom: 12,
               markers: markers,
-              clusterManagers: {
-                ClusterManager(
-                  clusterManagerId: _clusterManagerId,
-                  onClusterTap: _zoomToCluster,
-                ),
-              },
+              clusterMarkers: true,
               myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              compassEnabled: true,
-              mapToolbarEnabled: false,
+              onMarkerTap: _onMarkerTap,
               onMapCreated: (c) => _mapController = c,
             );
           }),
@@ -863,11 +840,9 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
                 bannerMapCircleIconButton(
                   icon: Icons.my_location,
                   onTap: () {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        LatLng(initialLat, initialLng),
-                        13,
-                      ),
+                    _mapController?.moveTo(
+                      LatLng(initialLat, initialLng),
+                      zoom: 13,
                     );
                   },
                 ),
