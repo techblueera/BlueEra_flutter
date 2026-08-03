@@ -28,33 +28,50 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_constant.dart';
+import '../../../../core/widgets/custom_form_card.dart';
+import '../../../../widgets/image_view_screen.dart';
+import '../../../business/widgets/business_contact_map_card.dart';
+import '../../../business/widgets/business_qrcode_widget.dart';
+import '../../store/widget/store_live_photo_widget.dart';
+
 class HotelDiscoverHomeScreen extends StatefulWidget {
   final HotelServiceData data;
 
   const HotelDiscoverHomeScreen({super.key, required this.data});
 
   @override
-  State<HotelDiscoverHomeScreen> createState() => _HotelDiscoverHomeScreenState();
+  State<HotelDiscoverHomeScreen> createState() =>
+      _HotelDiscoverHomeScreenState();
 }
 
 class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
   var selectedRoomType = "";
 
   String _formatTypeName(String type) {
     if (type.isEmpty) return "";
-    String result = type.replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}');
+    String result = type.replaceAllMapped(
+        RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}');
     return result[0].toUpperCase() + result.substring(1);
   }
 
   List<Rooms> get filteredRooms {
-    return widget.data.rooms?.where((room) => room.type == selectedRoomType).toList() ?? [];
+    return widget.data.rooms
+            ?.where((room) => room.type == selectedRoomType)
+            .toList() ??
+        [];
   }
 
   List<String> get dynamicRoomTypes {
     final rooms = widget.data.rooms ?? [];
-    return rooms.map((e) => e.type ?? "").where((t) => t.isNotEmpty).toSet().toList();
+    return rooms
+        .map((e) => e.type ?? "")
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   List<String> types = [];
@@ -114,13 +131,13 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                   .visitedBusinessProfileDetails?.data;
               return VisitBusinessHero(
                 details: details,
-                onRated: () => viewBusinessDetailsController
-                    .viewBusinessProfileById(
+                onRated: () =>
+                    viewBusinessDetailsController.viewBusinessProfileById(
                   profile?.businessId ?? '',
                   silent: true,
                 ),
-                onFollowChanged: () => viewBusinessDetailsController
-                    .viewBusinessProfileById(
+                onFollowChanged: () =>
+                    viewBusinessDetailsController.viewBusinessProfileById(
                   profile?.businessId ?? '',
                   silent: true,
                 ),
@@ -134,26 +151,113 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                   // --- Choose Room ---
                   _buildChooseRoom(),
 
-                  // --- Gallery ---
-                  SizedBox(height: SizeConfig.size10),
-                  _buildGallerySection(),
-
                   // --- Amenities ---
                   SizedBox(height: SizeConfig.size10),
                   _buildAmenitiesSection(),
 
+                  // --- Policies ---
+                  SizedBox(height: SizeConfig.size10),
+                  _buildPoliciesSection(),
+
+                  // --- Gallery ---
+                  SizedBox(height: SizeConfig.size10),
+                  _buildGallerySection(),
+                  // --- Live photo  ---
+                  SizedBox(height: SizeConfig.size10),
+                  Obx(() {
+                    if (viewBusinessDetailsController.isProfileLoading.value) {
+                      return const SizedBox.shrink();
+                    }
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    final photos = (details?.livePhotos ?? const <String>[])
+                        .where((p) => p.trim().isNotEmpty)
+                        .toList();
+                    if (photos.isEmpty) return const SizedBox.shrink();
+                    return CustomFormCard(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CustomText(
+                            'Live Photos',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          const SizedBox(height: 10),
+                          StoreLivePhotoWidget(
+                            livePhotos: photos,
+                            natureOfBusiness:
+                                details?.subCategoryDetails?.name ??
+                                    details?.natureOfBusiness ??
+                                    'OTHER',
+                            onViewFullScreen: ({
+                              required int index,
+                              required List<String> storeImage,
+                              required String natureOfBusiness,
+                            }) {
+                              navigatePushTo(
+                                context,
+                                ImageViewScreen(
+                                  appBarTitle: details?.businessName ?? '',
+                                  subTitle: natureOfBusiness,
+                                  imageUrls: storeImage,
+                                  initialIndex: index,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+
                   // --- Contact Us ---
-                  SizedBox(height: SizeConfig.size10),
-                  _buildContactCard(),
-                  SizedBox(height: SizeConfig.size10),
+                  // SizedBox(height: SizeConfig.size10),
+                  Obx(() {
+                    if (viewBusinessDetailsController.isProfileLoading.value) {
+                      return const SizedBox.shrink();
+                    }
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    return BusinessContactMapCard(
+                      businessProfileDetails: details,
+                      showEditButton: false,
+                    );
+                  }),
+
+                  SizedBox(height: SizeConfig.size5),
 
                   /// WEBSITE PREVIEW
-                  WebsitePreviewCard(
-                    url: profile?.website ?? '',
-                  ),
+                  // `profile.website` from the search response is empty for
+                  // most listings; the actual URL comes from the user-service
+                  // detail payload as `data.website_url` → `websiteUrl` on the
+                  // parsed profile. Fall back to `profile.website` only when
+                  // the detail hasn't loaded yet.
+                  //
+                  // `visitedBusinessProfileDetails` is a plain field on the
+                  // controller (not an `.obs`), so we touch `profileVersion`
+                  // — the reactive version-counter bumped after each refresh
+                  // — to give this Obx something to subscribe to. Same
+                  // pattern used by the header Obx above.
+                  Obx(() {
+                    viewBusinessDetailsController.profileVersion.value;
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    final url = (details?.websiteUrl?.isNotEmpty ?? false)
+                        ? details!.websiteUrl!
+                        : (profile?.website ?? '');
+                    return WebsitePreviewCard(url: url);
+                  }),
 
-                  // --- Location Map ---
-                  _buildLocationSection(),
+                  Obx(() {
+                    if (viewBusinessDetailsController.isProfileLoading.value) {
+                      return const SizedBox.shrink();
+                    }
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    return BusinessQrCodeWidget(data: details);
+                  }),
                   SizedBox(height: kBottomNavigationBarHeight + 30),
                 ],
               ),
@@ -194,12 +298,17 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                     onTap: () => setState(() => selectedRoomType = type),
                     child: Container(
                       margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryColor : AppColors.white,
+                        color: isSelected
+                            ? AppColors.primaryColor
+                            : AppColors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                          color: isSelected
+                              ? AppColors.primaryColor
+                              : AppColors.secondaryTextColor,
                         ),
                       ),
                       child: CustomText(
@@ -236,119 +345,233 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
   Widget _buildRoomCard(Rooms room) {
     final imageUrl = room.images?.exteriorImages?.firstOrNull ?? '';
-    return Container(
-      width: 236,
-      height: 303,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Stack(
-        children: [
-          // Background Image
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (ctx, _) => Container(
+    return GestureDetector(
+      onTap: () => _openRoomAmenitiesSheet(room),
+      child: Container(
+        width: 236,
+        height: 303,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Stack(
+          children: [
+            // Background Image
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (ctx, _) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (ctx, _, __) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.hotel,
+                              size: 50, color: Colors.grey),
+                        ),
+                      )
+                    : Container(
                         color: Colors.grey[200],
-                        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        child: const Icon(Icons.hotel,
+                            size: 50, color: Colors.grey),
                       ),
-                      errorWidget: (ctx, _, __) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.hotel, size: 50, color: Colors.grey),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.hotel, size: 50, color: Colors.grey),
-                    ),
+              ),
             ),
-          ),
 
-          // Bottom overlay
-          Positioned(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
+            // Bottom overlay
+            Positioned(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10.0, right: 10, bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomText(
-                        room.name ?? "N/A",
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      CustomText(
-                        "\u20B9${room.pricePerDay ?? 0}/day",
-                        color: Colors.white,
-                        fontSize: 16,
-                        maxLines: 1,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      const SizedBox(height: 5),
-                      if (room.bedType?.isNotEmpty ?? false)
-                        Row(
-                          children: [
-                            LocalAssets(
-                              imagePath: AppIconAssets.bad,
-                              imgColor: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            CustomText(
-                              room.bedType ?? "",
-                              color: Colors.white,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              fontSize: SizeConfig.small,
-                            ),
-                          ],
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 10.0, right: 10, bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          room.name ?? "N/A",
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      if (room.maxOccupancy?.isNotEmpty ?? false) ...[
                         const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            LocalAssets(
-                              imagePath: AppIconAssets.occupancy,
-                              imgColor: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            CustomText(
-                              room.maxOccupancy ?? "",
-                              color: Colors.white,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              fontSize: SizeConfig.small,
-                            ),
-                          ],
+                        CustomText(
+                          "\u20B9${room.pricePerDay ?? 0}/day",
+                          color: Colors.white,
+                          fontSize: 16,
+                          maxLines: 1,
+                          fontWeight: FontWeight.w600,
                         ),
+                        const SizedBox(height: 5),
+                        if (room.bedType?.isNotEmpty ?? false)
+                          Row(
+                            children: [
+                              LocalAssets(
+                                imagePath: AppIconAssets.bad,
+                                imgColor: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              CustomText(
+                                room.bedType ?? "",
+                                color: Colors.white,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                fontSize: SizeConfig.small,
+                              ),
+                            ],
+                          ),
+                        if (room.maxOccupancy?.isNotEmpty ?? false) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              LocalAssets(
+                                imagePath: AppIconAssets.occupancy,
+                                imgColor: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              CustomText(
+                                room.maxOccupancy ?? "",
+                                color: Colors.white,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                fontSize: SizeConfig.small,
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── ROOM AMENITIES SHEET ───────────────────────────────────────────
+
+  /// Opens a bottom sheet listing the tapped room's amenities. Uses the
+  /// per-room [Rooms.amenities] (freeWifi, AC, TV, etc.) — distinct from
+  /// the hotel-level amenity list rendered in [_buildAmenitiesSection].
+  void _openRoomAmenitiesSheet(Rooms room) {
+    final amen = room.amenities;
+    final chips = <_AmenityItem>[];
+    // SVG basenames mirror the room-amenity specs used elsewhere in the
+    // hotel me-tab (assets/category/hotel_service/<NAME>.svg).
+    if (amen?.freeWifi == true) {
+      chips.add(_AmenityItem('WIFI', AppStrings.amenityWifi.tr));
+    }
+    if (amen?.airConditioning == true) {
+      chips.add(_AmenityItem('AIR_CONDITIONING', AppStrings.amenityAC.tr));
+    }
+    if (amen?.television == true) {
+      chips.add(_AmenityItem('TELEVISION', AppStrings.amenityTV.tr));
+    }
+    if (amen?.roomService == true) {
+      chips.add(_AmenityItem('ROOM_SERVICE', AppStrings.amenityRoomService.tr));
+    }
+    if (amen?.powerBackup == true) {
+      chips.add(_AmenityItem('POWER_BACKUP', AppStrings.amenityPowerBackup.tr));
+    }
+    if (amen?.balcony == true) {
+      chips.add(_AmenityItem('BALCONY', AppStrings.amenityBalcony.tr));
+    }
+    if (amen?.attachedBathroom == true) {
+      chips.add(
+          _AmenityItem('ATTACHED_BATHROOM', AppStrings.amenityBathroom.tr));
+    }
+    if (amen?.wardrobe == true) {
+      chips.add(_AmenityItem('WARDROBE', AppStrings.amenityWardrobe.tr));
+    }
+    if (amen?.deskChair == true) {
+      chips.add(_AmenityItem('WORK_DESK', AppStrings.amenityDeskChair.tr));
+    }
+    if (amen?.roomRefrigerators == true) {
+      chips.add(
+          _AmenityItem('ROOM_REFRIGERATOR', AppStrings.amenityRefrigerator.tr));
+    }
+    if (amen?.electricKettle == true) {
+      chips.add(
+          _AmenityItem('ELECTRIC_KETTLE', AppStrings.amenityElectricKettle.tr));
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: EdgeInsets.only(bottom: SizeConfig.size12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            CustomText(
+              (room.name?.isNotEmpty ?? false) ? room.name! : 'Room',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+            SizedBox(height: SizeConfig.size4),
+            CustomText(
+              AppStrings.hotelRoomAmenities.tr,
+              fontSize: 13,
+              color: AppColors.secondaryTextColor,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            if (chips.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: EmptyStateWidget(
+                  message: AppStrings.noAmenitiesListed.tr,
+                  imageSize: 60,
+                ),
+              )
+            else
+              Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                children:
+                    chips.map((a) => _amenityChip(a.asset, a.label)).toList(),
+              ),
+            SizedBox(height: SizeConfig.size16),
+          ],
+        ),
       ),
     );
   }
@@ -356,7 +579,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   // ─── GALLERY ────────────────────────────────────────────────────────
 
   Widget _buildGallerySection() {
-    final allImages = profile?.photos?.expand((p) => p.imageReferences ?? <String>[]).toList() ?? [];
+    final allImages = profile?.photos
+            ?.expand((p) => p.imageReferences ?? <String>[])
+            .toList() ??
+        [];
 
     return CommonCardWidget(
       padding: 10,
@@ -384,27 +610,52 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   // ─── AMENITIES ──────────────────────────────────────────────────────
 
   Widget _buildAmenitiesSection() {
+    // Backend puts *hotel*-level amenities on `profile.amenities`
+    // (freeParking, restaurant, front-desk, etc.) and *room*-level
+    // amenities on each `Rooms.amenities` (freeWifi, AC, TV, etc.).
+    // Checking the wrong field set here is why the hotel amenities chips
+    // used to render empty.
     final amen = profile?.amenities;
     final chips = <_AmenityItem>[];
-    if (amen?.freeWifi == true) chips.add(_AmenityItem(Icons.wifi, AppStrings.amenityWifi.tr));
-    if (amen?.airConditioning == true) chips.add(_AmenityItem(Icons.ac_unit, AppStrings.amenityAC.tr));
-    if (amen?.television == true) chips.add(_AmenityItem(Icons.tv, AppStrings.amenityTV.tr));
-    if (amen?.roomService == true)
-      chips.add(_AmenityItem(Icons.room_service, AppStrings.amenityRoomService.tr));
-    if (amen?.powerBackup == true)
-      chips.add(_AmenityItem(Icons.battery_charging_full_sharp, AppStrings.amenityPowerBackup.tr));
-    if (amen?.balcony == true) chips.add(_AmenityItem(Icons.balcony, AppStrings.amenityBalcony.tr));
-    if (amen?.attachedBathroom == true)
-      chips.add(_AmenityItem(Icons.bathroom, AppStrings.amenityBathroom.tr));
-    if (amen?.wardrobe == true) chips.add(_AmenityItem(Icons.devices_other, AppStrings.amenityWardrobe.tr));
-    if (amen?.deskChair == true) chips.add(_AmenityItem(Icons.chair, AppStrings.amenityDeskChair.tr));
-    if (amen?.roomRefrigerators == true)
-      chips.add(_AmenityItem(Icons.kitchen, AppStrings.amenityRefrigerator.tr));
-    if (amen?.electricKettle == true)
-      chips.add(_AmenityItem(Icons.electric_bolt, AppStrings.amenityElectricKettle.tr));
-
-    final displayChips = chips.length > 5 ? chips.sublist(0, 5) : chips;
-    final hasMore = chips.length > 5;
+    // SVG basenames mirror those used by `HotelAmenitiesCard._hotelSpecs`
+    // (assets/category/hotel_service/<NAME>.svg) so the icons on the
+    // discover screen stay in sync with the me-tab amenities card.
+    if (amen?.freeParking == true) {
+      chips.add(_AmenityItem('FREE_PARKING', AppStrings.hotelFreeParking.tr));
+    }
+    if (amen?.restaurant == true) {
+      chips.add(_AmenityItem('RESTAURANT', AppStrings.hotelRestaurant.tr));
+    }
+    if (amen?.frontDesk24x7 == true) {
+      chips.add(
+          _AmenityItem('FRONT_DESK_24_7', AppStrings.hotelFrontDesk247.tr));
+    }
+    if (amen?.elevatorLift == true) {
+      chips.add(_AmenityItem('ELEVATOR_LIFT', AppStrings.hotelElevatorLift.tr));
+    }
+    if (amen?.cctvSurveillance == true) {
+      chips.add(_AmenityItem(
+          'CCTV_SURVEILLANCE', AppStrings.hotelCctvSurveillance.tr));
+    }
+    if (amen?.powerBackup == true) {
+      chips.add(_AmenityItem('POWER_BACKUP', AppStrings.hotelPowerBackup.tr));
+    }
+    if (amen?.laundryService == true) {
+      chips.add(_AmenityItem('WARDROBE', AppStrings.hotelLaundryService.tr));
+    }
+    if (amen?.swimmingPool == true) {
+      chips.add(_AmenityItem('SWIMMING_POOL', AppStrings.hotelSwimmingPool.tr));
+    }
+    if (amen?.airportTransportation == true) {
+      chips.add(_AmenityItem(
+          'AIRPORT_TRANSPORT', AppStrings.hotelAirportTransportation.tr));
+    }
+    if (amen?.bar == true) {
+      chips.add(_AmenityItem('BAR', AppStrings.hotelBar.tr));
+    }
+    if (amen?.gym == true) {
+      chips.add(_AmenityItem('FITNESS_CENTER_GYM', AppStrings.hotelGym.tr));
+    }
 
     return CommonCardWidget(
       padding: 10,
@@ -413,7 +664,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ServiceHomeTitleWidget(title: AppStrings.hotelAmenities),
-          SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size6),
           if (chips.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -423,61 +674,123 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
               ),
             )
           else
-            Wrap(
-              spacing: 16,
-              runSpacing: 12,
-              children: [
-                ...displayChips.map((a) => _amenityChip(a.icon, a.label)),
-                if (hasMore)
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: CustomText(
-                            AppStrings.hotelAmenities.tr,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                          content: Wrap(
-                            spacing: 16,
-                            runSpacing: 12,
-                            children: chips.map((a) => _amenityChip(a.icon, a.label)).toList(),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: CustomText(AppStrings.close, color: AppColors.primaryColor),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffEAF2FF),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
-                      ),
-                      child: CustomText(
-                        '+${chips.length - 5} ${AppStrings.viewMoreLabel.tr}',
-                        fontSize: SizeConfig.small,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
+            // Fixed 4-per-row grid — each tile takes an equal fourth of
+            // the card width. `childAspectRatio: 1.25` makes cells wider
+            // than tall so the icon-well + one-line label fully consume
+            // the cell height, killing the top/bottom whitespace that a
+            // near-square cell was leaving around the `MainAxisSize.min`
+            // chip. Explicit `padding: EdgeInsets.zero` also stops the
+            // GridView from adopting any inherited MediaQuery padding.
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              crossAxisCount: 4,
+              mainAxisSpacing: SizeConfig.size6,
+              crossAxisSpacing: SizeConfig.size6,
+              childAspectRatio: 1.05,
+              children: chips
+                  .map((a) => _amenityChip(a.asset, a.label))
+                  .toList(growable: false),
             ),
         ],
       ),
     );
   }
 
-  Widget _amenityChip(IconData icon, String label) {
+  // ─── POLICIES ───────────────────────────────────────────────────────
+
+  /// Flattens `profile.policy` into localized chip labels — check-in /
+  /// check-out times, plus every boolean flag the hotel enabled. Empty
+  /// list means nothing worth showing yet, and the section renders the
+  /// shared empty state.
+  List<String> _policyItems() {
+    final p = profile?.policy;
+    if (p == null) return const <String>[];
+    final items = <String>[];
+    if (p.checkInTime != null) {
+      items.add('${AppStrings.hotelCheckInLabel.tr} ${p.checkInTime}');
+    }
+    if (p.checkOutTime != null) {
+      items.add('${AppStrings.hotelCheckOutLabel.tr} ${p.checkOutTime}');
+    }
+    if (p.earlyCheckInAllowed == true) {
+      items.add(AppStrings.hotelEarlyCheckInAllowed.tr);
+    }
+    if (p.lateCheckOutAllowed == true) {
+      items.add(AppStrings.hotelLateCheckOutAllowed.tr);
+    }
+    if (p.freeCancellation == true) {
+      items.add(AppStrings.hotelFreeCancellation.tr);
+    }
+    if (p.localIdAllowed == true) {
+      items.add(AppStrings.hotelLocalIdAccepted.tr);
+    }
+    if (p.marriedCoupleAllowed == true) {
+      items.add(AppStrings.hotelMarriedCouplesAllowed.tr);
+    }
+    if (p.bachelorStudentAllowed == true) {
+      items.add(AppStrings.hotelBachelorsStudentsAllowed.tr);
+    }
+    if (p.aadharMandatory == true) {
+      items.add(AppStrings.hotelAadharMandatoryChip.tr);
+    }
+    if (p.smokingDrinkingAllowed == true) {
+      items.add(AppStrings.hotelSmokingDrinkingAllowedChip.tr);
+    }
+    if (p.foodRestrictions?.enabled == true) {
+      items.add(AppStrings.hotelFoodRestrictionsLabel.tr);
+    }
+    return items;
+  }
+
+  Widget _buildPoliciesSection() {
+    final items = _policyItems();
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.hotelPoliciesTitle),
+          SizedBox(height: SizeConfig.size12),
+          if (items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: EmptyStateWidget(
+                message: AppStrings.hotelNoPoliciesAdded.tr,
+                imageSize: 60,
+              ),
+            )
+          else
+            Wrap(
+              spacing: SizeConfig.size8,
+              runSpacing: SizeConfig.size8,
+              children: items
+                  .map((item) => Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size12,
+                            vertical: SizeConfig.size6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: const Color(0xffDDE2EE), width: 0.5),
+                        ),
+                        child: CustomText(item,
+                            fontSize: 12, color: AppColors.grey7E),
+                      ))
+                  .toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _amenityChip(String asset, String label) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(10),
@@ -485,7 +798,12 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             color: AppColors.primaryColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppColors.primaryColor, size: 22),
+          child: LocalAssets(
+            imagePath: 'assets/category/hotel_service/$asset.svg',
+            height: 22,
+            width: 22,
+            imgColor: AppColors.grey7E,
+          ),
         ),
         const SizedBox(height: 4),
         CustomText(label, fontSize: 11, textAlign: TextAlign.center),
@@ -502,7 +820,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
         (profile?.website?.isNotEmpty ?? false) ||
         (profile?.location?.name?.isNotEmpty ?? false);
 
-    final firstImageUrl = profile?.photos?.expand((p) => p.imageReferences ?? <String>[]).firstOrNull;
+    final firstImageUrl = profile?.photos
+        ?.expand((p) => p.imageReferences ?? <String>[])
+        .firstOrNull;
 
     return CommonCardWidget(
       padding: 10,
@@ -631,7 +951,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
               Expanded(
                 child: CustomText(
                   label,
-                  color: onTap != null ? AppColors.primaryColor : AppColors.mainTextColor,
+                  color: onTap != null
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
                   fontSize: SizeConfig.medium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -654,7 +976,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
   Widget _buildLocationSection() {
     final coords = profile?.location?.coordinates;
-    if (coords == null || coords.length < 2 || (coords[0] == 0.0 && coords[1] == 0.0)) {
+    if (coords == null ||
+        coords.length < 2 ||
+        (coords[0] == 0.0 && coords[1] == 0.0)) {
       return const SizedBox.shrink();
     }
 
@@ -776,7 +1100,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 }
 
 class _AmenityItem {
-  final IconData icon;
+  final String asset;
   final String label;
-  _AmenityItem(this.icon, this.label);
+  _AmenityItem(this.asset, this.label);
 }

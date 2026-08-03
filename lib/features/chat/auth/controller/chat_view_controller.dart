@@ -4244,35 +4244,18 @@ class ChatViewController extends GetxController {
   /// user tapped (may contain spaces / +91 / dashes) and normalizes it to the
   /// last 10 digits the API expects.
   Future<void> openUserDetailsByPhone(String rawPhone) async {
-    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
-    // Strip a leading country code (e.g. 91XXXXXXXXXX) — keep the last 10.
-    if (digits.length > 10) {
-      digits = digits.substring(digits.length - 10);
-    }
-    if (digits.length != 10) {
+    final digits = normalizePhone(rawPhone);
+    if (digits == null) {
       commonSnackBar(message: 'Invalid mobile number');
       return;
     }
     if (isFetchingUserByPhone.value) return;
     isFetchingUserByPhone.value = true;
     try {
-      final ResponseModel responseModel =
-          await ChatViewRepo().getUserByPhoneApi(digits);
-      log('openUserDetailsByPhone($digits) response: ${responseModel.response?.data}');
-
-      final dynamic userJson = responseModel.getExtraData('user');
-      if (responseModel.isSuccess && userJson is Map) {
-        final dynamic businessJson = responseModel.getExtraData('business');
-        final user = UserByPhoneModel.fromJson(
-          Map<String, dynamic>.from(userJson),
-          business: businessJson is Map
-              ? Map<String, dynamic>.from(businessJson)
-              : null,
-        );
-        if (user.id.isEmpty) {
-          commonSnackBar(message: AppStrings.somethingWentWrong);
-          return;
-        }
+      // Cache-first: a number tapped (or prefetched) before opens its sheet
+      // with no network round-trip at all.
+      final user = await _resolvePhoneUser(digits);
+      if (user != null) {
         showUserByPhoneBottomSheet(user);
       } else {
         // No BlueEra user for this number — offer to save it as a new contact.
@@ -4293,38 +4276,16 @@ class ChatViewController extends GetxController {
   /// decide what to do with the result. Used by the shared-contact card so its
   /// Call / Chat buttons route BlueEra contacts to an in-app call / chat and
   /// non-BlueEra numbers to the native dialer / SMS app.
-  Future<UserByPhoneModel?> resolveBlueEraUserByPhone(String rawPhone) async {
-    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length > 10) {
-      digits = digits.substring(digits.length - 10);
-    }
-    if (digits.length != 10) {
+  ///
+  /// Cache-first: a number resolved earlier in the session returns synchronously
+  /// fast, and simultaneous callers for the same number share ONE request.
+  Future<UserByPhoneModel?> resolveBlueEraUserByPhone(String rawPhone) {
+    final digits = normalizePhone(rawPhone);
+    if (digits == null) {
       commonSnackBar(message: 'Invalid mobile number');
-      return null;
+      return Future.value(null);
     }
-    if (isFetchingUserByPhone.value) return null;
-    isFetchingUserByPhone.value = true;
-    try {
-      final ResponseModel responseModel =
-          await ChatViewRepo().getUserByPhoneApi(digits);
-      final dynamic userJson = responseModel.getExtraData('user');
-      if (responseModel.isSuccess && userJson is Map) {
-        final dynamic businessJson = responseModel.getExtraData('business');
-        final user = UserByPhoneModel.fromJson(
-          Map<String, dynamic>.from(userJson),
-          business: businessJson is Map
-              ? Map<String, dynamic>.from(businessJson)
-              : null,
-        );
-        return user.id.isEmpty ? null : user;
-      }
-      return null;
-    } catch (e) {
-      commonSnackBar(message: e.toString());
-      return null;
-    } finally {
-      isFetchingUserByPhone.value = false;
-    }
+    return _resolvePhoneUser(digits);
   }
 
   /// Cache of phone-number → BlueEra user lookups so message bubbles can render
@@ -4334,7 +4295,11 @@ class ChatViewController extends GetxController {
   /// so the inline preview widgets rebuild when a lookup completes.
   final RxMap<String, UserByPhoneModel?> phoneUserCache =
       <String, UserByPhoneModel?>{}.obs;
-  final Set<String> _phoneLookupInFlight = {};
+
+  /// Lookups currently on the wire, keyed by the 10-digit number. Every caller
+  /// for the same number awaits the SAME future — a double tap, an inline
+  /// preview and a profile navigation all cost one request between them.
+  final Map<String, Future<UserByPhoneModel?>> _phoneLookupFutures = {};
 
   /// Normalise a raw phone string (may carry `+91`, spaces, dashes) to the
   /// 10-digit national number the API expects, or null when it isn't a valid
@@ -4364,32 +4329,53 @@ class ChatViewController extends GetxController {
   /// [phoneUserCache]. Silent — no UI of its own. Safe to call on every build;
   /// it short-circuits when the number is cached or a lookup is already in
   /// flight.
+  ///
+  /// Also the **prefetch** hook: call it the moment a number becomes visible
+  /// (a member sheet opening, an inline preview rendering) and the profile tap
+  /// that follows opens straight off the cache with no wait.
   Future<void> ensurePhoneUserLoaded(String rawPhone) async {
     final digits = normalizePhone(rawPhone);
     if (digits == null) return;
-    if (phoneUserCache.containsKey(digits)) return;
-    if (_phoneLookupInFlight.contains(digits)) return;
-    _phoneLookupInFlight.add(digits);
+    await _resolvePhoneUser(digits);
+  }
+
+  /// Cache-first resolve of an already-normalised 10-digit [digits].
+  ///
+  /// Order: memoised result → in-flight request → network. The single place
+  /// `user/by-phone` is hit from, so every chat surface (inline preview, shared
+  /// contact card, @mention, profile navigation) shares one cache.
+  Future<UserByPhoneModel?> _resolvePhoneUser(String digits) {
+    if (phoneUserCache.containsKey(digits)) {
+      return Future.value(phoneUserCache[digits]);
+    }
+    return _phoneLookupFutures[digits] ??= _fetchPhoneUser(digits);
+  }
+
+  Future<UserByPhoneModel?> _fetchPhoneUser(String digits) async {
     try {
       final ResponseModel responseModel =
           await ChatViewRepo().getUserByPhoneApi(digits);
       final dynamic userJson = responseModel.getExtraData('user');
+      UserByPhoneModel? user;
       if (responseModel.isSuccess && userJson is Map) {
         final dynamic businessJson = responseModel.getExtraData('business');
-        final user = UserByPhoneModel.fromJson(
+        final parsed = UserByPhoneModel.fromJson(
           Map<String, dynamic>.from(userJson),
           business: businessJson is Map
               ? Map<String, dynamic>.from(businessJson)
               : null,
         );
-        phoneUserCache[digits] = user.id.isEmpty ? null : user;
-      } else {
-        phoneUserCache[digits] = null;
+        user = parsed.id.isEmpty ? null : parsed;
       }
+      // `null` is cached too — it means "checked, no BlueEra account", which
+      // callers need to tell apart from "not looked up yet".
+      phoneUserCache[digits] = user;
+      return user;
     } catch (_) {
-      // Leave uncached so a later render can retry the lookup.
+      // Leave uncached so a later tap / render can retry the lookup.
+      return null;
     } finally {
-      _phoneLookupInFlight.remove(digits);
+      _phoneLookupFutures.remove(digits);
     }
   }
 

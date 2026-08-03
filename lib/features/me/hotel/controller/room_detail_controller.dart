@@ -229,8 +229,15 @@ class RoomDetailController extends GetxController {
       final ResponseModel response = await _repo.addHotelRoomRepo(reqBody: body);
 
       if (response.isSuccess) {
-        Get.back();
-        Get.back();
+        // Bypass Get.back() — it routes through closeCurrentSnackbar() which
+        // crashes with LateInitializationError when the GetX snackbar queue
+        // has a stale entry (see progrss_dialog.dart for the same workaround).
+        final ctx = Get.context;
+        if (ctx != null) {
+          final navigator = Navigator.of(ctx);
+          if (navigator.canPop()) navigator.pop();
+          if (navigator.canPop()) navigator.pop();
+        }
         commonSnackBar(message: response.response?.data['message']);
         await getHotelRoomDetails(roomTYPE: type);
         resetForm();

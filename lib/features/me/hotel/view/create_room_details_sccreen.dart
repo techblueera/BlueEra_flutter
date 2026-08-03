@@ -29,7 +29,7 @@ class RoomDesignScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      // backgroundColor: Colors.grey[100],
       appBar: CommonBackAppBar(
         title: roomName,
         actionText: AppStrings.hotelStepOneOfTwo.tr,

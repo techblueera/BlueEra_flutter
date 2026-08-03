@@ -39,18 +39,33 @@ class HotelServiceData {
   String? businessId;
   Profile? profile;
   List<Rooms>? rooms;
+  // Backend ships the aggregate rating alongside `businessId`/`profile` at
+  // the item root as `rating: { avg_rating: double, total_ratings: int }`
+  // (NOT inside `profile`). Flat scalars here for consumer convenience.
+  double? rating;
+  int? reviews;
 
-  HotelServiceData({this.businessId, this.profile, this.rooms});
+  HotelServiceData(
+      {this.businessId, this.profile, this.rooms, this.rating, this.reviews});
 
   HotelServiceData.fromJson(Map<String, dynamic> json) {
     businessId = json['businessId'];
     profile =
-    json['profile'] != null ? new Profile.fromJson(json['profile']) : null;
+        json['profile'] != null ? new Profile.fromJson(json['profile']) : null;
     if (json['rooms'] != null) {
       rooms = <Rooms>[];
       json['rooms'].forEach((v) {
         rooms!.add(new Rooms.fromJson(v));
       });
+    }
+    final rawRating = json['rating'];
+    if (rawRating is Map) {
+      final avg = rawRating['avg_rating'];
+      rating = avg is num ? avg.toDouble() : null;
+      final total = rawRating['total_ratings'];
+      reviews = total is num ? total.toInt() : null;
+    } else if (rawRating is num) {
+      rating = rawRating.toDouble();
     }
   }
 
@@ -63,6 +78,10 @@ class HotelServiceData {
     if (this.rooms != null) {
       data['rooms'] = this.rooms!.map((v) => v.toJson()).toList();
     }
+    data['rating'] = {
+      'avg_rating': rating,
+      'total_ratings': reviews,
+    };
     return data;
   }
 }
@@ -88,27 +107,27 @@ class Profile {
   int? rating;
   int? reviews;
 
-  Profile(
-      {this.sId,
-        this.businessId,
-        this.name,
-        this.description,
-        this.website,
-        this.address,
-        this.location,
-        this.logoUrl,
-        this.coverUrl,
-        this.createdAt,
-        this.updatedAt,
-        this.iV,
-        this.distance,
-        this.contacts,
-        this.policy,
-        this.amenities,
-        this.photos,
-        this.rating,
-        this.reviews,
-      });
+  Profile({
+    this.sId,
+    this.businessId,
+    this.name,
+    this.description,
+    this.website,
+    this.address,
+    this.location,
+    this.logoUrl,
+    this.coverUrl,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+    this.distance,
+    this.contacts,
+    this.policy,
+    this.amenities,
+    this.photos,
+    this.rating,
+    this.reviews,
+  });
 
   Profile.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -117,7 +136,7 @@ class Profile {
     description = json['description'];
     website = json['website'];
     address =
-    json['address'] != null ? new Address.fromJson(json['address']) : null;
+        json['address'] != null ? new Address.fromJson(json['address']) : null;
     location = json['location'] != null
         ? new Location.fromJson(json['location'])
         : null;
@@ -134,7 +153,7 @@ class Profile {
       });
     }
     policy =
-    json['policy'] != null ? new Policy.fromJson(json['policy']) : null;
+        json['policy'] != null ? new Policy.fromJson(json['policy']) : null;
     amenities = json['amenities'] != null
         ? new Amenities.fromJson(json['amenities'])
         : null;
@@ -218,15 +237,13 @@ class Location {
   String? type;
   List<double>? coordinates;
 
-  Location({
-    this.name,
-    this.type,
-    this.coordinates});
+  Location({this.name, this.type, this.coordinates});
 
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     type = json['type'];
-    coordinates = json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
+    coordinates =
+        json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -249,12 +266,12 @@ class Contacts {
 
   Contacts(
       {this.sId,
-        this.businessId,
-        this.type,
-        this.email,
-        this.phone,
-        this.address,
-        this.iV});
+      this.businessId,
+      this.type,
+      this.email,
+      this.phone,
+      this.address,
+      this.iV});
 
   Contacts.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -297,19 +314,19 @@ class Policy {
 
   Policy(
       {this.foodRestrictions,
-        this.sId,
-        this.businessId,
-        this.checkInTime,
-        this.checkOutTime,
-        this.earlyCheckInAllowed,
-        this.lateCheckOutAllowed,
-        this.marriedCoupleAllowed,
-        this.bachelorStudentAllowed,
-        this.freeCancellation,
-        this.localIdAllowed,
-        this.aadharMandatory,
-        this.smokingDrinkingAllowed,
-        this.iV});
+      this.sId,
+      this.businessId,
+      this.checkInTime,
+      this.checkOutTime,
+      this.earlyCheckInAllowed,
+      this.lateCheckOutAllowed,
+      this.marriedCoupleAllowed,
+      this.bachelorStudentAllowed,
+      this.freeCancellation,
+      this.localIdAllowed,
+      this.aadharMandatory,
+      this.smokingDrinkingAllowed,
+      this.iV});
 
   Policy.fromJson(Map<String, dynamic> json) {
     foodRestrictions = json['foodRestrictions'] != null
@@ -370,6 +387,7 @@ class FoodRestrictions {
 
 Amenities amenitiesFromJson(String str) => Amenities.fromJson(json.decode(str));
 String amenitiesToJson(Amenities data) => json.encode(data.toJson());
+
 class Amenities {
   Amenities({
     this.id,
@@ -396,7 +414,8 @@ class Amenities {
     this.airportTransportation,
     this.bar,
     this.gym,
-    this.v,});
+    this.v,
+  });
 
   Amenities.fromJson(dynamic json) {
     id = json['_id'];
@@ -480,7 +499,6 @@ class Amenities {
     map['__v'] = v;
     return map;
   }
-
 }
 
 class Rooms {
@@ -504,27 +522,27 @@ class Rooms {
 
   Rooms(
       {this.size,
-        this.images,
-        this.sId,
-        this.businessId,
-        this.name,
-        this.type,
-        this.totalRooms,
-        this.bedType,
-        this.maxOccupancy,
-        this.pricePerDay,
-        this.discount,
-        this.isActive,
-        this.createdAt,
-        this.updatedAt,
-        this.iV,
-        this.amenities,
-        this.coupons});
+      this.images,
+      this.sId,
+      this.businessId,
+      this.name,
+      this.type,
+      this.totalRooms,
+      this.bedType,
+      this.maxOccupancy,
+      this.pricePerDay,
+      this.discount,
+      this.isActive,
+      this.createdAt,
+      this.updatedAt,
+      this.iV,
+      this.amenities,
+      this.coupons});
 
   Rooms.fromJson(Map<String, dynamic> json) {
     size = json['size'] != null ? new Size.fromJson(json['size']) : null;
     images =
-    json['images'] != null ? new Images.fromJson(json['images']) : null;
+        json['images'] != null ? new Images.fromJson(json['images']) : null;
     sId = json['_id'];
     businessId = json['businessId'];
     name = json['name'];
@@ -607,9 +625,15 @@ class Images {
   Images({this.exteriorImages, this.washroomImages, this.amenityImages});
 
   Images.fromJson(Map<String, dynamic> json) {
-    exteriorImages = json['exteriorImages'] != null ? json['exteriorImages'].cast<String>() : [];
-    washroomImages = json['washroomImages'] != null ? json['washroomImages'].cast<String>() : [];
-    amenityImages = json['amenityImages'] != null ? json['amenityImages'].cast<String>() : [];
+    exteriorImages = json['exteriorImages'] != null
+        ? json['exteriorImages'].cast<String>()
+        : [];
+    washroomImages = json['washroomImages'] != null
+        ? json['washroomImages'].cast<String>()
+        : [];
+    amenityImages = json['amenityImages'] != null
+        ? json['amenityImages'].cast<String>()
+        : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -636,16 +660,16 @@ class Coupons {
 
   Coupons(
       {this.sId,
-        this.roomId,
-        this.businessId,
-        this.couponName,
-        this.description,
-        this.codeName,
-        this.discountType,
-        this.discountValue,
-        this.validUntil,
-        this.isActive,
-        this.iV});
+      this.roomId,
+      this.businessId,
+      this.couponName,
+      this.description,
+      this.codeName,
+      this.discountType,
+      this.discountValue,
+      this.validUntil,
+      this.isActive,
+      this.iV});
 
   Coupons.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];

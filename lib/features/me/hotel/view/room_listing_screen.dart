@@ -37,7 +37,13 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
   @override
   void initState() {
     super.initState();
-    controller.getHotelRoomDetails(roomTYPE: widget.roomType);
+    // Defer to the next frame: getHotelRoomDetails flips `isLoading` synchronously,
+    // and an ancestor Obx (this route was pushed mid-build from the Overview tab)
+    // would otherwise be marked dirty during its own build phase.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      controller.getHotelRoomDetails(roomTYPE: widget.roomType);
+    });
   }
 
   @override
