@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/address/model/address_ui_model.dart';
 import 'package:BlueEra/features/common/address/widget/address_type_selector.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -189,6 +190,26 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                       ],
                     ),
+                    SizedBox(height: SizeConfig.size12),
+                    CustomText(
+                      'Floor Number',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.black28,
+                    ),
+                    SizedBox(height: SizeConfig.size6),
+                    Obx(
+                      () => CommonDropdown<String>(
+                        items: FloorNumberOption.selectable,
+                        selectedValue: controller.selectedFloor.value,
+                        hintText: 'Select your floor',
+                        displayValue: FloorNumberOption.labelFor,
+                        onChanged: (value) =>
+                            controller.selectedFloor.value = value,
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    _floorDeliveryNote(),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size12),
@@ -249,6 +270,31 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Sits under the floor dropdown: deliveries stop at the ground floor, so
+  /// the user knows before saving that the floor is for reference only.
+  Widget _floorDeliveryNote() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.info_outline,
+          size: SizeConfig.size14,
+          color: AppColors.red00,
+        ),
+        SizedBox(width: SizeConfig.size6),
+        Expanded(
+          child: CustomText(
+            'Note: We do not deliver at your floor. Please collect your order from the ground floor.',
+            fontSize: SizeConfig.extraSmall,
+            fontWeight: FontWeight.w500,
+            color: AppColors.red00,
+            maxLines: 3,
+          ),
+        ),
+      ],
     );
   }
 

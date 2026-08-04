@@ -42,6 +42,51 @@ class AddressTypeOption {
   }
 }
 
+/// Floor of the building, shown as a dropdown on the add/edit form and sent
+/// to the API on `floor_no`.
+///
+/// Stored as a plain string so `10+` (everything above the tenth floor)
+/// round-trips as-is; [selectionFor] keeps an unrecognised stored value out
+/// of the dropdown rather than crashing it, since the widget can only show a
+/// value that is in [selectable].
+class FloorNumberOption {
+  const FloorNumberOption._();
+
+  static const String ground = '0';
+  static const String tenPlus = '10+';
+
+  /// `0`, `1` … `10`, `10+` — in dropdown order.
+  static const List<String> selectable = [
+    ground,
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    tenPlus,
+  ];
+
+  /// What the user reads for a stored value.
+  static String labelFor(String value) {
+    if (value == ground) return 'Ground floor (0)';
+    if (value == tenPlus) return 'Above 10th floor (10+)';
+    return 'Floor $value';
+  }
+
+  /// The dropdown entry matching a stored [floorNo], or `null` when nothing
+  /// was saved (or the saved value is not one of ours).
+  static String? selectionFor(String? floorNo) {
+    final value = floorNo?.trim() ?? '';
+    if (value.isEmpty) return null;
+    return selectable.contains(value) ? value : null;
+  }
+}
+
 /// Presentation helpers over [UserAddress].
 extension UserAddressUi on UserAddress {
   /// Label for the type chip on a saved-address card.

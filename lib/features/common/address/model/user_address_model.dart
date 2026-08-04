@@ -11,7 +11,8 @@
 ///   "state": "Delhi",
 ///   "country": "India",
 ///   "pincode": "110001",
-///   "addressType": "Home"
+///   "addressType": "Home",
+///   "floor_no": "0"
 /// }
 /// ```
 ///
@@ -33,6 +34,7 @@ class UserAddress {
     this.country,
     this.pincode,
     this.addressType,
+    this.floorNo,
     this.isDefault,
     this.createdAt,
     this.updatedAt,
@@ -49,6 +51,9 @@ class UserAddress {
   String? country;
   String? pincode;
   String? addressType;
+
+  /// Floor of the building — `0` … `10`, or `10+`. Sent as `floor_no`.
+  String? floorNo;
 
   /// Read-only: not part of the request contract, kept because the API may
   /// still return it and the local cache sorts on it.
@@ -94,6 +99,7 @@ class UserAddress {
       country: pick(['country']),
       pincode: pick(['pincode', 'pinCode', 'zip_code', 'zipCode']),
       addressType: pick(['addressType', 'address_type', 'type']),
+      floorNo: pick(['floor_no', 'floorNo', 'floor']),
       isDefault: map['isDefault'] as bool? ?? map['is_default'] as bool?,
       createdAt: pick(['createdAt', 'created_at']),
       updatedAt: pick(['updatedAt', 'updated_at']),
@@ -110,7 +116,7 @@ class UserAddress {
         'updatedAt': updatedAt,
       };
 
-  /// Exactly the nine keys `POST /addresses` and `PUT /addresses/:id` accept.
+  /// Exactly the ten keys `POST /addresses` and `PUT /addresses/:id` accept.
   Map<String, dynamic> toRequestJson() => {
         'addressLine1': addressLine1 ?? '',
         'addressLine2': addressLine2 ?? '',
@@ -121,6 +127,7 @@ class UserAddress {
         'country': country ?? '',
         'pincode': pincode ?? '',
         'addressType': addressType ?? '',
+        'floor_no': floorNo ?? '',
       };
 
   /// Pulls the list out of whichever envelope the API used:

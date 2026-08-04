@@ -34,6 +34,10 @@ class AddressFormController extends GetxController {
 
   /// Which type chip is active — one of [AddressTypeOption.selectable].
   final RxString selectedType = AddressTypeOption.home.obs;
+
+  /// Picked floor — one of [FloorNumberOption.selectable], null until chosen.
+  final RxnString selectedFloor = RxnString();
+
   final RxBool isSaving = false.obs;
   final RxBool isFetchingPlace = false.obs;
 
@@ -61,6 +65,7 @@ class AddressFormController extends GetxController {
         ? address.country!.trim()
         : country;
 
+    selectedFloor.value = FloorNumberOption.selectionFor(address.floorNo);
     selectedType.value = AddressTypeOption.selectionFor(address.addressType);
     otherTypeController.text =
         AddressTypeOption.customLabelFor(address.addressType) ?? '';
@@ -253,6 +258,7 @@ class AddressFormController extends GetxController {
       country: country,
       pincode: pinCodeController.text.trim(),
       addressType: resolvedType,
+      floorNo: selectedFloor.value,
     );
   }
 
