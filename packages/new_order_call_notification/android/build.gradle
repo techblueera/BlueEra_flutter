@@ -1,0 +1,55 @@
+group = "ai.bluecs.new_order_call_notification"
+version = "1.0-SNAPSHOT"
+
+buildscript {
+    // Matched to the host project's android/build.gradle. If those are bumped,
+    // bump these too — a plugin module compiled by a different AGP/Kotlin than
+    // the app is the usual cause of "Unsupported class file major version".
+    ext.kotlin_version = "2.1.0"
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:8.7.0"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    namespace = "ai.bluecs.new_order_call_notification"
+    // compileSdk / Java 17 are forced for every subproject by the host's
+    // android/build.gradle `subprojects` block; these are the floor.
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    defaultConfig {
+        // Matches the host app. CallStyle only renders as a call template on
+        // API 31+; below that androidx degrades it to an ordinary notification
+        // with the same two actions, which is the correct fallback.
+        minSdk = 26
+    }
+}
+
+dependencies {
+    // NotificationCompat.CallStyle needs androidx.core 1.9.0+.
+    implementation "androidx.core:core-ktx:1.13.1"
+}

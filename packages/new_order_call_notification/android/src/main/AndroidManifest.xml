@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Handles the Dismiss button. Merged into the host app's manifest at
+             build time, so the app itself needs no edits.
+
+             Not exported: only our own PendingIntents target it. Fully
+             qualified rather than ".NewOrderActionReceiver" so the name can
+             never be resolved against the host's package. -->
+        <receiver
+            android:name="ai.bluecs.new_order_call_notification.NewOrderActionReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

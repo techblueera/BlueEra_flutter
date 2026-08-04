@@ -11,6 +11,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # In-repo plugin: the non-dismissible (CallStyle) new-order alert. Lives in
+  # its own package so GeneratedPluginRegistrant registers it on every engine,
+  # including the FCM background isolate where app-local method channels from
+  # MainActivity do not exist.
+  new_order_call_notification:
+    path: packages/new_order_call_notification
+
   cupertino_icons: ^1.0.2
   flutter_svg: ^2.2.3
   octo_image: ^2.1.0
