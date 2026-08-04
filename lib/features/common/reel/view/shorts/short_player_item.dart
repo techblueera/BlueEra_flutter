@@ -18,7 +18,8 @@ import 'package:BlueEra/features/common/feed/controller/full_screen_short_contro
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
-import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
+import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -1083,50 +1084,53 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         );
   }
 
+  /// Author row / "Visit Store" tap → the visited profile.
+  ///
+  /// Everything routes through [openVisitProfile], the app-wide visit resolver,
+  /// so a tapped lab, pharmacy, restaurant, school or self-employed author
+  /// lands on its own dedicated screen instead of the generic profile — and a
+  /// new visit screen only has to be wired up in one place.
+  ///
+  /// The reel author is a thin payload (no `type_of_business`, often no
+  /// `profile_type`), so the sub-category and the designation are handed over
+  /// too: the resolver recovers the missing type from them (see
+  /// `profile_taxonomy.dart`).
   void _navigateToProfile() {
     final item = fullScreenShortController.videoItem;
     final author = item?.author;
 
-    // Channel-owned reel → channel screen.
-    if (item?.channel?.id != null) {
-      Navigator.pushNamed(
-        context,
-        RouteHelper.getChannelScreenRoute(),
-        arguments: {
-          ApiKeys.argAccountType: author?.accountType,
-          ApiKeys.channelId: item?.channel?.id,
-          ApiKeys.authorId: author?.id,
-        },
-      );
-      return;
-    }
-
-    final authorId = author?.id ?? '';
+    // The feed writes absent relations as the string "null" — clean before
+    // deciding anything, or that placeholder reads as a real id.
+    final authorId = cleanTaxonomyValue(author?.id);
+    final authorBusinessId = cleanTaxonomyValue(author?.businessId);
 
     // Own profile → no-op for now (the own profile screens are being reworked).
-    if (authorId.isNotEmpty && authorId == userId) return;
+    if (authorId != null && authorId == userId) return;
 
-    final isIndividual =
-        author?.accountType?.toUpperCase() == AppConstants.individual;
+    final isBusiness = normalizeTaxonomyKey(author?.accountType) ==
+        normalizeTaxonomyKey(AppConstants.business);
 
-    if (isIndividual) {
-      // Individual → route by profile type (self-employed / professional /
-      // gig / social). The rich Discover screen self-fetches by author id.
-      VisitProfileResolver.openIndividual(
-        profileType: author?.profileType ?? '',
-        authorId: authorId,
-      );
-    } else {
-      // Business → route by business type + category to the dedicated visit
-      // screen (generic business profile when there's no dedicated match).
-      VisitProfileResolver.open(
-        accountType: author?.accountType,
-        businessType: author?.businessType,
-        businessCategory: author?.categoryOfBusiness,
-        businessId: authorId,
-        userId: authorId,
-      );
-    }
+    openVisitProfile(
+      accountType: author?.accountType,
+      // Individuals: `designation` is the profession's display name ("Bike
+      // Rider", "Business Finance Consultant"), which is what decides the
+      // profile type when `profile_type` itself is absent.
+      profileType: isBusiness ? null : cleanTaxonomyValue(author?.profileType),
+      profession: isBusiness ? null : cleanTaxonomyValue(author?.designation),
+      // Businesses: `categoryOfBusiness` is the sub-category; `designation`
+      // repeats it on most payloads and stands in when it's missing.
+      typeOfBusiness: isBusiness ? cleanTaxonomyValue(author?.businessType) : null,
+      categoryOfBusiness: isBusiness
+          ? (cleanTaxonomyValue(author?.categoryOfBusiness) ??
+              cleanTaxonomyValue(author?.designation))
+          : null,
+      // Deliberately NOT falling back to `channel.id` — a channel id is not a
+      // business id and would send the store screens fetching nothing.
+      // openVisitProfile already falls back to the user id on its own.
+      businessId: authorBusinessId,
+      userId: authorId,
+      screenFrom: AppConstants.feedScreen,
+    );
   }
 
   void _onLikeDislikePressed() async {

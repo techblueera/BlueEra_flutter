@@ -374,6 +374,12 @@ ShortFeedItem getVideoData(Post video) {
         profileImage: video.user?.profileImage,
         accountType: video.user?.accountType,
         id: video.user?.id,
+        // Routing taxonomy the player's author tap needs (openVisitProfile):
+        // `/feed` authors carry only the sub-category + the business id, never
+        // `type_of_business` / `profile_type`. Dropping them here is what made
+        // a tapped lab / restaurant / pharmacy open the generic profile.
+        categoryOfBusiness: video.user?.categoryOfBusiness,
+        businessId: video.user?.business_id,
       ),
       metadata: VideoItemMetadata(
           addedAt: video.createdAt.toString(),
