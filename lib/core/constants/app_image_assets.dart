@@ -57,6 +57,10 @@ class AppImageAssets {
   static const String dummyScratch = "${imgPath}dummy_scratch.png";
   static const String coinIcon = "${imgPath}coin_icon.png";
   static const String moneyBagIcon = "${imgPath}money_bag_icon.png";
+  static const String completeProfileBanner = "${imgPath}complete_profile_banner.jpeg";
+  // The file on disk is `grocery_banner.jpeg` — this constant carried a
+  // doubled extension, so every load of it failed.
+  static const String groceryBanner = "${imgPath}grocery_banner.jpeg";
 
   /// Coin Wallet dashboard (earn-coin) artwork.
   static const String coinHeaderBg = "${imgPath}coin_header_bg.png";

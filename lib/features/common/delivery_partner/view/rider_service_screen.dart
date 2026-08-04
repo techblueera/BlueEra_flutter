@@ -37,8 +37,8 @@ import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
-import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/rider_payment_qr_card.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_statistics_view.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -66,7 +66,10 @@ class RiderServiceScreen extends StatefulWidget {
 }
 
 class _RiderServiceScreenState extends State<RiderServiceScreen>
-    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
+    with
+        SingleTickerProviderStateMixin,
+        WidgetsBindingObserver,
+        MeTabBackHandlerMixin {
   final controller = getOrPut(() => DeliveryPartnerController());
   final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -147,6 +150,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // Store tab removed → 4 top-level tabs (My Order, Overview, Post, Statistics).
     _tabController = TabController(length: 4, vsync: this);
     registerMeTabBackHandler(_tabController);
+    // Switching tabs re-checks the onboarding status (throttled — see
+    // DeliveryPartnerController.statusFreshFor). Nothing here remounts on a tab
+    // change, so without this a rider approved while the screen was open kept
+    // seeing "pending" until they killed the app.
+    _tabController.addListener(_onTabChanged);
+    WidgetsBinding.instance.addObserver(this);
     _checkRiderStatus();
     // Resume the best-effort daily auto go-live scheduler if the rider opted in
     // on a previous session (08:00–22:00 auto open/close while the app is open;
@@ -163,8 +172,30 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     });
   }
 
+  /// Fires twice per swipe (start + settle) — only act on the settle.
+  ///
+  /// A plain cache-first call, NOT a force: once the rider is approved and paid
+  /// this costs nothing at all (the controller serves the cache and returns),
+  /// and while they're still waiting it is exactly the re-check they want.
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    controller.ridersOnboardingStatusRepoApi();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back from the UPI app after paying, or from the docs being
+    // approved while the phone was in a pocket. Same cache-first call — free
+    // once there is nothing left to change.
+    if (state == AppLifecycleState.resumed) {
+      controller.ridersOnboardingStatusRepoApi();
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _prefWorker?.dispose();
     _pickupController.dispose();
@@ -177,13 +208,19 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     super.dispose();
   }
 
-  // Status is fetched once in initState. We deliberately do NOT re-fetch on
-  // every back-press (the old RouteAware.didPopNext) — that hammered the API.
-  // The only return that can change onboarding status is coming back from the
-  // deposit-payment flow, which handleGoLiveTap refreshes explicitly. Other
-  // changes are covered: in-app mutations self-refresh via forceRefresh, and
-  // RiderMeScreen (sharing this controller + reactive riderOnboardingStatusData)
-  // refreshes on its own return / app resume, which this screen's Obx reflects.
+  /// WHEN THE ONBOARDING STATUS IS (RE)FETCHED
+  ///
+  ///   1. this screen opens                       → here
+  ///   2. a tab is switched                       → _onTabChanged
+  ///   3. app returns to the foreground           → didChangeAppLifecycleState
+  ///   4. a document/vehicle/deposit is submitted → forceRefresh at the source
+  ///   5. Go Live after paying a deposit          → handleGoLiveTap forceRefresh
+  ///
+  /// 1–3 are ordinary cache-first calls. They only reach the network while the
+  /// status is still expected to change (not yet approved, or deposit unpaid);
+  /// once the rider is approved AND paid, the controller serves the cache and
+  /// they cost nothing — so these triggers can be as generous as they look.
+  /// 4–5 force a refresh because the app just caused the change.
   void _checkRiderStatus() {
     controller.ridersOnboardingStatusRepoApi();
   }
@@ -582,6 +619,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             SizedBox(height: SizeConfig.size12),
           ],
           _buildPickupDropCard(),
+          SizedBox(height: SizeConfig.size12),
+          // Payment QR sits last: it isn't needed to receive orders, but it is
+          // needed to get PAID at the end of one, and the idle screen is the
+          // only moment a rider has to set it up.
+          const RiderPaymentQrCard(),
         ],
       ),
     );
@@ -634,7 +676,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         ? _servicePreference != _submittedPreference
         : _servicePreference != null;
     return CustomFormCard(
-      isBoxShadowAvail: true,
+      // isBoxShadowAvail: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -803,7 +845,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // Card 2 â€” Pickup & Drop Preference (two address searches + Submit).
   Widget _buildPickupDropCard() {
     return CustomFormCard(
-      isBoxShadowAvail: true,
+      // isBoxShadowAvail: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1252,14 +1294,17 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     ];
   }
 
-  // Statics tab â€” chat-click analytics, same component grocery /
-  // medical / self-employee dashboards use. Riders don't have a
-  // separate businessId so the analytics key is the user id.
+  // Statistics tab — the rider's own earnings + performance dashboard.
+  //
+  // This used to be ProfileStatisticsScreen + EarnStatSections: profile-view and
+  // chat-click analytics borrowed from the grocery / medical / self-employed
+  // dashboards. Those measure a shopfront, which is not what a rider has — a
+  // rider is measured on money earned, rides done, and the acceptance /
+  // cancellation / rating scores that decide how much work they're offered.
+  // See RiderStatisticsView and docs/backend/RIDER_STATISTICS_API_GUIDE.md.
   List<Widget> _buildStaticsTab() {
     return [
-      ProfileStatisticsScreen(userId: userId),
-      SizedBox(height: SizeConfig.size12),
-      const EarnStatSections(),
+      const RiderStatisticsView(),
       SizedBox(height: SizeConfig.size16),
     ];
   }
@@ -2127,13 +2172,14 @@ Future<void> handleGoLiveTap() async {
     return;
   }
 
-  // Going live is allowed only for a verified (approved) rider. Otherwise
-  // block it and tell them to finish document verification first.
+  // Going live is allowed only for a rider whose onboarding is APPROVED —
+  // riderVerificationState is `completed` exactly when the backend's
+  // `verificationStatus` is "approved" (see DeliveryPartnerController).
+  // Anything else (pending review, rejected, documents missing) is blocked.
   final riderCtrl = Get.find<DeliveryPartnerController>();
   if (riderCtrl.riderVerificationState != RiderVerificationState.completed) {
     commonSnackBar(
-        message:
-            'Please complete your document verification before going live.');
+        message: 'Finish your onboarding and get verified before going live.');
     return;
   }
 

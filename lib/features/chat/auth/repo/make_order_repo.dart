@@ -73,14 +73,11 @@ class MakeOrderRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> updateLiveLocationRep(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-        updateLiveLocation,
-        isMultipart: false,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+  // NOTE: `updateLiveLocationRep` lived here — a second POST to
+  // `map-service/api/provider/location` taking a free-form params map, which is
+  // how the body drifted to include `userId`. There is now one implementation
+  // with a fixed { lat, lng } body: MapServiceRepo.publishProviderLocationRepo.
+
   Future<ResponseModel> getAddress() async {
     final response = await ApiBaseHelper().getHTTP(
         getAddressApi,
@@ -140,7 +137,10 @@ class MakeOrderRepo extends BaseService {
   Future<ResponseModel> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
     final response = await ApiBaseHelper().patchHTTP(
         updateRideOrParcelOrderStatus(orderId),
-        showProgress: true,
+        // No global progress dialog: accept/reject happens on ONE card in a
+        // list, and a full-screen blocker hides the very card the rider just
+        // acted on. The card shows its own inline loader instead.
+        showProgress: false,
 
      params: params,
      onError: (error) {}, onSuccess: (data) {});

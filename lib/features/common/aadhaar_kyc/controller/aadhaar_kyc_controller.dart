@@ -180,8 +180,26 @@ class AadhaarKycController extends GetxController {
                 : 'OTP sent to your Aadhaar-linked mobile number');
       } else {
         // 200-with-success:false (e.g. "Invalid Aadhaar Card", "Please retry
-        // after 30 seconds") or a real error status — surface the message.
+        // after 30 seconds") or a real error status.
+        //
+        // Advance to OTP entry ANYWAY. The provider is flaky and its most
+        // common refusal — "Please retry after 30 seconds" — is a rate limit,
+        // which means an OTP was just sent and is on its way to the user's
+        // phone. Holding them on the entry form in that case strands someone
+        // who is holding a perfectly good code.
+        //
+        // Nothing is faked: [referenceId] keeps whatever a previous successful
+        // send returned (it is NOT cleared here), the provider's own message is
+        // shown, and [otpFailed] stays true so the "verify by uploading your
+        // Aadhaar card" fallback is offered on this screen too. If no OTP ever
+        // existed, verifyOtp answers with "request a new OTP" and Resend is one
+        // tap away.
         otpFailed.value = true;
+        otpController.clear();
+        stage.value = AadhaarStage.otp;
+        // Honours the provider's own back-off — Resend unlocks after the
+        // cooldown rather than letting the user hammer a rate-limited endpoint.
+        _startResendCooldown();
         final msg = (body is Map ? body['message']?.toString() : null) ??
             response.message ??
             AppStrings.somethingWentWrong;
@@ -189,7 +207,13 @@ class AadhaarKycController extends GetxController {
       }
     } catch (e, s) {
       debugPrint('❌ AadhaarKyc.generateOtp error: $e\n$s');
+      // Same reasoning as the failure branch above: a thrown request tells us
+      // nothing about whether the provider sent an OTP, so let the user try the
+      // code if they got one.
       otpFailed.value = true;
+      otpController.clear();
+      stage.value = AadhaarStage.otp;
+      _startResendCooldown();
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isOtpSending.value = false;
@@ -200,9 +224,12 @@ class AadhaarKycController extends GetxController {
   /// shows the verified stage.
   Future<void> verifyOtp() async {
     if (referenceId.isEmpty) {
-      commonSnackBar(
-          message: 'Your session expired. Please request a new OTP.');
-      stage.value = AadhaarStage.entry;
+      // Reachable by design now: a failed generate-otp still lands the user
+      // here. Keep them on this screen — Resend is right there, and throwing
+      // someone back to the number form after they have typed a code is the
+      // worse half of the trade.
+      commonSnackBar(message: 'No OTP request is active. Tap Resend to get a '
+          'new OTP.');
       return;
     }
     if (otpController.text.trim().length != 6) {

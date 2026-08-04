@@ -116,6 +116,11 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:31.0.2')
     implementation 'com.google.firebase:firebase-messaging:23.2.1'
     implementation 'com.google.android.material:material:1.11.0'
+    // Watchdog that restarts the rider live-location foreground service after an
+    // OEM kill. WorkManager is NOT the heartbeat (its floor is 15 minutes, far
+    // too slow against the 5-minute provider auto-close) — it only checks that
+    // the service is alive. See docs/RIDER_LIVE_LOCATION_GUIDE.md.
+    implementation 'androidx.work:work-runtime-ktx:2.9.1'
 
 }
 

@@ -572,49 +572,10 @@ class _PassengerDestinationScreenState
     );
   }
 
-  /// Minimise back to the floating PiP overlay so the rider can keep the ride
-  /// running while using the rest of the app. Mirrors the previous ride
-  /// screen so the overlay + ongoing-order card keep working unchanged.
-  void _minimiseToOverlay() {
-    final overlayCtrl = Get.put(RideNavigationOverlayController());
-    final currentRider =
-        _currentRiderPosition ?? LatLng(widget.pickupLat, widget.pickupLng);
-    overlayCtrl.showOverlay(
-      riderLatVal: currentRider.latitude,
-      riderLngVal: currentRider.longitude,
-      destLatVal: _dropLatLng.latitude,
-      destLngVal: _dropLatLng.longitude,
-      destLabelVal: widget.dropLocation,
-      customerNameVal: widget.customerName,
-      fareAmountVal: widget.fareAmount,
-      routePoints: _routeCoords,
-      type: 'ride',
-      params: {
-        'pickupLocation': widget.pickupLocation,
-        'dropLocation': widget.dropLocation,
-        'pickupLat': widget.pickupLat,
-        'pickupLng': widget.pickupLng,
-        'dropLat': widget.dropLat,
-        'dropLng': widget.dropLng,
-        'fareAmount': widget.fareAmount,
-        'distanceKm': widget.distanceKm,
-        'customerName': widget.customerName,
-        'customerImage': widget.customerImage,
-        'paymentMethod': widget.paymentMethod,
-        'orderId': widget.orderId,
-        // Carried so re-entering from the mini-map can still rate the customer.
-        'customerUserId': widget.customerUserId,
-      },
-    );
-    // Guarded: this screen is reached by `pushReplacement` from the pickup
-    // screen, so when the whole chain started from a notification launch it is
-    // the only route on the stack and an unguarded pop blanks the app.
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    } else {
-      Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
-    }
-  }
+  // NOTE: `_minimiseToOverlay` lived here — back used to push this ride into the
+  // floating PiP mini-map. Riders now navigate in the phone's Google Maps and
+  // the ongoing-order card carries the ride end-to-end, so the overlay only
+  // duplicated it. Back simply leaves (see the PopScope in [build]).
 
   @override
   Widget build(BuildContext context) {
@@ -622,12 +583,17 @@ class _PassengerDestinationScreenState
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        // While completed, back simply closes the screen; otherwise it
-        // minimises the live ride into the floating overlay.
-        if (_rideCompleted) {
+        // Back just leaves. It used to minimise a live ride into the floating
+        // PiP mini-map; riders now navigate in the phone's Google Maps and the
+        // ongoing card carries the ride (including slide-to-complete), so the
+        // overlay was a second copy of the same job stuck over the app.
+        //
+        // Guarded: on a notification-launched ride this can be the only route
+        // on the stack, and a bare pop would leave the app blank.
+        if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         } else {
-          _minimiseToOverlay();
+          Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
         }
       },
       child: Scaffold(

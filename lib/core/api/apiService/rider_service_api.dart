@@ -40,6 +40,11 @@ mixin RiderServiceApi {
   /// PUT → update { enabled } | { manualOffToday } | { windowStart, windowEnd }.
   /// See docs/backend/RIDER_GO_LIVE_GUIDE.md.
   final String ridersAutoGoLive = "rider-service/riders/auto-golive";
+
+  /// Rider earnings + performance dashboard (Statistics tab).
+  /// GET → `?period=today|week|month`, scoped to the authenticated rider.
+  /// See docs/backend/RIDER_STATISTICS_API_GUIDE.md.
+  final String ridersStatistics = "rider-service/riders/statistics";
   // Delete a single uploaded onboarding document. [documentType] is one
   // of: aadhar | pan | dl | rc | vehicle-images | vehicle-information.
   // NOTE: assumed REST path — confirm with backend before relying on it.

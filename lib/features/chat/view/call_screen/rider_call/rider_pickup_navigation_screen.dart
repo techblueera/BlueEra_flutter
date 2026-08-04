@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -7,7 +6,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
@@ -65,7 +63,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
 }
 
 class _RiderPickupNavigationScreenState
-    extends State<RiderPickupNavigationScreen> with WidgetsBindingObserver {
+    extends State<RiderPickupNavigationScreen> {
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
@@ -95,7 +93,6 @@ class _RiderPickupNavigationScreenState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
     _loadMarkerIcons();
     _fetchRoute();
@@ -115,18 +112,14 @@ class _RiderPickupNavigationScreenState
       // destination — re-submitting the consumed OTP would be rejected.
       _redirectIfAlreadyPickedUp();
     });
-    // Enable PiP auto-entry when user leaves the app
-    if (Platform.isAndroid) {
-      PipService.updatePipStatus(true);
-    }
+    // NOTE: no PiP on the pickup leg — see [_handleBackPressed]. Android PiP
+    // auto-entry used to be armed here, so leaving the app (e.g. to open Maps)
+    // shrank the rider's app into a floating window. The destination leg
+    // (PassengerDestinationScreen) still has its overlay.
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    if (Platform.isAndroid) {
-      PipService.updatePipStatus(false);
-    }
     RideLocationPublisher().stop();
     _locationSubscription?.cancel();
     _mapController?.dispose();
@@ -137,15 +130,6 @@ class _RiderPickupNavigationScreenState
       f.dispose();
     }
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!Platform.isAndroid) return;
-    if (state == AppLifecycleState.inactive) {
-      // App going to background — enter PiP
-      PipService.enterPip();
-    }
   }
 
   /// Vehicle glyph for the rider's own marker — the same asset the customer
@@ -534,6 +518,10 @@ class _RiderPickupNavigationScreenState
         ));
   }
 
+  /// Hand this screen off to the floating mini-map. Back press no longer does
+  /// this (see [_handleBackPressed]) — the only caller left is the customer
+  /// call, which needs the ride/OTP context preserved while the call UI is up
+  /// and restores the screen afterwards.
   void _minimiseToOverlay() {
     final overlayCtrl = Get.put(RideNavigationOverlayController());
     // Once the pickup OTP is verified the order is already `picked-up` and the
@@ -584,6 +572,23 @@ class _RiderPickupNavigationScreenState
     }
   }
 
+  /// Back / system-back on the pickup leg: just leave the screen. It used to
+  /// minimise into the floating mini-map (and arm Android PiP), which meant a
+  /// rider who backed out of "Navigate to Pickup" was left with a PiP window
+  /// stuck over the app. The job is still on the orders list, one tap away.
+  ///
+  /// [canPop] stays false so this guard runs: accepting a ride from a
+  /// notification replaces the incoming screen (`Get.off`), so this can be the
+  /// ONLY route on the stack — an unguarded pop empties the navigator and the
+  /// app goes black. Land on the rider dashboard in that case.
+  void _handleBackPressed() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+    }
+  }
+
   void _startRide() {
     setState(() => _isStartingRide = true);
     // Pickup OTP verified — move to the destination screen (rider carries the
@@ -614,7 +619,7 @@ class _RiderPickupNavigationScreenState
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _minimiseToOverlay();
+        if (!didPop) _handleBackPressed();
       },
       child: Scaffold(
       body: Stack(
@@ -686,9 +691,9 @@ class _RiderPickupNavigationScreenState
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              // Back button — minimise to floating mini-map
+              // Back button — leave the screen (no mini-map / PiP handoff)
               GestureDetector(
-                onTap: _minimiseToOverlay,
+                onTap: _handleBackPressed,
                 child: Container(
                   width: 40,
                   height: 40,

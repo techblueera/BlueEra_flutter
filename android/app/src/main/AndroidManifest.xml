@@ -266,6 +266,21 @@
             android:name=".RiderLocationForegroundService"
             android:exported="false"
             android:foregroundServiceType="location" />
+        <!--
+          Restores the rider's live-location service after a reboot, but ONLY if
+          they were live when the device went down (the service's own active flag
+          decides). A rider who ended their shift is never resurrected.
+        -->
+        <receiver
+            android:name=".RiderLocationBootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
         <!-- Incoming call notification button receiver -->
         <receiver
             android:name=".CallActionReceiver"
@@ -347,6 +362,20 @@
         <package android:name="com.phonepe.app" />
         <package android:name="net.one97.paytm" />
         <package android:name="in.org.npci.upiapp" />
+        <!--
+          Google Maps turn-by-turn navigation (rider "Navigate to Pickup").
+          Without this, canLaunchUrl("google.navigation:…") returns false on
+          Android 11+ and the rider silently gets the browser fallback.
+        -->
+        <package android:name="com.google.android.apps.maps" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="google.navigation" />
+        </intent>
     </queries>
 
     <queries>

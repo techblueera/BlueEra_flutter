@@ -2568,9 +2568,25 @@ class RouteHelper {
       //     settings: const RouteSettings(name: '/CallRoomScreen'),
       //   );
       case RouteConstant.IncomingRiderOrderScreen:
-        return MaterialPageRoute(
-          builder: (_) => const IncomingRiderOrderScreen(),
+        // Transparent route, because the ride offer is a SHEET: whatever the
+        // rider was looking at has to keep painting behind the scrim. A
+        // MaterialPageRoute is opaque — Flutter stops drawing everything
+        // underneath it — so the scrim had nothing behind it and the offer read
+        // as a black page rather than as something that arrived over the app.
+        //
+        // The route only fades; the sheet itself rides the route animation up
+        // from the bottom (see IncomingRiderOrderScreen).
+        return PageRouteBuilder(
+          opaque: false,
+          fullscreenDialog: true,
           settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
+          transitionDuration: const Duration(milliseconds: 260),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (_, __, ___) => const IncomingRiderOrderScreen(),
+          transitionsBuilder: (_, animation, __, child) => FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
         );
 
       // â”€â”€ be_vehicle_service screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

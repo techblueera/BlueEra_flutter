@@ -161,6 +161,41 @@ class AppStrings {
   static const travelTime = "Travel time";
   static const travelDistance = "Travel distance";
 
+  /// Rider ongoing-ride card, pre-pickup leg — opens Google Maps navigation.
+  static const pickupDirection = "Pickup Direction";
+
+  /// Rider ongoing-order card stage label, shown while the rider is still
+  /// heading to the pickup.
+  static const goToPickUp = "Go to Pick Up";
+
+  /// Tapped a pickup / drop row on an order that carries no coordinates.
+  static const locationNotAvailable = "Location not available for this order";
+
+  /// Rider ongoing-order card — support row at the foot of the card.
+  static const callToCustomerCare = "Call To Customer Care";
+
+  /// Rider ongoing-order card, ride-started (post-pickup) leg.
+  static const rideInProgress = "In Progress";
+  static const dropLocationDirection = "Drop Location";
+  static const travelDist = "Travel Dist.";
+  /// Ride-completed dialog (rider side).
+  static const orderCompletedTitle = "Order Completed!";
+  static const orderCompletedSubtitle =
+      "Thank you for riding with us. Your order has been successfully completed.";
+  static const showThisQrTo = "Show this QR to";
+  static const toConfirmYourPayment = "to confirm your payment";
+  static const howWasYourRide = "How was your ride?";
+  static const feedbackHelpsUsImprove = "Your feedback helps us improve";
+  static const writeAShortReview = "Write a short review";
+  static const thanksForYourFeedback = "Thanks for your feedback";
+  static const emergencyCall = "Emergency Call";
+  static const swipeCompleteTheRide = "Swipe Complete The Ride";
+
+  /// Support line the rider card dials. EMPTY until the real number is set —
+  /// while it is empty the Call button opens the in-app Help & Support screen
+  /// instead, so it is never a dead button (see `_handleCallCustomerCare`).
+  static const customerCareNumber = "9494985993";
+
   static const enterUpiIdOption = "Enter UPI ID";
   static const uploadUpiQrOption = "Upload UPI QR";
   static const uploadUpiQrRequired = "Upload your UPI QR to continue.";

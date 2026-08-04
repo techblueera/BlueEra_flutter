@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 import '../../../../../core/constants/getx_utils.dart';
@@ -80,8 +79,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   /// a ride the server had already given away.
   late final int _totalSeconds;
 
-  GoogleMapController? _mapController;
-  List<LatLng> _routePoints = const [];
 
   /// Road distance/duration of the pickup→drop leg, from the same Directions
   /// call that draws the polyline. The reply already carries both; they used to
@@ -279,67 +276,37 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     return 0.0;
   }
 
-  /// Fetch the driving route for the preview map.
+  /// Measure the pickup→drop leg for the journey line ("12.4 km · 28 min").
   ///
-  /// Best-effort and non-blocking: the sheet and the Accept button must be
-  /// usable the instant the screen opens — this offer expires in
-  /// [_totalSeconds], so nothing here may gate the decision on a network call.
-  /// Until it lands (or if it fails) the map shows a dashed straight hint.
+  /// Kept after the preview map was removed because the DURATION lives nowhere
+  /// else — the push payload carries a distance but never an ETA, and how long
+  /// a job takes is half of whether it's worth taking. The polyline the reply
+  /// also returns is now discarded.
+  ///
+  /// Best-effort and non-blocking: the Accept button must be usable the instant
+  /// the screen opens — this offer expires in [_totalSeconds], so nothing here
+  /// may gate the decision on a network call.
   Future<void> _loadRoute() async {
     if (!_hasRouteCoordinates) return;
     try {
-      final result =
-          await RoutePolylineService.fetch(
+      final result = await RoutePolylineService.fetch(
         origin: PointLatLng(_pickupLat, _pickupLng),
         destination: PointLatLng(_dropLat, _dropLng),
       );
-      if (!mounted || result == null || result.points.length < 2) return;
+      if (!mounted || result == null) return;
+      // Metres / seconds → the units the journey line displays.
+      final metres = result.totalDistanceValue;
+      final seconds = result.totalDurationValue;
+      if ((metres == null || metres <= 0) && (seconds == null || seconds <= 0)) {
+        return;
+      }
       setState(() {
-        _routePoints = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList(growable: false);
-        // Metres / seconds → the units the sheet displays.
-        final metres = result.totalDistanceValue;
-        final seconds = result.totalDurationValue;
         if (metres != null && metres > 0) _routeDistanceKm = metres / 1000;
         if (seconds != null && seconds > 0) _routeDurationMin = seconds / 60;
       });
-      _fitRouteBounds();
     } catch (_) {
-      // Keep the dashed hint — a missing preview must never block accepting.
-    }
-  }
-
-  /// Frame pickup, drop and the route between them.
-  Future<void> _fitRouteBounds() async {
-    final map = _mapController;
-    if (map == null || !_hasRouteCoordinates) return;
-
-    final points = <LatLng>[
-      LatLng(_pickupLat, _pickupLng),
-      LatLng(_dropLat, _dropLng),
-      ..._routePoints,
-    ];
-    var minLat = points.first.latitude, maxLat = points.first.latitude;
-    var minLng = points.first.longitude, maxLng = points.first.longitude;
-    for (final p in points) {
-      if (p.latitude < minLat) minLat = p.latitude;
-      if (p.latitude > maxLat) maxLat = p.latitude;
-      if (p.longitude < minLng) minLng = p.longitude;
-      if (p.longitude > maxLng) maxLng = p.longitude;
-    }
-    try {
-      await map.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          60,
-        ),
-      );
-    } catch (_) {
-      // Map not laid out yet — the next call after the route lands retries.
+      // The journey line simply omits what it doesn't know — a failed
+      // measurement must never block accepting.
     }
   }
 
@@ -528,9 +495,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         // ending the call or rejecting the ride request.
         await CallPipService.enterPipMode();
       },
-      // The two phases are different surfaces: the ringing phase is a map-led
-      // job offer (light, edge-to-edge, its own SafeArea inside the sheet), the
-      // call room stays the dark call UI it shares with the customer's screen.
+      // The two phases are different surfaces: the ringing phase is a light
+      // job-offer sheet, the call room stays the dark call UI it shares with
+      // the customer's screen.
       child: _isCallConnected
           ? Scaffold(
               backgroundColor: const Color(0xFF0B141A),
@@ -553,9 +520,10 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
               ),
             )
           : Scaffold(
-              backgroundColor: Colors.white,
-              // No SafeArea around the map — it should run under the status
-              // bar; the countdown pill and the sheet inset themselves.
+              // Transparent: the backdrop is painted inside _buildRingingUI,
+              // which picks a scrim or the app's dark surface depending on
+              // whether there is a page underneath to dim.
+              backgroundColor: Colors.transparent,
               body: _buildRingingUI(),
             ),
     );
@@ -564,186 +532,251 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   // ─────────────────────────────────────────────
   // RINGING UI (Phase 1 — before accept)
   //
-  // Map on top with the pickup→drop route, details sheet below. Replaces the
-  // earlier dark "incoming call" card: a rider decides on a job from the
-  // geometry (how far away is the pickup, where does it end up) far more than
-  // from a list of fields, so the route is the primary content and everything
-  // else reads against it.
+  // Countdown pinned at the top, the offer's details in the middle, accept /
+  // decline pinned at the bottom.
+  //
+  // This used to be a full-bleed route map with the details in a sheet over its
+  // lower half. The map is gone: the rider is deciding in a handful of seconds
+  // from the fare, the distance and the two addresses — all of which are text —
+  // and the map pushed exactly those into a cramped sheet while costing a
+  // Directions draw per offer. The addresses now get the whole screen.
   // ─────────────────────────────────────────────
 
   Widget _buildRingingUI() {
+    final maxSheet = MediaQuery.of(context).size.height * 0.82;
+    // The route fades the scrim in; the sheet rises on the same animation, so
+    // the offer arrives the way a sheet does instead of cutting in. Falls back
+    // to "already shown" when there's no route animation to ride (an offer
+    // rebuilt outside a transition).
+    final routeAnimation =
+        ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
+
     return Stack(
       children: [
-        Positioned.fill(child: _buildRouteMap()),
-        // Countdown floats over the map so it never scrolls out of sight —
-        // this offer expires whether or not the rider is looking at it.
-        //
-        // Offset by the status-bar inset: the map is deliberately edge-to-edge
-        // (no SafeArea), so a bare `top: 12` puts the pill under the clock and
-        // the notch.
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 12,
-          left: 16,
-          right: 16,
-          child: _buildCountdownBar(),
+        Positioned.fill(child: _buildRingingBackdrop()),
+        Column(
+          children: [
+            // Backdrop is deliberately inert: an offer is answered, not
+            // dismissed by tapping away from it — and it expires on its own if
+            // the rider does nothing. A tap-to-close here would read as
+            // "declined" without ever saying so.
+            const Expanded(child: SizedBox.shrink()),
+            _buildSlidingSheet(routeAnimation, maxSheet),
+          ],
         ),
-        Align(alignment: Alignment.bottomCenter, child: _buildDetailsSheet()),
       ],
     );
   }
 
-  // ------------------------------------------------------------------- map
-
-  Widget _buildRouteMap() {
-    if (!_hasRouteCoordinates) {
-      // No coordinates in the push — show a neutral panel rather than a map
-      // parked on the null island.
-      return Container(
-        color: const Color(0xFFEDF1F5),
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.map_outlined, size: 44, color: Color(0xFF9AA5B1)),
-            const SizedBox(height: 8),
-            Text(
-              'Route preview unavailable',
-              style: TextStyle(
-                color: const Color(0xFF6B7280),
-                fontSize: 13,
-                fontFamily: 'OpenSans',
-              ),
-            ),
-          ],
-        ),
-      );
+  /// What sits behind the sheet.
+  ///
+  /// Normally: a scrim over the screen the rider was already on, which is what
+  /// makes this read as a sheet rather than a page.
+  ///
+  /// But an offer can arrive from a notification with the app cold — then this
+  /// route is the ONLY one on the stack and there is nothing to dim. Rather
+  /// than a black void, that case gets the app's own dark surface (the same
+  /// gradient the call room uses, so the app has one dark surface and not two)
+  /// with a quiet mark. It stays quiet on purpose: the sheet is the thing to
+  /// read, and this is on screen for twenty seconds.
+  Widget _buildRingingBackdrop() {
+    final hasPageBehind = Navigator.of(context).canPop();
+    if (hasPageBehind) {
+      return const ColoredBox(color: Color(0x8C000000));
     }
 
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: LatLng(_pickupLat, _pickupLng),
-        zoom: 13,
-      ),
-      onMapCreated: (c) {
-        _mapController = c;
-        _fitRouteBounds();
-      },
-      myLocationEnabled: false,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
-      liteModeEnabled: false,
-      // Keep the fitted route inside the band that is actually visible —
-      // between the floating countdown pill (status bar + its own height) and
-      // the details sheet covering the lower half.
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 76,
-        bottom: 260,
-      ),
-      markers: {
-        Marker(
-          markerId: const MarkerId('pickup'),
-          position: LatLng(_pickupLat, _pickupLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: const InfoWindow(title: 'Pickup'),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A2E35), Color(0xFF0F1F27), Color(0xFF0B141A)],
+          stops: [0.0, 0.5, 1.0],
         ),
-        Marker(
-          markerId: const MarkerId('drop'),
-          position: LatLng(_dropLat, _dropLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: const InfoWindow(title: 'Drop'),
-        ),
-      },
-      polylines: {
-        if (_routePoints.length >= 2)
-          Polyline(
-            polylineId: const PolylineId('route'),
-            points: _routePoints,
-            color: const Color(0xFF0F172A),
-            width: 5,
-            startCap: Cap.roundCap,
-            endCap: Cap.roundCap,
-            jointType: JointType.round,
-          )
-        else
-          // Straight hint until the Directions call lands — dashed so it never
-          // reads as the actual road route.
-          Polyline(
-            polylineId: const PolylineId('route_pending'),
-            points: [
-              LatLng(_pickupLat, _pickupLng),
-              LatLng(_dropLat, _dropLng),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 44),
+          child: Column(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF00A65A).withValues(alpha: 0.5),
+                    width: 1.4,
+                  ),
+                ),
+                child: Icon(_jobIcon,
+                    size: 24, color: Colors.white.withValues(alpha: 0.9)),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'New ride request',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                  color: Colors.white.withValues(alpha: 0.92),
+                  fontFamily: 'OpenSans',
+                ),
+              ),
             ],
-            color: const Color(0xFF94A3B8),
-            width: 3,
-            patterns: [PatternItem.dash(18), PatternItem.gap(10)],
           ),
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlidingSheet(Animation<double> routeAnimation, double maxSheet) {
+    return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: routeAnimation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          )),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxSheet),
+        child: _buildOfferSheet(),
+      ),
+    );
+  }
+
+  /// The offer, as a sheet: the countdown rail welded to its top edge, the fare
+  /// as the headline, the two stops on a rail, and the decision pinned to the
+  /// bottom where a thumb already is.
+  Widget _buildOfferSheet() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(color: Color(0x2E000000), blurRadius: 28, offset: Offset(0, -8)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDrainRail(),
+              _buildOfferHeader(),
+              // Scrolls so a long address pair can't push the decision off a
+              // short screen; the actions below stay pinned either way.
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFareRow(),
+                      const SizedBox(height: 18),
+                      _buildRouteRows(),
+                      const SizedBox(height: 16),
+                      _buildCustomerRow(),
+                    ],
+                  ),
+                ),
+              ),
+              _buildBottomActions(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   // -------------------------------------------------------------- countdown
 
-  Widget _buildCountdownBar() {
+  /// Fraction of the offer window still left, 1 → 0.
+  double get _offerProgress {
     final total = _totalSeconds <= 0 ? 1 : _totalSeconds;
-    final progress = (_remainingSeconds / total).clamp(0.0, 1.0);
-    final urgent = _remainingSeconds <= 5;
+    return (_remainingSeconds / total).clamp(0.0, 1.0);
+  }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+  /// Green while there's time, amber past the halfway point, red in the last
+  /// five seconds. Always paired with the literal seconds beside it — the
+  /// colour is emphasis, never the message.
+  Color get _urgencyColor {
+    if (_remainingSeconds <= 5) return const Color(0xFFEA4335);
+    if (_offerProgress <= 0.5) return const Color(0xFFF59E0B);
+    return const Color(0xFF00A65A);
+  }
+
+  /// The countdown, drawn as the sheet's own top edge rather than as a widget
+  /// inside it: a full-bleed hairline that drains left → right, so the sheet
+  /// visibly runs out of time. A rider glancing down reads the remaining width
+  /// without focusing on anything.
+  Widget _buildDrainRail() {
+    return SizedBox(
+      height: 5,
+      child: Stack(
+        children: [
+          const Positioned.fill(child: ColoredBox(color: Color(0xFFEEF2F6))),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: _offerProgress,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                color: _urgencyColor,
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  /// What the job is, and how long is left to take it.
+  Widget _buildOfferHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Row(
         children: [
-          Icon(_jobIcon, size: 20, color: const Color(0xFF0F172A)),
-          const SizedBox(width: 10),
+          Icon(_jobIcon, size: 18, color: const Color(0xFF0F172A)),
+          const SizedBox(width: 8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _offerTitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0F172A),
-                    fontFamily: 'OpenSans',
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 4,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation(
-                      urgent ? const Color(0xFFEA4335) : const Color(0xFF00A65A),
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              _offerTitle.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.1,
+                color: Color(0xFF64748B),
+                fontFamily: 'OpenSans',
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 12),
-          Text(
-            '${_remainingSeconds}s',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: urgent ? const Color(0xFFEA4335) : const Color(0xFF0F172A),
-              fontFamily: 'OpenSans',
+          const SizedBox(width: 10),
+          // The number the rail is drawing. Kept literal so the countdown is
+          // legible to a rider who can't distinguish the rail's colours.
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _urgencyColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${_remainingSeconds}s left',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: _urgencyColor,
+                fontFamily: 'OpenSans',
+              ),
             ),
           ),
         ],
@@ -753,55 +786,10 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
 
   // ------------------------------------------------------------------ sheet
 
-  Widget _buildDetailsSheet() {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-        boxShadow: [
-          BoxShadow(color: Color(0x33000000), blurRadius: 22, offset: Offset(0, -6)),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // Scrollable so a long address pair can't overflow on a short
-            // screen — the action row below stays pinned either way.
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildFareRow(),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1, color: Color(0xFFEEF2F6)),
-                    const SizedBox(height: 14),
-                    _buildRouteRows(),
-                    const SizedBox(height: 12),
-                    _buildCustomerRow(),
-                  ],
-                ),
-              ),
-            ),
-            _buildBottomActions(),
-          ],
-        ),
-      ),
-    );
-  }
+  // NOTE: `_buildDetailsSheet` lived here — the rounded, shadowed sheet that
+  // held these rows over the lower half of the map. With the map gone the sheet
+  // has nothing to sit on, so its contents are laid out directly by
+  // [_buildRingingUI].
 
   /// Fare, the per-km rate behind it, and the trip's shape (type + payment).
   ///
@@ -809,84 +797,93 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   /// one number the payload does NOT send — it is derived here from fare and
   /// distance, and hidden when distance is unknown rather than shown as ₹0/km.
   Widget _buildFareRow() {
-    return Row(
+    final prepaid = _paymentMethod.toLowerCase() == 'prepaid';
+    // One line instead of three pills. A row of tags reads as a row of tags;
+    // this reads as a sentence about the job, which is faster at a glance.
+    // Trip distance is deliberately absent — it lives on the route connector,
+    // where it means "the leg between these two points".
+    final meta = <String>[
+      if (_orderTypeLabel.isNotEmpty) _orderTypeLabel,
+      prepaid ? 'Paid online' : 'Collect cash',
+    ].join('  ·  ');
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '₹${_fare.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                      fontFamily: 'OpenSans',
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (_farePerKm != null)
-                    Text(
-                      '₹${_farePerKm!.toStringAsFixed(0)}/km',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                        fontFamily: 'OpenSans',
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (_orderTypeLabel.isNotEmpty)
-                    _buildTag(_orderTypeLabel, const Color(0xFF0F172A)),
-                  _buildTag(
-                    _paymentMethod.toLowerCase() == 'prepaid'
-                        ? 'Paid online'
-                        : 'Collect cash',
-                    _paymentMethod.toLowerCase() == 'prepaid'
-                        ? const Color(0xFF0284C7)
-                        : const Color(0xFF00A65A),
-                  ),
-                  if (_effectiveDistanceKm != null)
-                    _buildTag(
-                      '${_effectiveDistanceKm!.toStringAsFixed(1)} km trip',
-                      const Color(0xFF64748B),
-                    ),
-                ],
-              ),
-            ],
+        Text(
+          'YOU EARN',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            color: Color(0xFF94A3B8),
+            fontFamily: 'OpenSans',
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildTag(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: color,
-          fontFamily: 'OpenSans',
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '₹${_fare.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 38,
+                    height: 1.05,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1,
+                    color: Color(0xFF0F172A),
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ),
+            ),
+            if (_farePerKm != null) ...[
+              const SizedBox(width: 10),
+              Text(
+                '₹${_farePerKm!.toStringAsFixed(0)}/km',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                  fontFamily: 'OpenSans',
+                ),
+              ),
+            ],
+          ],
         ),
-      ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: prepaid ? const Color(0xFF0284C7) : const Color(0xFF00A65A),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                meta,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                  fontFamily: 'OpenSans',
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -1106,23 +1103,26 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Row(
         children: [
           Expanded(
             flex: 4,
             child: SizedBox(
-              height: 52,
+              height: 54,
               child: OutlinedButton(
                 onPressed: _onRejectRide,
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
+                // "Decline", not "Cancel" — nothing of the rider's is being
+                // cancelled; they are turning down an offer, and it goes to
+                // someone else.
                 child: const Text(
-                  'Cancel',
+                  'Decline',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -1137,20 +1137,23 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
           Expanded(
             flex: 6,
             child: SizedBox(
-              height: 52,
+              height: 54,
               child: ElevatedButton(
                 onPressed: _onAcceptRide,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00A65A),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
+                // The action names the money it commits to. On the call flow the
+                // fare is still to be agreed, so that button stays about the
+                // conversation instead of quoting a number.
                 child: Text(
-                  // Broadcast is a race — "Accept" understates it; the rider is
-                  // claiming a job several others are being offered right now.
-                  _isBroadcast ? 'Accept ride' : 'Accept & talk',
+                  _isBroadcast
+                      ? 'Accept  ·  ₹${_fare.toStringAsFixed(0)}'
+                      : 'Accept & talk',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
