@@ -1,0 +1,26 @@
+name: new_order_call_notification
+description: >-
+  Non-dismissible new-order alert, built as an Android CallStyle notification.
+  CallStyle is the only notification template Android 14+ still exempts from
+  "users can dismiss ongoing notifications", which is why this cannot be done
+  with flutter_local_notifications.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=3.3.3 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# Android only, on purpose. iOS has no equivalent (no API can stop a banner
+# being swiped), so callers fall back to their existing renderer there — the
+# method channel simply isn't registered and `show()` reports false.
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: ai.bluecs.new_order_call_notification
+        pluginClass: NewOrderCallNotificationPlugin

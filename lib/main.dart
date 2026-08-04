@@ -22,6 +22,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/ride_ring_notification.dart';
+import 'package:BlueEra/core/services/notifications/new_order_timer_notification.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -606,7 +607,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // Cancel ALL notifications (including Firebase's auto-shown ones).
     // Only safe on Android — iOS system banners survive cancelAll.
     if (Platform.isAndroid) {
-      await plugin.cancelAll();
+      // Everything except an unanswered new-order alert — that one is sticky
+      // by design and must not be collateral damage of rendering the next
+      // push. Identical to cancelAll() when none is showing.
+      await cancelAllExceptNewOrderAlerts(plugin);
     }
 
     // Use the generic showFromData renderer which reads all backend fields:

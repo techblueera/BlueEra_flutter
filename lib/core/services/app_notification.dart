@@ -49,6 +49,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../features/chat/auth/controller/call_controller.dart';
 import 'ride_notification_router.dart';
 import 'ride_ring_notification.dart';
+import 'notifications/new_order_timer_notification.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../routes/route_helper.dart';
@@ -177,6 +178,20 @@ void onForegroundNotificationResponse(NotificationResponse response) {
       return;
     }
 
+    // New order: Dismiss — kill the countdown, stay where we are.
+    if (isNewOrderDismissAction(actionId)) {
+      NewOrderTimerNotification.instance.dismiss(data);
+      return;
+    }
+
+    // New order: View Order — same destination the notification body already
+    // routes to, so the button and the banner can never disagree.
+    if (isNewOrderViewAction(actionId)) {
+      NewOrderTimerNotification.instance.dismiss(data);
+      AppNotificationHandler._onTapNotificationFromStatusBar(data);
+      return;
+    }
+
     // Ongoing call hangup
     if (actionId == 'hangup_call') {
       if (Get.isRegistered<CallController>()) {
@@ -270,6 +285,17 @@ Future<void> _handleBackgroundNotificationResponse(
   // the default tap handler (_onTapNotificationFromStatusBar) will route it ---
   if (isRideViewAction(actionId)) {
     rideNotifLog('bg action: VIEW — app opening, tap routing takes over');
+    return;
+  }
+
+  // --- New order: Dismiss / View Order ---
+  // Both just stop the countdown here. Dismiss is terminal
+  // (`showsUserInterface: false`); View carries `showsUserInterface: true`, so
+  // the app is already coming to the front and the launch-details tap routing
+  // in firebaseNotificationSetup() takes it from here — same contract as the
+  // ride View button above.
+  if (isNewOrderTimerAction(actionId)) {
+    await NewOrderTimerNotification.instance.dismiss(data, plugin: plugin);
     return;
   }
 
@@ -1135,6 +1161,21 @@ class AppNotificationHandler {
       }
     }
 
+    /// The non-dismissible new-order alert is a NATIVE CallStyle notification
+    /// (Android's only un-swipeable template), so its Answer / body tap does
+    /// not come through flutter_local_notifications' callbacks — it launches
+    /// the activity directly with the push payload as extras. This is where
+    /// that lands back in the normal routing switch.
+    bindNewOrderAlertRouting(
+      onOpen: (data) => _onTapNotificationFromStatusBar(data),
+      coldStart: (data) async {
+        // Same contract as the launch-details path above: wait for the
+        // navigator, then route with the home shell pushed underneath.
+        await _waitForNavigator();
+        await _onTapNotificationFromStatusBar(data, fromColdStart: true);
+      },
+    );
+
     /// Register foreground + background tap callbacks EARLY (was previously
     /// only called from BottomNavigationBar after login). Without this, an
     /// incoming-call notification arriving before the user reaches the home
@@ -1276,6 +1317,11 @@ class AppNotificationHandler {
       audioAttributesUsage: AudioAttributesUsage.notification,
     );
     await androidPlugin?.createNotificationChannel(orderAlertsChannel);
+
+    // New orders with a response countdown. Pre-created here so a warm start
+    // uses the same frozen settings the background isolate would create on
+    // demand — see new_order_timer_notification.dart.
+    await androidPlugin?.createNotificationChannel(kNewOrderTimerChannel);
 
     for (final legacyId in [
       'incoming_calls_ringtone',
@@ -1716,8 +1762,9 @@ class AppNotificationHandler {
 
     // Mark as read - dismiss notification silently
     if (actionId.startsWith('mark_read_')) {
-      // Cancel the notification from tray
-      flutterLocalNotificationsPlugin.cancelAll();
+      // Cancel the notification from tray — but not an unanswered new-order
+      // alert, which only its own buttons/tap may remove.
+      cancelAllExceptNewOrderAlerts(flutterLocalNotificationsPlugin);
       return;
     }
 
@@ -1854,14 +1901,14 @@ class AppNotificationHandler {
         'message': message,
         'message_type': 'text',
       });
-      // Dismiss the notification
-      flutterLocalNotificationsPlugin.cancelAll();
+      // Dismiss the notification (never a live new-order alert)
+      cancelAllExceptNewOrderAlerts(flutterLocalNotificationsPlugin);
     } catch (e) {
       // Fallback: try direct API call
       try {
         await _sendReplyViaApi(
             conversationId: conversationId, message: message);
-        flutterLocalNotificationsPlugin.cancelAll();
+        cancelAllExceptNewOrderAlerts(flutterLocalNotificationsPlugin);
       } catch (_) {
         // Last resort: open chat screen
         _openChatWithUser(senderId);
@@ -2260,6 +2307,22 @@ class AppNotificationHandler {
       isChatMessage: isChatMessage,
       images: extractBroadcastImages(data),
     );
+
+    // New-order pushes get the countdown presentation instead of the generic
+    // banner — same payload, same tap routing, just rendered by its own
+    // service (lib/core/services/notifications/new_order_timer_notification.dart).
+    // Placed AFTER the BlueEra-thread mirroring above so the in-app
+    // notification list still records the order exactly as before.
+    // Falls through to the generic renderer below when the countdown could not
+    // be posted (push arrived past its own expiry, or rendering threw), so a
+    // new order is never silently dropped.
+    if (isNewOrderTimerPush(data)) {
+      final shown = await NewOrderTimerNotification.instance.show(
+        data,
+        plugin: flutterLocalNotificationsPlugin,
+      );
+      if (shown) return;
+    }
 
     // Parse action buttons from backend
     List<Map<String, dynamic>> backendActions = [];
@@ -2944,6 +3007,13 @@ class AppNotificationHandler {
     // essential-vs-background decisions. Never throws; safe for all payloads.
     pendingDeepLink = PendingDeepLink.fromData(data) ?? pendingDeepLink;
 
+    // A tapped new-order banner has served its purpose: stop its countdown so
+    // nothing is left ticking (and, on iOS, so the pending expiry cancel does
+    // not fire against an id the user already dealt with).
+    if (isNewOrderTimerPush(data)) {
+      NewOrderTimerNotification.instance.dismiss(data);
+    }
+
     // Parse sender_user if it's a JSON string
 
     if (data['sender_user'] is String) {
@@ -3387,8 +3457,11 @@ class AppNotificationHandler {
         break;
     }
 
-    /// Clear all local notifications
-    flutterLocalNotificationsPlugin.cancelAll();
+    /// Clear all local notifications. An unanswered new-order alert is kept —
+    /// tapping a chat push must not silently retire an order the seller has
+    /// not looked at. Tapping the order alert itself already cancelled it at
+    /// the top of this method.
+    cancelAllExceptNewOrderAlerts(flutterLocalNotificationsPlugin);
   }
 
   /// Open the current user's own symbols viewer. Symbol engagement pushes
@@ -3911,6 +3984,11 @@ class AppNotificationHandler {
     // audioplayers path (foreground-only) so the foreground doesn't chime
     // twice — once from the channel, once from here.
     if (_orderNotificationOperations.contains(operation)) return;
+
+    // Same reasoning for the countdown channel (`new_order_timer_v1`), which
+    // carries the identical chime — covers the new-order spellings that aren't
+    // in the set above.
+    if (isNewOrderTimerPush(dataNotificationResponse.data)) return;
 
     try {
       if (operation == 'sent_message' ||

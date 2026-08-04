@@ -356,7 +356,9 @@ class AuthController extends GetxController {
           await getGuestUserLoginData();
           // await Future.delayed(Duration(milliseconds: 350));
           // Get.offAll(() => const ChooseAccountTypeScreen());
-          Get.offAll(() => const CreateAccountTypeV2Screen());
+          // Get.offAll(() => const CreateAccountTypeV2Screen());
+          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+
           // New PDF-based onboarding flow. Legacy screen kept as a fallback:
           // Get.offAll(() => const CreateAccountTypeScreen());
           // Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
@@ -370,7 +372,9 @@ class AuthController extends GetxController {
 
         ///GUEST ACCOUNT.....
         else {
-          Get.offAll(() => const CompleteGuestProfileScreen());
+          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+
+          // Get.offAll(() => const CompleteGuestProfileScreen());
           otpVerificationResponse.value = ApiResponse.complete(response);
         }
       } else {
@@ -902,7 +906,7 @@ class AuthController extends GetxController {
           await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 0));
+          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
           clearAllData();
           createGuestProfileResponse.value = ApiResponse.complete(response);
           commonSnackBar(message: response.message ?? AppStrings.success);

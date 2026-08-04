@@ -336,7 +336,7 @@ class ValidationMethod {
     }
 
     bool isValid =
-        RegExp(r'^[A-Z]{2}[0-9]{2}\d{11,13}$').hasMatch(value.toUpperCase());
+        RegExp(r'^[A-Z]{2}[A-Z0-9]{2}\d{10,16}$').hasMatch(value.toUpperCase());
     if (!isValid) {
       return 'Please enter a valid driving license number (e.g. DL0420110148936)';
     }
