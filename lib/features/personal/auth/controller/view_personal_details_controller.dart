@@ -82,7 +82,9 @@ class ViewPersonalDetailsController extends GetxController
     await getServiceProviderStatusUtils();
     if (serviceProviderStatusGlobal.toUpperCase() ==
         AppConstants.OPEN.toUpperCase()) {
-      shopStatusOpenClose.value = true;
+      // Background re-assert: not a user tap, so a failure retries silently
+      // (transient no-network at app start is common) instead of throwing a
+      // snackbar at someone who never touched the toggle.
       await toggleShopOnlyStatus(isActive: true);
     }
   }
@@ -96,25 +98,135 @@ class ViewPersonalDetailsController extends GetxController
   RxBool isShopStatusUpdating = false.obs;
   final LiveLocationService locationService = LiveLocationService();
 
+  /// Pending background retry of a status PATCH that failed, and how many
+  /// attempts have already been burned. Only ONE retry chain can be alive at a
+  /// time — any new [_applyLiveStatus] cancels it, so a user who re-taps the
+  /// pill never races a stale retry that would flip them back.
+  Timer? _statusRetryTimer;
+  int _statusRetryAttempt = 0;
+  static const int _maxStatusRetries = 3;
+
+  /// Message from the last failed status PATCH (backend `message`), surfaced in
+  /// the failure snackbar instead of a generic error when the server said why.
+  String? _lastStatusError;
+
+  /// User tapped the Go-Live pill/switch. Optimistic flip, then reconcile with
+  /// the backend — see [_applyLiveStatus] for what happens when the call fails.
   Future<void> toggleShopStatus() async {
-    shopStatusOpenClose.value = !shopStatusOpenClose.value;
+    // A second tap while the PATCH is in flight used to fire an overlapping
+    // request, and the two responses could land out of order and leave the
+    // toggle disagreeing with the backend.
+    if (isShopStatusUpdating.value) return;
+    await _applyLiveStatus(!shopStatusOpenClose.value, userInitiated: true);
+  }
+
+  /// Programmatic go live / go offline (restore-on-launch, auto-go-live
+  /// schedulers). Failures retry quietly rather than interrupting the user,
+  /// since nobody tapped anything.
+  Future<void> toggleShopOnlyStatus({required bool isActive}) async {
+    await _applyLiveStatus(isActive, userInitiated: false);
+  }
+
+  /// Single path for every live/offline transition: flip local state
+  /// optimistically, call the API, then make local state agree with what the
+  /// backend actually did.
+  ///
+  /// Failure policy (this is the bit that used to be missing — a failed PATCH
+  /// left the pill showing LIVE, the intent cache saying OPEN and the location
+  /// pinger running, while the backend had the provider CLOSED and no order
+  /// would ever arrive):
+  ///
+  /// * **Going live fails on a user tap** → roll all of it back (toggle off,
+  ///   cache CLOSED, pinger stopped) and tell the user. Better an honest
+  ///   "couldn't go live, try again" than a fake live pill.
+  /// * **Going live fails in the background** (launch restore / scheduler) →
+  ///   retry with backoff; only after the retries are exhausted do we fall back
+  ///   to offline, silently.
+  /// * **Going offline fails** (either source) → NEVER roll forward to live.
+  ///   The user asked to stop receiving work, so local state stays offline and
+  ///   the pinger stays stopped; we retry in the background, and the
+  ///   map-service's 5-minute stale-lastSeen auto-close is the backstop if
+  ///   every retry fails.
+  Future<void> _applyLiveStatus(bool isOpen, {required bool userInitiated}) async {
+    _cancelStatusRetry();
+
+    shopStatusOpenClose.value = isOpen;
     // Persist the INTENT immediately — before the API round-trip. The cache
     // is what onInit's restoreProviderLiveState reads after a kill+restart;
     // writing it only on API success meant a kill (or any API hiccup) right
     // after toggling left the cache stale and the toggle came back OFF.
-    await _persistLiveIntent(shopStatusOpenClose.value);
-    if (shopStatusOpenClose.value) {
+    await _persistLiveIntent(isOpen);
+    if (isOpen) {
       locationService.start();
     } else {
       locationService.stop();
     }
-    await callApiForChangeStatus();
+
+    final ok = await callApiForChangeStatus(isOpen: isOpen);
+    if (ok) return;
+
+    if (isOpen && userInitiated) {
+      await _forceLocalOffline();
+      commonSnackBar(
+          message: _lastStatusError ?? AppStrings.somethingWentWrong.tr);
+      return;
+    }
+
+    // Background go-live, or any go-offline: keep retrying instead of nagging.
+    _scheduleStatusRetry(isOpen, userInitiated: userInitiated);
   }
 
-  Future<void> toggleShopOnlyStatus({required bool isActive}) async {
-    shopStatusOpenClose.value = isActive;
-    await _persistLiveIntent(isActive);
-    await callApiForChangeStatus();
+  /// Put every piece of live state back to OFFLINE — toggle, persisted intent
+  /// (+ the global every other screen reads) and the location pinger. Used when
+  /// a go-live attempt is known to have failed, so nothing is left claiming the
+  /// provider is live.
+  Future<void> _forceLocalOffline() async {
+    shopStatusOpenClose.value = false;
+    await _persistLiveIntent(false);
+    locationService.stop();
+  }
+
+  void _scheduleStatusRetry(bool isOpen, {required bool userInitiated}) {
+    if (_statusRetryAttempt >= _maxStatusRetries) {
+      _statusRetryAttempt = 0;
+      if (isOpen) {
+        // Couldn't get the provider open after N tries — stop pretending.
+        _forceLocalOffline();
+        if (userInitiated) {
+          commonSnackBar(
+              message: _lastStatusError ?? AppStrings.somethingWentWrong.tr);
+        }
+      } else if (userInitiated) {
+        // Local state is already offline; the backend is the one lagging, and
+        // the map-service auto-close will catch it within ~5 min.
+        commonSnackBar(
+            message: _lastStatusError ?? AppStrings.somethingWentWrong.tr);
+      }
+      return;
+    }
+
+    // 5s → 10s → 20s
+    final delay = Duration(seconds: 5 * (1 << _statusRetryAttempt));
+    _statusRetryAttempt++;
+    _statusRetryTimer = Timer(delay, () async {
+      // The user changed their mind while we were waiting — their choice wins.
+      if (shopStatusOpenClose.value != isOpen) {
+        _cancelStatusRetry();
+        return;
+      }
+      final ok = await callApiForChangeStatus(isOpen: isOpen);
+      if (ok) {
+        _statusRetryAttempt = 0;
+      } else {
+        _scheduleStatusRetry(isOpen, userInitiated: userInitiated);
+      }
+    });
+  }
+
+  void _cancelStatusRetry() {
+    _statusRetryTimer?.cancel();
+    _statusRetryTimer = null;
+    _statusRetryAttempt = 0;
   }
 
   /// Write the user's go-live intent to secure storage + refresh the global
@@ -169,7 +281,19 @@ class ViewPersonalDetailsController extends GetxController
     }
   }
 
-  callApiForChangeStatus() async {
+  /// PATCHes the provider availability status and syncs local state to the
+  /// backend's answer.
+  ///
+  /// Returns `true` only when the backend CONFIRMED the requested status —
+  /// callers ([_applyLiveStatus]) rely on that to decide whether to roll back
+  /// or retry. A non-2xx, a thrown error, or a 2xx whose body reports a status
+  /// different from what we asked for (e.g. the server refuses to open an
+  /// unpaid/unverified provider) all return `false`.
+  ///
+  /// [isOpen] is the status to request; it defaults to the current toggle value
+  /// so existing no-arg callers behave as before.
+  Future<bool> callApiForChangeStatus({bool? isOpen}) async {
+    final requestedOpen = isOpen ?? shopStatusOpenClose.value;
     try {
       isShopStatusUpdating.value = true;
       changeShopStatusResponse.value = ApiResponse.initial("Initial");
@@ -177,33 +301,74 @@ class ViewPersonalDetailsController extends GetxController
       ResponseModel responseModel =
           await PersonalProfileRepo().setServiceStatusRepo(bodyReq: {
         ApiKeys.userId: userId,
-        ApiKeys.status: shopStatusOpenClose.value ? "OPEN" : "CLOSED"
+        ApiKeys.status: requestedOpen ? "OPEN" : "CLOSED"
       });
 
-      if (responseModel.isSuccess) {
-        final statusData = responseModel
-            .response?.data['provider']['availabilityStatus']
-            .toString()
-            .toUpperCase();
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.serviceProviderStatus, statusData);
-        await getServiceProviderStatusUtils();
-        if (statusData == AppConstants.OPEN.toUpperCase()) {
-          callLocationAPI();
-          // Keep the periodic pinger in lockstep with the confirmed backend
-          // status — covers toggleShopOnlyStatus(), which (unlike
-          // toggleShopStatus) never touched the location service.
-          locationService.start();
-        } else {
-          locationService.stop();
-        }
-        changeShopStatusResponse.value = ApiResponse.complete(responseModel);
+      if (!responseModel.isSuccess) {
+        // Previously this branch did nothing at all: no error state, no
+        // message, no rollback — the failure was completely invisible.
+        _lastStatusError = responseModel.message?.toString();
+        changeShopStatusResponse.value =
+            ApiResponse.error(_lastStatusError ?? 'error');
+        return false;
       }
+
+      // Trust the SERVER's status over what we asked for. Parsed defensively:
+      // the old `data['provider']['availabilityStatus']` chain threw on any
+      // body that didn't have that exact shape, and the throw was swallowed by
+      // the catch below — a successful call could look like a failure. When the
+      // body carries no status we treat the 2xx as confirmation of the request.
+      final serverStatus = _availabilityStatusOf(responseModel);
+      final isServerOpen = serverStatus == null
+          ? requestedOpen
+          : serverStatus == AppConstants.OPEN.toUpperCase();
+
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.serviceProviderStatus,
+          isServerOpen ? AppConstants.OPEN.toUpperCase() : 'CLOSED');
+      await getServiceProviderStatusUtils();
+
+      // Keep the toggle itself honest — the cache used to be updated from the
+      // server while the pill kept showing whatever the user tapped.
+      shopStatusOpenClose.value = isServerOpen;
+
+      if (isServerOpen) {
+        callLocationAPI();
+        // Keep the periodic pinger in lockstep with the confirmed backend
+        // status — covers toggleShopOnlyStatus(), which (unlike
+        // toggleShopStatus) never touched the location service.
+        locationService.start();
+      } else {
+        locationService.stop();
+      }
+      changeShopStatusResponse.value = ApiResponse.complete(responseModel);
+
+      if (isServerOpen == requestedOpen) {
+        _lastStatusError = null;
+        return true;
+      }
+      // 2xx, but the backend landed on the opposite status — treat as failure
+      // so the caller surfaces it rather than silently disagreeing.
+      _lastStatusError = responseModel.message?.toString();
+      return false;
     } catch (e) {
+      _lastStatusError = null;
       changeShopStatusResponse.value = ApiResponse.error('error');
+      return false;
     } finally {
       isShopStatusUpdating.value = false;
     }
+  }
+
+  /// Pulls `availabilityStatus` out of a status response without assuming the
+  /// body shape — accepts it nested under `provider` or at the top level.
+  String? _availabilityStatusOf(ResponseModel responseModel) {
+    final body = responseModel.response?.data;
+    if (body is! Map) return null;
+    final provider = body['provider'];
+    final status = (provider is Map ? provider['availabilityStatus'] : null) ??
+        body['availabilityStatus'];
+    return status?.toString().toUpperCase();
   }
 
   final RxInt postsCount = 0.obs;
@@ -304,6 +469,7 @@ class ViewPersonalDetailsController extends GetxController
   void onClose() {
     _availTimer?.cancel();
     _availTimer = null;
+    _cancelStatusRetry();
     super.onClose();
   }
 
