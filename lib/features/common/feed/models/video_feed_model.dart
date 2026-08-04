@@ -919,6 +919,12 @@ class Author {
   final String? categoryOfBusiness;
   final String? profileType;
 
+  /// The business profile `_id` when the author is a business account. [id] is
+  /// always the *user* id, and the business visit screens key on the business
+  /// id — without this a business author's reel could only open the generic
+  /// profile.
+  final String? businessId;
+
   const Author({
     this.id,
     this.accountType,
@@ -932,6 +938,7 @@ class Author {
     this.businessType,
     this.categoryOfBusiness,
     this.profileType,
+    this.businessId,
   });
 
   factory Author.fromJson(Map<String, dynamic> json) => Author(
@@ -951,12 +958,15 @@ class Author {
         isFollowing: json['isFollowing'] as bool?,
         // Defensive key fallbacks — backends vary between camelCase and
         // snake_case for these fields.
-        businessType:
-            (json['businessType'] ?? json['businessType']) as String?,
+        businessType: (json['businessType'] ??
+            json['typeOfBusiness'] ??
+            json['type_of_business']) as String?,
         categoryOfBusiness: (json['categoryOfBusiness'] ??
             json['category_of_business']) as String?,
         profileType:
             (json['profileType'] ?? json['profile_type']) as String?,
+        businessId:
+            (json['business_id'] ?? json['businessId']) as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -969,6 +979,10 @@ class Author {
         'isVerified': isVerified,
         'followersCount': followersCount,
         'isFollowing': isFollowing,
+        'businessType': businessType,
+        'categoryOfBusiness': categoryOfBusiness,
+        'profileType': profileType,
+        'business_id': businessId,
       };
 
   Author copyWith({
@@ -984,6 +998,7 @@ class Author {
     String? businessType,
     String? categoryOfBusiness,
     String? profileType,
+    String? businessId,
   }) {
     return Author(
       id: id ?? this.id,
@@ -998,6 +1013,7 @@ class Author {
       businessType: businessType ?? this.businessType,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
       profileType: profileType ?? this.profileType,
+      businessId: businessId ?? this.businessId,
     );
   }
 }
