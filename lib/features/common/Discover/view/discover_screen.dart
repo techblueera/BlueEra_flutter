@@ -15,8 +15,8 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_restorer.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/recent_shops_models.dart';
+// import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
+// import 'package:BlueEra/features/common/Discover/model/recent_shops_models.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
@@ -24,7 +24,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_category_sectio
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
-import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
+// import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/share_promo_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -153,15 +153,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         tabs: {1},
         folder: true
       ),
-      (
-        widget: RecentlyVisitedStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-          onStoreTap: _openRecentShop,
-        ),
-        tabs: {1},
-      folder: false
-      ),
+      // Recently Visited — temporarily off. The section owns its own fetch
+      // (RecentShopsController.fetchIfNeeded in its initState), so leaving it
+      // unbuilt also stops the API call; see the matching block in _onRefresh.
+      // (
+      //   widget: RecentlyVisitedStoresSection(
+      //     onViewAll: () =>
+      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+      //     onStoreTap: _openRecentShop,
+      //   ),
+      //   tabs: {1},
+      // folder: false
+      // ),
 
       // --- Tab 2 · Travel & Booking (ref: t1.jpeg) ---
       (widget: const TransportServiceWidget(), tabs: {2}, folder: true),
@@ -172,15 +175,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: ShoppingCardWidget(), tabs: {3}, folder: true),
       (widget: RentalCardWidget(), tabs: {3}, folder: true),
       (widget: AutomotiveServiceCardWidget(), tabs: {3}, folder: true),
-      (
-        widget: RecentlyVisitedStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-          onStoreTap: _openRecentShop,
-        ),
-        tabs: {3},
-        folder: false
-      ),
+      // Recently Visited — temporarily off (see the Tab 1 block above).
+      // (
+      //   widget: RecentlyVisitedStoresSection(
+      //     onViewAll: () =>
+      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+      //     onStoreTap: _openRecentShop,
+      //   ),
+      //   tabs: {3},
+      //   folder: false
+      // ),
 
       // --- Tab 4 · Services & Professional (ref: ss2.jpeg) ---
       // Pharmacy is a tile inside Healthcare (see `healthCareList`) rather than
@@ -220,14 +224,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// `business.businessId` is the business `_id` (what the profile fetch
   /// wants), while the top-level `businessId` is the vertical service's own
   /// key — the owner **user** id (what the inventory fetch wants).
-  void _openRecentShop(RecentShop shop) {
-    openVisitProfile(
-      accountType: AppConstants.business,
-      typeOfBusiness: shop.vertical.name,
-      businessId: shop.business?.businessId ?? shop.businessId,
-      userId: shop.businessId,
-    );
-  }
+  // Recently Visited — temporarily off; nothing calls this while the section
+  // is commented out.
+  // void _openRecentShop(RecentShop shop) {
+  //   openVisitProfile(
+  //     accountType: AppConstants.business,
+  //     typeOfBusiness: shop.vertical.name,
+  //     businessId: shop.business?.businessId ?? shop.businessId,
+  //     userId: shop.businessId,
+  //   );
+  // }
 
   @override
   void initState() {
@@ -457,12 +463,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   /// Pull-to-refresh — force a fresh fetch of the location-based rails (bypasses
   /// the 24h TTL). Refreshes location first so a move is picked up, then hits
-  /// the "Near You" (nearby-discover) and "Recently Visited" endpoints again.
+  /// the "Near You" (nearby-discover) endpoint again.
+  ///
+  /// The "Recently Visited" refresh is commented out with its section — it is
+  /// the one place that would still call that endpoint with the rail off screen.
   Future<void> _onRefresh() async {
     await LocationService.ensureUsableLocation();
     await Future.wait([
       getOrPut(() => NearbyStoresController()).fetch(),
-      getOrPut(() => RecentShopsController()).fetch(),
+      // getOrPut(() => RecentShopsController()).fetch(),
     ]);
     if (mounted) setState(() => _locationResolved = true);
   }
@@ -1080,154 +1089,48 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
             personalPoster;
       }
 
-      // A guest has no profile, so there is no marketing card for the API to
-      // return — the strip would render empty for them, leaving a hole the
-      // exact size of the banner at the top of Discover.
-      //
-      // Rather than collapse the space (which makes the header jump the moment
-      // they sign up) the slot is filled with a sign-up prompt of the SAME
-      // height. The header's `headerBlockHeight` is computed from `bannerHeight`
-      // regardless of what fills it, so this keeps that arithmetic honest.
-      if (isGuestUser()) {
-        return _GuestProfilePromptCard(height: height);
-      }
-
+      // A guest has no profile, so the API returns no marketing card — the
+      // first slide would be empty for them, leaving a hole the exact size of
+      // the banner at the top of Discover. They get the complete-profile
+      // artwork in that slot instead: same height, so the header measures the
+      // same before and after sign-up and nothing shifts underneath them at the
+      // moment they create a profile.
+      final guest = isGuestUser();
       final hasPoster = poster?.trim().isNotEmpty ?? false;
+
       return _DiscoverHeaderBanner(
         height: height,
         images: [
-          if (hasPoster) poster!.trim(),
-          // fallbackAsset,
+          if (guest)
+            AppImageAssets.completeProfileBanner
+          else if (hasPoster)
+            poster!.trim(),
+          // Always the last slide, in every condition — signed in or guest,
+          // poster or not.
+          AppImageAssets.groceryBanner,
         ],
-        onShare: () => SharePromoSheet.show(context),
+        // Guests have no referral code and no poster, so there is nothing for
+        // them to share yet: the share button and the "Share It, Get 100
+        // Rupees" hook are both withheld until they have a profile.
+        onShare: guest ? null : () => SharePromoSheet.show(context),
+        // Their slide IS the call to action, so the whole thing is tappable —
+        // but only that slide; the grocery promo beside it is not a sign-up
+        // prompt and must not behave like one.
+        onSlideTap: guest
+            ? (index) {
+                if (index == 0) createProfileScreen();
+              }
+            : null,
         onAspectRatio: onAspectRatio,
       );
     });
   }
 }
 
-/// What a **guest** sees where the personalised marketing card would be.
-///
-/// Occupies exactly the banner's height, so the Discover header measures the
-/// same before and after sign-up and nothing shifts underneath the user at the
-/// moment they create a profile.
-///
-/// Visual language is lifted from [GuestClaimBonusDialog] — the same gift
-/// badge, the same "sign up to unlock" framing, the same primary-bordered
-/// surface — so the two guest prompts in the app read as one idea rather than
-/// two unrelated nags. It is deliberately NOT a scratch card: scratching is a
-/// reward interaction and belongs to the bonus flow. Here the card IS the CTA,
-/// so the whole surface is tappable.
-class _GuestProfilePromptCard extends StatelessWidget {
-  const _GuestProfilePromptCard({required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: createProfileScreen,
-          borderRadius: BorderRadius.circular(16),
-          // White card, blue only on the badge and the button.
-          //
-          // The header already speaks in white pills — the location pill, the
-          // search bar. A card in that same language belongs here; a solid
-          // block of colour fought the category tiles below for attention and
-          // made the header top-heavy. Colour is spent only where it marks an
-          // action.
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x14101828),
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14,
-              vertical: SizeConfig.size12,
-            ),
-            child: Row(
-              children: [
-                // Same gift motif as GuestClaimBonusDialog, so the two guest
-                // prompts read as one idea.
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primaryColor.withValues(alpha: 0.12),
-                  ),
-                  child: Icon(
-                    Icons.card_giftcard_rounded,
-                    size: 22,
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Benefit in the heading, action on the button — so the
-                      // two are not saying the same words twice.
-                      CustomText(
-                        'Unlock your rewards',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: SizeConfig.size2),
-                      CustomText(
-                        'Your own promo card and wallet bonus',
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                // Wording matches where it goes (createProfileScreen), so the
-                // label the user taps is the screen they land on.
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size14,
-                    vertical: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: CustomText(
-                    'Create profile',
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// NOTE: `_GuestProfilePromptCard` lived here — a bordered sign-up card drawn in
+// widgets. Guests now get the complete-profile ARTWORK as the banner's first
+// slide instead, so both audiences see the same component and the same
+// carousel.
 
 /// Auto-playing promo strip in the Discover header, between the location row
 /// and the pinned search bar.
@@ -1242,6 +1145,7 @@ class _DiscoverHeaderBanner extends StatefulWidget {
     required this.images,
     required this.height,
     this.onShare,
+    this.onSlideTap,
     this.onAspectRatio,
   });
 
@@ -1251,8 +1155,14 @@ class _DiscoverHeaderBanner extends StatefulWidget {
   final List<String> images;
   final double height;
 
-  /// Opens the profile share card. Null hides the share button entirely.
+  /// Opens the profile share card. Null hides the share button entirely — and
+  /// with it the "Share It, Get 100 Rupees" hook, which is meaningless on a
+  /// banner nobody can share yet.
   final VoidCallback? onShare;
+
+  /// Tapping a slide, by index. Null leaves the artwork inert (the share button
+  /// is the action on a signed-in banner).
+  final ValueChanged<int>? onSlideTap;
 
   /// Reports the first slide's decoded width/height once it is available.
   final ValueChanged<double>? onAspectRatio;
@@ -1302,6 +1212,18 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
     stream.addListener(listener);
   }
 
+  /// Wraps a slide in a tap target only when the placement asked for one, so a
+  /// signed-in banner keeps its plain artwork and no invisible hit area.
+  Widget _tappableSlide(int index, Widget child) {
+    final onSlideTap = widget.onSlideTap;
+    if (onSlideTap == null) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onSlideTap(index),
+      child: child,
+    );
+  }
+
   void _detachAspectListener() {
     if (_aspectStream != null && _aspectListener != null) {
       _aspectStream!.removeListener(_aspectListener!);
@@ -1340,7 +1262,7 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
       child: Stack(
         children: [
           if (!sliding)
-            Positioned.fill(child: _banner(widget.images.first))
+            Positioned.fill(child: _tappableSlide(0, _banner(widget.images.first)))
           else
             CarouselSlider.builder(
               itemCount: widget.images.length,
@@ -1357,7 +1279,8 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
                   if (mounted) setState(() => _current = index);
                 },
               ),
-              itemBuilder: (_, index, __) => _banner(widget.images[index]),
+              itemBuilder: (_, index, __) =>
+                  _tappableSlide(index, _banner(widget.images[index])),
             ),
           // The referral hook, ON the artwork: this banner IS the card the user
           // shares, so the reward for sharing it is stated on the card rather
@@ -1369,6 +1292,7 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
           // Yellow can't carry itself over a poster of unknown brightness, so
           // it takes a dark shadow — the same trick the folder captions use
           // over the page background.
+          if (widget.onShare != null)
           Positioned(
             top: 10,
             left: 14,

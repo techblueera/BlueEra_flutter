@@ -343,7 +343,7 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 10. Franchise inquiry
   // ──────────────────────────────────────────────────────────────────────
-  final String franchiseInquiry = "user-service/inquiries";
+  final String franchiseInquiry = "franchise-service/api/inquiries";
 
   // ──────────────────────────────────────────────────────────────────────
   // 11. Healthcare enquiry — non-hospital endpoint

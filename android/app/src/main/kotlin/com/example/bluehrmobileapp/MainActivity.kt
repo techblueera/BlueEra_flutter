@@ -121,14 +121,17 @@ class MainActivity: FlutterActivity() {
                         }
                     }
                     "stop" -> {
-                        // Clear the active flag so a START_STICKY restart won't
-                        // resurrect pinging, then stop the service.
+                        // Clear the active flag so neither a START_STICKY
+                        // restart, the task-removal alarm, the boot receiver nor
+                        // the watchdog can resurrect pinging: location is only
+                        // ever published while the rider is LIVE.
                         getSharedPreferences(
                             RiderLocationForegroundService.PREFS,
                             Context.MODE_PRIVATE
                         ).edit()
                             .putBoolean(RiderLocationForegroundService.KEY_ACTIVE, false)
                             .apply()
+                        RiderLocationWatchdogWorker.cancel(applicationContext)
                         stopService(Intent(this, RiderLocationForegroundService::class.java))
                         result.success(true)
                     }

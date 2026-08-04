@@ -261,6 +261,18 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// Rider earnings + performance dashboard for [period]
+  /// (`today` | `week` | `month`). See RIDER_STATISTICS_API_GUIDE.md.
+  Future<ResponseModel> getRiderStatisticsRepo({required String period}) async {
+    var response = await ApiBaseHelper().getHTTP(
+      '$ridersStatistics?period=$period',
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Get Associated Shops for rider
   Future<ResponseModel> getAssociatedShopsRepo({required Map<String, dynamic> params}) async {
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');

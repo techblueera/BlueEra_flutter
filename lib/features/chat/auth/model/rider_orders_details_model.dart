@@ -140,6 +140,7 @@ class RiderOrdersDetailsModel {
     this.receiverUser,
     this.pickupOTP,
     this.deliveryOTP,
+    this.waitingTimeMinutes,
     this.orderNo,
     this.timestamps,
     this.potentialRiders,
@@ -185,6 +186,11 @@ class RiderOrdersDetailsModel {
 
     pickupOTP = json['pickupOTP']?.toString();
     deliveryOTP = json['deliveryOTP']?.toString();
+
+    final waiting = json['waitingTime'] ?? json['waiting_time'];
+    waitingTimeMinutes = waiting is num
+        ? waiting.round()
+        : int.tryParse(waiting?.toString() ?? '');
 
     timestamps = json['timestamps'];
 
@@ -251,6 +257,14 @@ class RiderOrdersDetailsModel {
 
   String? pickupOTP;
   String? deliveryOTP;
+
+  /// Minutes the rider waited at the pickup, shown on the ongoing ride card.
+  ///
+  /// Not in the payload yet — the key is here so the tile lights up the moment
+  /// the backend starts sending it, and stays hidden until then rather than
+  /// printing a made-up number. Accepts `waitingTime` or `waiting_time`, and
+  /// either a number or a numeric string.
+  int? waitingTimeMinutes;
 
   Map<String, dynamic>? timestamps;
 

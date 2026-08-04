@@ -22,6 +22,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
@@ -82,11 +83,42 @@ class ViewPersonalDetailsController extends GetxController
     await getServiceProviderStatusUtils();
     if (serviceProviderStatusGlobal.toUpperCase() ==
         AppConstants.OPEN.toUpperCase()) {
+      // The go-live BUTTONS gate on approval, but this path doesn't come from a
+      // button — it re-asserts a cached OPEN on every app start. Without the
+      // same gate, a rider whose approval was revoked (or never granted, from a
+      // stale cache) is silently republished as live and starts receiving
+      // offers they aren't allowed to take. Only blocks when we can positively
+      // read "not approved"; an unknown status behaves as before.
+      if (!_riderApprovedOrUnknown) {
+        shopStatusOpenClose.value = false;
+        await _persistLiveIntent(false);
+        return;
+      }
       // Background re-assert: not a user tap, so a failure retries silently
       // (transient no-network at app start is common) instead of throwing a
       // snackbar at someone who never touched the toggle.
       await toggleShopOnlyStatus(isActive: true);
     }
+  }
+
+  /// False only when this user is a RIDER and their onboarding is known to be
+  /// un-approved.
+  ///
+  /// Deliberately permissive: self-employed and business providers aren't
+  /// riders and are never blocked, and a rider whose onboarding status hasn't
+  /// loaded yet (controller not registered — it's disposed with the rider
+  /// screen) is left alone rather than forced offline on a guess. The go-live
+  /// buttons still gate on the real status.
+  bool get _riderApprovedOrUnknown {
+    // isRiderProfession, not an ad-hoc BIKE_RIDER || CAR_TAXI_DRIVER chain —
+    // that shape misses auto, goods and the second car slug. It is the app's
+    // single source of truth for "is this a live-dispatch rider".
+    if (!isRiderProfession(userProfessionGlobal)) return true;
+    if (!Get.isRegistered<DeliveryPartnerController>()) return true;
+    final status =
+        Get.find<DeliveryPartnerController>().riderVerificationStatus;
+    if (status == null || status.isEmpty) return true;
+    return status.toLowerCase() == 'approved';
   }
 
   // ViewPersonalDetailsController() {
@@ -270,14 +302,16 @@ class ViewPersonalDetailsController extends GetxController
     }
   }
 
+  /// First position ping the moment the backend confirms the provider is OPEN,
+  /// so discovery has a fresh `lastSeen` immediately rather than up to a minute
+  /// later when [LiveLocationService]'s timer first fires.
   callLocationAPI() async {
     final position = await LocationService.getCurrentPosition();
     if (position != null) {
-      await MapServiceRepo().mapServiceLocationProviderRepo(queryParams: {
-        ApiKeys.userId: userId,
-        ApiKeys.lat: position.latitude,
-        ApiKeys.lng: position.longitude,
-      });
+      await MapServiceRepo().publishProviderLocationRepo(
+        lat: position.latitude,
+        lng: position.longitude,
+      );
     }
   }
 

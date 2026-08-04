@@ -9,11 +9,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/ride_completed_rating_dialog.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
@@ -35,8 +37,6 @@ import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
-import '../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
-import '../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
 import 'customer_rating_badge.dart';
 import 'delivery_pickup_shops_list.dart';
 
@@ -57,9 +57,13 @@ class OrderCard extends StatefulWidget {
 }
 
 class _OrderCardState extends State<OrderCard> {
-  /// Drives the live travel-time readout on an in-progress ride. Only ever
-  /// running for that one case, so idle cards in the list cost nothing.
-  Timer? _travelTimer;
+  // NOTE: a 1-second `_travelTimer` used to run here to tick a live elapsed-time
+  // readout. Nothing on the card counts up any more, so the timer (and the
+  // rebuild it forced on every in-progress card, every second) is gone.
+
+  /// The accept/decline currently in flight on THIS card
+  /// ([AppConstants.accept] / [AppConstants.reject]), or null when idle.
+  String? _respondingAction;
 
   /// Who the customer is beyond their name — profession for an individual,
   /// category/sub-category for a business. Null until resolved, and stays null
@@ -70,38 +74,15 @@ class _OrderCardState extends State<OrderCard> {
   @override
   void initState() {
     super.initState();
-    _syncTravelTimer();
     _loadCustomerIdentity();
   }
 
   @override
   void didUpdateWidget(covariant OrderCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A status change (accepted → in-progress → completed) arrives as a new
-    // order object on the same card, so re-evaluate rather than leaving a timer
-    // ticking on a finished ride.
-    _syncTravelTimer();
     if (oldWidget.order.user?.id != widget.order.user?.id) {
       _identity = null;
       _loadCustomerIdentity();
-    }
-  }
-
-  @override
-  void dispose() {
-    _travelTimer?.cancel();
-    super.dispose();
-  }
-
-  void _syncTravelTimer() {
-    final needed = _isRideInProgress && _rideStartedAt != null;
-    if (needed && _travelTimer == null) {
-      _travelTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() {});
-      });
-    } else if (!needed) {
-      _travelTimer?.cancel();
-      _travelTimer = null;
     }
   }
 
@@ -133,49 +114,21 @@ class _OrderCardState extends State<OrderCard> {
   /// exists during this leg — once picked up it's hidden entirely.
   bool get _isNavigateToPickup => _isOngoingRideCard && !_isPickedUp;
 
+  /// Any ongoing job, either leg. Both use the flat location block and the
+  /// direction + stats action row; what differs is the pickup row (gone once
+  /// collected) and what sits under it (OTP vs slide-to-complete).
+  bool get _isOngoingCard => widget.selectedPickUp == PickUpTab.onGoing;
+
+  /// An offer on the rail that the rider has NOT answered yet — accept and
+  /// decline are both still on the card.
+  bool get _isUnansweredOrder =>
+      widget.selectedPickUp == PickUpTab.newOrder ||
+      widget.selectedPickUp == PickUpTab.orders;
+
   /// True for the ride-type orders whose pickup leg is done — the case that
   /// used to carry the slide-to-complete.
   bool get _isRideInProgress =>
       _isRideOrParcelOrder && widget.order.status == 'in-progress';
-
-  /// When the ride actually started, read out of the order's `timestamps` map.
-  ///
-  /// That map is untyped and its key names aren't documented anywhere in the
-  /// app, so this tries the plausible spellings. If none match, the travel-time
-  /// readout is hidden (never guessed from `createdAt`/`updatedAt`, which track
-  /// the order, not the journey) and the available keys are logged once so the
-  /// right one can be pinned down.
-  DateTime? get _rideStartedAt {
-    final stamps = widget.order.timestamps;
-    if (stamps == null || stamps.isEmpty) return null;
-
-    const candidates = [
-      'pickedUpAt',
-      'picked_up_at',
-      'inProgressAt',
-      'in_progress_at',
-      'rideStartedAt',
-      'ride_started_at',
-      'tripStartedAt',
-      'startedAt',
-      'started_at',
-      'pickupCompletedAt',
-      'pickupVerifiedAt',
-      'otpVerifiedAt',
-    ];
-
-    for (final key in candidates) {
-      for (final entry in stamps.entries) {
-        if (entry.key.toString().toLowerCase() != key.toLowerCase()) continue;
-        final parsed = DateTime.tryParse(entry.value?.toString() ?? '');
-        if (parsed != null) return parsed.toLocal();
-      }
-    }
-
-    log('⏱ order.timestamps has no known ride-start key. Available: '
-        '${stamps.keys.toList()}');
-    return null;
-  }
 
   /// Resolve the customer's profession / business category for the customer row.
   ///
@@ -284,7 +237,7 @@ class _OrderCardState extends State<OrderCard> {
       case PickUpTab.orders:
         return _buildNewOrderHeader(context);
       case PickUpTab.onGoing:
-        return _buildOnGoingOrderHeader(controller);
+        return _buildOnGoingOrderHeader();
       case PickUpTab.completed:
         return _buildCompletedOrderHeader(context);
       case PickUpTab.cancel:
@@ -306,13 +259,13 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  Widget _buildOnGoingOrderHeader(DeliverPartnerOrdersController controller) {
+  Widget _buildOnGoingOrderHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Expanded(child: _buildOrderIdAndPickupOtp()),
         SizedBox(width: SizeConfig.size6),
-        _buildTimeAndCancelButton(controller),
+        _buildTimeAndStageBadge(),
       ],
     );
   }
@@ -476,34 +429,52 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  Widget _buildTimeAndCancelButton(DeliverPartnerOrdersController controller) {
+  Widget _buildTimeAndStageBadge() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         _buildTimeText(),
         SizedBox(height: SizeConfig.size8),
-        InkWell(
-          onTap: () => _handleCancelOrder(controller),
-          borderRadius: BorderRadius.circular(100.0),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size10,
-              vertical: SizeConfig.size4,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryColor),
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(100.0),
-            ),
-            child: CustomText(
-              widget.order.status,
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-          ),
-        ),
+        _buildStageBadge(),
       ],
+    );
+  }
+
+  /// Where the job stands right now — a LABEL, not a button.
+  ///
+  /// Two changes from what this slot used to be. It printed the raw backend
+  /// status ("payment-pending"), which means nothing to a rider; while the
+  /// pickup is still ahead it now reads "Go to Pick Up" in green. And it was
+  /// wired to `_handleCancelOrder`, which cancelled the order on tap with no
+  /// confirmation — a pill that looks exactly like a status chip must not do
+  /// that, so it no longer takes taps at all.
+  Widget _buildStageBadge() {
+    final isPickupStage = !_isPickedUp;
+    // Green heading out, amber once the job is running, and only then does the
+    // raw backend status show through (completed / cancelled cards).
+    final color = isPickupStage
+        ? AppColors.green1A
+        : (_isRideInProgress ? AppColors.yellow00 : AppColors.primaryColor);
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size6,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: color),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100.0),
+      ),
+      child: CustomText(
+        isPickupStage
+            ? AppStrings.goToPickUp
+            : (_isRideInProgress
+                ? AppStrings.rideInProgress
+                : widget.order.status),
+        fontSize: SizeConfig.small11,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
     );
   }
 
@@ -511,12 +482,27 @@ class _OrderCardState extends State<OrderCard> {
   Widget _buildLocationSection(BuildContext context) {
     return Column(
       children: [
+        if (_isOngoingCard)
+          _buildPickupStageLocations()
+        else
         Container(
+          // An UNANSWERED offer gets the flat tinted block the ongoing card
+          // uses: a raised, shadowed panel reads as a control, and on the one
+          // card where the rider is deciding rather than working, the addresses
+          // should sit quietly under the fare and the two buttons. The other
+          // tabs (completed, cancelled, rejected) keep the original surface.
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.whiteE5),
-            color: AppColors.whiteFE,
-            borderRadius: BorderRadius.circular(10.0),
-            boxShadow: [AppShadows.textFieldShadow],
+            border: Border.all(
+              color: _isUnansweredOrder
+                  ? AppColors.primaryColor.withValues(alpha: 0.10)
+                  : AppColors.whiteE5,
+            ),
+            color: _isUnansweredOrder
+                ? AppColors.primaryColor.withValues(alpha: 0.04)
+                : AppColors.whiteFE,
+            borderRadius: BorderRadius.circular(_isUnansweredOrder ? 14.0 : 10.0),
+            boxShadow:
+                _isUnansweredOrder ? null : [AppShadows.textFieldShadow],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -550,6 +536,170 @@ class _OrderCardState extends State<OrderCard> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Pickup + drop in one flat tinted block: title, distance in blue with a pin,
+  /// address underneath, a hairline between the two.
+  ///
+  /// Once the job is collected the pickup row drops out entirely — the rider is
+  /// past it, and the only place left to be is the drop. Only for the ongoing
+  /// tab; everywhere else keeps the bordered/shadowed card and its own row
+  /// content (call button, grocery shop list, …).
+  Widget _buildPickupStageLocations() {
+    final dropLat =
+        widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+    final dropLng =
+        widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
+    final dropKm = calculateDistance(dropLat, dropLng)?.toStringAsFixed(2);
+    final pickupKm = _cleanDistance(widget.order.distanceToPickup);
+
+    return Container(
+      decoration: BoxDecoration(
+        // Barely-there blue wash, not a grey panel — the block should recede
+        // behind the addresses printed on it. The hairline keeps it a defined
+        // panel on white rather than a smudge.
+        color: AppColors.primaryColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.10)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isPickedUp &&
+              (widget.order.pickupLocation?.location?.coordinates?.isNotEmpty ??
+                  false)) ...[
+            _buildStageLocationRow(
+              title: AppStrings.pickupLocation.tr,
+              dotColor: AppColors.green0B,
+              distance: pickupKm == null ? null : _withKm(pickupKm),
+              latitude: widget.order.pickupLocation?.location?.coordinates?[1]
+                      .toDouble() ??
+                  0.0,
+              longitude: widget.order.pickupLocation?.location?.coordinates?[0]
+                      .toDouble() ??
+                  0.0,
+              onTap: _handleOpenPickupLocation,
+            ),
+            _buildDivider(),
+          ],
+          _buildStageLocationRow(
+            title: AppStrings.dropLocation.tr,
+            dotColor: AppColors.redLite,
+            distance: dropKm != null ? '$dropKm KM' : null,
+            latitude: dropLat,
+            longitude: dropLng,
+            onTap: _handleOpenDropLocation,
+            // Who is being dropped to, and on what number. Once the pickup row
+            // is gone this is the only place the receiver appears, and it is
+            // what the rider needs at the far end of the trip.
+            leadingLine: _receiverName.isNotEmpty ? '$_receiverName,' : null,
+            addressLine: _dropAddressLine,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _receiverName => (widget.order.receiverUser?.name ?? '').trim();
+
+  String get _receiverContact =>
+      (widget.order.receiverUser?.contactNo ?? '').trim();
+
+  /// Drop address and receiver phone as ONE grey line, the way the design reads
+  /// them ("Bishnupur, Lucknow Gomtinagar, +91 1234567890").
+  ///
+  /// Uses the address the order already carries; null falls the row back to the
+  /// reverse-geocoded [LocationTextWidget], which can't be concatenated because
+  /// it resolves asynchronously in its own widget.
+  String? get _dropAddressLine {
+    final address = (widget.order.dropLocation?.address ?? '').trim();
+    if (address.isEmpty) return null;
+    if (_receiverContact.isEmpty) return address;
+    return '$address, ${normalisePhone(_receiverContact)}';
+  }
+
+  Widget _buildStageLocationRow({
+    required String title,
+    required Color dotColor,
+    required String? distance,
+    required double latitude,
+    required double longitude,
+    required VoidCallback onTap,
+    String? leadingLine,
+    String? addressLine,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Green = where the job starts, red = where it ends. The two
+                // rows read identically otherwise, and the rider scans this
+                // block at a glance.
+                Icon(
+                  Icons.radio_button_checked,
+                  size: SizeConfig.size16,
+                  color: dotColor,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                Flexible(
+                  child: CustomText(
+                    '$title : ',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (distance != null) ...[
+                  CustomText(
+                    distance,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                    maxLines: 1,
+                  ),
+                  SizedBox(width: SizeConfig.size4),
+                  // The app's own map-pin glyph, not Material's GPS-style
+                  // crosshair/pin — same pin the rest of the app uses for a
+                  // place.
+                  LocalAssets(
+                    imagePath: AppIconAssets.location_outline,
+                    imgColor: AppColors.primaryColor,
+                    height: SizeConfig.size16,
+                    width: SizeConfig.size16,
+                  ),
+                ],
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            if (leadingLine != null)
+              CustomText(
+                leadingLine,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            if (addressLine != null)
+              CustomText(
+                addressLine,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              )
+            else
+              _buildLocationText(latitude: latitude, longitude: longitude),
+          ],
+        ),
+      ),
     );
   }
 
@@ -665,6 +815,12 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   /// The API sends an absent distance as `N/A`, `null` (the string) or empty.
+  /// Distance values arrive as bare numbers on some orders and already
+  /// unit-suffixed on others, so the card printed a naked "5.05" next to a
+  /// "10 KM". Adds the unit only when there isn't one, never "km km".
+  static String _withKm(String value) =>
+      RegExp(r'[a-zA-Z]').hasMatch(value) ? value : '$value KM';
+
   static String? _cleanDistance(String? raw) {
     final value = raw?.trim() ?? '';
     if (value.isEmpty || value == 'N/A' || value == 'null') return null;
@@ -1097,6 +1253,35 @@ class _OrderCardState extends State<OrderCard> {
 
   Widget _buildNewOrderActions(DeliverPartnerOrdersController controller) {
     final isFareCall = widget.order.orderType == 'fare-call';
+
+    // In flight — the loader replaces the buttons on THIS card, so the rider
+    // sees which order they answered and the rest of the list stays usable.
+    // It also makes the pair un-tappable, which the global dialog used to do.
+    if (_respondingAction != null) {
+      final rejecting = _respondingAction == AppConstants.reject;
+      return Row(
+        children: [
+          _buildFareWidget(),
+          const Spacer(),
+          SizedBox(
+            height: SizeConfig.size16,
+            width: SizeConfig.size16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: rejecting ? AppColors.redLite : AppColors.green0B,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          CustomText(
+            rejecting ? 'Declining…' : 'Accepting…',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryTextColor,
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
         _buildFareWidget(),
@@ -1108,14 +1293,15 @@ class _OrderCardState extends State<OrderCard> {
                 ||widget.order.orderFor==AppConstants.OutStation
                 ||widget.order.orderFor==AppConstants.HourlyRental
                 ||widget.order.orderFor==AppConstants.Parcel){
-              if (isFareCall) {
-                controller.rideAction(AppConstants.reject, widget.order.id ?? "");
-              } else {
-                controller.updateRideOrParcelOrderStatusApi(
-                  {ApiKeys.action:AppConstants.reject},
-                  widget.order.id ?? "",
-                );
-              }
+              _runOrderResponse(AppConstants.reject, () {
+                return isFareCall
+                    ? controller.rideAction(
+                        AppConstants.reject, widget.order.id ?? "")
+                    : controller.updateRideOrParcelOrderStatusApi(
+                        {ApiKeys.action: AppConstants.reject},
+                        widget.order.id ?? "",
+                      );
+              });
             }else{
               _handleRejectOrder(controller);
             }
@@ -1132,14 +1318,15 @@ class _OrderCardState extends State<OrderCard> {
                 ||widget.order.orderFor==AppConstants.OutStation
                 ||widget.order.orderFor==AppConstants.HourlyRental
                 ||widget.order.orderFor==AppConstants.Parcel){
-              if (isFareCall) {
-                controller.rideAction(AppConstants.accept, widget.order.id ?? "");
-              } else {
-                controller.updateRideOrParcelOrderStatusApi(
-                  {ApiKeys.action:AppConstants.accept},
-                  widget.order.id ?? "",
-                );
-              }
+              _runOrderResponse(AppConstants.accept, () {
+                return isFareCall
+                    ? controller.rideAction(
+                        AppConstants.accept, widget.order.id ?? "")
+                    : controller.updateRideOrParcelOrderStatusApi(
+                        {ApiKeys.action: AppConstants.accept},
+                        widget.order.id ?? "",
+                      );
+              });
             }else if(widget.order.orderFor?.toLowerCase()==AppConstants.grocery){
               Get.to(()=>DeliveryPickupShopsList(
                 order: widget.order,
@@ -1159,88 +1346,46 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  /// Navigate to the appropriate ride map screen based on OTP status
-  void _navigateToRideMap() {
-    final order = widget.order;
-    final pickupLat = order.pickupLocation?.location?.coordinates != null &&
-            order.pickupLocation!.location!.coordinates!.length >= 2
-        ? order.pickupLocation!.location!.coordinates![1].toDouble()
-        : 0.0;
-    final pickupLng = order.pickupLocation?.location?.coordinates != null &&
-            order.pickupLocation!.location!.coordinates!.length >= 2
-        ? order.pickupLocation!.location!.coordinates![0].toDouble()
-        : 0.0;
-    final dropLat = order.dropLocation?.location?.coordinates != null &&
-            order.dropLocation!.location!.coordinates!.length >= 2
-        ? order.dropLocation!.location!.coordinates![1].toDouble()
-        : 0.0;
-    final dropLng = order.dropLocation?.location?.coordinates != null &&
-            order.dropLocation!.location!.coordinates!.length >= 2
-        ? order.dropLocation!.location!.coordinates![0].toDouble()
-        : 0.0;
-
-    final customerName = order.user?.name ?? 'Customer';
-    final customerImage = order.user?.profileImage ?? '';
-    final fare = order.fare?.toDouble() ?? 0.0;
-    final distance = double.tryParse(order.distancePickupToDrop ?? '') ?? 0.0;
-    final paymentMethod = order.modeOfPayment ?? 'Cash';
-    final pickupAddress = order.pickupLocation?.address ?? 'Pickup location';
-    final dropAddress = order.dropLocation?.address ?? 'Drop location';
-    // Past-pickup = OTP already verified. After the pickup OTP the ride order
-    // becomes 'in-progress' (parcel/goods may report 'picked-up'); both, plus
-    // 'completed', mean the pickup leg is done → go to the destination screen.
-    final isPickedUp = _isPickedUp;
-
-    if (isPickedUp) {
-      // OTP verified / past pickup — open the rider destination screen (live
-      // map + fare + slide-to-complete).
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => PassengerDestinationScreen(
-            pickupLocation: pickupAddress,
-            dropLocation: dropAddress,
-            pickupLat: pickupLat,
-            pickupLng: pickupLng,
-            dropLat: dropLat,
-            dropLng: dropLng,
-            fareAmount: fare,
-            distanceKm: distance,
-            customerName: customerName,
-            customerImage: customerImage,
-            paymentMethod: paymentMethod,
-            orderId: order.id ?? '',
-            customerUserId: order.user?.id ?? '',
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => RiderPickupNavigationScreen(
-            pickupLocation: pickupAddress,
-            dropLocation: dropAddress,
-            pickupLat: pickupLat,
-            pickupLng: pickupLng,
-            dropLat: dropLat,
-            dropLng: dropLng,
-            fareAmount: fare,
-            distanceKm: distance,
-            customerName: customerName,
-            customerImage: customerImage,
-            // Passenger rides: rider must not hold the OTP — pass empty so
-            // verification always goes through the server (the customer holds
-            // it). Goods/parcel keep passing it (rider reads it to the shop).
-            otp: (order.jobInfo?.isRide ?? false) ? '' : (order.pickupOTP ?? ''),
-            // REQUIRED so the pickup screen can call verifyPickupOtpRideOrParcelApi.
-            // For a ride the rider doesn't hold the OTP (otp is empty), so
-            // without this the screen has no order reference and can't verify.
-            orderId: order.id ?? '',
-            paymentMethod: paymentMethod,
-            customerUserId: order.user?.id ?? '',
-          ),
-        ),
-      );
+  /// Runs an accept/decline with the card showing its own loader.
+  ///
+  /// A second tap while one is in flight is dropped — the buttons are gone by
+  /// then, but the guard also covers the double-tap that lands in the same
+  /// frame. The flag is cleared in a `finally` so a failed call gives the
+  /// buttons back rather than freezing the card on a spinner.
+  Future<void> _runOrderResponse(
+    String action,
+    Future<bool> Function() run,
+  ) async {
+    if (_respondingAction != null) return;
+    setState(() => _respondingAction = action);
+    try {
+      await run();
+    } finally {
+      if (mounted) setState(() => _respondingAction = null);
     }
+  }
+
+  /// Turn-by-turn to the PICKUP point, in the phone's Google Maps.
+  void _handleNavigateToPickup() {
+    if (!_hasPickupCoordinates) {
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+    openGoogleMapsNavigation(latitude: _pickupLat, longitude: _pickupLng);
+  }
+
+  /// Turn-by-turn to the DROP point, in the phone's Google Maps.
+  ///
+  /// This replaces the in-app destination screen (live map + polyline + PiP)
+  /// that the post-pickup CTA used to push. The rider is driving, so the
+  /// phone's own navigation is what they actually follow, and everything that
+  /// screen showed beside the map now lives on this card.
+  void _handleNavigateToDrop() {
+    if (!_hasDropCoordinates) {
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+    openGoogleMapsNavigation(latitude: _dropLat, longitude: _dropLng);
   }
 
   /// Customer identity block for the ongoing ride card: photo, name, what they
@@ -1251,7 +1396,17 @@ class _OrderCardState extends State<OrderCard> {
   /// both come from [_loadCustomerIdentity] and the line simply doesn't render
   /// until it resolves — it replaces the phone number, which was only ever a
   /// stand-in for it and is still one tap away on the call button.
-  Widget _buildCustomerInfoRow() {
+  ///
+  /// [labelledCall] swaps the small circular call icon for a labelled "Call"
+  /// pill — used on the pre-pickup leg, where calling the customer is the row's
+  /// whole point and the icon alone read as decoration.
+  /// [emergency] paints the call pill red and labels it "Emergency Call" — for
+  /// the leg where the passenger is aboard and a call is an incident, not a
+  /// courtesy. It dials the same customer number either way.
+  Widget _buildCustomerInfoRow({
+    bool labelledCall = false,
+    bool emergency = false,
+  }) {
     final user = widget.order.user;
     final name = (user?.name ?? '').trim();
     final contact = (user?.contactNo ?? '').trim();
@@ -1260,7 +1415,9 @@ class _OrderCardState extends State<OrderCard> {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.04),
+        color: labelledCall
+            ? AppColors.white
+            : AppColors.primaryColor.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.greyE5),
       ),
@@ -1288,8 +1445,63 @@ class _OrderCardState extends State<OrderCard> {
               ],
             ),
           ),
-          if (contact.isNotEmpty) _buildCallButton(contact),
+          if (contact.isNotEmpty)
+            labelledCall
+                ? _buildLabelledCallButton(
+                    contact,
+                    label: emergency ? AppStrings.emergencyCall : null,
+                    color: emergency ? AppColors.redLite : null,
+                  )
+                : _buildCallButton(contact),
         ],
+      ),
+    );
+  }
+
+  /// Outlined "Call" pill (icon + word), for rows where calling is the primary
+  /// action rather than an afterthought. [onTap] overrides the default
+  /// customer-call behaviour (used by the customer-care row).
+  Widget _buildLabelledCallButton(
+    String contactNo, {
+    VoidCallback? onTap,
+    String? label,
+    Color? color,
+  }) {
+    final tint = color ?? AppColors.primaryColor;
+    return InkWell(
+      onTap: onTap ?? () => _handleCallAction(contactNo),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: EdgeInsets.only(left: SizeConfig.size6),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size10,
+        ),
+        decoration: BoxDecoration(
+          // A whisper of the accent behind an emergency pill, so it reads as
+          // charged rather than as another outlined button.
+          color: color == null ? AppColors.white : tint.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: tint),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.call,
+              imgColor: tint,
+              height: SizeConfig.size14,
+              width: SizeConfig.size14,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              label ?? AppStrings.call.tr,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: tint,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1319,80 +1531,284 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  Widget _buildViewRideOnMapButton() {
-    // 'in-progress' (ride) / 'picked-up' (parcel) / 'completed' all mean the
-    // pickup OTP is done, so the CTA reads "View Ride on Map".
-    final isPickedUp = _isPickedUp;
-    return GestureDetector(
-      onTap: _navigateToRideMap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-        decoration: BoxDecoration(
-          color: isPickedUp
-              ? const Color(0xFF4285F4).withValues(alpha: 0.08)
-              : const Color(0xFF00C853).withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isPickedUp
-                ? const Color(0xFF4285F4).withValues(alpha: 0.2)
-                : const Color(0xFF00C853).withValues(alpha: 0.2),
-          ),
+  /// Whether the order carries a pickup point worth navigating to. Guards the
+  /// direction CTA so it never launches Maps at (0, 0).
+  bool get _hasPickupCoordinates {
+    final coords = widget.order.pickupLocation?.location?.coordinates;
+    if (coords == null || coords.length < 2) return false;
+    return coords[0].toDouble() != 0.0 || coords[1].toDouble() != 0.0;
+  }
+
+  bool get _hasDropCoordinates {
+    final coords = widget.order.dropLocation?.location?.coordinates;
+    if (coords == null || coords.length < 2) return false;
+    return coords[0].toDouble() != 0.0 || coords[1].toDouble() != 0.0;
+  }
+
+  /// A ride/parcel the rider is carrying right now — the card shows
+  /// slide-to-complete instead of an OTP field. Goods deliveries keep the OTP:
+  /// they are closed out by the customer's delivery code, not by the rider.
+  bool get _showsRideCompletion =>
+      _isRideOrParcelOrder &&
+      _isPickedUp &&
+      // `_isPickedUp` is also true for a finished ride; offering to complete
+      // one again would just bounce off the server.
+      widget.order.status != 'completed';
+
+  /// Slide-to-complete, moved here from PassengerDestinationScreen. Completing
+  /// calls the same rider-only endpoint that screen used, which reports the
+  /// rider's location and closes the ride.
+  ///
+  /// Uses [SlideToCompleteButton] rather than a slider built inline: it keeps
+  /// the drag in its own StatefulWidget (so a drag doesn't rebuild this whole
+  /// card), shows its own "Completing…" state, and starts tracking on
+  /// touch-down — without that last part the orders list steals the gesture and
+  /// the knob barely moves.
+  Widget _buildSlideToComplete() {
+    return SlideToCompleteButton(
+      height: SizeConfig.size48,
+      text: AppStrings.swipeCompleteTheRide,
+      onComplete: _handleCompleteRide,
+    );
+  }
+
+  /// The controller reports success/failure to the rider itself, so a failed
+  /// attempt simply leaves the card as it is and can be swiped again.
+  ///
+  /// On success the completion dialog takes over: confirmation, the payment QR,
+  /// and the customer rating.
+  Future<void> _handleCompleteRide() async {
+    final orderId = widget.order.id ?? '';
+    if (orderId.isEmpty) return;
+    // Read what the dialog needs BEFORE the await. Completing the ride makes
+    // the orders SSE stream push a list without this order, which rebuilds the
+    // ongoing tab and disposes this card — often before the call even returns.
+    final customerName = (widget.order.user?.name ?? '').trim();
+
+    final completed = await getOrPut(() => DeliverPartnerOrdersController())
+        .completePickupRiderApi(orderId);
+    if (!completed) return;
+
+    // Deliberately NOT this card's context, and no `mounted` guard: by now the
+    // card is usually gone, and both of those silently swallowed the dialog.
+    // The dialog belongs to the app, not to the card that started it.
+    await showRideCompletedDialog(
+      customerName: customerName,
+      // Order-identifying payload for now — the payment string replaces it once
+      // the collection flow is defined.
+      qrData: orderId,
+    );
+  }
+
+  /// The ongoing card's action row: the direction CTA plus the trip length —
+  /// [ Pickup Direction | Travel Dist. ] heading out, [ Drop Location | Travel
+  /// Dist. ] once the job is running.
+  ///
+  /// Both hand navigation to the Google Maps app; nothing here opens an in-app
+  /// map. A box whose value isn't known is dropped rather than rendered blank,
+  /// so the row collapses gracefully to two items or one.
+  Widget _buildActionStatsRow() {
+    final distance = _cleanDistance(widget.order.distancePickupToDrop);
+
+    final tiles = <Widget>[
+      _buildDirectionButton(
+        label: _isPickedUp
+            ? AppStrings.dropLocationDirection
+            : AppStrings.pickupDirection,
+        onTap: _isPickedUp ? _handleNavigateToDrop : _handleNavigateToPickup,
+      ),
+      if (distance != null)
+        _buildStatBox(
+          iconAsset: AppIconAssets.distanceLocation,
+          label: _isPickedUp ? AppStrings.travelDist : AppStrings.travelDistance,
+          value: _withKm(distance),
+          tint: AppColors.primaryColor,
+          onTap: _handleOpenPickupToDropRoute,
         ),
-        child: Row(
+    ];
+
+    if (tiles.length == 1) return tiles.first;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < tiles.length; i++) ...[
+            if (i > 0) SizedBox(width: SizeConfig.size8),
+            Expanded(child: tiles[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Outlined CTA that hands the rider to the Google Maps app.
+  ///
+  /// Wrapped in a slow pulse: this is the one thing a rider on a live job is
+  /// meant to reach for next, and it otherwise sits as a quiet outline among
+  /// tiles of the same size and weight.
+  Widget _buildDirectionButton({
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return _PulsingHighlight(
+      color: AppColors.primaryColor,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: SizeConfig.size12,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primaryColor, width: 1.4),
+          ),
+          child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.map_rounded,
-              size: 18,
-              color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
+              Icons.map_outlined,
+              size: SizeConfig.size18,
+              color: AppColors.primaryColor,
             ),
-            const SizedBox(width: 8),
-            Text(
-              isPickedUp ? 'View Ride on Map' : 'Navigate to Pickup',
-              style: TextStyle(
-                fontSize: 13,
+            SizedBox(width: SizeConfig.size6),
+            Flexible(
+              child: CustomText(
+                label,
+                fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'OpenSans',
-                color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
+                color: AppColors.primaryColor,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 6),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14,
-              color: isPickedUp ? const Color(0xFF4285F4) : const Color(0xFF00C853),
-            ),
           ],
+        ),
         ),
       ),
     );
   }
+
+  /// Tinted label-over-value tile sitting beside the direction CTA — trip
+  /// length, elapsed time. [onTap] is optional; a tile with nothing to open is
+  /// simply not tappable.
+  Widget _buildStatBox({
+    String? iconAsset,
+    IconData? icon,
+    required String label,
+    required String value,
+    required Color tint,
+    VoidCallback? onTap,
+  }) {
+    final box = Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+        vertical: SizeConfig.size8,
+      ),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        // Same hairline the outlined direction button beside it has, so the
+        // tiles read as one row of boxes rather than a button next to two
+        // patches of colour.
+        border: Border.all(color: tint.withValues(alpha: 0.20)),
+      ),
+      child: Row(
+        children: [
+          if (iconAsset != null)
+            LocalAssets(
+              imagePath: iconAsset,
+              imgColor: tint,
+              height: SizeConfig.size20,
+              width: SizeConfig.size20,
+            )
+          else if (icon != null)
+            Icon(icon, size: SizeConfig.size20, color: tint),
+          SizedBox(width: SizeConfig.size6),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  label,
+                  fontSize: SizeConfig.extraSmall,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                CustomText(
+                  value,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: tint,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (onTap == null) return box;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: box,
+    );
+  }
+
 
   Widget _buildOnGoingOrderActions(DeliverPartnerOrdersController controller) {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Who the rider is going to meet, directly above the navigate CTA —
-        // the rider needs the name and a way to call before setting off, and
-        // the ongoing card showed neither.
-        if (widget.order.orderFor == AppConstants.InCity ||
-            widget.order.orderFor == AppConstants.OutStation ||
-            widget.order.orderFor == AppConstants.HourlyRental ||
-            widget.order.orderFor == AppConstants.Parcel) ...[
+        // Who the rider is going to meet, and how they get there. The rider
+        // needs the name and a way to call before setting off, and the ongoing
+        // card showed neither.
+        if (!_isPickedUp) ...[
+          // Heading to the pickup — direction + trip length side by side,
+          // customer underneath. Shown for EVERY order type: a grocery / food /
+          // medical delivery starts with the same drive to a pickup, and those
+          // cards previously carried no customer row and no map action at all
+          // (both were gated on ride/parcel).
+          if (_hasPickupCoordinates)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildActionStatsRow(),
+            ),
           if (widget.isPipModeOn == false)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _buildCustomerInfoRow(),
+              child: _buildCustomerInfoRow(labelledCall: true),
             ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _buildViewRideOnMapButton(),
-          ),
+        ] else ...[
+          // Job running: drop direction + trip stats, then the customer with an
+          // emergency call. No in-app ride map — navigation is the phone's
+          // Google Maps, and everything the rider needs is on this card.
+          if (_hasDropCoordinates)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildActionStatsRow(),
+            ),
+          if (widget.isPipModeOn == false)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildCustomerInfoRow(
+                labelledCall: true,
+                emergency: true,
+              ),
+            ),
         ],
 
-        if(!(widget.order.orderFor==AppConstants.InCity
+        if(!_showsRideCompletion &&
+            !(widget.order.orderFor==AppConstants.InCity
             ||widget.order.orderFor==AppConstants.OutStation
             ||widget.order.orderFor==AppConstants.HourlyRental
             ||widget.order.orderFor==AppConstants.Parcel))
@@ -1405,21 +1821,26 @@ class _OrderCardState extends State<OrderCard> {
         if(widget.isPipModeOn==false)
         SizedBox(height:SizeConfig.size8),
 
-        // In-progress rides used to carry a slide-to-complete here. It was a
-        // second way to finish the ride — PassengerDestinationScreen (one tap
-        // away via "View Ride on Map") owns that action — so the space now
-        // reports the journey instead.
+        // A running ride ends HERE now. The slide-to-complete used to live on
+        // PassengerDestinationScreen, reached through an in-app map that no
+        // longer opens — so the control moved to the card, beside the fare it
+        // settles. Everything that screen showed alongside it (passenger,
+        // distance, elapsed time) is already above.
         //
-        // Its own row, because the travel box is two lines tall and the fare
-        // beside it has to match: IntrinsicHeight measures the tallest child
-        // and `stretch` pulls the fare box up to it. The OTP row below keeps
-        // centre alignment, where both children are a single line.
-        if (_isRideInProgress)
-          IntrinsicHeight(
+        // Its own row, because the slider is taller than a line of text and the
+        // fare beside it has to match — a fixed height plus `stretch` pulls the
+        // fare box up to the slider. NOT IntrinsicHeight: the slider measures
+        // its track with a LayoutBuilder, which cannot report an intrinsic
+        // height, and the pair threw "RenderBox was not laid out" on every
+        // in-progress card. The OTP row below keeps centre alignment, where
+        // both children are a single line.
+        if (_showsRideCompletion)
+          SizedBox(
+            height: SizeConfig.size48,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(child: _buildTravelSummary()),
+                Expanded(child: _buildSlideToComplete()),
                 if (widget.isPipModeOn == false) ...[
                   SizedBox(width: SizeConfig.size8),
                   _buildFareWidget(fillHeight: true),
@@ -1443,107 +1864,75 @@ class _OrderCardState extends State<OrderCard> {
               ),
             ],
           ),
-      ],
-    );
-  }
 
-  /// Journey readout shown in place of the retired slide-to-complete: how long
-  /// the rider has been travelling, and how far the trip is.
-  ///
-  /// The time half is omitted when the ride's start time isn't known (see
-  /// [_rideStartedAt]) rather than showing a zero that would tick up from the
-  /// moment the card was built.
-  Widget _buildTravelSummary() {
-    final startedAt = _rideStartedAt;
-    final distance = widget.order.distancePickupToDrop;
-    final hasDistance = distance != null &&
-        distance.isNotEmpty &&
-        distance != 'N/A' &&
-        distance != 'null';
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size10,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          if (startedAt != null)
-            Expanded(
-              child: _buildTravelStat(
-                icon: Icons.timer_outlined,
-                value: _formatElapsed(DateTime.now().difference(startedAt)),
-                label: AppStrings.travelTime,
-              ),
-            ),
-          if (startedAt != null && hasDistance)
-            Container(
-              width: 1,
-              height: SizeConfig.size24,
-              color: AppColors.primaryColor.withValues(alpha: 0.18),
-            ),
-          if (hasDistance)
-            Expanded(
-              child: _buildTravelStat(
-                icon: Icons.straighten_rounded,
-                value: distance,
-                label: AppStrings.travelDistance,
-              ),
-            ),
+        // Support, at the foot of the working card — the rider is mid-job and
+        // whatever has gone wrong (customer not at pickup, address wrong, order
+        // stuck) is happening now. Hidden in PiP, where there's no room.
+        if (widget.isPipModeOn == false) ...[
+          SizedBox(height: SizeConfig.size12),
+          _buildCustomerCareRow(),
         ],
-      ),
+      ],
     );
   }
 
-  Widget _buildTravelStat({
-    required IconData icon,
-    required String value,
-    required String label,
-  }) {
+  /// "Call To Customer Care" — a quiet footer link under a hairline, not
+  /// another bordered card. It's the least-used control here and shouldn't
+  /// compete with the customer row or the completion slider above it.
+  Widget _buildCustomerCareRow() {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: SizeConfig.size14, color: AppColors.primaryColor),
-            SizedBox(width: SizeConfig.size6),
-            Flexible(
-              child: CustomText(
-                value,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+        _buildDivider(),
+        InkWell(
+          onTap: _handleCallCustomerCare,
+          child: Padding(
+            // Asymmetric: the card already contributes its own bottom padding
+            // below this, so an even 12/12 here left the footer floating well
+            // clear of the card edge.
+            padding: EdgeInsets.only(
+              top: SizeConfig.size12,
+              bottom: SizeConfig.size4,
             ),
-          ],
-        ),
-        SizedBox(height: SizeConfig.size2),
-        CustomText(
-          label,
-          fontSize: SizeConfig.extraSmall,
-          color: AppColors.secondaryTextColor,
-          maxLines: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.call,
+                  imgColor: AppColors.secondaryTextColor,
+                  height: SizeConfig.size16,
+                  width: SizeConfig.size16,
+                ),
+                SizedBox(width: SizeConfig.size8),
+                CustomText(
+                  AppStrings.callToCustomerCare,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  /// `H:MM:SS` once past an hour, `MM:SS` before that — a ride rarely runs long
-  /// enough for the hour slot to be worth reserving up front.
-  String _formatElapsed(Duration elapsed) {
-    final total = elapsed.isNegative ? Duration.zero : elapsed;
-    final hours = total.inHours;
-    final minutes = total.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = total.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
+  /// Dials support when a number is configured; otherwise opens the app's
+  /// Help & Support screen, which is where support actually lives today.
+  /// See [AppStrings.customerCareNumber].
+  void _handleCallCustomerCare() {
+    final number = AppStrings.customerCareNumber.trim();
+    if (number.isEmpty) {
+      Get.to(() => const HelpAndSupportScreen());
+      return;
+    }
+    openDialer(number);
   }
+
+  // NOTE: `_buildTravelSummary` / `_buildTravelStat` lived here — the
+  // time+distance readout an in-progress ride showed where the slide-to-complete
+  // now sits. Both numbers moved into the action row's stat tiles
+  // ([_buildStatBox]), so the block itself is gone.
 
   Widget _buildOtpInputSection(DeliverPartnerOrdersController controller) {
     return Obx(() {
@@ -1580,18 +1969,21 @@ class _OrderCardState extends State<OrderCard> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             onCompleted: (pin) => _handleOtpSubmit(pin, orderId, controller),
+            // Bigger, softer boxes: 48², radius 12, a near-white fill and a
+            // hairline border. They were 40², radius 6, white with a drop
+            // shadow, which read as four raised buttons rather than fields.
             defaultPinTheme: PinTheme(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               textStyle: TextStyle(
-                fontSize: SizeConfig.medium,
-                color: Colors.black,
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
               ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.whiteFE,
                 border: Border.all(color: AppColors.greyE5),
-                boxShadow: [AppShadows.textFieldShadow],
               ),
             ),
           ),
@@ -1648,19 +2040,60 @@ class _OrderCardState extends State<OrderCard> {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size8,
+        // Tighter when stacked: two lines plus 12/12 didn't fit the row's fixed
+        // height, so the FittedBox below had to shrink the amount to cope.
+        vertical: fillHeight ? SizeConfig.size4 : SizeConfig.size12,
       ),
       alignment: fillHeight ? Alignment.center : null,
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(12.0),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.20)),
       ),
-      child: CustomText(
-        '${AppStrings.fare.tr} ₹ ${widget.order.fare}',
-        fontSize: SizeConfig.small,
-        fontWeight: FontWeight.w600,
-        color: AppColors.secondaryTextColor,
-      ),
+      // The money the rider is working for — printed in the accent colour on
+      // its tinted chip instead of the same grey as every secondary label.
+      //
+      // Stacked when it stands beside the completion slider: the label sits on
+      // its own line so the AMOUNT gets the width and the size, which is the
+      // half of it the rider is actually reading. On the wide rows it stays a
+      // single line, where a stack would just be a tall gap.
+      child: fillHeight
+          // Scaled down rather than clipped: two lines of text in a
+          // fixed-height row overflow the moment the device's font scale goes
+          // up, and a fare is the one number that must stay readable.
+          ? FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Label in the body colour, amount in the accent — the word
+                  // is just a caption, the number is the point.
+                  CustomText(
+                    AppStrings.fare.tr,
+                    fontSize: SizeConfig.small11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                  ),
+                  CustomText(
+                    '₹ ${widget.order.fare}',
+                    fontSize: SizeConfig.medium15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            )
+          : CustomText(
+              '${AppStrings.fare.tr} ₹ ${widget.order.fare}',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
     );
   }
 
@@ -1733,12 +2166,12 @@ class _OrderCardState extends State<OrderCard> {
 
 
   // ============================================
-  void _handleCancelOrder(DeliverPartnerOrdersController controller) {
-    controller.cancelOrderFromPialot(
-      {ApiKeys.status: AppConstants.cancelled},
-      widget.order.id ?? "",
-    );
-  }
+  // NOTE: `_handleCancelOrder` lived here — the ongoing card's status pill used
+  // to cancel the order on tap, with no confirmation. The pill is now an inert
+  // stage label (see [_buildStageBadge]), so nothing on this card cancels any
+  // more. Restoring it is a controller call away:
+  //   controller.cancelOrderFromPialot(
+  //       {ApiKeys.status: AppConstants.cancelled}, widget.order.id ?? "");
 
   void _handleRejectOrder(DeliverPartnerOrdersController controller) {
     controller.updateOrderStatusFromPialot(
@@ -1787,19 +2220,69 @@ class _OrderCardState extends State<OrderCard> {
     }
   }
 
+  /// Tapping the pickup row → Google Maps directions, current position → pickup.
   void _handleOpenPickupLocation() {
-    openGoogleMaps(
-      latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-      longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+    _openDirections(
+      destinationLat: _pickupLat,
+      destinationLng: _pickupLng,
     );
   }
 
+  /// Tapping the drop row → Google Maps directions, current position → drop.
   void _handleOpenDropLocation() {
-    openGoogleMaps(
-      latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-      longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+    _openDirections(
+      destinationLat: _dropLat,
+      destinationLng: _dropLng,
     );
   }
+
+  /// Tapping the travel-distance box → Google Maps directions for the JOB'S
+  /// leg: pickup → drop, not from wherever the rider happens to be standing.
+  void _handleOpenPickupToDropRoute() {
+    _openDirections(
+      originLat: _pickupLat,
+      originLng: _pickupLng,
+      destinationLat: _dropLat,
+      destinationLng: _dropLng,
+    );
+  }
+
+  /// Hands off to the Google Maps app's directions view, which draws the route.
+  /// A missing/zero coordinate says so instead of opening a map of the ocean at
+  /// (0, 0).
+  void _openDirections({
+    required double destinationLat,
+    required double destinationLng,
+    double? originLat,
+    double? originLng,
+  }) {
+    final destinationMissing = destinationLat == 0.0 && destinationLng == 0.0;
+    final originMissing =
+        originLat != null && originLng != null && originLat == 0.0 && originLng == 0.0;
+    if (destinationMissing || originMissing) {
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+
+    openGoogleMapsDirections(
+      destinationLat: destinationLat,
+      destinationLng: destinationLng,
+      originLat: originLat,
+      originLng: originLng,
+    );
+  }
+
+  double get _pickupLat =>
+      widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+
+  double get _pickupLng =>
+      widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
+
+  double get _dropLat =>
+      widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+
+  double get _dropLng =>
+      widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
 
   Future<void> _handleOtpSubmit(
       String pin,
@@ -1812,14 +2295,14 @@ class _OrderCardState extends State<OrderCard> {
           ||widget.order.orderFor==AppConstants.OutStation
           ||widget.order.orderFor==AppConstants.HourlyRental
           ||widget.order.orderFor==AppConstants.Parcel){
-        final verified = await controller.verifyPickupOtpRideOrParcelApi(
+        // Nothing to navigate to on success. The card itself flips to the
+        // ride-started layout (drop direction, trip stats, emergency call,
+        // slide-to-complete) as soon as the refreshed order arrives; this used
+        // to push the in-app destination screen.
+        await controller.verifyPickupOtpRideOrParcelApi(
           {ApiKeys.pickupOTP: pin},
           widget.order.id ?? "",
         );
-        // Navigate to ride navigation screen after successful pickup OTP
-        if (verified && mounted) {
-          _navigateToRideMap();
-        }
       }else {
         controller.verifyDeliveredOtp(orderId, pin);
       }
@@ -1872,6 +2355,78 @@ class _CustomerIdentity {
   }
 }
 
+/// Breathes a soft halo around its child to pull the eye to it.
+///
+/// Used on the direction CTA: on a live job that button is the one thing the
+/// rider is meant to reach for next, but it sits in a row of tiles the same
+/// size and weight, so nothing marks it as the action.
+///
+/// A GLOW rather than a flashing colour or a jumping scale — it has to survive
+/// being on screen for the length of a ride without becoming something the
+/// rider wants to get away from. It is also skipped entirely when the device
+/// asks for reduced motion, where a pulsing control is exactly what that
+/// setting exists to prevent.
+class _PulsingHighlight extends StatefulWidget {
+  final Widget child;
+  final Color color;
+
+  const _PulsingHighlight({required this.child, required this.color});
+
+  @override
+  State<_PulsingHighlight> createState() => _PulsingHighlightState();
+}
+
+class _PulsingHighlightState extends State<_PulsingHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+
+  late final Animation<double> _pulse = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOut,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      return widget.child;
+    }
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, child) {
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.10 + 0.22 * _pulse.value),
+                blurRadius: 6 + 10 * _pulse.value,
+                spreadRadius: _pulse.value,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
 /// Self-contained slide-to-complete control.
 ///
 /// Kept in its own [StatefulWidget] so dragging only rebuilds THIS widget (not
@@ -1914,7 +2469,7 @@ class _SlideToCompleteButtonState extends State<SlideToCompleteButton> {
           return Container(
             height: height,
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: AppColors.green1A,
               borderRadius: BorderRadius.circular(height / 2),
             ),
             alignment: Alignment.center,
@@ -1946,18 +2501,27 @@ class _SlideToCompleteButtonState extends State<SlideToCompleteButton> {
         return Container(
           height: height,
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: AppColors.whiteF3,
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: Stack(
             alignment: Alignment.centerLeft,
             children: [
-              Center(
-                child: Text(
-                  widget.text,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
+              // Indented past the knob so the label is centred in the track the
+              // rider can actually see, rather than half-hidden behind the knob
+              // at rest.
+              Padding(
+                padding: EdgeInsets.only(left: buttonWidth),
+                child: Center(
+                  child: Text(
+                    widget.text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: SizeConfig.small,
+                    ),
                   ),
                 ),
               ),
@@ -1979,14 +2543,14 @@ class _SlideToCompleteButtonState extends State<SlideToCompleteButton> {
                   child: Container(
                     height: height,
                     width: buttonWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(height / 2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.green1A,
+                      shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white,
-                      size: 18,
+                      Icons.arrow_forward_ios_rounded,
+                      color: AppColors.white,
+                      size: 20,
                     ),
                   ),
                 ),

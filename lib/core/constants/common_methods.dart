@@ -475,6 +475,63 @@ Future<void> openGoogleMaps({
   }
 }
 
+/// Opens the Google Maps app straight into turn-by-turn DRIVING navigation
+/// toward [latitude]/[longitude] — unlike [openGoogleMaps], which only drops a
+/// search pin the user still has to tap "Directions" on.
+///
+/// Used by the rider's "Navigate to Pickup" action: the rider is driving, so
+/// handing them Google Maps' own guidance beats an in-app polyline preview.
+/// Falls back to the universal https directions URL when the native
+/// `google.navigation:` intent can't be resolved (iOS, Maps not installed).
+Future<void> openGoogleMapsNavigation({
+  required double latitude,
+  required double longitude,
+}) async {
+  final navUri = Uri.parse('google.navigation:q=$latitude,$longitude&mode=d');
+  if (await canLaunchUrl(navUri)) {
+    await launchUrl(navUri, mode: LaunchMode.externalApplication);
+    return;
+  }
+
+  final webUri = Uri.parse('https://www.google.com/maps/dir/?api=1'
+      '&destination=$latitude,$longitude'
+      '&travelmode=driving&dir_action=navigate');
+  if (await canLaunchUrl(webUri)) {
+    await launchUrl(webUri, mode: LaunchMode.externalApplication);
+  } else {
+    throw 'Could not open Google Maps';
+  }
+}
+
+/// Opens the Google Maps app on the DIRECTIONS view — the route drawn between
+/// two points, which is what a rider wants when they tap a location: the line,
+/// the distance and the ETA, not a lone pin ([openGoogleMaps]) and not
+/// immediate turn-by-turn guidance ([openGoogleMapsNavigation]).
+///
+/// Omit [originLat]/[originLng] to route from the device's current location —
+/// Google Maps fills it in itself, so no location permission round-trip here.
+/// Pass them for a leg the rider isn't standing on (e.g. pickup → drop).
+Future<void> openGoogleMapsDirections({
+  required double destinationLat,
+  required double destinationLng,
+  double? originLat,
+  double? originLng,
+}) async {
+  final origin = (originLat != null && originLng != null)
+      ? '&origin=$originLat,$originLng'
+      : '';
+  final uri = Uri.parse('https://www.google.com/maps/dir/?api=1'
+      '$origin'
+      '&destination=$destinationLat,$destinationLng'
+      '&travelmode=driving');
+
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    throw 'Could not open Google Maps';
+  }
+}
+
 Map<String, int> calculateExperience(String startDateString) {
   try {
     final startDate = DateTime.parse(startDateString);

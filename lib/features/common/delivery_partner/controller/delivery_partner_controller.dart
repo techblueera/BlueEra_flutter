@@ -210,6 +210,23 @@ class DeliveryPartnerController extends GetxController {
   /// already running shares that single request instead. (A cached paid deposit
   /// is terminal, so a forceRefresh caller coalescing onto an in-flight fetch
   /// still gets a correct, current result.)
+  // ── When the onboarding status is fetched ────────────────────────────────
+  //
+  //   No cached data            → call the API, cache the answer.
+  //   Cached and SETTLED        → serve the cache. No call, ever.
+  //   Cached and NOT settled    → serve the cache to paint, then call.
+  //   Something was submitted   → call with forceRefresh: true.
+  //
+  // "Settled" means nothing is left that the backend can change on its own:
+  // verification approved AND the deposit paid. Until then the value is
+  // expected to move without any action in the app — ops approves the
+  // documents, a Razorpay webhook clears the deposit — so it is re-checked
+  // whenever the rider gives us a natural moment (screen open, tab change,
+  // app resume). Once settled, those same moments cost nothing.
+  //
+  // That is the whole policy: no timers, no staleness windows. The data itself
+  // decides whether another call is worth making.
+
   Future<void> ridersOnboardingStatusRepoApi({bool forceRefresh = false}) {
     final inFlight = _statusInFlight;
     if (inFlight != null) return inFlight;
@@ -223,20 +240,22 @@ class DeliveryPartnerController extends GetxController {
 
   Future<void> _fetchOnboardingStatus({bool forceRefresh = false}) async {
     try {
-      // Cache-first — but never serve a cached *unpaid* deposit. The security
-      // deposit is reconciled server-side (Razorpay webhook) with no in-app
-      // trigger, so a cached `paid:false` can be stale the moment payment
-      // clears. Serve from cache only once the deposit is paid; otherwise fall
-      // through to the network so a freshly-paid rider sees `paid:true`.
+      // Cache-first. The cache always paints (no spinner on a screen we have
+      // data for); whether we ALSO call the API depends on whether anything is
+      // still expected to change.
+      //
+      // This used to return early on any cached response with the deposit paid,
+      // and the cache has no expiry — so once a rider paid, the app never
+      // called this endpoint again and an ops approval never reached them until
+      // they killed the app.
       if (!forceRefresh) {
         final cached = await riderOnboardingStatusCache.get(userId);
         if (cached != null) {
           final parsed = RiderOnboardingStatusResponse.fromJson(cached);
-          if (parsed.data?.securityDepositPaid == true) {
-            _applyOnboardingStatus(parsed);
-            isRiderStatusLoading.value = false;
-            return;
-          }
+          _applyOnboardingStatus(parsed);
+          isRiderStatusLoading.value = false;
+          if (_isStatusSettled(parsed.data)) return;
+          // Not settled — fall through and re-check.
         }
       }
 
@@ -246,7 +265,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         _applyOnboardingStatus(
             RiderOnboardingStatusResponse.fromJson(response.response?.data));
-        // Cache the raw response so subsequent screen opens skip the network.
+        // Cache the raw response so subsequent screen opens paint instantly.
         final raw = response.response?.data;
         if (raw is Map) {
           await riderOnboardingStatusCache.save(
@@ -263,6 +282,21 @@ class DeliveryPartnerController extends GetxController {
     } finally {
       isRiderStatusLoading.value = false;
     }
+  }
+
+  /// Nothing left for the backend to change on its own.
+  ///
+  /// Both halves move WITHOUT any action in the app — ops approves the
+  /// documents, and a Razorpay webhook clears the deposit — so while either is
+  /// outstanding the cached copy is worth re-checking. Once both are done the
+  /// answer is final and the cache can serve forever.
+  ///
+  /// A rejection is NOT settled on purpose: a rejected rider re-uploads and
+  /// waits for the same approval, so the value is still expected to move.
+  bool _isStatusSettled(RiderOnboardingStatusData? data) {
+    if (data == null) return false;
+    return data.securityDepositPaid == true &&
+        data.verificationStatus?.toLowerCase() == 'approved';
   }
 
   /// Applies a parsed onboarding-status response (from cache or API) to the
@@ -940,7 +974,25 @@ class DeliveryPartnerController extends GetxController {
                 : 'OTP sent to your Aadhaar-linked mobile number');
       } else {
         // 200-with-success:false (e.g. "Invalid Aadhaar Card", "Please retry
-        // after 30 seconds") or a real error status — surface the message.
+        // after 30 seconds") or a real error status.
+        //
+        // Go to the OTP screen ANYWAY. Two reasons:
+        //   1. The provider's most common refusal — "Please retry after 30
+        //      seconds" — is a rate limit, which means an OTP was just sent.
+        //      Holding the rider on the number form strands someone who is
+        //      holding a working code.
+        //   2. That screen is also where the Aadhaar PHOTO path lives (front +
+        //      back upload, under the "if the OTP isn't coming through" note),
+        //      so a rider whose OTP never arrives still has a way to finish
+        //      verification instead of a dead end.
+        //
+        // Nothing is faked: aadhaarReferenceId keeps whatever an earlier
+        // successful send returned and is not invented here.
+        aadhaarOtpController.clear();
+        aadhaarStage.value = AadhaarStage.otp;
+        // Respects the provider's own back-off — Resend unlocks after the
+        // cooldown instead of letting the rider hammer a rate-limited endpoint.
+        _startAadhaarResendCooldown();
         final msg = (body is Map ? body['message']?.toString() : null) ??
             response.message ??
             AppStrings.somethingWentWrong;
@@ -948,6 +1000,11 @@ class DeliveryPartnerController extends GetxController {
       }
     } catch (e, s) {
       debugPrint('❌ generateAadhaarOtp error: $e\n$s');
+      // A thrown request tells us nothing about whether the provider sent an
+      // OTP, so let the rider try a code — or the photo path — either way.
+      aadhaarOtpController.clear();
+      aadhaarStage.value = AadhaarStage.otp;
+      _startAadhaarResendCooldown();
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isAadhaarOtpSending.value = false;
@@ -959,10 +1016,13 @@ class DeliveryPartnerController extends GetxController {
   /// closed (via [checkStatusManageRoute]).
   Future<void> verifyAadhaarOtp() async {
     if (aadhaarReferenceId.isEmpty) {
-      // Stale reference (e.g. app restarted mid-flow) — restart from entry.
+      // Reachable by design now: a failed generate-otp still lands the rider
+      // here. Keep them on this screen — Resend and the Aadhaar photo upload
+      // are both on it, and throwing someone back to the number form after
+      // they have typed a code is the worse half of the trade.
       commonSnackBar(
-          message: 'Your session expired. Please request a new OTP.');
-      aadhaarStage.value = AadhaarStage.entry;
+          message: 'No OTP request is active. Tap Resend, or verify with your '
+              'Aadhaar photos below.');
       return;
     }
     if (aadhaarOtpController.text.trim().length != 6) {

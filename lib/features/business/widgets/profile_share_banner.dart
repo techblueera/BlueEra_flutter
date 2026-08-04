@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -119,6 +121,62 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   /// none. Set from `build` and read by the share paths, which have nothing to
   /// capture without it.
   String? _posterUrl;
+
+  /// Drives the poster ⇄ grocery strip. Held so the share paths can snap back
+  /// to the poster before capturing — see [_captureBannerPng].
+  final CarouselSliderController _slides = CarouselSliderController();
+  int _slideIndex = 0;
+
+  /// Width ÷ height of the FIRST slide, once decoded.
+  ///
+  /// The carousel needs one box for both slides, and that box has to be the
+  /// poster's own shape: the server composes these cards at whatever ratio it
+  /// likes, and forcing them into a fixed 3:2 would crop the wide ones — a crop
+  /// that would then travel into the shared PNG. So the strip takes the
+  /// poster's ratio and the grocery promo fits inside it.
+  double? _slideRatio;
+  ImageStream? _ratioStream;
+  ImageStreamListener? _ratioListener;
+  String? _measuredSlide;
+
+  @override
+  void dispose() {
+    _detachRatioListener();
+    super.dispose();
+  }
+
+  /// Decodes the first slide purely to learn its dimensions. A metadata read,
+  /// not a second download — same provider, same cache the image paints from.
+  void _measureSlide(String slide) {
+    if (slide == _measuredSlide) return;
+    _detachRatioListener();
+    _measuredSlide = slide;
+
+    final ImageProvider provider = slide.startsWith('http')
+        ? CachedNetworkImageProvider(slide) as ImageProvider
+        : AssetImage(slide);
+    final stream = provider.resolve(const ImageConfiguration());
+    final listener = ImageStreamListener(
+      (info, _) {
+        final h = info.image.height;
+        if (h > 0 && mounted) {
+          setState(() => _slideRatio = info.image.width / h);
+        }
+      },
+      onError: (_, __) {},
+    );
+    _ratioStream = stream;
+    _ratioListener = listener;
+    stream.addListener(listener);
+  }
+
+  void _detachRatioListener() {
+    if (_ratioStream != null && _ratioListener != null) {
+      _ratioStream!.removeListener(_ratioListener!);
+    }
+    _ratioStream = null;
+    _ratioListener = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -292,28 +350,121 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
             SizedBox(height: SizeConfig.size12),
           ],
           _headline(referralCode, referralCodeEditable),
-          // The poster is the backend-generated card and nothing else — no
-          // client-composed artwork. A profile whose card isn't generated yet
-          // simply shows the rest of the card without a poster.
-          if (poster != null) ...[
-            SizedBox(height: SizeConfig.size12),
-            // The promo line is stacked OUTSIDE the [RepaintBoundary], over the
-            // poster rather than inside it: everything within the boundary is
-            // what gets captured and sent, and "Share It, Get 100 Rupees" is
-            // addressed to the person holding the phone, not to whoever
-            // receives the card. On screen it reads as part of the artwork; the
-            // shared PNG stays exactly the poster the backend built.
-            Stack(
-              children: [
-                RepaintBoundary(key: _bannerKey, child: _backendPoster(poster)),
-                Positioned(top: 10, left: 14, right: 14, child: _promoLine()),
-              ],
-            ),
-          ],
+          SizedBox(height: SizeConfig.size12),
+          _slideStrip(poster),
           SizedBox(height: SizeConfig.size14),
           _shareViaPanel(referralCode),
         ],
       ),
+    );
+  }
+
+  /// The grocery promo is always present. What leads it depends on who is
+  /// looking:
+  ///   • generated marketing card → the card itself, shareable;
+  ///   • GUEST (no account yet)   → the complete-profile artwork;
+  ///   • signed in, no card yet   → nothing — the grocery promo stands alone.
+  ///
+  /// complete_profile_banner is a sign-up prompt, so it belongs to guests only.
+  /// Showing it to someone who already has a profile and is simply waiting on
+  /// their card would be telling them to do something they have done.
+  ///
+  /// Only the real poster carries the "Share It, Get 100 Rupees" hook and only
+  /// the real poster is wrapped in the [RepaintBoundary]: the shared PNG must
+  /// be the backend's card and never the grocery promo or a sign-up prompt.
+  Widget _slideStrip(String? poster) {
+    final guest = isGuestUser();
+    _measureSlide(poster ??
+        (guest
+            ? AppImageAssets.completeProfileBanner
+            : AppImageAssets.groceryBanner));
+
+    final slides = <Widget>[
+      if (poster != null)
+        // Promo line stacked OUTSIDE the boundary, over the poster rather than
+        // inside it: everything within the boundary is what gets captured, and
+        // "Share It, Get 100 Rupees" is addressed to the person holding the
+        // phone, not to whoever receives the card.
+        Stack(
+          children: [
+            RepaintBoundary(key: _bannerKey, child: _backendPoster(poster)),
+            Positioned(top: 10, left: 14, right: 14, child: _promoLine()),
+          ],
+        )
+      else if (guest)
+        // The guest slide IS the call to action — the whole artwork opens
+        // sign-up. The grocery promo beside it is not a prompt and stays inert.
+        _assetSlide(
+          AppImageAssets.completeProfileBanner,
+          onTap: createProfileScreen,
+        ),
+      _assetSlide(AppImageAssets.groceryBanner),
+    ];
+
+    // One slide has nothing to slide to — draw it flat and skip the carousel,
+    // its timer, and a lone dot that would suggest there is more to see.
+    if (slides.length == 1) {
+      return AspectRatio(
+        aspectRatio: _slideRatio ?? 3 / 2,
+        child: slides.first,
+      );
+    }
+
+    return Column(
+      children: [
+        CarouselSlider(
+          carouselController: _slides,
+          options: CarouselOptions(
+            aspectRatio: _slideRatio ?? 3 / 2,
+            viewportFraction: 1.0,
+            autoPlay: true,
+            autoPlayInterval: const Duration(seconds: 4),
+            enableInfiniteScroll: true,
+            onPageChanged: (index, _) {
+              if (mounted) setState(() => _slideIndex = index);
+            },
+          ),
+          items: slides,
+        ),
+        SizedBox(height: SizeConfig.size8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(slides.length, (i) {
+            final active = i == _slideIndex;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: active ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: active ? AppColors.primaryColor : AppColors.greyE5,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  /// A bundled slide, contained inside the strip's box so nothing is cropped.
+  /// [onTap] is optional — a slide with nowhere to go stays inert rather than
+  /// carrying an invisible hit area.
+  Widget _assetSlide(String asset, {VoidCallback? onTap}) {
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Image.asset(
+        asset,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _posterPlaceholder(),
+      ),
+    );
+    if (onTap == null) return image;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: image,
     );
   }
 
@@ -704,10 +855,20 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   }
 
   Future<Uint8List?> _captureBannerPng({double pixelRatio = 3.0}) async {
-    // No backend poster → no boundary in the tree to capture. Bail out here so
+    // No backend poster → no boundary in the tree to capture (a guest's
+    // complete-profile artwork is NOT their referral card). Bail out here so
     // the share paths fall through to their text-only branch.
     if (_posterUrl == null) return null;
     try {
+      // The poster is one slide of a strip now. If the grocery promo happens to
+      // be on screen when share is tapped, the boundary isn't mounted and the
+      // capture would come back null — a silent downgrade to a text-only share.
+      // Snap back and let a frame land first.
+      if (_slideIndex != 0) {
+        _slides.jumpToPage(0);
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted) return null;
+      }
       final boundary = _bannerKey.currentContext?.findRenderObject()
           as RenderRepaintBoundary?;
       if (boundary == null) return null;
