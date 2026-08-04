@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -48,6 +49,19 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
 
+  /// Shared `/other-service/business-profile/{id}/full` controller. Reused
+  /// across the list + this detail screen so the `selectedDetail` payload
+  /// (used by [VisitBusinessHero] via overrides) survives navigation.
+  final OtherServiceBusinessSearchController _otherServiceCtrl =
+      getOrPut(() => OtherServiceBusinessSearchController());
+
+  /// Guards against repeated `/full` fetches for the same id — a naive
+  /// "refetch when `selectedDetail.value?.profile?.id != target`" check
+  /// re-fires every rebuild if the API returned "not found" (selectedDetail
+  /// stays null). We store the id we've already attempted so failure
+  /// doesn't loop.
+  String? _lastAttemptedFullFetchId;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +72,17 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
     viewBusinessDetailsController.fetchServices(
       visitBusinessId: widget.visitUserId,
     );
+    // Kick off the /full fetch. The endpoint URL takes the *other-service*
+    // `profile._id` (parsed into `OtherBusinessProfile.id`) — NOT
+    // `businessId` (be_user_service `businesses._id`) and NOT the shared
+    // `BusinessProfileDetails._id`. Only the search-list item carries the
+    // right id; deep-link entry doesn't have it, so we skip /full and let
+    // the hero fall back to the shared-profile data.
+    final seededProfileId = _searchItem()?.profile?.id?.trim() ?? '';
+    if (seededProfileId.isNotEmpty) {
+      _lastAttemptedFullFetchId = seededProfileId;
+      _otherServiceCtrl.fetchDetail(seededProfileId);
+    }
     ProfileClickTracker.track(
       userId: widget.visitUserId,
       source: ChatClickSource.storeDetail,
@@ -142,6 +167,36 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
       if ((p.profile?.userId ?? '') == widget.visitUserId) return p;
     }
     return null;
+  }
+
+  /// Build a [VisitBusinessHeroOverrides] from the `/full` payload so the
+  /// hero renders the authoritative fields (avg rating, total ratings,
+  /// pretty category label, business description) rather than the stale
+  /// values on the shared business-profile endpoint.
+  VisitBusinessHeroOverrides? _overridesFromOtherFull(
+      OtherServiceBusinessItem? item) {
+    final p = item?.profile;
+    if (p == null) return null;
+    // Prefer the human-readable sub-category > category > raw slug.
+    final chip = (p.subCategoryDetailsName?.trim().isNotEmpty ?? false)
+        ? p.subCategoryDetailsName
+        : (p.categoryDetailsName?.trim().isNotEmpty ?? false)
+            ? p.categoryDetailsName
+            : p.categoryOfBusiness;
+    return VisitBusinessHeroOverrides(
+      coverUrl: p.coverUrl,
+      logoUrl: p.logoUrl,
+      businessName: p.businessName ?? p.profileName,
+      chipLabel: chip,
+      avgRating: p.avgRating ?? p.rating,
+      totalRatings: p.totalRatings,
+      address: p.location?.address ?? p.address,
+      description: p.businessDescription,
+      latitude: p.businessLocation?.lat,
+      longitude: p.businessLocation?.lng,
+      businessId: p.businessId,
+      userId: p.userId,
+    );
   }
 
   List<String> _flattenGallery(List<OtherGalleryItem>? galleryList) {
@@ -342,21 +397,53 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                 }
                 final details = viewBusinessDetailsController
                     .visitedBusinessProfileDetails?.data;
+                // If the search list now has this row (user landed here
+                // then swiped back to prewarm the list), pick up the
+                // other-service `profile._id` and issue /full once. The
+                // `_lastAttemptedFullFetchId` guard stops repeat fetches
+                // when the endpoint returns "not found" (selectedDetail
+                // stays null, otherwise the naive
+                // `selectedDetail != target` check would loop forever).
+                final seededProfileId =
+                    _searchItem()?.profile?.id?.trim() ?? '';
+                if (seededProfileId.isNotEmpty &&
+                    _lastAttemptedFullFetchId != seededProfileId &&
+                    !_otherServiceCtrl.isDetailLoading.value) {
+                  _lastAttemptedFullFetchId = seededProfileId;
+                  _otherServiceCtrl.fetchDetail(seededProfileId);
+                }
+                final full = _otherServiceCtrl.selectedDetail.value;
+                // Only trust `full` when it actually matches the row we're
+                // viewing — the controller is shared so an older detail's
+                // payload might still be in `selectedDetail` briefly.
+                final matchingFull = (full?.profile?.userId ==
+                        widget.visitUserId)
+                    ? full
+                    : null;
+                final overrides = _overridesFromOtherFull(matchingFull);
                 return VisitBusinessHero(
                   details: details,
+                  overrides: overrides,
                   scheduleOverride: _otherTimingsToSchedule(
-                    _searchItem()?.timings,
+                    matchingFull?.timings ?? _searchItem()?.timings,
                   ),
                   onFollowChanged: () =>
                       viewBusinessDetailsController.viewBusinessProfileById(
                     widget.visitUserId,
                     silent: true,
                   ),
-                  onRated: () =>
-                      viewBusinessDetailsController.viewBusinessProfileById(
-                    widget.visitUserId,
-                    silent: true,
-                  ),
+                  onRated: () {
+                    viewBusinessDetailsController.viewBusinessProfileById(
+                      widget.visitUserId,
+                      silent: true,
+                    );
+                    // Refresh the /full payload too so avg/total ratings on
+                    // the hero update in sync with the shared profile.
+                    final pId = matchingFull?.profile?.id?.trim() ?? '';
+                    if (pId.isNotEmpty) {
+                      _otherServiceCtrl.fetchDetail(pId);
+                    }
+                  },
                 );
               }),
 

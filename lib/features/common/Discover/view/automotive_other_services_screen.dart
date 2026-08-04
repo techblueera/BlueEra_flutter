@@ -200,6 +200,7 @@ class _AutomotiveOtherServicesScreenState
                   padding: EdgeInsets.only(bottom: dynamicSize(12)),
                   child: ServiceBusinessCard(
                     item: item,
+                    index: index,
                     // Businesses in this section rarely upload a cover
                     // photo, so an empty grey box looked broken. Fall back
                     // to a vehicle-themed banner image instead — same set

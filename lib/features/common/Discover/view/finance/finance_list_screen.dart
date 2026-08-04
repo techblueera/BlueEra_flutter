@@ -144,11 +144,10 @@ class _FinanceCard extends StatelessWidget {
       }
     }
 
-    const String na = 'N/A';
     final double? ratingValue = item.rating;
     final String rating = (ratingValue != null && ratingValue > 0)
         ? ratingValue.toStringAsFixed(1)
-        : na;
+        : '';
 
     final String distance = _distanceFromUser(item);
     final ({String label, Color color}) openBadge = _todayOpenBadge(item);
@@ -160,8 +159,9 @@ class _FinanceCard extends StatelessWidget {
     final List<String> serviceTags = <String>[
       ...?item.accountType?.where((s) => s.trim().isNotEmpty),
     ];
-    if (serviceTags.isEmpty) serviceTags.add(na);
     const int moreTagsCount = 0;
+    final bool showTagsRow =
+        serviceTags.isNotEmpty || category.trim().isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
@@ -198,15 +198,17 @@ class _FinanceCard extends StatelessWidget {
                     openLabel: openBadge.label,
                     openColor: openBadge.color,
                   ),
-                  SizedBox(height: SizeConfig.size12),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                    child: _buildTagsRow(
-                      serviceTags: serviceTags,
-                      moreCount: moreTagsCount,
-                      category: category,
+                  if (showTagsRow) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                      child: _buildTagsRow(
+                        serviceTags: serviceTags,
+                        moreCount: moreTagsCount,
+                        category: category,
+                      ),
                     ),
-                  ),
+                  ],
                   SizedBox(height: SizeConfig.size12),
                   _buildActionsRow(),
                 ],
@@ -307,15 +309,16 @@ class _FinanceCard extends StatelessWidget {
     // Match the header (visit_business_common_header.dart:297): always show
     // `X.XX KM`, no unit-tiered rewrite, no "Away" suffix. Coords come from
     // the GeoJSON `[lng, lat]` array on the finance model (the header pulls
-    // from named lat/lon fields on BusinessProfileDetails).
+    // from named lat/lon fields on BusinessProfileDetails). Empty string
+    // signals "no distance" so the header row hides that slice entirely.
     final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ??
         item.location?.coordinates;
-    if (coords == null || coords.length < 2) return 'N/A';
+    if (coords == null || coords.length < 2) return '';
     final lng = coords[0];
     final lat = coords[1];
-    if (lat == 0.0 || lng == 0.0) return 'N/A';
+    if (lat == 0.0 || lng == 0.0) return '';
     final km = calculateDistance(lat, lng);
-    if (km == null) return 'N/A';
+    if (km == null) return '';
     return '${km.toStringAsFixed(2)} KM';
   }
 
@@ -366,30 +369,31 @@ class _FinanceCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             imageWidget,
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.star, size: 14, color: AppColors.yellow),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      rating,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.white,
-                    ),
-                  ],
+            if (rating.isNotEmpty)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, size: 14, color: AppColors.yellow),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        rating,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.white,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             Positioned(
               top: 12,
               right: 12,
