@@ -1,0 +1,19 @@
+{
+  "aadhaarConsentDeclaration": "ನಾನು ಸ್ವಇಚ್ಛೆಯಿಂದ ನನ್ನ ಆಧಾರ್ ಸಂಖ್ಯೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತೇನೆ ಮತ್ತು ಗುರುತಿನ ಪರಿಶೀಲನೆಗಾಗಿ ಅದರ ಬಳಕೆಗೆ ಸಮ್ಮತಿ ನೀಡುತ್ತೇನೆ.",
+  "sendOtp": "OTP ಕಳುಹಿಸಿ",
+  "aadhaarOtpFallbackNote": "OTP ಬರುತ್ತಿಲ್ಲವಾದರೆ, ನಿಮ್ಮ ಆಧಾರ್ ಫೋಟೋಗಳ ಮೂಲಕ ಪರಿಶೀಲಿಸಿ — ಕೆಳಗೆ ಮುಂಭಾಗ ಮತ್ತು ಹಿಂಭಾಗದ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+  "verifyUsingAadhaarPhoto": "ಆಧಾರ್ ಫೋಟೋ ಮೂಲಕ ಪರಿಶೀಲಿಸಿ",
+  "uploadAadhaarPhotoHint": "ನಿಮ್ಮ ಆಧಾರ್ ಕಾರ್ಡ್‌ನ ಮುಂಭಾಗದ ಸ್ಪಷ್ಟ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ. ಹಿಂಭಾಗ ಐಚ್ಛಿಕ.",
+  "uploadAadhaarFront": "ಆಧಾರ್ ಮುಂಭಾಗ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+  "uploadAadhaarBackOptional": "ಆಧಾರ್ ಹಿಂಭಾಗ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಐಚ್ಛಿಕ)",
+  "submitAadhaarImages": "ಆಧಾರ್ ಫೋಟೋಗಳನ್ನು ಸಲ್ಲಿಸಿ",
+  "enterSixDigitOtp": "6 ಅಂಕಿಯ OTP ನಮೂದಿಸಿ",
+  "sentToAadhaarLinkedMobile": "ನಿಮ್ಮ ಆಧಾರ್‌ಗೆ ಲಿಂಕ್ ಆಗಿರುವ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗೆ ಕಳುಹಿಸಲಾಗಿದೆ",
+  "resendInFmt": "@seconds ನಲ್ಲಿ ಮತ್ತೆ ಕಳುಹಿಸಿ",
+  "resendOtp": "OTP ಮತ್ತೆ ಕಳುಹಿಸಿ",
+  "editAadhaarNumber": "ಆಧಾರ್ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಿ",
+  "aadhaarVerified": "ಆಧಾರ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "verifyOtp": "OTP ಪರಿಶೀಲಿಸಿ",
+  "didntGetOtpCode": "OTP ಕೋಡ್ ಬಂದಿಲ್ಲವೇ?",
+  "orLabel": "ಅಥವಾ"
+}

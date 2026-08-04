@@ -4,23 +4,18 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class CreateBusinessAccountNewStepThree extends StatefulWidget {
@@ -37,7 +32,6 @@ class _CreateBusinessAccountNewStepThreeState
   final nameTextController = TextEditingController();
   final yourRoleController = TextEditingController();
   final emailTextController = TextEditingController();
-  final descriptionController = Get.put(BusinessDescriptionController());
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
   bool isFormValid = false;
@@ -49,23 +43,6 @@ class _CreateBusinessAccountNewStepThreeState
     nameTextController.addListener(_validateForm);
     yourRoleController.addListener(_validateForm);
     emailTextController.addListener(_validateForm);
-    viewBusinessDetailsController.listingDescriptionController.value
-        .addListener(_validateForm);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => aiGeneratedBusinessDesc());
-  }
-
-  Future<void> aiGeneratedBusinessDesc() async {
-    await descriptionController
-        .generateDescriptions(onSaved: _validateForm, bodyRequest: {
-      ApiKeys.business_name: viewBusinessDetailsController
-          .businessProfileDetails.value?.data?.businessName,
-      ApiKeys.category: viewBusinessDetailsController
-          .businessProfileDetails.value?.data?.categoryDetails?.name,
-      ApiKeys.sub_category: viewBusinessDetailsController
-          .businessProfileDetails.value?.data?.subCategoryDetails?.name,
-      ApiKeys.city: widget.city
-    });
   }
 
   void _validateForm() {
@@ -76,23 +53,18 @@ class _CreateBusinessAccountNewStepThreeState
     setState(() {
       isFormValid = nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
-          viewBusinessDetailsController.listingDescriptionController.value.text
-              .trim()
-              .isNotEmpty &&
           isEmailValid;
     });
   }
 
   @override
   void dispose() {
-    nameTextController.dispose();
-    yourRoleController.dispose();
-    emailTextController.dispose();
     nameTextController.removeListener(_validateForm);
     yourRoleController.removeListener(_validateForm);
     emailTextController.removeListener(_validateForm);
-    viewBusinessDetailsController.listingDescriptionController.value
-        .removeListener(_validateForm);
+    nameTextController.dispose();
+    yourRoleController.dispose();
+    emailTextController.dispose();
     super.dispose();
   }
 
@@ -117,77 +89,6 @@ class _CreateBusinessAccountNewStepThreeState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomText(
-                          AppStrings.shortBusinessDescription,
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.black,
-                        ),
-                        Obx(() => !descriptionController.isLoading.value
-                            ? InkWell(
-                                onTap: () async {
-                                  await aiGeneratedBusinessDesc();
-                                  if (!mounted) return;
-                                  _validateForm();
-                                },
-                                child: LocalAssets(
-                                  height: 25,
-                                  width: 25,
-                                  imgColor: AppColors.primaryColor,
-                                  imagePath: AppIconAssets.ai_generative,
-                                ))
-                            : SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.0,
-                                ),
-                              )),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    CommonTextField(
-                      validator: null,
-                      borderWidth: 0,
-                      borderColor: Colors.transparent,
-                      hintText: AppStrings.businessDescriptionExample,
-                      textEditController: viewBusinessDetailsController
-                          .listingDescriptionController.value,
-                      maxLine: 5,
-                      isValidate: false,
-                      maxLength: AppConstants.inputCharterLimit400,
-                      onChange: (val) {
-                        viewBusinessDetailsController
-                            .businessDescription.value = val;
-                        viewBusinessDetailsController
-                            .listingDescriptionController.value.text = val;
-                        _validateForm();
-                      },
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(
-                          AppConstants.inputCharterLimit400,
-                        ),
-                        NoLeadingSpaceFormatter(),
-                        NoConsecutiveSpacesFormatter(),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    Obx(() {
-                      return Align(
-                        alignment: Alignment.bottomRight,
-                        child: CustomText(
-                          "${viewBusinessDetailsController.businessDescription.value.length}/${AppConstants.inputCharterLimit400}",
-                          color: AppColors.grey9B,
-                          fontSize: SizeConfig.small,
-                        ),
-                      );
-                    }),
-                    SizedBox(
-                      height: SizeConfig.size28,
-                    ),
                     Center(
                       child: CustomText(
                         AppStrings.ownerDetail,
@@ -256,14 +157,9 @@ class _CreateBusinessAccountNewStepThreeState
                         Expanded(
                           child: CustomBtn(
                             radius: 10,
-                            onTap: () {
-                              Get.offAllNamed(
-                                  RouteHelper.getBottomNavigationBarScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.initialIndex: 1
-                                  }
-                              );
-                            },
+                            // Skipping the owner details still leads to the
+                            // description step — it's skippable in its own turn.
+                            onTap: _goToDescriptionStep,
                             title: AppStrings.skip,
                             bgColor: Colors.transparent,
                             textColor: AppColors.primaryColor,
@@ -294,9 +190,11 @@ class _CreateBusinessAccountNewStepThreeState
                                       )
                                     : const SizedBox.shrink(),
                                 label: Text(
+                                  // Owner details are no longer the last step —
+                                  // the description step follows.
                                   loading
-                                      ? '${AppStrings.submit.tr}…'
-                                      : AppStrings.submit.tr,
+                                      ? '${AppStrings.nextButton.tr}…'
+                                      : AppStrings.nextButton.tr,
                                   style: TextStyle(
                                     fontFamily: AppConstants.OpenSans,
                                     fontSize: SizeConfig.medium,
@@ -354,8 +252,6 @@ class _CreateBusinessAccountNewStepThreeState
 
     final reqParam = <String, dynamic>{
       ApiKeys.businessId: businessId,
-      ApiKeys.business_description:
-          viewBusinessDetailsController.businessDescription.value,
       ApiKeys.owner_details: jsonEncode([
         {
           ApiKeys.name: nameTextController.text,
@@ -369,12 +265,17 @@ class _CreateBusinessAccountNewStepThreeState
       reqParam,
       showProgress: false,
     );
-    Get.offAllNamed(
-      RouteHelper.getBottomNavigationBarScreenRoute(),
-      // New business lands on Discover (1) right after signup, same as an
-      // individual — the marketplace, not its own empty dashboard. The shop
-      // screen is one tab away.
-      arguments: {ApiKeys.initialIndex: 1},
+    if (!mounted) return;
+    _goToDescriptionStep();
+  }
+
+  /// The business description now has a step of its own (step four), where the
+  /// ready-written category suggestions are offered. `city` rides along for
+  /// the AI generator there.
+  void _goToDescriptionStep() {
+    Get.toNamed(
+      RouteHelper.getCreateBusinessAccountNewStepFourRoute(),
+      arguments: {ApiKeys.city: widget.city},
     );
   }
 }

@@ -405,6 +405,10 @@ class ApiKeys {
   static const service_details = "service_details";
   static const service_name = "service_name";
   static const sub_category = "sub_category";
+
+  /// Designation of an individual profession — the query param name used by
+  /// `GET individual-professions/bio-suggestions`.
+  static const subcategory = "subcategory";
   static const short_description = "short_description";
   static const subCategory = "subCategory";
   static const isFromProductCreation = "isFromProductCreation";

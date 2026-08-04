@@ -175,6 +175,23 @@ class AuthRepo extends BaseService {
     return response;
   }
 
+  /// Ready-written bios for a profession / designation. [params] takes
+  /// `profession`, `subcategory`, `limit` — passed as a query map so Dio
+  /// encodes profession names carrying `&` or `/`
+  /// (`Business & HR Consultant`, `Auto / E-Rickshaw`).
+  /// See docs/FLUTTER_INDIVIDUAL_BIO_SUGGESTIONS_GUIDE.md
+  Future<ResponseModel> getBioSuggestionsRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      individualBioSuggestions,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   // Get products API call
   Future<ResponseModel> aiGenerateBioRepo(
       {required Map<String, dynamic> bodyParam,}) async {

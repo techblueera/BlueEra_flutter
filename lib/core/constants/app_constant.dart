@@ -113,6 +113,11 @@ class AppConstants {
 
   static const int inputCharterLimit = 150;
   static const int inputCharterLimit400 = 400;
+
+  /// Bio field cap (individual profile). The backend stores a plain string —
+  /// this is the app-side limit the bio validator and the ready-written bio
+  /// suggestions are trimmed to.
+  static const int inputCharterLimit900 = 900;
   static const int inputCharterLimit250 = 250;
   static const int inputCharterLimit200 = 200;
   static const int inputCharterLimit50 = 50;

@@ -6,6 +6,7 @@ import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider
 import 'package:BlueEra/features/common/auth/views/screens/Individual/add_bio_via_ai_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/Individual/personal_account_new_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_one.dart';
+import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_four.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_three.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_two.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
@@ -594,6 +595,9 @@ class RouteHelper {
 
   static String getCreateBusinessAccountNewStepThreeRoute() =>
       RouteConstant.createBusinessAccountNewStepThree;
+
+  static String getCreateBusinessAccountNewStepFourRoute() =>
+      RouteConstant.createBusinessAccountNewStepFour;
 
   static String getPersonalAccountNewScreenRoute() =>
       RouteConstant.personalAccountNewScreen;
@@ -1695,6 +1699,13 @@ class RouteHelper {
             builder: (_) => CreateBusinessAccountNewStepThree(city: city),
             settings: RouteSettings(
                 name: getCreateBusinessAccountNewStepThreeRoute()));
+      case RouteConstant.createBusinessAccountNewStepFour:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final String? city = args?[ApiKeys.city] as String?;
+        return MaterialPageRoute(
+            builder: (_) => CreateBusinessAccountNewStepFour(city: city),
+            settings: RouteSettings(
+                name: getCreateBusinessAccountNewStepFourRoute()));
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;

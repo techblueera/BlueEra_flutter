@@ -156,6 +156,15 @@ mixin UserServiceApi {
   String getBusinessSubCategory(String tagId) =>
       'user-service/business/by-tag/$tagId/subcategories';
 
+  // ── Ready-written business descriptions ─────────────────────────────
+  // Predefined descriptions per category (and per subcategory where the
+  // category has them). No auth needed. Query params: category /
+  // category_id / category_tag_id / category_name, sub_category /
+  // sub_category_id / sub_category_name, business_name, limit.
+  // See docs/FLUTTER_BUSINESS_DESCRIPTION_SUGGESTIONS_GUIDE.md
+  final String businessDescriptionSuggestions =
+      'user-service/business/description-suggestions';
+
   // ── Verification docs ───────────────────────────────────────────────
   final String postVerifyBusinessDocs =
       '/user-service/business/postVerifyBusinessDocs';
@@ -329,6 +338,14 @@ mixin UserServiceApi {
   final String individualProfessions = 'user-service/individual-professions';
   String getIndividualFields(String tagId) =>
       'user-service/individual-professions/$tagId/designation';
+
+  // Ready-written bios per profession (and per designation where the
+  // profession has them). No auth needed. Query params: profession /
+  // profession_id / profession_tag_id / profession_name, subcategory /
+  // subcategory_id / subcategory_tag_id / subcategory_name, limit.
+  // See docs/FLUTTER_INDIVIDUAL_BIO_SUGGESTIONS_GUIDE.md
+  final String individualBioSuggestions =
+      'user-service/individual-professions/bio-suggestions';
 
   // ──────────────────────────────────────────────────────────────────────
   // 8. Upload (S3 presigned)

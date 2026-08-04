@@ -1,0 +1,19 @@
+{
+  "aadhaarConsentDeclaration": "I voluntarily share my Aadhaar number and consent to its use for identity verification.",
+  "sendOtp": "Send OTP",
+  "aadhaarOtpFallbackNote": "If the OTP isn't coming through, verify with your Aadhaar photos instead — upload the front and back below.",
+  "verifyUsingAadhaarPhoto": "Verify using Aadhaar photo",
+  "uploadAadhaarPhotoHint": "Upload a clear photo of the front of your Aadhaar card. The back is optional.",
+  "uploadAadhaarFront": "Upload Aadhaar Front",
+  "uploadAadhaarBackOptional": "Upload Aadhaar Back (Optional)",
+  "submitAadhaarImages": "Submit Aadhaar Images",
+  "enterSixDigitOtp": "Enter the 6-digit OTP",
+  "sentToAadhaarLinkedMobile": "Sent to your Aadhaar-linked mobile number",
+  "resendInFmt": "Resend in @seconds",
+  "resendOtp": "Resend OTP",
+  "editAadhaarNumber": "Edit Aadhaar number",
+  "aadhaarVerified": "Aadhaar Verified",
+  "verifyOtp": "Verify OTP",
+  "didntGetOtpCode": "Didn't get OTP code?",
+  "orLabel": "OR"
+}

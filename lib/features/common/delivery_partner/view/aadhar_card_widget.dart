@@ -76,8 +76,10 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         children: [
           CommonTextField(
             textEditController: controller.aadharController,
-            title: AppStrings.aadharNumber,
-            hintText: 'E.g. 5678 1234 6679 9012',
+            // `title`/`hintText` are rendered verbatim — the key has to be
+            // resolved here, or the raw identifier shows up on screen.
+            title: AppStrings.aadharNumber.tr,
+            hintText: AppStrings.egAadharNo.tr,
             keyBoardType: TextInputType.number,
             validator: ValidationMethod.validateAadhaar,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -107,7 +109,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                   SizedBox(width: SizeConfig.size8),
                   Expanded(
                     child: CustomText(
-                      'I voluntarily share my Aadhaar number and consent to its use for identity verification.',
+                      AppStrings.aadhaarConsentDeclaration.tr,
                       fontSize: SizeConfig.small,
                       color: AppColors.coloGreyText,
                       maxLines: 4,
@@ -121,7 +123,9 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
 
           Obx(
             () => CustomBtn(
-              title: controller.isAadhaarOtpSending.value ? null : 'Send OTP',
+              title: controller.isAadhaarOtpSending.value
+                  ? null
+                  : AppStrings.sendOtp.tr,
               onTap: controller.isAadhaarOtpSending.value
                   ? null
                   : () => controller.generateAadhaarOtp(),
@@ -145,8 +149,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         SizedBox(width: SizeConfig.size6),
         Expanded(
           child: CustomText(
-            "If the OTP isn't coming through, verify with your Aadhaar photos "
-            "instead — upload the front and back below.",
+            AppStrings.aadhaarOtpFallbackNote.tr,
             fontSize: SizeConfig.small,
             color: AppColors.red,
             maxLines: 3,
@@ -164,7 +167,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: CustomText(
-            'OR',
+            AppStrings.orLabel.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600,
             color: AppColors.coloGreyText,
@@ -186,39 +189,39 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CustomText(
-            'Verify using Aadhaar photo',
+            AppStrings.verifyUsingAadhaarPhoto.tr,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
           ),
         SizedBox(height: SizeConfig.size4),
         CustomText(
-          'Upload a clear photo of the front of your Aadhaar card. The back is optional.',
+          AppStrings.uploadAadhaarPhotoHint.tr,
           fontSize: SizeConfig.small,
           color: AppColors.coloGreyText,
           maxLines: 2,
         ),
         SizedBox(height: SizeConfig.paddingS),
         CommonImageUploadTile(
-          title: 'Upload Aadhaar Front',
+          title: AppStrings.uploadAadhaarFront.tr,
           imageFile: controller.aadharFrontImage,
           context: context,
-          onImageSelected: () =>
-              _pickAadhaarImage(controller.aadharFrontImage, 'Aadhaar Front'),
+          onImageSelected: () => _pickAadhaarImage(
+              controller.aadharFrontImage, AppStrings.aadharFront.tr),
         ),
         SizedBox(height: SizeConfig.paddingS),
         CommonImageUploadTile(
-          title: 'Upload Aadhaar Back (Optional)',
+          title: AppStrings.uploadAadhaarBackOptional.tr,
           imageFile: controller.aadharBackImage,
           context: context,
-          onImageSelected: () =>
-              _pickAadhaarImage(controller.aadharBackImage, 'Aadhaar Back'),
+          onImageSelected: () => _pickAadhaarImage(
+              controller.aadharBackImage, AppStrings.aadharBack.tr),
         ),
         SizedBox(height: SizeConfig.paddingM),
         Obx(
           () => CustomBtn(
             title: controller.isAadhaarImageSubmitting.value
                 ? null
-                : 'Submit Aadhaar Images',
+                : AppStrings.submitAadhaarImages.tr,
             onTap: controller.isAadhaarImageSubmitting.value
                 ? null
                 : () => controller.submitAadhaarImages(),
@@ -265,13 +268,13 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         CustomText(
-          'Enter the 6-digit OTP',
+          AppStrings.enterSixDigitOtp.tr,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w600,
         ),
         SizedBox(height: SizeConfig.size6),
         CustomText(
-          'Sent to your Aadhaar-linked mobile number',
+          AppStrings.sentToAadhaarLinkedMobile.tr,
           fontSize: SizeConfig.small,
           color: AppColors.coloGreyText,
           textAlign: TextAlign.center,
@@ -294,13 +297,16 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               CustomText(
-                "Didn't get the OTP?",
+                AppStrings.didntGetOtpCode.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.coloGreyText,
               ),
               if (controller.aadhaarResendSeconds.value > 0)
                 CustomText(
-                  'Resend in ${controller.aadhaarResendSeconds.value}s',
+                  // Placeholder rather than concatenation — the countdown sits
+                  // in a different position across languages.
+                  AppStrings.resendInFmt.trParams(
+                      {'seconds': '${controller.aadhaarResendSeconds.value}s'}),
                   fontSize: SizeConfig.small,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
@@ -309,7 +315,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                 InkWell(
                   onTap: () => controller.generateAadhaarOtp(),
                   child: CustomText(
-                    'Resend OTP',
+                    AppStrings.resendOtp.tr,
                     fontSize: SizeConfig.small,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
@@ -322,8 +328,9 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         SizedBox(height: SizeConfig.paddingM),
         Obx(
           () => CustomBtn(
-            title:
-                controller.isAadhaarOtpVerifying.value ? null : 'Verify OTP',
+            title: controller.isAadhaarOtpVerifying.value
+                ? null
+                : AppStrings.verifyOtp.tr,
             onTap: controller.isAadhaarOtpVerifying.value
                 ? null
                 : () => controller.verifyAadhaarOtp(),
@@ -336,7 +343,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         InkWell(
           onTap: () => controller.editAadhaarNumber(),
           child: CustomText(
-            '✎ Edit Aadhaar number',
+            '✎ ${AppStrings.editAadhaarNumber.tr}',
             fontSize: SizeConfig.small,
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
@@ -369,19 +376,19 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           ),
           SizedBox(height: SizeConfig.size10),
           CustomText(
-            'Aadhaar Verified',
+            AppStrings.aadhaarVerified.tr,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w700,
             color: AppColors.green00,
           ),
           SizedBox(height: SizeConfig.size12),
           if (name != null && name.isNotEmpty)
-            _infoRow('Name', name),
+            _infoRow(AppStrings.nameLabel.tr, name),
           if (masked != null && masked.isNotEmpty)
-            _infoRow('Aadhaar', masked),
+            _infoRow(AppStrings.aadharNumber.tr, masked),
           SizedBox(height: SizeConfig.paddingM),
           CustomBtn(
-            title: 'Done',
+            title: AppStrings.done.tr,
             onTap: () => Get.back(),
             radius: 10.0,
             bgColor: AppColors.primaryColor,

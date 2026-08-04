@@ -760,6 +760,14 @@ class AppStrings {
   static const selectSuggestion = "selectSuggestion";
   static const noSuggestionsFound = "noSuggestionsFound";
 
+  /// READY-WRITTEN BIO SUGGESTIONS (individual-professions/bio-suggestions).
+  /// English copy lives in assets/translations/en.json, which every other
+  /// locale falls back to until it is translated.
+  static const suggestedBios = "suggestedBios";
+  static const tapToUseBioSuggestion = "tapToUseBioSuggestion";
+  static const noBioSuggestions = "noBioSuggestions";
+  static const couldNotLoadBioSuggestions = "couldNotLoadBioSuggestions";
+
   ///PERSONAL ACCOUNT NEW SCREEN
   static const profileType = "profileType";
   static const yourDetails = "yourDetails";
@@ -1919,6 +1927,19 @@ class AppStrings {
   static const String noDescriptionsYet = 'noDescriptionsYet';
   static const String selectDescription = 'selectDescription';
 
+  /// BUSINESS DESCRIPTION STEP (create-account step 4). Literal English —
+  /// these keys have no translation entry yet, so `.tr` would render the key.
+  static const String businessDescriptionTitle = "Business Description";
+  static const String businessDescriptionSubtitle =
+      "Tell customers what your business does. Pick a ready-made description below and edit it, or write your own.";
+  static const String suggestedDescriptions = "Suggested descriptions";
+  static const String tapToUseSuggestion = "Tap one to use it";
+  static const String noDescriptionSuggestions =
+      "No ready-made descriptions for your category yet — write your own below.";
+  static const String couldNotLoadSuggestions =
+      "Couldn't load suggestions. You can still write your own.";
+  static const String retryLoadSuggestions = "Retry";
+
   static const String pleaseChooseChargesType = 'pleaseChooseChargesType';
   static const String highlightsIsRequired = 'highlightsIsRequired';
   static const String pleaseFillAllFieldsCorrectly = 'pleaseFillAllFieldsCorrectly';
@@ -1970,6 +1991,30 @@ class AppStrings {
   static const String uploadAadharBothSide = 'uploadAadharBothSide';
   static const String aadharFront = 'aadharFront';
   static const String aadharBack = 'aadharBack';
+
+  /// AADHAAR OKYC (OTP) VERIFICATION SHEET — `aadhar_card_widget.dart`.
+  /// Copy for en/hi/gu/mr/kn lives in assets/translations and is pushed to the
+  /// language API by scripts/aadhaar_okyc_localization.py.
+  static const String aadhaarConsentDeclaration = 'aadhaarConsentDeclaration';
+  static const String sendOtp = 'sendOtp';
+  static const String aadhaarOtpFallbackNote = 'aadhaarOtpFallbackNote';
+  static const String verifyUsingAadhaarPhoto = 'verifyUsingAadhaarPhoto';
+  static const String uploadAadhaarPhotoHint = 'uploadAadhaarPhotoHint';
+  static const String uploadAadhaarFront = 'uploadAadhaarFront';
+  static const String uploadAadhaarBackOptional = 'uploadAadhaarBackOptional';
+  static const String submitAadhaarImages = 'submitAadhaarImages';
+  static const String enterSixDigitOtp = 'enterSixDigitOtp';
+  static const String sentToAadhaarLinkedMobile = 'sentToAadhaarLinkedMobile';
+
+  /// `@seconds` placeholder — resolve with `.trParams({'seconds': '30s'})`.
+  static const String resendInFmt = 'resendInFmt';
+  static const String resendOtp = 'resendOtp';
+  static const String editAadhaarNumber = 'editAadhaarNumber';
+  static const String aadhaarVerified = 'aadhaarVerified';
+
+  /// Generic label that already existed in the translation files but had no
+  /// constant here. (The "OR" separator reuses the existing [orLabel].)
+  static const String nameLabel = 'name';
   static const String panNumber = 'panNumber';
   static const String egABCDE12 = 'egABCDE12';
   static const String uploadPan = 'uploadPan';

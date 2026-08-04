@@ -1,0 +1,19 @@
+{
+  "aadhaarConsentDeclaration": "હું સ્વેચ્છાએ મારો આધાર નંબર શેર કરું છું અને ઓળખ ચકાસણી માટે તેના ઉપયોગની સંમતિ આપું છું.",
+  "sendOtp": "OTP મોકલો",
+  "aadhaarOtpFallbackNote": "જો OTP ન આવી રહ્યો હોય, તો તમારા આધારના ફોટાથી ચકાસો — નીચે આગળ અને પાછળનો ફોટો અપલોડ કરો.",
+  "verifyUsingAadhaarPhoto": "આધાર ફોટોથી ચકાસો",
+  "uploadAadhaarPhotoHint": "તમારા આધાર કાર્ડની આગળની બાજુનો સ્પષ્ટ ફોટો અપલોડ કરો. પાછળની બાજુ વૈકલ્પિક છે.",
+  "uploadAadhaarFront": "આધાર ફ્રન્ટ અપલોડ કરો",
+  "uploadAadhaarBackOptional": "આધાર બેક અપલોડ કરો (વૈકલ્પિક)",
+  "submitAadhaarImages": "આધાર ફોટા સબમિટ કરો",
+  "enterSixDigitOtp": "6 અંકનો OTP દાખલ કરો",
+  "sentToAadhaarLinkedMobile": "તમારા આધાર સાથે જોડાયેલા મોબાઇલ નંબર પર મોકલાયો",
+  "resendInFmt": "@seconds માં ફરી મોકલો",
+  "resendOtp": "OTP ફરી મોકલો",
+  "editAadhaarNumber": "આધાર નંબર બદલો",
+  "aadhaarVerified": "આધાર ચકાસાયેલ",
+  "verifyOtp": "OTP ચકાસો",
+  "didntGetOtpCode": "OTP કોડ મળ્યો નથી?",
+  "orLabel": "અથવા"
+}

@@ -54,6 +54,23 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
+  /// Ready-written descriptions for a category / subcategory. [params] takes
+  /// `category`, `sub_category`, `business_name`, `limit` — Dio encodes them,
+  /// which matters because category names carry spaces and `&`.
+  /// See docs/FLUTTER_BUSINESS_DESCRIPTION_SUGGESTIONS_GUIDE.md
+  Future<ResponseModel> getBusinessDescriptionSuggestions(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      businessDescriptionSuggestions,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+
+    return response;
+  }
+
   Future<ResponseModel> uploadBusinessDescription(
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().putHTTP(

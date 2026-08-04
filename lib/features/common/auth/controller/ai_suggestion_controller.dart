@@ -13,6 +13,10 @@ class AiSuggestionController extends GetxController {
   var selectedSuggestion = ''.obs;
 
   /// Fetch AI suggestions (like bio, description, etc.)
+  ///
+  /// The ready-written (non-AI) bios per profession live on
+  /// [BioSuggestionController] — separate state, separate endpoint, so both
+  /// entry points can sit on the same screen without clashing.
   Future<void> fetchSuggestions({
     required Map<String, dynamic> bodyRequest,
     required String apiType, // e.g. "bio" or "description"

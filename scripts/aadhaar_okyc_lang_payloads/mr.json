@@ -1,0 +1,19 @@
+{
+  "aadhaarConsentDeclaration": "मी स्वेच्छेने माझा आधार क्रमांक सामायिक करतो/करते आणि ओळख पडताळणीसाठी त्याच्या वापरास संमती देतो/देते.",
+  "sendOtp": "OTP पाठवा",
+  "aadhaarOtpFallbackNote": "OTP येत नसेल, तर तुमच्या आधारच्या फोटोंनी पडताळणी करा — खाली पुढील आणि मागील फोटो अपलोड करा.",
+  "verifyUsingAadhaarPhoto": "आधार फोटोने पडताळणी करा",
+  "uploadAadhaarPhotoHint": "तुमच्या आधार कार्डाच्या पुढील बाजूचा स्पष्ट फोटो अपलोड करा. मागील बाजू ऐच्छिक आहे.",
+  "uploadAadhaarFront": "आधार पुढील बाजू अपलोड करा",
+  "uploadAadhaarBackOptional": "आधार मागील बाजू अपलोड करा (ऐच्छिक)",
+  "submitAadhaarImages": "आधार फोटो सबमिट करा",
+  "enterSixDigitOtp": "6 अंकी OTP प्रविष्ट करा",
+  "sentToAadhaarLinkedMobile": "तुमच्या आधारशी जोडलेल्या मोबाइल क्रमांकावर पाठवला",
+  "resendInFmt": "@seconds मध्ये पुन्हा पाठवा",
+  "resendOtp": "OTP पुन्हा पाठवा",
+  "editAadhaarNumber": "आधार क्रमांक बदला",
+  "aadhaarVerified": "आधार पडताळले",
+  "verifyOtp": "OTP सत्यापित करा",
+  "didntGetOtpCode": "OTP कोड मिळाला नाही?",
+  "orLabel": "किंवा"
+}
