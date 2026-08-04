@@ -735,9 +735,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// one-line CTA left a tall empty panel with the text floating in the middle
   /// of it, which read as a broken image rather than a prompt.
   ///
-  /// This is a banner-shaped strip instead: tall enough for the icon, two lines
-  /// of copy and the button, short enough that the category grid starts near
-  /// the fold where a guest can actually see there is an app under the nag.
+  /// A banner-shaped strip: tall enough for the badge, two lines of copy and
+  /// the button, short enough that the category grid starts near the fold
+  /// where a guest can actually see there is an app under the prompt.
   static const double _kGuestPromptHeight = 128;
 
   double _headerBannerHeight(BuildContext context) {
@@ -1133,32 +1133,45 @@ class _GuestProfilePromptCard extends StatelessWidget {
         child: InkWell(
           onTap: createProfileScreen,
           borderRadius: BorderRadius.circular(16),
-          // SOLID brand blue, not a tint.
+          // White card, blue only on the badge and the button.
           //
-          // Everything else in this header — the location pill, the search bar,
-          // the glass panel itself — is white on near-white. A pale card here
-          // made the one element asking the user to act the faintest thing on
-          // screen, while the category tiles below it are fully saturated. One
-          // solid block of the app's own blue makes this the only weighted
-          // object in the header, which is the hierarchy a single conversion
-          // CTA should have.
+          // The header already speaks in white pills — the location pill, the
+          // search bar. A card in that same language belongs here; a solid
+          // block of colour fought the category tiles below for attention and
+          // made the header top-heavy. Colour is spent only where it marks an
+          // action.
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryColor,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14101828),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16,
+              horizontal: SizeConfig.size14,
               vertical: SizeConfig.size12,
             ),
             child: Row(
               children: [
-                // Same gift motif as GuestClaimBonusDialog, inverted to sit on
-                // the blue — so the two guest prompts read as one idea.
-                Icon(
-                  Icons.card_giftcard_rounded,
-                  size: 34,
-                  color: AppColors.white,
+                // Same gift motif as GuestClaimBonusDialog, so the two guest
+                // prompts read as one idea.
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryColor.withValues(alpha: 0.12),
+                  ),
+                  child: Icon(
+                    Icons.card_giftcard_rounded,
+                    size: 22,
+                    color: AppColors.primaryColor,
+                  ),
                 ),
                 SizedBox(width: SizeConfig.size12),
                 Expanded(
@@ -1173,7 +1186,7 @@ class _GuestProfilePromptCard extends StatelessWidget {
                         'Unlock your rewards',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.white,
+                        color: AppColors.mainTextColor,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1181,7 +1194,7 @@ class _GuestProfilePromptCard extends StatelessWidget {
                       CustomText(
                         'Your own promo card and wallet bonus',
                         fontSize: SizeConfig.small,
-                        color: AppColors.white.withValues(alpha: 0.85),
+                        color: AppColors.secondaryTextColor,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1189,8 +1202,6 @@ class _GuestProfilePromptCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
-                // White pill on blue — inverted from every other button in the
-                // app, which is what makes it read as the primary action here.
                 // Wording matches where it goes (createProfileScreen), so the
                 // label the user taps is the screen they land on.
                 Container(
@@ -1199,14 +1210,14 @@ class _GuestProfilePromptCard extends StatelessWidget {
                     vertical: SizeConfig.size10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: CustomText(
                     'Create profile',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primaryColor,
+                    color: AppColors.white,
                   ),
                 ),
               ],
