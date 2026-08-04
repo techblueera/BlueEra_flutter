@@ -111,10 +111,29 @@ class OtherBusinessProfile {
   String? typeOfBusiness;
   String? categoryOfBusiness;
   String? subCategoryOfBusiness;
+  /// Human-readable category label from `/full` (`category_details.name`).
+  /// The hero uses this in preference to the raw `categoryOfBusiness` slug
+  /// (e.g. "Banking Sector" vs. "BANKING_SECTOR").
+  String? categoryDetailsName;
+  /// Human-readable sub-category label from `/full`
+  /// (`sub_category_details.name`), e.g. "Digital Bank".
+  String? subCategoryDetailsName;
+  /// `profile.rating` — legacy integer field, kept for back-compat with the
+  /// search-list rendering. `avgRating` from `/full` is the display value.
   double? rating;
+  /// `profile.avg_rating` from `/full` — the server-computed average that
+  /// the hero shows next to `totalRatings`.
+  double? avgRating;
+  /// `profile.total_ratings` from `/full` — used to render "(N reviews)".
+  int? totalRatings;
   String? coverUrl;
   String? logoUrl;
   String? address;
+  /// `profile.business_description` from `/full` — the paragraph the hero
+  /// renders in its description block.
+  String? businessDescription;
+  /// `profile.website_url` from `/full`.
+  String? websiteUrl;
   OtherLatLng? businessLocation;
   OtherProfileLocation? location;
   OtherDateOfIncorporation? dateOfIncorporation;
@@ -129,10 +148,16 @@ class OtherBusinessProfile {
     this.typeOfBusiness,
     this.categoryOfBusiness,
     this.subCategoryOfBusiness,
+    this.categoryDetailsName,
+    this.subCategoryDetailsName,
     this.rating,
+    this.avgRating,
+    this.totalRatings,
     this.coverUrl,
     this.logoUrl,
     this.address,
+    this.businessDescription,
+    this.websiteUrl,
     this.businessLocation,
     this.location,
     this.dateOfIncorporation,
@@ -148,11 +173,25 @@ class OtherBusinessProfile {
     typeOfBusiness = json['type_of_business']?.toString();
     categoryOfBusiness = json['category_Of_Business']?.toString();
     subCategoryOfBusiness = json['sub_category_Of_Business']?.toString();
+    final catDetails = json['category_details'];
+    if (catDetails is Map) {
+      categoryDetailsName = catDetails['name']?.toString();
+    }
+    final subCatDetails = json['sub_category_details'];
+    if (subCatDetails is Map) {
+      subCategoryDetailsName = subCatDetails['name']?.toString();
+    }
     final r = json['rating'];
     rating = r is num ? r.toDouble() : null;
+    final avg = json['avg_rating'];
+    avgRating = avg is num ? avg.toDouble() : null;
+    final tot = json['total_ratings'];
+    totalRatings = tot is num ? tot.toInt() : null;
     coverUrl = json['coverUrl']?.toString();
     logoUrl = json['logoUrl']?.toString();
     address = (json['address'] ?? json['full_address'])?.toString();
+    businessDescription = json['business_description']?.toString();
+    websiteUrl = json['website_url']?.toString();
     businessLocation = OtherLatLng.fromRaw(json['business_location']);
     final l = json['location'];
     if (l is Map) {

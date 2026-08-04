@@ -113,6 +113,39 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
     FinanceEnquirySheet.open(context, data: data);
   }
 
+  /// Build a [VisitBusinessHeroOverrides] from the /full-endpoint
+  /// [FinanceBusinessItem] so the hero renders authoritative fields
+  /// (avg_rating, total_ratings, business_description, category_details.name)
+  /// rather than the values the shared business-profile endpoint returns.
+  VisitBusinessHeroOverrides _overridesFromFinance(FinanceBusinessItem d) {
+    final chip = (d.subCategoryDetailsName?.trim().isNotEmpty ?? false)
+        ? d.subCategoryDetailsName
+        : (d.categoryDetailsName?.trim().isNotEmpty ?? false)
+            ? d.categoryDetailsName
+            : d.category;
+    final coords = d.location?.coordinates;
+    double? lat, lng;
+    if (coords != null && coords.length >= 2) {
+      // GeoJSON `[lng, lat]` convention.
+      lng = coords[0].toDouble();
+      lat = coords[1].toDouble();
+    }
+    return VisitBusinessHeroOverrides(
+      coverUrl: d.coverUrl,
+      logoUrl: d.logoUrl,
+      businessName: d.profileName,
+      chipLabel: chip,
+      avgRating: d.avgRating ?? d.rating,
+      totalRatings: d.totalRatings,
+      address: d.location?.name,
+      description: d.businessDescription ?? d.description,
+      latitude: lat,
+      longitude: lng,
+      businessId: d.businessId,
+      userId: d.userId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,14 +214,24 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 }
                 final details = viewBusinessDetailsController
                     .visitedBusinessProfileDetails?.data;
+                // `data` here is the /full payload from
+                // FinanceDiscoverController.fetchDetail — feed it through
+                // the hero's overrides so avg/total ratings, description
+                // and pretty category labels come from /full rather than
+                // the stale shared business-profile endpoint.
                 return VisitBusinessHero(
                   details: details,
+                  overrides: _overridesFromFinance(data),
                   scheduleOverride: _financeTimingsToSchedule(data.timings),
-                  onRated: () =>
-                      viewBusinessDetailsController.viewBusinessProfileById(
-                    data.userId ?? '',
-                    silent: true,
-                  ),
+                  onRated: () {
+                    viewBusinessDetailsController.viewBusinessProfileById(
+                      data.userId ?? '',
+                      silent: true,
+                    );
+                    // Refresh /full so hero rating updates in sync.
+                    final id = data.id?.trim() ?? '';
+                    if (id.isNotEmpty) controller.fetchDetail(id);
+                  },
                   onFollowChanged: () =>
                       viewBusinessDetailsController.viewBusinessProfileById(
                     data.userId ?? '',

@@ -27,8 +27,12 @@ class FinanceDiscoverController extends GetxController {
     try {
       isDetailLoading.value = true;
       detailError.value = '';
+      // `showProgress: false` suppresses the global ProgressDialog /
+      // ShimmerListView overlay (see [ApiBaseHelper.addInterceptors]) —
+      // callers of this controller own their own loading state.
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         "other-service/business-profile/$id/full",
+        showProgress: false,
         onError: (e) {},
         onSuccess: (data) {},
       );
@@ -70,8 +74,13 @@ class FinanceDiscoverController extends GetxController {
         isLoading.value = true;
       }
       error.value = '';
+      // `showProgress: false` suppresses the global ProgressDialog /
+      // ShimmerListView overlay so pagination doesn't stack a shimmer on
+      // top of the list. FinanceListScreen renders its own initial + bottom
+      // pagination loaders keyed off `isLoading` / `isLoadingMore`.
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         "other-service/business-profile/search?distance=5000&limit=$_limit&page=$page&sub_type=${selectedCategory.value}",
+        showProgress: false,
         onError: (e) {},
         onSuccess: (data) {},
       );

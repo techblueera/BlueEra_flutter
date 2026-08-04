@@ -18,6 +18,60 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Display fields sourced from the `/other-service/business-profile/{id}/full`
+/// endpoint. When passed to [VisitBusinessHero.overrides], each non-null
+/// field takes priority over the same field read from
+/// [VisitBusinessHero.details]. This lets the finance and other-service
+/// detail screens render the hero directly from their `/full` payload
+/// (via [FinanceDiscoverController.selectedDetail] or
+/// [OtherServiceBusinessSearchController.selectedDetail]) instead of the
+/// stale/partial shared business-profile endpoint.
+///
+/// Only the fields the hero renders are here — anything else (management,
+/// gallery, contactUs, etc.) belongs on the parent screen's body, not the
+/// hero.
+class VisitBusinessHeroOverrides {
+  final String? coverUrl;
+  final String? logoUrl;
+  final String? businessName;
+  final String? chipLabel;
+  final double? avgRating;
+  final int? totalRatings;
+  final String? address;
+  final String? description;
+  final double? latitude;
+  final double? longitude;
+
+  /// Passed to the rate dialog. On the `/full` payload this is
+  /// `profile.businessId` (be_user_service `businesses._id`).
+  final String? businessId;
+
+  /// Passed to the follow / share buttons and deep-link builder. On the
+  /// `/full` payload this is `profile.userId`.
+  final String? userId;
+
+  /// Initial follow state — the shared business-profile controller owns
+  /// this normally, but if the caller has a fresher value from the /full
+  /// flow it can pass it here.
+  final bool? isFollowing;
+
+  const VisitBusinessHeroOverrides({
+    this.coverUrl,
+    this.logoUrl,
+    this.businessName,
+    this.chipLabel,
+    this.avgRating,
+    this.totalRatings,
+    this.address,
+    this.description,
+    this.latitude,
+    this.longitude,
+    this.businessId,
+    this.userId,
+    this.isFollowing,
+  });
+}
+
 /// Edge-to-edge business hero used by the Discover visitor detail screens
 /// (others service, finance, school, hotel). Renders the cover photo, an
 /// overlay app-bar (back / rate / share), avatar + follow pill straddling
@@ -42,12 +96,21 @@ class VisitBusinessHero extends StatefulWidget {
   /// schedule as before.
   final List<Schedule>? scheduleOverride;
 
+  /// Optional field-by-field overrides sourced from the `/full` endpoint
+  /// (see [VisitBusinessHeroOverrides]). When a field is non-null on the
+  /// override it wins over the same field on [details]; when it's null the
+  /// hero falls back to [details] as before. Used by the finance and
+  /// other-service detail screens so the hero reflects the authoritative
+  /// `/full` payload rather than the shared business-profile endpoint.
+  final VisitBusinessHeroOverrides? overrides;
+
   const VisitBusinessHero({
     super.key,
     required this.details,
     this.onFollowChanged,
     this.onRated,
     this.scheduleOverride,
+    this.overrides,
   });
 
   @override
@@ -64,7 +127,8 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   @override
   void initState() {
     super.initState();
-    _isFollowed.value = widget.details?.is_following ?? false;
+    _isFollowed.value =
+        widget.overrides?.isFollowing ?? widget.details?.is_following ?? false;
   }
 
   @override
@@ -73,10 +137,13 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
     // Re-sync when the parent supplies a refreshed profile (pull-to-refresh
     // or silent post-follow reload). Guard against clobbering a pending
     // optimistic toggle by only syncing when the server value actually
-    // changed.
-    final newValue = widget.details?.is_following ?? false;
-    if (oldWidget.details?.is_following != widget.details?.is_following &&
-        _isFollowed.value != newValue) {
+    // changed. Prefer the override when the caller provides one.
+    final newValue =
+        widget.overrides?.isFollowing ?? widget.details?.is_following ?? false;
+    final oldValue = oldWidget.overrides?.isFollowing ??
+        oldWidget.details?.is_following ??
+        false;
+    if (oldValue != newValue && _isFollowed.value != newValue) {
       _isFollowed.value = newValue;
     }
   }
@@ -84,19 +151,28 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   @override
   Widget build(BuildContext context) {
     final d = details;
-    final name = (d?.businessName ?? '').trim();
+    final o = widget.overrides;
+    // Override wins when non-null/non-empty; otherwise fall back to the
+    // shared business-profile fields.
+    String pickString(String? overrideVal, String fallback) {
+      final ov = overrideVal?.trim() ?? '';
+      return ov.isNotEmpty ? ov : fallback;
+    }
+
+    final name = pickString(o?.businessName, (d?.businessName ?? '').trim());
     final subCategoryName = (d?.subCategoryDetails?.name ?? '').trim();
-    final chipLabel = subCategoryName.isNotEmpty
+    final detailsChip = subCategoryName.isNotEmpty
         ? subCategoryName
         : (d?.categoryOfBusiness ?? '').trim();
-    final avgRating = d?.avg_rating;
-    final totalRatings = (d?.total_ratings ?? 0).toInt();
-    final address = (d?.address ?? '').trim();
-    final description = (d?.businessDescription ?? '').trim();
-    final distanceKm = calculateDistance(
-      d?.businessLocation?.lat?.toDouble() ?? 0.0,
-      d?.businessLocation?.lon?.toDouble() ?? 0.0,
-    );
+    final chipLabel = pickString(o?.chipLabel, detailsChip);
+    final avgRating = o?.avgRating ?? d?.avg_rating;
+    final totalRatings = o?.totalRatings ?? (d?.total_ratings ?? 0).toInt();
+    final address = pickString(o?.address, (d?.address ?? '').trim());
+    final description =
+        pickString(o?.description, (d?.businessDescription ?? '').trim());
+    final lat = o?.latitude ?? d?.businessLocation?.lat?.toDouble() ?? 0.0;
+    final lng = o?.longitude ?? d?.businessLocation?.lon?.toDouble() ?? 0.0;
+    final distanceKm = calculateDistance(lat, lng);
     final hasDistance = distanceKm != null && distanceKm > 0;
     final override = widget.scheduleOverride;
     final effectiveSchedule = (override != null && override.isNotEmpty)
@@ -240,7 +316,10 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
     final topInset = MediaQuery.of(context).padding.top;
     final coverHeight = coverBodyHeight + topInset;
     final stackHeight = coverHeight + straddleBelow;
-    final coverUrl = (details?.coverimage ?? '').trim();
+    final overrideCover = widget.overrides?.coverUrl?.trim() ?? '';
+    final coverUrl = overrideCover.isNotEmpty
+        ? overrideCover
+        : (details?.coverimage ?? '').trim();
     return SizedBox(
       height: stackHeight,
       child: Stack(
@@ -360,7 +439,10 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   }
 
   Future<void> _onRateTap() async {
-    final businessId = (details?.id ?? '').trim();
+    final overrideBusinessId = widget.overrides?.businessId?.trim() ?? '';
+    final businessId = overrideBusinessId.isNotEmpty
+        ? overrideBusinessId
+        : (details?.id ?? '').trim();
     if (businessId.isEmpty) return;
     final success = await showDialog(
       context: context,
@@ -373,8 +455,15 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   }
 
   Future<void> _onShareTap() async {
-    final name = (details?.businessName ?? 'this profile').trim();
-    final link = serviceDeepLinkBusiness(id: details?.userId);
+    final overrideName = widget.overrides?.businessName?.trim() ?? '';
+    final name = overrideName.isNotEmpty
+        ? overrideName
+        : (details?.businessName ?? 'this profile').trim();
+    final userIdForLink =
+        widget.overrides?.userId?.trim().isNotEmpty ?? false
+            ? widget.overrides!.userId
+            : details?.userId;
+    final link = serviceDeepLinkBusiness(id: userIdForLink);
     await ShareService.instance.openShareSheet(
       text: 'Check out $name on BlueEra:\n$link',
       subject: name,
@@ -382,7 +471,10 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   }
 
   Widget _buildAvatar() {
-    final logoUrl = (details?.logo ?? '').trim();
+    final overrideLogo = widget.overrides?.logoUrl?.trim() ?? '';
+    final logoUrl = overrideLogo.isNotEmpty
+        ? overrideLogo
+        : (details?.logo ?? '').trim();
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -454,6 +546,15 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
   Widget _buildFollowPill() {
     return Obx(() {
       final followed = _isFollowed.value;
+      // Prefer override ids (from /full) when supplied; otherwise fall back
+      // to the shared business-profile ids.
+      final overrideBusinessId = widget.overrides?.businessId?.trim() ?? '';
+      final overrideUserId = widget.overrides?.userId?.trim() ?? '';
+      final businessId = overrideBusinessId.isNotEmpty
+          ? overrideBusinessId
+          : details?.id;
+      final ownerUserId =
+          overrideUserId.isNotEmpty ? overrideUserId : details?.userId;
       return GestureDetector(
         onTap: () async {
           if (isGuestUser()) {
@@ -461,18 +562,18 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
             return;
           }
           final store = GetAllStoreResModel(
-            id: details?.id,
-            userId: details?.userId,
+            id: businessId,
+            userId: ownerUserId,
           );
           if (followed) {
             await _storeController.unFollowBusinessUser(
-              businessId: details?.userId,
+              businessId: ownerUserId,
               store: store,
             );
             _isFollowed.value = false;
           } else {
             await _storeController.followBusinessUser(
-              businessId: details?.userId,
+              businessId: ownerUserId,
               store: store,
             );
             _isFollowed.value = true;

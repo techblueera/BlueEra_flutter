@@ -419,6 +419,7 @@ class AppIconAssets {
   static const String standardIcon = "${iconPath}standard.svg";
   static const String discountIcon = "${iconPath}discount.svg";
   static const String laboratoryIcon = "${iconPath}laboratory.svg";
+  static const String expertiesIcon = "${iconPath}experties.svg";
 
   // ── Discover education-service quick-info icons ─────────────────
   // College/University

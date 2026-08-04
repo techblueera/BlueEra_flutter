@@ -242,8 +242,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Widget selfProfessionCard(SchoolDetailsData service) {
-    const String na = 'N/A';
-
     // Hero shows the cover banner, never the logo. Falls back to gallery
     // photos only when the school hasn't uploaded a banner yet.
     final List<String> coverImages = <String>[];
@@ -258,19 +256,19 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     }
 
     final String name =
-        (service.name?.isNotEmpty ?? false) ? service.name! : na;
+        (service.name?.isNotEmpty ?? false) ? service.name! : '';
     final String address = (service.location?.name?.isNotEmpty ?? false)
         ? service.location!.name!
-        : na;
+        : '';
     final String distance = _distanceFromUser(service);
     final String numberOfStudents =
         (service.numberOfStudents != null && service.numberOfStudents! > 0)
             ? '${service.numberOfStudents}'
-            : na;
+            : '';
     final double? ratingValue = service.avgRating;
     final String rating = (ratingValue != null && ratingValue > 0)
         ? ratingValue.toStringAsFixed(1)
-        : na;
+        : '';
 
     // Three category-appropriate highlight cells for the stats row. For
     // a School listing this yields Class Range / Board / Medium; for a
@@ -363,9 +361,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   /// `service.quickInfoRaw`. Falls back to school-flavoured defaults
   /// when the category isn't resolvable — that's what the old card
   /// showed, so this keeps behaviour identical for the historical
-  /// case.
+  /// case. Empty fields are skipped entirely (no "N/A Board" filler).
   List<_HighlightCell> _buildHighlightCells(SchoolDetailsData service) {
-    const na = 'N/A';
     final resolvedKey =
         resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
     final schema = resolvedKey != null
@@ -379,9 +376,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       if (key == 'numberOfStudents') continue; // rendered in the fee row
       if (cells.length >= 3) break;
       final value = raw[key] ?? _typedFallback(service, key);
+      final label = _formatCellLabel(key, value);
+      if (label.isEmpty) continue;
       cells.add(_HighlightCell(
         icon: _iconForKey(key),
-        label: _formatCellLabel(key, value, na),
+        label: label,
       ));
     }
     return cells;
@@ -408,20 +407,22 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   /// Compact suffix rendering per field, matching the previous card's
   /// "CBSE Board" / "English Medium" style but generalised to any
-  /// list/string/number value.
-  String _formatCellLabel(String key, dynamic value, String na) {
+  /// list/string/number value. Returns empty string when the source
+  /// value has nothing meaningful — the caller then skips the cell
+  /// instead of rendering an "N/A" placeholder.
+  String _formatCellLabel(String key, dynamic value) {
     final suffix = _suffixForKey(key);
     if (value is List) {
-      if (value.isEmpty) return _labelForKey(key, na);
+      if (value.isEmpty) return '';
       final head = value.first.toString();
       if (value.length == 1) return suffix.isEmpty ? head : '$head $suffix';
       return suffix.isEmpty
-          ? '${value.length} ${_labelForKey(key, '').trim()}'
+          ? '${value.length} $suffix'.trim()
           : '${value.length} ${suffix}s';
     }
-    if (value is num) return '$value ${_labelForKey(key, '').trim()}'.trim();
+    if (value is num) return '$value $suffix'.trim();
     final str = value?.toString().trim() ?? '';
-    if (str.isEmpty) return _labelForKey(key, na);
+    if (str.isEmpty) return '';
     return suffix.isEmpty ? str : '$str $suffix';
   }
 
@@ -438,12 +439,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       default:
         return '';
     }
-  }
-
-  /// Placeholder label when a field is empty ("N/A Board", "N/A Medium").
-  String _labelForKey(String key, String na) {
-    final suffix = _suffixForKey(key);
-    return suffix.isEmpty ? na : '$na $suffix';
   }
 
   String _iconForKey(String key) {
@@ -530,13 +525,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   String _distanceFromUser(SchoolDetailsData service) {
     final coords = service.location?.coordinates;
-    if (coords == null || coords.length < 2) return 'N/A';
+    if (coords == null || coords.length < 2) return '';
     // GeoJSON convention used by the API + adapter: [lng, lat].
     final lng = coords[0].toDouble();
     final lat = coords[1].toDouble();
-    if (lat == 0.0 || lng == 0.0) return 'N/A';
+    if (lat == 0.0 || lng == 0.0) return '';
     final km = calculateDistance(lat, lng);
-    if (km == null) return 'N/A';
+    if (km == null) return '';
     if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m Away';
     if (km < 10) return '${km.toStringAsFixed(1)}KM Away';
     return '${km.toStringAsFixed(0)}KM Away';
@@ -655,30 +650,31 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           fit: StackFit.expand,
           children: [
             imageWidget,
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.black25,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.star, size: 14, color: AppColors.yellow),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      rating,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                    ),
-                  ],
+            if (rating.isNotEmpty)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.black25,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, size: 14, color: AppColors.yellow),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        rating,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             Positioned(
               top: 10,
               right: 10,
@@ -772,6 +768,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       if (distance.isNotEmpty) distance,
       if (address.isNotEmpty) address,
     ].join(' · ');
+    final bool showLocation = location.isNotEmpty;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -789,39 +786,42 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DiscoverProfileTap(
-                accountType: AppConstants.business,
-                businessId: service.id,
-                userId: service.ownerId,
-                child: CustomText(
-                  name,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              SizedBox(height: SizeConfig.size2),
-              Row(
-                children: [
-                  LocalAssets(
-                      imagePath: AppIconAssets.location_outline,
-                      imgColor: AppColors.primaryColor,
-                      height: 14,
-                      width: 14),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: CustomText(
-                      location,
-                      fontSize: 12,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+              if (name.isNotEmpty)
+                DiscoverProfileTap(
+                  accountType: AppConstants.business,
+                  businessId: service.id,
+                  userId: service.ownerId,
+                  child: CustomText(
+                    name,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+              if (name.isNotEmpty && showLocation)
+                SizedBox(height: SizeConfig.size2),
+              if (showLocation)
+                Row(
+                  children: [
+                    LocalAssets(
+                        imagePath: AppIconAssets.location_outline,
+                        imgColor: AppColors.primaryColor,
+                        height: 14,
+                        width: 14),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: CustomText(
+                        location,
+                        fontSize: 12,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -873,6 +873,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Widget _buildFeeRow({required String label, required String value}) {
+    final hasValue = value.isNotEmpty;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size10,
@@ -886,26 +887,28 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  label,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.secondaryTextColor,
-                ),
-                const SizedBox(height: 2),
-                CustomText(
-                  value,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+            child: hasValue
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        label,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      const SizedBox(height: 2),
+                      CustomText(
+                        value,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),

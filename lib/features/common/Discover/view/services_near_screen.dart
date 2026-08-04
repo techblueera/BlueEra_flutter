@@ -152,6 +152,13 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   Widget _buildStoreContent(double Function(double) dynamicSize) {
     return Obx(() {
+      // Full-screen loader is gated on BOTH flags so pagination can never
+      // trigger it. `fetchMore` only flips `isLoadingMore` (see
+      // [OtherServiceBusinessSearchController._fetch]) and leaves `isLoading`
+      // false, and `profiles` is non-empty by the time paging kicks in — so
+      // this branch is reachable exclusively on the very first load or on a
+      // category switch, when `fetchInitial` clears the list and sets
+      // `isLoading = true`.
       if (controller.isLoading.value && controller.profiles.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
@@ -178,7 +185,14 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL,
               ),
-              itemCount: controller.profiles.length + (controller.isLoadingMore.value ? 1 : 0),
+              // Trailing row is a plain spinner while `fetchMore` is in
+              // flight. The global ProgressDialog / ShimmerListView overlay
+              // is suppressed for this endpoint (see
+              // [OtherServiceBusinessSearchController._fetch]'s
+              // `showProgress: false`), so this is the only loader that
+              // renders during pagination.
+              itemCount: controller.profiles.length +
+                  (controller.isLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= controller.profiles.length) {
                   return const Padding(
@@ -188,12 +202,10 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                     ),
                   );
                 }
-
                 final item = controller.profiles[index];
-
                 return Padding(
                   padding: EdgeInsets.only(bottom: dynamicSize(12)),
-                  child: ServiceBusinessCard(item: item),
+                  child: ServiceBusinessCard(item: item, index: index),
                 );
               },
             ),

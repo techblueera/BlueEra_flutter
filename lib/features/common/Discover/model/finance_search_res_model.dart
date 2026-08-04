@@ -42,6 +42,23 @@ class FinanceBusinessItem {
   String? createdAt;
   String? updatedAt;
   double? rating;
+  /// `profile.avg_rating` from `/full` — server-computed display average.
+  /// Falls back to [rating] when the endpoint doesn't provide it (older
+  /// search-list rows).
+  double? avgRating;
+  /// `profile.total_ratings` from `/full` — used to render "(N reviews)".
+  int? totalRatings;
+  /// `profile.business_description` from `/full` — the paragraph the
+  /// [VisitBusinessHero] renders below the identity block. Populated from
+  /// the `/full` payload; the search-list rows leave it null.
+  String? businessDescription;
+  /// Human-readable category label from `/full` (`category_details.name`).
+  /// The chip prefers this over the raw [category] slug (e.g.
+  /// "Banking Sector" vs. "BANKING_SECTOR").
+  String? categoryDetailsName;
+  /// Human-readable sub-category label from `/full`
+  /// (`sub_category_details.name`), e.g. "Digital Bank".
+  String? subCategoryDetailsName;
   bool? rbiRegistered;
   List<String>? accountType;
   FinanceBusinessHours? businessHours;
@@ -141,6 +158,30 @@ class FinanceBusinessItem {
 
     final ratingVal = json['rating'] ?? profile?['rating'];
     rating = ratingVal is num ? ratingVal.toDouble() : null;
+
+    final avgRatingVal = json['avg_rating'] ?? profile?['avg_rating'];
+    avgRating = avgRatingVal is num ? avgRatingVal.toDouble() : null;
+
+    final totalRatingsVal = json['total_ratings'] ?? profile?['total_ratings'];
+    totalRatings = totalRatingsVal is num ? totalRatingsVal.toInt() : null;
+
+    // `/full` uses `profile.business_description`; the search endpoint has
+    // `description` at the row level. Accept either so both flows populate.
+    businessDescription = (json['business_description'] ??
+            profile?['business_description'] ??
+            json['description'] ??
+            profile?['description'])
+        ?.toString();
+
+    final catDetails = json['category_details'] ?? profile?['category_details'];
+    if (catDetails is Map) {
+      categoryDetailsName = catDetails['name']?.toString();
+    }
+    final subCatDetails =
+        json['sub_category_details'] ?? profile?['sub_category_details'];
+    if (subCatDetails is Map) {
+      subCategoryDetailsName = subCatDetails['name']?.toString();
+    }
 
     rbiRegistered = (json['rbiRegistered'] ?? profile?['rbiRegistered']) as bool?;
 

@@ -123,11 +123,10 @@ class _LabDiscoverCard extends StatelessWidget {
   });
 
   // ── Data helpers ──────────────────────────────────────────────
-  // Hero shows the cover banner, never the logo. The API field is
-  // `coverPicture` (see `viewBusinessProfileModel.dart` — `coverimage`
-  // is deserialised from `coverPicture`). Falls back to the first live
-  // photo when the lab hasn't uploaded a cover yet.
-  String get _image {
+  /// Cover banner: `coverPicture` (see `viewBusinessProfileModel.dart` —
+  /// `coverimage` deserialises from `coverPicture`), falling back to the
+  /// first live photo when the lab hasn't uploaded a cover yet.
+  String get _cover {
     final cover = item.raw['coverPicture']?.toString() ?? '';
     if (cover.isNotEmpty) return cover;
     final photos = item.raw['live_photos'];
@@ -136,6 +135,23 @@ class _LabDiscoverCard extends StatelessWidget {
       if (first.isNotEmpty) return first;
     }
     return '';
+  }
+
+  /// Profile picture / logo.
+  String get _logo => item.logo.trim();
+
+  /// Hero image: cover first, DP as the fallback so the hero never
+  /// collapses to a bare icon when only the profile photo is available.
+  String get _heroImage {
+    final c = _cover;
+    return c.isNotEmpty ? c : _logo;
+  }
+
+  /// Identity-row logo: DP first, cover as the fallback so the avatar
+  /// stays populated when only the cover exists.
+  String get _identityLogo {
+    final l = _logo;
+    return l.isNotEmpty ? l : _cover;
   }
 
   String get _location {
@@ -166,16 +182,16 @@ class _LabDiscoverCard extends StatelessWidget {
   /// Distance from the device to the lab, formatted with the same three-tier
   /// scale the finance card uses (m / one-decimal KM / whole KM). Reads the
   /// list-item payload's `business_location: {lat, lon}` — the same shape the
-  /// pharmacies list already consumes — and returns 'N/A' when coordinates
-  /// are missing or zeroed.
+  /// pharmacies list already consumes — and returns '' when coordinates are
+  /// missing or zeroed so the identity row hides the distance slice.
   String get _distance {
     final loc = item.raw['business_location'];
-    if (loc is! Map) return 'N/A';
+    if (loc is! Map) return '';
     final lat = (loc['lat'] as num?)?.toDouble() ?? 0.0;
     final lng = (loc['lon'] as num?)?.toDouble() ?? 0.0;
-    if (lat == 0.0 || lng == 0.0) return 'N/A';
+    if (lat == 0.0 || lng == 0.0) return '';
     final km = calculateDistance(lat, lng);
-    if (km == null) return 'N/A';
+    if (km == null) return '';
     if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m Away';
     if (km < 10) return '${km.toStringAsFixed(1)}KM Away';
     return '${km.toStringAsFixed(0)}KM Away';
@@ -209,6 +225,11 @@ class _LabDiscoverCard extends StatelessWidget {
     if (count is num) return count.toInt();
     return _testCategories.length;
   }
+
+  /// True only when the lab actually has tests to show — used by the card
+  /// build to hide the whole "Available Tests" block (and its spacer) when
+  /// there's nothing to render.
+  bool get _hasTests => _testCategories.isNotEmpty || _availableTestCount > 0;
 
   /// Consultation & test cost range from `costRange`. Supports either an
   /// `{min, max}` object or a pre-formatted string; returns '' when the
@@ -255,11 +276,13 @@ class _LabDiscoverCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                   child: _identityRow(),
                 ),
-                SizedBox(height: SizeConfig.size12),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  child: _availableTestsBlock(),
-                ),
+                if (_hasTests) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                    child: _availableTestsBlock(),
+                  ),
+                ],
                 SizedBox(height: SizeConfig.size12),
                 _footer(),
               ],
@@ -272,6 +295,7 @@ class _LabDiscoverCard extends StatelessWidget {
 
   // ── Hero image + overlays ────────────────────────────────────
   Widget _hero() {
+    final hero = _heroImage;
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       child: SizedBox(
@@ -280,19 +304,20 @@ class _LabDiscoverCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            _image.isNotEmpty
+            hero.isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: _image,
+                    imageUrl: hero,
                     fit: BoxFit.cover,
                     placeholder: (_, __) => Container(color: AppColors.greyE5),
                     errorWidget: (_, __, ___) => _imageFallback(),
                   )
                 : _imageFallback(),
-            Positioned(
-              top: 10,
-              left: 10,
-              child: _ratingPill(),
-            ),
+            if (item.rating > 0)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: _ratingPill(),
+              ),
             Positioned(
               top: 10,
               right: 10,
@@ -325,6 +350,8 @@ class _LabDiscoverCard extends StatelessWidget {
         ),
       );
 
+  /// Only called when `item.rating > 0` (see [_hero]) — callers gate the
+  /// whole pill so we never render a "N/A" placeholder rating.
   Widget _ratingPill() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -338,7 +365,7 @@ class _LabDiscoverCard extends StatelessWidget {
           const Icon(Icons.star, size: 14, color: AppColors.yellow),
           const SizedBox(width: 4),
           CustomText(
-            item.rating > 0 ? item.rating.toStringAsFixed(1) : 'N/A',
+            item.rating.toStringAsFixed(1),
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: AppColors.white,
@@ -468,9 +495,9 @@ class _LabDiscoverCard extends StatelessWidget {
           child: SizedBox(
             width: SizeConfig.size50,
             height: SizeConfig.size50,
-            child: item.logo.isNotEmpty
+            child: _identityLogo.isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: item.logo,
+                    imageUrl: _identityLogo,
                     fit: BoxFit.cover,
                     placeholder: (_, __) => Container(color: AppColors.greyE5),
                     errorWidget: (_, __, ___) => _logoFallback(),
@@ -675,26 +702,28 @@ class _LabDiscoverCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  'Consultation & Test Cost',
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.secondaryTextColor,
-                ),
-                const SizedBox(height: 2),
-                CustomText(
-                  price.isNotEmpty ? price : 'N/A',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+            child: price.isNotEmpty
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Consultation & Test Cost',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      const SizedBox(height: 2),
+                      CustomText(
+                        price,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
           GestureDetector(
             onTap: onInquiry,

@@ -18,9 +18,52 @@ class OtherServiceBusinessSearchController extends GetxController {
   /// Current category filter — e.g. `CONSULTING_BUSINESS_SERVICES`.
   final selectedCategory = ''.obs;
 
+  /// Rich `/other-service/business-profile/{id}/full` payload for the
+  /// currently-open detail screen. `VisitBusinessHero` prefers fields from
+  /// here (business_description, avg_rating, total_ratings, category_details)
+  /// over the shared business-profile endpoint.
+  final selectedDetail = Rx<OtherServiceBusinessItem?>(null);
+  final isDetailLoading = false.obs;
+  final detailError = ''.obs;
+
   int _page = 1;
   final int _limit = 10;
   final int _distance = 5000;
+
+  /// Fetch the rich detail payload from
+  /// `other-service/business-profile/{businessId}/full`. Mirrors
+  /// [FinanceDiscoverController.fetchDetail] — the two endpoints share the
+  /// same wire shape. `businessId` here is the be_user_service
+  /// `businesses._id` (same id that keys the ratings endpoint). Suppresses
+  /// the global ProgressDialog overlay because the detail screen owns its
+  /// own loading state.
+  Future<void> fetchDetail(String businessId) async {
+    if (businessId.isEmpty) return;
+    try {
+      isDetailLoading.value = true;
+      detailError.value = '';
+      final ResponseModel res = await ApiBaseHelper().getHTTP(
+        'other-service/business-profile/$businessId/full',
+        showProgress: false,
+        onError: (_) {},
+        onSuccess: (_) {},
+      );
+      if (res.isSuccess) {
+        final data = res.response?.data['data'];
+        if (data is Map) {
+          selectedDetail.value = OtherServiceBusinessItem.fromJson(
+            Map<String, dynamic>.from(data),
+          );
+        }
+      } else {
+        detailError.value = res.message ?? AppStrings.somethingWentWrong;
+      }
+    } catch (e) {
+      detailError.value = e.toString();
+    } finally {
+      isDetailLoading.value = false;
+    }
+  }
 
   Future<void> fetchInitial(String categoryOfBusiness) async {
     profiles.clear();
@@ -45,10 +88,17 @@ class OtherServiceBusinessSearchController extends GetxController {
       }
       error.value = '';
 
+      // `showProgress: false` suppresses the global ProgressDialog overlay
+      // (see `ApiBaseHelper.addInterceptors` → `CircularIndicator` which
+      // renders `ShimmerListView` as a full-screen shimmer for any endpoint
+      // outside its allowlist). This screen owns its own initial/pagination
+      // states via `isLoading` / `isLoadingMore`, so the global overlay was
+      // stacking a shimmer on top during both first load and pagination.
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         'other-service/business-profile/search'
         '?distance=$_distance&limit=$_limit&page=$page'
         '&categoryOfBusiness=${selectedCategory.value}',
+        showProgress: false,
         onError: (_) {},
         onSuccess: (_) {},
       );
@@ -72,8 +122,9 @@ class OtherServiceBusinessSearchController extends GetxController {
       }
 
       final existingIds = profiles.map((p) => p.id).whereType<String>().toSet();
-      final newItems =
-          items.where((i) => i.id == null || !existingIds.contains(i.id)).toList();
+      final newItems = items
+          .where((i) => i.id == null || !existingIds.contains(i.id))
+          .toList();
 
       if (newItems.isEmpty) {
         hasMore.value = false;
