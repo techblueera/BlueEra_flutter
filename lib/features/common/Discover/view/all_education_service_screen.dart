@@ -932,7 +932,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               if (name.isNotEmpty)
                 CustomText(
                   name,
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w800,
                   color: AppColors.black22,
                   maxLines: 1,
@@ -942,16 +942,16 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               Row(
                 children: [
                   if (showRating) ...[
-                    const SizedBox(height: 6),
+                    SizedBox(height: SizeConfig.size6),
                     _buildRatingPill(rating),
-                    const SizedBox(width: 6),
+                    SizedBox(width: SizeConfig.size6),
                   ],
                   if (showPills)
                     Flexible(child: _buildInfoPillRow(pillItems, pillSuffix)),
                 ],
               ),
               if (showLocation) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: SizeConfig.size6),
                 _buildLocationRow(distance, address),
               ],
             ],
@@ -982,7 +982,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           const SizedBox(width: 3),
           CustomText(
             rating,
-            fontSize: 10,
+            fontSize: SizeConfig.size10,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
           ),
@@ -1008,14 +1008,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < visible.length; i++) ...[
-          if (i > 0) const SizedBox(width: 4),
+          if (i > 0) SizedBox(width: SizeConfig.size4),
           Flexible(
             child: _boardChip(
                 suffix.isEmpty ? visible[i] : '${visible[i]} $suffix'),
           ),
         ],
         if (extra > 0) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: SizeConfig.size4),
           _boardChip('+$extra'),
         ],
       ],
@@ -1035,7 +1035,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       ),
       child: CustomText(
         label,
-        fontSize: 10,
+        fontSize: SizeConfig.size10,
         fontWeight: FontWeight.w500,
         color: AppColors.secondaryTextColor,
         maxLines: 1,
@@ -1205,11 +1205,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               children: [
                 CustomText(
                   "Inquiry Now",
-                  fontSize: 13,
+                  fontSize: SizeConfig.size13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: SizeConfig.size6),
                 const Icon(Icons.arrow_forward,
                     size: 16, color: AppColors.white),
               ],
@@ -1237,10 +1237,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         //         mainAxisAlignment: MainAxisAlignment.center,
         //         children: [
         //           LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-        //           const SizedBox(width: 6),
+        //           SizedBox(width: SizeConfig.size6),
         //           CustomText(
         //             'Chat',
-        //             fontSize: 13,
+        //             fontSize: SizeConfig.size13,
         //             fontWeight: FontWeight.w600,
         //             color: AppColors.primaryColor,
         //           ),
@@ -1263,11 +1263,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               children: [
                 CustomText(
                   AppStrings.inquiry.tr,
-                  fontSize: 13,
+                  fontSize: SizeConfig.size13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: SizeConfig.size6),
                 const Icon(Icons.arrow_forward,
                     size: 16, color: AppColors.white),
               ],

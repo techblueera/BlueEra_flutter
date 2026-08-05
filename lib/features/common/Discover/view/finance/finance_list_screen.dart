@@ -207,7 +207,7 @@ class _FinanceCard extends StatelessWidget {
     final palette = _palette;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
+      padding: EdgeInsets.only(right: SizeConfig.size8, bottom: SizeConfig.size10, left: SizeConfig.size8),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         // Routed through openVisitProfile so the type→screen mapping stays in
@@ -276,7 +276,7 @@ class _FinanceCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
           child: _buildHeaderRow(
             address: address,
             distance: distance,
@@ -288,20 +288,20 @@ class _FinanceCard extends StatelessWidget {
           ),
         ),
         if (showTagsRow) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           _DashedDivider(color: palette.bodyDashedDivider),
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
             child: _buildTagsWrap(
               serviceTags: serviceTags,
               category: category,
             ),
           ),
         ],
-        const SizedBox(height: 14),
+        SizedBox(height: SizeConfig.size14),
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
           child: _buildFooterRow(),
         ),
       ],
@@ -464,7 +464,7 @@ class _FinanceCard extends StatelessWidget {
                 // lib/docs/rating-ui-integration.md §1) — without it the
                 // POST to /business/{businessId}/ratings would 404.
                 if ((item.businessId ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: SizeConfig.size8),
                   _circleIconBtn(AppIconAssets.star_rounded,
                       onTap: _openRateDialog),
                 ],
@@ -484,12 +484,12 @@ class _FinanceCard extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(SizeConfig.size8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
-            height: 14,
-            width: 14,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14,
           ),
         ),
       ),
@@ -543,7 +543,7 @@ class _FinanceCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: SizeConfig.size10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +557,7 @@ class _FinanceCard extends StatelessWidget {
                   (item.profileName?.isNotEmpty ?? false)
                       ? item.profileName
                       : 'Unknown',
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w800,
                   color: AppColors.black22,
                   maxLines: 1,
@@ -565,7 +565,7 @@ class _FinanceCard extends StatelessWidget {
                 ),
               ),
               if (hasPillsRow) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: SizeConfig.size6),
                 // Rating + RBI + time pill on the same row. `Wrap` handles
                 // the long-time-pill overflow case so the row spills to a
                 // second line instead of clipping.
@@ -590,16 +590,16 @@ class _FinanceCard extends StatelessWidget {
                 ),
               ],
               if (hasLocation) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: SizeConfig.size6),
                 Row(
                   children: [
                     LocalAssets(
                       imagePath: AppIconAssets.location_outline,
                       imgColor: AppColors.primaryColor,
-                      height: 10,
-                      width: 10,
+                      height: SizeConfig.size10,
+                      width: SizeConfig.size10,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: SizeConfig.size4),
                     Flexible(
                       child: RichText(
                         maxLines: 1,
@@ -609,26 +609,26 @@ class _FinanceCard extends StatelessWidget {
                             if (showDistance)
                               TextSpan(
                                 text: distance,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.primaryColor,
-                                  fontSize: 8,
+                                  fontSize: SizeConfig.size8,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             if (showDistance && showAddress)
-                              const TextSpan(
+                              TextSpan(
                                 text: '  |  ',
                                 style: TextStyle(
                                   color: AppColors.secondaryTextColor,
-                                  fontSize: 8,
+                                  fontSize: SizeConfig.size8,
                                 ),
                               ),
                             if (showAddress)
                               TextSpan(
                                 text: address,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.secondaryTextColor,
-                                  fontSize: 8,
+                                  fontSize: SizeConfig.size8,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
@@ -650,7 +650,7 @@ class _FinanceCard extends StatelessWidget {
   /// cards. Caller gates on rating being non-empty.
   Widget _ratingPill(String rating) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xffDDE2EE)),
@@ -660,14 +660,14 @@ class _FinanceCard extends StatelessWidget {
         children: [
           LocalAssets(
             imagePath: AppIconAssets.fill_star,
-            width: 10,
-            height: 10,
+            width: SizeConfig.size10,
+            height: SizeConfig.size10,
             imgColor: AppColors.yellow,
           ),
-          const SizedBox(width: 3),
+          SizedBox(width: SizeConfig.size3),
           CustomText(
             rating,
-            fontSize: 10,
+            fontSize: SizeConfig.size10,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
           ),
@@ -684,7 +684,7 @@ class _FinanceCard extends StatelessWidget {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
@@ -694,10 +694,10 @@ class _FinanceCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 10, color: color),
-          const SizedBox(width: 3),
+          SizedBox(width: SizeConfig.size3),
           CustomText(
             label,
-            fontSize: 10,
+            fontSize: SizeConfig.size10,
             fontWeight: FontWeight.w500,
             color: color,
           ),
@@ -753,7 +753,7 @@ class _FinanceCard extends StatelessWidget {
 
   Widget _tagChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -761,7 +761,7 @@ class _FinanceCard extends StatelessWidget {
       ),
       child: CustomText(
         label,
-        fontSize: 12,
+        fontSize: SizeConfig.size12,
         fontWeight: FontWeight.w600,
         color: AppColors.grey7E,
       ),
@@ -792,13 +792,13 @@ class _FinanceCard extends StatelessWidget {
             children: [
               CustomText(
                 AppStrings.inquiry.tr,
-                fontSize: 14,
+                fontSize: SizeConfig.size14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.white,
               ),
-              const SizedBox(width: 6),
-              const Icon(Icons.arrow_forward,
-                  size: 18, color: AppColors.white),
+              SizedBox(width: SizeConfig.size6),
+              Icon(Icons.arrow_forward,
+                  size: SizeConfig.size18, color: AppColors.white),
             ],
           ),
         ),

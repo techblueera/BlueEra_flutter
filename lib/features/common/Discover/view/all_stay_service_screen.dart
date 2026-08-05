@@ -423,7 +423,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 children: [
                   CustomText(
                     service.name ?? AppStrings.unknownUser.tr,
-                    fontSize: 16,
+                    fontSize: SizeConfig.size16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
                     maxLines: 1,
@@ -436,7 +436,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                       (service.highlights?.isNotEmpty ?? false)
                           ? service.highlights!.join(", ")
                           : service.description!.trim(),
-                      fontSize: 12,
+                      fontSize: SizeConfig.size12,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,
                       maxLines: 2,
@@ -637,7 +637,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   SizedBox(height: SizeConfig.size2),
                   CustomText(
                     '₹${service.price}/${service.priceUnit}',
-                    fontSize: 16,
+                    fontSize: SizeConfig.size16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryColor,
                   ),
@@ -657,7 +657,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
               SizedBox(width: SizeConfig.size2),
               CustomText(
                 '$distanceData KM',
-                fontSize: 12,
+                fontSize: SizeConfig.size12,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
               ),
@@ -690,7 +690,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
                     AppStrings.chat.tr,
-                    fontSize: 13,
+                    fontSize: SizeConfig.size13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
                   ),
@@ -716,7 +716,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 children: [
                   CustomText(
                     AppStrings.bookNow.tr,
-                    fontSize: 13,
+                    fontSize: SizeConfig.size13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.white,
                   ),
@@ -839,6 +839,10 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         reviews: service.reviews ?? 0,
         checkInTime: service.profile?.policy?.checkInTime ?? '',
         checkOutTime: service.profile?.policy?.checkOutTime ?? '',
+        // Server-computed front-desk hours. When present, `PropertyCard`
+        // prefers this over the check-in / check-out policy for the
+        // header time pill so users see live "Open Now" status.
+        availability: service.availability,
         amenities: _hotelAmenities(service.profile?.amenities),
         // Tapping "Inquiry" navigates to the detail screen; the customer
         // starts the actual enquiry-first flow from the detail screen's
@@ -1175,6 +1179,13 @@ class PropertyCard extends StatefulWidget {
   final List<MapEntry<String, String>> amenities;
   final String? businessId;
 
+  /// Server-computed front-desk hours (`hasHours`, `isOpenNow`,
+  /// today window, weekly schedule). Preferred over the
+  /// check-in / check-out policy for the header time pill so the card
+  /// can show "Open Now" / "Closed" status. Falls back to the
+  /// check-in/out pill when null.
+  final HotelAvailability? availability;
+
   /// Tapping the pill-shaped "Inquiry" CTA on the card. The list screen
   /// wires this to open the hotel detail screen — customer sees rooms /
   /// amenities / policies there and starts the enquiry-first flow from
@@ -1196,6 +1207,7 @@ class PropertyCard extends StatefulWidget {
     required this.checkInTime,
     required this.checkOutTime,
     required this.amenities,
+    this.availability,
     this.businessId,
     this.onInquiry,
     this.onChat,
@@ -1283,21 +1295,24 @@ class _PropertyCardState extends State<PropertyCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+          padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
           child: _buildHeaderRow(),
         ),
         if (widget.amenities.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           _DashedDivider(color: palette.bodyDashedDivider),
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+            padding:
+                EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
             child: _amenityGrid(palette),
           ),
         ],
-        const SizedBox(height: 14),
+        SizedBox(height: SizeConfig.size14),
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+          padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
           child: _bottomRow(),
         ),
       ],
@@ -1312,7 +1327,16 @@ class _PropertyCardState extends State<PropertyCard> {
     // Time pill only renders when both ends of the window are populated —
     // the pill is designed as check-in → check-out, so a missing side
     // would leave the design lopsided. No 'N/A' fallback.
-    final hasTime = checkIn.isNotEmpty && checkOut.isNotEmpty;
+    final hasCheckInOut = checkIn.isNotEmpty && checkOut.isNotEmpty;
+    // Prefer the server-computed availability pill (Open Now + today's
+    // window) when the API populated it; otherwise fall back to the
+    // legacy check-in / check-out pill from `profile.policy`.
+    final Widget? statusPill = widget.availability != null
+        ? _availabilityPill(widget.availability!)
+        : (hasCheckInOut
+            ? _timeRangePill(checkIn: checkIn, checkOut: checkOut)
+            : null);
+    final hasStatusPill = statusPill != null;
     final distanceLabel = (widget.distance.isNotEmpty && widget.distance != '0')
         ? '${widget.distance}KM Away'
         : '';
@@ -1323,7 +1347,7 @@ class _PropertyCardState extends State<PropertyCard> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _logoAvatar(logoSize),
-        const SizedBox(width: 10),
+        SizedBox(width: SizeConfig.size10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1337,7 +1361,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (hasRating || hasTime) ...[
+              if (hasRating || hasStatusPill) ...[
                 SizedBox(height: SizeConfig.size4),
                 Row(
                   children: [
@@ -1345,24 +1369,65 @@ class _PropertyCardState extends State<PropertyCard> {
                       _ratingPill(),
                       SizedBox(width: SizeConfig.size6),
                     ],
-                    if (hasTime)
-                      Flexible(
-                        child: _timeRangePill(
-                          checkIn: checkIn,
-                          checkOut: checkOut,
-                        ),
-                      ),
+                    if (hasStatusPill) Flexible(child: statusPill),
                   ],
                 ),
               ],
               if (showLocationRow) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: SizeConfig.size6),
                 _buildLocationRow(distanceLabel, address),
               ],
             ],
           ),
         ),
       ],
+    );
+  }
+
+  /// "Open Now · 9:00 AM – 9:00 PM" (green) when the hotel is currently
+  /// open, or "Closed" (grey) otherwise. Renders `null`-safe from the
+  /// `HotelAvailability` payload — an availability object with no
+  /// `today` or missing times still shows a "Closed" pill so users know
+  /// the status.
+  Widget _availabilityPill(HotelAvailability availability) {
+    final today = availability.today;
+    final open = _formatTime12h(today?.shopOpenTime ?? '');
+    final close = _formatTime12h(today?.shopCloseTime ?? '');
+    final hasWindow = open.isNotEmpty && close.isNotEmpty;
+    final isOpenNow = availability.isOpenNow && hasWindow;
+    final fg = isOpenNow ? AppColors.green0B : AppColors.grey7E;
+    final label = isOpenNow ? 'Open Now  |  $open – $close' : 'Closed';
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+      decoration: BoxDecoration(
+        // color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFDDE2EE), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.clock_new,
+            imgColor: fg,
+            height: SizeConfig.size13,
+            width: SizeConfig.size13,
+          ),
+          SizedBox(width: SizeConfig.size4),
+          Flexible(
+            child: CustomText(
+              label,
+              color: fg,
+              fontSize: SizeConfig.size12,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1404,10 +1469,10 @@ class _PropertyCardState extends State<PropertyCard> {
         LocalAssets(
           imagePath: AppIconAssets.location_outline,
           imgColor: AppColors.primaryColor,
-          height: 10,
-          width: 10,
+          height: SizeConfig.size10,
+          width: SizeConfig.size10,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: SizeConfig.size4),
         Flexible(
           child: RichText(
             maxLines: 1,
@@ -1417,26 +1482,26 @@ class _PropertyCardState extends State<PropertyCard> {
                 if (distanceText.isNotEmpty)
                   TextSpan(
                     text: distanceText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primaryColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 if (distanceText.isNotEmpty && address.isNotEmpty)
-                  const TextSpan(
+                  TextSpan(
                     text: '  |   ',
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                     ),
                   ),
                 if (address.isNotEmpty)
                   TextSpan(
                     text: address,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -1507,7 +1572,7 @@ class _PropertyCardState extends State<PropertyCard> {
               children: [
                 _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
                 if (_businessId.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: SizeConfig.size8),
                   _circleIconBtn(AppIconAssets.star_rounded,
                       onTap: _openRateDialog),
                 ],
@@ -1526,7 +1591,8 @@ class _PropertyCardState extends State<PropertyCard> {
     final checkInLabel = _formatTime12h(checkIn);
     final checkOutLabel = _formatTime12h(checkOut);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -1542,36 +1608,36 @@ class _PropertyCardState extends State<PropertyCard> {
           LocalAssets(
             imagePath: AppIconAssets.clock_new,
             imgColor: AppColors.green0B,
-            height: 13,
-            width: 13,
+            height: SizeConfig.size13,
+            width: SizeConfig.size13,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: SizeConfig.size4),
           CustomText(
             checkInLabel,
             color: AppColors.green0B,
-            fontSize: 12,
+            fontSize: SizeConfig.size12,
             fontWeight: FontWeight.w600,
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: SizeConfig.size6),
           CustomText(
             "-",
             color: AppColors.grey7E,
-            fontSize: 12,
+            fontSize: SizeConfig.size12,
             fontWeight: FontWeight.w600,
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: SizeConfig.size6),
           // Check Out
           LocalAssets(
             imagePath: AppIconAssets.clock_new,
             imgColor: AppColors.redB4,
-            height: 13,
-            width: 13,
+            height: SizeConfig.size13,
+            width: SizeConfig.size13,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: SizeConfig.size4),
           CustomText(
             checkOutLabel,
             color: AppColors.redB4,
-            fontSize: 12,
+            fontSize: SizeConfig.size12,
             fontWeight: FontWeight.w600,
           ),
         ],
@@ -1632,12 +1698,12 @@ class _PropertyCardState extends State<PropertyCard> {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(SizeConfig.size8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
-            height: 14,
-            width: 14,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14,
           ),
         ),
       ),
@@ -1660,7 +1726,7 @@ class _PropertyCardState extends State<PropertyCard> {
     final extra = showMore ? items.length - visible.length : 0;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
         color: palette.tileBg,
         borderRadius: BorderRadius.circular(12),
@@ -1695,14 +1761,14 @@ class _PropertyCardState extends State<PropertyCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: cells[i]),
-          const SizedBox(width: 10),
+          SizedBox(width: SizeConfig.size10),
           Expanded(
             child:
                 i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
           ),
         ],
       ));
-      if (i + 2 < cells.length) rows.add(const SizedBox(height: 8));
+      if (i + 2 < cells.length) rows.add(SizedBox(height: SizeConfig.size8));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1773,13 +1839,13 @@ class _PropertyCardState extends State<PropertyCard> {
                   children: [
                     CustomText(
                       '₹${_formatPrice(widget.rent)}',
-                      fontSize: 16,
+                      fontSize: SizeConfig.size16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryColor,
                     ),
                     CustomText(
                       '/Day',
-                      fontSize: 12,
+                      fontSize: SizeConfig.size12,
                       fontWeight: FontWeight.w500,
                       color: AppColors.secondaryTextColor,
                     ),
@@ -1926,13 +1992,13 @@ class _InquiryNowBtn extends StatelessWidget {
           children: [
             CustomText(
               "Inquiry Now",
-              fontSize: 14,
+              fontSize: SizeConfig.size14,
               fontWeight: FontWeight.w700,
               color: AppColors.white,
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_rounded,
-                size: 16, color: AppColors.white),
+            SizedBox(width: SizeConfig.size8),
+            Icon(Icons.arrow_forward_rounded,
+                size: SizeConfig.size16, color: AppColors.white),
           ],
         ),
       ),
@@ -2369,7 +2435,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
                     children: [
                       Icon(Icons.location_on_rounded,
                           size: 18, color: AppColors.primaryColor),
-                      const SizedBox(width: 8),
+                      SizedBox(width: SizeConfig.size8),
                       Expanded(
                         child: CustomText(
                           '$count ${widget.isIndividual ? AppStrings.staysOnMapSuffix.tr : AppStrings.hotelsOnMapSuffix.tr}',
