@@ -24,6 +24,7 @@ class TodoItem {
   bool isCompleted;
   DateTime? completedAt;
 
+
   TodoItem copyWith({
     String? title,
     String? notes,

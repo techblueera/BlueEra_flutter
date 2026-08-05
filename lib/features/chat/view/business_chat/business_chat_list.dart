@@ -73,18 +73,23 @@ ChatBucket bucketChat(ChatList chat) {
 /// orders they received as a seller belong to the Me section and are not the
 /// user's own shopping.
 ///
+/// Pass [bucket] to slice the other side instead: [ChatBucket.me] is the
+/// incoming-orders lane the Connect "Order" tab renders (see
+/// [recentReceivedOrderChats]).
+///
 /// Shared so the Discover "Orders in N Hrs." rail and the multi-shop pickup
 /// selection screen can never disagree about which orders are recent.
 List<ChatList> recentInquiryChats(
   List<ChatList?>? all, {
   Duration window = const Duration(hours: 12),
+  ChatBucket bucket = ChatBucket.chats,
 }) {
   if (all == null || all.isEmpty) return const [];
   final cutoff = DateTime.now().subtract(window);
   final result = <ChatList>[];
   for (final chat in all) {
     if (chat == null) continue;
-    if (bucketChat(chat) != ChatBucket.chats) continue;
+    if (bucketChat(chat) != bucket) continue;
     // `updatedAt` is the last-message time; `createdAt` only covers rows the
     // server sent before the conversation had one.
     final raw =
@@ -101,6 +106,16 @@ List<ChatList> recentInquiryChats(
   result.sort((a, b) => (b.updatedAt ?? '').compareTo(a.updatedAt ?? ''));
   return result;
 }
+
+/// Orders the user RECEIVED as a seller whose last message landed inside
+/// [window], newest first — the recent slice of the same [ChatBucket.me] lane
+/// the Connect screen's "Order" tab renders (`BusinessChatsList` with
+/// `excludeSenderId`, via `OrdersTabBody`).
+List<ChatList> recentReceivedOrderChats(
+  List<ChatList?>? all, {
+  Duration window = const Duration(hours: 12),
+}) =>
+    recentInquiryChats(all, window: window, bucket: ChatBucket.me);
 
 /// Date-range presets surfaced as filter chips above the list when
 /// [BusinessChatsList.showDateFilter] is set (the provider/seller "order"

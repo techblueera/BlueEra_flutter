@@ -265,6 +265,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     ),
                   ),
                   Expanded(
+
                     // Transparent — the app-wide background banner
                     // (AppHomeBackground, set via app_background_screen) shows
                     // behind the feed content, like the rest of the app.
