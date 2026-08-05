@@ -25,7 +25,6 @@ class OrderNowController extends GetxController {
   var address = "".obs;
   var lat = "".obs;
   var long = "".obs;
-
   Messages? openedMessage;
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getFaireAmountResponse = ApiResponse.initial('Initial').obs;

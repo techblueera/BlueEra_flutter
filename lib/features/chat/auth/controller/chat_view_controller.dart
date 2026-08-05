@@ -3191,6 +3191,7 @@ class ChatViewController extends GetxController {
     viewContactsListResponse.value = ApiResponse.complete(value);
   }
 
+
   /// Try to hydrate the contacts model from Hive without hitting the network.
   /// Returns true when cache was found and the UI was pointed at it.
   Future<bool> hydrateContactsFromCache() async {
