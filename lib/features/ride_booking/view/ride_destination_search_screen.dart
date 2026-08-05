@@ -4,7 +4,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
+import 'package:BlueEra/features/ride_booking/widget/ride_vehicle_presentation.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -84,6 +86,7 @@ class _RideDestinationSearchScreenState
         child: Column(
           children: [
             _header(),
+            _vehicleStrip(),
             const Divider(height: 1, color: RideStyle.hairline),
             Expanded(child: _results()),
           ],
@@ -162,6 +165,75 @@ class _RideDestinationSearchScreenState
         ],
       ),
     );
+  }
+
+  /// The vehicle this search will book, named under the search field.
+  ///
+  /// The flow always has one by the time this screen opens: a service tile on
+  /// the home screen carries its own, and arriving through the search field
+  /// settles on the bike ([RideBookingController.kDefaultVehicleType]). Until
+  /// now that choice — made or defaulted — stayed invisible until the fare
+  /// screen two steps later, so a customer who wanted a cab typed a destination
+  /// believing they were booking one.
+  ///
+  /// Reads the same [RideVehicleArt] the home tiles are built from, so the row
+  /// shows the artwork and name the user just tapped ("Parcel On Bike", not
+  /// "Bike").
+  Widget _vehicleStrip() {
+    return Obx(() {
+      final code = controller.preselectedVehicleCode.value ??
+          RideBookingController.kDefaultVehicleType;
+      final orderFor = controller.orderFor.value;
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: RideStyle.surfaceTint,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: LocalAssets(
+                imagePath: RideVehicleArt.assetFor(code, orderFor: orderFor),
+                boxFix: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    'Booking for',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: RideStyle.inkMuted,
+                  ),
+                  CustomText(
+                    // vehicleLabelFor reads the catalogue, so the name matches
+                    // the backend's once it lands and the compiled-in one until
+                    // then — never a raw enum.
+                    '${RideVehicleArt.labelFor(
+                      code,
+                      orderFor: orderFor,
+                      catalogueLabel: controller.vehicleLabelFor(code),
+                    )} · ${RideVehicleArt.tripTypeLabel(orderFor)}',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: RideStyle.ink,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _results() {

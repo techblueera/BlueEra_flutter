@@ -29,10 +29,66 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isAuthorized = false;
 
+  /// Validate, then send. The two dropdowns and the consent box are checked by
+  /// hand: they aren't [FormField]s, so `Form.validate()` never sees them.
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (controller.selectQualification.value.isEmpty) {
+      commonSnackBar(message: AppStrings.qualificationRequired.tr);
+      return;
+    }
+    if (controller.partnerType.value.isEmpty) {
+      commonSnackBar(message: AppStrings.partnerTypeRequired.tr);
+      return;
+    }
+    if (!isAuthorized) {
+      commonSnackBar(message: AppStrings.acceptTermsRequired.tr);
+      return;
+    }
+    controller.enquiryFranchise();
+  }
+
+  /// Send, pinned to the bottom of the screen instead of the bottom of the
+  /// form.
+  ///
+  /// This form is long enough that the button used to be several scrolls below
+  /// the fold — the action was only reachable by scrolling to the end, which
+  /// also hid whether it was still loading once the user scrolled away. The
+  /// Scaffold lifts a `bottomNavigationBar` above the keyboard, so it stays put
+  /// and visible while the fields are being filled in.
+  Widget _submitBar() {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.paddingM,
+          SizeConfig.size10,
+          SizeConfig.paddingM,
+          SizeConfig.size10,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          // A hairline rather than a shadow: the form sits on a tinted page and
+          // the bar is white, so the edge is what separates them.
+          border: Border(top: BorderSide(color: AppColors.greyE5)),
+        ),
+        child: Obx(
+          () => CustomBtn(
+            isLoading: controller.enquiryBtnLoading.value,
+            isValidate: true,
+            title: AppStrings.sendMessage.tr,
+            onTap: _submit,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonBackAppBar(title: AppStrings.franchiseInquiry),
+      bottomNavigationBar: _submitBar(),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -295,32 +351,9 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       ],
                     ),
 
-                    SizedBox(height: SizeConfig.size30),
-
-                    Obx(() {
-                      return CustomBtn(
-                        isLoading: controller.enquiryBtnLoading.value,
-                        isValidate: true,
-                        title: AppStrings.sendMessage.tr,
-                        onTap: () {
-                          if (!_formKey.currentState!.validate()) return;
-                          if (controller.selectQualification.value.isEmpty) {
-                            commonSnackBar(message: AppStrings.qualificationRequired.tr);
-                            return;
-                          }
-                          if (controller.partnerType.value.isEmpty) {
-                            commonSnackBar(message: AppStrings.partnerTypeRequired.tr);
-                            return;
-                          }
-                          if (!isAuthorized) {
-                            commonSnackBar(message: AppStrings.acceptTermsRequired.tr);
-                            return;
-                          }
-                          controller.enquiryFranchise();
-                        },
-                      );
-                    }),
-
+                    // Submit lives in the Scaffold's bottom bar — see
+                    // [_submitBar].
+                    SizedBox(height: SizeConfig.size10),
                   ],
                 ),
               ),

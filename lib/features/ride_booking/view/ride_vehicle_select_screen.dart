@@ -4,7 +4,10 @@ import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
+import 'package:BlueEra/features/ride_booking/widget/ride_marker_icons.dart';
+import 'package:BlueEra/features/ride_booking/widget/ride_vehicle_presentation.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -21,7 +24,8 @@ class RideVehicleSelectScreen extends StatefulWidget {
       _RideVehicleSelectScreenState();
 }
 
-class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
+class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
+    with RideLiveRiderMarkers {
   final RideBookingController controller = Get.find<RideBookingController>();
   GoogleMapController? _mapController;
 
@@ -29,20 +33,42 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
   /// actual path rather than the straight line between the endpoints.
   Worker? _routeWorker;
 
+  /// Rasterises artwork for any vehicle type a live-rider lookup brings back.
+  Worker? _liveRiderWorker;
+
   @override
   void initState() {
     super.initState();
-    controller.fetchQuotes();
+    // Open on the bike. Nothing upstream picks a vehicle any more — the home
+    // screen only asks where you are going — so without this the grid arrives
+    // with nothing lit and the quote selects whichever class the server happens
+    // to list first. Set BEFORE fetchQuotes, which pre-selects this code.
+    //
+    // Only when nothing is chosen yet: coming back from a later screen must
+    // keep the class the customer actually picked.
+    if (controller.preselectedVehicleCode.value == null) {
+      controller.setTripType(
+        vehicleType: RideBookingController.kDefaultVehicleType,
+      );
+    }
+    // Same two calls a tile tap makes, in the same order — see
+    // [_selectService].
+    _loadForSelection();
     // Frame both endpoints once the map is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) => _fitBounds());
     _routeWorker = ever<List<LatLng>>(controller.routePoints, (_) {
       if (mounted) _fitBounds();
     });
+    _liveRiderWorker = ever<List<RideLiveRider>>(
+      controller.liveRiders,
+      ensureRiderMarkerIcons,
+    );
   }
 
   @override
   void dispose() {
     _routeWorker?.dispose();
+    _liveRiderWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -86,6 +112,29 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
     );
   }
 
+  /// Book is a two-beat action: show who is out there for the chosen vehicle,
+  /// then commit.
+  ///
+  /// The customer has just picked a class off a price list, which says nothing
+  /// about whether anyone is actually driving one nearby. This is the last
+  /// screen before a broadcast goes out and a rider's phone rings, so it is the
+  /// right place to show the supply behind the choice.
+  void _confirmBooking() {
+    final selected = controller.selectedVehicle.value;
+    if (selected == null) return;
+    // Refresh rather than trust what the map happens to be holding — the pick
+    // may have been made minutes ago.
+    controller.fetchLiveRiders(vehicleType: selected.code);
+    Get.bottomSheet(
+      _RidersSheet(
+        controller: controller,
+        option: selected,
+        onBook: _book,
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   Future<void> _book() async {
     final booked = await controller.bookRide();
     if (!mounted) return;
@@ -93,6 +142,9 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
       commonSnackBar(message: 'Could not book this ride. Please try again.');
       return;
     }
+    // Close the riders sheet first, or it stays stacked over the searching
+    // screen and a back gesture lands on a sheet for a ride already placed.
+    if (Get.isBottomSheetOpen ?? false) Get.back();
     Get.to(() => const RideSearchingScreen());
   }
 
@@ -149,6 +201,10 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
                     BitmapDescriptor.hueRed,
                   ),
                 ),
+              // The vehicles of the selected type that are live around the
+              // pickup. Read inside this Obx, so picking a row repaints the map
+              // as soon as its lookup lands.
+              ...liveRiderMarkers(controller.liveRiders),
             },
             polylines: _routePolylines(from, to),
           ),
@@ -278,6 +334,9 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
 
   // ------------------------------------------------------------------ sheet
 
+  /// The service catalogue — the same grid the home screen used to carry, now
+  /// where it belongs: after the trip is known, so every tile can show what it
+  /// costs for THIS trip.
   Widget _vehicleSheet() {
     return Container(
       decoration: BoxDecoration(
@@ -287,67 +346,335 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
         ),
         boxShadow: RideStyle.sheetShadow,
       ),
-      child: Obx(() {
-        if (controller.isQuoting.value) {
-          return const Center(
-            child: CircularProgressIndicator(strokeWidth: 2.4),
-          );
-        }
-        if (controller.vehicleOptions.isEmpty) {
-          // A failed request and an empty city are different problems — saying
-          // "no vehicles" for a 400 sends you looking in the wrong place.
-          final error = controller.quoteError.value;
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    error ?? 'No riders available near your pickup right now.',
-                    fontSize: 14,
-                    color: RideStyle.inkMuted,
-                    textAlign: TextAlign.center,
-                  ),
-                  if (error != null) ...[
-                    const SizedBox(height: 14),
-                    TextButton(
-                      onPressed: controller.fetchQuotes,
-                      child: CustomText(
-                        'Retry',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: RideStyle.ink,
-                      ),
-                    ),
-                  ],
-                ],
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const RideSheetHandle(),
+          _quoteNotice(),
+          for (final section in _sections) ...[
+            _serviceSection(section),
+            const SizedBox(height: 24),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Why the tiles have no prices, when they don't.
+  ///
+  /// The catalogue itself never depends on the quote — the customer can always
+  /// see and pick a vehicle — so a failed or empty quote is a line above the
+  /// grid rather than a screen that replaces it. A failed request and an empty
+  /// city are different problems: saying "no vehicles" for a 400 sends you
+  /// looking in the wrong place.
+  Widget _quoteNotice() {
+    return Obx(() {
+      if (controller.isQuoting.value) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.2),
+            ),
+          ),
+        );
+      }
+      final error = controller.quoteError.value;
+      if (error == null && controller.vehicleOptions.isNotEmpty) {
+        return const SizedBox(height: 6);
+      }
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: CustomText(
+                error ?? 'No riders available near your pickup right now.',
+                fontSize: 13,
+                color: RideStyle.inkMuted,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          );
-        }
-        return Column(
-          children: [
-            const RideSheetHandle(),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
-                itemCount: controller.vehicleOptions.length,
-                itemBuilder: (context, index) {
-                  final option = controller.vehicleOptions[index];
-                  return _VehicleRow(
-                    option: option,
-                    isSelected:
-                        controller.selectedVehicle.value?.quoteId ==
-                            option.quoteId,
-                    onTap: () => controller.selectVehicle(option),
-                  );
-                },
+            TextButton(
+              onPressed: controller.fetchQuotes,
+              child: CustomText(
+                'Retry',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: RideStyle.ink,
               ),
             ),
           ],
-        );
-      }),
+        ),
+      );
+    });
+  }
+
+  // ------------------------------------------------------- service catalogue
+
+  /// What this flow can book, grouped the way the customer thinks about it.
+  ///
+  /// A section owns the ORDER it wants to show and the `orderFor` it books;
+  /// which of those codes actually exist — and what each is called — comes
+  /// from the backend catalogue
+  /// ([RideBookingController.fetchVehicleTypes], `GET
+  /// riders/onboarding/vehicle-enums`). A type retired server-side vanishes
+  /// here without a release, and a tile can never send a `vehicleType` the
+  /// server would reject.
+  ///
+  /// The vehicle/trip pairing is the point: the same `twoWheelerRider` is a
+  /// passenger ride under Passenger and a parcel run under Parcel/Goods, and
+  /// the cars appear again under Out Station at a different `orderFor`.
+  static const List<_ServiceSection> _sections = [
+    _ServiceSection(
+      title: 'Passenger ( City)',
+      orderFor: 'InCity',
+      tiles: [
+        _ServiceTileSpec('twoWheelerRider'),
+        _ServiceTileSpec('eRickshaw'),
+        _ServiceTileSpec('autoTempo'),
+        // One tile for the whole car family in the city, four of them out of
+        // town. A city ride is chosen by "I want a car" and then by price; Out
+        // Station is the opposite — the class IS the decision there, and the
+        // price gap is large, so that section keeps them apart.
+        _ServiceTileSpec(
+          'carMini',
+          label: 'Cab',
+          alsoCovers: ['carSedan', 'suvCar', 'miniBus'],
+        ),
+      ],
+    ),
+    _ServiceSection(
+      title: 'Parcel/Goods ( City)',
+      orderFor: 'Parcel',
+      tiles: [
+        // A bike carrying a parcel is the same vehicle as a bike carrying a
+        // person — only `orderFor` differs, so it is listed in both sections
+        // and renders as "Parcel On Bike" here.
+        _ServiceTileSpec('twoWheelerRider'),
+        _ServiceTileSpec('goods3Wheeler'),
+        // Same collapse as the city cab: a pickup IS a 4-wheeler to the
+        // customer sending a load, and mini vs. large truck is a capacity call.
+        _ServiceTileSpec(
+          'goods4Wheeler',
+          label: 'Goods (4 Wheeler)',
+          alsoCovers: ['pickupGoods'],
+        ),
+        _ServiceTileSpec(
+          'miniTruckGoods',
+          label: 'Truck Goods',
+          alsoCovers: ['largeTruckGoods'],
+        ),
+      ],
+    ),
+    _ServiceSection(
+      title: 'Out Station',
+      orderFor: 'OutStation',
+      tiles: [
+        _ServiceTileSpec('carMini'),
+        _ServiceTileSpec('carSedan'),
+        _ServiceTileSpec('suvCar'),
+        _ServiceTileSpec('miniBus'),
+      ],
+    ),
+  ];
+
+  /// Pick a service: it becomes what gets booked, re-priced, and the map
+  /// repainted with the vehicles that would come.
+  ///
+  /// Two calls, in this order and never overlapping:
+  ///
+  ///  1. `fare/riders/dynamic` — the fare for this vehicle on this trip.
+  ///  2. `riders/live-in-radius` — who is out there in that family.
+  ///
+  /// Sequential because the second is only worth making once the first has
+  /// settled what is being booked: fired together they race, and a tile tapped
+  /// twice in quick succession can land its lookups out of order. Awaiting also
+  /// keeps the spinner honest — the grid is quoting, then the map fills.
+  Future<void> _selectService({
+    required String vehicleType,
+    required String orderFor,
+  }) async {
+    controller.setTripType(vehicleType: vehicleType, orderFor: orderFor);
+
+    // Instant feedback where we already have it: the Book button carries a
+    // fare, and waiting for the re-quote to echo the tap leaves it showing the
+    // previous vehicle's price. The quote below still overwrites this.
+    for (final option in controller.vehicleOptions) {
+      if (option.code == vehicleType) {
+        controller.selectVehicle(option);
+        break;
+      }
+    }
+
+    await _loadForSelection();
+  }
+
+  /// The quote, then the live riders, for whatever is currently selected.
+  Future<void> _loadForSelection() async {
+    await controller.fetchQuotes();
+    if (!mounted) return;
+    await controller.fetchLiveRiders(
+      vehicleType: controller.preselectedVehicleCode.value,
+    );
+  }
+
+  Widget _serviceSection(_ServiceSection section) {
+    return Obx(() {
+      final catalogue = {
+        for (final type in controller.vehicleTypesFor(section.codes))
+          type.code: type,
+      };
+      if (catalogue.isEmpty) {
+        // Still loading, or this section has nothing the backend offers.
+        return controller.isLoadingVehicleTypes.value
+            ? _sectionSkeleton(section.title)
+            : const SizedBox.shrink();
+      }
+
+      // A tile survives only if the catalogue still carries one of the types it
+      // covers, so a class retired server-side takes its tile with it — and the
+      // grouped "Cab" tile keeps working as long as ANY car is bookable.
+      final tiles = <({_ServiceTileSpec spec, RideVehicleType type})>[
+        for (final spec in section.tiles)
+          if (spec.resolve(catalogue) case final type?) (spec: spec, type: type),
+      ];
+
+      // What is being booked. Both halves have to match: `twoWheelerRider` is a
+      // tile in Passenger AND in Parcel/Goods, and only the `orderFor` tells
+      // them apart.
+      final isCurrentTrip = section.orderFor == controller.orderFor.value;
+      final selectedCode =
+          isCurrentTrip ? controller.preselectedVehicleCode.value : null;
+
+      // Fares are read HERE, in the Obx's own build, and handed down as a plain
+      // map — never touched inside the LayoutBuilder below.
+      //
+      // LayoutBuilder runs its callback at LAYOUT time, after the build phase
+      // has ended and GetX has stopped recording which observables were read.
+      // An `Obx` therefore never subscribes to anything touched in there: the
+      // tiles rendered fine, but a quote landing afterwards updated
+      // `vehicleOptions` with nobody listening, so the prices sat at their old
+      // values (or at '—') until some unrelated rebuild happened to refresh
+      // them.
+      //
+      // Priced only for the trip currently quoted — a tile in another section
+      // would otherwise show a fare computed for a different service.
+      final quotes = isCurrentTrip
+          ? {for (final option in controller.vehicleOptions) option.code: option}
+          : const <String, RideVehicleOption>{};
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: CustomText(
+              section.title,
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
+              color: RideStyle.ink,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Fixed four-column measure, laid out by hand rather than with
+                // a GridView: a short row must sit at the SAME tile width as
+                // the full rows and stay left-aligned, which is what a Wrap
+                // over pre-measured tiles gives.
+                const columns = 4;
+                const gap = 8.0;
+                final tileWidth =
+                    (constraints.maxWidth - gap * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: 14,
+                  children: [
+                    for (final tile in tiles)
+                      SizedBox(
+                        width: tileWidth,
+                        child: _ServiceTile(
+                          label: tile.spec.label ??
+                              RideVehicleArt.labelFor(
+                                tile.type.code,
+                                orderFor: section.orderFor,
+                                catalogueLabel: tile.type.label,
+                              ),
+                          assetPath: RideVehicleArt.assetFor(
+                            tile.type.code,
+                            orderFor: section.orderFor,
+                          ),
+                          quote: quotes[tile.type.code],
+                          selected: tile.spec.covers(selectedCode),
+                          onTap: () => _selectService(
+                            vehicleType: tile.type.code,
+                            orderFor: section.orderFor,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  /// Placeholder tiles while the catalogue loads, so the sheet doesn't jump
+  /// from empty to full height under the user's thumb.
+  Widget _sectionSkeleton(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: CustomText(
+            title,
+            fontSize: 19,
+            fontWeight: FontWeight.w700,
+            color: RideStyle.ink,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const columns = 4;
+              const gap = 8.0;
+              final tileWidth =
+                  (constraints.maxWidth - gap * (columns - 1)) / columns;
+              return Wrap(
+                spacing: gap,
+                runSpacing: 14,
+                children: [
+                  for (var i = 0; i < columns; i++)
+                    SizedBox(
+                      width: tileWidth,
+                      child: AspectRatio(
+                        aspectRatio: 1.22,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: RideStyle.surfaceTint,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -397,12 +724,18 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
           ),
           const SizedBox(height: 12),
           Obx(() {
+            // The fare rides on the button now that the rows are the list —
+            // it is the number the customer is agreeing to, and it must be on
+            // the control that agrees to it.
             final selected = controller.selectedVehicle.value;
             return RidePrimaryButton(
-              label: selected == null ? 'Book' : 'Book ${selected.name}',
+              label: selected == null
+                  ? 'Book'
+                  : 'Book ${selected.name} · '
+                      '₹${selected.fare.toStringAsFixed(0)}',
               enabled: selected != null,
               isLoading: controller.isBooking.value,
-              onTap: _book,
+              onTap: _confirmBooking,
             );
           }),
         ],
@@ -469,151 +802,355 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
 
 // ---------------------------------------------------------------- sub-widgets
 
-class _VehicleRow extends StatelessWidget {
-  const _VehicleRow({
-    required this.option,
-    required this.isSelected,
-    required this.onTap,
+/// One heading, the trip type it books, and the tiles it would like to show —
+/// in display order. What is actually rendered is the intersection of those
+/// tiles with the backend catalogue.
+class _ServiceSection {
+  const _ServiceSection({
+    required this.title,
+    required this.orderFor,
+    required this.tiles,
   });
 
+  final String title;
+
+  /// Trip type this section books: `InCity | OutStation | HourlyRental | Parcel`.
+  final String orderFor;
+
+  /// The tiles, in the order the section wants them.
+  ///
+  /// A vehicle whose name or artwork doesn't fit the service it is listed under
+  /// (a bike is "Parcel On Bike" here) is handled by [RideVehicleArt], keyed off
+  /// [orderFor] — the same override the destination search reads.
+  final List<_ServiceTileSpec> tiles;
+
+  /// Every `vehicleType` this section touches, for the catalogue lookup.
+  List<String> get codes =>
+      [for (final tile in tiles) tile.code, ...tiles.expand((t) => t.alsoCovers)];
+}
+
+/// One tile in a section, and the vehicle it books.
+///
+/// Usually one tile is one `vehicleType`. [alsoCovers] is for the case where a
+/// section shows a whole family behind a single tile — the city "Cab" — and
+/// exists for two reasons: the tile must still appear when [code] itself is
+/// retired server-side, and the section's catalogue lookup has to know the
+/// covered types are in play.
+class _ServiceTileSpec {
+  const _ServiceTileSpec(this.code, {this.label, this.alsoCovers = const []});
+
+  /// Backend `vehicleType` enum this tile books.
+  final String code;
+
+  /// Name for a tile that doesn't stand for one vehicle ("Cab"). Null takes the
+  /// catalogue's own name for [code].
+  final String? label;
+
+  /// Other types this tile stands in for, in fallback order.
+  final List<String> alsoCovers;
+
+  /// Whether [vehicleType] is one this tile books — [code] or anything it
+  /// stands in for. Null (nothing selected yet) covers nothing.
+  bool covers(String? vehicleType) =>
+      vehicleType != null &&
+      (vehicleType == code || alsoCovers.contains(vehicleType));
+
+  /// The catalogue entry to render this tile from: [code], or the first of
+  /// [alsoCovers] the backend still offers. Null when none of them exist, in
+  /// which case the section drops the tile.
+  RideVehicleType? resolve(Map<String, RideVehicleType> catalogue) {
+    for (final candidate in [code, ...alsoCovers]) {
+      final type = catalogue[candidate];
+      if (type != null) return type;
+    }
+    return null;
+  }
+}
+
+/// Who is out there for the chosen vehicle, and the button that commits.
+///
+/// Informational, not a picker: dispatch is a BROADCAST — the server rings
+/// nearby riders in expanding waves and the first to accept wins — so tapping a
+/// name would promise something the flow cannot keep. What it does answer is
+/// "is anyone actually driving one of these near me", which the fare list can't.
+class _RidersSheet extends StatelessWidget {
+  const _RidersSheet({
+    required this.controller,
+    required this.option,
+    required this.onBook,
+  });
+
+  final RideBookingController controller;
   final RideVehicleOption option;
-  final bool isSelected;
+  final VoidCallback onBook;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(RideStyle.sheetRadius),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom + 16,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const RideSheetHandle(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 52,
+                  height: 40,
+                  child: LocalAssets(
+                    imagePath: RideVehicleArt.assetFor(
+                      option.code,
+                      orderFor: controller.orderFor.value,
+                    ),
+                    boxFix: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Obx(() {
+                    final count = controller.liveRiders.length;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          count == 0
+                              ? 'Riders near you'
+                              : '$count ${count == 1 ? 'rider' : 'riders'} near you',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: RideStyle.ink,
+                        ),
+                        const SizedBox(height: 2),
+                        CustomText(
+                          '${option.name} · ₹${option.fare.toStringAsFixed(0)}',
+                          fontSize: 13,
+                          color: RideStyle.inkMuted,
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: RideStyle.hairline),
+          Obx(() {
+            if (controller.isLoadingLiveRiders.value &&
+                controller.liveRiders.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28),
+                child: CircularProgressIndicator(strokeWidth: 2.4),
+              );
+            }
+            if (controller.liveRiders.isEmpty) {
+              // Still bookable: the broadcast widens its radius in waves, so
+              // "none in this circle right now" is not "nobody will come".
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(24, 22, 24, 18),
+                child: CustomText(
+                  'No riders in range right now. Booking still sends your '
+                  'request out — it widens until someone accepts.',
+                  fontSize: 13,
+                  color: RideStyle.inkMuted,
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
+            return ConstrainedBox(
+              // Caps the sheet so the Book button is never pushed off-screen by
+              // a busy neighbourhood.
+              constraints: const BoxConstraints(maxHeight: 280),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                itemCount: controller.liveRiders.length,
+                separatorBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 18),
+                  child: Divider(height: 1, color: RideStyle.hairline),
+                ),
+                itemBuilder: (context, index) =>
+                    _RiderRow(rider: controller.liveRiders[index]),
+              ),
+            );
+          }),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Obx(
+              () => RidePrimaryButton(
+                label: 'Confirm & Book · ₹${option.fare.toStringAsFixed(0)}',
+                isLoading: controller.isBooking.value,
+                onTap: onBook,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One live rider in the sheet: who they are and how far off.
+class _RiderRow extends StatelessWidget {
+  const _RiderRow({required this.rider});
+
+  final RideLiveRider rider;
+
+  @override
+  Widget build(BuildContext context) {
+    final available = rider.riderStatus.toLowerCase() == 'available';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(
+              color: RideStyle.surfaceTint,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person, size: 21, color: RideStyle.inkMuted),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CustomText(
+              rider.name.isNotEmpty ? rider.name : 'Rider',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: RideStyle.ink,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (rider.distanceKm != null) ...[
+            CustomText(
+              '${rider.distanceKm!.toStringAsFixed(1)} km',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: RideStyle.inkMuted,
+            ),
+            const SizedBox(width: 10),
+          ],
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              // Green for available, grey for anything else — the server owns
+              // the vocabulary, so anything unrecognised reads as "not idle".
+              color: available ? RideStyle.pickup : RideStyle.hairline,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One vehicle in the catalogue grid — the home screen's tile, now carrying
+/// what this trip costs in it.
+class _ServiceTile extends StatelessWidget {
+  const _ServiceTile({
+    required this.label,
+    required this.assetPath,
+    required this.onTap,
+    this.quote,
+    this.selected = false,
+  });
+
+  final String label;
+
+  /// Asset under `assets/` — see [RideVehicleArt.assetFor].
+  final String assetPath;
+
+  /// This vehicle's quote for the current trip, or null when the server isn't
+  /// pricing it — the tile still shows, so the customer sees the whole
+  /// catalogue and not just today's availability.
+  final RideVehicleOption? quote;
+
   final VoidCallback onTap;
 
-  /// Clock time the ride is expected to end, derived from the ETA so the row
-  /// reads "Drop 3:16 pm" rather than "in 12 mins".
-  String get _dropLabel {
-    final minutes = option.dropEtaMinutes;
-    if (minutes == null) return '';
-    final arrival = DateTime.now().add(Duration(minutes: minutes));
-    final hour12 = arrival.hour % 12 == 0 ? 12 : arrival.hour % 12;
-    final minute = arrival.minute.toString().padLeft(2, '0');
-    final period = arrival.hour < 12 ? 'am' : 'pm';
-    return 'Drop $hour12:$minute $period';
-  }
-
-  /// Keyed on the backend `vehicleType` enum.
-  IconData get _icon {
-    switch (option.code) {
-      case 'twoWheelerRider':
-        return Icons.two_wheeler;
-      case 'autoTempo':
-      case 'eRickshaw':
-      case 'goods3Wheeler':
-        return Icons.electric_rickshaw;
-      case 'miniBus':
-        return Icons.airport_shuttle;
-      case 'pickupGoods':
-      case 'goods4Wheeler':
-        return Icons.local_shipping_outlined;
-      case 'miniTruckGoods':
-      case 'largeTruckGoods':
-        return Icons.local_shipping;
-      default:
-        return Icons.local_taxi;
-    }
-  }
+  /// This is the vehicle the Book button will send.
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? RideStyle.ink : Colors.transparent,
-            width: 1.6,
-          ),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 56,
-              child: Icon(_icon, size: 36, color: RideStyle.ink),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: CustomText(
-                          option.name,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: RideStyle.ink,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (option.badge != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: RideStyle.pickup.withOpacity(0.14),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: CustomText(
-                            option.badge!,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: RideStyle.pickup,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (option.description != null) ...[
-                    const SizedBox(height: 2),
-                    CustomText(
-                      option.description!,
-                      fontSize: 13,
-                      color: RideStyle.inkMuted,
-                    ),
-                  ],
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      CustomText(
-                        _dropLabel,
-                        fontSize: 13,
-                        color: RideStyle.inkMuted,
-                      ),
-                      if (option.seats != null) ...[
-                        const SizedBox(width: 8),
-                        const Icon(Icons.person,
-                            size: 14, color: RideStyle.inkMuted),
-                        CustomText(
-                          ' ${option.seats}',
-                          fontSize: 13,
-                          color: RideStyle.inkMuted,
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+      child: Column(
+        // Stretch, otherwise the tinted box shrink-wraps its artwork and tiles
+        // end up different widths (the rider SVG is near-square while the
+        // vehicle SVGs are wide).
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            // Slightly wider than tall — and fixed by ratio rather than height
+            // so the four tiles stay square-ish on both a small phone and a
+            // tablet.
+            aspectRatio: 1.22,
+            // Selected state is the plate's own border, animated so a tap reads
+            // as this tile lighting up rather than the grid silently redrawing.
+            // Transparent rather than absent when unselected: a border that
+            // appears would change the box's inner size and nudge the artwork.
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.primaryColor.withValues(alpha: 0.10)
+                    : RideStyle.surfaceTint,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected ? AppColors.primaryColor : Colors.transparent,
+                  width: 1.6,
+                ),
+              ),
+              // No imgColor — these are full-colour vehicle illustrations, so
+              // tinting them would flatten them to a silhouette.
+              child: LocalAssets(
+                imagePath: assetPath,
+                boxFix: BoxFit.contain,
               ),
             ),
-            const SizedBox(width: 8),
-            CustomText(
-              '₹${option.fare.toStringAsFixed(0)}',
-              fontSize: 19,
-              fontWeight: FontWeight.w700,
-              color: RideStyle.ink,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          CustomText(
+            label,
+            fontSize: 13,
+            // The name carries the state too — a border on a small tile is easy
+            // to miss, and it keeps the cue readable for anyone who can't pick
+            // the blue out of the grid.
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? AppColors.primaryColor : RideStyle.ink,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          // Always rendered, so a priced tile and an unpriced one keep the same
+          // height and the grid rows stay level. An em dash means the vehicle
+          // exists but this trip isn't priced for it — a different thing from
+          // the tile being missing.
+          CustomText(
+            quote == null ? '—' : '₹${quote!.fare.toStringAsFixed(0)}',
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: quote == null ? RideStyle.inkMuted : RideStyle.ink,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+          ),
+        ],
       ),
     );
   }

@@ -18,6 +18,15 @@ mixin RiderServiceApi {
 
   String getNearByRiderApi = "rider-service/riders/nearby";
 
+  /// Riders currently live around a point, for the customer's home map.
+  /// `GET ?lat&lng&radius&vehicleType&limit` →
+  /// `{ count, radiusKm, vehicleType, riders: [{ userId, name, vehicleType,
+  /// riderStatus, location{latitude,longitude}, lastSeen, distanceKm }] }`.
+  ///
+  /// Discovery only — it says who is out there right now, not who will take the
+  /// job. Dispatch is still the broadcast create call.
+  final String ridersLiveInRadius = "rider-service/riders/live-in-radius";
+
   final String ridersOnboardingPersonalInformation =
       "rider-service/riders/onboarding/personal-information"; // Onboarding rider (step 1)
   final String ridersOnboardingAddress =

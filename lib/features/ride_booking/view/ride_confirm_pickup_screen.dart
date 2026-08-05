@@ -5,6 +5,7 @@ import 'package:BlueEra/features/ride_booking/view/ride_vehicle_select_screen.da
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -41,6 +42,11 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
 
   /// Stops listening for a late device fix once the screen goes away.
   Worker? _locationWorker;
+
+  /// Whether the camera has moved since the last idle — i.e. this idle is the
+  /// pin LANDING somewhere new, not the map settling into its opening frame.
+  /// Gates the tick, so opening the screen is silent.
+  bool _cameraMoved = false;
 
   @override
   void initState() {
@@ -93,6 +99,10 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   /// geocoding on every frame of a drag would be both janky and expensive.
   Future<void> _onCameraIdle() async {
     final position = _pinPosition;
+    if (_cameraMoved) {
+      _cameraMoved = false;
+      _playPinTick();
+    }
     final seq = ++_resolveSeq;
     setState(() => _isResolving = true);
     try {
@@ -105,6 +115,20 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
         setState(() => _isResolving = false);
       }
     }
+  }
+
+  /// The keypress-style tick that marks the pin settling on a new point.
+  ///
+  /// Fired at camera-idle rather than when the address comes back: the tick has
+  /// to answer the gesture, and the reverse geocode can take a second. It is
+  /// the platform's own keyboard click, not a bundled asset, so it follows the
+  /// system sound setting — a user who has key clicks off gets silence here too.
+  ///
+  /// Paired with the selection haptic because iOS has no [SystemSoundType.click]
+  /// (it no-ops there); the haptic is what carries the feedback on that side.
+  void _playPinTick() {
+    SystemSound.play(SystemSoundType.click);
+    HapticFeedback.selectionClick();
   }
 
   /// Reverse-geocode the coordinate under the pin.
@@ -200,15 +224,14 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
           onMapCreated: (c) => _mapController = c,
+          onCameraMoveStarted: () => _cameraMoved = true,
           onCameraMove: (position) => _pinPosition = position.target,
           onCameraIdle: _onCameraIdle,
         ),
-        // Centre pin sits slightly above true centre so its point, not its
-        // body, marks the coordinate.
-        const Padding(
-          padding: EdgeInsets.only(bottom: 40),
-          child: _PickupPin(),
-        ),
+        // The two halves of the marker, both registered on the map centre: the
+        // ring IS the coordinate, the label hangs above it.
+        const _PickupGroundRing(),
+        const Positioned.fill(child: _PickupPin()),
         Positioned(
           left: 16,
           bottom: 20,
@@ -334,33 +357,82 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   }
 }
 
-/// The green "Pickup Point" label with its stem, drawn over the map centre.
+/// The green "Pickup Point" label with its stem, hanging above the map centre.
+///
+/// Fills the map and aligns itself rather than taking a fixed offset: the stem
+/// has to end ON the centre, and the label's height moves with the user's text
+/// scale, so a hardcoded padding drifts off the point on any device that isn't
+/// at 1.0. Bottom-aligning it inside the TOP HALF of the map puts its foot on
+/// the centre line by construction.
 class _PickupPin extends StatelessWidget {
   const _PickupPin();
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-          decoration: BoxDecoration(
-            color: RideStyle.pickup,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: RideStyle.floatingShadow,
-          ),
-          child: CustomText(
-            'Pickup Point',
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: RideStyle.pickup,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: RideStyle.floatingShadow,
+                  ),
+                  child: CustomText(
+                    'Pickup Point',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ),
+                // Stops at the ring's core, which the ring draws over.
+                Container(width: 2, height: 14, color: RideStyle.pickup),
+              ],
+            ),
           ),
         ),
-        Container(width: 2, height: 12, color: RideStyle.pickup),
-        Container(
-          width: 26,
-          height: 26,
+        const Expanded(child: SizedBox.shrink()),
+      ],
+    );
+  }
+}
+
+/// The circle on the ground under the pin — the point the address is being read
+/// from.
+///
+/// A pin alone is ambiguous about which pixel it means, and on a map the whole
+/// question is "which spot is this". The ring gives the coordinate a footprint
+/// the eye can land on while the map slides underneath, and the solid core is
+/// the point itself.
+class _PickupGroundRing extends StatelessWidget {
+  const _PickupGroundRing();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        // Translucent, so the map underneath still reads through the footprint
+        // — it marks the spot without hiding what is on it.
+        color: RideStyle.pickup.withValues(alpha: 0.16),
+        border: Border.all(
+          color: RideStyle.pickup.withValues(alpha: 0.55),
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Container(
+          width: 16,
+          height: 16,
           decoration: BoxDecoration(
             color: AppColors.primaryColor,
             shape: BoxShape.circle,
@@ -368,7 +440,7 @@ class _PickupPin extends StatelessWidget {
             boxShadow: RideStyle.floatingShadow,
           ),
         ),
-      ],
+      ),
     );
   }
 }

@@ -20,14 +20,18 @@ class TransportServiceWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Landing grid (see [DiscoverFolderScope]): this is the one section with a
     // hand-rolled card rather than a DiscoverGridSection, so it opts into
-    // folder mode itself. The pickup/drop card lives inside the sheet.
+    // folder mode itself.
+    //
+    // No sheet here, unlike every other folder: each tile on this card — the
+    // pickup/drop row and all the transport types alike — routes to the same
+    // [RideHomeScreen], so the sheet was a screen you tapped through with
+    // nothing to choose in it. The folder opens the ride screen directly.
     if (DiscoverFolderScope.isActive(context)) {
-      final host = DiscoverFolderHost.sectionOf(context);
       return DiscoverFolderTile(
         title: AppStrings.bookYourTransport.tr,
         iconPaths:
             transportItemsCategories.map((e) => e.icon ?? '').toList(),
-        expandedBuilder: (ctx) => host ?? _fullCard(ctx),
+        onTap: () => Get.to(() => const RideHomeScreen()),
       );
     }
     return Builder(

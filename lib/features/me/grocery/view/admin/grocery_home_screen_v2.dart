@@ -21,6 +21,7 @@ import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_overview_tab
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_post_tab.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_products_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -126,6 +127,24 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
         // Overview â€” the joined-profile / contact / QR / share-banner
         // sections all read from the permanent
         // [ViewBusinessDetailsController]; no grocery API needed.
+        //
+        // The live-photo request belongs here, not on the landing. The photos
+        // are part of this profile and are shown on this tab, so asking for
+        // them the moment the store opens (on PRODUCTS) put the request over a
+        // screen about stock. It fires on each visit while the store still has
+        // none: the helper no-ops once any photo exists, and will not stack on
+        // a sheet that is already open.
+        //
+        // Post-frame because this runs from the TabController's listener, mid
+        // tab-change; pushing a route from inside that lands the sheet on a
+        // half-settled navigator.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          showBusinessLivePhotoBottomSheetIfNeeded(
+            context: context,
+            controller: _businessController,
+          );
+        });
         break;
       case 2:
         // Post â€” FeedScreen owns its own controller fetch on mount.

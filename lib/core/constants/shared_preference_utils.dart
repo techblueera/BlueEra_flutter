@@ -57,12 +57,6 @@ String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
 String productBusinessProfileIDGlobal = '';
 
-/// In-memory guard so the Discover share-promo dialog shows at most once per app
-/// session (the once-per-DAY rule is the persisted `sharePromoLastShownKey`).
-/// Reset on logout (see [SharedPreferenceUtils.clearPreferenceDataOnly]) so a
-/// fresh login re-shows the promo instead of a stale session flag hiding it.
-bool sharePromoShownThisSession = false;
-
 /// Local `yyyy-MM-dd` the merchant add-product prompt last displayed, mirroring
 /// the persisted `addProductPromptLastShownKey`.
 ///
@@ -170,10 +164,10 @@ class SharedPreferenceUtils {
   /// from the unchanging install referrer on a later launch.
   static const installReferrerCheckedKey = 'install_referrer_checked';
 
-  /// `yyyy-MM-dd` of the last day the Discover share-profile promo dialog
-  /// was shown, so it pops at most once per calendar day (not on every
-  /// Discover mount).
-  static const sharePromoLastShownKey = 'share_promo_last_shown';
+  // The Discover share-promo's per-day key lived here. The promo no longer
+  // opens itself — the share card is reached from the header banner's share
+  // button — so nothing reads or writes it. Any value left in storage from an
+  // older build is wiped by the deleteAll() in clearPreferenceDataOnly.
 
   /// Local `yyyy-MM-dd` the merchant add-product prompt was last shown, so it
   /// pops at most once per calendar day across the me-section admin homes
@@ -429,11 +423,11 @@ class SharedPreferenceUtils {
       userId = '';
       businessId = '';
       userMobileGlobal = '';
-      // Reset the Discover share-promo session guard so the next login shows it
-      // again (its persisted per-day key was just wiped by deleteAll() above).
-      sharePromoShownThisSession = false;
-      // Same reasoning for the merchant add-product prompt's in-memory day
-      // mirror — its persisted key was wiped by deleteAll() above.
+      // The Discover share-promo session guard was reset here. It is gone with
+      // the promo itself.
+      //
+      // The merchant add-product prompt keeps its in-memory day mirror — its
+      // persisted key was wiped by deleteAll() above, so clear it too.
       addProductPromptShownForDay = null;
       // ...and for the business-profile QR promo sheet's in-memory day mirror.
       qrPromoShownForDay = null;

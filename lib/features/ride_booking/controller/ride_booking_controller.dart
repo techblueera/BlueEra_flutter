@@ -91,6 +91,24 @@ class RideBookingController extends GetxController {
   static String _nameForVehicleType(String vehicleType) =>
       kVehicleTypeNames[vehicleType] ?? vehicleType;
 
+  /// What the flow books when the customer never picked a vehicle — they came
+  /// in through the search field rather than a service tile.
+  ///
+  /// The bike, because it is the cheapest ride and the one the catalogue leads
+  /// with. Something has to be selected from the first screen on: the quote and
+  /// the create call both carry a `vehicleType`, and the destination search now
+  /// names the vehicle it is searching for.
+  static const String kDefaultVehicleType = 'twoWheelerRider';
+
+  /// Catalogue label for a `vehicleType`, falling back to the compiled-in name
+  /// while the catalogue is still loading (or for a code it doesn't carry).
+  String vehicleLabelFor(String code) {
+    for (final type in vehicleTypes) {
+      if (type.code == code) return type.label;
+    }
+    return _nameForVehicleType(code);
+  }
+
   // ------------------------------------------------------ vehicle catalogue
 
   /// The backend's vehicle catalogue, from `GET riders/onboarding/vehicle-enums`.
@@ -171,6 +189,122 @@ class RideBookingController extends GetxController {
         for (final entry in kVehicleTypeNames.entries)
           RideVehicleType(code: entry.key, label: entry.value),
       ];
+
+  // ----------------------------------------------------------- live riders
+
+  /// Riders currently out there near the customer, drawn on the home map.
+  ///
+  /// Presence, not supply: the flow still books by broadcast, so an empty list
+  /// is not a promise that nothing is available and a full one is not a promise
+  /// that anybody accepts. Nothing downstream reads it.
+  final RxList<RideLiveRider> liveRiders = <RideLiveRider>[].obs;
+  final isLoadingLiveRiders = false.obs;
+
+  /// Monotonic id for the in-flight live-rider lookup. Tapping Bike then Cab
+  /// fires two, and they don't come back in order — without this, the slower
+  /// bike response repaints bikes over the cabs the user is now looking at.
+  int _liveRiderSeq = 0;
+
+  /// The COARSE category `riders/live-in-radius` filters by, for a booking's
+  /// `vehicleType` enum.
+  ///
+  /// Two vocabularies: a booking carries the exact enum (`carSedan`), the map
+  /// query takes the family (`car`) — the sample response filters on
+  /// `vehicleType=rider` and comes back holding a `twoWheelerRider`. Anything
+  /// unmapped falls back to the bike category, which is the one every city has
+  /// riders in.
+  static const Map<String, String> _liveRiderCategories = {
+    'twoWheelerRider': 'rider',
+    'eRickshaw': 'auto',
+    'autoTempo': 'auto',
+    'goods3Wheeler': 'auto',
+    'carMini': 'car',
+    'carSedan': 'car',
+    'suvCar': 'car',
+    'miniBus': 'car',
+    'goods4Wheeler': 'truck',
+    'pickupGoods': 'truck',
+    'miniTruckGoods': 'truck',
+    'largeTruckGoods': 'truck',
+  };
+
+  static String liveRiderCategoryFor(String? vehicleType) =>
+      _liveRiderCategories[vehicleType] ?? 'rider';
+
+  /// How far out to look for live riders, per trip type.
+  ///
+  /// A city ride or a parcel is served from the neighbourhood — widening the
+  /// circle there just draws vehicles that would never take the job. An out-
+  /// station trip is a different market: the customer is leaving town, drivers
+  /// who do those runs are spread thinner, and a 5 km circle would routinely
+  /// come back empty on a service that is perfectly available.
+  static const Map<String, int> _liveRiderRadiusKm = {
+    'InCity': 5,
+    'Parcel': 5,
+    'OutStation': 10,
+  };
+
+  static int liveRiderRadiusFor(String orderFor) =>
+      _liveRiderRadiusKm[orderFor] ?? 5;
+
+  /// Load the riders live around the customer for [vehicleType].
+  ///
+  /// Silent on failure — this decorates the map, and a red banner over a map
+  /// the user can still book from would be noise. A failed or empty lookup
+  /// clears the markers rather than leaving the last vehicle family sitting
+  /// there under a different heading.
+  /// [radiusKm] defaults to the radius for the trip type currently set — see
+  /// [liveRiderRadiusFor]. Pass one only to override that.
+  Future<void> fetchLiveRiders({
+    String? vehicleType,
+    int? radiusKm,
+    int limit = 20,
+  }) async {
+    // Around the PICKUP, not the device: once the customer has moved the pin
+    // (or come back to change it), the vehicles that matter are the ones near
+    // where they will be collected. Falls back to the device fix on the home
+    // screen, before a pickup has been confirmed.
+    final place = pickup.value;
+    final hasPickup = place != null && place.hasCoordinates;
+    final lat = hasPickup ? place.latitude : currentLat.value;
+    final lng = hasPickup ? place.longitude : currentLng.value;
+    // No fix yet — the caller retries once the device position lands.
+    if (lat == 0 && lng == 0) return;
+
+    final seq = ++_liveRiderSeq;
+    isLoadingLiveRiders.value = true;
+    try {
+      final response = await _repo.getLiveRidersInRadius(
+        lat: lat,
+        lng: lng,
+        vehicleType: liveRiderCategoryFor(
+          vehicleType ?? preselectedVehicleCode.value,
+        ),
+        radiusKm: radiusKm ?? liveRiderRadiusFor(orderFor.value),
+        limit: limit,
+      );
+      if (seq != _liveRiderSeq) return; // a newer tap owns the map now
+      liveRiders.assignAll(_parseLiveRiders(response));
+    } catch (_) {
+      if (seq == _liveRiderSeq) liveRiders.clear();
+    } finally {
+      if (seq == _liveRiderSeq) isLoadingLiveRiders.value = false;
+    }
+  }
+
+  List<RideLiveRider> _parseLiveRiders(ResponseModel response) {
+    if (!response.isSuccess) return const [];
+    final body = _payload(response);
+    final map = body is Map ? body : null;
+    final raw = map?['riders'];
+    if (raw is! List) return const [];
+    return [
+      for (final entry in raw.whereType<Map>())
+        if (RideLiveRider.fromJson(entry) case final rider
+            when rider.hasCoordinates)
+          rider,
+    ];
+  }
 
   /// The catalogue entries for [codes], in the order given — the section
   /// decides the order it wants to show, the catalogue decides what exists.
@@ -620,8 +754,12 @@ class RideBookingController extends GetxController {
   /// an `orderFor` for the trip. "Parcel on Bike" is `twoWheelerRider` +
   /// `Parcel`; "Bike" is the same vehicle with `InCity`. Call before navigating
   /// into the flow — [fetchQuotes] picks both up.
+  ///
+  /// A null [vehicleType] means "no tile was tapped" (the search field), which
+  /// settles on [kDefaultVehicleType] rather than staying unset: from here on
+  /// the flow always has a vehicle to name and to pre-select.
   void setTripType({String? vehicleType, String orderFor = _defaultOrderFor}) {
-    preselectedVehicleCode.value = vehicleType;
+    preselectedVehicleCode.value = vehicleType ?? kDefaultVehicleType;
     this.orderFor.value = orderFor;
   }
 

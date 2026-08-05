@@ -4,9 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/app_targeted_share.dart';
@@ -15,8 +13,10 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/common/referral/view/update_referral_page.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/franchise/request_to_franchise.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
@@ -399,6 +399,15 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           onTap: createProfileScreen,
         ),
       _assetSlide(AppImageAssets.groceryBanner),
+      // The franchise slide is the one bundled promo that goes somewhere — it
+      // opens the enquiry form, the same destination the drawer's franchise
+      // entry uses. Withheld from gig workers and the self-employed; see
+      // [canSeeFranchiseBanner].
+      if (canSeeFranchiseBanner)
+        _assetSlide(
+          AppImageAssets.franchiseBanner,
+          onTap: () => Get.to(() => const FranchiseInquiryScreen()),
+        ),
     ];
 
     // One slide has nothing to slide to — draw it flat and skip the carousel,
@@ -418,7 +427,9 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
             aspectRatio: _slideRatio ?? 3 / 2,
             viewportFraction: 1.0,
             autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 4),
+            // Matches the Discover header: long enough to take a slide in
+            // before it moves, now that there are three of them.
+            autoPlayInterval: const Duration(seconds: 7),
             enableInfiniteScroll: true,
             onPageChanged: (index, _) {
               if (mounted) setState(() => _slideIndex = index);
@@ -819,40 +830,15 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
 
   // ───── Share plumbing ─────────────────────────────────────────────
 
-  /// Referral share body — profile deep link first, then headline +
-  /// code + store links (the Play Store URL carries the code as a
-  /// `referrer` param so Android's Install Referrer API can auto-apply
-  /// it at first launch). The profile link itself already carries the
-  /// referral code as a `?referralCode=` query param.
-  String _referralMessage(String? referralCode) {
-    final code = (referralCode ?? '').trim().toUpperCase();
-    // Individual profiles deep-link to /app/profile; every other account
-    // type is a business profile.
-    final isIndividual =
-        (widget.accountType ?? accountTypeGlobal).toUpperCase() ==
-            AppConstants.individual;
-    final profileLink = isIndividual
-        ? profileDeepLink(userId: userId)
-        : businessProfileDeepLink(userId: businessId);
-    final playUrl = code.isNotEmpty
-        ? '${AppConstants.androidPlayStoreUrl}'
-            '&referrer=${Uri.encodeQueryComponent("referralCode=$code")}'
-        : AppConstants.androidPlayStoreUrl;
-    final buffer = StringBuffer()
-      ..writeln(
-          '🎁Share One-Time, Earn Full Year on BlueEra! Visit-$profileLink')
-      ..writeln();
-    if (code.isNotEmpty) {
-      buffer
-        ..writeln('🎁 My Referral Code: $code')
-        ..writeln();
-    }
-    buffer
-      ..writeln('Download BlueEra:')
-      ..writeln('👉 Play Store: $playUrl')
-      ..writeln('👉 App Store: ${AppConstants.iosAppStoreUrl}');
-    return buffer.toString();
-  }
+  /// Referral share body — profile deep link, headline, code and store links.
+  ///
+  /// Built by [buildReferralShareMessage] rather than here, because the Discover
+  /// header shares the same referral without this card in front of it. Two
+  /// copies of this text would drift into sending different links.
+  String _referralMessage(String? referralCode) => buildReferralShareMessage(
+        referralCode: referralCode,
+        accountType: widget.accountType,
+      );
 
   Future<Uint8List?> _captureBannerPng({double pixelRatio = 3.0}) async {
     // No backend poster → no boundary in the tree to capture (a guest's
