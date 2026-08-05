@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_ba
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_photos_screen.dart';
+import 'package:BlueEra/features/me/hotel/view/v2/widgets/hotel_availability_view.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hotel/widget/hotel_amenities_card.dart';
 import 'package:BlueEra/features/me/hotel/widget/hotel_choose_room_card.dart';
@@ -82,6 +83,16 @@ class _HotelOverviewTabV2State extends State<HotelOverviewTabV2> {
               left: SizeConfig.size30, right: SizeConfig.size12),
           child: HotelAmenitiesCard(controller: widget.controller),
         ),
+        SizedBox(height: SizeConfig.size10),
+        // Weekly hours — mirrors the lab overview tab. Reads from the shared
+        // business availability endpoint via `_businessController.weeklySchedule`
+        // and opens `HotelAvailabilityScreen` for edits.
+        Padding(
+          padding: EdgeInsets.only(
+              left: SizeConfig.size30, right: SizeConfig.size12),
+          child: HotelAvailabilityCard(businessController: _businessController),
+        ),
+        SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.size30, right: SizeConfig.size12),

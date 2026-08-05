@@ -18,10 +18,10 @@ import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart'
+    hide Size;
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -369,7 +369,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 keyPrefix: 'stay_service_native_ad',
               );
             }
-            return hotelServiceCard(list[row.contentIndex]);
+            return hotelServiceCard(list[row.contentIndex], row.contentIndex);
           },
         ),
       );
@@ -779,23 +779,36 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     );
   }
 
-  Widget hotelServiceCard(HotelServiceData service) {
+  Widget hotelServiceCard(HotelServiceData service, int index) {
     final coords = service.profile?.location?.coordinates;
     final distance = (coords != null && coords.length >= 2)
         ? calculateDistanceInt(coords[1].toDouble(), coords[0].toDouble())
         : 0;
-    // Prefer the profile's coverUrl for the card hero. Fall back to the
-    // flattened photos list (up to 5) when no cover has been set, so cards
-    // still show something for hotels that only uploaded gallery photos.
-    final coverUrl = service.profile?.coverUrl ?? '';
-    final List<String> allImages = coverUrl.isNotEmpty
-        ? [coverUrl]
-        : (service.profile?.photos
-                ?.expand((photo) => photo.imageReferences ?? [])
-                .map((url) => url.toString())
-                .take(5)
-                .toList() ??
-            []);
+    // Hero image fallback chain: coverUrl → gallery photos (up to 5) →
+    // profile logo. The last step keeps the hero populated for hotels
+    // that only set up their DP without a cover or gallery photos,
+    // instead of falling through to the broken-image placeholder.
+    final coverUrl = service.profile?.coverUrl?.trim() ?? '';
+    final logoUrl = service.profile?.logoUrl?.trim() ?? '';
+    List<String> allImages;
+    if (coverUrl.isNotEmpty) {
+      allImages = [coverUrl];
+    } else {
+      final galleryImages = service.profile?.photos
+              ?.expand((photo) => photo.imageReferences ?? [])
+              .map((url) => url.toString())
+              .where((url) => url.trim().isNotEmpty)
+              .take(5)
+              .toList() ??
+          <String>[];
+      if (galleryImages.isNotEmpty) {
+        allImages = galleryImages;
+      } else if (logoUrl.isNotEmpty) {
+        allImages = [logoUrl];
+      } else {
+        allImages = <String>[];
+      }
+    }
 
     // "Starting From" → cheapest room across the listing.
     final roomPrices = (service.rooms ?? [])
@@ -810,6 +823,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     return InkWell(
       onTap: openDetails,
       child: PropertyCard(
+        index: index,
         imageUrls: allImages,
         logoUrl: service.profile?.logoUrl ?? '',
         hotelName: service.profile?.name ?? "N/A",
@@ -971,29 +985,32 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 */
   }
 
-  /// Maps the hotel-level boolean amenity flags to (icon, label) pairs for
-  /// the card's amenity grid — only enabled amenities are emitted, in a
-  /// stable display order matching the design.
-  List<MapEntry<IconData, String>> _hotelAmenities(Amenities? a) {
+  /// Maps the hotel-level boolean amenity flags to (svg-asset, label) pairs
+  /// for the card's amenity grid — only enabled amenities are emitted.
+  /// SVG basenames mirror those used by
+  /// `hotel_discover_home_screen.dart`'s `_buildAmenitiesSection`
+  /// (assets/category/hotel_service/<NAME>.svg) so icons stay in sync
+  /// between the list card and the detail screen.
+  List<MapEntry<String, String>> _hotelAmenities(Amenities? a) {
     if (a == null) return const [];
-    final list = <MapEntry<IconData, String>>[];
-    void add(bool? on, IconData icon, String label) {
-      if (on == true) list.add(MapEntry(icon, label));
+    final list = <MapEntry<String, String>>[];
+    void add(bool? on, String asset, String label) {
+      if (on == true) list.add(MapEntry(asset, label));
     }
 
-    add(a.freeParking, Icons.local_parking_rounded, 'Free Parking');
-    add(a.restaurant, Icons.restaurant_rounded, 'Restaurant');
-    add(a.frontDesk24x7, Icons.support_agent_rounded, '24x7 Front Desk');
-    add(a.elevatorLift, Icons.elevator_rounded, 'Elevator/Lift');
-    add(a.cctvSurveillance, Icons.videocam_rounded, 'CCTV Surveillance');
-    add(a.powerBackup, Icons.bolt_rounded, 'Power Backup');
-    add(a.laundryService, Icons.local_laundry_service_rounded,
-        'Laundry Service');
-    add(a.swimmingPool, Icons.pool_rounded, 'Swimming Pool');
-    add(a.airportTransportation, Icons.airport_shuttle_rounded,
-        'Airport Transport');
-    add(a.bar, Icons.local_bar_rounded, 'Bar');
-    add(a.gym, Icons.fitness_center_rounded, 'Gym');
+    add(a.freeParking, 'FREE_PARKING', AppStrings.hotelFreeParking.tr);
+    add(a.restaurant, 'RESTAURANT', AppStrings.hotelRestaurant.tr);
+    add(a.frontDesk24x7, 'FRONT_DESK_24_7', AppStrings.hotelFrontDesk247.tr);
+    add(a.elevatorLift, 'ELEVATOR_LIFT', AppStrings.hotelElevatorLift.tr);
+    add(a.cctvSurveillance, 'CCTV_SURVEILLANCE',
+        AppStrings.hotelCctvSurveillance.tr);
+    add(a.powerBackup, 'POWER_BACKUP', AppStrings.hotelPowerBackup.tr);
+    add(a.laundryService, 'WARDROBE', AppStrings.hotelLaundryService.tr);
+    add(a.swimmingPool, 'SWIMMING_POOL', AppStrings.hotelSwimmingPool.tr);
+    add(a.airportTransportation, 'AIRPORT_TRANSPORT',
+        AppStrings.hotelAirportTransportation.tr);
+    add(a.bar, 'BAR', AppStrings.hotelBar.tr);
+    add(a.gym, 'FITNESS_CENTER_GYM', AppStrings.hotelGym.tr);
     return list;
   }
 
@@ -1102,7 +1119,49 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       );
 }
 
+/// Tinted surface set for a stay card. Mirrors the palette used by
+/// `ServiceBusinessCard` so both directories share the same visual family —
+/// the outer card is the lighter wash, the inner Amenities tile uses the
+/// fuller hue.
+class _CardPalette {
+  final Color cardBg;
+  final Color cardBorder;
+  final Color tileBg;
+  final Color tileBorder;
+  final Color dividerLine;
+  final Color bodyDashedDivider;
+
+  const _CardPalette({
+    required this.cardBg,
+    required this.cardBorder,
+    required this.tileBg,
+    required this.tileBorder,
+    required this.dividerLine,
+    required this.bodyDashedDivider,
+  });
+}
+
+const List<_CardPalette> _cardPalettes = <_CardPalette>[
+  _CardPalette(
+    cardBg: Color(0xFFEDFCFE),
+    cardBorder: Color(0xFFCFEEF2),
+    tileBg: Color(0xFFDBFAFD),
+    tileBorder: Color(0xFFBFE9EE),
+    dividerLine: Color(0xFFBFE9EE),
+    bodyDashedDivider: Color(0xFFBBE3E8),
+  ),
+  _CardPalette(
+    cardBg: Color(0xFFFBF2FF),
+    cardBorder: Color(0xFFEDD3F7),
+    tileBg: Color(0xFFF7E6FF),
+    tileBorder: Color(0xFFE5C6F5),
+    dividerLine: Color(0xFFE5C6F5),
+    bodyDashedDivider: Color(0xFFE3D4E9),
+  ),
+];
+
 class PropertyCard extends StatefulWidget {
+  final int index;
   final List<String> imageUrls;
   final String logoUrl;
   final String hotelName;
@@ -1113,7 +1172,7 @@ class PropertyCard extends StatefulWidget {
   final int reviews;
   final String checkInTime;
   final String checkOutTime;
-  final List<MapEntry<IconData, String>> amenities;
+  final List<MapEntry<String, String>> amenities;
   final String? businessId;
 
   /// Tapping the pill-shaped "Inquiry" CTA on the card. The list screen
@@ -1125,6 +1184,7 @@ class PropertyCard extends StatefulWidget {
 
   const PropertyCard({
     super.key,
+    required this.index,
     required this.imageUrls,
     required this.logoUrl,
     required this.hotelName,
@@ -1187,151 +1247,210 @@ class _PropertyCardState extends State<PropertyCard> {
     );
   }
 
+  _CardPalette get _palette =>
+      _cardPalettes[widget.index.abs() % _cardPalettes.length];
+
   @override
   Widget build(BuildContext context) {
-    final hasMultipleImages = widget.imageUrls.length > 1;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final imageHeight = (screenWidth - SizeConfig.size32) * 8 / 16;
-    const logoSize = 54.0;
-
+    final palette = _palette;
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF4)),
+        border: Border.all(color: palette.cardBorder, width: 1),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x14001120), blurRadius: 14, offset: Offset(0, 4)),
+            color: Color(0x14001120),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _imageHeader(hasMultipleImages, imageHeight),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                    child: Row(
-                      children: [
-                        // Logo / hotel name open the hotel's business
-                        // profile; the rest of the card books the stay.
-                        DiscoverProfileTap(
-                          accountType: AppConstants.business,
-                          businessId: widget.businessId,
-                          child: _logoAvatar(logoSize),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              DiscoverProfileTap(
-                                accountType: AppConstants.business,
-                                businessId: widget.businessId,
-                                child: CustomText(
-                                  widget.hotelName,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: SizeConfig.large18,
-                                  color: AppColors.black22,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              // Always show the location row — missing
-                              // pieces fall back to 'N/A' so the layout
-                              // stays consistent across listings.
-                              SizedBox(height: SizeConfig.size4),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  LocalAssets(
-                                    imagePath: AppIconAssets.location_outline,
-                                    imgColor: AppColors.primaryColor,
-                                  ),
-                                  SizedBox(width: SizeConfig.size4),
-                                  Expanded(
-                                    child: Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: (widget.distance.isNotEmpty &&
-                                                    widget.distance != '0')
-                                                ? '${widget.distance}KM Away'
-                                                : 'N/A',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.primaryColor,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: '  |  ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color:
-                                                  AppColors.secondaryTextColor,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: widget.address.isNotEmpty
-                                                ? widget.address
-                                                : 'N/A',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color:
-                                                  AppColors.secondaryTextColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (widget.amenities.isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size12),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(14, 0, 14, 0),
-                      child: _amenityGrid(),
-                    ),
-                  ],
-                  SizedBox(height: SizeConfig.size14),
-                  _bottomRow(),
-                ],
-              ),
-            ],
-          ),
-          // // Logo straddling the image / content seam.
-          // Positioned(
-          //   left: 14,
-          //   top: imageHeight - (logoSize / 2),
-          //   child: _logoAvatar(logoSize),
-          // ),
+          _imageHeader(),
+          _buildBody(palette),
         ],
       ),
     );
   }
 
+  Widget _buildBody(_CardPalette palette) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+          child: _buildHeaderRow(),
+        ),
+        if (widget.amenities.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _DashedDivider(color: palette.bodyDashedDivider),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+            child: _amenityGrid(palette),
+          ),
+        ],
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+          child: _bottomRow(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderRow() {
+    const logoSize = 50.0;
+    final hasRating = widget.rating > 0;
+    final checkIn = widget.checkInTime.trim();
+    final checkOut = widget.checkOutTime.trim();
+    // Time pill only renders when both ends of the window are populated —
+    // the pill is designed as check-in → check-out, so a missing side
+    // would leave the design lopsided. No 'N/A' fallback.
+    final hasTime = checkIn.isNotEmpty && checkOut.isNotEmpty;
+    final distanceLabel = (widget.distance.isNotEmpty && widget.distance != '0')
+        ? '${widget.distance}KM Away'
+        : '';
+    final address = widget.address.trim();
+    final showLocationRow = distanceLabel.isNotEmpty || address.isNotEmpty;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _logoAvatar(logoSize),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                widget.hotelName,
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black22,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (hasRating || hasTime) ...[
+                SizedBox(height: SizeConfig.size4),
+                Row(
+                  children: [
+                    if (hasRating) ...[
+                      _ratingPill(),
+                      SizedBox(width: SizeConfig.size6),
+                    ],
+                    if (hasTime)
+                      Flexible(
+                        child: _timeRangePill(
+                          checkIn: checkIn,
+                          checkOut: checkOut,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+              if (showLocationRow) ...[
+                const SizedBox(height: 6),
+                _buildLocationRow(distanceLabel, address),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _ratingPill() {
+    return GestureDetector(
+      onTap: _businessId.isNotEmpty ? _openReviewsSheet : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xffDDE2EE)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.fill_star,
+              width: 10,
+              height: 10,
+              imgColor: AppColors.yellow,
+            ),
+            const SizedBox(width: 3),
+            CustomText(
+              widget.rating.toStringAsFixed(1),
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationRow(String distanceText, String address) {
+    return Row(
+      children: [
+        LocalAssets(
+          imagePath: AppIconAssets.location_outline,
+          imgColor: AppColors.primaryColor,
+          height: 10,
+          width: 10,
+        ),
+        const SizedBox(width: 4),
+        Flexible(
+          child: RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                if (distanceText.isNotEmpty)
+                  TextSpan(
+                    text: distanceText,
+                    style: const TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                if (distanceText.isNotEmpty && address.isNotEmpty)
+                  const TextSpan(
+                    text: '  |  ',
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: 8,
+                    ),
+                  ),
+                if (address.isNotEmpty)
+                  TextSpan(
+                    text: address,
+                    style: const TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ─── Image header (carousel + overlays) ──────────────────────────
-  Widget _imageHeader(bool hasMultipleImages, double height) {
+  Widget _imageHeader() {
+    const height = 200.0;
+    final hasMultipleImages = widget.imageUrls.length > 1;
     return SizedBox(
       height: height,
       width: double.infinity,
@@ -1358,7 +1477,7 @@ class _PropertyCardState extends State<PropertyCard> {
                         .toList(),
                   ),
           ),
-          // Bottom scrim for pill/logo legibility.
+          // Bottom scrim for pill legibility.
           Positioned(
             left: 0,
             right: 0,
@@ -1377,32 +1496,6 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ),
           ),
-          if (_businessId.isNotEmpty)
-            Positioned(
-              left: 10,
-              top: 10,
-              child: GestureDetector(
-                onTap: _openReviewsSheet,
-                child: _whitePill(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.star_rounded, size: 14, color: Colors.yellow),
-                      SizedBox(width: SizeConfig.size2),
-                      CustomText(
-                        widget.reviews > 0
-                            ? '${widget.rating.toStringAsFixed(1)}'
-                            : widget.rating.toStringAsFixed(1),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.white,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
           // Share is always available; the rate button is hidden when the
           // listing has no businessId (per rating-ui-integration.md §1 the
           // POST would 404 without the be_user_service businesses._id).
@@ -1411,47 +1504,19 @@ class _PropertyCardState extends State<PropertyCard> {
             right: 12,
             child: Column(
               children: [
-                _circleIconBtn(AppIconAssets.share_bold,
-                    onTap: () => _shareBusiness),
+                _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
                 if (_businessId.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  _circleIconBtn(AppIconAssets.star, onTap: _openRateDialog),
+                  _circleIconBtn(AppIconAssets.star_rounded,
+                      onTap: _openRateDialog),
                 ],
               ],
-            ),
-          ),
-          // Positioned(
-          //   right: 10,
-          //   bottom: 10,
-          //   child: _circleIconBtn(AppIconAssets.star_rounded, onTap: (){}),
-          // ),
-          // Two time pills — check-in green, check-out red — with 'N/A'
-          // fallback so the card layout stays stable when the listing
-          // doesn't ship policy times.
-          Positioned(
-            right: 10,
-            bottom: 10,
-            child: _timeRangePill(
-              checkIn:
-                  widget.checkInTime.isNotEmpty ? widget.checkInTime : "N/A",
-              checkOut:
-                  widget.checkOutTime.isNotEmpty ? widget.checkOutTime : "N/A",
             ),
           ),
         ],
       ),
     );
   }
-
-  Widget _whitePill({required Widget child}) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black26,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
-        ),
-        child: child,
-      );
 
   Widget _timeRangePill({
     required String checkIn,
@@ -1560,199 +1625,174 @@ class _PropertyCardState extends State<PropertyCard> {
 
   Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
     return Material(
-      color: Colors.black26,
+      color: Colors.black.withValues(alpha: 0.38),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
             height: 14,
-            width: 8,
+            width: 14,
           ),
         ),
       ),
     );
   }
 
-  // ─── Amenities grid (3 columns, boxed pills) ─────────────────────
-  Widget _amenityGrid() {
+  // ─── Amenities tile — palette-tinted, 2-column grid ───────────────
+  /// Mirrors the "Expertise" tile in ServiceBusinessCard: title + hairline
+  /// divider + a 2-column list of items. Icons come from
+  /// `_hotelAmenities()` so each amenity keeps its recognisable glyph. Fill
+  /// / border / divider hues come from the card's palette so the tile
+  /// visibly belongs to its parent card.
+  Widget _amenityGrid(_CardPalette palette) {
+    const int maxVisible = 6;
     final items = widget.amenities;
-    // 5 amenity cells + a "+X More" cell caps the grid at 2 rows × 3
-    // columns matching the reference design; overflow collapses into
-    // the More chip so the card height stays predictable.
-    final showMore = items.length > 6;
-    final visible = showMore ? items.take(5).toList() : items.toList();
-    final moreCount = items.length - visible.length;
+    final showMore = items.length > maxVisible;
+    final visible = showMore
+        ? items.sublist(0, maxVisible - 1)
+        : items.sublist(0, items.length);
+    final extra = showMore ? items.length - visible.length : 0;
 
-    final cells = <Widget>[
-      ...visible.map((e) => _amenityCell(e.key, e.value, isMore: false)),
-      if (moreCount > 0)
-        _amenityCell(
-          Icons.more_horiz_rounded,
-          '+$moreCount ${AppStrings.more.tr}',
-          isMore: true,
-        ),
-    ];
-
-    const cols = 3;
-    final rows = <Widget>[];
-    for (int i = 0; i < cells.length; i += cols) {
-      final slice = cells.sublist(i, (i + cols).clamp(0, cells.length));
-      final isLast = i + cols >= cells.length;
-      rows.add(Padding(
-        padding: EdgeInsets.only(bottom: isLast ? 0 : SizeConfig.size8),
-        child: Row(
-          children: List.generate(cols, (c) {
-            final child = c < slice.length ? slice[c] : const SizedBox.shrink();
-            return Expanded(
-              child: Padding(
-                padding:
-                    EdgeInsets.only(right: c < cols - 1 ? SizeConfig.size8 : 0),
-                child: child,
-              ),
-            );
-          }),
-        ),
-      ));
-    }
-    return Column(children: rows);
-  }
-
-  Widget _amenityCell(IconData icon, String label, {required bool isMore}) {
-    final iconColor = isMore ? const Color(0xFF66727E) : AppColors.grey7E;
-    final textColor = isMore ? const Color(0xFF66727E) : AppColors.grey7E;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFDDE2EE)),
+        color: palette.tileBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.tileBorder),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: iconColor),
-          SizedBox(width: SizeConfig.size6),
-          Flexible(
-            child: CustomText(
-              label,
-              fontSize: 12,
-              fontWeight: isMore ? FontWeight.w400 : FontWeight.w400,
-              color: textColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          CustomText(
+            'Facilities',
+            fontSize: SizeConfig.size12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
           ),
+          SizedBox(height: SizeConfig.size8),
+          _DashedDivider(color: palette.bodyDashedDivider),
+          SizedBox(height: SizeConfig.size10),
+          _amenitiesGrid(visible, extra),
         ],
       ),
     );
   }
 
-  // ─── Starting price + chat + Book Now ────────────────────────────
-  Widget _bottomRow() => Container(
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.geryFC,
-          borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(10),
-              bottomRight: Radius.circular(10)),
+  Widget _amenitiesGrid(List<MapEntry<String, String>> items, int extra) {
+    final cells = <Widget>[
+      ...items.map((e) => _amenityCell(e.key, e.value)),
+      if (extra > 0) _moreAmenitiesLink(extra),
+    ];
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 2) {
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: cells[i]),
+          const SizedBox(width: 10),
+          Expanded(
+            child:
+                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+          ),
+        ],
+      ));
+      if (i + 2 < cells.length) rows.add(const SizedBox(height: 8));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: rows,
+    );
+  }
+
+  Widget _amenityCell(String asset, String label) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LocalAssets(
+          imagePath: 'assets/category/hotel_service/$asset.svg',
+          height: SizeConfig.size14,
+          width: SizeConfig.size14,
+          imgColor: AppColors.green00,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    'Starting From',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size2),
-                  widget.rent.isEmpty
-                      ? CustomText(
-                          'N/A',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primaryColor,
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          // crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            CustomText(
-                              '₹${_formatPrice(widget.rent)}',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryColor,
-                            ),
-                            CustomText(
-                              '/Day',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ],
-                        ),
-                ],
-              ),
-            ),
-            // if (widget.onChat != null) ...[
-            //   GestureDetector(
-            //     onTap: widget.onChat,
-            //     child: Container(
-            //       height: 40,
-            //       width: 40,
-            //       alignment: Alignment.center,
-            //       decoration: BoxDecoration(
-            //         color: AppColors.primaryColor.withValues(alpha: 0.1),
-            //         borderRadius: BorderRadius.circular(10),
-            //         border:
-            //             Border.all(color: AppColors.primaryColor, width: 0.6),
-            //       ),
-            //       child: Icon(Icons.chat_bubble_outline_rounded,
-            //           size: 18, color: AppColors.primaryColor),
-            //     ),
-            //   ),
-            //   SizedBox(width: SizeConfig.size10),
-            // ],
-            Expanded(
-              flex: 1,
-              child: GestureDetector(
-                onTap: widget.onInquiry,
-                child: Container(
-                  height: 40,
-                  // padding:
-                  //     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomText(
-                        AppStrings.inquiry.tr,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      Icon(Icons.arrow_forward_rounded,
-                          size: 16, color: AppColors.white),
-                    ],
-                  ),
+        SizedBox(width: SizeConfig.size6),
+        Expanded(
+          child: CustomText(
+            label,
+            fontSize: SizeConfig.size12,
+            fontWeight: FontWeight.w400,
+            color: AppColors.grey7E,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _moreAmenitiesLink(int extra) {
+    return InkWell(
+      onTap: widget.onInquiry,
+      child: CustomText(
+        '+$extra ${AppStrings.more.tr}',
+        fontSize: SizeConfig.size12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.primaryColor,
+      ),
+    );
+  }
+
+  // ─── Starting price + Inquiry Now (inline; shares card tint) ─────
+  /// When `rent` is empty the price column collapses and a [Spacer] takes
+  /// its place — that pushes the Inquiry button to the trailing edge of
+  /// the row instead of letting it slide left where the price used to be.
+  Widget _bottomRow() {
+    final hasRent = widget.rent.isNotEmpty;
+    return Row(
+      children: [
+        if (hasRent)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Starting From',
+                  fontSize: SizeConfig.size12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grey7E,
                 ),
-              ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      '₹${_formatPrice(widget.rent)}',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryColor,
+                    ),
+                    CustomText(
+                      '/Day',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                )
+              ],
             ),
-          ],
-        ),
-      );
+          )
+        else
+          const Spacer(),
+        _InquiryNowBtn(onTap: widget.onInquiry),
+      ],
+    );
+  }
 
   String _formatPrice(String raw) {
     final n = int.tryParse(raw);
@@ -1815,6 +1855,88 @@ class _PropertyCardState extends State<PropertyCard> {
           ],
         ),
       );
+}
+
+/// Full-width dashed horizontal rule between the header block and the
+/// Amenities tile. A hairline felt too heavy against the tinted card
+/// background — same treatment as [ServiceBusinessCard].
+class _DashedDivider extends StatelessWidget {
+  final Color color;
+
+  const _DashedDivider({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 1,
+      width: double.infinity,
+      child: CustomPaint(painter: _DashedLinePainter(color: color)),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  static const double _dashWidth = 4;
+  static const double _dashSpace = 4;
+  static const double _thickness = 1;
+
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = _thickness
+      ..strokeCap = StrokeCap.round;
+    final y = size.height / 2;
+    double x = 0;
+    while (x < size.width) {
+      final endX = (x + _dashWidth).clamp(0.0, size.width);
+      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
+      x += _dashWidth + _dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
+}
+
+class _InquiryNowBtn extends StatelessWidget {
+  final VoidCallback? onTap;
+  const _InquiryNowBtn({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              "Inquiry Now",
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward_rounded,
+                size: 16, color: AppColors.white),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _NoHotelsFound extends StatelessWidget {

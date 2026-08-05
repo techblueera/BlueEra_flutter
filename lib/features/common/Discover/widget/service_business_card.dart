@@ -324,11 +324,15 @@ class ServiceBusinessCard extends StatelessWidget {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _openStore,
+            // Figma spec: 50×50 avatar (matches _schoolLogo in
+            // all_education_service_screen.dart). White border removed
+            // because `CachedAvatarWidget` draws a 1.5px inset border
+            // per side and clips the inner image to `borderRadius-1`,
+            // which was shrinking the visible content to ~47×47.
             child: CachedAvatarWidget(
               imageUrl: _avatarUrl,
               size: 50,
-              borderRadius: 24,
-              borderColor: Colors.white,
+              borderRadius: 25,
               showProfileOnFullScreen: false,
             ),
           ),
@@ -512,7 +516,7 @@ class ServiceBusinessCard extends StatelessWidget {
             color: AppColors.black22,
           ),
           const SizedBox(height: 8),
-          Container(height: 1, color: palette.dividerLine),
+          _DashedDivider(color: _palette.bodyDashedDivider),
           const SizedBox(height: 10),
           _servicesGrid(visible, extra),
         ],
