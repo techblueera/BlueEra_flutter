@@ -39,6 +39,7 @@ class ChatThemeController extends GetxController {
   RxString chatFontFamily = 'Default'.obs;
   RxDouble chatFontSize = 16.0.obs;
 
+
   static const String _themeBoxName = 'chat_theme_settings';
 
   @override

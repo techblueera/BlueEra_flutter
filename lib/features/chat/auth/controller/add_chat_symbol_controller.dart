@@ -38,6 +38,7 @@ class AddChatSymbolController extends GetxController {
   Rx<SymbolPostType?> selectedSymbolPostType = Rx<SymbolPostType?>(null);
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
 
+
   /// Playback length of the selected video in seconds, or null when it hasn't
   /// been read yet / couldn't be determined. Sent as `media_duration` on
   /// create — the app is the only component that knows it, so omitting it

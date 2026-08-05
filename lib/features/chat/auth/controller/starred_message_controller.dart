@@ -29,6 +29,7 @@ class StarredMessageController extends GetxController {
     return await Hive.openBox<String>(_boxName);
   }
 
+
   Future<void> _load() async {
     final box = await _boxRef;
     final json = box.get(_starredKey);
