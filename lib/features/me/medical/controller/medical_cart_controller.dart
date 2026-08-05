@@ -248,12 +248,12 @@ class MedicalCartController extends GetxController {
       return;
     }
 
-    // Self-pickup: drop the user on the Inquiry (business) chat tab —
-    // the placed pharmacy order surfaces there as a buyer-side chat.
+    // Self-pickup: drop the user on Discover (index 1) instead of the chat
+    // screen — the placed pharmacy order surfaces there in the "Orders in
+    // 12 Hrs." rail, which the chat-list refresh below feeds.
     final bottom = getOrPut(() => BottomBarController());
-    bottom.onChangeIndex(2);
+    bottom.onChangeIndex(1);
     final chat = getOrPut(() => ChatViewController());
-    chat.onSelectChatTab(1);
     Get.until(
       (route) => route.settings.name == RouteConstant.BottomNavigationBarScreen,
     );

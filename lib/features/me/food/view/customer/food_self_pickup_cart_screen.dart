@@ -19,8 +19,8 @@ import 'package:get/get.dart';
 /// product row carries a per-variant checkbox and qty stepper, and the
 /// bottom summary bar exposes per-shop checkboxes + a grand total +
 /// Place Order button. Submitting fires a bulk food order on
-/// [FoodSelfPickupController] which then hops the user to the chat
-/// Orders tab.
+/// [FoodSelfPickupController] which then hops the user to the Discover
+/// tab, where the order shows up in the "Orders in 12 Hrs." rail.
 class FoodSelfPickUpCartScreen extends StatefulWidget {
   const FoodSelfPickUpCartScreen({super.key});
 
