@@ -1184,7 +1184,6 @@ class DeliveryPartnerController extends GetxController {
         },
         // Photo-submitted: no OKYC behind this number, so the backend routes it
         // to manual review rather than treating it as UIDAI-verified.
-        ApiKeys.verifyVia: ApiKeys.verifyViaManual,
       };
       final response = await DeliveryPartnerRepo()
           .ridersOnboardingPersonalIdentificationRepo(params: params);
@@ -1226,7 +1225,6 @@ class DeliveryPartnerController extends GetxController {
         // OKYC-verified: the number came back from UIDAI's OTP check, so the
         // backend can trust it without a human looking at a card photo. The
         // photo path posts the same endpoint with [ApiKeys.verifyViaManual].
-        ApiKeys.verifyVia: ApiKeys.verifyViaOtp,
       });
       if (response.isSuccess) {
         ridersOnboardingPersonalIdentificationResponse.value =
