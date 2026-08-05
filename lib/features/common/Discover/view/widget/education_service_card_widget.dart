@@ -23,11 +23,6 @@ class EducationServiceCardWidget extends StatelessWidget {
       },
       // Folder tap → the same listing on its first category; its category
       // header is where the user moves between them.
-      onFolderTap: () => Get.to(() => AllEducationServiceScreen(
-          professionalConsultantCategories:
-              businessOnboardingEducationTrainingCategories,
-          selectedProfessionConsultantData:
-              businessOnboardingEducationTrainingCategories.first)),
     );
   }
 }

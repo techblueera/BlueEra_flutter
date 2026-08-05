@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -26,7 +25,16 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/app_enum.dart';
 
 class GroceryStoresScreen extends StatefulWidget {
-  const GroceryStoresScreen({super.key});
+  const GroceryStoresScreen({super.key, this.initialCategoryTagId});
+
+  /// Category tab to open on — an onboarding grocery `tagId`, e.g.
+  /// [MOHALLA_KIRANA].
+  ///
+  /// Set by callers that already know which category the user picked (the
+  /// Discover folder sheet), so tapping "Kirana Store" there lands on that tab
+  /// instead of on "All Grocery" with the choice discarded. Null keeps the
+  /// plain entry behaviour, including the remembered category on re-entry.
+  final String? initialCategoryTagId;
 
   @override
   State<GroceryStoresScreen> createState() => _GroceryStoresScreenState();
@@ -111,15 +119,25 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
 
-    // Default landing tab is "All Grocery" (no category filter → every grocery
-    // store). Preserve an already-chosen specific category on re-entry, but
-    // treat null / the All-Grocery sentinel as "show all".
-    final selected = controller.selectedGroceryCategoryData.value;
-    if (selected != null && selected.tagId != _allGroceryTagId) {
-      controller.businessCategoryId = selected.tagId;
+    // A category named by the caller wins over everything: the user has just
+    // tapped it, so it outranks both the default and whatever they last looked
+    // at. Resolved against the API's own list so the tab and the filter are the
+    // same object the header renders.
+    final requested = _requestedCategory();
+    if (requested != null) {
+      controller.selectedGroceryCategoryData.value = requested;
+      controller.businessCategoryId = requested.tagId;
     } else {
-      controller.selectedGroceryCategoryData.value = _allGroceryCategory;
-      controller.businessCategoryId = null;
+      // Default landing tab is "All Grocery" (no category filter → every
+      // grocery store). Preserve an already-chosen specific category on
+      // re-entry, but treat null / the All-Grocery sentinel as "show all".
+      final selected = controller.selectedGroceryCategoryData.value;
+      if (selected != null && selected.tagId != _allGroceryTagId) {
+        controller.businessCategoryId = selected.tagId;
+      } else {
+        controller.selectedGroceryCategoryData.value = _allGroceryCategory;
+        controller.businessCategoryId = null;
+      }
     }
 
     // Re-entry no longer refetches: only hits the API when the cached list is
@@ -138,23 +156,17 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     super.dispose();
   }
 
-  String? _localCategoryIcon(String? tagId) {
-    switch (tagId) {
-      case MOHALLA_KIRANA:
-        return AppImageAssets.kiranaStore;
-      case GENERAL_STORE:
-        return AppImageAssets.generalStore;
-      case VEGETABLE_FRUIT:
-        return AppImageAssets.vegFruitStore;
-      case DAIRY_BAKERY:
-        return AppImageAssets.dairyBakeryStore;
-      case HOME_ESSENTIALS:
-        return AppImageAssets.homeEssentialsStore;
-      case STATIONARY_SHOP:
-        return AppImageAssets.stationaryStore;
-      default:
-        return null;
+  /// The caller's requested category, resolved against the API list, or null
+  /// when none was asked for or the tag isn't one this account's categories
+  /// carry — an unknown tag falls through to the normal landing behaviour
+  /// rather than selecting a tab that isn't in the header.
+  CategoryData? _requestedCategory() {
+    final tagId = widget.initialCategoryTagId;
+    if (tagId == null || tagId.isEmpty) return null;
+    for (final category in _arrCategories) {
+      if (category.tagId == tagId) return category;
     }
+    return null;
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -237,7 +249,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                           return StickyCategory(
                             id: c.tagId ?? '',
                             name: c.name ?? '',
-                            imageUrl: _localCategoryIcon(c.tagId),
+                            // The API's own artwork. This used to prefer a
+                            // bundled tag→asset table, so a category added or
+                            // re-illustrated server-side kept the old picture
+                            // — or showed none, its tag not being in the table.
+                            imageUrl: c.imageUrl,
                           );
                         }),
                       ],

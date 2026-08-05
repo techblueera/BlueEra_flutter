@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -121,31 +122,47 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       //   tabs: {1},
       //   folder: false
       // ),
+      // Grocery and Food both list the ONBOARDING categories off the API
+      // ([AuthController]), not a bundled copy. Discover used to carry its own
+      // hardcoded list for each, whose ids only nearly matched the API's
+      // (`MULTICUISINE` vs `MULTI_CUISINE_RESTAURANT`) — so a tapped tile could
+      // not name its own category to the screen it opened, and a category
+      // added or renamed server-side never reached this grid. Reading the same
+      // list the destination filters by means the tagId travels as-is.
+      // NOT wrapped in an Obx, deliberately. [_buildSectionsSliver] already
+      // reads `auth.onboardingBucketsWatch` — which sums the length of these
+      // very lists — so the whole column rebuilds when the categories land.
+      //
+      // An Obx here would also not have worked: handing an RxList to a `List`
+      // parameter never touches `.value`, so nothing registers and GetX throws
+      // "improper use of a GetX" on the first build.
       (
-        widget: DiscoverCategorySection(
+        widget: DiscoverGridSection(
           title: AppStrings.groceryGeneralStore.tr,
-          items: discoverGroceryCategories,
-          columns: 5,
+          items: Get.find<AuthController>().businessOnboardingGroceriesCategories,
+          getName: (item) => (item.name ?? '').tr,
+          getIcon: (item) => item.imageUrl ?? '',
           onViewAll: () =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-          onItemTap: (_) =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-          // Every tile in this section already routes to the same "View All"
-          // screen, so the folder sheet would just be a menu with one
-          // destination — tap the folder, land on the stores list.
-          onFolderTap: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          onItemTap: (item) => Get.toNamed(
+            RouteHelper.getGroceryStoresScreenRoute(),
+            arguments: item.tagId,
+          ),
         ),
         tabs: {1},
         folder: true
       ),
       (
-        widget: DiscoverCategorySection(
+        widget: DiscoverGridSection(
           title: AppStrings.restaurantFoodService.tr,
-          items: discoverFoodCategories,
-          columns: 5,
-          onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
-          onFolderTap: () => Get.to(() => const RestaurantNearMeScreen()),
+          items: Get.find<AuthController>().businessOnboardingFoodsCategories,
+          getName: (item) => (item.name ?? '').tr,
+          getIcon: (item) => item.imageUrl ?? '',
+          // Carries the tapped category through, so the restaurant screen
+          // opens on that tab instead of on "All Food".
+          onItemTap: (item) => Get.to(
+            () => RestaurantNearMeScreen(initialCategoryTagId: item.tagId),
+          ),
         ),
         tabs: {1},
         folder: true
@@ -155,8 +172,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           title: AppStrings.homeMadeFood.tr,
           items: discoverHomeMadeFoodCategories,
           columns: 5,
-          onItemTap: (_) => Get.to(() => const HmfCategoryDiscoverScreen()),
-          onFolderTap: () => Get.to(() => const HmfCategoryDiscoverScreen()),
+          onItemTap: (item) => Get.to(
+            () => HmfCategoryDiscoverScreen(initialCategoryName: item.name),
+          ),
         ),
         tabs: {1},
         folder: true
@@ -206,8 +224,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           title: AppStrings.homeServices.tr,
           items: discoverHomeServicesCategories,
           columns: 5,
-          onItemTap: (_) => Get.to(() => HomeServiceDiscoverScreenV2()),
-          onFolderTap: () => Get.to(() => HomeServiceDiscoverScreenV2()),
+          onItemTap: (item) => Get.to(
+            () => HomeServiceDiscoverScreenV2(initialCategoryName: item.name),
+          ),
         ),
         tabs: {4},
         folder: true
@@ -1268,12 +1287,36 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
     );
   }
 
+  /// The banner's own plate, matching the folder tiles: #101922 at 12% behind a
+  /// 10px blur — light enough that the pale background still reads through it.
+  ///
+  /// The artwork is drawn CONTAIN, so on a card whose ratio doesn't match the
+  /// box there is bare page either side of it. That gap used to show the raw
+  /// background through a rounded hole in the header; it now reads as the same
+  /// frosted plate the grid below is built from, and the blur under a
+  /// translucent slide gives the artwork something to sit on rather than
+  /// floating on the page.
+  static const Color _kBannerFill = Color(0x1F101922);
+  static const double _kBannerBlur = 10;
+
   Widget _banner(String path) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: SizedBox(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(
+          sigmaX: _kBannerBlur,
+          sigmaY: _kBannerBlur,
+        ),
+        child: Container(
         width: double.infinity,
         height: widget.height,
+        decoration: BoxDecoration(
+          color: _kBannerFill,
+          borderRadius: BorderRadius.circular(18),
+          // Hairline rim, as on the folder tiles: the plate is darker than the
+          // page, and the white edge is what gives it a shape.
+          border: Border.all(color: Colors.white, width: 1),
+        ),
         // CONTAIN, not cover. The first slide is the account's
         // backend-generated marketing card, at whatever aspect ratio the server
         // composed it: `cover` filled the box by cropping off whatever didn't
@@ -1305,6 +1348,7 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
                 ),
               )
             : LocalAssets(imagePath: path, boxFix: BoxFit.contain),
+        ),
       ),
     );
   }

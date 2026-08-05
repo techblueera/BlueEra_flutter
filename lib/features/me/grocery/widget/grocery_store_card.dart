@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 
 class _GroceryCardPalette {
   final Color cardBg;
@@ -198,26 +199,37 @@ class GroceryStoreCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: _formatCount(store.totalCategoryCount ??
-                            (store.categories?.length ?? 0)),
-                        label: 'Category',
-                        iconColor: const Color(0xFF9964F4),
-                        borderColor: palette.tileBorder,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: _formatCount(store.totalProductCount ?? 0),
-                        label: 'Product',
-                        iconColor: const Color(0xFF6179CD),
-                        borderColor: palette.tileBorder,
-                      ),
-                    ],
-                  ),
+                  // Counts arrive on their own call, after the card is already
+                  // on screen — see [StoreController.fetchStoreCountsFor]. Obx
+                  // so the two figures fill themselves in when they land
+                  // instead of the whole list waiting on them.
+                  //
+                  // No fallback to the store payload: the listing no longer
+                  // carries counts. Until the counts call answers there is no
+                  // number to show, and [_formatCount] renders that as a dash
+                  // rather than a `0` the user would read as a fact.
+                  Obx(() {
+                    final counts = storeCountsFor(store);
+                    return Row(
+                      children: [
+                        _buildStatBox(
+                          icon: AppIconAssets.staggeredIcon,
+                          count: _formatCount(counts?.categoryCount),
+                          label: 'Category',
+                          iconColor: const Color(0xFF9964F4),
+                          borderColor: palette.tileBorder,
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        _buildStatBox(
+                          icon: AppIconAssets.productCartIcon,
+                          count: _formatCount(counts?.productCount),
+                          label: 'Product',
+                          iconColor: const Color(0xFF6179CD),
+                          borderColor: palette.tileBorder,
+                        ),
+                      ],
+                    );
+                  }),
                   SizedBox(height: SizeConfig.size8),
                   Expanded(child: _buildAddressCard(context, palette)),
                 ],
@@ -631,7 +643,14 @@ class GroceryStoreCard extends StatelessWidget {
     );
   }
 
-  String _formatCount(int n) {
+  /// A count for a stat tile, or `-` when it isn't known yet.
+  ///
+  /// Null is the pre-answer state, not zero: counts come from their own call
+  /// after the card is on screen, and a `0` shown meanwhile reads as "this
+  /// store stocks nothing" rather than "not loaded".
+  String _formatCount(int? count) {
+    if (count == null) return '-';
+    final n = count;
     if (n >= 1000000) {
       final v = n / 1000000;
       return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}M';

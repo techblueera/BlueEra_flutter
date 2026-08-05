@@ -11,8 +11,6 @@ import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../auth/controller/call_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
-import '../../../auth/service/call_pip_service.dart';
-import 'rider_pickup_navigation_screen.dart';
 
 /// Incoming ride request screen for the rider.
 /// Phase 1: Shows ride details with Accept/Reject buttons (ringing).
@@ -491,9 +489,19 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
           _goToConnectInquiry();
           return;
         }
-        // Before connect (ringing): minimise into Android PiP instead of
-        // ending the call or rejecting the ride request.
-        await CallPipService.enterPipMode();
+        // Before connect (ringing): leave the offer screen. It used to minimise
+        // into an Android PiP window — there is no rider PiP any more, and a
+        // shrunken offer stuck over the app was the worst of both. Backing out
+        // does NOT reject: the job is still in the New Orders tab, one tap from
+        // the card that accepts it.
+        //
+        // Guarded because a notification-launched offer can be the only route
+        // on the stack, where a bare pop would blank the app.
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+        }
       },
       // The two phases are different surfaces: the ringing phase is a light
       // job-offer sheet, the call room stays the dark call UI it shares with

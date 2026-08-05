@@ -25,7 +25,6 @@ class JobServiceCardWidget extends StatelessWidget {
       getName: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
       onItemTap: (item) => _openJobs(),
-      onFolderTap: _openJobs,
     );
   }
 }

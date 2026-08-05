@@ -22,7 +22,6 @@ class RentalCardWidget extends StatelessWidget {
       },
       // Folder tap → the same screen on its first category; its own category
       // row is where the user switches.
-      onFolderTap: () => Get.to(() => const PropertyDiscoverScreen()),
     );
   }
 }

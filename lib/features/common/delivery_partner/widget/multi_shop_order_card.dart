@@ -2,6 +2,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -19,6 +21,7 @@ import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
 import 'customer_rating_badge.dart';
+import 'rider_map_actions.dart';
 
 /// Order card for **multi-shop goods orders** booked from
 /// `GoodsMultiOrderBookingMain` (`POST /fare/multi-shop/orders`).
@@ -162,14 +165,74 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     return _order.receiverUser?.contactNo;
   }
 
-  /// Open the external maps app at the shop's pickup location.
+  /// Turn-by-turn to this shop, in the phone's Google Maps.
+  ///
+  /// This used to drop a search pin ([openGoogleMaps]) the rider still had to
+  /// tap "Directions" on. The rider is driving a multi-stop run, so each stop
+  /// hands straight to Google Maps' own guidance — the card never draws a map
+  /// or a polyline itself.
   void _navigateToShop(BusinessOrder shop) {
     final latLng = _shopLatLng(shop);
     if (latLng == null) {
       commonSnackBar(message: 'Shop location not available');
       return;
     }
-    openGoogleMaps(latitude: latLng.$1, longitude: latLng.$2);
+    openRiderNavigation(latitude: latLng.$1, longitude: latLng.$2);
+  }
+
+  /// Turn-by-turn to the customer's drop, for the leg after the last pickup.
+  void _navigateToDrop() =>
+      openRiderNavigation(latitude: _dropLat, longitude: _dropLng);
+
+  /// The whole run drawn as a route in Google Maps: FIRST pickup → drop, so
+  /// the rider sees the job's own leg rather than one measured from wherever
+  /// they happen to be standing. Falls back to a from-here route when no shop
+  /// carries coordinates.
+  void _openRunRoute() {
+    final origin = _firstShopLatLng;
+    openRiderDirections(
+      destinationLat: _dropLat,
+      destinationLng: _dropLng,
+      originLat: origin?.$1,
+      originLng: origin?.$2,
+    );
+  }
+
+  double? get _dropLat {
+    final coords = _order.dropLocation?.location?.coordinates;
+    if (coords == null || coords.length < 2) return null;
+    return coords[1].toDouble();
+  }
+
+  double? get _dropLng {
+    final coords = _order.dropLocation?.location?.coordinates;
+    if (coords == null || coords.length < 2) return null;
+    return coords[0].toDouble();
+  }
+
+  (double, double)? get _firstShopLatLng {
+    for (final shop in _shops) {
+      final latLng = _shopLatLng(shop);
+      if (latLng != null) return latLng;
+    }
+    return null;
+  }
+
+  /// The stop the rider is working right now — the first one not yet picked up.
+  /// Null once every shop is collected, which is what flips the card to its
+  /// drop leg.
+  BusinessOrder? get _nextShop {
+    for (final shop in _shops) {
+      if (!_isShopPicked(shop)) return shop;
+    }
+    return null;
+  }
+
+  /// How many stops are done, for the checklist tile: `2/5`.
+  String get _stopsProgress {
+    final total = _shops.length;
+    final done = _shops.where(_isShopPicked).length;
+    return '$done/$total';
   }
 
   /// Dial the shop's number in the phone dialer (shops are external; no in-app
@@ -231,6 +294,10 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
 
   bool get _isOngoing => widget.selectedPickUp == PickUpTab.onGoing;
 
+  // Closed-out tabs (completed / cancelled / rejected) are read-only: no map
+  // hand-off, no OTP, no accept. They're identified by [_closedStatus], which
+  // also carries the badge label the header shows.
+
   bool _isShopPicked(BusinessOrder shop) {
     if (_pickedLocal.contains(shop.businessId)) return true;
     // Single-shop: rely on the order-level pickup state (no per-stop items).
@@ -268,15 +335,206 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
         children: [
           _buildHeader(),
           SizedBox(height: SizeConfig.size12),
-          _buildRoute(),
-          if (_isPending) ...[
-            SizedBox(height: SizeConfig.size14),
-            _buildAcceptRejectRow(),
-          ] else if (_isOngoing && _allShopsPicked) ...[
-            SizedBox(height: SizeConfig.size14),
-            _buildDeliveryOtpSection(),
+
+          // A working card leads with what to do next — the Google Maps
+          // hand-off and the run's numbers — and only then lists the stops.
+          // On the other tabs there is nothing to drive to, so the stop list
+          // is the whole card.
+          if (_isOngoing) ...[
+            _buildActionStatsRow(),
+            SizedBox(height: SizeConfig.size12),
           ],
+
+          _buildRoute(),
+
+          ..._buildCaseActions(),
         ],
+      ),
+    );
+  }
+
+  /// What sits under the stop list, per case:
+  ///
+  ///  • pending             → accept / reject.
+  ///  • ongoing, collecting → the customer row, so the rider can call ahead
+  ///    while still going round the shops. The per-shop arrive + OTP controls
+  ///    live in the stop rows themselves.
+  ///  • ongoing, all picked → customer row + the customer's delivery OTP,
+  ///    which is what closes a goods run (there is no slide-to-complete here:
+  ///    the customer's code ends it, not the rider).
+  ///  • completed/cancelled/rejected → nothing; the card is a receipt.
+  ///
+  /// Support sits at the foot of every working card — the rider is mid-run and
+  /// whatever has gone wrong is happening now.
+  List<Widget> _buildCaseActions() {
+    if (_isPending) {
+      return [
+        SizedBox(height: SizeConfig.size14),
+        _buildAcceptRejectRow(),
+      ];
+    }
+    if (!_isOngoing) return const [];
+
+    return [
+      SizedBox(height: SizeConfig.size12),
+      _buildCustomerRow(),
+      if (_allShopsPicked) ...[
+        SizedBox(height: SizeConfig.size12),
+        _buildDeliveryOtpSection(),
+      ],
+      SizedBox(height: SizeConfig.size12),
+      const RiderCustomerCareRow(),
+    ];
+  }
+
+  /// The ongoing card's action strip — the direction CTA plus the run's
+  /// numbers. Collecting: navigate to the stop the rider is on, with the
+  /// checklist count beside it. Everything picked: navigate to the customer,
+  /// with the trip length beside it.
+  ///
+  /// Both hand off to the Google Maps app; nothing here opens an in-app map. A
+  /// tile whose value isn't known is dropped rather than rendered blank.
+  Widget _buildActionStatsRow() {
+    final distance = riderCleanDistance(_order.distancePickupToDrop);
+    final next = _nextShop;
+    final collecting = !_allShopsPicked;
+    final nextLatLng = next == null ? null : _shopLatLng(next);
+
+    return riderActionStatsRow([
+      if (collecting)
+        // Named for the stop, not just "Pickup Direction": on a five-shop run
+        // the rider needs to know WHICH shop this button is about to open. It
+        // falls back to the generic label when the stop has no name to show —
+        // and drops out entirely when there is no stop at all, which is the
+        // degenerate order that reports itself multi-stop with no stops.
+        if (next != null)
+          RiderDirectionButton(
+            label: nextLatLng != null
+                ? 'Navigate — ${_shopLabel(next)}'
+                : AppStrings.pickupDirection,
+            onTap: () => _navigateToShop(next),
+          )
+        else
+          RiderDirectionButton(
+            label: AppStrings.dropLocationDirection,
+            onTap: _navigateToDrop,
+          )
+      else
+        RiderDirectionButton(
+          label: AppStrings.dropLocationDirection,
+          onTap: _navigateToDrop,
+        ),
+      if (collecting && _shops.isNotEmpty)
+        RiderStatBox(
+          icon: Icons.checklist_rtl_rounded,
+          label: 'Stops picked',
+          value: _stopsProgress,
+          tint: AppColors.primaryColor,
+        )
+      else if (distance != null)
+        RiderStatBox(
+          iconAsset: AppIconAssets.distanceLocation,
+          label: AppStrings.travelDist,
+          value: riderWithKm(distance),
+          tint: AppColors.primaryColor,
+          onTap: _openRunRoute,
+        ),
+    ]);
+  }
+
+  /// Shop name, trimmed to something that fits on a button.
+  String _shopLabel(BusinessOrder shop) {
+    final name = shop.businessName.trim();
+    if (name.isEmpty) return 'Shop';
+    return name.length <= 18 ? name : '${name.substring(0, 17)}…';
+  }
+
+  /// Who the goods are going to, with a labelled call button — the same row
+  /// the single-pickup card grew, so a rider moving between the two cards
+  /// finds the customer in the same place.
+  ///
+  /// The customer is an app user, so this calls in-app (WebRTC) rather than
+  /// dialling; the shops, which are not, keep the phone dialer.
+  Widget _buildCustomerRow() {
+    final name = (_order.user?.name ?? '').trim();
+    final hasCustomer = (_order.user?.id ?? '').isNotEmpty;
+    if (name.isEmpty && !hasCustomer) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Row(
+        children: [
+          CachedAvatarWidget(
+            imageUrl: _order.user?.profileImage,
+            size: SizeConfig.size40,
+            borderRadius: SizeConfig.size20,
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  name.isNotEmpty ? name : 'Customer',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: SizeConfig.size2),
+                CustomText(
+                  _allShopsPicked
+                      ? 'Delivering now'
+                      : 'Collecting from ${_shops.length} shop${_shops.length == 1 ? '' : 's'}',
+                  fontSize: SizeConfig.small11,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (hasCustomer) _buildLabelledCallButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabelledCallButton() {
+    return InkWell(
+      onTap: _callCustomerInApp,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.green0B.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: AppColors.green0B.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.call, size: SizeConfig.size14, color: AppColors.green0B),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              'Call',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.green0B,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -307,7 +565,14 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
               SizedBox(height: SizeConfig.size4),
               Row(
                 children: [
-                  _multiStopChip(),
+                  // Closed tabs lead with the outcome — the rider is reading
+                  // history and "Cancelled" is the fact that matters, not that
+                  // the run had three stops.
+                  if (_closedStatus != null) ...[
+                    _statusBadge(_closedStatus!.$1, _closedStatus!.$2),
+                    SizedBox(width: SizeConfig.size6),
+                  ] else
+                    _multiStopChip(),
                   SizedBox(width: SizeConfig.size6),
                   if (_order.user?.rating != null) ...[
                     CustomerRatingBadge(
@@ -345,6 +610,42 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
           ],
         ),
       ],
+    );
+  }
+
+  /// Label + colour for a closed-out run, or null while it is still live.
+  (String, Color)? get _closedStatus {
+    switch (widget.selectedPickUp) {
+      case PickUpTab.completed:
+        return ('Completed', AppColors.green0B);
+      case PickUpTab.cancel:
+        return ('Cancelled', AppColors.redLite);
+      case PickUpTab.rejected:
+        return ('Rejected', AppColors.redLite);
+      case PickUpTab.newOrder:
+      case PickUpTab.orders:
+      case PickUpTab.onGoing:
+        return null;
+    }
+  }
+
+  Widget _statusBadge(String label, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+        vertical: SizeConfig.size2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: CustomText(
+        label,
+        fontSize: SizeConfig.extraSmall,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
     );
   }
 
@@ -604,28 +905,17 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             ],
           ),
         ),
-        // The customer is an app user → call via the in-app caller service
-        // (WebRTC), not the phone dialer. Needs the customer's user id.
-        if (_isOngoing && (_order.user?.id?.isNotEmpty ?? false))
-          _callButton(),
+        // Drive to the customer. Calling them moved to the labelled button on
+        // the customer row below, where the name is — this row is about the
+        // place, and it's the only way to open the drop in Google Maps while
+        // the rider is still going round the shops.
+        if (_isOngoing && hasRiderCoordinates(_dropLat, _dropLng))
+          _shopActionIcon(
+            icon: Icons.directions_rounded,
+            color: AppColors.redLite,
+            onTap: _navigateToDrop,
+          ),
       ],
-    );
-  }
-
-  Widget _callButton() {
-    return InkWell(
-      onTap: _callCustomerInApp,
-      child: Container(
-        margin: EdgeInsets.only(left: SizeConfig.size6),
-        padding: EdgeInsets.all(SizeConfig.size6),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.4)),
-        ),
-        child: Icon(Icons.call,
-            size: SizeConfig.size14, color: AppColors.primaryColor),
-      ),
     );
   }
 

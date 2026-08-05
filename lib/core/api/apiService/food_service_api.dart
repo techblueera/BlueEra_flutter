@@ -24,6 +24,16 @@ mixin FoodServiceApi {
   final String foodProductsByRootCategory =
       'food-service/api/foodProduct/by-root-category';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
+
+  /// Batched product / root-category counts per owner, for the FOOD catalogue.
+  /// `POST { businesses: [{ businessId?, userId? }] }`, max 100 entries.
+  /// See docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md.
+  ///
+  /// Note the path differs from the other two services (`kitchen-inventory`,
+  /// not `inventory`) — food keeps its inventory under its own collection.
+  final String foodBusinessProductStats =
+      'food-service/api/kitchen-inventory/business-product-stats';
+
   // Delete a single kitchen-inventory entry (a product variant) by its id.
   String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';

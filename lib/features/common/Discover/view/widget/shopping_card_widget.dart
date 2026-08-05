@@ -37,7 +37,6 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
       // Both of its category params are nullable and it only filters when one
       // is given, so this is the "all products" entry rather than an arbitrary
       // category picked for the user.
-      onFolderTap: () => Get.to(() => const ProductsStoreDiscoverScreen()),
       onItemTap: (item) {
         Get.to(() => ProductsStoreDiscoverScreen(
               productCategoryName: item.name,

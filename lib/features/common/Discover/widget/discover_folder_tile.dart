@@ -1,10 +1,11 @@
+import 'dart:ui' as ui;
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_folder_palette.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -119,13 +120,72 @@ class DiscoverFolderTile extends StatelessWidget {
   /// it — the folder goes straight to the screen.
   final VoidCallback? onTap;
 
+  /// The folder's own surface: ONE frosted plate, identical for every folder.
+  ///
+  /// Each folder used to carry its own hue (see `discover_folder_palette.dart`),
+  /// which turned the grid into fourteen different coloured cards competing with
+  /// the illustrated icons on them and with the user's background behind them.
+  /// The reference (`assets/discover_tab.jpeg`) is the iOS App Library: every
+  /// folder is the same neutral glass, and what identifies one is the icons
+  /// inside it, not the colour of the box.
+  ///
+  /// A dark ink at low alpha rather than a white wash: the default background
+  /// ([AppImageAssets.chatBgBlueShade]) is a very PALE blue, and white-on-
+  /// near-white leaves the grid dissolving into the page. #101922 sits a step
+  /// DARKER than the background instead, which is what gives every tile an edge
+  /// without giving it a colour of its own.
+  ///
+  /// Held at 12%, not the 20% this started at. At 20% the ink stopped reading as
+  /// a tint over the background and started reading as a grey card painted on
+  /// top of it — the tiles went heavy and the pale blue no longer came through.
+  /// The blur below is doing most of the work; the fill only has to separate the
+  /// tile from the page.
+  static const Color _kTileFill = Color(0x1F101922);
+
+  /// ## This is a real [BackdropFilter], against the standing advice on this page
+  ///
+  /// `glass_surface.dart` and [DiscoverFolderSheet]'s neighbour
+  /// `_DiscoverHeaderDelegate` both say not to blur here, and they are not
+  /// stale: a BackdropFilter forces a `saveLayer` and re-samples what is painted
+  /// beneath it every frame. This grid is ~14 tiles inside a scroll view, so
+  /// that is ~14 sampled layers, and it is the same shape as the setup that
+  /// smeared text on this page twice before — a device-dependent Android
+  /// GPU/driver bug that does NOT reproduce on most dev hardware.
+  ///
+  /// It is here because the design calls for true frosted glass and was
+  /// specified with this radius. Two things make it survivable where the header
+  /// did not: each filter is CLIPPED to its own tile (a small, bounded region
+  /// rather than the full width of a pinned header), and what it samples is the
+  /// static page background, not the live feed scrolling underneath.
+  ///
+  /// If smearing or a frame-time cliff shows up on real devices, the fix is to
+  /// drop this to plain alpha — the fill above already carries the look on its
+  /// own — not to tune the sigma.
+  static const double _kTileBlur = 10;
+
+  /// Rim. Solid white at 1px — the tile is darker than the page it sits on, and
+  /// the white edge is what gives it a shape.
+  static const Color _kTileBorder = Colors.white;
+
+  /// Lift, in the same ink as the fill so the shadow belongs to the tile rather
+  /// than greying the background under it.
+  static const List<BoxShadow> _kTileShadow = [
+    BoxShadow(color: Color(0x1F101922), blurRadius: 14, offset: Offset(0, 6)),
+    BoxShadow(color: Color(0x14101922), blurRadius: 4, offset: Offset(0, 1)),
+  ];
+
+  /// Corner radius, shared by the clip and the fill: a [BackdropFilter] has to
+  /// be clipped to the tile's own shape, and the two radii must agree or the
+  /// blur bleeds past the corners.
+  static const double _kTileRadius = 26;
+
+  /// Plate behind each icon — a brighter white than the tile it sits on, so the
+  /// illustrated icons keep a clean base and the 2x2 reads as four slots rather
+  /// than one wash.
+  static const Color _kPlateFill = Color(0x8FFFFFFF);
+
   @override
   Widget build(BuildContext context) {
-    // Colour comes from the folder's slot in the landing grid, published by the
-    // [DiscoverFolderHost] the grid wraps every section in. Nothing is passed in
-    // by the ~15 section widgets that build these tiles.
-    final theme = discoverFolderThemeFor(DiscoverFolderHost.indexOf(context));
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap ??
@@ -135,22 +195,35 @@ class DiscoverFolderTile extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 1,
-            child: Container(
-              padding: const EdgeInsets.all(10),
+            // Shadow OUTSIDE the clip: a ClipRRect crops its child, so a
+            // boxShadow declared inside it is clipped away with everything else
+            // past the rounded edge.
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                // Coloured wash over the app background behind the page: still
-                // translucent, so the folder keeps picking up whatever it sits
-                // on, but tinted with this folder's own hue.
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: theme.tileGradient,
-                ),
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: theme.border),
-                boxShadow: theme.shadow,
+                borderRadius: BorderRadius.circular(_kTileRadius),
+                boxShadow: _kTileShadow,
               ),
-              child: _preview(theme),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(_kTileRadius),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(
+                    sigmaX: _kTileBlur,
+                    sigmaY: _kTileBlur,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      // Translucent, so the folder keeps picking up whatever it
+                      // sits on — the background is unchanged, only the tile
+                      // over it is.
+                      color: _kTileFill,
+                      borderRadius: BorderRadius.circular(_kTileRadius),
+                      border: Border.all(color: _kTileBorder, width: 1),
+                    ),
+                    child: _preview(),
+                  ),
+                ),
+              ),
             ),
           ),
           SizedBox(height: SizeConfig.size8),
@@ -170,7 +243,7 @@ class DiscoverFolderTile extends StatelessWidget {
   /// The 2x2 body of the folder. Beyond four icons the last slot becomes a
   /// mini 2x2 of the next four, so a long section still reads as "one folder"
   /// rather than an arbitrary truncation.
-  Widget _preview(DiscoverFolderTheme theme) {
+  Widget _preview() {
     final icons = iconPaths.where((e) => e.trim().isNotEmpty).toList();
     final bool overflows = icons.length > 4;
     final slots = <Widget>[];
@@ -178,11 +251,11 @@ class DiscoverFolderTile extends StatelessWidget {
     for (int i = 0; i < (overflows ? 3 : 4); i++) {
       slots.add(_DiscoverFolderPlate(
         iconPath: i < icons.length ? icons[i] : null,
-        color: theme.plateTint(i),
+        color: _kPlateFill,
       ));
     }
     if (overflows) {
-      slots.add(_miniGrid(theme, icons.skip(3).take(4).toList()));
+      slots.add(_miniGrid(icons.skip(3).take(4).toList()));
     }
 
     return Column(
@@ -212,12 +285,10 @@ class DiscoverFolderTile extends StatelessWidget {
 
   /// Last slot when the section has more than four categories: four quarter-size
   /// plates in their own 2x2.
-  Widget _miniGrid(DiscoverFolderTheme theme, List<String> icons) {
+  Widget _miniGrid(List<String> icons) {
     Widget cell(int i) => _DiscoverFolderPlate(
           iconPath: i < icons.length ? icons[i] : null,
-          // Offset by one so the mini cells don't repeat the tint of the
-          // full-size plate they sit next to.
-          color: theme.plateTint(i + 1),
+          color: _kPlateFill,
           radius: 7,
           padding: 3,
         );
@@ -368,7 +439,8 @@ class _DiscoverFolderPlate extends StatelessWidget {
 
   final String? iconPath;
 
-  /// Pastel fill for this slot, from [DiscoverFolderTheme.plateTint].
+  /// Fill behind the icon — one translucent white for every slot in every
+  /// folder, so the grid reads as one material.
   final Color color;
   final double radius;
   final double padding;

@@ -39,17 +39,23 @@ import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
 import 'customer_rating_badge.dart';
 import 'delivery_pickup_shops_list.dart';
+import 'rider_map_actions.dart';
 
+/// The rider's order card.
+///
+/// NOTE: an `isPipModeOn` flag used to strip this card down to fit an Android
+/// picture-in-picture window. There is no rider PiP any more — the rider
+/// navigates in the phone's Google Maps and this card carries the job — so the
+/// flag and every `if (isPipModeOn == false)` around it are gone rather than
+/// left as a permanently-false branch.
 class OrderCard extends StatefulWidget {
   final PickUpTab selectedPickUp;
   final RiderOrdersDetailsModel order;
-  final bool? isPipModeOn;
 
   const OrderCard({
     super.key,
     required this.selectedPickUp,
     required this.order,
-    this.isPipModeOn = false,
   });
 
   @override
@@ -217,7 +223,6 @@ class _OrderCardState extends State<OrderCard> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            if(widget.isPipModeOn==false)
             _buildHeaderSection(context, controller),
             SizedBox(height: SizeConfig.size14),
             _buildLocationSection(context),
@@ -1126,7 +1131,7 @@ class _OrderCardState extends State<OrderCard> {
                   distance: widget.order.distancePickupToDrop,
                   onTap: _handleOpenDropLocation,
                 )
-              else if ((widget.selectedPickUp == PickUpTab.onGoing)?widget.isPipModeOn==false:true)
+              else
                 _buildCallButton(widget.order.user?.contactNo),
             ],
           ),
@@ -1650,45 +1655,7 @@ class _OrderCardState extends State<OrderCard> {
     required String label,
     required VoidCallback onTap,
   }) {
-    return _PulsingHighlight(
-      color: AppColors.primaryColor,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8,
-            vertical: SizeConfig.size12,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primaryColor, width: 1.4),
-          ),
-          child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.map_outlined,
-              size: SizeConfig.size18,
-              color: AppColors.primaryColor,
-            ),
-            SizedBox(width: SizeConfig.size6),
-            Flexible(
-              child: CustomText(
-                label,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        ),
-      ),
-    );
+    return RiderDirectionButton(label: label, onTap: onTap);
   }
 
   /// Tinted label-over-value tile sitting beside the direction CTA — trip
@@ -1702,64 +1669,13 @@ class _OrderCardState extends State<OrderCard> {
     required Color tint,
     VoidCallback? onTap,
   }) {
-    final box = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size8,
-      ),
-      decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        // Same hairline the outlined direction button beside it has, so the
-        // tiles read as one row of boxes rather than a button next to two
-        // patches of colour.
-        border: Border.all(color: tint.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        children: [
-          if (iconAsset != null)
-            LocalAssets(
-              imagePath: iconAsset,
-              imgColor: tint,
-              height: SizeConfig.size20,
-              width: SizeConfig.size20,
-            )
-          else if (icon != null)
-            Icon(icon, size: SizeConfig.size20, color: tint),
-          SizedBox(width: SizeConfig.size6),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  label,
-                  fontSize: SizeConfig.extraSmall,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                CustomText(
-                  value,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w700,
-                  color: tint,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (onTap == null) return box;
-    return InkWell(
+    return RiderStatBox(
+      iconAsset: iconAsset,
+      icon: icon,
+      label: label,
+      value: value,
+      tint: tint,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: box,
     );
   }
 
@@ -1783,11 +1699,10 @@ class _OrderCardState extends State<OrderCard> {
               padding: const EdgeInsets.only(bottom: 10),
               child: _buildActionStatsRow(),
             ),
-          if (widget.isPipModeOn == false)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildCustomerInfoRow(labelledCall: true),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildCustomerInfoRow(labelledCall: true),
+          ),
         ] else ...[
           // Job running: drop direction + trip stats, then the customer with an
           // emergency call. No in-app ride map — navigation is the phone's
@@ -1797,14 +1712,13 @@ class _OrderCardState extends State<OrderCard> {
               padding: const EdgeInsets.only(bottom: 10),
               child: _buildActionStatsRow(),
             ),
-          if (widget.isPipModeOn == false)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildCustomerInfoRow(
-                labelledCall: true,
-                emergency: true,
-              ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildCustomerInfoRow(
+              labelledCall: true,
+              emergency: true,
             ),
+          ),
         ],
 
         if(!_showsRideCompletion &&
@@ -1818,7 +1732,6 @@ class _OrderCardState extends State<OrderCard> {
           fontWeight: FontWeight.w400,
           color: AppColors.secondaryTextColor,
         ),
-        if(widget.isPipModeOn==false)
         SizedBox(height:SizeConfig.size8),
 
         // A running ride ends HERE now. The slide-to-complete used to live on
@@ -1841,10 +1754,8 @@ class _OrderCardState extends State<OrderCard> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: _buildSlideToComplete()),
-                if (widget.isPipModeOn == false) ...[
-                  SizedBox(width: SizeConfig.size8),
-                  _buildFareWidget(fillHeight: true),
-                ],
+                SizedBox(width: SizeConfig.size8),
+                _buildFareWidget(fillHeight: true),
               ],
             ),
           )
@@ -1857,7 +1768,6 @@ class _OrderCardState extends State<OrderCard> {
                 fit: FlexFit.loose,
                 child: _buildOtpInputSection(controller),
               ),
-              if(widget.isPipModeOn==false)
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
                 child: _buildFareWidget(),
@@ -1867,11 +1777,9 @@ class _OrderCardState extends State<OrderCard> {
 
         // Support, at the foot of the working card — the rider is mid-job and
         // whatever has gone wrong (customer not at pickup, address wrong, order
-        // stuck) is happening now. Hidden in PiP, where there's no room.
-        if (widget.isPipModeOn == false) ...[
-          SizedBox(height: SizeConfig.size12),
-          _buildCustomerCareRow(),
-        ],
+        // stuck) is happening now.
+        SizedBox(height: SizeConfig.size12),
+        _buildCustomerCareRow(),
       ],
     );
   }
@@ -2366,66 +2274,10 @@ class _CustomerIdentity {
 /// rider wants to get away from. It is also skipped entirely when the device
 /// asks for reduced motion, where a pulsing control is exactly what that
 /// setting exists to prevent.
-class _PulsingHighlight extends StatefulWidget {
-  final Widget child;
-  final Color color;
-
-  const _PulsingHighlight({required this.child, required this.color});
-
-  @override
-  State<_PulsingHighlight> createState() => _PulsingHighlightState();
-}
-
-class _PulsingHighlightState extends State<_PulsingHighlight>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  );
-
-  late final Animation<double> _pulse = CurvedAnimation(
-    parent: _controller,
-    curve: Curves.easeInOut,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
-      return widget.child;
-    }
-    return AnimatedBuilder(
-      animation: _pulse,
-      builder: (context, child) {
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: 0.10 + 0.22 * _pulse.value),
-                blurRadius: 6 + 10 * _pulse.value,
-                spreadRadius: _pulse.value,
-              ),
-            ],
-          ),
-          child: child,
-        );
-      },
-      child: widget.child,
-    );
-  }
-}
+// NOTE: `_PulsingHighlight`, the direction button and the stat tile lived here.
+// They moved to rider_map_actions.dart when the multi-shop card needed the same
+// Google-Maps hand-off, so the two cards share one implementation instead of
+// two that drift.
 
 /// Self-contained slide-to-complete control.
 ///

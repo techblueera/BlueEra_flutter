@@ -2141,8 +2141,14 @@ class RouteHelper {
             settings: RouteSettings(name: getMedicalHomeScreenRoute()));
 
       case RouteConstant.groceryStoresScreen:
+        // Optional `arguments`: the grocery category tab to open on, as a bare
+        // tagId String. Absent (the usual case) opens on "All Grocery".
+        final groceryTagId = settings.arguments is String
+            ? settings.arguments as String
+            : null;
         return MaterialPageRoute(
-            builder: (_) => const GroceryStoresScreen(),
+            builder: (_) =>
+                GroceryStoresScreen(initialCategoryTagId: groceryTagId),
             settings: RouteSettings(name: getGroceryStoresScreenRoute()));
 
       case RouteConstant.addGrocerySnapSearchScreen:

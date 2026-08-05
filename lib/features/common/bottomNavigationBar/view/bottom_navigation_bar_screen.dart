@@ -67,7 +67,6 @@ import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
-import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
@@ -136,10 +135,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _toggleAppBar(visible);
     });
     _checkAndFetchLocationData();
-    if (Platform.isAndroid) {
-      final pipController = getOrPut(() => PipFloatingPageController());
-      pipController.setPipStatus(false);
-    }
+    // NOTE: this used to clear the rider's Android PiP flag on every launch of
+    // the shell, undoing whatever the rider screens had armed. There is no
+    // rider PiP any more — riders navigate in the phone's Google Maps and the
+    // order card carries the job — so there is nothing left to disarm.
     // if (isGuestUser()) {
     //   logs("DIALOGE CALL");
     //   _checkAndShowDialog();

@@ -378,6 +378,11 @@ class ApiKeys {
   static const images = "images";
   static const productDetails = "product_details";
   static const category = "category";
+
+  /// `typeOfBusiness` — the camelCase spelling `user-service/business/search`
+  /// expects. NOT interchangeable with [type], which is the snake-ish `type`
+  /// the old map-service store listing took.
+  static const typeOfBusiness = "typeOfBusiness";
   static const generateAiProductContent = "GenerateAiProductContent";
   static const addProductViaAiRequest = "addProductViaAiRequest";
   static const cursor = "cursor";

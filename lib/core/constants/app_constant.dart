@@ -925,6 +925,7 @@ const String MISCELLANEOUS_RETAIL = "MISCELLANEOUS_RETAIL";
 
 int kmRadius100 = 100;
 int kmRadius200 = 200;
+int kmRadius300 = 300;
 int kmRadius500 = 500;
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
