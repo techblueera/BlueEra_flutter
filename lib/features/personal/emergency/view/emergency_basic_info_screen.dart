@@ -75,8 +75,8 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   // may follow, so a plate can be typed with the spaces or
                   // dashes people naturally write. The validator still requires
                   // a real plate — it strips those separators first.
-                  inputFormatters: VehicleNumber.relaxedInputFormatters,
-                  validator: VehicleNumber.validate,
+                  // inputFormatters: VehicleNumber.relaxedInputFormatters,
+                  // validator: VehicleNumber.validate,
                 ),
                 SizedBox(height: 16),
                 Obx(() => CustomBtn(
