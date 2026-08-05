@@ -71,6 +71,35 @@ class RideBookingRepo extends BaseService {
     return ApiBaseHelper().getHTTP(vehicleEnums, showProgress: false);
   }
 
+  /// `GET riders/live-in-radius` — who is live around a point right now.
+  ///
+  /// Feeds the vehicles drawn on the home map. Discovery only: it does not
+  /// reserve, quote or address any of the riders it returns, so it is safe to
+  /// call on a tap and cheap to let go stale.
+  ///
+  /// [vehicleType] is the server's COARSE category (`rider`, `car`, …), not the
+  /// `vehicleType` enum a booking carries — see
+  /// [RideBookingController.liveRiderCategoryFor].
+  Future<ResponseModel> getLiveRidersInRadius({
+    required double lat,
+    required double lng,
+    required String vehicleType,
+    int radiusKm = 5,
+    int limit = 20,
+  }) {
+    return ApiBaseHelper().getHTTP(
+      ridersLiveInRadius,
+      params: {
+        'lat': lat,
+        'lng': lng,
+        'radius': radiusKm,
+        'vehicleType': vehicleType,
+        'limit': limit,
+      },
+      showProgress: false,
+    );
+  }
+
   /// `POST fare/orders` with `orderType: "broadcast"`.
   ///
   /// [selectedRiders] is deliberately absent — sending it would turn this back

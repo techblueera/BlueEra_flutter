@@ -97,6 +97,80 @@ class RidePlace {
       };
 }
 
+/// A rider who is live near the customer right now
+/// (`GET riders/live-in-radius` → `riders[]`).
+///
+/// Discovery only — these are the vehicles drawn on the home map, NOT a list
+/// the customer books from. The broadcast dispatch decides who actually takes
+/// the job, so nothing here is an offer and none of it is carried into an
+/// order.
+class RideLiveRider {
+  const RideLiveRider({
+    required this.userId,
+    required this.name,
+    required this.vehicleType,
+    required this.riderStatus,
+    required this.latitude,
+    required this.longitude,
+    this.distanceKm,
+    this.lastSeen,
+  });
+
+  /// Identity of the rider — the marker id on the map, so a rider that moves
+  /// between polls updates in place instead of duplicating.
+  final String userId;
+  final String name;
+
+  /// The rider's own `vehicleType` enum (`twoWheelerRider`, …) — the artwork
+  /// key, and NOT necessarily the coarse category that was queried.
+  final String vehicleType;
+
+  /// `available` | `busy` | … — what the server says about their state.
+  final String riderStatus;
+
+  final double latitude;
+  final double longitude;
+
+  /// Straight-line distance from the query point, as the server measured it.
+  final double? distanceKm;
+
+  /// When this position was last reported. A stale fix is still drawn — the
+  /// server decides what counts as live — but it is what a "last seen" line
+  /// would read from.
+  final DateTime? lastSeen;
+
+  /// `0,0` means the rider has no usable fix; drawing it would put a vehicle in
+  /// the Atlantic.
+  bool get hasCoordinates => latitude != 0 && longitude != 0;
+
+  factory RideLiveRider.fromJson(Map<dynamic, dynamic> json) {
+    // Coordinates arrive nested under `location`, with a flat pair and a
+    // GeoJSON array tolerated for the same reason as [RidePlace].
+    double lat = _toDouble(json['latitude']) ?? 0;
+    double lng = _toDouble(json['longitude']) ?? 0;
+    final location = json['location'];
+    if (location is Map) {
+      lat = _toDouble(location['latitude']) ?? lat;
+      lng = _toDouble(location['longitude']) ?? lng;
+      final coords = location['coordinates'];
+      if (lat == 0 && lng == 0 && coords is List && coords.length >= 2) {
+        lng = _toDouble(coords[0]) ?? 0;
+        lat = _toDouble(coords[1]) ?? 0;
+      }
+    }
+    return RideLiveRider(
+      userId: (json['userId'] ?? json['id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      vehicleType: (json['vehicleType'] ?? '').toString(),
+      riderStatus: (json['riderStatus'] ?? json['status'] ?? '').toString(),
+      latitude: lat,
+      longitude: lng,
+      distanceKm: _toDouble(json['distanceKm']),
+      lastSeen: DateTime.tryParse(json['lastSeen']?.toString() ?? '')?.toLocal(),
+    );
+  }
+}
+
 /// One entry of the backend vehicle catalogue
 /// (`GET riders/onboarding/vehicle-enums` → `vehicleType[]`).
 ///

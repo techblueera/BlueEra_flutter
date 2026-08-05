@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -25,7 +24,7 @@ import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.d
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
 // import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
-import 'package:BlueEra/features/common/Discover/widget/share_promo_sheet.dart';
+import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
@@ -45,6 +44,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/franchise/request_to_franchise.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
@@ -71,11 +71,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final ScrollController _scrollController = ScrollController();
   late final EmergencyProfileController emergencyController;
 
-  /// The share-profile promo dialog is shown once per app SESSION, the first
-  /// time Discover mounts. Backed by the global [sharePromoShownThisSession] so
-  /// it survives this screen being rebuilt / re-entered via the bottom nav, but
-  /// is RESET on logout (unlike a private static, which used to stay true across
-  /// logout→re-login and wrongly suppressed the promo for the next user).
+  /// The share-profile promo no longer opens itself on this screen. It used to
+  /// pop once a day on landing; the share card is still one tap away from the
+  /// banner's share button, and the header now carries the referral poster
+  /// itself, so a sheet that opened over Discover was asking for attention the
+  /// banner already has. [SharePromoSheet] is unchanged and still opens from
+  /// there.
 
   /// Active quick-access tab — see [discoverQuickAccessTabs]:
   /// 0=Quick Access, 1=Grocery & Food, 2=Travel & Booking,
@@ -258,8 +259,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     // Connect tab does the same — the first tab to mount wins, the other call
     // returns immediately.
     OngoingRideRestorer.restoreIfNeeded();
-
-    _maybeShowSharePromo();
   }
 
   /// Pulls in the profile the header banner is built from.
@@ -300,168 +299,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         controller.viewPersonalProfile();
       }
     }
-  }
-
-  /// How long the promo waits for the profile it renders from before giving up
-  /// for this session. Comfortably covers a cold-start `/user/get`, while still
-  /// being short enough that the sheet can't turn up long after the user has
-  /// started doing something else.
-  static const Duration _kPromoProfileTimeout = Duration(seconds: 8);
-
-  /// Pops the share-profile promo at most once per calendar day (persisted
-  /// across launches), the first time Discover mounts that day. Deferred to
-  /// after the first frame so a valid context/overlay exists. The sheet itself
-  /// — marketing clip + share card — lives in [SharePromoSheet].
-  ///
-  /// The sheet is held back until the profile behind the card is in memory —
-  /// see [_awaitPromoProfile]. Nothing inside it ever shows a spinner: it
-  /// either opens complete or doesn't open.
-  Future<void> _maybeShowSharePromo() async {
-    // Guests have no profile to share: no referral code, no poster, no clip —
-    // the card would compose itself out of nothing. They also get the guest
-    // scratch card from the nav shell (_maybeShowJoiningBonus), whose CTA is
-    // "create a profile", and two sheets racing to open on the same landing is
-    // worse than either. Returns BEFORE the session slot is claimed below, so
-    // signing in still gets today's promo.
-    if (isGuestUser()) return;
-    // A fresh account was just created this session — Discover is mounting
-    // behind the onboarding "update data" screen, so don't pop the promo over
-    // it. See [suppressPromosAfterAccountCreation].
-    if (suppressPromosAfterAccountCreation) return;
-    if (sharePromoShownThisSession) return;
-    final todayKey = _todayKey();
-    final lastShown = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.sharePromoLastShownKey);
-    // Already shown today → skip, and don't re-check for the rest of this
-    // session.
-    if (lastShown == todayKey) {
-      sharePromoShownThisSession = true;
-      return;
-    }
-    // Claim the session slot before the wait below, so re-entering Discover
-    // through the bottom nav doesn't start a second wait racing this one.
-    sharePromoShownThisSession = true;
-
-    // Wait for the profile the card is composed from. The day key is written
-    // only once we're actually going to show the sheet, so a promo skipped
-    // here (profile never arrived / user navigated away) is still available on
-    // the next launch today rather than silently burnt.
-    if (!await _awaitPromoProfile()) return;
-
-    if (!mounted) return;
-    // The wait can span a navigation — don't pop the promo over whatever the
-    // user opened in the meantime.
-    if (ModalRoute.of(context)?.isCurrent != true) return;
-
-    await SharedPreferenceUtils.setSecureValue(
-        SharedPreferenceUtils.sharePromoLastShownKey, todayKey);
-    if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      // Bottom sheet, not a dialog — it carries the marketing clip above the
-      // share card, which needs the height a sheet gives it.
-      SharePromoSheet.show(context);
-    });
-  }
-
-  /// Resolves `true` once the profile the promo card renders from has loaded,
-  /// `false` if it hasn't within [_kPromoProfileTimeout].
-  ///
-  /// The card — name, photo, referral code, poster, clip — is composed
-  /// entirely from the signed-in profile, so opening the sheet before that
-  /// profile is in memory shows a half-built card: an EMPTY sheet for a
-  /// business account (the banner renders nothing without business details)
-  /// and a "My Profile" / "------" placeholder for an individual, both of
-  /// which then rewrite themselves under the user. Waiting here is what lets
-  /// the sheet open already complete instead of loading in front of them.
-  ///
-  /// Business accounts read the business profile and everyone else the
-  /// personal one — the same split [SharePromoSheet] uses to build the card.
-  Future<bool> _awaitPromoProfile() async {
-    if (_isPromoProfileReady) return true;
-
-    final completer = Completer<bool>();
-    StreamSubscription? sub;
-    Timer? timer;
-
-    void finish(bool ready) {
-      if (completer.isCompleted) return;
-      sub?.cancel();
-      timer?.cancel();
-      completer.complete(ready);
-    }
-
-    void onProfileChanged(_) {
-      if (_isPromoProfileReady) finish(true);
-    }
-
-    if (isBusinessUser()) {
-      // Nothing put this controller yet → nothing to wait on, and the banner
-      // has no business profile to render. Skip today's promo.
-      if (!Get.isRegistered<ViewBusinessDetailsController>()) return false;
-      sub = Get.find<ViewBusinessDetailsController>()
-          .businessProfileDetails
-          .listen(onProfileChanged);
-    } else {
-      // getOrPut, not find: the sheet registers this controller itself, so we
-      // listen to the very instance that will feed the card.
-      sub = getOrPut(() => ViewPersonalDetailsController())
-          .personalProfileDetails
-          .listen(onProfileChanged);
-    }
-
-    // Re-check after subscribing — the profile can land in the gap between the
-    // guard above and the listener being attached.
-    if (_isPromoProfileReady) {
-      finish(true);
-    } else {
-      timer = Timer(_kPromoProfileTimeout, () => finish(false));
-    }
-    return completer.future;
-  }
-
-  /// Whether the profile feeding the promo card is loaded **and** carries the
-  /// backend-generated poster the card is built around. Guarded — the
-  /// controllers aren't registered on every entry path.
-  ///
-  /// The poster is the promo: without it the sheet is a headline and three
-  /// share buttons, and the share itself degrades to plain text (there's no
-  /// image in the tree to capture). An account whose card hasn't been generated
-  /// yet therefore gets no sheet at all rather than a hollow one — the wait in
-  /// [_awaitPromoProfile] simply times out and today's promo is skipped, and
-  /// since the day key is only written when the sheet actually opens, it comes
-  /// back on its own once the backend has the card. The inline placements on
-  /// the profile screens are unaffected; they still render posterless.
-  bool get _isPromoProfileReady {
-    try {
-      final String? posterUrl;
-      if (isBusinessUser()) {
-        final data = Get.find<ViewBusinessDetailsController>()
-            .businessProfileDetails
-            .value
-            ?.data;
-        if (data == null) return false;
-        posterUrl = data.marketingCard?.readyUrl;
-      } else {
-        final user = Get.find<ViewPersonalDetailsController>()
-            .personalProfileDetails
-            .value
-            .user;
-        if (user == null) return false;
-        posterUrl = user.marketingCard?.readyUrl;
-      }
-      return posterUrl?.trim().isNotEmpty ?? false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Local `yyyy-MM-dd` key used to bucket the promo to one show per day.
-  String _todayKey() {
-    final now = DateTime.now();
-    final m = now.month.toString().padLeft(2, '0');
-    final d = now.day.toString().padLeft(2, '0');
-    return '${now.year}-$m-$d';
   }
 
   Future<void> _ensureLocationThenBuild() async {
@@ -1082,19 +919,22 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
       final personalPoster =
           personal.personalProfileDetails.value.user?.marketingCard?.readyUrl;
 
+      final personalCode =
+          personal.personalProfileDetails.value.user?.referral_code;
+
       String? poster = personalPoster;
+      // Travels with the poster: the share message quotes the code that belongs
+      // to the same profile the card was generated for.
+      String? referralCode = personalCode;
       if (isBusinessUser() &&
           Get.isRegistered<ViewBusinessDetailsController>()) {
         // Falls back to the personal poster: a business account still has a
         // personal profile behind it, and that is where the card is generated
         // for some of them.
-        poster = Get.find<ViewBusinessDetailsController>()
-                .businessProfileDetails
-                .value
-                ?.data
-                ?.marketingCard
-                ?.readyUrl ??
-            personalPoster;
+        final business =
+            Get.find<ViewBusinessDetailsController>().businessProfileDetails;
+        poster = business.value?.data?.marketingCard?.readyUrl ?? personalPoster;
+        referralCode = business.value?.data?.referral_code ?? personalCode;
       }
 
       // A guest has no profile, so the API returns no marketing card — the
@@ -1106,29 +946,50 @@ class _DiscoverHeaderBannerHost extends StatelessWidget {
       final guest = isGuestUser();
       final hasPoster = poster?.trim().isNotEmpty ?? false;
 
+      // Built here rather than inline so the tap handler can key off WHICH
+      // slide was tapped instead of a position: the leading slide is present
+      // for a guest and for a poster-holder but absent for a signed-in account
+      // with no card yet, so every index below it shifts.
+      final slides = <String>[
+        if (guest)
+          AppImageAssets.completeProfileBanner
+        else if (hasPoster)
+          poster!.trim(),
+        // Always present, in every condition — signed in or guest, poster or
+        // not.
+        AppImageAssets.groceryBanner,
+        if (canSeeFranchiseBanner) AppImageAssets.franchiseBanner,
+      ];
+
       return _DiscoverHeaderBanner(
         height: height,
-        images: [
-          if (guest)
-            AppImageAssets.completeProfileBanner
-          else if (hasPoster)
-            poster!.trim(),
-          // Always the last slide, in every condition — signed in or guest,
-          // poster or not.
-          AppImageAssets.groceryBanner,
-        ],
+        images: slides,
         // Guests have no referral code and no poster, so there is nothing for
         // them to share yet: the share button and the "Share It, Get 100
         // Rupees" hook are both withheld until they have a profile.
-        onShare: guest ? null : () => SharePromoSheet.show(context),
-        // Their slide IS the call to action, so the whole thing is tappable —
-        // but only that slide; the grocery promo beside it is not a sign-up
-        // prompt and must not behave like one.
-        onSlideTap: guest
-            ? (index) {
-                if (index == 0) createProfileScreen();
-              }
-            : null,
+        //
+        // Straight to the OS share sheet. It used to open a sheet that showed
+        // this same poster again with a share row under it — a screen between
+        // the share button and sharing, whose whole content was already on the
+        // banner behind it.
+        onShare: guest
+            ? null
+            : () => shareReferralPoster(
+                  posterUrl: hasPoster ? poster!.trim() : null,
+                  referralCode: referralCode,
+                ),
+        onSlideTap: (index) {
+          final slide = slides[index];
+          if (slide == AppImageAssets.franchiseBanner) {
+            Get.to(() => const FranchiseInquiryScreen());
+            return;
+          }
+          // The guest slide IS the call to action, so the whole artwork opens
+          // sign-up. The grocery promo is not a prompt and stays inert.
+          if (guest && slide == AppImageAssets.completeProfileBanner) {
+            createProfileScreen();
+          }
+        },
         onAspectRatio: onAspectRatio,
       );
     });
@@ -1181,6 +1042,18 @@ class _DiscoverHeaderBanner extends StatefulWidget {
 
 class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
   int _current = 0;
+
+  /// Whether the slide on screen is the backend marketing card.
+  ///
+  /// Identified by being a network URL: the poster is the only slide that comes
+  /// from the profile API — the grocery and franchise promos, and the guest's
+  /// complete-profile artwork, are all bundled assets. That also means the
+  /// check survives slides being added or reordered, which an index would not.
+  bool get _onPosterSlide {
+    if (widget.images.isEmpty) return false;
+    final slide = widget.images[_current.clamp(0, widget.images.length - 1)];
+    return isNetworkImage(slide);
+  }
 
   ImageStream? _aspectStream;
   ImageStreamListener? _aspectListener;
@@ -1278,7 +1151,7 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
                 height: widget.height,
                 viewportFraction: 1.0,
                 autoPlay: true,
-                autoPlayInterval: const Duration(seconds: 4),
+                autoPlayInterval: const Duration(seconds: 3),
                 autoPlayAnimationDuration: const Duration(milliseconds: 800),
                 autoPlayCurve: Curves.easeInOutCubic,
                 enableInfiniteScroll: true,
@@ -1300,7 +1173,12 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
           // Yellow can't carry itself over a poster of unknown brightness, so
           // it takes a dark shadow — the same trick the folder captions use
           // over the page background.
-          if (widget.onShare != null)
+          //
+          // Only while the POSTER is the slide on screen. The hook is about
+          // sharing this user's referral card; sitting it on the grocery or
+          // franchise promo made it read as a reward for those, and neither is
+          // shareable.
+          if (widget.onShare != null && _onPosterSlide)
           Positioned(
             top: 10,
             left: 14,

@@ -98,9 +98,10 @@ class DiscoverFolderTile extends StatelessWidget {
     super.key,
     required this.title,
     required this.iconPaths,
-    required this.expandedBuilder,
+    this.expandedBuilder,
     this.onTap,
-  });
+  }) : assert(expandedBuilder != null || onTap != null,
+            'A folder must either open a sheet or route somewhere');
 
   final String title;
 
@@ -110,14 +111,12 @@ class DiscoverFolderTile extends StatelessWidget {
   final List<String> iconPaths;
 
   /// The section exactly as it renders outside folder mode — shown in the sheet
-  /// when the folder is opened.
-  final WidgetBuilder expandedBuilder;
+  /// when the folder is opened. Ignored when [onTap] is given.
+  final WidgetBuilder? expandedBuilder;
 
-  /// Skips the sheet entirely and runs this instead, for the sections whose
-  /// every tile routes to the SAME screen (Grocery & General Store) — there the
-  /// sheet is a menu of one destination, so tapping the folder may as well land
-  /// on it. [expandedBuilder] is still required: the section keeps its normal
-  /// full card everywhere folder mode is off.
+  /// Skips the sheet entirely and runs this instead. For sections whose card is
+  /// only a launcher for one destination, the sheet is a step with nothing in
+  /// it — the folder goes straight to the screen.
   final VoidCallback? onTap;
 
   @override
@@ -130,7 +129,7 @@ class DiscoverFolderTile extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap ??
-          () => DiscoverFolderSheet.show(context, title, expandedBuilder),
+          () => DiscoverFolderSheet.show(context, title, expandedBuilder!),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
