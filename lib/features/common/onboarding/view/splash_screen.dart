@@ -219,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen> {
   ///
   /// A deep link or notification still overrides this — those pass their own
   /// `initialIndex` through the route arguments.
-  int _coldStartTabIndex() => isGuestUser() ? 0 : 1;
+  int _coldStartTabIndex() => isGuestUser() ? 1 : 0;
 
   Future<SharedMedia?> _getSharedMedia() async {
     try {
