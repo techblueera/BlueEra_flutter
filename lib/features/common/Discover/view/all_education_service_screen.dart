@@ -29,6 +29,8 @@ import 'package:get/get.dart';
 import '../../../business/widgets/rating_widget.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class AllEducationServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
@@ -121,6 +123,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   pinned: true,
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
+                    // The header paints a search bar; this is what it opens —
+                    // the shared store search, scoped to this vertical by its
+                    // StoreSearchConfig. Tapping a result opens that profile.
+                    onSearchTap: () => Get.to(
+                        () => StoreSearchScreen(config: StoreSearchConfig.education())),
                     categories: stickyCategories,
                     selectedId: controller_
                             .selectedEducationServiceData.value?.slugId ??

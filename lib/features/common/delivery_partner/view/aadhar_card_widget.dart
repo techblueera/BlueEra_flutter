@@ -210,23 +210,31 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         ),
         SizedBox(height: SizeConfig.paddingS),
         CommonImageUploadTile(
-          title: AppStrings.uploadAadhaarBackOptional.tr,
+          // Both sides are mandatory now — the label no longer says
+          // "(Optional)", and [submitAadhaarImages] rejects a missing back.
+          title: AppStrings.uploadAadhaarBack.tr,
           imageFile: controller.aadharBackImage,
           context: context,
           onImageSelected: () => _pickAadhaarImage(
               controller.aadharBackImage, AppStrings.aadharBack.tr),
         ),
         SizedBox(height: SizeConfig.paddingM),
+        // Greyed out until BOTH images are picked, so the requirement is
+        // visible before the tap rather than only in the snackbar after it.
+        // The controller still re-checks — this is the affordance, not the
+        // guard.
         Obx(
           () => CustomBtn(
             title: controller.isAadhaarImageSubmitting.value
                 ? null
                 : AppStrings.submitAadhaarImages.tr,
+            bgColor: controller.hasBothAadhaarImages
+                ? AppColors.primaryColor
+                : AppColors.primaryColor.withValues(alpha: 0.5),
             onTap: controller.isAadhaarImageSubmitting.value
                 ? null
                 : () => controller.submitAadhaarImages(),
             radius: 10.0,
-            bgColor: AppColors.primaryColor,
             isLoading: controller.isAadhaarImageSubmitting.value,
           ),
         ),
@@ -310,6 +318,30 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                   fontSize: SizeConfig.small,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
+                )
+              // Sending — the request is in flight. Shown as inert text with a
+              // spinner rather than a live link: the tap has already been
+              // accepted, and a second one is refused by the controller anyway.
+              else if (controller.isAadhaarOtpSending.value)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 12,
+                      width: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.6,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      AppStrings.sendingOtp.tr,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
                 )
               else
                 InkWell(

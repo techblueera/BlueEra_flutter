@@ -13,6 +13,7 @@
 		3535542F2DCB6CF200F4ECDB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3535542E2DCB6CF200F4ECDB /* GoogleService-Info.plist */; };
 		35A0BF982FD1E8490098D997 /* messenger.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 35A0BF972FD1E8490098D997 /* messenger.mp3 */; };
 		35A0BF992FD1E8490098D997 /* hangouts_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 35A0BF962FD1E8490098D997 /* hangouts_call.mp3 */; };
+		35B1E0012FD3A1000098D997 /* new_order_sound.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 35B1E0002FD3A1000098D997 /* new_order_sound.mp3 */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		4989A3C80809AAE7625ED231 /* Pods_ShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 588461C40CB3FAFEBD3F6340 /* Pods_ShareExtension.framework */; };
 		51C56CF9117B018BBA76164A /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F9D08536612B90D02D18B8 /* Pods_RunnerTests.framework */; };
@@ -88,6 +89,7 @@
 		355EAB062EF16A9400F9A03C /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		35A0BF962FD1E8490098D997 /* hangouts_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = hangouts_call.mp3; sourceTree = "<group>"; };
 		35A0BF972FD1E8490098D997 /* messenger.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = messenger.mp3; sourceTree = "<group>"; };
+		35B1E0002FD3A1000098D997 /* new_order_sound.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = new_order_sound.mp3; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		475B3D5373547D56F97C6705 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		588461C40CB3FAFEBD3F6340 /* Pods_ShareExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ShareExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -211,6 +213,7 @@
 				351D75F92FD2DDC6000D6022 /* old_phone_ring.mp3 */,
 				35A0BF962FD1E8490098D997 /* hangouts_call.mp3 */,
 				35A0BF972FD1E8490098D997 /* messenger.mp3 */,
+				35B1E0002FD3A1000098D997 /* new_order_sound.mp3 */,
 				3550E5542EBC640800525B61 /* hello_delivery.mp3 */,
 				3550E5562EBC640800525B61 /* notification_sound.wav */,
 				9740EEB11CF90186004384FC /* Flutter */,
@@ -389,6 +392,7 @@
 				3535542F2DCB6CF200F4ECDB /* GoogleService-Info.plist in Resources */,
 				35A0BF982FD1E8490098D997 /* messenger.mp3 in Resources */,
 				35A0BF992FD1E8490098D997 /* hangouts_call.mp3 in Resources */,
+				35B1E0012FD3A1000098D997 /* new_order_sound.mp3 in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 			);

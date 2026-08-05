@@ -7,6 +7,8 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class FinanceListingScreen extends StatefulWidget {
   final OnboardingCategoryModel? selectedCategory;
@@ -71,6 +73,11 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
               pinned: true,
               delegate: StickyCategoryHeaderDelegate(
                 topPadding: statusBarHeight,
+                // The header paints a search bar; this is what it opens —
+                // the shared store search, scoped to this vertical by its
+                // StoreSearchConfig. Tapping a result opens that profile.
+                onSearchTap: () => Get.to(
+                    () => StoreSearchScreen(config: StoreSearchConfig.finance())),
                 categories: stickyCategories,
                 selectedId: _selectedCategory.value?.slugId,
                 onCategoryTap: (item) {

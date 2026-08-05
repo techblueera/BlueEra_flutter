@@ -40,6 +40,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 /// Opens a hotel from this listing. Routed through [openVisitProfile] so the
 /// type→screen mapping stays in one place, and shared by the list card and the
@@ -182,6 +184,11 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   pinned: true,
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
+                    // The header paints a search bar; this is what it opens —
+                    // the shared store search, scoped to this vertical by its
+                    // StoreSearchConfig. Tapping a result opens that profile.
+                    onSearchTap: () => Get.to(
+                        () => StoreSearchScreen(config: StoreSearchConfig.stay())),
                     categories: _stayCategories
                         .map((c) => StickyCategory(
                               id: c.slugId,

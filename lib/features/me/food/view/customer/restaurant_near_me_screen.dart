@@ -30,6 +30,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class _RestaurantCardPalette {
   final Color cardBg;
@@ -286,6 +288,11 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
+                      // The header paints a search bar; this is what it opens —
+                      // the shared store search, scoped to this vertical by its
+                      // StoreSearchConfig. Tapping a result opens that profile.
+                      onSearchTap: () => Get.to(
+                          () => StoreSearchScreen(config: StoreSearchConfig.food())),
                       categories: [
                         // Leading "All Food" tab — every restaurant, no
                         // category filter.

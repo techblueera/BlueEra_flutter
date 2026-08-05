@@ -467,6 +467,14 @@ class ApiKeys {
   static const aadhaarNumber = 'aadhaar_number';
   static const consent = 'consent';
   static const referenceId = 'reference_id';
+
+  /// How the rider's Aadhaar was verified, sent on the personal-identification
+  /// submit so the backend can tell an OKYC-verified number from a
+  /// photo-submitted one — both paths POST the same endpoint. Values:
+  /// [verifyViaOtp] / [verifyViaManual].
+  static const verifyVia = 'verify_via';
+  static const verifyViaOtp = 'OTP_throw';
+  static const verifyViaManual = 'manually';
   static const panNo = 'panNo';
   static const userPicture = 'userPicture';
   static const aadharImages = 'aadharImages';

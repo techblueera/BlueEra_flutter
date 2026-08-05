@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -887,6 +888,12 @@ class DeliveryPartnerController extends GetxController {
     await checkAadhaarStatus();
   }
 
+  /// Both Aadhaar sides picked — the photo path's submit needs both. Read
+  /// inside an `Obx`: the two sources are observable, so the button restyles as
+  /// soon as the second image lands.
+  bool get hasBothAadhaarImages =>
+      aadharFrontImage.value != null && aadharBackImage.value != null;
+
   /// Cancels the resend timer — call from the sheet's dispose.
   void disposeAadhaarFlow() {
     _aadhaarResendTimer?.cancel();
@@ -936,8 +943,28 @@ class DeliveryPartnerController extends GetxController {
   /// POST /user/aadhaar/generate-otp — sends an OTP to the Aadhaar-linked
   /// mobile. Requires a valid 12-digit number and the consent checkbox ticked.
   Future<void> generateAadhaarOtp() async {
+    // A second tap while the first send is still in flight would fire a
+    // duplicate request and let the provider's rate limiter answer for us.
+    if (isAadhaarOtpSending.value) return;
+
     // Text validation (12-digit Aadhaar).
-    if (!(aadharFormKey.currentState?.validate() ?? false)) return;
+    //
+    // Through the Form when it is mounted — the entry stage — so the error
+    // renders under the field. On RESEND the caller is the OTP stage, where
+    // that Form is gone from the tree and `currentState` is null: validating
+    // through the key there returned false and made Resend a dead tap. Fall
+    // back to validating the stored number directly, which is the same rule
+    // (`ValidationMethod.validateAadhaar`) reported in a snackbar instead.
+    final formState = aadharFormKey.currentState;
+    if (formState != null) {
+      if (!formState.validate()) return;
+    } else {
+      final error = ValidationMethod.validateAadhaar(aadharController.text);
+      if (error != null) {
+        commonSnackBar(message: error);
+        return;
+      }
+    }
 
     if (!aadhaarConsentGiven.value) {
       commonSnackBar(
@@ -1091,10 +1118,15 @@ class DeliveryPartnerController extends GetxController {
   /// Alternative to the OTP flow: submit the Aadhaar number together with the
   /// card images (the "verify by image" option). Mirrors the old image-based
   /// identification payload — uploads the images to S3 and POSTs
-  /// `{ aadharNo, aadharImages: { front, back? } }` to the same personal-
-  /// identification endpoint the number-only path uses. Shown when OTP isn't
-  /// working for the rider. Only the front is required — the number lives on
-  /// that side, so the back is optional and simply omitted when not picked.
+  /// `{ aadharNo, aadharImages: { front, back }, verify_via: manually }` to the
+  /// same personal-identification endpoint the number-only path uses. Shown
+  /// when OTP isn't working for the rider.
+  ///
+  /// BOTH sides are required. `verify_via` is what tells the backend these two
+  /// paths apart on one endpoint: this one submits an unverified number backed
+  /// by photos for review, while the OTP path submits a UIDAI-verified one (see
+  /// [_submitRiderAadhaarStep]).
+  ///
   /// On success the sheet closes and the onboarding status refreshes so the
   /// "aadhar" step reflects the submission.
   Future<void> submitAadhaarImages() async {
@@ -1111,9 +1143,13 @@ class DeliveryPartnerController extends GetxController {
       commonSnackBar(message: 'Please select the Aadhaar front image.');
       return;
     }
-    // Optional — the Aadhaar number is printed on the front, so the back adds
-    // nothing the verifier needs.
+    // Both sides are required: the front carries the number and photo, the back
+    // the address and QR the verifier checks it against.
     final back = aadharBackImage.value;
+    if (back == null) {
+      commonSnackBar(message: 'Please select the Aadhaar back image.');
+      return;
+    }
     try {
       isAadhaarImageSubmitting.value = true;
 
@@ -1125,7 +1161,7 @@ class DeliveryPartnerController extends GetxController {
       final verification = await AiDocumentVerificationService().verify(
         documentName: AiDocumentVerificationService.aadhaar,
         documentNumber: aadhaar,
-        images: [front, if (back != null) back],
+        images: [front, back],
       );
       if (!verification.isValid) {
         commonSnackBar(message: verification.failureMessage!);
@@ -1133,11 +1169,10 @@ class DeliveryPartnerController extends GetxController {
       }
 
       final frontUrl = await _uploadToS3(front);
-      final backUrl = back != null ? await _uploadToS3(back) : null;
-      // A picked back image that fails to upload is still an error — only a
-      // back that was never picked is allowed to be absent.
-      if ((frontUrl ?? '').isEmpty ||
-          (back != null && (backUrl ?? '').isEmpty)) {
+      final backUrl = await _uploadToS3(back);
+      // Both sides are mandatory, so either upload failing stops the submit —
+      // a half-uploaded card would reach the verifier as an incomplete record.
+      if ((frontUrl ?? '').isEmpty || (backUrl ?? '').isEmpty) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         return;
       }
@@ -1145,8 +1180,11 @@ class DeliveryPartnerController extends GetxController {
         ApiKeys.aadharNo: aadhaar,
         ApiKeys.aadharImages: {
           ApiKeys.front: frontUrl,
-          if (backUrl != null) ApiKeys.back: backUrl,
+          ApiKeys.back: backUrl,
         },
+        // Photo-submitted: no OKYC behind this number, so the backend routes it
+        // to manual review rather than treating it as UIDAI-verified.
+        ApiKeys.verifyVia: ApiKeys.verifyViaManual,
       };
       final response = await DeliveryPartnerRepo()
           .ridersOnboardingPersonalIdentificationRepo(params: params);
@@ -1183,8 +1221,13 @@ class DeliveryPartnerController extends GetxController {
     try {
       isRiderPersonalIdentificationLoading.value = true;
       final response = await DeliveryPartnerRepo()
-          .ridersOnboardingPersonalIdentificationRepo(
-              params: {ApiKeys.aadharNo: aadharNumber});
+          .ridersOnboardingPersonalIdentificationRepo(params: {
+        ApiKeys.aadharNo: aadharNumber,
+        // OKYC-verified: the number came back from UIDAI's OTP check, so the
+        // backend can trust it without a human looking at a card photo. The
+        // photo path posts the same endpoint with [ApiKeys.verifyViaManual].
+        ApiKeys.verifyVia: ApiKeys.verifyViaOtp,
+      });
       if (response.isSuccess) {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.complete(response);

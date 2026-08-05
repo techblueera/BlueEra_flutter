@@ -11,6 +11,8 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
@@ -239,6 +241,18 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                           );
                         }),
                       ],
+                      // The header's search bar was painted but inert here.
+                      // It now opens the store search for THIS vertical —
+                      // scoped server-side to grocery shops, so nothing from
+                      // another module can turn up in the results. The
+                      // selected tab is passed for the placeholder only; the
+                      // search API has no sub-category filter.
+                      onSearchTap: () => Get.to(() => StoreSearchScreen(
+                            config: StoreSearchConfig.grocery(
+                              categoryLabel: controller
+                                  .selectedGroceryCategoryData.value?.name,
+                            ),
+                          )),
                       selectedId: controller.selectedGroceryCategoryData.value?.tagId,
                       onCategoryTap: (item) {
                         if (item.id == _allGroceryTagId) {

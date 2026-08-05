@@ -31,6 +31,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class HmfCategoryDiscoverScreen extends StatefulWidget {
   const HmfCategoryDiscoverScreen({super.key});
@@ -230,6 +232,11 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
+                      // The header paints a search bar; this is what it opens —
+                      // the shared store search, scoped to this vertical by its
+                      // StoreSearchConfig. Tapping a result opens that profile.
+                      onSearchTap: () => Get.to(
+                          () => StoreSearchScreen(config: StoreSearchConfig.homeMadeFood())),
                       singleLineLabel: true,
                       categories: _categories
                           .map((c) => StickyCategory(
