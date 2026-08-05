@@ -1370,7 +1370,8 @@ class _PropertyCardState extends State<PropertyCard> {
     return GestureDetector(
       onTap: _businessId.isNotEmpty ? _openReviewsSheet : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xffDDE2EE)),
@@ -1380,14 +1381,14 @@ class _PropertyCardState extends State<PropertyCard> {
           children: [
             LocalAssets(
               imagePath: AppIconAssets.fill_star,
-              width: 10,
-              height: 10,
+              width: SizeConfig.size10,
+              height: SizeConfig.size10,
               imgColor: AppColors.yellow,
             ),
-            const SizedBox(width: 3),
+            SizedBox(width: SizeConfig.size3),
             CustomText(
               widget.rating.toStringAsFixed(1),
-              fontSize: 10,
+              fontSize: SizeConfig.size10,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
             ),
@@ -1424,7 +1425,7 @@ class _PropertyCardState extends State<PropertyCard> {
                   ),
                 if (distanceText.isNotEmpty && address.isNotEmpty)
                   const TextSpan(
-                    text: '  |  ',
+                    text: '  |   ',
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
                       fontSize: 8,
