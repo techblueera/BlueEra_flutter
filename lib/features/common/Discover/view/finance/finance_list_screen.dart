@@ -15,13 +15,49 @@ import 'package:BlueEra/features/common/Discover/controller/finance_discover_con
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Tinted surface set for a finance card. Mirrors the palette used by the
+/// hotel `PropertyCard` (and `ServiceBusinessCard` / lab discover) so all
+/// discover directories share the same visual family — the outer card is
+/// the lighter wash, the inner "Account Types" tile uses white per design.
+class _CardPalette {
+  final Color cardBg;
+  final Color cardBorder;
+  final Color tileBorder;
+  final Color dividerLine;
+  final Color bodyDashedDivider;
+
+  const _CardPalette({
+    required this.cardBg,
+    required this.cardBorder,
+    required this.tileBorder,
+    required this.dividerLine,
+    required this.bodyDashedDivider,
+  });
+}
+
+const List<_CardPalette> _cardPalettes = <_CardPalette>[
+  _CardPalette(
+    cardBg: Color(0xFFEDFCFE),
+    cardBorder: Color(0xFFCFEEF2),
+    tileBorder: Color(0xFFBFE9EE),
+    dividerLine: Color(0xFFBFE9EE),
+    bodyDashedDivider: Color(0xFFBBE3E8),
+  ),
+  _CardPalette(
+    cardBg: Color(0xFFFBF2FF),
+    cardBorder: Color(0xFFEDD3F7),
+    tileBorder: Color(0xFFE5C6F5),
+    dividerLine: Color(0xFFE5C6F5),
+    bodyDashedDivider: Color(0xFFE3D4E9),
+  ),
+];
 
 class FinanceListScreen extends StatefulWidget {
   final String categorySlugId;
@@ -109,7 +145,7 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
                     );
                   }
                   final item = controller.profiles[row.contentIndex];
-                  return _FinanceCard(item: item);
+                  return _FinanceCard(item: item, index: row.contentIndex);
                 },
               );
             },
@@ -123,7 +159,13 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
 class _FinanceCard extends StatelessWidget {
   final FinanceBusinessItem item;
 
-  const _FinanceCard({required this.item});
+  /// Card position in the list — drives the palette rotation.
+  final int index;
+
+  const _FinanceCard({required this.item, required this.index});
+
+  _CardPalette get _palette =>
+      _cardPalettes[index.abs() % _cardPalettes.length];
 
   @override
   Widget build(BuildContext context) {
@@ -159,13 +201,15 @@ class _FinanceCard extends StatelessWidget {
     final List<String> serviceTags = <String>[
       ...?item.accountType?.where((s) => s.trim().isNotEmpty),
     ];
-    const int moreTagsCount = 0;
     final bool showTagsRow =
         serviceTags.isNotEmpty || category.trim().isNotEmpty;
 
+    final palette = _palette;
+
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
+      padding: EdgeInsets.only(right: SizeConfig.size8, bottom: SizeConfig.size10, left: SizeConfig.size8),
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         // Routed through openVisitProfile so the type→screen mapping stays in
         // one place. The lightweight list item goes with it and seeds
         // `selectedDetail`, so the detail screen renders at once and upgrades
@@ -177,46 +221,90 @@ class _FinanceCard extends StatelessWidget {
           userId: item.userId,
           financeData: item,
         ),
-        child: CommonCardWidget(
-          cardMargin: 0,
-          padding: 0,
+        child: Container(
+          decoration: BoxDecoration(
+            color: palette.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: palette.cardBorder, width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14001120),
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildCoverSection(
-                images: coverImages,
+              _hero(images: coverImages),
+              _buildBody(
+                palette: palette,
+                address: address,
+                distance: distance,
                 rating: rating,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderRow(
-                    address: address,
-                    distance: distance,
-                    registryLabel: registryLabel,
-                    registryColor: registryColor,
-                    openLabel: openBadge.label,
-                    openColor: openBadge.color,
-                  ),
-                  if (showTagsRow) ...[
-                    SizedBox(height: SizeConfig.size12),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                      child: _buildTagsRow(
-                        serviceTags: serviceTags,
-                        moreCount: moreTagsCount,
-                        category: category,
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: SizeConfig.size12),
-                  _buildActionsRow(),
-                ],
+                registryLabel: registryLabel,
+                registryColor: registryColor,
+                openLabel: openBadge.label,
+                openColor: openBadge.color,
+                showTagsRow: showTagsRow,
+                serviceTags: serviceTags,
+                category: category,
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBody({
+    required _CardPalette palette,
+    required String address,
+    required String distance,
+    required String rating,
+    required String registryLabel,
+    required Color registryColor,
+    required String openLabel,
+    required Color openColor,
+    required bool showTagsRow,
+    required List<String> serviceTags,
+    required String category,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
+          child: _buildHeaderRow(
+            address: address,
+            distance: distance,
+            rating: rating,
+            registryLabel: registryLabel,
+            registryColor: registryColor,
+            openLabel: openLabel,
+            openColor: openColor,
+          ),
+        ),
+        if (showTagsRow) ...[
+          SizedBox(height: SizeConfig.size12),
+          _DashedDivider(color: palette.bodyDashedDivider),
+          SizedBox(height: SizeConfig.size12),
+          Padding(
+            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
+            child: _buildTagsWrap(
+              serviceTags: serviceTags,
+              category: category,
+            ),
+          ),
+        ],
+        SizedBox(height: SizeConfig.size14),
+        Padding(
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
+          child: _buildFooterRow(),
+        ),
+      ],
     );
   }
 
@@ -322,10 +410,7 @@ class _FinanceCard extends StatelessWidget {
     return '${km.toStringAsFixed(2)} KM';
   }
 
-  Widget _buildCoverSection({
-    required List<String> images,
-    required String rating,
-  }) {
+  Widget _hero({required List<String> images}) {
     final Widget imageWidget = images.isNotEmpty
         ? GestureDetector(
             onTap: () => Get.to(() => ImageViewScreen(
@@ -336,7 +421,7 @@ class _FinanceCard extends StatelessWidget {
                 )),
             child: CachedNetworkImage(
               imageUrl: images.first,
-              height: 170,
+              height: 175,
               width: double.infinity,
               fit: BoxFit.cover,
               memCacheWidth: 800,
@@ -351,7 +436,7 @@ class _FinanceCard extends StatelessWidget {
             ),
           )
         : Container(
-            height: 170,
+            height: 175,
             width: double.infinity,
             color: AppColors.liteWhite,
             child: LocalAssets(
@@ -360,78 +445,51 @@ class _FinanceCard extends StatelessWidget {
             ),
           );
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-      child: SizedBox(
-        height: 200,
-        width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            imageWidget,
-            if (rating.isNotEmpty)
-              Positioned(
-                top: 10,
-                left: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.black.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star, size: 14, color: AppColors.yellow),
-                      const SizedBox(width: 4),
-                      CustomText(
-                        rating,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.white,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Column(
-                children: [
-                  _circleIconBtn(AppIconAssets.share_bold,
-                      onTap: () => _shareFinance(item)),
-                  // Rate CTA is only shown when the listing carries the
-                  // be_user_service `businesses._id` (see
-                  // lib/docs/rating-ui-integration.md §1) — without it the
-                  // POST to /business/{businessId}/ratings would 404.
-                  if ((item.businessId ?? '').trim().isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _circleIconBtn(AppIconAssets.star, onTap: _openRateDialog),
-                  ],
+    return SizedBox(
+      height: 175,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          imageWidget,
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Column(
+              children: [
+                _circleIconBtn(AppIconAssets.share_bold,
+                    onTap: () => _shareFinance(item)),
+                // Rate CTA is only shown when the listing carries the
+                // be_user_service `businesses._id` (see
+                // lib/docs/rating-ui-integration.md §1) — without it the
+                // POST to /business/{businessId}/ratings would 404.
+                if ((item.businessId ?? '').trim().isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size8),
+                  _circleIconBtn(AppIconAssets.star_rounded,
+                      onTap: _openRateDialog),
                 ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
     return Material(
-      color: AppColors.black25,
+      color: Colors.black.withValues(alpha: 0.38),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(SizeConfig.size8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
-            height: 14,
-            width: 8,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14,
           ),
         ),
       ),
@@ -441,6 +499,7 @@ class _FinanceCard extends StatelessWidget {
   Widget _buildHeaderRow({
     required String address,
     required String distance,
+    required String rating,
     required String registryLabel,
     required Color registryColor,
     required String openLabel,
@@ -450,151 +509,200 @@ class _FinanceCard extends StatelessWidget {
     final bool showDistance = isMeaningful(distance);
     final bool showAddress = isMeaningful(address);
     final bool hasLocation = showDistance || showAddress;
+    final bool hasRating = rating.isNotEmpty;
+    // Time pill hides when the source only produces "Open | N/A" — the
+    // finance model returns that string for listings that never set hours,
+    // and rendering it inline looks broken next to real values.
+    final bool hasTime = !openLabel.trim().endsWith('N/A');
+    final bool hasPillsRow = hasRating || hasTime;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(12, 8, 12, 10),
-      decoration: BoxDecoration(
-        color: AppColors.geryFC,
-        // borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Logo / name open the owning business profile; the rest of the
+        // card still opens the finance listing detail.
+        DiscoverProfileTap(
+          accountType: AppConstants.business,
+          businessId: item.businessProfileId,
+          userId: item.userId,
+          child: ClipOval(
+            child: Container(
+              width: 50,
+              height: 50,
+              color: AppColors.liteWhite,
+              child: (item.logoUrl?.isNotEmpty ?? false)
+                  ? CachedNetworkImage(
+                      imageUrl: item.logoUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                    )
+                  : LocalAssets(imagePath: AppIconAssets.place_holder_image),
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Logo / name open the owning business profile; the rest
-              // of the card still opens the finance listing detail.
               DiscoverProfileTap(
                 accountType: AppConstants.business,
                 businessId: item.businessProfileId,
                 userId: item.userId,
-                child: ClipOval(
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    color: AppColors.liteWhite,
-                    child: (item.logoUrl?.isNotEmpty ?? false)
-                        ? CachedNetworkImage(
-                            imageUrl: item.logoUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image),
-                            errorWidget: (_, __, ___) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image),
-                          )
-                        : LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image),
-                  ),
+                child: CustomText(
+                  (item.profileName?.isNotEmpty ?? false)
+                      ? item.profileName
+                      : 'Unknown',
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.black22,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: SizeConfig.size10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              if (hasPillsRow) ...[
+                SizedBox(height: SizeConfig.size6),
+                // Rating + RBI + time pill on the same row. `Wrap` handles
+                // the long-time-pill overflow case so the row spills to a
+                // second line instead of clipping.
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    DiscoverProfileTap(
-                      accountType: AppConstants.business,
-                      businessId: item.businessProfileId,
-                      userId: item.userId,
-                      child: CustomText(
-                        (item.profileName?.isNotEmpty ?? false)
-                            ? item.profileName
-                            : 'Unknown',
-                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.black22,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    if (hasRating) _ratingPill(rating),
+                    _pill(
+                      icon: Icons.verified_outlined,
+                      label: registryLabel,
+                      color: registryColor,
                     ),
-                    if (hasLocation) ...[
-                      SizedBox(height: SizeConfig.size2),
-                      Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.location_outline,
-                            imgColor: AppColors.primaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: RichText(
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              text: TextSpan(
-                                children: [
-                                  if (showDistance)
-                                    TextSpan(
-                                      text: distance,
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  if (showDistance && showAddress)
-                                    TextSpan(
-                                      text: "  |  ",
-                                      style: TextStyle(
-                                        color: AppColors.secondaryTextColor,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  if (showAddress)
-                                    TextSpan(
-                                      text: address,
-                                      style: TextStyle(
-                                        color: AppColors.secondaryTextColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                    if (hasTime)
+                      _pill(
+                        icon: Icons.access_time,
+                        label: openLabel,
+                        color: openColor,
                       ),
-                    ],
                   ],
                 ),
-              ),
+              ],
+              if (hasLocation) ...[
+                SizedBox(height: SizeConfig.size6),
+                Row(
+                  children: [
+                    LocalAssets(
+                      imagePath: AppIconAssets.location_outline,
+                      imgColor: AppColors.primaryColor,
+                      height: SizeConfig.size10,
+                      width: SizeConfig.size10,
+                    ),
+                    SizedBox(width: SizeConfig.size4),
+                    Flexible(
+                      child: RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            if (showDistance)
+                              TextSpan(
+                                text: distance,
+                                style: TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontSize: SizeConfig.size8,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            if (showDistance && showAddress)
+                              TextSpan(
+                                text: '  |  ',
+                                style: TextStyle(
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.size8,
+                                ),
+                              ),
+                            if (showAddress)
+                              TextSpan(
+                                text: address,
+                                style: TextStyle(
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.size8,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
-          SizedBox(height: SizeConfig.size10),
-          _buildBadgesRow(
-            registryLabel: registryLabel,
-            registryColor: registryColor,
-            openLabel: openLabel,
-            openColor: openColor,
+        ),
+      ],
+    );
+  }
+
+  /// Bordered rating pill — matches the hotel / lab / service-business
+  /// cards. Caller gates on rating being non-empty.
+  Widget _ratingPill(String rating) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xffDDE2EE)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size10,
+            height: SizeConfig.size10,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            rating,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBadgesRow({
-    required String registryLabel,
-    required Color registryColor,
-    required String openLabel,
-    required Color openColor,
+  /// Compact icon+label pill used for both the RBI-status chip and the
+  /// today's-hours chip on the rating row.
+  Widget _pill({
+    required IconData icon,
+    required String label,
+    required Color color,
   }) {
-    return Row(
-      children: [
-        _outlineBadge(
-          icon: Icons.verified_outlined,
-          label: registryLabel,
-          color: registryColor,
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: _outlineBadge(
-            icon: Icons.access_time,
-            label: openLabel,
-            color: openColor,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            label,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w500,
+            color: color,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -622,37 +730,12 @@ class _FinanceCard extends StatelessWidget {
     return (label: 'Open | N/A', color: AppColors.grey83);
   }
 
-  Widget _outlineBadge({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          CustomText(
-            label,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: color,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTagsRow({
+  // ── Account Types — bare Wrap of white chips ─────────────────
+  /// No outer tile container per design — just the chips sitting directly
+  /// on the card's tint. Each chip's fill is white so the account-type
+  /// pills read clearly against the pastel card background.
+  Widget _buildTagsWrap({
     required List<String> serviceTags,
-    required int moreCount,
     required String category,
   }) {
     final tags = serviceTags.isNotEmpty
@@ -664,123 +747,108 @@ class _FinanceCard extends StatelessWidget {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: [
-        ...tags.map((t) => _tagChip(t, AppColors.fillColor, AppColors.grey7E)),
-        if (moreCount > 0)
-          _tagChip('+$moreCount More', AppColors.red.withValues(alpha: 0.08),
-              AppColors.red),
-      ],
+      children: tags.map(_tagChip).toList(growable: false),
     );
   }
 
-  Widget _tagChip(String label, Color bg, Color fg) {
+  Widget _tagChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Color(0xFFDDE2EE), width: 0.5)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDDE2EE), width: 0.5),
+      ),
       child: CustomText(
         label,
-        fontSize: 12,
+        fontSize: SizeConfig.size12,
         fontWeight: FontWeight.w600,
-        color: fg,
+        color: AppColors.grey7E,
       ),
     );
   }
 
-  Widget _buildActionsRow() {
-    return Container(
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.geryFC,
-        // borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(10),
+  /// Full-width Inquiry button — kept as the original: height 44, primary
+  /// fill, "Inquiry" (14 w600) + arrow_forward (18). The outer grey band
+  /// has been dropped so the row inherits the card's tint, but the button
+  /// itself is unchanged.
+  Widget _buildFooterRow() {
+    return Material(
+      color: AppColors.primaryColor,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => openVisitProfile(
+          accountType: AppConstants.business,
+          typeOfBusiness: BusinessType.Finance.name,
+          businessId: item.businessProfileId ?? item.id,
+          userId: item.userId,
+          financeData: item,
+        ),
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomText(
+                AppStrings.inquiry.tr,
+                fontSize: SizeConfig.size14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomText(
-                    AppStrings.inquiry.tr,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.arrow_forward,
-                      size: 18, color: AppColors.white),
-                ],
-              ),
-            ),
+              SizedBox(width: SizeConfig.size6),
+              Icon(Icons.arrow_forward,
+                  size: SizeConfig.size18, color: AppColors.white),
+            ],
           ),
-          // Expanded(
-          //   flex: 2,
-          //   child: Material(
-          //     color: Colors.transparent,
-          //     borderRadius: BorderRadius.circular(10),
-          //     child: InkWell(
-          //       borderRadius: BorderRadius.circular(10),
-          //       onTap: _openChat,
-          //       child: Container(
-          //         height: 44,
-          //         decoration: BoxDecoration(
-          //           color: AppColors.skyBlueFF,
-          //           borderRadius: BorderRadius.circular(10),
-          //         ),
-          //         child: Row(
-          //           mainAxisAlignment: MainAxisAlignment.center,
-          //           children: [
-          //             LocalAssets(
-          //                 imagePath: AppIconAssets.chat,
-          //                 imgColor: AppColors.primaryColor),
-          //             const SizedBox(width: 6),
-          //             CustomText(
-          //               'Chat',
-          //               fontSize: 13,
-          //               fontWeight: FontWeight.w600,
-          //               color: AppColors.primaryColor,
-          //             ),
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // const SizedBox(width: 10),
-          // Expanded(
-          //   flex: 4,
-          //   child: Container(
-          //     height: 44,
-          //     decoration: BoxDecoration(
-          //       color: AppColors.primaryColor,
-          //       borderRadius: BorderRadius.circular(10),
-          //     ),
-          //     child: Row(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: [
-          //         CustomText(
-          //           'Open Account',
-          //           fontSize: 13,
-          //           fontWeight: FontWeight.w700,
-          //           color: AppColors.white,
-          //         ),
-          //         const SizedBox(width: 6),
-          //         const Icon(Icons.arrow_forward,
-          //             size: 16, color: AppColors.white),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-        ],
+        ),
       ),
     );
   }
 }
+
+/// Full-width dashed horizontal rule between the header block and the
+/// Account Types tile — matches the hotel `PropertyCard` treatment.
+class _DashedDivider extends StatelessWidget {
+  final Color color;
+
+  const _DashedDivider({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 1,
+      width: double.infinity,
+      child: CustomPaint(painter: _DashedLinePainter(color: color)),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  static const double _dashWidth = 4;
+  static const double _dashSpace = 4;
+  static const double _thickness = 1;
+
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = _thickness
+      ..strokeCap = StrokeCap.round;
+    final y = size.height / 2;
+    double x = 0;
+    while (x < size.width) {
+      final endX = (x + _dashWidth).clamp(0.0, size.width);
+      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
+      x += _dashWidth + _dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
+}
+

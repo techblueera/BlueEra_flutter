@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_detail_screen.dart';
 import 'package:BlueEra/features/me/medical/controller/nearest_pharmacies_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -13,6 +12,43 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Tinted surface set for a lab card. Mirrors the palette used by the
+/// hotel `PropertyCard` — the outer card is the lighter wash, the inner
+/// "Available Tests" tile uses the fuller hue (#DBFAFD teal / #F7E6FF
+/// lavender) so the whole card reads as one visual family.
+class _CardPalette {
+  final Color cardBg;
+  final Color cardBorder;
+  final Color tileBg;
+  final Color tileBorder;
+  final Color bodyDashedDivider;
+
+  const _CardPalette({
+    required this.cardBg,
+    required this.cardBorder,
+    required this.tileBg,
+    required this.tileBorder,
+    required this.bodyDashedDivider,
+  });
+}
+
+const List<_CardPalette> _cardPalettes = <_CardPalette>[
+  _CardPalette(
+    cardBg: Color(0xFFEDFCFE),
+    cardBorder: Color(0xFFCFEEF2),
+    tileBg: Color(0xFFDBFAFD),
+    tileBorder: Color(0xFFBFE9EE),
+    bodyDashedDivider: Color(0xFFBBE3E8),
+  ),
+  _CardPalette(
+    cardBg: Color(0xFFFBF2FF),
+    cardBorder: Color(0xFFEDD3F7),
+    tileBg: Color(0xFFF7E6FF),
+    tileBorder: Color(0xFFE5C6F5),
+    bodyDashedDivider: Color(0xFFE3D4E9),
+  ),
+];
 
 /// Lab listing used from the Healthcare discover flow. Renders each lab as
 /// a vertical "discover" card matching the img.png mock: hero image with
@@ -96,6 +132,7 @@ class _LabDiscoverListScreenState extends State<LabDiscoverListScreen> {
               final item = controller.pharmacies[index];
               return _LabDiscoverCard(
                 item: item,
+                index: index,
                 onTap: () => Get.to(
                   () => LabDetailScreen(businessId: item.id),
                 ),
@@ -113,14 +150,22 @@ class _LabDiscoverListScreenState extends State<LabDiscoverListScreen> {
 
 class _LabDiscoverCard extends StatelessWidget {
   final PharmacyItem item;
+
+  /// Card position in the list — drives the palette rotation so alternating
+  /// cards read as a set rather than a wall of identical tiles.
+  final int index;
   final VoidCallback onTap;
   final VoidCallback onInquiry;
 
   const _LabDiscoverCard({
     required this.item,
+    required this.index,
     required this.onTap,
     required this.onInquiry,
   });
+
+  _CardPalette get _palette =>
+      _cardPalettes[index.abs() % _cardPalettes.length];
 
   // ── Data helpers ──────────────────────────────────────────────
   /// Cover banner: `coverPicture` (see `viewBusinessProfileModel.dart` —
@@ -259,83 +304,91 @@ class _LabDiscoverCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _palette;
     return InkWell(
       onTap: onTap,
-      child: CustomFormCard(
-        padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        decoration: BoxDecoration(
+          color: palette.cardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: palette.cardBorder, width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14001120),
+              blurRadius: 18,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _hero(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: SizeConfig.size10),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  child: _identityRow(),
-                ),
-                if (_hasTests) ...[
-                  SizedBox(height: SizeConfig.size12),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                    child: _availableTestsBlock(),
-                  ),
-                ],
-                SizedBox(height: SizeConfig.size12),
-                _footer(),
-              ],
-            ),
+            _buildBody(palette),
           ],
         ),
       ),
     );
   }
 
-  // ── Hero image + overlays ────────────────────────────────────
+  Widget _buildBody(_CardPalette palette) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
+          child: _identityRow(),
+        ),
+        if (_hasTests) ...[
+          SizedBox(height: SizeConfig.size12),
+          _DashedDivider(color: palette.bodyDashedDivider),
+          SizedBox(height: SizeConfig.size12),
+          Padding(
+            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
+            child: _availableTestsBlock(palette),
+          ),
+        ],
+        SizedBox(height: SizeConfig.size14),
+        Padding(
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
+          child: _footer(),
+        ),
+      ],
+    );
+  }
+
+  // ── Hero image + share/rate buttons ──────────────────────────
   Widget _hero() {
     final hero = _heroImage;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-      child: SizedBox(
-        height: 170,
-        width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            hero.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: hero,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: AppColors.greyE5),
-                    errorWidget: (_, __, ___) => _imageFallback(),
-                  )
-                : _imageFallback(),
-            if (item.rating > 0)
-              Positioned(
-                top: 10,
-                left: 10,
-                child: _ratingPill(),
-              ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Column(
-                children: [
-                  _circleIcon(AppIconAssets.share_bold, onTap: () => _share),
-                  const SizedBox(height: 8),
-                  _circleIcon(AppIconAssets.star_rounded, onTap: () => () {}),
-                ],
-              ),
+    return SizedBox(
+      height: 175,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          hero.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: hero,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: AppColors.greyE5),
+                  errorWidget: (_, __, ___) => _imageFallback(),
+                )
+              : _imageFallback(),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Column(
+              children: [
+                _circleIcon(AppIconAssets.share_bold, onTap: _share),
+                SizedBox(height: SizeConfig.size8),
+                _circleIcon(AppIconAssets.star_rounded, onTap: () {}),
+              ],
             ),
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: _timingPill(),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -350,25 +403,30 @@ class _LabDiscoverCard extends StatelessWidget {
         ),
       );
 
-  /// Only called when `item.rating > 0` (see [_hero]) — callers gate the
-  /// whole pill so we never render a "N/A" placeholder rating.
+  /// Bordered rating pill for the header row — matches the hotel /
+  /// service-business cards. Caller gates on `item.rating > 0`.
   Widget _ratingPill() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
-        color: AppColors.black25,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xffDDE2EE)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star, size: 14, color: AppColors.yellow),
-          const SizedBox(width: 4),
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size10,
+            height: SizeConfig.size10,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
           CustomText(
             item.rating.toStringAsFixed(1),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
           ),
         ],
       ),
@@ -377,41 +435,34 @@ class _LabDiscoverCard extends StatelessWidget {
 
   Widget _circleIcon(String icon, {required VoidCallback onTap}) {
     return Material(
-      color: AppColors.black25,
+      color: Colors.black.withValues(alpha: 0.38),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(SizeConfig.size8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
-            height: 14,
-            width: 8,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14,
           ),
         ),
       ),
     );
   }
 
-  /// Bottom-right hero pill driven by the new `timing` payload. Three states:
-  /// - `timing == null` → "Timing not set" (neutral chip)
+  /// Header-row timing pill driven by the `timing` payload. When timing is
+  /// unset, returns `null` so the caller hides the pill entirely (no
+  /// "Timing not set" placeholder).
   /// - `today.isOpen == false` → "Closed today" (red chip)
-  /// - `today.isOpen == true` → "Open · HH:MM - HH:MM" (green); prefixed with
-  ///   "Open now" when `liveState.isLive` confirms the current clock is inside
-  ///   today's window, otherwise "Open today" — `today.isOpen` alone only
-  ///   means "open sometime today".
-  Widget _timingPill() {
+  /// - `today.isOpen == true` → "Open · HH:MM - HH:MM" (green); prefixed
+  ///   with "Open now" when `liveState.isLive` confirms the current clock
+  ///   is inside today's window, otherwise "Open today".
+  Widget? _timingPill() {
     final today = _todayTiming;
-
-    if (today == null) {
-      return _timingChip(
-        label: 'Timing not set',
-        background: const Color(0xffF5F5F5),
-        foreground: AppColors.grey7E,
-      );
-    }
+    if (today == null) return null;
 
     final bool isOpen = today['isOpen'] == true;
     final String open = today['shopOpenTime']?.toString() ?? '';
@@ -420,8 +471,8 @@ class _LabDiscoverCard extends StatelessWidget {
     if (!isOpen || (open.isEmpty && close.isEmpty)) {
       return _timingChip(
         label: 'Closed today',
-        background: const Color(0xffFFF2F2),
-        foreground: AppColors.red,
+        // background: const Color(0xffFFF2F2),
+        // foreground: AppColors.red,
       );
     }
 
@@ -433,68 +484,58 @@ class _LabDiscoverCard extends StatelessWidget {
 
     return _timingChip(
       label: label,
-      background: const Color(0xffF2FFF2),
-      foreground: AppColors.greenShade,
     );
   }
 
   Widget _timingChip({
     required String label,
-    required Color background,
-    required Color foreground,
   }) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 240),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: foreground, width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.access_time, size: 12, color: foreground),
-            const SizedBox(width: 4),
-            Flexible(
-              child: CustomText(
-                label,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: foreground,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+      decoration: BoxDecoration(
+        // color: background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Color(0xFFDDE2EE), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time, size: 10, color: AppColors.green00),
+          SizedBox(width: SizeConfig.size3),
+          Flexible(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.size10,
+              fontWeight: FontWeight.w500,
+              color: AppColors.green00,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  // ── Identity row: logo + name + location ─────────────────────
+  // ── Header row: logo + name + [rating + timing] + location ───
   Widget _identityRow() {
-    // Same "meaningful" guard the finance card uses — treat 'N/A' as absent
-    // so an unknown distance doesn't get concatenated with the address.
     bool isMeaningful(String s) => s.isNotEmpty && s != 'N/A';
     final distance = _distance;
     final address = _location;
     final bool showDistance = isMeaningful(distance);
     final bool showAddress = isMeaningful(address);
     final bool hasLocation = showDistance || showAddress;
-    // final location = [
-    //   if (isMeaningful(distance)) distance,
-    //   if (isMeaningful(address)) address,
-    // ].join(' · ');
+    final bool hasRating = item.rating > 0;
+    final Widget? timing = _timingPill();
+    final bool hasTiming = timing != null;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ClipOval(
           child: SizedBox(
-            width: SizeConfig.size50,
-            height: SizeConfig.size50,
+            width: 50,
+            height: 50,
             child: _identityLogo.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: _identityLogo,
@@ -509,25 +550,39 @@ class _LabDiscoverCard extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
                 item.name.isNotEmpty ? item.name : AppStrings.unknown.tr,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black22,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: SizeConfig.size2),
+              if (hasRating || hasTiming) ...[
+                SizedBox(height: SizeConfig.size6),
+                Row(
+                  children: [
+                    if (hasRating) ...[
+                      _ratingPill(),
+                      SizedBox(width: SizeConfig.size6),
+                    ],
+                    if (hasTiming) Flexible(child: timing),
+                  ],
+                ),
+              ],
               if (hasLocation) ...[
-                SizedBox(height: SizeConfig.size2),
+                SizedBox(height: SizeConfig.size6),
                 Row(
                   children: [
                     LocalAssets(
                       imagePath: AppIconAssets.location_outline,
                       imgColor: AppColors.primaryColor,
+                      height: SizeConfig.size10,
+                      width: SizeConfig.size10,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: SizeConfig.size4),
                     Flexible(
                       child: RichText(
                         maxLines: 1,
@@ -539,16 +594,16 @@ class _LabDiscoverCard extends StatelessWidget {
                                 text: distance,
                                 style: TextStyle(
                                   color: AppColors.primaryColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
+                                  fontSize: SizeConfig.size8,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             if (showDistance && showAddress)
                               TextSpan(
-                                text: "  |  ",
+                                text: '  |  ',
                                 style: TextStyle(
                                   color: AppColors.secondaryTextColor,
-                                  fontSize: 12,
+                                  fontSize: SizeConfig.size8,
                                 ),
                               ),
                             if (showAddress)
@@ -556,7 +611,7 @@ class _LabDiscoverCard extends StatelessWidget {
                                 text: address,
                                 style: TextStyle(
                                   color: AppColors.secondaryTextColor,
-                                  fontSize: 12,
+                                  fontSize: SizeConfig.size8,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
@@ -584,8 +639,12 @@ class _LabDiscoverCard extends StatelessWidget {
         ),
       );
 
-  // ── Available Tests block ────────────────────────────────────
-  Widget _availableTestsBlock() {
+  // ── Available Tests block — original data layout, palette container ──
+  /// Keeps the original icon-box + inline "Available Test · N · names,
+  /// +M More" data layout untouched — only the container fill / border are
+  /// swapped for the card's palette (`#DBFAFD` / `#F7E6FF`) so the tile
+  /// visibly belongs to its parent card.
+  Widget _availableTestsBlock(_CardPalette palette) {
     final categories = _testCategories;
     final count = _availableTestCount;
     const inlineLimit = 2;
@@ -595,9 +654,9 @@ class _LabDiscoverCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: palette.tileBg,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xffDDE2EE), width: 0.5),
+        border: Border.all(color: palette.tileBorder, width: 0.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -613,8 +672,8 @@ class _LabDiscoverCard extends StatelessWidget {
             child: LocalAssets(
                 imagePath: AppIconAssets.laboratoryIcon,
                 imgColor: AppColors.primaryColor,
-                height: 20,
-                width: 20),
+                height: SizeConfig.size20,
+                width: SizeConfig.size20),
           ),
           SizedBox(width: SizeConfig.size10),
           Expanded(
@@ -626,11 +685,11 @@ class _LabDiscoverCard extends StatelessWidget {
                   children: [
                     CustomText(
                       'Available Test',
-                      fontSize: 13,
+                      fontSize: SizeConfig.size13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.black22,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: SizeConfig.size6),
                     Container(
                       width: 4,
                       height: 4,
@@ -639,22 +698,22 @@ class _LabDiscoverCard extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: SizeConfig.size6),
                     CustomText(
                       '$count',
-                      fontSize: 13,
+                      fontSize: SizeConfig.size13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.black22,
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: SizeConfig.size2),
                 Row(
                   children: [
                     Flexible(
                       child: CustomText(
                         inline.isNotEmpty ? inline : 'No tests listed yet',
-                        fontSize: 12,
+                        fontSize: SizeConfig.size12,
                         fontWeight: FontWeight.w400,
                         color: AppColors.grey7E,
                         maxLines: 1,
@@ -667,7 +726,7 @@ class _LabDiscoverCard extends StatelessWidget {
                         onTap: onTap,
                         child: CustomText(
                           '$more More',
-                          fontSize: 12,
+                          fontSize: SizeConfig.size12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primaryColor,
                         ),
@@ -683,73 +742,121 @@ class _LabDiscoverCard extends StatelessWidget {
     );
   }
 
-  // ── Footer: cost + Inquiry Now CTA ───────────────────────────
-  // Mirrors school's `_buildFeeRow`: bordered container, label + value on
-  // the left, primary Inquiry button on the right.
+  // ── Footer: Consultation & Test Cost + Inquiry Now (inline) ──
+  /// Inherits the card's palette tint — no grey band. When `price` is
+  /// empty the cost column collapses and a [Spacer] takes its place so
+  /// the Inquiry button always sits at the trailing edge.
   Widget _footer() {
     final price = _priceRange;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size12,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.geryFC,
-        borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+    final hasPrice = price.isNotEmpty;
+    return Row(
+      children: [
+        if (hasPrice)
           Expanded(
-            child: price.isNotEmpty
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        'Consultation & Test Cost',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      const SizedBox(height: 2),
-                      CustomText(
-                        price,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-          GestureDetector(
-            onTap: onInquiry,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomText(
-                    'Inquiry Now',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.arrow_forward,
-                      size: 16, color: AppColors.white),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Consultation & Test Cost',
+                  fontSize: SizeConfig.size12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grey7E,
+                ),
+                SizedBox(height: SizeConfig.size2),
+                CustomText(
+                  price,
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ),
-        ],
+          )
+        else
+          const Spacer(),
+        _InquiryNowBtn(onTap: onInquiry),
+      ],
+    );
+  }
+}
+
+/// Full-width dashed horizontal rule between the header block and the
+/// Available Tests tile — matches the hotel `PropertyCard` treatment.
+class _DashedDivider extends StatelessWidget {
+  final Color color;
+
+  const _DashedDivider({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 1,
+      width: double.infinity,
+      child: CustomPaint(painter: _DashedLinePainter(color: color)),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  static const double _dashWidth = 4;
+  static const double _dashSpace = 4;
+  static const double _thickness = 1;
+
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = _thickness
+      ..strokeCap = StrokeCap.round;
+    final y = size.height / 2;
+    double x = 0;
+    while (x < size.width) {
+      final endX = (x + _dashWidth).clamp(0.0, size.width);
+      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
+      x += _dashWidth + _dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
+}
+
+class _InquiryNowBtn extends StatelessWidget {
+  final VoidCallback onTap;
+  const _InquiryNowBtn({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              'Inquiry Now',
+              fontSize: SizeConfig.size14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Icon(Icons.arrow_forward_rounded,
+                size: SizeConfig.size16, color: AppColors.white),
+          ],
+        ),
       ),
     );
   }

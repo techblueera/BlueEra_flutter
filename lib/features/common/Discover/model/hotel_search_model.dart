@@ -44,9 +44,19 @@ class HotelServiceData {
   // (NOT inside `profile`). Flat scalars here for consumer convenience.
   double? rating;
   int? reviews;
+  // Front-desk operating hours computed server-side: `isOpenNow`,
+  // today's window, and the weekly schedule. Distinct from
+  // `profile.policy.checkInTime` / `checkOutTime` (which are the
+  // guest check-in / check-out windows for a booking).
+  HotelAvailability? availability;
 
   HotelServiceData(
-      {this.businessId, this.profile, this.rooms, this.rating, this.reviews});
+      {this.businessId,
+      this.profile,
+      this.rooms,
+      this.rating,
+      this.reviews,
+      this.availability});
 
   HotelServiceData.fromJson(Map<String, dynamic> json) {
     businessId = json['businessId'];
@@ -67,6 +77,10 @@ class HotelServiceData {
     } else if (rawRating is num) {
       rating = rawRating.toDouble();
     }
+    availability = json['availability'] != null
+        ? HotelAvailability.fromJson(
+            Map<String, dynamic>.from(json['availability'] as Map))
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -82,8 +96,128 @@ class HotelServiceData {
       'avg_rating': rating,
       'total_ratings': reviews,
     };
+    if (this.availability != null) {
+      data['availability'] = this.availability!.toJson();
+    }
     return data;
   }
+}
+
+/// Server-computed operating hours for a hotel/business.
+///
+/// Backend derives these from the weekly schedule (+ any today override),
+/// so `isOpenNow` and `today` can be read directly without doing
+/// day-of-week / timezone math on the client.
+class HotelAvailability {
+  final bool hasHours;
+  final bool isOpenNow;
+  final String? timezone;
+  final HotelAvailabilityToday? today;
+  final List<HotelAvailabilityDay> schedule;
+
+  HotelAvailability({
+    required this.hasHours,
+    required this.isOpenNow,
+    this.timezone,
+    this.today,
+    this.schedule = const [],
+  });
+
+  factory HotelAvailability.fromJson(Map<String, dynamic> json) {
+    return HotelAvailability(
+      hasHours: json['hasHours'] == true,
+      isOpenNow: json['isOpenNow'] == true,
+      timezone: json['timezone'] as String?,
+      today: json['today'] != null
+          ? HotelAvailabilityToday.fromJson(
+              Map<String, dynamic>.from(json['today'] as Map))
+          : null,
+      schedule: (json['schedule'] as List?)
+              ?.whereType<Map>()
+              .map((e) =>
+                  HotelAvailabilityDay.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'hasHours': hasHours,
+        'isOpenNow': isOpenNow,
+        if (timezone != null) 'timezone': timezone,
+        if (today != null) 'today': today!.toJson(),
+        'schedule': schedule.map((e) => e.toJson()).toList(),
+      };
+}
+
+/// Today's row on [HotelAvailability]. `source` is either `"weekly"`
+/// (derived from the recurring schedule) or `"override"` (an ad-hoc
+/// one-day override the merchant set). "HH:MM" 24-hour strings.
+class HotelAvailabilityToday {
+  final String? day;
+  final String? date;
+  final bool isOpen;
+  final String? shopOpenTime;
+  final String? shopCloseTime;
+  final String? source;
+
+  HotelAvailabilityToday({
+    this.day,
+    this.date,
+    this.isOpen = false,
+    this.shopOpenTime,
+    this.shopCloseTime,
+    this.source,
+  });
+
+  factory HotelAvailabilityToday.fromJson(Map<String, dynamic> json) =>
+      HotelAvailabilityToday(
+        day: json['day'] as String?,
+        date: json['date'] as String?,
+        isOpen: json['isOpen'] == true,
+        shopOpenTime: json['shopOpenTime'] as String?,
+        shopCloseTime: json['shopCloseTime'] as String?,
+        source: json['source'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        if (day != null) 'day': day,
+        if (date != null) 'date': date,
+        'isOpen': isOpen,
+        if (shopOpenTime != null) 'shopOpenTime': shopOpenTime,
+        if (shopCloseTime != null) 'shopCloseTime': shopCloseTime,
+        if (source != null) 'source': source,
+      };
+}
+
+/// One entry in the weekly schedule array — day + open/close window.
+class HotelAvailabilityDay {
+  final String? day;
+  final bool isOpen;
+  final String? shopOpenTime;
+  final String? shopCloseTime;
+
+  HotelAvailabilityDay({
+    this.day,
+    this.isOpen = false,
+    this.shopOpenTime,
+    this.shopCloseTime,
+  });
+
+  factory HotelAvailabilityDay.fromJson(Map<String, dynamic> json) =>
+      HotelAvailabilityDay(
+        day: json['day'] as String?,
+        isOpen: json['isOpen'] == true,
+        shopOpenTime: json['shopOpenTime'] as String?,
+        shopCloseTime: json['shopCloseTime'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        if (day != null) 'day': day,
+        'isOpen': isOpen,
+        if (shopOpenTime != null) 'shopOpenTime': shopOpenTime,
+        if (shopCloseTime != null) 'shopCloseTime': shopCloseTime,
+      };
 }
 
 class Profile {

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
@@ -243,7 +244,7 @@ class ServiceBusinessCard extends StatelessWidget {
             child: Column(
               children: [
                 _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
-                const SizedBox(height: 8),
+                SizedBox(height: SizeConfig.size8),
                 _circleIconBtn(AppIconAssets.star_rounded, onTap: _onRateTap),
               ],
             ),
@@ -261,12 +262,12 @@ class ServiceBusinessCard extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(SizeConfig.size8),
           child: LocalAssets(
             imagePath: icon,
             imgColor: AppColors.white,
-            height: 14,
-            width: 14,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14,
           ),
         ),
       ),
@@ -280,21 +281,21 @@ class ServiceBusinessCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
           child: _buildHeaderRow(),
         ),
         if (titles.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           _DashedDivider(color: _palette.bodyDashedDivider),
-          const SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: EdgeInsets.fromLTRB(14, 0, 14, 0),
+            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
             child: _buildExpertiseBox(titles),
           ),
         ],
-        const SizedBox(height: 14),
+        SizedBox(height: SizeConfig.size14),
         Padding(
-          padding: EdgeInsets.fromLTRB(14, 0, 14, 10),
+          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
           child: _buildFooterRow(),
         ),
       ],
@@ -336,7 +337,7 @@ class ServiceBusinessCard extends StatelessWidget {
               showProfileOnFullScreen: false,
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: SizeConfig.size10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,19 +346,19 @@ class ServiceBusinessCard extends StatelessWidget {
                 if (name.isNotEmpty)
                   CustomText(
                     name,
-                    fontSize: 16,
+                    fontSize: SizeConfig.size16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.black22,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 6),
+                SizedBox(height: SizeConfig.size6),
                 Row(
                   children: [
                     if (rating.isNotEmpty) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Color(0xffDDE2EE)),
@@ -366,27 +367,27 @@ class ServiceBusinessCard extends StatelessWidget {
                           children: [
                             LocalAssets(
                               imagePath: AppIconAssets.fill_star,
-                              width: 10,
-                              height: 10,
+                              width: SizeConfig.size10,
+                              height: SizeConfig.size10,
                               imgColor: AppColors.yellow,
                             ),
-                            const SizedBox(width: 3),
+                            SizedBox(width: SizeConfig.size3),
                             CustomText(
                               rating,
-                              fontSize: 10,
+                              fontSize: SizeConfig.size10,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: SizeConfig.size6),
                     ],
                     Flexible(child: _buildOpenPill(status)),
                   ],
                 ),
                 if (showLocationRow) ...[
-                  const SizedBox(height: 6),
+                  SizedBox(height: SizeConfig.size6),
                   _buildLocationRow(distanceText, address),
                 ],
               ],
@@ -407,10 +408,10 @@ class ServiceBusinessCard extends StatelessWidget {
         LocalAssets(
           imagePath: AppIconAssets.location_outline,
           imgColor: AppColors.primaryColor,
-          height: 10,
-          width: 10,
+          height: SizeConfig.size10,
+          width: SizeConfig.size10,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: SizeConfig.size4),
         Flexible(
           child: RichText(
             maxLines: 1,
@@ -420,26 +421,26 @@ class ServiceBusinessCard extends StatelessWidget {
                 if (distanceText.isNotEmpty)
                   TextSpan(
                     text: distanceText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primaryColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 if (distanceText.isNotEmpty && address.isNotEmpty)
-                  const TextSpan(
+                  TextSpan(
                     text: '  |  ',
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                     ),
                   ),
                 if (address.isNotEmpty)
                   TextSpan(
                     text: address,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: 8,
+                      fontSize: SizeConfig.size8,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -454,7 +455,7 @@ class ServiceBusinessCard extends StatelessWidget {
   Widget _buildOpenPill(({String label, bool isOpen}) status) {
     final fg = status.isOpen ? AppColors.green00 : AppColors.grey83;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xffDDE2EE)),
@@ -468,11 +469,11 @@ class ServiceBusinessCard extends StatelessWidget {
             height: 10,
             width: 10,
           ),
-          const SizedBox(width: 5),
+          SizedBox(width: SizeConfig.size5),
           Flexible(
             child: CustomText(
               status.label,
-              fontSize: 10,
+              fontSize: SizeConfig.size10,
               fontWeight: FontWeight.w500,
               color: fg,
               maxLines: 1,
@@ -500,7 +501,7 @@ class ServiceBusinessCard extends StatelessWidget {
     final palette = _palette;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
         color: palette.tileBg,
         borderRadius: BorderRadius.circular(12),
@@ -511,13 +512,13 @@ class ServiceBusinessCard extends StatelessWidget {
         children: [
           CustomText(
             'Expertise',
-            fontSize: 13,
+            fontSize: SizeConfig.size13,
             fontWeight: FontWeight.w700,
             color: AppColors.black22,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: SizeConfig.size8),
           _DashedDivider(color: _palette.bodyDashedDivider),
-          const SizedBox(height: 10),
+          SizedBox(height: SizeConfig.size10),
           _servicesGrid(visible, extra),
         ],
       ),
@@ -535,14 +536,14 @@ class ServiceBusinessCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: cells[i]),
-          const SizedBox(width: 10),
+          SizedBox(width: SizeConfig.size10),
           Expanded(
             child:
                 i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
           ),
         ],
       ));
-      if (i + 2 < cells.length) rows.add(const SizedBox(height: 8));
+      if (i + 2 < cells.length) rows.add(SizedBox(height: SizeConfig.size8));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,14 +558,14 @@ class ServiceBusinessCard extends StatelessWidget {
       children: [
         LocalAssets(
           imagePath: AppIconAssets.expertiesIcon,
-          height: 15,
-          width: 15,
+          height: SizeConfig.size15,
+          width: SizeConfig.size15,
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: SizeConfig.size6),
         Expanded(
           child: CustomText(
             text,
-            fontSize: 12,
+            fontSize: SizeConfig.size12,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,
             maxLines: 1,
@@ -580,7 +581,7 @@ class ServiceBusinessCard extends StatelessWidget {
       onTap: _openStore,
       child: CustomText(
         '+$extra more services',
-        fontSize: 12,
+        fontSize: SizeConfig.size12,
         fontWeight: FontWeight.w600,
         color: const Color(0xFFE53935),
       ),
@@ -619,14 +620,14 @@ class ServiceBusinessCard extends StatelessWidget {
               children: [
                 CustomText(
                   'Price Range',
-                  fontSize: 12,
+                  fontSize: SizeConfig.size12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.grey7E,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: SizeConfig.size2),
                 CustomText(
                   priceText,
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
                 ),
@@ -745,7 +746,7 @@ class _BookNowBtn extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         // height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: AppColors.primaryColor,
@@ -756,13 +757,13 @@ class _BookNowBtn extends StatelessWidget {
           children: [
             CustomText(
               "Inquiry Now",
-              fontSize: 14,
+              fontSize: SizeConfig.size14,
               fontWeight: FontWeight.w700,
               color: AppColors.white,
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_rounded,
-                size: 16, color: AppColors.white),
+            SizedBox(width: SizeConfig.size8),
+            Icon(Icons.arrow_forward_rounded,
+                size: SizeConfig.size16, color: AppColors.white),
           ],
         ),
       ),
