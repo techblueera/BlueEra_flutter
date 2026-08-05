@@ -254,7 +254,7 @@ class AuthController extends GetxController {
                 // shop is one tab away. The business-profile fetch still runs
                 // from the home screen's post-frame init regardless of which
                 // tab is showing.
-                arguments: {ApiKeys.initialIndex: 1},
+                arguments: {ApiKeys.initialIndex: 0},
               );
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
@@ -302,7 +302,7 @@ class AuthController extends GetxController {
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
                 arguments: {
-                  ApiKeys.initialIndex: 1,
+                  ApiKeys.initialIndex: 0,
                   'runRiderGoLiveGate': true,
                 },
               );
@@ -372,9 +372,9 @@ class AuthController extends GetxController {
 
         ///GUEST ACCOUNT.....
         else {
-          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+          // Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 0));
 
-          // Get.offAll(() => const CompleteGuestProfileScreen());
+          Get.offAll(() => const CompleteGuestProfileScreen());
           otpVerificationResponse.value = ApiResponse.complete(response);
         }
       } else {
