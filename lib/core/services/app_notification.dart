@@ -1331,6 +1331,9 @@ class AppNotificationHandler {
       // v3 channel above is the only one users see in system settings.
       'order_alerts_v1',
       'order_alerts_v2',
+      // Previous new-order countdown channel, frozen with the old chime — the
+      // v2 channel created above carries `new_order_sound`.
+      kNewOrderTimerLegacyChannelId,
     ]) {
       await androidPlugin?.deleteNotificationChannel(legacyId);
     }
@@ -3985,9 +3988,9 @@ class AppNotificationHandler {
     // twice — once from the channel, once from here.
     if (_orderNotificationOperations.contains(operation)) return;
 
-    // Same reasoning for the countdown channel (`new_order_timer_v1`), which
-    // carries the identical chime — covers the new-order spellings that aren't
-    // in the set above.
+    // Same reasoning for the countdown channel (see [kNewOrderTimerChannelId]),
+    // which plays its own `new_order_sound` chime — covers the new-order
+    // spellings that aren't in the set above.
     if (isNewOrderTimerPush(dataNotificationResponse.data)) return;
 
     try {

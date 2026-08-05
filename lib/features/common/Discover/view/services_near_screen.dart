@@ -13,6 +13,8 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class ServicesNearMeScreen extends StatefulWidget {
   final String? serviceCategoryName;
@@ -112,6 +114,11 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
               pinned: true,
               delegate: StickyCategoryHeaderDelegate(
                 topPadding: statusBarHeight,
+                // The header paints a search bar; this is what it opens —
+                // the shared store search, scoped to this vertical by its
+                // StoreSearchConfig. Tapping a result opens that profile.
+                onSearchTap: () => Get.to(
+                    () => StoreSearchScreen(config: StoreSearchConfig.services())),
                 categories: _categories
                     .map((c) => StickyCategory(
                           id: c.tagId ?? '',

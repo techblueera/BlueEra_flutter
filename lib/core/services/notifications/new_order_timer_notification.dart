@@ -97,23 +97,35 @@ const Set<String> kNewOrderTimerOperations = {
 
 /// Channel carrying the order chime as an Android raw resource.
 ///
-/// Same tone as `order_alerts_v3` (`new_order_mu`) so a new order sounds
-/// identical whether or not it got the countdown treatment. Separate channel
-/// because this one is `Importance.max` with its own description, and because
+/// Separate channel from `order_alerts_v3` because this one is
+/// `Importance.max` with its own description and its own tone, and because
 /// **Android freezes a channel's settings at creation time** — a versioned id
-/// is the only way to change them later. Bump to `_v2` if the sound changes;
-/// editing the constants alone will not affect devices that already have it.
-const String kNewOrderTimerChannelId = 'new_order_timer_v1';
+/// is the only way to change them later. Bump the version if the sound changes
+/// again; editing the constants alone will NOT affect devices that already have
+/// the channel.
+///
+/// v2 = `new_order_sound`. v1 was `new_order_mu`, and is deleted in
+/// `firebaseNotificationSetup()` so users don't see a dead channel in system
+/// settings.
+const String kNewOrderTimerChannelId = 'new_order_timer_v2';
 const String kNewOrderTimerChannelName = 'New Orders';
 const String kNewOrderTimerChannelDescription =
     'New order alerts with a response countdown';
 
-/// android/app/src/main/res/raw/new_order_mu.mp3 (no extension).
-const String kNewOrderTimerSound = 'new_order_mu';
+/// Channel id this replaced — deleted on setup. See [kNewOrderTimerChannelId].
+const String kNewOrderTimerLegacyChannelId = 'new_order_timer_v1';
 
-/// iOS bundle sound. Must be in the Runner target to play; iOS falls back to
-/// the default alert sound if it is missing.
-const String kNewOrderTimerIosSound = 'new_order_mu.mp3';
+/// android/app/src/main/res/raw/new_order_sound.mp3 (no extension).
+///
+/// The raw resource is a COPY of `assets/sound/new_order_sound.mp3`: Android
+/// plays a channel's sound from `res/raw`, not from the Flutter asset bundle,
+/// and in background/terminated there is no Dart isolate to play an asset. Keep
+/// the two in sync if the audio is ever replaced.
+const String kNewOrderTimerSound = 'new_order_sound';
+
+/// iOS bundle sound — `ios/new_order_sound.mp3`, in the Runner target's
+/// Resources phase. iOS falls back to the default alert sound if it is missing.
+const String kNewOrderTimerIosSound = 'new_order_sound.mp3';
 
 /// Countdown length when the push carries no expiry of its own.
 const int kNewOrderTimerDefaultSeconds = 60;

@@ -38,9 +38,16 @@ internal object NewOrderCallStyleNotification {
     /**
      * Versioned: Android freezes a channel's sound and importance when it is
      * first created and resurrects them if the same id is recreated, so
-     * changing either REQUIRES a new id. Bump to `_v2` if you change the tone.
+     * changing either REQUIRES a new id. Bump the version if you change the
+     * tone.
+     *
+     * v2 = `new_order_sound` (the tone Dart passes as `sound`); v1 was
+     * `new_order_mu` and is deleted in `ensureChannel`.
      */
-    private const val CHANNEL_ID = "new_order_call_v1"
+    private const val CHANNEL_ID = "new_order_call_v2"
+
+    /** Channel id this replaced — removed so it doesn't linger in settings. */
+    private const val LEGACY_CHANNEL_ID = "new_order_call_v1"
     private const val CHANNEL_NAME = "New Orders"
     private const val CHANNEL_DESCRIPTION =
         "New order alerts that stay until you respond"
@@ -192,6 +199,10 @@ internal object NewOrderCallStyleNotification {
         val manager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        // Drop the superseded channel so the old tone can't be resurrected and
+        // users don't see two "New Orders" entries in system settings.
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
@@ -213,6 +224,16 @@ internal object NewOrderCallStyleNotification {
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
                     .build()
                 setSound(uri, attributes)
+            } else {
+                // The tone is resolved by NAME at runtime, so a missing or
+                // renamed res/raw file compiles fine and simply falls back to
+                // the system default — silently, and frozen into the channel
+                // until its id is bumped again. Say so instead.
+                Log.w(
+                    TAG,
+                    "raw sound '$soundName' not found in res/raw — " +
+                        "channel $CHANNEL_ID will use the default tone"
+                )
             }
         }
         manager.createNotificationChannel(channel)

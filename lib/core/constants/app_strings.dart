@@ -2032,10 +2032,18 @@ class AppStrings {
   /// language API by scripts/aadhaar_okyc_localization.py.
   static const String aadhaarConsentDeclaration = 'aadhaarConsentDeclaration';
   static const String sendOtp = 'sendOtp';
+
+  /// Shown in place of the Resend link while a resend is in flight.
+  static const String sendingOtp = 'sendingOtp';
   static const String aadhaarOtpFallbackNote = 'aadhaarOtpFallbackNote';
   static const String verifyUsingAadhaarPhoto = 'verifyUsingAadhaarPhoto';
   static const String uploadAadhaarPhotoHint = 'uploadAadhaarPhotoHint';
   static const String uploadAadhaarFront = 'uploadAadhaarFront';
+  static const String uploadAadhaarBack = 'uploadAadhaarBack';
+
+  /// Superseded by [uploadAadhaarBack] — the back image is required now, so
+  /// nothing should label it "(Optional)". Kept so the translation entry that
+  /// already shipped stays resolvable.
   static const String uploadAadhaarBackOptional = 'uploadAadhaarBackOptional';
   static const String submitAadhaarImages = 'submitAadhaarImages';
   static const String enterSixDigitOtp = 'enterSixDigitOtp';

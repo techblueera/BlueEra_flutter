@@ -24,6 +24,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class HealthCareListingScreen extends StatefulWidget {
   final OnboardingCategoryModel? selectedProfessionConsultantData;
@@ -88,6 +90,11 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                   pinned: true,
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
+                    // The header paints a search bar; this is what it opens —
+                    // the shared store search, scoped to this vertical by its
+                    // StoreSearchConfig. Tapping a result opens that profile.
+                    onSearchTap: () => Get.to(
+                        () => StoreSearchScreen(config: StoreSearchConfig.healthcare())),
                     singleLineLabel: true,
                     categories: _professionalConsultantCategories.map((c) => StickyCategory(
                       id: c.slugId,

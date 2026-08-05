@@ -18,6 +18,8 @@ import 'package:BlueEra/widgets/price_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 /// **v2** home-made-product discover.
 ///
@@ -128,6 +130,11 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
+                      // The header paints a search bar; this is what it opens —
+                      // the shared store search, scoped to this vertical by its
+                      // StoreSearchConfig. Tapping a result opens that profile.
+                      onSearchTap: () => Get.to(
+                          () => StoreSearchScreen(config: StoreSearchConfig.homeMadeProducts())),
                       singleLineLabel: true,
                       categories: categories
                           .map((c) => StickyCategory(

@@ -20,6 +20,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class PropertyDiscoverScreen extends StatefulWidget {
   final int initialCategoryIndex;
@@ -191,6 +193,11 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 pinned: true,
                 delegate: StickyCategoryHeaderDelegate(
                   topPadding: statusBarHeight,
+                  // The header paints a search bar; this is what it opens —
+                  // the shared store search, scoped to this vertical by its
+                  // StoreSearchConfig. Tapping a result opens that profile.
+                  onSearchTap: () => Get.to(
+                      () => StoreSearchScreen(config: StoreSearchConfig.rental())),
                   categories: _stickyCategories,
                   selectedId: _selectedStickyId,
                   onCategoryTap: (item) {

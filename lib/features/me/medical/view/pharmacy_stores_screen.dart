@@ -14,6 +14,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 /// Standalone pharmacy listing — banner + sticky sub-category tabs over the
 /// pharmacy cards, the same shape as the grocery stores screen.
@@ -212,6 +214,11 @@ class _PharmacyStoresScreenState extends State<PharmacyStoresScreen> {
                       pinned: true,
                       delegate: StickyCategoryHeaderDelegate(
                         topPadding: statusBarHeight,
+                        // The header paints a search bar; this is what it opens —
+                        // the shared store search, scoped to this vertical by its
+                        // StoreSearchConfig. Tapping a result opens that profile.
+                        onSearchTap: () => Get.to(
+                            () => StoreSearchScreen(config: StoreSearchConfig.pharmacy())),
                         singleLineLabel: false,
                         categories: [
                           // Leading tab — every pharmacy, no sub-category

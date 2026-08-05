@@ -34,6 +34,15 @@ class SearchResultItem {
   /// back to the product id when absent.
   final String? businessId;
 
+  /// Owner **user** id of a shop/business result, when the index carries one.
+  ///
+  /// NOT interchangeable with [businessId]: a store profile is fetched by the
+  /// business `_id`, while its inventory is fetched by the owner's user id, and
+  /// several screens (e.g. `VisitGroceryStoreScreen`) need both. Parsed
+  /// separately — and defensively — so a result that does carry an owner id
+  /// hands over the right one instead of the store id twice.
+  final String? ownerUserId;
+
   // ── Optional merchandising fields (Flipkart-style listing card) ──────
   // The search backend does not send these yet; they parse defensively so the
   // richer product card lights up the moment the API includes them, and each
@@ -66,6 +75,7 @@ class SearchResultItem {
     this.tags = const [],
     this.score,
     this.businessId,
+    this.ownerUserId,
     this.mrp,
     this.offerPrice,
     this.discountPercentRaw,
@@ -98,6 +108,8 @@ class SearchResultItem {
         score: (j['_score'] as num?)?.toDouble(),
         businessId: (j['businessId'] ?? j['sellerId'] ?? j['ownerId'])
             as String?,
+        ownerUserId:
+            (j['ownerId'] ?? j['ownerUserId'] ?? j['userId'])?.toString(),
         mrp: _toNum(j['mrp'] ?? j['originalPrice'] ?? j['strikePrice']),
         offerPrice: _toNum(j['offerPrice'] ?? j['bankOfferPrice']),
         discountPercentRaw: _toInt(j['discountPercent'] ?? j['discount']),
