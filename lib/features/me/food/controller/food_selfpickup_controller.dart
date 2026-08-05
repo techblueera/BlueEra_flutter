@@ -383,8 +383,11 @@ class FoodSelfPickupController extends GetxController {
       // with `Get.until` resolving to BottomNavigationBarScreen, so
       // the chat hand-off never fired in food. Doing it in the same
       // order grocery does keeps the navigation deterministic.
+      // Land on Discover (index 1) instead of the chat screen — the placed
+      // order surfaces there in the "Orders in 12 Hrs." rail. The business
+      // chat list is still refreshed so that rail has the new row.
       final bottomController = getOrPut(() => BottomBarController());
-      bottomController.onChangeIndex(2);
+      bottomController.onChangeIndex(1);
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
@@ -392,9 +395,6 @@ class FoodSelfPickupController extends GetxController {
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.business_Chat_Type},
       );
-      // Land on the Inquiry (business) tab — the placed order is a buyer-side
-      // business chat, so it surfaces there under the merged BusinessChatsList.
-      chatViewController.onSelectChatTab(1);
 
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);

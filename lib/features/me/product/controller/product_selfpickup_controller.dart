@@ -277,15 +277,15 @@ class ProductSelfPickupController extends GetxController {
       AppLoader.hide();
       clearCart();
 
+      // Land on Discover (index 1) instead of the chat screen — the placed
+      // order surfaces there in the "Orders in 12 Hrs." rail. The business
+      // chat list is still refreshed so that rail has the new row.
       final bottomController = getOrPut(() => BottomBarController());
-      bottomController.onChangeIndex(2);
+      bottomController.onChangeIndex(1);
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type},);
-      // Land on the Inquiry (business) tab — the placed order is a buyer-side
-      // business chat, so it surfaces there under the merged BusinessChatsList.
-      chatViewController.onSelectChatTab(1);
 
 
       Get.until((route) =>

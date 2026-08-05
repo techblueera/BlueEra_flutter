@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -13,45 +14,33 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// "Orders in 12 Hrs." — the user's recent order conversations on Discover,
-/// right under the ongoing-ride chip, in two lanes: orders they RECEIVED as a
-/// seller ("Received", first and default) and orders they PLACED themselves
-/// ("My Orders").
+/// Recent order conversations on Discover, right under the ongoing-ride chip,
+/// as TWO separate glass cards stacked in order:
+///   1. "Orders in 12 Hrs." — orders RECEIVED as a seller
+///   2. "My Orders in 12 Hrs." — orders the user PLACED themselves
+/// Each card stands on its own and disappears independently when its side has
+/// nothing recent, so no tab or switch is involved.
 ///
 /// ## Where the data comes from
 /// Ordering in this app IS a conversation: the order/enquiry card is posted
-/// into a chat with the shop. Which side of it you're on decides the lane —
+/// into a chat with the shop. Which side of it you're on decides the card —
 /// [recentInquiryChats] is the buyer side (the Connect screen's Inquiry tab),
 /// [recentReceivedOrderChats] the seller side (the same rows the Connect
 /// screen's Order tab renders via `OrdersTabBody`).
 ///
-/// Nothing is fetched here. Both lanes come out of the one business chat list
+/// Nothing is fetched here. Both cards come out of the one business chat list
 /// already loaded and kept live by [ChatViewController] (socket push,
 /// local-cache first), so this rail reads it and re-renders; it collapses to
-/// nothing when neither lane has a recent order, which is the common case for
-/// most users on most days. The lane switch only appears when both lanes have
-/// rows — with one lane the rail looks exactly as it always has.
-class RecentOrdersSection extends StatefulWidget {
+/// nothing when neither side has a recent order, which is the common case for
+/// most users on most days.
+class RecentOrdersSection extends StatelessWidget {
   const RecentOrdersSection({super.key, this.maxRows = 3});
 
-  /// Rows shown before the list defers to "View All" — the rail sits above the
-  /// whole Discover feed and must not push it off screen.
+  /// Rows shown per card before it defers to "View All" — the rail sits above
+  /// the whole Discover feed and must not push it off screen.
   final int maxRows;
 
-  @override
-  State<RecentOrdersSection> createState() => _RecentOrdersSectionState();
-}
-
-class _RecentOrdersSectionState extends State<RecentOrdersSection> {
   static const Duration _window = Duration(hours: 12);
-
-  /// Selected lane: 0 = received (orders from customers), 1 = placed (my own
-  /// orders). Only honoured once the user has actually tapped the switch
-  /// ([_userPicked]) — until then the rail opens on whichever lane has rows.
-  int _lane = 0;
-  bool _userPicked = false;
-
-  int get _maxRows => widget.maxRows;
 
   @override
   Widget build(BuildContext context) {
@@ -64,83 +53,97 @@ class _RecentOrdersSectionState extends State<RecentOrdersSection> {
     return Obx(() {
       // Read inside the Obx so a socket push repaints the rail.
       final all = chat.getBusinessChatListModel?.value.chatList;
-      final placed = recentInquiryChats(all, window: _window);
       final received = recentReceivedOrderChats(all, window: _window);
-      if (placed.isEmpty && received.isEmpty) return const SizedBox.shrink();
+      final placed = recentInquiryChats(all, window: _window);
+      if (received.isEmpty && placed.isEmpty) return const SizedBox.shrink();
 
-      // A lane that empties out (its last order aged past the window) must not
-      // strand the rail on a blank tab, so the selection is resolved against
-      // what actually has rows rather than trusted outright.
-      final bothLanes = placed.isNotEmpty && received.isNotEmpty;
-      final int lane = bothLanes
-          ? (_userPicked ? _lane : 0)
-          : (received.isNotEmpty ? 0 : 1);
-      final orders = lane == 0 ? received : placed;
-
-      final rows = orders.take(_maxRows).toList();
-      return Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12, left: 12, right: 12),
-        // Uniform inset now that the card ends on the last order row — the
-        // tighter bottom value existed only to offset the Book-a-Ride button's
-        // own padding.
-        padding: EdgeInsets.all(SizeConfig.size14),
-        decoration: BoxDecoration(
-          // Glass panel, matching the rest of the redesigned Discover page: a
-          // translucent white wash over the blurred profile photo behind the
-          // feed, NOT a solid card. Kept high-alpha because this panel is dense
-          // dark text — the folder tiles can sit at 0.22, a list of shop names
-          // and messages cannot.
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.1),
-              Colors.white.withValues(alpha: 0.1),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
-          boxShadow: _kGlassCardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _header(total: orders.length, lane: lane),
-            if (bothLanes) ...[
-              SizedBox(height: SizeConfig.size10),
-              _laneSwitch(
-                lane: lane,
-                placedCount: placed.length,
-                receivedCount: received.length,
-              ),
-            ],
-            SizedBox(height: SizeConfig.size12),
-            // Each order on its own frosted plate instead of divider-separated
-            // rows: the plates read as glass-on-glass and give the tap target a
-            // visible edge, which a hairline divider over a translucent panel
-            // does not.
-            for (var i = 0; i < rows.length; i++) ...[
-              _OrderRow(chat: rows[i], lane: lane),
-              if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
-            ],
-          ],
-        ),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (received.isNotEmpty)
+            _card(
+              title: 'Orders in ${_window.inHours} Hrs.',
+              orders: received,
+              lane: 0,
+            ),
+          if (placed.isNotEmpty)
+            _card(
+              title: 'My Orders in ${_window.inHours} Hrs.',
+              orders: placed,
+              lane: 1,
+            ),
+        ],
       );
     });
   }
 
-  Widget _header({required int total, required int lane}) {
+  /// One glass card: title + "View All", then up to [maxRows] order rows.
+  Widget _card({
+    required String title,
+    required List<ChatList> orders,
+    required int lane,
+  }) {
+    final rows = orders.take(maxRows).toList();
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size12, left: 12, right: 12),
+      // Uniform inset now that the card ends on the last order row — the
+      // tighter bottom value existed only to offset the Book-a-Ride button's
+      // own padding.
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        // Glass panel, matching the rest of the redesigned Discover page: a
+        // translucent white wash over the blurred profile photo behind the
+        // feed, NOT a solid card. Kept high-alpha because this panel is dense
+        // dark text — the folder tiles can sit at 0.22, a list of shop names
+        // and messages cannot.
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+        boxShadow: _kGlassCardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _header(title: title, total: orders.length, lane: lane),
+          SizedBox(height: SizeConfig.size12),
+          // Each order on its own frosted plate instead of divider-separated
+          // rows: the plates read as glass-on-glass and give the tap target a
+          // visible edge, which a hairline divider over a translucent panel
+          // does not.
+          for (var i = 0; i < rows.length; i++) ...[
+            _OrderRow(chat: rows[i], lane: lane),
+            if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _header({
+    required String title,
+    required int total,
+    required int lane,
+  }) {
     return Row(
       children: [
         Expanded(
           child: CustomText(
-            'Orders in ${_window.inHours} Hrs.',
+            title,
             fontSize: SizeConfig.large18,
             fontWeight: FontWeight.w600,
             color: AppColors.white,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (total > _maxRows)
+        if (total > maxRows)
           // Frosted pill rather than bare text, so the link reads as a control
           // on the glass panel.
           Material(
@@ -148,7 +151,7 @@ class _RecentOrdersSectionState extends State<RecentOrdersSection> {
             borderRadius: BorderRadius.circular(20),
             child: InkWell(
               // The matching Connect tab is the full list — same rows, same
-              // lane, with the search and filters this rail deliberately
+              // side, with the search and filters this rail deliberately
               // doesn't repeat.
               onTap: () => _openConnectLane(lane),
               borderRadius: BorderRadius.circular(20),
@@ -167,84 +170,19 @@ class _RecentOrdersSectionState extends State<RecentOrdersSection> {
       ],
     );
   }
-
-  /// Segmented switch between the two lanes. Rendered only when both have
-  /// rows, so it never degrades into a single decorative pill.
-  Widget _laneSwitch({
-    required int lane,
-    required int placedCount,
-    required int receivedCount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
-      ),
-      child: Row(
-        children: [
-          _laneChip(
-            label: 'Received',
-            count: receivedCount,
-            selected: lane == 0,
-            onTap: () => setState(() {
-              _lane = 0;
-              _userPicked = true;
-            }),
-          ),
-          SizedBox(width: SizeConfig.size6),
-          _laneChip(
-            label: 'My Orders',
-            count: placedCount,
-            selected: lane == 1,
-            onTap: () => setState(() {
-              _lane = 1;
-              _userPicked = true;
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _laneChip({
-    required String label,
-    required int count,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: Material(
-        // Selected reads as an opaque plate on the glass; unselected keeps the
-        // panel showing through so only one chip ever competes with the rows.
-        color: selected
-            ? Colors.white.withValues(alpha: 0.85)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(30),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(30),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
-            child: CustomText(
-              '$label ($count)',
-              textAlign: TextAlign.center,
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w600,
-              color: selected ? AppColors.primaryColor : AppColors.white,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Bottom-nav index the Connect (chat / inquiry / order) screen lives at.
 const int _kConnectTabIndex = 2;
+
+/// How recent an order's last message has to be for the row to carry the
+/// "New" tag. Much tighter than the 12-hour card window: the tag is for an
+/// order that just landed, not for everything on the card.
+const Duration _kFreshWindow = Duration(minutes: 6);
+
+/// Green of the "New" tag — deliberately not the brand blue the unread badge
+/// uses, so the two badges stay distinguishable when a row carries both.
+const Color _kFreshGreen = Color(0xFF1FB35A);
 
 /// Server marker an order thread carries as its last message — the row's real
 /// identity sits in `group_name` / `group_profile_image` when it's present
@@ -377,6 +315,33 @@ class _OrderRow extends StatelessWidget {
                     color: AppColors.secondaryTextColor,
                   ),
                   SizedBox(height: SizeConfig.size4),
+                  // Just-landed marker. Green so it never reads as the blue
+                  // unread badge below it — this one is about age, not about
+                  // whether the user has opened the thread.
+                  if (_isFresh) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _kFreshGreen,
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x331FB35A),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: CustomText(
+                        AppStrings.newTag.tr,
+                        fontSize: SizeConfig.extraSmall,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size4),
+                  ],
                   if (unread > 0)
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -408,6 +373,23 @@ class _OrderRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// True while the row's last message is under [_kFreshWindow] old — what
+  /// the "New" tag marks. Built off the same timestamp the row prints, and
+  /// false on a missing/unparseable one (and on a future-dated row) rather
+  /// than guessing.
+  bool get _isFresh {
+    final raw =
+        (chat.updatedAt?.isNotEmpty ?? false) ? chat.updatedAt : chat.createdAt;
+    if (raw == null || raw.isEmpty) return false;
+    try {
+      final at = DateTime.parse(raw).toLocal();
+      final diff = DateTime.now().difference(at);
+      return !diff.isNegative && diff < _kFreshWindow;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Row subtitle — the last message, with the internal order marker and the

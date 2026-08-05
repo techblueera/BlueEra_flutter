@@ -768,7 +768,8 @@ class _QtyStepper extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════
 //  PLACE ORDER BAR — single checkout for the whole cart (all stores).
 //  Uses the original bulk-order call, which posts every item and then
-//  lands on the Chats → Inquiry tab.
+//  lands on the Discover tab, where the order shows up in the
+//  "Orders in 12 Hrs." rail.
 // ═══════════════════════════════════════════════════════════════════
 
 class _PlaceOrderBar extends StatelessWidget {
