@@ -18,6 +18,11 @@ class FindServiceCardWidget extends StatelessWidget {
       items: categories.take(8).toList(),
       getName: (item) => item.name ?? '',
       getIcon: (item) => item.imageUrl ?? '',
+      // Folder tap → the same listing unfiltered. Its category params are
+      // nullable and only applied when present, so this opens on every service
+      // near the user instead of one category chosen for them — and it also
+      // reaches the categories past the eight this card shows.
+      onFolderTap: () => Get.to(() => const ServicesNearMeScreen()),
       onItemTap: (item) {
         Get.to(() => ServicesNearMeScreen(
               serviceCategory: item.tagId,

@@ -49,6 +49,14 @@ class HealthServiceCardWidget extends StatelessWidget {
       getName: (item) => item.name.tr,
       getIcon: (item) => item.icon ?? '',
       onItemTap: (item) => _open(item),
+      // Folder tap → the healthcare listing on Hospitals (the first entry).
+      // A category MUST be passed: `rightContent()` switches on the selected
+      // slug and falls through to "Coming soon" when there isn't one. The
+      // listing's own category header covers the rest, Pharmacy included — it
+      // special-cases that chip exactly like [_open] does.
+      onFolderTap: () => Get.to(() => HealthCareListingScreen(
+            selectedProfessionConsultantData: healthCareList.first,
+          )),
     );
   }
 }

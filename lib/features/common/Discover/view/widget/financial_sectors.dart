@@ -20,6 +20,10 @@ class FinancialSectors extends StatelessWidget {
               selectedCategory: item,
             ));
       },
+      // Folder tap → the same listing with no category picked, which it opens
+      // on `financeCategories.first` itself; its category header takes over
+      // from there.
+      onFolderTap: () => Get.to(() => const FinanceListingScreen()),
     );
   }
 }

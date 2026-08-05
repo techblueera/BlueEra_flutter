@@ -129,6 +129,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
           onItemTap: (_) =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          // Every tile in this section already routes to the same "View All"
+          // screen, so the folder sheet would just be a menu with one
+          // destination — tap the folder, land on the stores list.
+          onFolderTap: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
         ),
         tabs: {1},
         folder: true
@@ -139,6 +144,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           items: discoverFoodCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
+          onFolderTap: () => Get.to(() => const RestaurantNearMeScreen()),
         ),
         tabs: {1},
         folder: true
@@ -149,6 +155,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           items: discoverHomeMadeFoodCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => const HmfCategoryDiscoverScreen()),
+          onFolderTap: () => Get.to(() => const HmfCategoryDiscoverScreen()),
         ),
         tabs: {1},
         folder: true
@@ -199,6 +206,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           items: discoverHomeServicesCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => HomeServiceDiscoverScreenV2()),
+          onFolderTap: () => Get.to(() => HomeServiceDiscoverScreenV2()),
         ),
         tabs: {4},
         folder: true

@@ -39,6 +39,12 @@ class _BookHomeServiceWidgetState extends State<BookHomeServiceWidget> {
           ? () => setState(() => _showAll = !_showAll)
           : null,
       viewAllLabel: _showAll ? AppStrings.showLess.tr : AppStrings.showMore.tr,
+      // Folder tap → the same entry screen every tile opens. `categories`, not
+      // `displayCategories`: the entry screen shows the full profession grid,
+      // and the 10-item cap here is only this card's Show more/less state.
+      onFolderTap: () => Get.to(() => SelfProfessionDiscoverEntryScreen(
+            selfEmployedCategories: categories,
+          )),
       onItemTap: (item) {
         // v2 is location-first: open the entry screen (map + "Where you Want?"
         // + profession grid). The specific tile tapped just enters the flow;

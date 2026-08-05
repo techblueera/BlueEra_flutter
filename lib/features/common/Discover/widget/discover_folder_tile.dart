@@ -99,6 +99,7 @@ class DiscoverFolderTile extends StatelessWidget {
     required this.title,
     required this.iconPaths,
     required this.expandedBuilder,
+    this.onTap,
   });
 
   final String title;
@@ -112,6 +113,13 @@ class DiscoverFolderTile extends StatelessWidget {
   /// when the folder is opened.
   final WidgetBuilder expandedBuilder;
 
+  /// Skips the sheet entirely and runs this instead, for the sections whose
+  /// every tile routes to the SAME screen (Grocery & General Store) — there the
+  /// sheet is a menu of one destination, so tapping the folder may as well land
+  /// on it. [expandedBuilder] is still required: the section keeps its normal
+  /// full card everywhere folder mode is off.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     // Colour comes from the folder's slot in the landing grid, published by the
@@ -121,7 +129,8 @@ class DiscoverFolderTile extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => DiscoverFolderSheet.show(context, title, expandedBuilder),
+      onTap: onTap ??
+          () => DiscoverFolderSheet.show(context, title, expandedBuilder),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

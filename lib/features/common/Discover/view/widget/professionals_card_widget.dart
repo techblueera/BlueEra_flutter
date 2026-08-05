@@ -33,6 +33,9 @@ class ProfessionalsCardWidget extends StatelessWidget {
               professionalConsultantCategories: categories,
             ));
       },
+      onFolderTap: () => Get.to(() => ProfessionConsultantDiscoverEntryScreen(
+            professionalConsultantCategories: categories,
+          )),
     );
   }
 }

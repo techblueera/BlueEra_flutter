@@ -19,6 +19,14 @@ class HotelStayServiceCard extends StatelessWidget {
         Get.to(() => AllStayServiceScreen(
             stayCategories: stayItemsCategories, selectedStayCategory: item));
       },
+      // Folder tap → the same listing, opened on the first category. The screen
+      // carries a header of every stay category, so nothing is lost by not
+      // picking one here — and it must be given ONE: `AllStayServiceScreen`
+      // dereferences `selectedStayCategory` in its initState.
+      onFolderTap: () => Get.to(() => AllStayServiceScreen(
+            stayCategories: stayItemsCategories,
+            selectedStayCategory: stayItemsCategories.first,
+          )),
     );
   }
 }

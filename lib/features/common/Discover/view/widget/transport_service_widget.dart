@@ -28,6 +28,9 @@ class TransportServiceWidget extends StatelessWidget {
         iconPaths:
             transportItemsCategories.map((e) => e.icon ?? '').toList(),
         expandedBuilder: (ctx) => host ?? _fullCard(ctx),
+        // Every tile in this card — and the pickup/drop row above them — opens
+        // the same ride screen, so the folder goes straight there.
+        onTap: () => Get.to(() => const RideHomeScreen()),
       );
     }
     return Builder(

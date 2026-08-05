@@ -16,6 +16,7 @@ class HomeMadeProductAndServiceWidget extends StatelessWidget {
       getName: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
       onItemTap: (_) => Get.to(() => HmpDiscoverScreenV2()),
+      onFolderTap: () => Get.to(() => HmpDiscoverScreenV2()),
     );
   }
 }

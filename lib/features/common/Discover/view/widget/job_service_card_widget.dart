@@ -9,6 +9,14 @@ import 'package:get/get.dart';
 class JobServiceCardWidget extends StatelessWidget {
   const JobServiceCardWidget({super.key});
 
+  /// Every tile — and the folder itself — opens the jobs list; a guest gets the
+  /// sign-up dashboard instead, which is why this is resolved on tap rather
+  /// than built once.
+  void _openJobs() {
+    final Widget dest = isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
+    Get.to(() => dest);
+  }
+
   @override
   Widget build(BuildContext context) {
     return DiscoverGridSection(
@@ -16,11 +24,8 @@ class JobServiceCardWidget extends StatelessWidget {
       items: jobCategories,
       getName: (item) => item.name,
       getIcon: (item) => item.icon ?? '',
-      onItemTap: (item) {
-        final Widget dest =
-            isGuestUser() ? GuestDashBoardScreen() : JobsScreen();
-        Get.to(() => dest);
-      },
+      onItemTap: (item) => _openJobs(),
+      onFolderTap: _openJobs,
     );
   }
 }

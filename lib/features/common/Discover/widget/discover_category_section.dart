@@ -72,6 +72,11 @@ class DiscoverCategorySection extends StatelessWidget {
   final void Function(CollapsibleGridModel item) onItemTap;
   final VoidCallback? onViewAll;
 
+  /// Tapping this section's folder tile in the landing grid opens this directly
+  /// instead of the sheet — see [DiscoverFolderTile.onTap]. Only affects folder
+  /// mode; the full card is unchanged.
+  final VoidCallback? onFolderTap;
+
   const DiscoverCategorySection({
     super.key,
     required this.title,
@@ -79,6 +84,7 @@ class DiscoverCategorySection extends StatelessWidget {
     required this.onItemTap,
     this.columns = 5,
     this.onViewAll,
+    this.onFolderTap,
   });
 
   @override
@@ -94,6 +100,7 @@ class DiscoverCategorySection extends StatelessWidget {
         title: title,
         iconPaths: items.map((e) => e.icon ?? '').toList(),
         expandedBuilder: (_) => host ?? _fullCard(),
+        onTap: onFolderTap,
       );
     }
     return _fullCard();
@@ -241,6 +248,15 @@ class DiscoverGridSection<T> extends StatelessWidget {
   final VoidCallback? onViewAll;
   final String? viewAllLabel;
 
+  /// Tapping this section's folder tile in the landing grid opens this directly
+  /// instead of the sheet — see [DiscoverFolderTile.onTap]. Only affects folder
+  /// mode; the full card is unchanged.
+  ///
+  /// Note this is NOT [onViewAll]: on the sections that page their grid
+  /// ("Shopping & Sales", "Book Home Services") that link is a Show more/less
+  /// toggle, which would be meaningless as a folder destination.
+  final VoidCallback? onFolderTap;
+
   const DiscoverGridSection({
     super.key,
     required this.title,
@@ -251,6 +267,7 @@ class DiscoverGridSection<T> extends StatelessWidget {
     this.columns = 5,
     this.onViewAll,
     this.viewAllLabel,
+    this.onFolderTap,
   });
 
   @override
@@ -262,6 +279,7 @@ class DiscoverGridSection<T> extends StatelessWidget {
         title: title,
         iconPaths: items.map(getIcon).toList(),
         expandedBuilder: (_) => host ?? _fullCard(),
+        onTap: onFolderTap,
       );
     }
     return _fullCard();
