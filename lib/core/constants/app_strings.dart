@@ -5820,6 +5820,37 @@ class AppStrings {
   static const String distanceLabel = "distanceLabel";
   static const String yourPickup = "yourPickup";
   static const String riderLabel = "riderLabel";
+
+  // ── Ongoing ride/booking card (Discover chip + Connect tab card) ─────────
+  // Reuses the existing `riderLabel`, `kmAwayLabel`, `otp` and `min` keys for
+  // the parts they already cover.
+  static const String yourOngoingRideBooking = "yourOngoingRideBooking";
+  static const String yourRideCompleted = "yourRideCompleted";
+  static const String tapToRateViewReceipt = "tapToRateViewReceipt";
+  static const String findingCaptainForYou = "findingCaptainForYou";
+  static const String findingCaptain = "findingCaptain";
+  static const String captainLabel = "captainLabel";
+  static const String rideStartOtp = "rideStartOtp";
+  static const String deliveryOtpLabel = "deliveryOtpLabel";
+  static const String onTripLabel = "onTripLabel";
+  static const String couldNotOpenGoogleMaps = "couldNotOpenGoogleMaps";
+
+  // "Share Ride Info" — replaces Cancel Ride on the rider card once the ride
+  // has started. Reuses `riderLabel` / `pickupLabel` / `dropLabel` for the body.
+  static const String shareRideInfo = "shareRideInfo";
+  static const String shareRideInfoHeading = "shareRideInfoHeading";
+
+  // "How do you want to call?" sheet on the ongoing-ride cards. Reuses the
+  // existing `callLabel` key for the "Call <name>" heading.
+  static const String internetCall = "internetCall";
+  static const String internetCallHint = "internetCallHint";
+  static const String phoneCall = "phoneCall";
+  static const String phoneCallHint = "phoneCallHint";
+  static const String callingUnavailableRightNow =
+      "callingUnavailableRightNow";
+  static const String captainContactUnavailable =
+      "captainContactUnavailable";
+
   static const String riderOnTheWay = "riderOnTheWay";
   static const String pickupOtp = "pickupOtp";
   static const String pickupLabel = "pickupLabel";

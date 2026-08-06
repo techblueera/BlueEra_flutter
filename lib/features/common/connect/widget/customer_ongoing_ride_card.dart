@@ -1,4 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/ride_booking/widget/rider_call_options_sheet.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
@@ -7,7 +10,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Customer-side "Your Ongoing Ride/Booking" card shown at the top of the
 /// Inquiry tab while an accepted ride/goods booking is being tracked.
@@ -38,7 +40,7 @@ class CustomerOngoingRideCard extends StatelessWidget {
 
       final riderName = ctrl.customerName.value.isNotEmpty
           ? ctrl.customerName.value
-          : 'Rider';
+          : AppStrings.riderLabel.tr;
       final distanceLabel = _distanceLabel(ctrl);
       final time = ctrl.bookingTimeLabel.value;
       final contact = ctrl.riderContact.value;
@@ -75,7 +77,7 @@ class CustomerOngoingRideCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomText(
-                        'Your Ongoing Ride/Booking',
+                        AppStrings.yourOngoingRideBooking.tr,
                         fontSize: SizeConfig.size16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.mainTextColor,
@@ -122,7 +124,7 @@ class CustomerOngoingRideCard extends StatelessWidget {
                   children: [
                     InkWell(
                       borderRadius: BorderRadius.circular(22),
-                      onTap: () => _onCallTap(ctrl, contact),
+                      onTap: () => _onCallTap(ctrl, contact, riderName),
                       child: Container(
                         width: 40,
                         height: 40,
@@ -162,17 +164,38 @@ class CustomerOngoingRideCard extends StatelessWidget {
     if (rLat == 0.0 || rLng == 0.0 || pLat == 0.0 || pLng == 0.0) return null;
     final km = geo.Geolocator.distanceBetween(rLat, rLng, pLat, pLng) / 1000;
     if (km <= 0) return null;
-    return '${km < 1 ? km.toStringAsFixed(1) : km.toStringAsFixed(0)} KM Away';
+    return '${km < 1 ? km.toStringAsFixed(1) : km.toStringAsFixed(0)} '
+        '${AppStrings.kmAwayLabel.tr}';
   }
 
-  /// Call the rider directly when a contact is known, otherwise open the
-  /// tracking screen (which exposes the in-app call control).
-  void _onCallTap(RideNavigationOverlayController ctrl, String contact) {
-    if (contact.isNotEmpty) {
-      launchUrl(Uri.parse('tel:$contact'));
-    } else {
+  /// Ask how the customer wants to reach the rider — in-app internet call or
+  /// the phone dialler — via the shared sheet the Discover chip also uses.
+  /// Falls back to the tracking screen when neither route is available.
+  void _onCallTap(
+    RideNavigationOverlayController ctrl,
+    String contact,
+    String riderName,
+  ) {
+    // The rider's user id lives on DiscoverController (the overlay carries
+    // their name/photo/number but not their id), and it is what the in-app
+    // call is keyed on.
+    final riderUserId = Get.isRegistered<DiscoverController>()
+        ? Get.find<DiscoverController>().fareCallAcceptedRiderId.value
+        : '';
+
+    if (contact.isEmpty && riderUserId.isEmpty) {
+      // Nothing to call with — fall back to the tracking screen, which is
+      // where the customer can see what's happening instead.
       _openTracking(ctrl);
+      return;
     }
+
+    showRiderCallOptionsSheet(
+      riderName: riderName,
+      riderUserId: riderUserId,
+      phone: contact,
+      photoUrl: ctrl.riderImage.value,
+    );
   }
 
   /// Re-open the live tracking screen. Capture the orderId before hiding the

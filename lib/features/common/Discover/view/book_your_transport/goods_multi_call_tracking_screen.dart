@@ -547,6 +547,7 @@ class _GoodsMultiCallTrackingScreenState
     final riderLat = _liveTrackController?.liveLat.value ?? 0.0;
     final riderLng = _liveTrackController?.liveLng.value ?? 0.0;
     OngoingRideStore.save({
+      OngoingRideStore.flowKey: OngoingRideStore.flowTransport,
       'orderId': widget.orderId,
       'riderId': discoverController.fareCallAcceptedRiderId.value,
       'riderName': _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,

@@ -13,6 +13,22 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 class OngoingRideStore {
   static const String _key = 'customer_ongoing_ride';
 
+  /// Which booking flow wrote the snapshot. Both flows share this one key
+  /// (only one ride can be in flight at a time), but their payloads are
+  /// different shapes, so the reader has to know which one it is holding
+  /// before it tries to rebuild anything from it.
+  static const String flowKey = 'flow';
+
+  /// `RideBookingController` — the ride-booking flow, storing a serialised
+  /// [RideBooking] (see `RideBooking.toStoreJson`).
+  static const String flowRideBooking = 'ride_booking';
+
+  /// The legacy `book_your_transport` flow, storing the flat display snapshot
+  /// [OngoingRideRestorer] feeds to `RideNavigationOverlayController`. Absent
+  /// on snapshots written before the discriminator existed, which is why the
+  /// legacy branch is the fallback rather than an explicit match.
+  static const String flowTransport = 'transport';
+
   static Future<void> save(Map<String, dynamic> data) async {
     try {
       await SharedPreferenceUtils.setSecureValue(_key, jsonEncode(data));

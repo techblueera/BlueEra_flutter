@@ -26,6 +26,7 @@ import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.d
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
 // import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
+import 'package:BlueEra/features/common/help_support/widget/help_bubble.dart';
 import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -425,6 +426,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ],
               ),
             ),
+
+            /// Floating "Need help?" bubble — Discover-only by design (see
+            /// lib/docs/HELP_WIDGET_FLUTTER_GUIDE.md). Last in the Stack so it
+            /// floats above the feed, and it collapses to nothing when the
+            /// support questions haven't loaded.
+            const HelpBubble(),
           ],
         ),
       ),

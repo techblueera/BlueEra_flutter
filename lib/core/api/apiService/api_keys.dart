@@ -855,4 +855,9 @@ class ApiKeys {
   static const argEmergencyProfileId = 'argEmergencyProfileId';
   static const argEmergencyProfile = 'argEmergencyProfile';
   static const isDiscounted  = 'isDiscounted ';
+
+  // Body of `POST chat-service/support/inquiry` — the Discover help bubble.
+  // Pairs with the existing `question` key above. See
+  // lib/docs/HELP_WIDGET_FLUTTER_GUIDE.md §1.2.
+  static const questionId = 'questionId';
 }

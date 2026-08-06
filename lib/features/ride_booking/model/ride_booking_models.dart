@@ -420,6 +420,23 @@ class RideCaptain {
     );
   }
 
+  /// Round-trips through [RideCaptain.fromJson] — the keys are the ones that
+  /// factory reads first, so a stored captain reloads exactly as saved. Used by
+  /// the ongoing-ride snapshot ([RideBooking.toStoreJson]).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        if (phone != null) 'phone': phone,
+        if (photoUrl != null) 'photoUrl': photoUrl,
+        if (vehicleNumber != null) 'vehicleNumber': vehicleNumber,
+        if (vehicleModel != null) 'vehicleModel': vehicleModel,
+        if (vehicleType != null) 'vehicleType': vehicleType,
+        if (rating != null) 'rating': rating,
+        if (totalOrders != null) 'totalOrders': totalOrders,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      };
+
   /// Overlay [other] onto this captain, keeping existing values where the newer
   /// payload is silent.
   ///
@@ -541,6 +558,79 @@ class RideBooking {
       cancellationReason: json['cancellationReason']?.toString(),
       cancelledAt: DateTime.tryParse(json['cancelledAt']?.toString() ?? ''),
     );
+  }
+
+  /// Snapshot for [OngoingRideStore] so the Discover ongoing-ride card survives
+  /// an app kill.
+  ///
+  /// Deliberately NOT the API shape: the status poll answers with `{status,
+  /// pickupOTP, metadata}` and carries no pickup / drop / fare / vehicle, so a
+  /// restored booking has to bring those with it or the resumed card renders
+  /// blank addresses and a ₹0 fare until the ride ends. `searchProgress` is
+  /// omitted — it is a local animation value that the searching screen re-drives
+  /// itself.
+  Map<String, dynamic> toStoreJson() => {
+        'rideId': rideId,
+        // The enum's own name, restored by [_statusFromStoreName]. Not
+        // `RideStatus.fromString`, whose vocabulary is the backend's
+        // (`ON_TRIP`), not Dart's (`onTrip`).
+        'status': status.name,
+        'pickup': pickup.toJson(),
+        'drop': drop.toJson(),
+        'vehicleCode': vehicleCode,
+        'vehicleName': vehicleName,
+        'fare': fare,
+        'paymentMode': paymentMode,
+        if (startOtp != null) 'startOtp': startOtp,
+        if (captain != null) 'captain': captain!.toJson(),
+        if (pickupEtaMinutes != null) 'pickupEtaMinutes': pickupEtaMinutes,
+        if (captainDistanceMeters != null)
+          'captainDistanceMeters': captainDistanceMeters,
+        if (cancelledBy != null) 'cancelledBy': cancelledBy,
+        if (cancellationReason != null) 'cancellationReason': cancellationReason,
+        if (cancelledAt != null) 'cancelledAt': cancelledAt!.toIso8601String(),
+      };
+
+  /// Rebuild a booking saved by [toStoreJson]. Null when the snapshot is
+  /// missing the identity or either end of the trip — a booking we can't name a
+  /// pickup and drop for is not worth restoring a card for.
+  static RideBooking? fromStoreJson(Map<dynamic, dynamic> json) {
+    final rideId = (json['rideId'] ?? '').toString();
+    final pickup = json['pickup'];
+    final drop = json['drop'];
+    if (rideId.isEmpty || pickup is! Map || drop is! Map) return null;
+
+    return RideBooking(
+      rideId: rideId,
+      status: _statusFromStoreName(json['status']?.toString()),
+      pickup: RidePlace.fromJson(pickup),
+      drop: RidePlace.fromJson(drop),
+      vehicleCode: (json['vehicleCode'] ?? '').toString(),
+      vehicleName: (json['vehicleName'] ?? '').toString(),
+      fare: _toDouble(json['fare']) ?? 0,
+      paymentMode: (json['paymentMode'] ?? 'CASH').toString(),
+      startOtp: json['startOtp']?.toString(),
+      captain: json['captain'] is Map
+          ? RideCaptain.fromJson(json['captain'] as Map)
+          : null,
+      pickupEtaMinutes: _toDouble(json['pickupEtaMinutes'])?.toInt(),
+      captainDistanceMeters: _toDouble(json['captainDistanceMeters'])?.toInt(),
+      cancelledBy: json['cancelledBy']?.toString(),
+      cancellationReason: json['cancellationReason']?.toString(),
+      cancelledAt: DateTime.tryParse(json['cancelledAt']?.toString() ?? ''),
+    );
+  }
+
+  /// Inverse of `status.name`. Falls back to the backend vocabulary (so an
+  /// older snapshot written with an API string still loads), then to
+  /// `searching` — the one state that can't strand the user, since the status
+  /// poll corrects it within seconds.
+  static RideStatus _statusFromStoreName(String? raw) {
+    if (raw == null || raw.isEmpty) return RideStatus.searching;
+    for (final status in RideStatus.values) {
+      if (status.name == raw) return status;
+    }
+    return RideStatus.fromString(raw);
   }
 
   RideBooking copyWith({

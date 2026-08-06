@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 
@@ -24,6 +26,22 @@ class OngoingRideRestorer {
 
   static bool _inFlight = false;
 
+  /// Hand a ride-booking snapshot to [RideBookingController], which rebuilds
+  /// the booking and resumes its polls. Returns true when it took ownership.
+  ///
+  /// Reads the flow marker BEFORE constructing the controller: creating one
+  /// spins up location bootstrap and the saved/recent-place loads, which is a
+  /// lot of work to do on Discover entry for a user who has never booked a
+  /// ride. Only a snapshot that actually belongs to this flow is worth it.
+  static Future<bool> _restoreRideBookingFlow() async {
+    final snap = await OngoingRideStore.read();
+    if (snap == null) return false;
+    if (snap[OngoingRideStore.flowKey] != OngoingRideStore.flowRideBooking) {
+      return false;
+    }
+    return getOrPut(() => RideBookingController()).restoreOngoingRide();
+  }
+
   /// Restore the snapshot if there is one and nothing is being tracked yet.
   ///
   /// Applies the snapshot optimistically first, so the card/chip appears
@@ -38,6 +56,12 @@ class OngoingRideRestorer {
 
     _inFlight = true;
     try {
+      // A ride-booking snapshot is a different shape entirely, and that
+      // controller owns rebuilding it (plus resuming its own status/captain
+      // polls). Checked before the legacy path because the flat `orderId` the
+      // code below needs simply isn't in that payload.
+      if (await _restoreRideBookingFlow()) return;
+
       final snap = await OngoingRideStore.read();
       if (snap == null) return;
       final orderId = (snap['orderId'] ?? '').toString();
@@ -81,6 +105,11 @@ class OngoingRideRestorer {
       dc.selectedToLat?.value = toD(snap['dropLat']);
       dc.selectedToLong?.value = toD(snap['dropLng']);
       dc.selectedToAddress?.value = (snap['dropLabel'] ?? '').toString();
+
+      // The overlay's own observables drive the card, but Discover may have
+      // built before this controller was registered at all — nudge the signal
+      // so a chip with nothing to watch yet repaints.
+      bumpOngoingRideRevision();
       // Pull the customer's OTPs back from the server. They are not in the
       // snapshot (they must come from the source the rider is verified
       // against), and without this the ongoing chip has no OTP to show until

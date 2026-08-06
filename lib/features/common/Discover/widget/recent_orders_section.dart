@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -77,48 +78,33 @@ class RecentOrdersSection extends StatelessWidget {
     });
   }
 
-  /// One glass card: title + "View All", then up to [maxRows] order rows.
+  /// A lane: its title + "View All", then ONE card per order.
+  ///
+  /// Each order is its own card in the same shape as the ongoing-ride chip
+  /// above ([OngoingStyleCard]) rather than a row inside a shared glass panel.
+  /// Everything the customer has in flight then reads as one stack of
+  /// equal-weight cards down the top of Discover — the ride, then each order —
+  /// instead of one prominent chip followed by a list that looked like a
+  /// different kind of thing.
   Widget _card({
     required String title,
     required List<ChatList> orders,
     required int lane,
   }) {
     final rows = orders.take(maxRows).toList();
-    return Container(
-      margin: EdgeInsets.only(bottom: SizeConfig.size12, left: 12, right: 12),
-      // Uniform inset now that the card ends on the last order row — the
-      // tighter bottom value existed only to offset the Book-a-Ride button's
-      // own padding.
-      padding: EdgeInsets.all(SizeConfig.size14),
-      decoration: BoxDecoration(
-        // Glass panel, matching the rest of the redesigned Discover page: a
-        // translucent white wash over the blurred profile photo behind the
-        // feed, NOT a solid card. Kept high-alpha because this panel is dense
-        // dark text — the folder tiles can sit at 0.22, a list of shop names
-        // and messages cannot.
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.1),
-            Colors.white.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
-        boxShadow: _kGlassCardShadow,
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: SizeConfig.size12,
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _header(title: title, total: orders.length, lane: lane),
-          SizedBox(height: SizeConfig.size12),
-          // Each order on its own frosted plate instead of divider-separated
-          // rows: the plates read as glass-on-glass and give the tap target a
-          // visible edge, which a hairline divider over a translucent panel
-          // does not.
+          // _header(title: title, total: orders.length, lane: lane),
+          SizedBox(height: SizeConfig.size10),
           for (var i = 0; i < rows.length; i++) ...[
-            _OrderRow(chat: rows[i], lane: lane),
+            _OrderCard(chat: rows[i], lane: lane),
             if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
           ],
         ],
@@ -212,29 +198,15 @@ void _openConnectLane(int lane) {
   getOrPut(() => BottomBarController()).currentIndex.value = _kConnectTabIndex;
 }
 
-/// Lift under the glass panel. A translucent panel has no fill of its own to
-/// separate it from the photo behind the feed, so the shadow is what makes it
-/// read as a pane floating above the page rather than a tint painted on it.
-const List<BoxShadow> _kGlassCardShadow = [
-  BoxShadow(
-    color: Color(0x1F101828),
-    blurRadius: 18,
-    offset: Offset(0, 8),
-  ),
-  BoxShadow(
-    color: Color(0x14101828),
-    blurRadius: 4,
-    offset: Offset(0, 1),
-  ),
-];
-
-class _OrderRow extends StatelessWidget {
-  const _OrderRow({required this.chat, required this.lane});
+/// One recent order, as its own card in the same shape as the ongoing-ride
+/// chip above it.
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({required this.chat, required this.lane});
 
   final ChatList chat;
 
   /// 0 = order I received, 1 = order I placed — decides which Connect sub-tab
-  /// the row opens and whose name the row shows.
+  /// the card opens and whose name it shows.
   final int lane;
 
   @override
@@ -250,127 +222,115 @@ class _OrderRow extends StatelessWidget {
     final name = isGroupish ? chat.groupName : chat.sender?.name;
     final image = isGroupish ? chat.groupProfileImage : chat.sender?.profileImage;
 
-    // Material + InkWell rather than a decorated Container: the plate's fill
-    // has to come from the Material itself, otherwise the tap ripple paints on
-    // the Scaffold underneath and is hidden behind the plate.
-    return Material(
-      color: Colors.white.withValues(alpha: 0.55),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () => _openConnectLane(lane),
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10,
-            vertical: SizeConfig.size10,
+    return OngoingStyleCard(
+      onTap: () => _openConnectLane(lane),
+      accent: OngoingStyleCard.orderAccent,
+      gradient: OngoingStyleCard.orderGradient,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CachedAvatarWidget(
+            imageUrl: (image?.isEmpty ?? true) ? null : image,
+            size: SizeConfig.size44,
+            borderRadius: SizeConfig.size22,
+            showProfileOnFullScreen: false,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CachedAvatarWidget(
-                imageUrl: (image?.isEmpty ?? true) ? null : image,
-                size: SizeConfig.size44,
-                borderRadius: SizeConfig.size22,
-                showProfileOnFullScreen: false,
-              ),
-              SizedBox(width: SizeConfig.size10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      (name?.isNotEmpty ?? false)
-                          ? name!
-                          : (lane == 0 ? 'Customer' : 'Shop'),
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: SizeConfig.size2),
-                    // The last message is the order itself — the item list, the
-                    // shop's reply, or whatever the conversation last said. The
-                    // "Order Message" marker is plumbing, not a preview, so it
-                    // reads as the placed/received order instead.
-                    CustomText(
-                      _preview(),
-                      fontSize: SizeConfig.small11,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  (name?.isNotEmpty ?? false)
+                      ? name!
+                      : (lane == 0 ? 'Customer' : 'Shop'),
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                SizedBox(height: SizeConfig.size2),
+                // The last message is the order itself — the item list, the
+                // shop's reply, or whatever the conversation last said. The
+                // "Order Message" marker is plumbing, not a preview, so it
+                // reads as the placed/received order instead.
+                CustomText(
+                  _preview(),
+                  fontSize: SizeConfig.small11,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              CustomText(
+                _timeLabel(chat),
+                fontSize: SizeConfig.small11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
               ),
-              SizedBox(width: SizeConfig.size8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  CustomText(
-                    _timeLabel(chat),
-                    fontSize: SizeConfig.small11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
+              SizedBox(height: SizeConfig.size4),
+              // Just-landed marker. Green so it never reads as the blue
+              // unread badge below it — this one is about age, not about
+              // whether the user has opened the thread.
+              if (_isFresh) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _kFreshGreen,
+                    borderRadius: BorderRadius.circular(100),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x331FB35A),
+                        blurRadius: 8,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size4),
-                  // Just-landed marker. Green so it never reads as the blue
-                  // unread badge below it — this one is about age, not about
-                  // whether the user has opened the thread.
-                  if (_isFresh) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _kFreshGreen,
-                        borderRadius: BorderRadius.circular(100),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x331FB35A),
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
+                  child: CustomText(
+                    AppStrings.newTag.tr,
+                    fontSize: SizeConfig.extraSmall,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size4),
+              ],
+              if (unread > 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(100),
+                    // Solid brand blue is the one opaque thing on the panel —
+                    // it's the alert, so it stays loud against the glass.
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x330086FF),
+                        blurRadius: 8,
+                        offset: Offset(0, 3),
                       ),
-                      child: CustomText(
-                        AppStrings.newTag.tr,
-                        fontSize: SizeConfig.extraSmall,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.size4),
-                  ],
-                  if (unread > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(100),
-                        // Solid brand blue is the one opaque thing on the panel —
-                        // it's the alert, so it stays loud against the glass.
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x330086FF),
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: CustomText(
-                        '$unread new',
-                        fontSize: SizeConfig.extraSmall,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                ],
-              ),
+                    ],
+                  ),
+                  child: CustomText(
+                    '$unread new',
+                    fontSize: SizeConfig.extraSmall,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
