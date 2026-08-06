@@ -83,7 +83,7 @@ class SchoolAboutUsController extends GetxController {
   Rx<AboutUsData>? aboutUsData = AboutUsData().obs;
   Rx<SchoolDetailsData>? schoolDetailsData = SchoolDetailsData().obs;
 
-  void _triggerSubFetches(String? schoolID) {
+  void _triggerSubFetches(String? schoolID, {bool skipQuickInfoFetch = false}) {
     if (schoolID == null || schoolID.isEmpty) return;
 
     // Fetch sub-details using the specific school's ID
@@ -91,7 +91,14 @@ class SchoolAboutUsController extends GetxController {
     getSchoolBranchController(schoolID: schoolID);
     getSchoolCoursesController(schoolID: schoolID);
     getSchoolCampusLifeController(schoolID: schoolID);
-    fetchSchoolQuickInfo(schoolID: schoolID);
+    // Discover reads quick-info from the main /schools/:id response
+    // (see DiscoverSchoolQuickInfoCard) and doesn't need the dedicated
+    // /schools/:id/quick-info round-trip. Owner "me" screens leave the
+    // flag off so their form/summary keeps using the authoritative
+    // endpoint.
+    if (!skipQuickInfoFetch) {
+      fetchSchoolQuickInfo(schoolID: schoolID);
+    }
     fetchSchoolTimings(schoolID: schoolID);
 
     schoolDetailsData?.refresh();
@@ -161,7 +168,9 @@ class SchoolAboutUsController extends GetxController {
   }
 
   Future<void> getSchoolByIdController(
-      {String? schoolID, String? ownerID}) async {
+      {String? schoolID,
+      String? ownerID,
+      bool skipQuickInfoFetch = false}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
@@ -204,7 +213,8 @@ class SchoolAboutUsController extends GetxController {
           schoolDetailsData?.refresh();
 
           // Fetch sub-details using the confirmed ID
-          _triggerSubFetches(newData.id);
+          _triggerSubFetches(newData.id,
+              skipQuickInfoFetch: skipQuickInfoFetch);
           return; // Exit successfully
         }
       }
@@ -244,7 +254,8 @@ class SchoolAboutUsController extends GetxController {
             schoolDetailsData?.refresh();
 
             // Fetch sub-details using the CORRECTED School ID
-            _triggerSubFetches(newData.id);
+            _triggerSubFetches(newData.id,
+                skipQuickInfoFetch: skipQuickInfoFetch);
           }
         }
       }

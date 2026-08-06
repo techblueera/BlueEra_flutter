@@ -52,6 +52,7 @@ class SchoolDetailsData {
     this.establishmentYear,
     this.logo,
     this.bannerUrl,
+    this.coverPicture,
     this.career,
     this.contacts,
     this.ownerId,
@@ -85,6 +86,10 @@ class SchoolDetailsData {
     establishmentYear = json['establishmentYear'];
     logo = json['logo'];
     bannerUrl = json['bannerUrl'];
+    // Backend now returns the listing hero image under `coverPicture`
+    // (school records were built on the business schema). Accept the
+    // snake-case variant too — some list endpoints still send it.
+    coverPicture = json['coverPicture'] ?? json['cover_picture'];
     career = json['career'];
     if (json['contacts'] != null) {
       contacts = [];
@@ -182,6 +187,7 @@ class SchoolDetailsData {
   int? establishmentYear;
   String? logo;
   String? bannerUrl;
+  String? coverPicture;
   String? career;
   List<Contacts>? contacts;
   String? ownerId;
@@ -224,6 +230,7 @@ class SchoolDetailsData {
     map['establishmentYear'] = establishmentYear;
     map['logo'] = logo;
     map['bannerUrl'] = bannerUrl;
+    map['coverPicture'] = coverPicture;
     map['career'] = career;
     if (contacts != null) {
       map['contacts'] = contacts?.map((v) => v.toJson()).toList();

@@ -27,6 +27,8 @@ import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widge
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -40,8 +42,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
-import 'package:BlueEra/features/common/search/model/store_search_config.dart';
-import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 /// Opens a hotel from this listing. Routed through [openVisitProfile] so the
 /// type→screen mapping stays in one place, and shared by the list card and the
@@ -187,8 +187,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                     // The header paints a search bar; this is what it opens —
                     // the shared store search, scoped to this vertical by its
                     // StoreSearchConfig. Tapping a result opens that profile.
-                    onSearchTap: () => Get.to(
-                        () => StoreSearchScreen(config: StoreSearchConfig.stay())),
+                    onSearchTap: () => Get.to(() =>
+                        StoreSearchScreen(config: StoreSearchConfig.stay())),
                     categories: _stayCategories
                         .map((c) => StickyCategory(
                               id: c.slugId,
@@ -479,34 +479,6 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           boxFit: BoxFit.cover,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        if (rating > 0)
-          Positioned(
-            left: 10,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x1A000000), blurRadius: 6)
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star_rounded, size: 14, color: Colors.amber),
-                  SizedBox(width: SizeConfig.size2),
-                  CustomText(
-                    rating.toStringAsFixed(1),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
         Positioned(
           right: 10,
           top: 10,
@@ -1331,19 +1303,17 @@ class _PropertyCardState extends State<PropertyCard> {
     final hasRating = widget.rating > 0;
     final checkIn = widget.checkInTime.trim();
     final checkOut = widget.checkOutTime.trim();
-    // Time pill only renders when both ends of the window are populated —
-    // the pill is designed as check-in → check-out, so a missing side
-    // would leave the design lopsided. No 'N/A' fallback.
     final hasCheckInOut = checkIn.isNotEmpty && checkOut.isNotEmpty;
-    // Prefer the server-computed availability pill (Open Now + today's
-    // window) when the API populated it; otherwise fall back to the
-    // legacy check-in / check-out pill from `profile.policy`.
-    final Widget? statusPill = widget.availability != null
-        ? _availabilityPill(widget.availability!)
-        : (hasCheckInOut
-            ? _timeRangePill(checkIn: checkIn, checkOut: checkOut)
-            : null);
-    final hasStatusPill = statusPill != null;
+    // Availability flow (server-computed "Open Now" pill) is disabled for
+    // now — the header row shows only the check-in / check-out pill.
+    // Re-enable by uncommenting `_availabilityPill()` and swapping the
+    // pill inside the header row.
+    // final Widget? statusPill = widget.availability != null
+    //     ? _availabilityPill(widget.availability!)
+    //     : (hasCheckInOut
+    //         ? _timeRangePill(checkIn: checkIn, checkOut: checkOut)
+    //         : null);
+    // final hasStatusPill = statusPill != null;
     final distanceLabel = (widget.distance.isNotEmpty && widget.distance != '0')
         ? '${widget.distance}KM Away'
         : '';
@@ -1368,7 +1338,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (hasRating || hasStatusPill) ...[
+              if (hasRating || hasCheckInOut) ...[
                 SizedBox(height: SizeConfig.size4),
                 Row(
                   children: [
@@ -1376,7 +1346,16 @@ class _PropertyCardState extends State<PropertyCard> {
                       _ratingPill(),
                       SizedBox(width: SizeConfig.size6),
                     ],
-                    if (hasStatusPill) Flexible(child: statusPill),
+                    // Pill only renders when both ends of the window are
+                    // populated — a missing side would leave the check-in
+                    // → check-out design lopsided.
+                    if (hasCheckInOut)
+                      Flexible(
+                        child: _timeRangePill(
+                          checkIn: checkIn,
+                          checkOut: checkOut,
+                        ),
+                      ),
                   ],
                 ),
               ],
@@ -1396,47 +1375,52 @@ class _PropertyCardState extends State<PropertyCard> {
   /// `HotelAvailability` payload — an availability object with no
   /// `today` or missing times still shows a "Closed" pill so users know
   /// the status.
-  Widget _availabilityPill(HotelAvailability availability) {
-    final today = availability.today;
-    final open = _formatTime12h(today?.shopOpenTime ?? '');
-    final close = _formatTime12h(today?.shopCloseTime ?? '');
-    final hasWindow = open.isNotEmpty && close.isNotEmpty;
-    final isOpenNow = availability.isOpenNow && hasWindow;
-    final fg = isOpenNow ? AppColors.green0B : AppColors.grey7E;
-    final label = isOpenNow ? 'Open Now  |  $open – $close' : 'Closed';
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
-      decoration: BoxDecoration(
-        // color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDDE2EE), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.clock_new,
-            imgColor: fg,
-            height: SizeConfig.size13,
-            width: SizeConfig.size13,
-          ),
-          SizedBox(width: SizeConfig.size4),
-          Flexible(
-            child: CustomText(
-              label,
-              color: fg,
-              fontSize: SizeConfig.size12,
-              fontWeight: FontWeight.w600,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  ///
+  /// Availability flow is disabled for now — the card falls back to the
+  /// legacy check-in / check-out pill on the image header. Re-enable by
+  /// uncommenting this method + the `statusPill` block in
+  /// `_buildHeaderRow()`.
+  // Widget _availabilityPill(HotelAvailability availability) {
+  //   final today = availability.today;
+  //   final open = _formatTime12h(today?.shopOpenTime ?? '');
+  //   final close = _formatTime12h(today?.shopCloseTime ?? '');
+  //   final hasWindow = open.isNotEmpty && close.isNotEmpty;
+  //   final isOpenNow = availability.isOpenNow && hasWindow;
+  //   final fg = isOpenNow ? AppColors.green0B : AppColors.grey7E;
+  //   final label = isOpenNow ? 'Open Now  |  $open – $close' : 'Closed';
+  //
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(
+  //         horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+  //     decoration: BoxDecoration(
+  //       // color: Colors.white,
+  //       borderRadius: BorderRadius.circular(20),
+  //       border: Border.all(color: const Color(0xFFDDE2EE), width: 1),
+  //     ),
+  //     child: Row(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         LocalAssets(
+  //           imagePath: AppIconAssets.clock_new,
+  //           imgColor: fg,
+  //           height: SizeConfig.size13,
+  //           width: SizeConfig.size13,
+  //         ),
+  //         SizedBox(width: SizeConfig.size4),
+  //         Flexible(
+  //           child: CustomText(
+  //             label,
+  //             color: fg,
+  //             fontSize: SizeConfig.size12,
+  //             fontWeight: FontWeight.w600,
+  //             maxLines: 1,
+  //             overflow: TextOverflow.ellipsis,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _ratingPill() {
     return GestureDetector(
@@ -1599,13 +1583,12 @@ class _PropertyCardState extends State<PropertyCard> {
     final checkOutLabel = _formatTime12h(checkOut);
     return Container(
       padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: const Color(0xFFDDE2EE),
-          width: 1,
+          width: 0.5,
         ),
       ),
       child: Row(
@@ -1613,39 +1596,39 @@ class _PropertyCardState extends State<PropertyCard> {
         children: [
           // Check In
           LocalAssets(
-            imagePath: AppIconAssets.clock_new,
+            imagePath: AppIconAssets.checkInCalendarIcon,
             imgColor: AppColors.green0B,
-            height: SizeConfig.size13,
-            width: SizeConfig.size13,
+            height: SizeConfig.size8,
+            width: SizeConfig.size8,
           ),
           SizedBox(width: SizeConfig.size4),
           CustomText(
             checkInLabel,
             color: AppColors.green0B,
-            fontSize: SizeConfig.size12,
-            fontWeight: FontWeight.w600,
+            fontSize: SizeConfig.size8,
+            fontWeight: FontWeight.w500,
           ),
           SizedBox(width: SizeConfig.size6),
           CustomText(
             "-",
-            color: AppColors.grey7E,
-            fontSize: SizeConfig.size12,
+            color: AppColors.black22,
+            fontSize: SizeConfig.size8,
             fontWeight: FontWeight.w600,
           ),
           SizedBox(width: SizeConfig.size6),
           // Check Out
           LocalAssets(
-            imagePath: AppIconAssets.clock_new,
+            imagePath: AppIconAssets.checkOutCalendarIcon,
             imgColor: AppColors.redB4,
-            height: SizeConfig.size13,
-            width: SizeConfig.size13,
+            height: SizeConfig.size8,
+            width: SizeConfig.size8,
           ),
           SizedBox(width: SizeConfig.size4),
           CustomText(
             checkOutLabel,
             color: AppColors.redB4,
-            fontSize: SizeConfig.size12,
-            fontWeight: FontWeight.w600,
+            fontSize: SizeConfig.size8,
+            fontWeight: FontWeight.w500,
           ),
         ],
       ),

@@ -420,6 +420,10 @@ class AppIconAssets {
   static const String discountIcon = "${iconPath}discount.svg";
   static const String laboratoryIcon = "${iconPath}laboratory.svg";
   static const String expertiesIcon = "${iconPath}experties.svg";
+  static const String checkOutCalendarIcon =
+      "${iconPath}check_out_calendar.svg";
+  static const String checkInCalendarIcon =
+      "${iconPath}check_in_calendar.svg";
 
   // ── Discover education-service quick-info icons ─────────────────
   // College/University

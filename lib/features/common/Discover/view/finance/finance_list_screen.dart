@@ -13,7 +13,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -207,7 +206,10 @@ class _FinanceCard extends StatelessWidget {
     final palette = _palette;
 
     return Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size8, bottom: SizeConfig.size10, left: SizeConfig.size8),
+      padding: EdgeInsets.only(
+          right: SizeConfig.size8,
+          bottom: SizeConfig.size10,
+          left: SizeConfig.size8),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         // Routed through openVisitProfile so the type→screen mapping stays in
@@ -276,7 +278,8 @@ class _FinanceCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
+          padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
           child: _buildHeaderRow(
             address: address,
             distance: distance,
@@ -292,7 +295,8 @@ class _FinanceCard extends StatelessWidget {
           _DashedDivider(color: palette.bodyDashedDivider),
           SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
+            padding:
+                EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
             child: _buildTagsWrap(
               serviceTags: serviceTags,
               category: category,
@@ -301,7 +305,8 @@ class _FinanceCard extends StatelessWidget {
         ],
         SizedBox(height: SizeConfig.size14),
         Padding(
-          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
+          padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
           child: _buildFooterRow(),
         ),
       ],
@@ -521,26 +526,21 @@ class _FinanceCard extends StatelessWidget {
       children: [
         // Logo / name open the owning business profile; the rest of the
         // card still opens the finance listing detail.
-        DiscoverProfileTap(
-          accountType: AppConstants.business,
-          businessId: item.businessProfileId,
-          userId: item.userId,
-          child: ClipOval(
-            child: Container(
-              width: 50,
-              height: 50,
-              color: AppColors.liteWhite,
-              child: (item.logoUrl?.isNotEmpty ?? false)
-                  ? CachedNetworkImage(
-                      imageUrl: item.logoUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image),
-                    )
-                  : LocalAssets(imagePath: AppIconAssets.place_holder_image),
-            ),
+        ClipOval(
+          child: Container(
+            width: 50,
+            height: 50,
+            color: AppColors.liteWhite,
+            child: (item.logoUrl?.isNotEmpty ?? false)
+                ? CachedNetworkImage(
+                    imageUrl: item.logoUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image),
+                    errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image),
+                  )
+                : LocalAssets(imagePath: AppIconAssets.place_holder_image),
           ),
         ),
         SizedBox(width: SizeConfig.size10),
@@ -549,20 +549,15 @@ class _FinanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              DiscoverProfileTap(
-                accountType: AppConstants.business,
-                businessId: item.businessProfileId,
-                userId: item.userId,
-                child: CustomText(
-                  (item.profileName?.isNotEmpty ?? false)
-                      ? item.profileName
-                      : 'Unknown',
-                  fontSize: SizeConfig.size16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black22,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              CustomText(
+                (item.profileName?.isNotEmpty ?? false)
+                    ? item.profileName
+                    : 'Unknown',
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black22,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               if (hasPillsRow) ...[
                 SizedBox(height: SizeConfig.size6),
@@ -650,7 +645,8 @@ class _FinanceCard extends StatelessWidget {
   /// cards. Caller gates on rating being non-empty.
   Widget _ratingPill(String rating) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xffDDE2EE)),
@@ -684,7 +680,8 @@ class _FinanceCard extends StatelessWidget {
     required Color color,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
@@ -693,11 +690,11 @@ class _FinanceCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: color),
+          Icon(icon, size: SizeConfig.size8, color: color),
           SizedBox(width: SizeConfig.size3),
           CustomText(
             label,
-            fontSize: SizeConfig.size10,
+            fontSize: SizeConfig.size8,
             fontWeight: FontWeight.w500,
             color: color,
           ),
@@ -753,7 +750,8 @@ class _FinanceCard extends StatelessWidget {
 
   Widget _tagChip(String label) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -761,8 +759,8 @@ class _FinanceCard extends StatelessWidget {
       ),
       child: CustomText(
         label,
-        fontSize: SizeConfig.size12,
-        fontWeight: FontWeight.w600,
+        fontSize: SizeConfig.size10,
+        fontWeight: FontWeight.w500,
         color: AppColors.grey7E,
       ),
     );
@@ -851,4 +849,3 @@ class _DashedLinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
 }
-
