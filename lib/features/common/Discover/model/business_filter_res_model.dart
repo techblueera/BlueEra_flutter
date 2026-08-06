@@ -103,6 +103,7 @@ class BusinessFilterData {
     this.categoryOfBusiness,
     this.dateOfIncorporation,
     this.logo,
+    this.coverPicture,
     this.subCategoryOfBusiness,
     this.typeOfBusiness,
     this.businessNumber,
@@ -153,6 +154,10 @@ class BusinessFilterData {
         ? DateOfIncorporation.fromJson(json['date_of_incorporation'])
         : null;
     logo = json['logo']?.toString();
+    // Listing hero image the backend sets on business records — see the
+    // `business/filter` payload sample. Accept the snake-case variant too
+    // so this survives an eventual key-style change on the API.
+    coverPicture = (json['coverPicture'] ?? json['cover_picture'])?.toString();
     subCategoryOfBusiness = json['sub_category_Of_Business'] is Map
         ? BusinessNamedRef.fromJson(json['sub_category_Of_Business'])
         : null;
@@ -179,16 +184,14 @@ class BusinessFilterData {
     // the UI can render chips uniformly.
     if (json['facilities'] is List) {
       facilities = (json['facilities'] as List)
-          .map((e) => e is Map
-              ? (e['name']?.toString() ?? '')
-              : (e?.toString() ?? ''))
+          .map((e) =>
+              e is Map ? (e['name']?.toString() ?? '') : (e?.toString() ?? ''))
           .where((s) => s.trim().isNotEmpty)
           .toList();
     }
     facilityCount = _asInt(json['facility_count']);
-    quickInfo = json['quickInfo'] is Map
-        ? QuickInfo.fromJson(json['quickInfo'])
-        : null;
+    quickInfo =
+        json['quickInfo'] is Map ? QuickInfo.fromJson(json['quickInfo']) : null;
     if (json['schoolTimings'] is List) {
       schoolTimings = (json['schoolTimings'] as List)
           .whereType<Map>()
@@ -218,6 +221,7 @@ class BusinessFilterData {
   String? categoryOfBusiness;
   DateOfIncorporation? dateOfIncorporation;
   String? logo;
+  String? coverPicture;
   BusinessNamedRef? subCategoryOfBusiness;
   String? typeOfBusiness;
   BusinessNumber? businessNumber;
@@ -253,6 +257,7 @@ class BusinessFilterData {
         'category_Of_Business': categoryOfBusiness,
         'date_of_incorporation': dateOfIncorporation?.toJson(),
         'logo': logo,
+        'coverPicture': coverPicture,
         'sub_category_Of_Business': subCategoryOfBusiness?.toJson(),
         'type_of_business': typeOfBusiness,
         'business_number': businessNumber?.toJson(),
@@ -264,8 +269,7 @@ class BusinessFilterData {
         'facilities': facilities,
         'facility_count': facilityCount,
         'quickInfo': quickInfo?.toJson(),
-        'schoolTimings':
-            schoolTimings?.map((e) => e.toJson()).toList(),
+        'schoolTimings': schoolTimings?.map((e) => e.toJson()).toList(),
         'distance_km': distanceKm,
       };
 }
@@ -413,8 +417,7 @@ class DateOfIncorporation {
   int? month;
   int? year;
 
-  Map<String, dynamic> toJson() =>
-      {'date': date, 'month': month, 'year': year};
+  Map<String, dynamic> toJson() => {'date': date, 'month': month, 'year': year};
 }
 
 class BusinessNamedRef {
@@ -446,8 +449,7 @@ class BusinessCategoryDetails {
   String? name;
   String? tagId;
 
-  Map<String, dynamic> toJson() =>
-      {'_id': id, 'name': name, 'tag_id': tagId};
+  Map<String, dynamic> toJson() => {'_id': id, 'name': name, 'tag_id': tagId};
 }
 
 /// Phone wrapper. The wire format for each subfield is polymorphic:
@@ -529,6 +531,9 @@ extension BusinessFilterDataMappers on BusinessFilterData {
       description: businessDescription,
       establishmentYear: dateOfIncorporation?.year,
       logo: logo,
+      // Dedicated listing hero the backend now sets on business records.
+      // The card widget prefers this over `bannerUrl` and gallery photos.
+      coverPicture: coverPicture,
       // First live photo doubles as a banner when no dedicated banner exists.
       bannerUrl: (livePhotos != null && livePhotos!.isNotEmpty)
           ? livePhotos!.first

@@ -181,11 +181,15 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
   Future<void> _onSave() async {
     final payload = _buildPayload();
     if (payload.isEmpty) {
-      Get.back();
+      // Use Navigator.pop rather than Get.back — the latter routes
+      // through GetX's snackbar cleanup, which crashes with a
+      // LateInitializationError when no snackbar has been shown.
+      Navigator.of(context).pop();
       return;
     }
     final ok = await _controller.updateSchoolQuickInfoValues(payload);
-    if (ok) Get.back(result: true);
+    if (!mounted) return;
+    if (ok) Navigator.of(context).pop(true);
   }
 
   @override

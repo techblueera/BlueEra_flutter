@@ -92,7 +92,7 @@ class _HotelOverviewTabV2State extends State<HotelOverviewTabV2> {
               left: SizeConfig.size30, right: SizeConfig.size12),
           child: HotelAvailabilityCard(businessController: _businessController),
         ),
-        SizedBox(height: SizeConfig.size10),
+        // SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.size30, right: SizeConfig.size12),

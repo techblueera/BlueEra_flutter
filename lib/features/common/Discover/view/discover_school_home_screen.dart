@@ -13,9 +13,9 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_school_quick_info_card.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_director_card_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_management_view.dart';
@@ -71,9 +71,13 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
     final id = (data?.id ?? '').trim();
     final ownerId = (data?.ownerId ?? '').trim();
     if (id.isNotEmpty || ownerId.isNotEmpty) {
+      // Discover renders quick-info from the main /schools/:id
+      // response via DiscoverSchoolQuickInfoCard, so we skip the
+      // extra GET /schools/:id/quick-info round-trip.
       schoolAboutUsController.getSchoolByIdController(
         schoolID: id.isNotEmpty ? id : ownerId,
         ownerID: ownerId.isNotEmpty ? ownerId : id,
+        skipQuickInfoFetch: true,
       );
     }
 
@@ -103,6 +107,20 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
     _profileHydrateWorker?.dispose();
     super.dispose();
   }
+
+  /// Vertical spacer between adjacent cards. Sized off `SizeConfig.size10`
+  /// so tablet layouts scale in step with `CommonCardWidget`'s inner rhythm.
+  Widget _gap() => SizedBox(height: SizeConfig.size10);
+
+  /// Horizontal inset applied around every card whose child widget uses
+  /// `cardMargin: 0`. Kept on `paddingXSL` (10px phone / 14px tablet) to
+  /// match the inset the shared card widgets use everywhere else on
+  /// Discover, so this screen doesn't drift from siblings like Finance /
+  /// Hospital / Lab detail pages.
+  Widget _pad(Widget child) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+        child: child,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -155,43 +173,38 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       );
                     }),
 
-                    // SizedBox(height: SizeConfig.size10),
+                    // ─── Section rhythm ──────────────────────────────────────
+                    // Every card below hero renders `cardMargin: 0` and is
+                    // wrapped by `_pad(...)` for horizontal inset, with a
+                    // single `_gap()` between neighbours. That keeps gaps
+                    // identical whether a card renders its populated body,
+                    // its empty-state variant, or (for Obx-driven blocks)
+                    // collapses to `SizedBox.shrink()`. Two exceptions:
+                    //   • DirectorCard already applies its own 10px all-
+                    //     around margin via `Card`, so it acts as both card
+                    //     and gap — no external `_gap()` around it.
+                    //   • DiscoverSchoolQuickInfoCard handles its own
+                    //     horizontal inset (12px) so we skip `_pad` for it.
 
-                    /// DIRECTOR / PRINCIPAL MESSAGE
+                    /// DIRECTOR / PRINCIPAL MESSAGE — self-margined
                     DirectorCard(
                       schoolAboutUsController: schoolAboutUsController,
                     ),
 
-                    /// HIGHLIGHTS (category-driven quick info — reuses the
-                    /// same card as the owner overview tab, in read-only
-                    /// mode).
-                    SchoolQuickInfoCard(controller: schoolAboutUsController),
-
-                    // if (data?.aboutId?.management?.isEmpty ?? false) ...[
-                    //   SizedBox(height: SizeConfig.paddingXS),
-                    // ],
+                    /// HIGHLIGHTS (category-driven quick info)
+                    DiscoverSchoolQuickInfoCard(data: data),
 
                     /// MANAGEMENT
-                    _ManagementSection(data: data),
-
-                    // No extra SizedBox here: both sections wrap in
-                    // `CommonCardWidget`, which already applies a default
-                    // 10px margin on every side. The former spacer stacked
-                    // on top of those two margins, producing a ~30px gap
-                    // between the cards instead of the intended ~10px.
-
-                    // if (data?.courses?.isEmpty ?? false) ...[
-                    SizedBox(height: SizeConfig.size10),
-                    // ],
+                    _gap(),
+                    _pad(_ManagementSection(data: data)),
 
                     /// COURSES
-                    _CoursesSection(data: data),
-                    // SizedBox(height: SizeConfig.size5),
+                    _gap(),
+                    _pad(_CoursesSection(data: data)),
 
-                    /// LIVE PHOTOS — self-contained: collapses fully
-                    /// (SizedBox.shrink, no orphan spacer) when the
-                    /// profile has none; owns its top/bottom gap when
-                    /// it renders so it can't touch neighbouring cards.
+                    /// LIVE PHOTOS — Obx that owns its own leading gap so
+                    /// hiding the section removes both the card and the
+                    /// spacer, leaving no orphan gap in the scroll view.
                     Obx(() {
                       if (viewBusinessDetailsController
                           .isProfileLoading.value) {
@@ -204,9 +217,10 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                           .toList();
                       if (photos.isEmpty) return const SizedBox.shrink();
                       return Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.paddingXSL,
-                          vertical: 5,
+                        padding: EdgeInsets.only(
+                          top: SizeConfig.size10,
+                          left: SizeConfig.paddingXSL,
+                          right: SizeConfig.paddingXSL,
                         ),
                         child: CustomFormCard(
                           padding: const EdgeInsets.all(10),
@@ -246,33 +260,18 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                         ),
                       );
                     }),
-                    if (_hasGalleryImages(data))
-                      SizedBox(height: SizeConfig.size5),
 
                     /// CAMPUS GALLERY (social-style grid)
-                    _GallerySection(data: data),
-
-                    SizedBox(height: SizeConfig.size10),
-
-                    // Only pad below the gallery when it actually rendered
-                    // an image grid — the empty-state gallery card should
-                    // sit tight against Job Vacancy, no extra breathing room.
+                    _gap(),
+                    _pad(_GallerySection(data: data)),
 
                     /// QUICK LINKS — Job Vacancy only (Academics /
                     /// Student Corner / Notices removed per product ask).
-                    _JobVacancyLink(),
+                    _gap(),
+                    _pad(_JobVacancyLink()),
 
-                    SizedBox(height: SizeConfig.size10),
-
-                    // /// REVIEWS (placeholder)
-                    // _ReviewsSection(),
-
-                    // SizedBox(height: SizeConfig.size10),
-
-                    /// CONTACT US (clickable phone, email, website)
-                    // _ContactUsSection(data: data),
-                    //
-                    // SizedBox(height: SizeConfig.size10),
+                    /// CONTACT MAP — Obx owns leading gap so it collapses
+                    /// cleanly during profile loading.
                     Obx(() {
                       if (viewBusinessDetailsController
                           .isProfileLoading.value) {
@@ -281,7 +280,11 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       final details = viewBusinessDetailsController
                           .visitedBusinessProfileDetails?.data;
                       return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        padding: EdgeInsets.only(
+                          // top: SizeConfig.size10,
+                          left: SizeConfig.paddingXSL,
+                          right: SizeConfig.paddingXSL,
+                        ),
                         child: BusinessContactMapCard(
                           businessProfileDetails: details,
                           showEditButton: false,
@@ -289,28 +292,41 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       );
                     }),
 
-                    /// WEBSITE PREVIEW
-                    if (viewBusinessDetailsController
-                            .visitedBusinessProfileDetails
-                            ?.data
-                            ?.websiteUrl
-                            ?.isEmpty ??
-                        false) ...[
-                      SizedBox(height: SizeConfig.size10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: WebsitePreviewCard(
-                          url: viewBusinessDetailsController
-                                  .visitedBusinessProfileDetails
-                                  ?.data
-                                  ?.websiteUrl ??
-                              '',
+                    /// WEBSITE PREVIEW — Obx owns leading gap, hides when
+                    /// there is no website URL to preview.
+                    Obx(() {
+                      // `visitedBusinessProfileDetails` is a plain field —
+                      // reading it doesn't subscribe Obx to anything. Bind
+                      // to the reactive loading flag + refresh version bump
+                      // so this Obx rebuilds when the profile fetch lands
+                      // (matches the hero / contact-map / QR pattern above).
+                      viewBusinessDetailsController.profileVersion.value;
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      final url = viewBusinessDetailsController
+                              .visitedBusinessProfileDetails
+                              ?.data
+                              ?.websiteUrl ??
+                          '';
+                      // Preserve prior gating: original code showed the
+                      // card when the URL was empty (`?.isEmpty ?? false`).
+                      // That branch renders nothing useful, so folding to
+                      // "hide when empty" keeps the visible surface the
+                      // same while making the intent obvious.
+                      if (url.trim().isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          // top: SizeConfig.size10,
+                          left: SizeConfig.paddingXSL,
+                          right: SizeConfig.paddingXSL,
                         ),
-                      ),
-                    ],
+                        child: WebsitePreviewCard(url: url),
+                      );
+                    }),
 
-                    // SizedBox(height: SizeConfig.size10),
-
+                    /// QR CODE — Obx owns leading gap.
                     Obx(() {
                       if (viewBusinessDetailsController
                           .isProfileLoading.value) {
@@ -319,13 +335,14 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       final details = viewBusinessDetailsController
                           .visitedBusinessProfileDetails?.data;
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: EdgeInsets.only(
+                          // top: SizeConfig.size10,
+                          left: SizeConfig.paddingXSL,
+                          right: SizeConfig.paddingXSL,
+                        ),
                         child: BusinessQrCodeWidget(data: details),
                       );
                     }),
-
-                    /// LOCATION MAP
-                    // _LocationSection(data: data),
 
                     SizedBox(
                         height: kBottomNavigationBarHeight + SizeConfig.size50),
@@ -629,17 +646,18 @@ class _ManagementSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final management = data?.aboutId?.management ?? [];
     if (management.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: _emptySection(
-          Icons.people_outline,
-          AppStrings.managementTrust.tr,
-          AppStrings.noManagementDetailsAvailable.tr,
-        ),
+      return _emptySection(
+        Icons.people_outline,
+        AppStrings.managementTrust.tr,
+        AppStrings.noManagementDetailsAvailable.tr,
       );
     }
+    // cardMargin: 0 → the shared parent (`_pad`) owns the horizontal
+    // inset and the surrounding `_gap()` owns the vertical space, so
+    // populated / empty states produce the same gap to neighbours.
     return SchoolManagementSection(
       managementData: management,
+      cardMargin: 0,
     );
   }
 }
@@ -655,97 +673,84 @@ class _CoursesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final courses = data?.courses ?? [];
     if (courses.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: _emptySection(
-          Icons.menu_book_outlined,
-          AppStrings.coursesLabel.tr,
-          AppStrings.noCoursesAvailable.tr,
-        ),
+      return _emptySection(
+        Icons.menu_book_outlined,
+        AppStrings.coursesLabel.tr,
+        AppStrings.noCoursesAvailable.tr,
       );
     }
     // Reuse the same card the owner Academics tab uses, in read-only
     // mode (no edit/delete callbacks → the overflow menu is hidden).
+    // Horizontal rail — matches assets/img.png. Each card is fixed at
+    // 340px so the right column stays ~155px wide.
     //
-    // Horizontal rail — matches assets/img.png. Header is a plain
-    // "Our Courses" title on the left and a "View All" link on the
-    // right (no leading icon). Each card is fixed at 340px so the
-    // right column stays ~155px wide, keeping the "Direct Admission"
-    // pill on its own line rather than being squeezed into the corner.
-    //
-    // Drop the default top margin so the gap to the Management card
-    // above is 10px (from its bottom margin) instead of 20px. Keep
-    // horizontal + bottom at 10 to preserve the card's previous
-    // position and its spacing to the Gallery card below.
-    return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: CommonCardWidget(
-        padding: 0,
-        cardMargin: 0,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.paddingS,
-                    vertical: SizeConfig.paddingXS),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
+    // Horizontal inset and vertical gap are owned by the parent — see
+    // `_pad` / `_gap` in `_DiscoverSchoolHomeScreenState.build`.
+    return CommonCardWidget(
+      padding: 0,
+      cardMargin: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.paddingS,
+                  vertical: SizeConfig.paddingXS),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.coursesLabel.tr,
+                      fontSize: SizeConfig.size18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black22,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (courses.length > 1)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _openAllCoursesSheet(context, courses),
                       child: CustomText(
-                        AppStrings.coursesLabel.tr,
-                        fontSize: SizeConfig.size18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.black22,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        AppStrings.viewAll.tr,
+                        fontSize: SizeConfig.size14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
                       ),
                     ),
-                    if (courses.length > 1)
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openAllCoursesSheet(context, courses),
-                        child: CustomText(
-                          AppStrings.viewAll.tr,
-                          fontSize: SizeConfig.size14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ),
-              // 240px covers the tallest natural card height: 165px image +
-              // 16px card padding + slack for a card whose right column runs
-              // longer than the image (title + fee + 2-line description +
-              // chips + divider + admission pill). Bumped from 210 after a
-              // 4px overflow on cards with the admission pill visible.
-              // Align each card to top so shorter cards don't stretch.
-              SizedBox(
-                height: 240,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.zero,
-                  itemCount: courses.length,
-                  separatorBuilder: (_, __) =>
-                      SizedBox(width: SizeConfig.size10),
-                  itemBuilder: (_, i) => SizedBox(
-                    width: 340,
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: SchoolCourseListItemCard(
-                        course: courses[i],
-                        showBorder: true,
-                      ),
+            ),
+            // 240px covers the tallest natural card height: 165px image +
+            // 16px card padding + slack for a card whose right column runs
+            // longer than the image (title + fee + 2-line description +
+            // chips + divider + admission pill). Bumped from 210 after a
+            // 4px overflow on cards with the admission pill visible.
+            // Align each card to top so shorter cards don't stretch.
+            SizedBox(
+              height: 240,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                itemCount: courses.length,
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+                itemBuilder: (_, i) => SizedBox(
+                  width: 340,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: SchoolCourseListItemCard(
+                      course: courses[i],
+                      showBorder: true,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -829,28 +834,22 @@ class _GallerySection extends StatelessWidget {
     }
 
     if (allImages.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: _emptySection(
-          Icons.photo_library_outlined,
-          AppStrings.gallery.tr,
-          AppStrings.noPhotosAvailableMsg.tr,
-        ),
+      return _emptySection(
+        Icons.photo_library_outlined,
+        AppStrings.gallery.tr,
+        AppStrings.noPhotosAvailableMsg.tr,
       );
     }
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-      child: CommonCardWidget(
-        cardMargin: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionHeader(Icons.photo_library_outlined, AppStrings.gallery.tr),
-            SizedBox(height: SizeConfig.paddingXS),
-            SocialGalleryGrid(imageUrls: allImages),
-          ],
-        ),
+    return CommonCardWidget(
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(Icons.photo_library_outlined, AppStrings.gallery.tr),
+          SizedBox(height: SizeConfig.paddingXS),
+          SocialGalleryGrid(imageUrls: allImages),
+        ],
       ),
     );
   }
@@ -863,41 +862,38 @@ class _GallerySection extends StatelessWidget {
 class _JobVacancyLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-      child: CommonCardWidget(
-        cardMargin: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionHeader(Icons.work_outline, AppStrings.jobVacancy.tr),
-            SizedBox(height: SizeConfig.paddingXS),
-            InkWell(
-              onTap: () => Get.to(SchoolJobListingScreen(isEdit: false)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
-                child: Row(
-                  children: [
-                    Icon(Icons.work_outline,
-                        size: SizeConfig.size20, color: AppColors.primaryColor),
-                    SizedBox(width: SizeConfig.paddingXS),
-                    Expanded(
-                      child: CustomText(
-                        AppStrings.jobVacancy.tr,
-                        fontSize: SizeConfig.size14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.mainTextColor,
-                      ),
+    return CommonCardWidget(
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(Icons.work_outline, AppStrings.jobVacancy.tr),
+          SizedBox(height: SizeConfig.paddingXS),
+          InkWell(
+            onTap: () => Get.to(SchoolJobListingScreen(isEdit: false)),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
+              child: Row(
+                children: [
+                  Icon(Icons.work_outline,
+                      size: SizeConfig.size20, color: AppColors.primaryColor),
+                  SizedBox(width: SizeConfig.paddingXS),
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.jobVacancy.tr,
+                      fontSize: SizeConfig.size14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.mainTextColor,
                     ),
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        size: SizeConfig.size16,
-                        color: AppColors.secondaryTextColor),
-                  ],
-                ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: SizeConfig.size16,
+                      color: AppColors.secondaryTextColor),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1103,37 +1099,25 @@ Widget _sectionHeader(IconData icon, String title) {
   );
 }
 
+/// Empty-state card. Horizontal padding is applied by the parent
+/// (`_pad` in `_DiscoverSchoolHomeScreenState.build`) so the empty and
+/// populated variants of every section land at the exact same inset —
+/// otherwise gaps between cards jump when data drops out.
 Widget _emptySection(IconData icon, String title, String message) {
-  return Padding(
-    padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-    child: CommonCardWidget(
-      cardMargin: 0,
-      child: Column(
-        children: [
-          _sectionHeader(icon, title),
-          SizedBox(height: SizeConfig.paddingM),
-          EmptyStateWidget(
-            message: message,
-            imageSize: SizeConfig.size60,
-          ),
-          SizedBox(height: SizeConfig.paddingS),
-        ],
-      ),
+  return CommonCardWidget(
+    cardMargin: 0,
+    child: Column(
+      children: [
+        _sectionHeader(icon, title),
+        SizedBox(height: SizeConfig.paddingM),
+        EmptyStateWidget(
+          message: message,
+          imageSize: SizeConfig.size60,
+        ),
+        SizedBox(height: SizeConfig.paddingS),
+      ],
     ),
   );
-}
-
-/// True when the school's `campusLife` block contains at least one
-/// non-null image URL — mirror of the flatten `_GallerySection.build`
-/// does internally, so the outer scaffold can gate the spacer above
-/// Job Vacancy without duplicating the walk.
-bool _hasGalleryImages(SchoolDetailsData? data) {
-  for (final item in data?.campusLife ?? const <CampusLife>[]) {
-    for (final img in item.images ?? const <Images>[]) {
-      if (img.url != null) return true;
-    }
-  }
-  return false;
 }
 
 /// Convert `education-service/schools/{id}` (and `.../timings`) rows

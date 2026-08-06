@@ -13,9 +13,10 @@ import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/search/model/store_search_config.dart';
+import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -28,8 +29,6 @@ import 'package:get/get.dart';
 import '../../../business/widgets/rating_widget.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/search/model/store_search_config.dart';
-import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 /// Tinted surface set for a school card. Mirrors the palette rotation
 /// used by `service_business_card.dart` so both discover directories
@@ -159,8 +158,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     // The header paints a search bar; this is what it opens —
                     // the shared store search, scoped to this vertical by its
                     // StoreSearchConfig. Tapping a result opens that profile.
-                    onSearchTap: () => Get.to(
-                        () => StoreSearchScreen(config: StoreSearchConfig.education())),
+                    onSearchTap: () => Get.to(() => StoreSearchScreen(
+                        config: StoreSearchConfig.education())),
                     categories: stickyCategories,
                     selectedId: controller_
                             .selectedEducationServiceData.value?.slugId ??
@@ -282,11 +281,19 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Widget selfProfessionCard(SchoolDetailsData service, int index) {
-    // Hero shows the cover banner, never the logo. Falls back to gallery
-    // photos only when the school hasn't uploaded a banner yet.
+    // Hero shows the cover banner, never the logo. Priority:
+    //   1. `coverPicture` — the field the backend now sets for schools
+    //      (see the education-service payload sample).
+    //   2. `bannerUrl` — legacy field kept for records that haven't been
+    //      migrated to `coverPicture` yet.
+    //   3. `galleryPhotos` — last resort so a school with no explicit
+    //      cover still shows something.
     final List<String> coverImages = <String>[];
-    if ((service.bannerUrl ?? '').isNotEmpty) {
-      coverImages.add(service.bannerUrl!);
+    if ((service.coverPicture ?? '').trim().isNotEmpty) {
+      coverImages.add(service.coverPicture!.trim());
+    }
+    if (coverImages.isEmpty && (service.bannerUrl ?? '').trim().isNotEmpty) {
+      coverImages.add(service.bannerUrl!.trim());
     }
     if (coverImages.isEmpty) {
       coverImages.addAll(
@@ -582,13 +589,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       // for the rest. Suffix dropped — repeating "CBSE Board, State
       // Board" would blow past the cell width.
       const int maxVisible = 2;
-      final visible = items.length > maxVisible
-          ? items.sublist(0, maxVisible)
-          : items;
+      final visible =
+          items.length > maxVisible ? items.sublist(0, maxVisible) : items;
       final extra = items.length - visible.length;
-      return extra > 0
-          ? '${visible.join(', ')} …+$extra'
-          : visible.join(', ');
+      return extra > 0 ? '${visible.join(', ')} …+$extra' : visible.join(', ');
     }
     if (value is num) return '$value $suffix'.trim();
     final str = value?.toString().trim() ?? '';
@@ -915,8 +919,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final bool showRating = rating.isNotEmpty;
     final List<String> pillItems = _pillItems(service);
     final String? pillField = _pillFieldFor(service);
-    final String pillSuffix =
-        pillField == null ? '' : _suffixForKey(pillField);
+    final String pillSuffix = pillField == null ? '' : _suffixForKey(pillField);
     final bool showPills = pillItems.isNotEmpty;
 
     return Row(
@@ -924,12 +927,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       children: [
         // Logo / name open the school's business profile; the rest of
         // the card still opens the school detail page.
-        DiscoverProfileTap(
-          accountType: AppConstants.business,
-          businessId: service.id,
-          userId: service.ownerId,
-          child: _schoolLogo(logoUrl),
-        ),
+        _schoolLogo(logoUrl),
         SizedBox(width: SizeConfig.size10),
         Expanded(
           child: Column(

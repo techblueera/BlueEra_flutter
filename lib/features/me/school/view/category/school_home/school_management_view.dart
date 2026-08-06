@@ -14,15 +14,22 @@ import '../../../../../../core/api/model/school_about_us_model.dart';
 class SchoolManagementSection extends StatelessWidget {
   final List<Management>? managementData;
   final bool isEdit;
+  /// Overrides `CommonCardWidget`'s default 10px all-around margin.
+  /// Pass 0 when the caller manages spacing externally.
+  final double? cardMargin;
 
   const SchoolManagementSection(
-      {super.key, required this.managementData, this.isEdit = false});
+      {super.key,
+      required this.managementData,
+      this.isEdit = false,
+      this.cardMargin});
 
   @override
   Widget build(BuildContext context) {
     if (managementData == null || managementData!.isEmpty) {
       return CommonCardWidget(
         padding: 0,
+        cardMargin: cardMargin,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,6 +82,7 @@ class SchoolManagementSection extends StatelessWidget {
 
     return CommonCardWidget(
       padding: 0,
+      cardMargin: cardMargin,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
