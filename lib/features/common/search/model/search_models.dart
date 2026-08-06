@@ -81,6 +81,11 @@ class SearchResultItem {
   final String? deliveryBy; // e.g. "8th Jul"
   final String? warranty; // e.g. "1 year warranty by realme"
 
+  /// How many products the shop/business carries. Only shops send it — a
+  /// catalogue row never does — so the listing card renders the badge per row
+  /// instead of reserving a fixed slot for it.
+  final int? productCount;
+
   SearchResultItem({
     required this.id,
     required this.entityType,
@@ -114,6 +119,7 @@ class SearchResultItem {
     this.stockLabel,
     this.deliveryBy,
     this.warranty,
+    this.productCount,
   });
 
   factory SearchResultItem.fromJson(Map<String, dynamic> j) => SearchResultItem(
@@ -154,6 +160,10 @@ class SearchResultItem {
         stockLabel: j['stockLabel'] as String?,
         deliveryBy: (j['deliveryBy'] ?? j['delivery']) as String?,
         warranty: j['warranty'] as String?,
+        productCount: _toInt(j['productCount'] ??
+            j['totalProductCount'] ??
+            j['productsCount'] ??
+            j['itemCount']),
       );
 
   static num? _toNum(dynamic v) =>
@@ -202,6 +212,30 @@ class SearchResultItem {
   /// True when there is a genuine struck-through MRP above the price.
   bool get hasDiscount =>
       mrp != null && price != null && mrp! > price! && (discountPercent ?? 0) > 0;
+
+  /// "10K" / "1.2L" — the product count abbreviated for the listing badge.
+  /// Null when the row carries no count (or a zero one), so the badge is
+  /// dropped rather than rendered as an empty box.
+  String? get productCountLabel {
+    final count = productCount;
+    if (count == null || count <= 0) return null;
+    return formatCompactCount(count);
+  }
+
+  /// Indian-style short form for large counts: 10,000 -> "10K",
+  /// 1,20,000 -> "1.2L", 2,00,00,000 -> "2Cr". A trailing ".0" is dropped so
+  /// round numbers stay narrow inside the badge.
+  static String formatCompactCount(int value) {
+    if (value < 1000) return '$value';
+    if (value < 100000) return '${_trimDecimal(value / 1000)}K';
+    if (value < 10000000) return '${_trimDecimal(value / 100000)}L';
+    return '${_trimDecimal(value / 10000000)}Cr';
+  }
+
+  static String _trimDecimal(double v) {
+    final s = v.toStringAsFixed(1);
+    return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
+  }
 }
 
 class SearchResponse {

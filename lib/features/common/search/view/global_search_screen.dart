@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/search/controller/global_search_controll
 import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:BlueEra/features/common/search/view/product_inquiry_bottom_sheet.dart';
+import 'package:BlueEra/features/common/search/widget/search_result_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -781,7 +782,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         children: [
           _resultsHeaderBar(),
           _appliedFiltersChip(),
-          Expanded(child: _resultsList()),
+          // Tinted backdrop so the white result cards read as separate cards
+          // rather than as one flat sheet (as in the reference design).
+          Expanded(
+            child: Container(
+              color: AppColors.whiteF9,
+              child: _resultsList(),
+            ),
+          ),
         ],
       );
     });
@@ -826,7 +834,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                   '${AppStrings.searchCatAll.tr} (${controller.totalLabel.value})',
                   active == null, () => controller.selectType(null)),
               for (final e in entries)
-                _chip('${_entityLabel(e.key)} (${e.value})', active == e.key,
+                _chip('${searchEntityLabel(e.key)} (${e.value})', active == e.key,
                     () => controller.selectType(e.key)),
             ],
           ],
@@ -1012,28 +1020,32 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               : null,
         );
       }
-      // Two-column grid (Flipkart-style) for the results. Product entities get
-      // the rich product tile; other entity types fall back to a compact card.
-      // A CustomScrollView keeps the paginating footer full-width below the grid.
+      // Single-column listing card (docs/saerch_cat_view.png): avatar, title,
+      // rating · category, distance · address and a trailing count/price badge.
+      // A CustomScrollView keeps the paginating footer below the list.
       return CustomScrollView(
         controller: _scrollController,
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.all(SizeConfig.size12),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: SizeConfig.size12,
-                crossAxisSpacing: SizeConfig.size12,
-                mainAxisExtent: 290,
-              ),
+            padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12, SizeConfig.size12, SizeConfig.size12, 0),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (_, i) {
                   final item = items[i];
-                  return _isProductType(item.entityType)
-                      ? _productGridCard(item)
-                      : _resultGridCard(item);
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: SizeConfig.size12),
+                    child: SearchResultCard(
+                      item: item,
+                      // Products keep the richer enquiry sheet (photo, pricing,
+                      // variants, nearby sellers); every other entity type goes
+                      // through _openResult.
+                      onTap: () => isSearchProductType(item.entityType)
+                          ? showProductInquiryBottomSheet(context, item)
+                          : _openResult(item),
+                    ),
+                  );
                 },
                 childCount: items.length,
               ),
@@ -1053,263 +1065,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     });
   }
 
-  static const Set<String> _productTypes = {
-    'product',
-    'variant',
-    'grocery_product',
-  };
-
-  bool _isProductType(String entityType) => _productTypes.contains(entityType);
-
-  // ── Product grid tile (Flipkart-style, 2-per-row) ───────────────────
-  Widget _productGridCard(SearchResultItem item) {
-    final green = Colors.green.shade700;
-    return InkWell(
-      // Tapping a product tile opens the Flipkart-style enquiry sheet
-      // (photo, pricing, discount, variants, highlights + nearby sellers).
-      onTap: () => showProductInquiryBottomSheet(context, item),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.greyE5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image banner with wishlist heart + optional "Sponsored" tag.
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: _gridProductImage(item.imageUrl),
-                ),
-                if (item.sponsored)
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: CustomText(
-                        AppStrings.globalSearchSponsored.tr,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ),
-                Positioned(top: 2, right: 2, child: _WishlistHeart()),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      item.title,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (item.rating != null) ...[
-                      const SizedBox(height: 6),
-                      _gridRatingRow(item, green),
-                    ],
-                    if (item.locationLine.isNotEmpty)
-                      _locationLine(item.locationLine),
-                    const Spacer(),
-                    if (item.price != null) _gridPriceBlock(item, green),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _gridProductImage(String? url) {
-    final placeholder = Container(
-      height: 150,
-      width: double.infinity,
-      color: AppColors.whiteF9,
-      alignment: Alignment.center,
-      child: const Icon(Icons.shopping_bag_outlined,
-          color: AppColors.secondaryTextColor, size: 38),
-    );
-    return (url != null && url.isNotEmpty)
-        ? CachedNetworkImage(
-            imageUrl: url,
-            height: 150,
-            width: double.infinity,
-            fit: BoxFit.contain,
-            placeholder: (_, __) => placeholder,
-            errorWidget: (_, __, ___) => placeholder,
-          )
-        : placeholder;
-  }
-
-  Widget _gridRatingRow(SearchResultItem item, Color green) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-            color: green,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                item.rating!.toStringAsFixed(1),
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-              ),
-              const SizedBox(width: 2),
-              const Icon(Icons.star, size: 11, color: AppColors.white),
-            ],
-          ),
-        ),
-        if (item.ratingCount != null) ...[
-          const SizedBox(width: 4),
-          Flexible(
-            child: CustomText(
-              '(${item.ratingCount})',
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-        if (item.assured) ...[
-          const SizedBox(width: 4),
-          Icon(Icons.verified, size: 14, color: AppColors.blue5CAF),
-        ],
-      ],
-    );
-  }
-
-  Widget _gridPriceBlock(SearchResultItem item, Color green) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CustomText(
-              '₹${SearchResponse.formatPrice(item.price)}',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-            ),
-            if (item.hasDiscount) ...[
-              const SizedBox(width: 6),
-              Flexible(
-                child: CustomText(
-                  '₹${SearchResponse.formatPrice(item.mrp)}',
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  decoration: TextDecoration.lineThrough,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (item.hasDiscount)
-          CustomText(
-            AppStrings.globalSearchDiscountFmt
-                .trParams({'percent': '${item.discountPercent}'}),
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w700,
-            color: green,
-          ),
-      ],
-    );
-  }
-
-  // ── Non-product result tile (compact, for the grid) ─────────────────
-  Widget _resultGridCard(SearchResultItem item) {
-    return InkWell(
-      onTap: () => _openResult(item),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.greyE5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(child: _thumb(item.imageUrl, item.entityType)),
-            const SizedBox(height: 10),
-            CustomText(
-              item.title,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              CustomText(
-                item.subtitle!,
-                fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (item.locationLine.isNotEmpty) _locationLine(item.locationLine),
-            const SizedBox(height: 8),
-            _typeBadge(item.entityType),
-            const Spacer(),
-            if (item.price != null)
-              CustomText(
-                '₹${SearchResponse.formatPrice(item.price)}',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _typeBadge(String entityType) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: AppColors.blue5CAF.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: CustomText(
-        _entityLabel(entityType),
-        fontSize: SizeConfig.small,
-        color: AppColors.blue5CAF,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-
   Widget _thumb(String? url, String entityType) {
     final bool isPerson = entityType == 'user' || entityType == 'business';
     final radius = isPerson ? 24.0 : 8.0;
@@ -1318,7 +1073,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       height: 48,
       color: AppColors.greyE5,
       alignment: Alignment.center,
-      child: Icon(_entityIcon(entityType),
+      child: Icon(searchEntityIcon(entityType),
           color: AppColors.secondaryTextColor, size: 22),
     );
     return ClipRRect(
@@ -1392,86 +1147,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   /// Handle a result tap. Product-type results open the existing self-pickup
-  /// order flow (add to cart → [GrocerySelfPickUpCartScreen] → place order).
-  /// Other entity types aren't wired into the app's detail screens yet, so
-  /// they surface safely as a snackbar without touching any existing flow.
+  /// order flow (add to cart → [GrocerySelfPickUpCartScreen] → place order);
+  /// people and shops open their profile screen. Anything else still has no
+  /// detail screen wired, so it surfaces as a snackbar.
   void _openResult(SearchResultItem item) {
-    if (_isProductType(item.entityType)) {
+    if (isSearchProductType(item.entityType)) {
       controller.openProductOrder(item);
       return;
     }
-    commonSnackBar(message: item.title);
-  }
-
-  String _entityLabel(String type) {
-    switch (type) {
-      case 'product':
-      case 'variant':
-        return AppStrings.searchEntityProduct.tr;
-      case 'grocery_product':
-        return AppStrings.searchEntityGrocery.tr;
-      case 'grocery_shop':
-        return AppStrings.searchEntityGroceryShop.tr;
-      case 'user':
-        return AppStrings.searchEntityPeople.tr;
-      case 'business':
-        return AppStrings.searchEntityBusiness.tr;
-      case 'service':
-        return AppStrings.searchEntityService.tr;
-      default:
-        // New entity types ship server-side without a client release, so an
-        // unknown one falls back to its own (untranslated) name rather than
-        // rendering blank.
-        return type.isEmpty
-            ? AppStrings.searchEntityResult.tr
-            : '${type[0].toUpperCase()}${type.substring(1)}';
-    }
-  }
-
-  IconData _entityIcon(String type) {
-    switch (type) {
-      case 'product':
-      case 'variant':
-        return Icons.shopping_bag_outlined;
-      case 'grocery_product':
-      case 'grocery_shop':
-        return Icons.local_grocery_store_outlined;
-      case 'user':
-        return Icons.person_outline;
-      case 'business':
-        return Icons.storefront_outlined;
-      case 'service':
-        return Icons.handyman_outlined;
-      default:
-        return Icons.search;
-    }
-  }
-}
-
-/// Wishlist heart shown on each product card. Toggles locally only — there is
-/// no wishlist backend for search results yet, so it's a purely visual
-/// affordance matching the reference (outline → filled red on tap).
-class _WishlistHeart extends StatefulWidget {
-  @override
-  State<_WishlistHeart> createState() => _WishlistHeartState();
-}
-
-class _WishlistHeartState extends State<_WishlistHeart> {
-  bool _liked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _liked = !_liked),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8, top: 2),
-        child: Icon(
-          _liked ? Icons.favorite : Icons.favorite_border,
-          size: 22,
-          color: _liked ? const Color(0xFFC2185B) : AppColors.secondaryTextColor,
-        ),
-      ),
-    );
+    controller.openProfile(item);
   }
 }
