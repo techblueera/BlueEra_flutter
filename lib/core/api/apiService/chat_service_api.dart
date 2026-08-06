@@ -103,4 +103,14 @@ mixin ChatServiceApi {
   // only lists *your own* QRs) — assumed endpoint, TODO: confirm with backend.
   String paymentQrByUser(String userId) =>
       'chat-service/payment-qr/user/$userId';
+
+  // ── Help / support inquiry ───────────────────────────────────────────────
+  // Backs the floating help bubble on Discover. `supportQuestions` returns
+  // ready-made questions tailored server-side to the caller's account type and
+  // business category / profession (bilingual en+hi), plus the id of an
+  // existing support thread when the user has already asked something.
+  // `supportInquiry` starts (or reuses) that thread with the question as its
+  // first message. See lib/docs/HELP_WIDGET_FLUTTER_GUIDE.md.
+  final String supportQuestions = 'chat-service/support/questions';
+  final String supportInquiry = 'chat-service/support/inquiry';
 }

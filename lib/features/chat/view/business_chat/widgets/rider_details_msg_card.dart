@@ -2,17 +2,18 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../auth/repo/chat_view_repo.dart';
+import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../widget/component_widgets.dart';
-import 'track_rider_live_location_page.dart';
 
 class RiderDetailsMsgCard extends StatefulWidget {
   final Messages message;
@@ -32,31 +33,188 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
   final orderController = Get.isRegistered<OrderNowController>()
       ? Get.find<OrderNowController>()
       : Get.put(OrderNowController());
-  final chatViewController = Get.find<ChatViewController>();
 
-  /// Open the live rider-tracking map (mirrors the `rider_map` card's "Track
-  /// Order" action). Confirms the ride is still active first; on back the
-  /// tracking page minimises into the app-wide floating mini-map.
-  Future<void> _openRideTracking(Rider? rider) async {
-    final order = widget.message.metadata?.order;
-    final orderId = order?.id;
-    final double dropLat =
-        order?.dropLocation?.location?.coordinates?[1] ?? 26.7836;
-    final double dropLng =
-        order?.dropLocation?.location?.coordinates?[0] ?? 80.9013;
+  /// Backend order statuses that mean the ride is under way — i.e. the customer
+  /// has already handed the pickup OTP to the rider.
+  ///
+  /// State machine (RIDER_FRONTEND_INTEGRATION_GUIDE §"status"):
+  /// `pending → payment-pending → confirmed → in-progress → picked-up →
+  /// completed`. The OTP is what moves it to `in-progress`, and it stays
+  /// started through `picked-up`.
+  static const Set<String> _startedStatuses = {'in-progress', 'picked-up'};
 
-    final bool active =
-        await chatViewController.checkTrackOrderStatusApi("$orderId");
-    if (active) {
-      Get.to(() => TrackRiderLiveLocationPage(
-            riderId: rider?.userId ?? '',
-            dropLat: dropLat,
-            dropLng: dropLng,
-            orderId: orderId,
-          ));
-    } else {
-      commonSnackBar(message: "Ride has been Completed");
+  /// Whether the ride is under way, i.e. the OTP has been handed over. Null
+  /// until the first status read lands — the action row keeps offering Cancel
+  /// while unknown, since cancelling a ride that has already started fails
+  /// server-side, whereas hiding the option from someone still waiting for
+  /// their rider would strand them.
+  bool? _rideStarted;
+
+  @override
+  void initState() {
+    super.initState();
+    // Old cards are read-only (their buttons are disabled anyway), so there is
+    // nothing worth a request for.
+    if (!_isExpired) _refreshRideState();
+  }
+
+  bool get _isExpired => isMessageOlderThan24Hours(widget.message.createdAt,
+      maxAge: const Duration(days: 7));
+
+  String get _orderId => (widget.message.metadata?.order?.id ?? '').toString();
+
+  /// One read of `rider-location`, which carries `rideActive`, the order
+  /// `status` and the rider's coordinates together. Returns the payload so the
+  /// caller can use the position too, and records the started/not-started
+  /// answer on the way through so the action row can re-label itself.
+  Future<Map<dynamic, dynamic>?> _refreshRideState() async {
+    if (_orderId.isEmpty) return null;
+    try {
+      final response = await ChatViewRepo().getRiderLiveLocationApi(_orderId);
+      if (!response.isSuccess) return null;
+      final data = _locationPayload(response.response?.data);
+      if (data == null) return null;
+
+      final status = (data['status'] ?? '')
+          .toString()
+          .toLowerCase()
+          .replaceAll('_', '-')
+          .trim();
+      final started = _startedStatuses.contains(status);
+      if (mounted && started != _rideStarted) {
+        setState(() => _rideStarted = started);
+      }
+      return data;
+    } catch (_) {
+      return null;
     }
+  }
+
+  /// "Track Order" → hand off to the phone's Google Maps.
+  ///
+  /// Which leg it opens depends on where the ride is, because the customer is
+  /// asking a different question either side of the OTP:
+  ///
+  ///   • **Before the OTP is shared** — "where is my rider?" → directions from
+  ///     the customer to the rider's LIVE position.
+  ///   • **After the OTP is shared** — the rider is already with them and what
+  ///     matters is the trip → directions from the customer to the DROP.
+  ///
+  /// Both omit the origin so Google Maps fills in the device's own location:
+  /// that is the "from me" both cases want, and it avoids a location-permission
+  /// round-trip here.
+  ///
+  /// One request answers all of it — `rider-location` returns `rideActive`, the
+  /// order `status` and the rider's coordinates together (see
+  /// [RiderLocationPollController], which polls the same endpoint).
+  Future<void> _openRideTracking() async {
+    final order = widget.message.metadata?.order;
+    if (_orderId.isEmpty) {
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+
+    // Re-read rather than trusting the value from mount: the ride may have
+    // started in the meantime, which flips which leg this button should open.
+    final data = await _refreshRideState();
+    if (data == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+
+    // Terminal ride — there is no leg left to draw.
+    if (data['rideActive'] == false) {
+      commonSnackBar(message: "Ride has been Completed");
+      return;
+    }
+
+    final target =
+        (_rideStarted ?? false) ? _dropLatLng(order) : _riderLatLng(data);
+
+    if (target == null) {
+      // Deliberately NOT falling back to a default coordinate: sending someone
+      // navigating to the wrong city is worse than telling them we don't know
+      // yet. A rider fix usually lands within a poll or two of assignment.
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+
+    try {
+      await openGoogleMapsDirections(
+        destinationLat: target.$1,
+        destinationLng: target.$2,
+      );
+    } catch (_) {
+      commonSnackBar(message: AppStrings.couldNotOpenGoogleMaps.tr);
+    }
+  }
+
+  /// Share the ride's details out of the app.
+  ///
+  /// Replaces Cancel Ride once the ride has started, because the two actions
+  /// belong to opposite halves of the trip: before the OTP the useful action is
+  /// backing out, and after it the ride can no longer be cancelled — what a
+  /// passenger reaches for then is telling someone where they are and who they
+  /// are with.
+  ///
+  /// Plain text rather than a tracking link: there is no public
+  /// track-this-ride URL to hand out, and a share that silently dropped the
+  /// tracking would be worse than one that never promised it.
+  Future<void> _shareRideInfo(Rider? rider) async {
+    final order = widget.message.metadata?.order;
+    final pickup = order?.pickupLocation?.address;
+    final drop = order?.dropLocation?.address;
+
+    final lines = <String>[
+      AppStrings.shareRideInfoHeading.tr,
+      if ((rider?.name ?? '').isNotEmpty)
+        '${AppStrings.riderLabel.tr}: ${rider!.name}'
+            '${(rider.contactNo ?? '').isNotEmpty ? ' (${rider.contactNo})' : ''}',
+      if ((pickup ?? '').isNotEmpty) '${AppStrings.pickupLabel.tr}: $pickup',
+      if ((drop ?? '').isNotEmpty) '${AppStrings.dropLabel.tr}: $drop',
+      if (_orderId.isNotEmpty) '${AppStrings.orderIdLabel.tr}: $_orderId',
+    ];
+
+    try {
+      await SharePlus.instance.share(ShareParams(text: lines.join('\n')));
+    } catch (_) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    }
+  }
+
+  /// The rider's last known position from the location payload.
+  (double, double)? _riderLatLng(Map<dynamic, dynamic> data) {
+    final rider = data['rider'];
+    if (rider is! Map) return null;
+    final lat = (rider['latitude'] as num?)?.toDouble();
+    final lng = (rider['longitude'] as num?)?.toDouble();
+    if (lat == null || lng == null || (lat == 0 && lng == 0)) return null;
+    return (lat, lng);
+  }
+
+  /// The order's drop, as `[lng, lat]` GeoJSON on the message metadata.
+  (double, double)? _dropLatLng(dynamic order) {
+    final coords = order?.dropLocation?.location?.coordinates;
+    if (coords is! List || coords.length < 2) return null;
+    final lng = (coords[0] as num?)?.toDouble();
+    final lat = (coords[1] as num?)?.toDouble();
+    if (lat == null || lng == null || (lat == 0 && lng == 0)) return null;
+    return (lat, lng);
+  }
+
+  /// The poll fields sit at the root, but some gateway responses wrap them in
+  /// `{ data: {...} }`. Accept either — same rule
+  /// [RiderLocationPollController] applies.
+  Map<dynamic, dynamic>? _locationPayload(dynamic body) {
+    if (body is! Map) return null;
+    final inner = body['data'];
+    if (inner is Map &&
+        (inner.containsKey('rideActive') ||
+            inner.containsKey('rider') ||
+            inner.containsKey('status'))) {
+      return inner;
+    }
+    return body;
   }
 
   @override
@@ -66,6 +224,9 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
         maxAge: const Duration(days: 7));
     final Color actionColor =
         isExpired ? AppColors.grayText : AppColors.primaryColor;
+    // Unknown (first paint, before the status read lands) keeps Cancel — see
+    // [_rideStarted].
+    final bool rideStarted = _rideStarted ?? false;
 
     return InkWell(
       onTap: () {},
@@ -171,9 +332,11 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
               height: 1,
               color: Colors.grey,
             ),
-            // Single action row: Track Order opens the live tracking map (on
-            // back it minimises into the app-wide floating mini-map so the ride
-            // keeps tracking); Cancel Ride confirms then cancels the order.
+            // Single action row. Track Order hands off to Google Maps — the
+            // rider before the OTP, the drop after it. The second slot follows
+            // the same split: Cancel Ride while the ride can still be called
+            // off, Share Ride Info once it is under way and cancelling is no
+            // longer possible.
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -185,7 +348,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                   Expanded(
                     child: TextButton.icon(
                       onPressed:
-                          isExpired ? null : () => _openRideTracking(rider),
+                          isExpired ? null : () => _openRideTracking(),
                       icon: SvgPicture.asset(
                         AppIconAssets.location_new,
                         color: actionColor,
@@ -203,23 +366,40 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                     color: AppColors.grayText.withValues(alpha: 0.4),
                   ),
                   Expanded(
-                    child: TextButton.icon(
-                      onPressed: isExpired
-                          ? null
-                          : () {
-                              _confirmCancelRide(context);
-                            },
-                      icon: Icon(
-                        Icons.cancel_outlined,
-                        color: isExpired ? AppColors.grayText : AppColors.red,
-                        size: 20,
-                      ),
-                      label: CustomText(
-                        AppStrings.cancelRide.tr,
-                        color: isExpired ? AppColors.grayText : AppColors.red,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                    child: rideStarted
+                        ? TextButton.icon(
+                            onPressed:
+                                isExpired ? null : () => _shareRideInfo(rider),
+                            icon: Icon(
+                              Icons.ios_share_rounded,
+                              color: actionColor,
+                              size: 20,
+                            ),
+                            label: CustomText(
+                              AppStrings.shareRideInfo.tr,
+                              color: actionColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          )
+                        : TextButton.icon(
+                            onPressed: isExpired
+                                ? null
+                                : () {
+                                    _confirmCancelRide(context);
+                                  },
+                            icon: Icon(
+                              Icons.cancel_outlined,
+                              color:
+                                  isExpired ? AppColors.grayText : AppColors.red,
+                              size: 20,
+                            ),
+                            label: CustomText(
+                              AppStrings.cancelRide.tr,
+                              color:
+                                  isExpired ? AppColors.grayText : AppColors.red,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                   ),
                 ],
               ),

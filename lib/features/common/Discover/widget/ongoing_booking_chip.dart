@@ -1,12 +1,17 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
+import 'package:BlueEra/features/ride_booking/widget/rider_call_options_sheet.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
@@ -16,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Customer-side "Your Ongoing Ride/Booking" chip that sits directly under the
 /// Discover search bar (see `assets/ongoing_ride.jpeg`).
@@ -50,21 +54,30 @@ class OngoingBookingChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Both controllers are created by their own flows — never construct them
-    // here, or Discover would spin up a ride controller for a user who has
-    // never booked anything.
-    final RideBookingController? rideCtrl =
-        Get.isRegistered<RideBookingController>()
-            ? Get.find<RideBookingController>()
-            : null;
-    final RideNavigationOverlayController? overlayCtrl =
-        Get.isRegistered<RideNavigationOverlayController>()
-            ? Get.find<RideNavigationOverlayController>()
-            : null;
-
-    if (rideCtrl == null && overlayCtrl == null) return const SizedBox.shrink();
-
     return Obx(() {
+      // Subscribed to FIRST, and unconditionally: it is the only observable
+      // that exists before either ride controller does. Without it a Discover
+      // built before the restorer finishes has nothing to listen to, so a ride
+      // that arrives moments later can never repaint this chip.
+      ongoingRideRevision.value;
+
+      // Resolved INSIDE the Obx so every rebuild re-checks registration.
+      // Hoisting these (as this used to) captures whatever was registered on
+      // the very first build — typically neither, on a cold start — and the
+      // chip then stays empty for the life of the screen.
+      //
+      // Still only ever *found*, never created: constructing a ride controller
+      // from a Discover render would spin one up for a user who has never
+      // booked anything.
+      final RideBookingController? rideCtrl =
+          Get.isRegistered<RideBookingController>()
+              ? Get.find<RideBookingController>()
+              : null;
+      final RideNavigationOverlayController? overlayCtrl =
+          Get.isRegistered<RideNavigationOverlayController>()
+              ? Get.find<RideNavigationOverlayController>()
+              : null;
+
       final data = _resolve(rideCtrl, overlayCtrl);
       if (data == null) return const SizedBox.shrink();
       return Padding(
@@ -106,10 +119,10 @@ class OngoingBookingChip extends StatelessWidget {
   ) {
     if (booking.status == RideStatus.completed) {
       return _ChipData(
-        title: 'Your Ride Completed',
+        title: AppStrings.yourRideCompleted.tr,
         subtitle: booking.captain?.hasName == true
-            ? '${booking.captain!.name} · Tap to rate & view receipt'
-            : 'Tap to rate & view receipt',
+            ? '${booking.captain!.name} · ${AppStrings.tapToRateViewReceipt.tr}'
+            : AppStrings.tapToRateViewReceipt.tr,
         imageUrl: booking.captain?.photoUrl,
         isCompleted: true,
         onTap: () => _openCompleted(ctrl, booking, overlayCtrl),
@@ -121,10 +134,10 @@ class OngoingBookingChip extends StatelessWidget {
 
     if (!booking.status.hasCaptain) {
       return _ChipData(
-        title: 'Your Ongoing Ride/Booking',
+        title: AppStrings.yourOngoingRideBooking.tr,
         subtitle: booking.drop.title.isEmpty
-            ? 'Finding a captain for you…'
-            : 'Finding a captain · ${booking.drop.title}',
+            ? AppStrings.findingCaptainForYou.tr
+            : '${AppStrings.findingCaptain.tr} · ${booking.drop.title}',
         onTap: () => Get.to(() => const RideSearchingScreen()),
       );
     }
@@ -132,23 +145,30 @@ class OngoingBookingChip extends StatelessWidget {
     final captain = booking.captain;
     final startOtp = booking.startOtp ?? '';
     return _ChipData(
-      title: 'Your Ongoing Ride/Booking',
-      subtitle: captain?.hasName == true ? captain!.name : 'Captain',
+      title: AppStrings.yourOngoingRideBooking.tr,
+      subtitle:
+          captain?.hasName == true ? captain!.name : AppStrings.captainLabel.tr,
       imageUrl: captain?.photoUrl,
       // Only until the ride starts — after that the code has been used and
       // leaving it on screen invites the customer to read it out again.
       otp: booking.status == RideStatus.onTrip || startOtp.isEmpty
           ? null
           : startOtp,
-      otpLabel: 'Ride Start OTP',
+      otpLabel: AppStrings.rideStartOtp.tr,
       distanceLabel: _captainDistanceLabel(booking),
       trailingLabel: booking.status == RideStatus.onTrip
-          ? 'On trip'
+          ? AppStrings.onTripLabel.tr
           : (booking.pickupEtaMinutes != null && booking.pickupEtaMinutes! > 0
-              ? '${booking.pickupEtaMinutes} min'
+              ? '${booking.pickupEtaMinutes} ${AppStrings.min.tr}'
               : null),
       phone: captain?.phone,
       riderUserId: captain?.id,
+      // Same two ends `_captainDistanceLabel` measures, so tapping the number
+      // opens Maps on the leg it describes.
+      distanceOriginLat: captain?.latitude,
+      distanceOriginLng: captain?.longitude,
+      distanceDestLat: _legTarget(booking).latitude,
+      distanceDestLng: _legTarget(booking).longitude,
       onTap: () {
         // Mirrors the mini-map's own tap: drop the floating overlay first, so
         // the customer isn't left with a PiP for the screen they're now on.
@@ -173,10 +193,7 @@ class OngoingBookingChip extends StatelessWidget {
     final lng = captain?.longitude;
     if (lat == null || lng == null || (lat == 0 && lng == 0)) return null;
 
-    // Before the OTP the captain is coming to the pickup; after it, the pair
-    // are heading for the drop.
-    final target =
-        booking.status == RideStatus.onTrip ? booking.drop : booking.pickup;
+    final target = _legTarget(booking);
     if (!target.hasCoordinates) return null;
 
     final km = geo.Geolocator.distanceBetween(
@@ -189,8 +206,16 @@ class OngoingBookingChip extends StatelessWidget {
     return km <= 0 ? null : _kmLabel(km);
   }
 
+  /// The end of the leg being driven: before the OTP the captain is coming to
+  /// the pickup; after it, the pair are heading for the drop. Shared by the
+  /// distance label and the Maps hand-off so the two can't disagree about which
+  /// end they mean.
+  RidePlace _legTarget(RideBooking booking) =>
+      booking.status == RideStatus.onTrip ? booking.drop : booking.pickup;
+
   static String _kmLabel(double km) =>
-      '${km < 1 ? km.toStringAsFixed(1) : km.toStringAsFixed(0)} KM Away';
+      '${km < 1 ? km.toStringAsFixed(1) : km.toStringAsFixed(0)} '
+      '${AppStrings.kmAwayLabel.tr}';
 
   /// Open the end-of-ride summary from Discover.
   ///
@@ -240,9 +265,10 @@ class OngoingBookingChip extends StatelessWidget {
     final (otp, otpLabel) = _overlayOtp(orderId);
 
     return _ChipData(
-      title: 'Your Ongoing Ride/Booking',
-      subtitle:
-          ctrl.customerName.value.isNotEmpty ? ctrl.customerName.value : 'Rider',
+      title: AppStrings.yourOngoingRideBooking.tr,
+      subtitle: ctrl.customerName.value.isNotEmpty
+          ? ctrl.customerName.value
+          : AppStrings.riderLabel.tr,
       imageUrl: ctrl.riderImage.value.isEmpty ? null : ctrl.riderImage.value,
       distanceLabel: _overlayDistanceLabel(ctrl),
       trailingLabel: ctrl.bookingTimeLabel.value.isEmpty
@@ -252,6 +278,11 @@ class OngoingBookingChip extends StatelessWidget {
       otp: otp,
       otpLabel: otpLabel,
       riderUserId: _overlayRiderUserId(),
+      // The overlay tracks rider → pickup, which is what its distance measures.
+      distanceOriginLat: ctrl.riderLat.value,
+      distanceOriginLng: ctrl.riderLng.value,
+      distanceDestLat: ctrl.destLat.value,
+      distanceDestLng: ctrl.destLng.value,
       onTap: () {
         ctrl.hideOverlay();
         Get.to(() => FareCallQueueScreen(orderId: orderId));
@@ -295,13 +326,17 @@ class OngoingBookingChip extends StatelessWidget {
 
     if (!rideStarted) {
       if (pickupOtp.isEmpty) _hydrateOtp(dc, orderId, rideStarted);
-      return pickupOtp.isEmpty ? (null, null) : (pickupOtp, 'Ride Start OTP');
+      return pickupOtp.isEmpty
+          ? (null, null)
+          : (pickupOtp, AppStrings.rideStartOtp.tr);
     }
     if (dc.fareCallOrderFor.value.isEmpty || dc.isFareCallPassengerRide) {
       return (null, null);
     }
     if (deliveryOtp.isEmpty) _hydrateOtp(dc, orderId, rideStarted);
-    return deliveryOtp.isEmpty ? (null, null) : (deliveryOtp, 'Delivery OTP');
+    return deliveryOtp.isEmpty
+        ? (null, null)
+        : (deliveryOtp, AppStrings.deliveryOtpLabel.tr);
   }
 
   /// One fetch per order per ride phase — the chip rebuilds on every rider
@@ -357,7 +392,22 @@ class _ChipData {
     this.isCompleted = false,
     this.onDismiss,
     this.riderUserId,
+    this.distanceOriginLat,
+    this.distanceOriginLng,
+    this.distanceDestLat,
+    this.distanceDestLng,
   });
+
+  /// The two ends [distanceLabel] measures between — the captain's last known
+  /// position and whichever end of the trip is next. Tapping the distance opens
+  /// Google Maps on exactly that leg, so the map shows the same thing the
+  /// number claims. The origin is null when only the server's `distanceMeters`
+  /// is known (no captain coordinates yet); Maps then routes from the device's
+  /// own location instead.
+  final double? distanceOriginLat;
+  final double? distanceOriginLng;
+  final double? distanceDestLat;
+  final double? distanceDestLng;
 
   final String title;
   final String subtitle;
@@ -399,53 +449,26 @@ class _ChipCard extends StatelessWidget {
   /// Warm peach → mint for a live ride, green for a finished one. The tint is
   /// the fastest read on the row: the customer knows which of the two it is
   /// before the text resolves.
-  static const List<Color> _liveGradient = [
-    Color(0xFFFFF0E4),
-    Color(0xFFE7F7EC),
-  ];
-  static const List<Color> _doneGradient = [
-    Color(0xFFE7F7EC),
-    Color(0xFFEAF3FF),
-  ];
-
-  Color get _accent =>
-      data.isCompleted ? const Color(0xFF1FA463) : const Color(0xFFFF8A3D);
+  Color get _accent => data.isCompleted
+      ? OngoingStyleCard.doneAccent
+      : OngoingStyleCard.liveAccent;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: data.onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: data.isCompleted ? _doneGradient : _liveGradient,
-            ),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _accent.withValues(alpha: 0.55)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14101828),
-                blurRadius: 10,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              _leading(),
-              const SizedBox(width: 12),
-              Expanded(child: _text()),
-              const SizedBox(width: 8),
-              _trailing(),
-            ],
-          ),
-        ),
+    return OngoingStyleCard(
+      onTap: data.onTap,
+      accent: _accent,
+      gradient: data.isCompleted
+          ? OngoingStyleCard.doneGradient
+          : OngoingStyleCard.liveGradient,
+      child: Row(
+        children: [
+          _leading(),
+          const SizedBox(width: 12),
+          Expanded(child: _text()),
+          const SizedBox(width: 8),
+          _trailing(),
+        ],
       ),
     );
   }
@@ -470,6 +493,45 @@ class _ChipCard extends StatelessWidget {
       borderRadius: 23,
       showProfileOnFullScreen: false,
     );
+  }
+
+  /// Hand the leg behind the distance to the phone's Google Maps app.
+  ///
+  /// Opens the DIRECTIONS view rather than turn-by-turn navigation: the
+  /// customer isn't the one driving, so what they want is to see the line and
+  /// the ETA between the captain and where he's heading — not guidance telling
+  /// them to turn left.
+  ///
+  /// A zero coordinate means "unset" (what the geocoder and the overlay's
+  /// defaults both return), so it is treated as absent: with no captain
+  /// position Maps routes from the device's own location instead, which still
+  /// answers "how far is this".
+  Future<void> _openInGoogleMaps() async {
+    final destLat = data.distanceDestLat;
+    final destLng = data.distanceDestLng;
+    if (destLat == null || destLng == null || (destLat == 0 && destLng == 0)) {
+      // Already a literal English sentence in AppStrings, not a key.
+      commonSnackBar(message: AppStrings.locationNotAvailable);
+      return;
+    }
+
+    final originLat = data.distanceOriginLat;
+    final originLng = data.distanceOriginLng;
+    final hasOrigin = originLat != null &&
+        originLng != null &&
+        !(originLat == 0 && originLng == 0);
+
+    try {
+      await openGoogleMapsDirections(
+        destinationLat: destLat,
+        destinationLng: destLng,
+        originLat: hasOrigin ? originLat : null,
+        originLng: hasOrigin ? originLng : null,
+      );
+    } catch (_) {
+      // The helper throws when no app can handle the URL (no Maps, no browser).
+      commonSnackBar(message: AppStrings.couldNotOpenGoogleMaps.tr);
+    }
   }
 
   Widget _text() {
@@ -504,13 +566,34 @@ class _ChipCard extends StatelessWidget {
                 fontSize: SizeConfig.size12,
                 color: AppColors.grayText,
               ),
-              Icon(Icons.location_on, size: 13, color: AppColors.primaryColor),
-              const SizedBox(width: 2),
-              CustomText(
-                data.distanceLabel!,
-                fontSize: SizeConfig.size12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primaryColor,
+              // Its own tap target: the row opens in-app tracking, the distance
+              // opens Google Maps on the leg it measures. A child gesture
+              // detector wins the arena over the row's InkWell, so tapping the
+              // distance can't also fire the row.
+              InkWell(
+                onTap: _openInGoogleMaps,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 2, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.location_on,
+                          size: 13, color: AppColors.primaryColor),
+                      const SizedBox(width: 2),
+                      CustomText(
+                        data.distanceLabel!,
+                        fontSize: SizeConfig.size12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primaryColor,
+                        // Underlined so it reads as the one tappable word in a
+                        // row that is otherwise all labels.
+                        decoration: TextDecoration.underline,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ],
@@ -518,7 +601,7 @@ class _ChipCard extends StatelessWidget {
         if ((data.otp?.isNotEmpty ?? false)) ...[
           const SizedBox(height: 6),
           _BlinkingOtpPill(
-            label: data.otpLabel ?? 'OTP',
+            label: data.otpLabel ?? AppStrings.otp.tr,
             otp: data.otp!,
           ),
         ],
@@ -541,11 +624,22 @@ class _ChipCard extends StatelessWidget {
         color: AppColors.secondaryTextColor,
         onTap: data.onDismiss ?? data.onTap,
       );
-    } else if (data.phone != null && data.phone!.isNotEmpty) {
+    } else if ((data.phone?.isNotEmpty ?? false) ||
+        (data.riderUserId?.isNotEmpty ?? false)) {
+      // Either route can carry the call, so the button appears whenever ONE of
+      // them is available — the sheet then offers only what can actually be
+      // placed. It used to require a phone number, which hid the button
+      // entirely on rides where we know the captain's user id but not their
+      // number, even though an in-app call was possible the whole time.
       action = _circleButton(
         icon: Icons.call,
         color: const Color(0xFF1FA463),
-        onTap: () => launchUrl(Uri(scheme: 'tel', path: data.phone!)),
+        onTap: () => showRiderCallOptionsSheet(
+          riderName: data.subtitle,
+          riderUserId: data.riderUserId,
+          phone: data.phone,
+          photoUrl: data.imageUrl,
+        ),
       );
     } else {
       action = _circleButton(
@@ -680,7 +774,8 @@ class _BlinkingOtpPillState extends State<_BlinkingOtpPill>
           borderRadius: BorderRadius.circular(8),
           onTap: () {
             Clipboard.setData(ClipboardData(text: widget.otp));
-            commonSnackBar(message: '${widget.label} copied');
+            commonSnackBar(
+                message: '${widget.label} ${AppStrings.copiedLabel.tr}');
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

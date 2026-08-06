@@ -8,6 +8,8 @@ import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
+import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
+import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
@@ -443,19 +445,84 @@ class RideBookingController extends GetxController {
 
   // ------------------------------------------------------------- lifecycle
 
+  /// Mirrors every [activeBooking] change into [OngoingRideStore].
+  Worker? _persistWorker;
+
   @override
   void onInit() {
     super.onInit();
     _bootstrapLocation();
     // Saved first, so the hearts are already correct when recents render.
     loadSavedPlaces().then((_) => loadRecentPlaces());
+    // One writer for the whole lifecycle. Every path that moves the booking —
+    // create, status poll, socket winner, fare raise, cancel, reset — goes
+    // through `activeBooking`, so persisting from here is the only way the
+    // snapshot can't silently fall behind one of them.
+    _persistWorker = ever<RideBooking?>(activeBooking, _persistBooking);
   }
 
   @override
   void onClose() {
+    _persistWorker?.dispose();
     _searchDebounce?.cancel();
     _stopAllPolling();
     super.onClose();
+  }
+
+  // ------------------------------------------------- ongoing-ride snapshot
+
+  /// Write (or drop) the ongoing-ride snapshot behind the Discover card.
+  ///
+  /// A finished ride is cleared rather than stored: the card is for a ride in
+  /// flight, and a completed/cancelled snapshot would resurrect a dead ride on
+  /// the next launch. The completed *receipt* row on the chip is deliberately
+  /// session-only for the same reason — it is a prompt to rate what just
+  /// happened, not something to greet the user with days later.
+  void _persistBooking(RideBooking? booking) {
+    // Wake any ongoing-ride card that was built before this controller existed
+    // — on a cold start the Discover chip has no ride controller to watch, so
+    // this signal is how a restored or freshly-booked ride reaches it.
+    bumpOngoingRideRevision();
+
+    if (booking == null || !booking.status.isActive) {
+      OngoingRideStore.clear();
+      return;
+    }
+    OngoingRideStore.save({
+      OngoingRideStore.flowKey: OngoingRideStore.flowRideBooking,
+      ...booking.toStoreJson(),
+    });
+  }
+
+  /// Rebuild an in-flight ride from the snapshot after an app relaunch, and
+  /// resume the polls that keep the card live.
+  ///
+  /// Returns false when there is nothing to restore — a ride already tracked
+  /// this session, no snapshot, or a snapshot from the legacy transport flow
+  /// (which [OngoingRideRestorer] handles instead). The restored booking is
+  /// optimistic: `startStatusPolling` confirms it against the server within a
+  /// tick or two and `_applyStatus` clears it if the ride has since ended.
+  Future<bool> restoreOngoingRide() async {
+    if (activeBooking.value != null) return false;
+
+    final snap = await OngoingRideStore.read();
+    if (snap == null) return false;
+    if (snap[OngoingRideStore.flowKey] != OngoingRideStore.flowRideBooking) {
+      return false;
+    }
+
+    final booking = RideBooking.fromStoreJson(snap);
+    if (booking == null || !booking.status.isActive) {
+      await OngoingRideStore.clear();
+      return false;
+    }
+
+    activeBooking.value = booking;
+    // Both polls are needed: status decides when the ride ends, the captain
+    // poll is what makes the restored card's distance/ETA move again.
+    startStatusPolling();
+    if (booking.status.hasCaptain) _startCaptainPolling();
+    return true;
   }
 
   void _stopAllPolling() {
