@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -123,8 +122,9 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                     .map((c) => StickyCategory(
                           id: c.tagId ?? '',
                           name: c.name ?? '',
-                          imageUrl: getServiceCategoryIcon(c.tagId),
-                          // imageUrl: c.imageUrl,
+                          // The API's own artwork — see the note in
+                          // products_store_discover_screen.dart.
+                          imageUrl: c.imageUrl,
                         ))
                     .toList(),
                 selectedId: _categories.isNotEmpty && _selectedIndex.value < _categories.length

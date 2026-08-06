@@ -644,13 +644,21 @@ class _PlanCardState extends State<_PlanCard>
                       // Only when tax actually applies. The guide is explicit:
                       // never render a tax line for a pre-GST or legacy user,
                       // and never print "GST 0%".
-                      if (!zeroDeposit && gst > 0)
+                      if (!zeroDeposit && gst > 0) ...[
+                        SizedBox(height: SizeConfig.size4),
+                        // 13px, not the 9px this shared with the caption above
+                        // it. That size is fine for a static label nobody needs
+                        // to read twice — this is the breakdown of what the
+                        // customer is about to be charged, and it was set small
+                        // enough to be mistaken for one. Darker ink for the same
+                        // reason.
                         CustomText(
                           '₹${_rupees(plan.depositAmount)} + ₹${_rupees(gst)} GST',
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryTextColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
                         ),
+                      ],
                     ],
                   );
                 }),

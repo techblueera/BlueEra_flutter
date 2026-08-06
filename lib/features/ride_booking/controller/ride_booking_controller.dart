@@ -8,6 +8,7 @@ import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
@@ -318,11 +319,31 @@ class RideBookingController extends GetxController {
   /// decides the order it wants to show, the catalogue decides what exists.
   /// Unknown codes are dropped, so a type the backend has retired disappears
   /// from the screen without a release.
+  ///
+  /// Two sources, unioned, and the fare catalog wins on EXISTENCE:
+  ///
+  ///  * [vehicleOptions] — the `fare/riders/dynamic` answer for the current
+  ///    trip. `allVehicleTypes=true` makes it list every type the server will
+  ///    price, so if a fare came back for a code, that code is bookable, full
+  ///    stop. This is the fresher answer and it is per-trip.
+  ///  * [vehicleTypes] — `riders/onboarding/vehicle-enums`. Still the source of
+  ///    DISPLAY NAMES (`slug_value`), and still the only catalogue there is for
+  ///    a section quoting a different `orderFor` than the one in flight, or
+  ///    before any trip exists.
+  ///
+  /// The union is what matters: a priced type missing from the enum used to
+  /// vanish from the grid — the enum call failing, or lagging a server-side
+  /// addition, silently cost the user a vehicle the backend was happy to quote.
+  /// Such a type is now shown, named from [kVehicleTypeNames].
   List<RideVehicleType> vehicleTypesFor(List<String> codes) {
     final byCode = {for (final v in vehicleTypes) v.code: v};
+    final priced = {for (final option in vehicleOptions) option.code};
     return [
       for (final code in codes)
-        if (byCode[code] != null) byCode[code]!,
+        if (byCode[code] case final known?)
+          known
+        else if (priced.contains(code))
+          RideVehicleType(code: code, label: _nameForVehicleType(code)),
     ];
   }
 
@@ -340,9 +361,14 @@ class RideBookingController extends GetxController {
   // ---------------------------------------------------------------- location
 
   /// Where the user currently is — the initial map centre and the default
-  /// pickup before they change it.
+  /// pickup before they change it. `0,0` means "no fix yet", not the Gulf of
+  /// Guinea: every reader gates on it.
   final currentLat = 0.0.obs;
   final currentLng = 0.0.obs;
+
+  /// A device fix is being resolved right now. Lets a screen say "Locating…"
+  /// instead of presenting a fallback centre as though it were the answer.
+  final isLocating = false.obs;
 
   // ------------------------------------------------------------------- trip
 
@@ -473,6 +499,8 @@ class RideBookingController extends GetxController {
   /// the user can still type a pickup manually, so a denied permission must
   /// not block the screen.
   Future<void> _bootstrapLocation() async {
+    if (isLocating.value) return;
+    isLocating.value = true;
     try {
       final Position? position = await getCurrentLocation();
       if (position == null) return;
@@ -486,7 +514,24 @@ class RideBookingController extends GetxController {
       );
     } catch (_) {
       // Non-fatal — manual pickup entry still works.
+    } finally {
+      isLocating.value = false;
     }
+  }
+
+  /// Resolve the device position if we still don't have one.
+  ///
+  /// [_bootstrapLocation] runs ONCE, from `onInit`. This controller outlives
+  /// every screen in the flow, so a fix that failed then — permission not yet
+  /// granted, location services off, a timeout on a cold GPS — never got a
+  /// second chance, and [currentLat]/[currentLng] stayed at 0 for the rest of
+  /// the session. Screens that must open on the user call this on entry.
+  ///
+  /// Cheap when a fix is already in hand: it returns without touching the
+  /// device. Concurrent calls collapse onto the one in flight.
+  Future<void> ensureCurrentLocation() async {
+    if (currentLat.value != 0 || currentLng.value != 0) return;
+    await _bootstrapLocation();
   }
 
   // ------------------------------------------------------------------ home
@@ -771,11 +816,77 @@ class RideBookingController extends GetxController {
     this.orderFor.value = orderFor;
   }
 
+  /// The pickup→drop pair, as a key. Every fare on screen is priced for THIS
+  /// route; change either end and all of them are wrong.
+  String get _tripRouteKey {
+    final from = pickup.value;
+    final to = drop.value;
+    return '${from?.latitude},${from?.longitude}'
+        '>${to?.latitude},${to?.longitude}';
+  }
+
+  /// What makes a quote unique: the two ends and the trip type. Same signature
+  /// = the same question for the server, so the answer can be shared.
+  String get _quoteSignature => 'quote|$_tripRouteKey|${orderFor.value}';
+
+
+  /// Skips a refetch when the catalog on screen is already this trip's, and
+  /// recent. Short TTL because these are *dynamic* fares — surge and supply
+  /// move — but long enough to cover a back-and-re-enter on the picker.
+  final FetchCache _quoteCache = FetchCache(ttl: const Duration(minutes: 2));
+
+  /// The quote currently on the wire, and what it is asking for. Confirming a
+  /// pickup fires a quote and then immediately opens the picker, which asks for
+  /// the same one; joining the in-flight future is what keeps that a SINGLE
+  /// request instead of two identical ones racing to overwrite each other.
+  Future<void>? _quotesInFlight;
+  String? _quotesInFlightSignature;
+
+  /// Quote only if the answer isn't already in hand.
+  ///
+  /// For screens that need the catalog on entry but may well have been handed
+  /// it by whoever navigated to them. [fetchQuotes] stays the forced version —
+  /// retry buttons and trip-type changes must always hit the server.
+  Future<void> fetchQuotesIfNeeded() {
+    if (_quoteCache.isFresh(_quoteSignature,
+        hasData: vehicleOptions.isNotEmpty)) {
+      // The catalog is reusable, the SELECTION may not be: whoever fetched it
+      // resolved the preselection against whatever was chosen then, and the
+      // caller has usually just set its own.
+      _applyPreselection();
+      return Future<void>.value();
+    }
+    return fetchQuotes();
+  }
+
   /// Fetch fares for every vehicle category.
   ///
   /// Pre-selects the Explore choice when the quote contains it, else the first
   /// option, so the Book button is immediately actionable.
-  Future<void> fetchQuotes() async {
+  ///
+  /// Concurrent calls for the same trip share one request — see
+  /// [_quotesInFlight].
+  Future<void> fetchQuotes() {
+    final signature = _quoteSignature;
+    final inFlight = _quotesInFlight;
+    if (inFlight != null && _quotesInFlightSignature == signature) {
+      return inFlight;
+    }
+    late final Future<void> run;
+    run = _fetchQuotes(signature).whenComplete(() {
+      // Only if it is still OURS — a differently-keyed quote may have started
+      // and taken the slot over while this one was on the wire.
+      if (identical(_quotesInFlight, run)) {
+        _quotesInFlight = null;
+        _quotesInFlightSignature = null;
+      }
+    });
+    _quotesInFlight = run;
+    _quotesInFlightSignature = signature;
+    return run;
+  }
+
+  Future<void> _fetchQuotes(String signature) async {
     final from = pickup.value;
     final to = drop.value;
     if (from == null || to == null) return;
@@ -814,6 +925,11 @@ class RideBookingController extends GetxController {
         rangeInKm: kRiderSearchRangeKm,
         pincode: pincode,
         distanceInKm: distanceKm,
+        // CATALOG mode: every vehicle type in one answer, with per-type
+        // availability — goods and out-station classes included, whatever
+        // `orderFor` was sent. That is what lets ONE call price the whole
+        // sheet; see [RideBookingRepo.getDynamicFare].
+        allVehicleTypes: true,
       );
       if (!response.isSuccess) {
         // 400 (missing param/pincode) or 500 — distinct from "no riders", and
@@ -824,19 +940,36 @@ class RideBookingController extends GetxController {
         return;
       }
       vehicleOptions.assignAll(_parseDynamicFare(_payload(response)));
-      if (vehicleOptions.isEmpty) return; // shape B `{}` — genuinely no riders
+      // Catalog mode never answers with a bare `{}`, so an empty list here is
+      // a shape we didn't expect rather than "no riders in this city" — the
+      // rows carry their own `ridersAvailable` for that now.
+      if (vehicleOptions.isEmpty) return;
 
-      final preferred = preselectedVehicleCode.value;
-      selectedVehicle.value = vehicleOptions.firstWhere(
-        (o) => o.code == preferred,
-        orElse: () => vehicleOptions.first,
-      );
+      // Only a catalog we actually populated is worth reusing.
+      _quoteCache.mark(signature);
+      _applyPreselection();
     } catch (_) {
       vehicleOptions.clear();
       quoteError.value = 'Could not fetch fares right now.';
     } finally {
       isQuoting.value = false;
     }
+  }
+
+  /// Light up the row for [preselectedVehicleCode], else the first one, so the
+  /// Book button is immediately actionable.
+  ///
+  /// Reads that code rather than leaving an existing selection alone because it
+  /// is the authoritative record of the customer's choice — [selectVehicle]
+  /// writes it on every tap — so re-deriving from it both honours a pick made
+  /// earlier and picks up a default set moments ago.
+  void _applyPreselection() {
+    if (vehicleOptions.isEmpty) return;
+    final preferred = preselectedVehicleCode.value;
+    selectedVehicle.value = vehicleOptions.firstWhere(
+      (o) => o.code == preferred,
+      orElse: () => vehicleOptions.first,
+    );
   }
 
   /// Resolve the driving route between the two ends and publish it.
@@ -957,23 +1090,37 @@ class RideBookingController extends GetxController {
 
   /// Read the dynamic-fare response into vehicle options.
   ///
-  /// The live shape is a **map keyed by vehicle type**, not a list:
+  /// The live shape is a **map keyed by vehicle type**, not a list, and in
+  /// catalog mode (`allVehicleTypes=true`, which is how this flow always calls
+  /// it) the priced list is `fares` — every type — while `riders` holds only
+  /// the ones somebody is driving right now:
   ///
   /// ```jsonc
   /// {
   ///   "pricingSignals": { "tripDistanceKm": 2, "durationMin": 4, … },
+  ///   "fares": {
+  ///     "twoWheelerRider": { "fare": 40, "fareBreakdown": {…},
+  ///                          "ridersAvailable": true, "riderCount": 1,
+  ///                          "nearestRiderKm": 2.6 },
+  ///     "autoTempo":       { "fare": 40, …, "ridersAvailable": false,
+  ///                          "riderCount": 0, "nearestRiderKm": null },
+  ///     // …every other type
+  ///   },
   ///   "riders": {
   ///     "twoWheelerRider": {
   ///       "users": [ { riderId, name, distance: "2.77 km", … } ],
-  ///       "fare": 50,
+  ///       "fare": 40,
   ///       "fareBreakdown": { baseFare, distanceCharge, multipliers, … }
   ///     }
   ///   }
   /// }
   /// ```
   ///
-  /// A vehicle type with an empty `users` list is a type nobody is online for —
-  /// it is dropped, because the fare is real but nothing can serve it.
+  /// A type nobody is online for is KEPT, carrying `ridersAvailable: false` —
+  /// the tile renders its fare and a "None nearby" line. Dropping it would take
+  /// the vehicle off the grid entirely, which reads as "we don't do that" when
+  /// the truth is "not right now". Only a ₹0 fare (pricing could not compute)
+  /// removes a row, since it isn't bookable at all.
   ///
   /// Also accepts a plain list of `{vehicleType, fare}` objects: the guide
   /// never pinned the envelope down, and the list form is what the stub was
@@ -1004,9 +1151,26 @@ class RideBookingController extends GetxController {
       }
     }
 
+    // CATALOG mode (`allVehicleTypes=true`) answers with `fares`: EVERY vehicle
+    // type, each carrying its own `ridersAvailable` / `riderCount` /
+    // `nearestRiderKm`. `riders` sits beside it and holds only the types
+    // somebody is currently driving — reading THAT as the row source is why the
+    // grid priced the bike and left a dash on all eleven other tiles.
     final raw = data is Map
-        ? (data['riders'] ?? data['vehicles'] ?? data['options'] ?? data['data'])
+        ? (data['fares'] ??
+            data['riders'] ??
+            data['vehicles'] ??
+            data['options'] ??
+            data['data'])
         : data;
+
+    // Supply, keyed by vehicle type. In catalog mode the availability numbers
+    // are already on the fare row; this block is what the older `riders`-only
+    // shape carried them in, and it is the only place the formatted
+    // rider→pickup distance string lives either way.
+    final supply = (data is Map && data['riders'] is Map)
+        ? data['riders'] as Map
+        : const {};
 
     // Normalise both envelopes to (vehicleType, payload) pairs.
     final Iterable<MapEntry<String, Map>> entries;
@@ -1036,11 +1200,34 @@ class RideBookingController extends GetxController {
           _toNum(group['fare'] ?? group['dynamicFare'] ?? group['price']);
       if (fare == null || fare <= 0) continue;
 
-      // Only types with ≥1 rider are supposed to appear at all, but an empty
-      // `users` list would be a bookable-looking row nobody can accept.
-      final users = group['users'];
-      final riderCount = users is List ? users.length : null;
-      if (riderCount == 0) continue;
+      // The matching supply entry, when there is one. Absent for every type
+      // nobody is driving — which in catalog mode is most of them, and is not a
+      // reason to drop the row.
+      final onlineGroup = supply[vehicleType] is Map
+          ? supply[vehicleType] as Map
+          : null;
+
+      // Availability comes off the fare row in catalog mode; for the older
+      // shape it is however many riders were listed. A row with nobody on it
+      // is kept and marked unavailable rather than dropped — the tile says
+      // "None nearby", which is a truer answer than the vehicle vanishing.
+      final users = group['users'] ?? onlineGroup?['users'];
+      final riderCount = _toNum(group['riderCount'])?.toInt() ??
+          (users is List ? users.length : null);
+      final ridersAvailable = group['ridersAvailable'] is bool
+          ? group['ridersAvailable'] as bool
+          : (riderCount == null ? null : riderCount > 0);
+      final nearestRiderKm = _toNum(group['nearestRiderKm'])?.toDouble() ??
+          _toNum(onlineGroup?['nearestRiderKm'])?.toDouble();
+
+      // Distance the SERVER priced this row over, straight off its own
+      // breakdown — the trip-level `pricingSignals.tripDistanceKm` is the
+      // fallback for a payload that omits the breakdown.
+      final breakdown = group['fareBreakdown'];
+      final distanceKm = _toNum(
+            breakdown is Map ? breakdown['distanceKm'] : null,
+          )?.toDouble() ??
+          (tripDistanceKm.value > 0 ? tripDistanceKm.value : null);
 
       options.add(RideVehicleOption(
         // The backend enum IS the code — no translation layer.
@@ -1050,10 +1237,7 @@ class RideBookingController extends GetxController {
         // Nothing else useful to say under the name, and how far the nearest
         // rider is answers the question the user actually has.
         description: group['description']?.toString() ??
-            () {
-              final away = _nearestRiderDistance(group);
-              return away == null ? null : '$away away';
-            }(),
+            _nearestRiderText(nearestRiderKm, onlineGroup),
         fare: fare.toDouble(),
         seats: _toNum(group['seats'])?.toInt(),
         // `riders[type].users[].distance` is rider→pickup as a STRING
@@ -1068,11 +1252,27 @@ class RideBookingController extends GetxController {
             (tripDurationMinutes.value > 0
                 ? tripDurationMinutes.value
                 : null),
+        distanceKm: distanceKm,
         // Not a server token — see the doc comment above.
         quoteId: vehicleType,
+        ridersAvailable: ridersAvailable,
+        riderCount: riderCount,
+        nearestRiderKm: nearestRiderKm,
       ));
     }
     return options;
+  }
+
+  /// "2.6 km away" for the nearest rider of a type, or null when there isn't
+  /// one. Prefers catalog mode's numeric `nearestRiderKm`; falls back to the
+  /// formatted string the `riders` block carries per rider.
+  static String? _nearestRiderText(double? nearestKm, Map? onlineGroup) {
+    if (nearestKm != null && nearestKm > 0) {
+      return '${nearestKm.toStringAsFixed(1)} km away';
+    }
+    final formatted =
+        onlineGroup == null ? null : _nearestRiderDistance(onlineGroup);
+    return formatted == null ? null : '$formatted away';
   }
 
   /// Nearest rider distance for a vehicle type, e.g. `"3.10 km"`. The API sends
@@ -1540,6 +1740,7 @@ class RideBookingController extends GetxController {
     weather.value = 'clear';
     routePoints.clear();
     _routeCacheKey = null;
+    _quoteCache.invalidate();
     activeBooking.value = null;
     terminalStatus.value = null;
     searchProgress.value = 0;
