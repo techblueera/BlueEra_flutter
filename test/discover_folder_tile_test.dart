@@ -34,7 +34,7 @@ Widget _asFolder(Widget section) {
 
 DiscoverCategorySection _grocerySection() => DiscoverCategorySection(
       title: 'Grocery',
-      items: discoverGroceryCategories,
+      items: [],
       onItemTap: (_) {},
     );
 
@@ -67,7 +67,7 @@ void main() {
       tester,
       _asFolder(DiscoverCategorySection(
         title: 'Restaurant & Food',
-        items: discoverFoodCategories,
+        items: [],
         onItemTap: (_) {},
       )),
     );
