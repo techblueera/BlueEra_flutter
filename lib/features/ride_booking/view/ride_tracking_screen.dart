@@ -10,6 +10,7 @@ import 'package:BlueEra/core/services/route_polyline_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
@@ -219,21 +220,37 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     return 'This ride was cancelled.';
   }
 
-  /// Leaving means different things either side of the OTP.
+  /// Leaving this screen hands the customer to their captain's chat.
   ///
-  /// BEFORE the ride starts, backing out is abandoning a booking, so it goes
-  /// through the cancel confirmation. AFTER the OTP is handed over the ride is
-  /// running and cannot be cancelled — asking "cancel your ride?" there is
-  /// wrong, and offering it at all is worse. Minimise into the floating
-  /// mini-map instead, so the customer can use the rest of the app while the
-  /// ride carries on; tapping the mini-map re-opens live tracking.
+  /// Backing out of live tracking is never abandoning the ride — the ride keeps
+  /// running, the floating mini-map goes up, and the Discover ongoing-ride chip
+  /// is the way back in. What the customer usually wants at that moment is to
+  /// tell the captain something ("I'm at the gate"), so that is where back
+  /// lands: the ride's Inquiry thread, the same one the chip's chat button
+  /// opens.
+  ///
+  /// Cancelling used to live on this gesture. It now has its own button in the
+  /// sheet below (pre-pickup only) — a destructive action should be chosen, not
+  /// arrived at by pressing back.
   void _handleLeave() {
     final booking = controller.activeBooking.value;
-    if (booking != null && booking.status == RideStatus.onTrip) {
-      _minimiseToOverlay(booking);
+    if (booking == null) {
+      Get.until((route) => route.isFirst);
       return;
     }
-    _openCancelFlow();
+    // Publishes the mini-map AND unwinds to the home screen, so the chat opens
+    // over the bottom nav rather than on top of the screen we just left (which
+    // would make back from the chat come straight back here).
+    _minimiseToOverlay(booking);
+
+    final captain = booking.captain;
+    if (captain == null || captain.id.isEmpty) return;
+    openRiderInquiryChat(
+      riderUserId: captain.id,
+      name: captain.hasName ? captain.name : 'Captain',
+      phone: captain.phone,
+      photoUrl: captain.photoUrl,
+    );
   }
 
   /// Publishes the floating mini-map and unwinds to the home screen.
@@ -448,11 +465,12 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
             child: RideCircleButton(
-              // Chevron-down once moving: the action is "minimise", not "go
-              // back" — a back arrow there implies the ride can be abandoned.
-              icon: controller.activeBooking.value?.status == RideStatus.onTrip
-                  ? Icons.keyboard_arrow_down_rounded
-                  : Icons.arrow_back,
+              // Same action as back press — leave tracking for the captain's
+              // chat, ride still running. A back arrow no longer fits (nothing
+              // is being abandoned) and neither does chevron-down (the customer
+              // lands somewhere, not just minimised), so it names the
+              // destination instead.
+              icon: Icons.chat_bubble_outline_rounded,
               onTap: _handleLeave,
             ),
           ),
@@ -597,9 +615,35 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             ],
             const SizedBox(height: 16),
             _pickupFromRow(booking),
+            // Once the OTP has been handed over the ride is running and can no
+            // longer be cancelled, so the button goes with it rather than
+            // sitting there refusing to work.
+            if (booking.status != RideStatus.onTrip) ...[
+              const SizedBox(height: 10),
+              _cancelRideRow(),
+            ],
           ],
         );
       }),
+    );
+  }
+
+  /// The only way to cancel from this screen now that back press opens the
+  /// captain's chat. Deliberately plain and last in the sheet — it is the one
+  /// destructive action here, so it should be found on purpose.
+  Widget _cancelRideRow() {
+    return Align(
+      alignment: Alignment.center,
+      child: TextButton.icon(
+        onPressed: _openCancelFlow,
+        icon: const Icon(Icons.close_rounded, size: 18, color: RideStyle.danger),
+        label: CustomText(
+          'Cancel ride',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: RideStyle.danger,
+        ),
+      ),
     );
   }
 

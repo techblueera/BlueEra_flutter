@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
@@ -147,6 +148,7 @@ class OngoingBookingChip extends StatelessWidget {
               ? '${booking.pickupEtaMinutes} min'
               : null),
       phone: captain?.phone,
+      riderUserId: captain?.id,
       onTap: () {
         // Mirrors the mini-map's own tap: drop the floating overlay first, so
         // the customer isn't left with a PiP for the screen they're now on.
@@ -249,11 +251,25 @@ class OngoingBookingChip extends StatelessWidget {
       phone: ctrl.riderContact.value.isEmpty ? null : ctrl.riderContact.value,
       otp: otp,
       otpLabel: otpLabel,
+      riderUserId: _overlayRiderUserId(),
       onTap: () {
         ctrl.hideOverlay();
         Get.to(() => FareCallQueueScreen(orderId: orderId));
       },
     );
+  }
+
+  /// The accepted rider's user id for the legacy transport flow.
+  ///
+  /// The overlay controller carries the rider's name / photo / number but not
+  /// their id — `showOverlay` is only given the `orderId`. The id lives on
+  /// [DiscoverController], set when the rider accepts the fare call and
+  /// re-seeded by `OngoingRideRestorer` after a relaunch, so that is the one
+  /// place both paths agree on.
+  String? _overlayRiderUserId() {
+    if (!Get.isRegistered<DiscoverController>()) return null;
+    final id = Get.find<DiscoverController>().fareCallAcceptedRiderId.value;
+    return id.isEmpty ? null : id;
   }
 
   /// The OTP the CUSTOMER holds for the legacy ride [orderId], with its label.
@@ -340,12 +356,19 @@ class _ChipData {
     this.otpLabel,
     this.isCompleted = false,
     this.onDismiss,
+    this.riderUserId,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   final String? imageUrl;
+
+  /// The captain's user id, so the row can open the ride's Inquiry thread.
+  /// Null until a captain is assigned (and on the completed row) — the chat
+  /// button is hidden in both cases, since there is nobody to talk to yet and
+  /// nothing left to arrange once the ride is over.
+  final String? riderUserId;
 
   /// "10 KM Away", or null while no live position is known.
   final String? distanceLabel;
@@ -505,6 +528,11 @@ class _ChipCard extends StatelessWidget {
 
   /// Call the captain on a live ride, dismiss a finished one. Both fall back to
   /// a chevron so the row always shows that it opens something.
+  ///
+  /// A live ride with an assigned captain also gets a chat button beside it:
+  /// tapping the row is "where is my ride", tapping chat is "talk to my
+  /// captain", and the two need to be reachable without going through each
+  /// other.
   Widget _trailing() {
     final Widget action;
     if (data.isCompleted) {
@@ -527,10 +555,32 @@ class _ChipCard extends StatelessWidget {
       );
     }
 
+    final riderId = data.riderUserId ?? '';
+    final showChat = !data.isCompleted && riderId.isNotEmpty;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        action,
+        if (showChat)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _circleButton(
+                icon: Icons.chat_bubble_outline_rounded,
+                color: AppColors.primaryColor,
+                onTap: () => openRiderInquiryChat(
+                  riderUserId: riderId,
+                  name: data.subtitle,
+                  phone: data.phone,
+                  photoUrl: data.imageUrl,
+                ),
+              ),
+              const SizedBox(width: 8),
+              action,
+            ],
+          )
+        else
+          action,
         if (data.trailingLabel != null) ...[
           const SizedBox(height: 3),
           // Bounded: this column is the unconstrained end of the row, so a long
