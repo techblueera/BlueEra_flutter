@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:BlueEra/features/common/search/model/store_match_model.dart';
 import 'package:BlueEra/features/common/search/repo/search_repo.dart';
@@ -38,11 +39,26 @@ class GlobalSearchController extends GetxController {
   final Rx<Status> status = Status.INITIAL.obs;
   final RxBool isLoadingMore = false.obs;
   final RxMap<String, int> facets = <String, int>{}.obs;
+
+  /// Size of the server's candidate pool for the current query — not a match
+  /// count. Render [totalLabel] rather than this.
   final RxInt total = 0.obs;
+
+  /// Display form of [total]: `"100+"` once the pool ceiling is hit, since the
+  /// true number of matches isn't available past it.
+  final RxString totalLabel = ''.obs;
   final RxString appliedFiltersText = ''.obs;
 
   /// Active entity-type facet filter (`null` = All). Drives the type tabs.
   final RxnString activeType = RxnString();
+
+  /// Vertical the search is scoped to, picked from the chips under the search
+  /// field *before* the query is committed. [SearchCategory.all] is the
+  /// "no filter" state and is not sent on the wire — it's the server default.
+  final Rx<SearchCategory> selectedCategory = SearchCategory.all.obs;
+
+  /// True while a real vertical is selected — drives the "clear" affordance.
+  bool get hasCategoryFilter => selectedCategory.value != SearchCategory.all;
 
   /// Active sort of the results list. `null` = relevance (server order);
   /// `'price_asc'` / `'price_desc'` sort the loaded results client-side.
@@ -131,10 +147,26 @@ class GlobalSearchController extends GetxController {
     _debounce = Timer(const Duration(milliseconds: 250), () => _fetchSuggest(q));
   }
 
+  /// Searcher position for `/search` and `/suggest`, or null when the app has
+  /// no usable fix. Both coordinates travel together — the repo drops them if
+  /// either is missing, since a lone coordinate (or `0,0`) is a `400`.
+  double? get _geoLat =>
+      LocationService.hasUsableLocation ? LocationService.lat : null;
+
+  double? get _geoLng =>
+      LocationService.hasUsableLocation ? LocationService.lng : null;
+
   Future<void> _fetchSuggest(String q) async {
     final seq = ++_suggestSeq;
     try {
-      final s = await _repo.suggest(q);
+      // Scoped server-side, never filtered here: the row cap is applied inside
+      // the query, so trimming the response would leave a near-empty dropdown.
+      final s = await _repo.suggest(
+        q,
+        category: selectedCategory.value,
+        lat: _geoLat,
+        lng: _geoLng,
+      );
       if (seq != _suggestSeq) return; // superseded
       suggestions.assignAll(s);
     } catch (_) {
@@ -189,6 +221,33 @@ class GlobalSearchController extends GetxController {
     results.assignAll(list);
   }
 
+  /// Pick the vertical the search runs against (the chips under the field).
+  ///
+  /// Takes effect immediately: with a query already committed the search re-runs
+  /// in the new scope; while the user is still typing the suggestion dropdown
+  /// is re-fetched in the new scope instead (`/suggest` takes the same
+  /// `category`). The entity-type facet filter is dropped because `type` is only
+  /// legal *within* a category — carrying `grocery_shop` over into
+  /// `category=food` is a `400`.
+  void selectCategory(SearchCategory category) {
+    if (selectedCategory.value == category) return;
+    selectedCategory.value = category;
+    activeType.value = null;
+    facets.clear();
+    if (showSuggestions.value) {
+      final q = queryController.text.trim();
+      if (q.isNotEmpty) {
+        _debounce?.cancel();
+        _fetchSuggest(q);
+      }
+      return;
+    }
+    if (_committedQuery.isNotEmpty) _runSearch(reset: true);
+  }
+
+  /// Drop the category filter and go back to searching everything.
+  void clearCategory() => selectCategory(SearchCategory.all);
+
   /// Tap a facet tab to scope results to one entity type (`null` = All).
   void selectType(String? type) {
     if (activeType.value == type) return;
@@ -218,9 +277,12 @@ class GlobalSearchController extends GetxController {
     try {
       final res = await _repo.search(
         _committedQuery,
+        category: selectedCategory.value,
         type: activeType.value,
         page: _page,
         limit: _limit,
+        lat: _geoLat,
+        lng: _geoLng,
       );
       if (seq != _searchSeq) return; // superseded by a newer search
 
@@ -228,6 +290,7 @@ class GlobalSearchController extends GetxController {
         results.assignAll(res.results);
         facets.assignAll(res.facets);
         total.value = res.total;
+        totalLabel.value = res.totalLabel;
         appliedFiltersText.value = res.appliedFiltersText;
       } else {
         results.addAll(res.results);

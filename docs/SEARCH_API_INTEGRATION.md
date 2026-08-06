@@ -106,6 +106,29 @@ matter what else you put in the query string. The scope is fixed on the server.
 | `type` | no | whole category | Narrows **within** the category. Single value or comma-separated list. Out-of-category value → `400`. |
 | `page` | no | `1` | 1-based. Values `< 1` are clamped to `1`. |
 | `limit` | no | `20` | Max `50`; anything higher is silently clamped. |
+| `lat` | no | — | Searcher latitude. Send **with** `lng` to get distance on results. |
+| `lng` | no | — | Searcher longitude. Send **with** `lat`. |
+
+### `lat` / `lng` — how far away is it
+
+Send the user's coordinates and every result that has a location comes back with
+`distanceMeters` and a ready-to-render `distanceText` ("2.4 km"):
+
+```
+{BASE}/search?q=kirana&category=shops&lat=30.3165&lng=78.0322
+```
+
+Rules:
+
+- **Both or neither.** `lat` alone (or `lng` alone) is a `400`, not a silent
+  ignore — a half-read location object is a bug worth surfacing.
+- `0,0` is rejected as a `400`. An unset location object commonly serialises to
+  `0,0`, and honouring it would print a confident "5,400 km" under every result.
+- Out-of-range values (`lat` beyond ±90, `lng` beyond ±180) are a `400`.
+- Distance is **display only** — it does not filter or re-rank. Results stay in
+  relevance order, so the second result can be nearer than the first. There is
+  no radius filter and no "sort by nearest" yet.
+- Works on `/suggest` too, with the same rules.
 
 ### `type` — optional sub-filter
 
@@ -199,10 +222,34 @@ Identical for every category.
       "city": "Dehradun",
       "pincode": "248001",
       "_score": 0.0324
+    },
+    {
+      "_id": "66f0b7...",
+      "entityType": "grocery_shop",
+      "sourceId": "64aa12...",
+      "sourceService": "be_user_service",
+      "title": "Sharma Kirana Store",
+      "subtitle": "Grocery · Dehradun",
+      "imageUrl": "https://...",
+      "deepLink": "blueera://shop/64aa12...",
+      "category": "Grocery",
+      "price": null,
+      "currency": "INR",
+      "city": "Dehradun",
+      "pincode": "248001",
+      "address": "Rajpur Road, Dehradun, Uttarakhand, 248001",
+      "location": { "type": "Point", "coordinates": [78.0322, 30.3165] },
+      "distanceMeters": 1410,
+      "distanceText": "1.4 km",
+      "_score": 0.0298
     }
   ]
 }
 ```
+
+Note the two rows above: the packet of atta has no `address` and no distance,
+the shop that sells it has both — in the same result list. See
+[Which categories carry address and distance](#which-categories-carry-address-and-distance).
 
 ### Top-level fields
 
@@ -214,7 +261,7 @@ Identical for every category.
 | `parsed.filters` | What the parser understood — `price.gte` / `price.lte`, `color`, `geo`. `{}` when nothing was parsed. |
 | `category` | The scope that actually ran. Echoed so you can confirm the tab requested what it thinks it did. |
 | `types` | The entity types this response was scoped to. `null` means every type (`category=all`). |
-| `total` | Total fused matches, **not** the page size. Use for "N results". |
+| `total` | Size of the ranked candidate pool for this request (~100 max), **not** a global match count. See [Pagination](#pagination) before showing it as "N results". |
 | `page`, `limit` | Echoed back. |
 | `facets` | `{entityType: count}` over the whole result set — drives per-type counts on chips. |
 | `cached` | `true` if served from Redis. Informational only. |
@@ -233,7 +280,28 @@ Identical for every category.
 | `brand`, `category` | Catalogue metadata; absent for posts / videos. |
 | `price`, `currency` | `price` is `null` for anything not priced (posts, videos, shops). For a `grocery_product` it is the **cheapest across its variants**. |
 | `city`, `pincode` | Present for shops and location-bearing variants. |
+| `address` | Display address — "Rajpur Road, Dehradun, Uttarakhand, 248001". Present for the verticals that have one (see below); absent for catalogue rows. Already de-duplicated and joined — render it as-is. |
+| `location` | GeoJSON point, `{ type: "Point", coordinates: [lng, lat] }`. **Note the order: longitude first.** Use it to drop a map pin. Absent when the entity has no coordinates. |
+| `distanceMeters` | Straight-line metres from the searcher. **Only present when you sent `lat`/`lng` AND the row has `location`.** |
+| `distanceText` | The same distance pre-formatted: `"840 m"`, `"2.4 km"`, `"25 km"`. |
 | `_score` | Internal fused rank. Results are already sorted by it — don't re-sort. |
+
+#### Which categories carry `address` and `distance`
+
+`address` and `distanceMeters` are **omitted, never null** — so `if ('distanceMeters' in r)`
+is a safe check. Coverage follows the data, not the category name:
+
+| coverage | categories |
+| --- | --- |
+| Address **and** distance | `shops`, `stay`, `rentals`, `jobs`, `education`, `homemade_food`, `homemade_products`, `home_services`, and the `hospital` / `hospital_department` rows inside `healthcare` |
+| Distance only (no street address) | `content` / `userfeed` / `post` (a post's tagged point), and `video` (address is the tagged place name, e.g. "Dehradun") |
+| Address only (no coordinates) | `consultants` — the source stores a city string and no point, so a consultant can show *where* but never *how far* |
+| Neither | Catalogue rows: `grocery`, `food`, `shopping`, `automotive`, and the medicine rows in `healthcare`. A packet of atta has no address; its `city`/`pincode` describe where the cheapest variant is priced, not somewhere the user can walk to. |
+
+Practical consequence: **a single result list can mix rows that have a distance
+with rows that don't** — `category=healthcare` returns hospitals (with distance)
+next to medicines (without). Render the distance chip conditionally per row
+rather than per screen.
 
 **Every field except `_id`, `entityType`, `sourceId`, `sourceService`, `title`
 and `_score` can be missing.** Model them as nullable.
@@ -247,6 +315,8 @@ and `_score` can be missing.** Model them as nullable.
 | `400` | `{"success": false, "message": "q is required"}` | `q` missing / blank. |
 | `400` | `{"success": false, "message": "category must be one of: all, content, video, userfeed, post, grocery, food, shopping, healthcare, automotive, stay, homemade_food, homemade_products, home_services, consultants, services, rentals, finance, jobs, education, shops"}` | Unknown `category`. |
 | `400` | `{"success": false, "message": "type product is not valid for category=grocery. type must be one of: ..."}` | `type` outside the category. |
+| `400` | `{"success": false, "message": "lat and lng must be provided together"}` | One coordinate sent without the other. |
+| `400` | `{"success": false, "message": "lat and lng must be numbers in range (lat -90..90, lng -180..180) and not 0,0"}` | Non-numeric, out-of-range, or `0,0` coordinates. |
 | `500` | `{"success": false, "message": "search failed"}` | Server-side failure. Retry once, then show a generic error. |
 
 Both `400`s indicate a **client bug** — surface them in dev builds rather than
@@ -256,16 +326,26 @@ swallowing them into an empty state.
 
 ## 5. Type-ahead
 
-Autosuggest is a separate, deliberately fast endpoint with **no** category
-scoping — it suggests across everything:
+Autosuggest is a separate, deliberately fast endpoint. It takes the **same
+`category`** as `/search`, so a tab scopes both calls with one string:
 
 ```
-GET {BASE}/suggest?q=iph&limit=8
+GET {BASE}/suggest?q=iph&limit=8                    # global — suggests everything
+GET {BASE}/suggest?q=aash&category=grocery          # grocery tab's search box
+GET {BASE}/suggest?q=kir&category=shops&lat=30.3165&lng=78.0322
 ```
+
+**Pass `category` from every scoped screen — do not filter client-side.** The row
+cap is applied *inside* the query, so a grocery tab that asks for 8 unscoped
+suggestions and filters afterwards can be left with one row when the other seven
+happen to be videos and products. Server-side scoping fills all 8 with groceries.
+
+`type` is not accepted here: a dropdown of 8 rows doesn't need a sub-filter.
 
 ```json
 {
   "success": true,
+  "category": "all",
   "suggestions": [
     {
       "entityType": "product",
@@ -274,6 +354,18 @@ GET {BASE}/suggest?q=iph&limit=8
       "sourceId": "651f...",
       "deepLink": "blueera://product/651f...",
       "imageUrl": "https://..."
+    },
+    {
+      "entityType": "grocery_shop",
+      "title": "Sharma Kirana Store",
+      "subtitle": "Grocery · Dehradun",
+      "sourceId": "64aa12...",
+      "deepLink": "blueera://shop/64aa12...",
+      "imageUrl": "https://...",
+      "address": "Rajpur Road, Dehradun, Uttarakhand, 248001",
+      "location": { "type": "Point", "coordinates": [78.0322, 30.3165] },
+      "distanceMeters": 1410,
+      "distanceText": "1.4 km"
     }
   ]
 }
@@ -281,7 +373,15 @@ GET {BASE}/suggest?q=iph&limit=8
 
 `limit` defaults to `8`, max `15`. Debounce ~250 ms and cancel the in-flight
 request on each keystroke. When the user commits the query, call `/search` with
-the tab's `category`.
+the same `category`.
+
+`category` is optional and defaults to `all`; an unknown name is a `400` with the
+same message `/search` returns. The response echoes `category` back so a tab can
+assert it scoped what it meant to.
+
+`lat`/`lng` work here exactly as on `/search` — same both-or-neither rule, same
+`400`s, and the same "only rows that have coordinates get a distance". A
+suggestion row carries `address` whenever its entity type has one.
 
 ---
 
@@ -340,8 +440,13 @@ class SearchApi {
     List<String>? types,     // optional narrowing within the category
     int page = 1,
     int limit = 20,
+    // Searcher position. Pass BOTH or NEITHER — one alone is a 400, and so is
+    // 0,0 (which is what an unset location object usually serialises to).
+    double? lat,
+    double? lng,
     CancelToken? cancelToken,
   }) async {
+    final sendGeo = lat != null && lng != null && !(lat == 0 && lng == 0);
     final res = await _dio.get(
       '$baseUrl/search',
       queryParameters: {
@@ -351,10 +456,41 @@ class SearchApi {
         if (types != null && types.isNotEmpty) 'type': types.join(','),
         'page': page,
         'limit': limit,
+        if (sendGeo) 'lat': lat,
+        if (sendGeo) 'lng': lng,
       },
       cancelToken: cancelToken,
     );
     return SearchResponse.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  /// Type-ahead for the search box. Pass the SAME category as the screen's
+  /// search — scoping must happen server-side (the row cap is applied inside
+  /// the query, so filtering the response would leave a near-empty dropdown).
+  Future<List<SearchResult>> suggest(
+    String prefix, {
+    SearchCategory category = SearchCategory.all,
+    int limit = 8,
+    double? lat,
+    double? lng,
+    CancelToken? cancelToken,   // cancel the in-flight call on each keystroke
+  }) async {
+    final sendGeo = lat != null && lng != null && !(lat == 0 && lng == 0);
+    final res = await _dio.get(
+      '$baseUrl/suggest',
+      queryParameters: {
+        'q': prefix,
+        if (category != SearchCategory.all) 'category': category.value,
+        'limit': limit,
+        if (sendGeo) 'lat': lat,
+        if (sendGeo) 'lng': lng,
+      },
+      cancelToken: cancelToken,
+    );
+    final body = res.data as Map<String, dynamic>;
+    return (body['suggestions'] as List? ?? const [])
+        .map((e) => SearchResult.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 
@@ -390,6 +526,15 @@ class SearchResponse {
       );
 }
 
+/// One coordinate out of a GeoJSON `location`, or null if absent/malformed.
+/// index 0 = longitude, 1 = latitude.
+double? _coord(dynamic location, int index) {
+  final c = (location as Map<String, dynamic>?)?['coordinates'];
+  if (c is! List || c.length < 2) return null;
+  final v = c[index];
+  return v is num ? v.toDouble() : null;
+}
+
 class SearchResult {
   SearchResult({
     required this.id,
@@ -405,6 +550,11 @@ class SearchResult {
     this.currency,
     this.city,
     this.pincode,
+    this.address,
+    this.distanceMeters,
+    this.distanceText,
+    this.lat,
+    this.lng,
   });
 
   final String id;
@@ -420,6 +570,14 @@ class SearchResult {
   final String? currency;
   final String? city;
   final String? pincode;
+  final String? address;        // null for catalogue rows — see coverage table
+  final int? distanceMeters;    // null unless you sent lat/lng AND the row has a point
+  final String? distanceText;   // "840 m" / "2.4 km" — ready to render
+  final double? lat;            // for a map pin
+  final double? lng;
+
+  /// True only when the server actually measured a distance for this row.
+  bool get hasDistance => distanceMeters != null;
 
   factory SearchResult.fromJson(Map<String, dynamic> j) => SearchResult(
         id: j['_id'] as String,
@@ -435,6 +593,14 @@ class SearchResult {
         currency: j['currency'] as String?,
         city: j['city'] as String?,
         pincode: j['pincode'] as String?,
+        address: j['address'] as String?,
+        distanceMeters: (j['distanceMeters'] as num?)?.toInt(),
+        distanceText: j['distanceText'] as String?,
+        // GeoJSON is [lng, lat] — longitude FIRST. Flipping these puts every
+        // pin in the wrong hemisphere. `as num` then .toDouble(), because a
+        // whole-number coordinate decodes as int and `as double` would throw.
+        lat: _coord(j['location'], 1),
+        lng: _coord(j['location'], 0),
       );
 }
 ```
@@ -539,6 +705,29 @@ Widget cardFor(SearchResult r) {
 **Handle `default`.** New entity types are added server-side without a client
 release, and an unknown type must render as a generic card rather than throw.
 
+#### Distance and address on a card
+
+Both are per-row, not per-screen: one list can mix rows that have them with rows
+that don't (`category=healthcare` returns hospitals **and** medicines). Render
+them conditionally, never as a fixed slot:
+
+```dart
+Widget locationLine(SearchResult r) {
+  final parts = <String>[
+    if (r.hasDistance) r.distanceText!,   // "1.4 km"
+    if (r.address != null) r.address!,    // "Rajpur Road, Dehradun, 248001"
+  ];
+  if (parts.isEmpty) return const SizedBox.shrink();
+  return Text(parts.join(' · '), maxLines: 1, overflow: TextOverflow.ellipsis);
+}
+```
+
+Don't compute distance client-side when `distanceMeters` is absent — a missing
+value means the row genuinely has no coordinates, not that the server forgot.
+And don't sort by it: results come back in relevance order and distance does not
+re-rank them, so re-sorting the page by distance would scramble a ranking that
+only ever contained the top slice of matches.
+
 ### What `price` means per entity type
 
 `price` is `null` for anything not directly priced — hotels, shops, providers,
@@ -560,18 +749,32 @@ For `rental` especially: render `₹18000 / Month` using `status` — a bare
 
 ### Pagination
 
-`total` is the full match count; keep requesting until you've collected it.
+`total` is **not** a global match count. The engine fuses a bounded candidate
+pool per request (~100 rows), so `total` is the size of that pool and grows
+slightly with `page`. Treating it as "N results found" over-promises, and
+`page * limit < total` will keep asking for pages that come back empty.
+
+Paginate on what you actually received, and stop at the pool ceiling:
 
 ```dart
-final hasMore = page * limit < total;
+final hasMore = res.results.length == limit && page * limit < 100;
 ```
+
+Don't render `total` as a definitive count and don't compute
+`totalPages = total / limit`. If you need a headline number, "100+" past the
+ceiling is honest; the exact figure isn't available.
 
 ### Notes
 
 - **Debounce** typing (~250–300 ms) and pass a `CancelToken` so a stale response
   can't overwrite a newer one.
-- **Cache is server-side** (60 s per query+scope+page). No client caching needed
-  for repeat queries.
+- **Cache is server-side** (60 s per query+scope+page+rounded position). No client
+  caching needed for repeat queries. Coordinates are bucketed to ~110 m, so
+  moving a few steps does not miss the cache — and a distance never comes from
+  someone else's position.
+- **Ask for location permission lazily.** Every screen works without `lat`/`lng`;
+  you lose the distance line and nothing else. Don't block the search UI on a
+  permission prompt — send the coordinates once you have them.
 - `facets` gives per-type counts for the whole result set — use it to label chips
   ("Shops 4", "Products 11") without extra requests.
 
@@ -589,8 +792,10 @@ final hasMore = page * limit < total;
 | `GET /search/shops?q=X` | `GET /search?q=X&category=shops` |
 | `GET /search/shops?q=X&type=business` | `GET /search?q=X&category=shops&type=business` |
 | `GET /search?q=X` (global) | unchanged |
-| `GET /suggest?q=X` | unchanged |
+| `GET /suggest?q=X` | still works — but add `&category=<vertical>` on every scoped screen, or that tab's dropdown will suggest from other verticals |
 
-**The response shape did not change** — same `results`, same `facets`, same
-fields, plus a new `category` echo. Only the URL moves. `/search/content`,
-`/search/grocery` and `/search/shops` now return `404`.
+**The response shape changed only additively** — same `results`, same `facets`,
+same fields, plus a `category` echo and the optional `address` / `location` /
+`distanceMeters` / `distanceText` per row. Existing parsing keeps working; only
+the URL moves. `/search/content`, `/search/grocery` and `/search/shops` now
+return `404`.

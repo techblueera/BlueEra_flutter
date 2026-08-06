@@ -161,8 +161,10 @@ class ContentSearchController extends GetxController {
         .then<List<SearchResultItem>>((r) => r.results)
         .catchError((_) => <SearchResultItem>[]);
 
-    // /suggest is unscoped (it also returns catalogue rows), so ask for a
-    // wider limit and keep only the people out of it.
+    // Called WITHOUT a category on purpose — `user` belongs to no category, so
+    // scoping this call to `content` would drop the very rows it exists to
+    // find. Hence the wider limit and the client-side people filter here, which
+    // is the one case the "always scope /suggest" rule doesn't cover.
     final peopleFuture = _repo
         .suggest(q, limit: 10)
         .then<List<SearchResultItem>>((list) => list

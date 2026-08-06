@@ -8049,4 +8049,113 @@ class AppStrings {
       "automotiveTopSellingProduct";
   static const String automotiveStoreNoProducts =
       "automotiveStoreNoProducts";
+
+  /// GLOBAL SEARCH screen — the search field, the category scope chips, the
+  /// discovery landing (recent / trending / popular), the sort sheet and the
+  /// result cards. See `lib/features/common/search/view/global_search_screen.dart`.
+  ///
+  /// The category chip labels mirror [SearchCategory]; the enum keeps the wire
+  /// value (`grocery`, `homemade_food`, …) and points at these keys for display,
+  /// so translating a chip can never change what is sent to the search API.
+  static const String searchCatAll = "searchCatAll";
+  static const String searchCatContent = "searchCatContent";
+  static const String searchCatVideos = "searchCatVideos";
+  static const String searchCatPosts = "searchCatPosts";
+  static const String searchCatGrocery = "searchCatGrocery";
+  static const String searchCatFood = "searchCatFood";
+  static const String searchCatShopping = "searchCatShopping";
+  static const String searchCatHealthcare = "searchCatHealthcare";
+  static const String searchCatAutomotive = "searchCatAutomotive";
+  static const String searchCatStay = "searchCatStay";
+  static const String searchCatHomemadeFood = "searchCatHomemadeFood";
+  static const String searchCatHomemadeProducts = "searchCatHomemadeProducts";
+  static const String searchCatHomeServices = "searchCatHomeServices";
+  static const String searchCatConsultants = "searchCatConsultants";
+  static const String searchCatServices = "searchCatServices";
+  static const String searchCatRentals = "searchCatRentals";
+  static const String searchCatFinance = "searchCatFinance";
+  static const String searchCatJobs = "searchCatJobs";
+  static const String searchCatEducation = "searchCatEducation";
+  static const String searchCatShops = "searchCatShops";
+
+  // Entity-type labels on the facet chips and result badges.
+  static const String searchEntityProduct = "searchEntityProduct";
+  static const String searchEntityGrocery = "searchEntityGrocery";
+  static const String searchEntityGroceryShop = "searchEntityGroceryShop";
+  static const String searchEntityPeople = "searchEntityPeople";
+  static const String searchEntityBusiness = "searchEntityBusiness";
+  static const String searchEntityService = "searchEntityService";
+  static const String searchEntityResult = "searchEntityResult";
+
+  // Screen chrome.
+  static const String globalSearchHint = "globalSearchHint";
+  static const String globalSearchKeepTyping = "globalSearchKeepTyping";
+
+  /// `@category` — the "in {category}" context line under a suggestion.
+  static const String globalSearchInCategoryFmt = "globalSearchInCategoryFmt";
+  static const String globalSearchRecentSearches =
+      "globalSearchRecentSearches";
+  static const String globalSearchTrendingSearches =
+      "globalSearchTrendingSearches";
+  static const String globalSearchPopularProducts =
+      "globalSearchPopularProducts";
+  static const String globalSearchSort = "globalSearchSort";
+  static const String globalSearchFilter = "globalSearchFilter";
+  static const String globalSearchFiltersComingSoon =
+      "globalSearchFiltersComingSoon";
+  static const String globalSearchSortBy = "globalSearchSortBy";
+  static const String globalSearchRelevance = "globalSearchRelevance";
+  static const String globalSearchPriceLowToHigh =
+      "globalSearchPriceLowToHigh";
+  static const String globalSearchPriceHighToLow =
+      "globalSearchPriceHighToLow";
+
+  /// `@query` — empty state for an unscoped search.
+  static const String globalSearchNoResultsFmt = "globalSearchNoResultsFmt";
+
+  /// `@query`, `@category` — empty state inside a selected vertical.
+  static const String globalSearchNoResultsInCategoryFmt =
+      "globalSearchNoResultsInCategoryFmt";
+  static const String globalSearchSearchAllCategories =
+      "globalSearchSearchAllCategories";
+  static const String globalSearchSponsored = "globalSearchSponsored";
+
+  /// Points at the shared `somethingWentWrong` translation key — unlike
+  /// [somethingWentWrong], which is a literal English sentence and therefore
+  /// resolves to itself under `.tr`.
+  static const String globalSearchSomethingWentWrong = "somethingWentWrong";
+
+  /// `@percent` — the "20% off" line on a product card.
+  static const String globalSearchDiscountFmt = "globalSearchDiscountFmt";
+
+  /// Applied-filters chip: the server parsed a "near me" constraint out of the
+  /// query text.
+  static const String globalSearchNearMe = "globalSearchNearMe";
+
+  /// Discovery landing tiles. These are *display* labels only — each tile
+  /// searches a fixed English term, because the search index is English and a
+  /// translated term would return nothing.
+  static const String globalSearchTrendMobilesUnder15000 =
+      "globalSearchTrendMobilesUnder15000";
+  static const String globalSearchTrendShoes = "globalSearchTrendShoes";
+  static const String globalSearchTrendBikeCovers =
+      "globalSearchTrendBikeCovers";
+  static const String globalSearchTrendHomeCleaning =
+      "globalSearchTrendHomeCleaning";
+  static const String globalSearchTrendSalonAtHome =
+      "globalSearchTrendSalonAtHome";
+  static const String globalSearchTrendMenAccessories =
+      "globalSearchTrendMenAccessories";
+  static const String globalSearchPopMobiles = "globalSearchPopMobiles";
+  static const String globalSearchPopMobilesSub = "globalSearchPopMobilesSub";
+  static const String globalSearchPopFashion = "globalSearchPopFashion";
+  static const String globalSearchPopFashionSub = "globalSearchPopFashionSub";
+  static const String globalSearchPopGrocery = "globalSearchPopGrocery";
+  static const String globalSearchPopGrocerySub = "globalSearchPopGrocerySub";
+  static const String globalSearchPopElectronics =
+      "globalSearchPopElectronics";
+  static const String globalSearchPopElectronicsSub =
+      "globalSearchPopElectronicsSub";
+  static const String globalSearchPopHome = "globalSearchPopHome";
+  static const String globalSearchPopHomeSub = "globalSearchPopHomeSub";
 }

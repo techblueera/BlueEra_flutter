@@ -141,12 +141,14 @@ class StoreSearchController extends GetxController {
   Future<void> _fetchSuggest(String q) async {
     final seq = ++_suggestSeq;
     try {
-      final s = await _repo.suggest(q);
+      // Scoped to this screen's vertical server-side. `/suggest` takes the same
+      // `category` as `/search`, and the row cap is applied inside the query —
+      // so asking unscoped and discarding the off-vertical rows afterwards is
+      // what leaves the panel near-empty. It fills all 8 with this vertical.
+      final s = await _repo.suggest(q, category: config.searchCategory);
       if (seq != _suggestSeq) return; // superseded
-      // `/suggest` has no category scoping — it suggests across everything.
-      // Rather than drop the off-vertical entries (which would regularly leave
-      // an empty panel), the ones this screen can actually open are floated to
-      // the top and the rest stay as plain query completions.
+      // A category still pairs catalogue rows with the businesses that sell
+      // them, so the ones this screen can actually open lead.
       final wanted = config.entityTypes.toSet();
       final mine = s.where((e) => wanted.contains(e.entityType)).toList();
       final others = s.where((e) => !wanted.contains(e.entityType)).toList();

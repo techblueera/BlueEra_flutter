@@ -1,3 +1,6 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:get/get_utils/get_utils.dart';
+
 /// Models for the global hybrid search service
 /// (`search-service/*`, see docs/backend/FLUTTER_INTEGRATION_SEARCH.md).
 ///
@@ -22,6 +25,26 @@ class SearchResultItem {
   /// grocery/health variants (a `city` + `pincode` pair marks the offer's
   /// serviceable area); null for entities that aren't location-scoped.
   final String? pincode;
+
+  /// Display address, already de-duplicated and joined by the backend —
+  /// "Rajpur Road, Dehradun, Uttarakhand, 248001". Render as-is.
+  ///
+  /// Omitted (never null) for catalogue rows — a packet of atta has no address,
+  /// while the shop that sells it does, and both can appear in one list. Render
+  /// it per row, never as a fixed slot.
+  final String? address;
+
+  /// Straight-line metres from the searcher. Only present when `lat`/`lng` were
+  /// sent AND the row carries coordinates.
+  final int? distanceMeters;
+
+  /// The same distance pre-formatted by the backend — "840 m", "2.4 km".
+  final String? distanceText;
+
+  /// Coordinates from the GeoJSON `location` (which is `[lng, lat]` — longitude
+  /// first). Null when the entity has no point.
+  final double? lat;
+  final double? lng;
 
   /// Free-form tags. For `post` results these are the hashtags; empty for
   /// entity types that don't carry them.
@@ -72,6 +95,11 @@ class SearchResultItem {
     this.currency,
     this.city,
     this.pincode,
+    this.address,
+    this.distanceMeters,
+    this.distanceText,
+    this.lat,
+    this.lng,
     this.tags = const [],
     this.score,
     this.businessId,
@@ -102,6 +130,12 @@ class SearchResultItem {
         currency: j['currency'] as String?,
         city: j['city'] as String?,
         pincode: j['pincode']?.toString(),
+        address: j['address'] as String?,
+        distanceMeters: _toInt(j['distanceMeters']),
+        distanceText: j['distanceText'] as String?,
+        // GeoJSON is [lng, lat] — longitude FIRST.
+        lat: _coord(j['location'], 1),
+        lng: _coord(j['location'], 0),
         tags: ((j['tags'] as List?) ?? const [])
             .map((e) => e.toString())
             .toList(),
@@ -131,6 +165,27 @@ class SearchResultItem {
   static int? _toInt(dynamic v) =>
       v is num ? v.toInt() : (v is String ? int.tryParse(v) : null);
 
+  /// One coordinate out of a GeoJSON `location` map — index 0 is longitude,
+  /// 1 is latitude. Null when absent or malformed. A whole-number coordinate
+  /// decodes as `int`, hence the `num` check rather than a cast to `double`.
+  static double? _coord(dynamic location, int index) {
+    final c = (location is Map) ? location['coordinates'] : null;
+    if (c is! List || c.length < 2) return null;
+    final v = c[index];
+    return v is num ? v.toDouble() : null;
+  }
+
+  /// True only when the server actually measured a distance for this row.
+  bool get hasDistance => distanceMeters != null;
+
+  /// "1.4 km · Rajpur Road, Dehradun, 248001" — whichever of the two the row
+  /// carries, empty when it carries neither. Rows in one list differ, so this
+  /// is rendered conditionally per card.
+  String get locationLine => [
+        if (hasDistance && (distanceText?.isNotEmpty ?? false)) distanceText!,
+        if (address?.trim().isNotEmpty ?? false) address!.trim(),
+      ].join(' · ');
+
   /// Effective discount %: explicit from the API, else derived from the MRP
   /// vs the selling price (never fabricated — only shown when a real MRP that
   /// exceeds the price is present).
@@ -151,9 +206,23 @@ class SearchResultItem {
 
 class SearchResponse {
   final String query;
+
+  /// Size of the ranked candidate pool for this request — **not** a global
+  /// match count. The engine fuses a bounded pool (~[maxCandidatePool] rows) per
+  /// request, so this grows slightly with `page`. Don't render it as "N results
+  /// found" and don't derive a page count from it.
   final int total;
+
   final int page;
   final int limit;
+
+  /// The scope that actually ran, echoed back so a screen can confirm it asked
+  /// for what it thinks it did. Null on older responses.
+  final String? category;
+
+  /// Entity types this response was scoped to; null means every type
+  /// (`category=all`).
+  final List<String>? types;
 
   /// entityType -> count across the whole result set (drives the type tabs).
   final Map<String, int> facets;
@@ -176,10 +245,27 @@ class SearchResponse {
     required this.residualText,
     required this.filters,
     required this.results,
+    this.category,
+    this.types,
   });
 
-  /// True while more pages exist for the current query/type.
-  bool get hasMore => page * limit < total;
+  /// Ceiling of the server's fused candidate pool. Paging past it only returns
+  /// empty pages, so it doubles as the client's stop condition.
+  static const int maxCandidatePool = 100;
+
+  /// True while another page is worth asking for.
+  ///
+  /// Deliberately *not* `page * limit < total`: `total` is the pool size, not a
+  /// match count, and it creeps up with each page — so that test keeps
+  /// requesting pages that come back empty. Page on what actually arrived, and
+  /// stop at the pool ceiling.
+  bool get hasMore =>
+      results.length == limit && page * limit < maxCandidatePool;
+
+  /// Honest headline count: past the pool ceiling the exact figure isn't
+  /// available, so "100+" is the most that can truthfully be shown.
+  String get totalLabel =>
+      total >= maxCandidatePool ? '$maxCandidatePool+' : '$total';
 
   factory SearchResponse.fromJson(Map<String, dynamic> j) {
     final parsed = j['parsed'];
@@ -188,6 +274,8 @@ class SearchResponse {
       total: (j['total'] as num?)?.toInt() ?? 0,
       page: (j['page'] as num?)?.toInt() ?? 1,
       limit: (j['limit'] as num?)?.toInt() ?? 20,
+      category: j['category'] as String?,
+      types: (j['types'] as List?)?.map((e) => e.toString()).toList(),
       facets: (j['facets'] as Map?)?.map(
             (k, v) => MapEntry(k.toString(), (v as num?)?.toInt() ?? 0),
           ) ??
@@ -223,7 +311,9 @@ class SearchResponse {
     }
     final color = filters['color'];
     if (color is String && color.isNotEmpty) parts.add(color);
-    if (filters['geo'] == true) parts.add('near me');
+    // The colour comes back as the word the user typed, so it stays as-is;
+    // "near me" is ours to phrase and is translated.
+    if (filters['geo'] == true) parts.add(AppStrings.globalSearchNearMe.tr);
     return parts.join(' · ');
   }
 
@@ -248,6 +338,13 @@ class Suggestion {
   final String? deepLink;
   final String? imageUrl;
 
+  /// Same per-row address / distance the full search returns — `/suggest`
+  /// carries them whenever the suggested entity has them and `lat`/`lng` were
+  /// sent. Absent for catalogue rows.
+  final String? address;
+  final int? distanceMeters;
+  final String? distanceText;
+
   Suggestion({
     required this.entityType,
     required this.title,
@@ -255,6 +352,9 @@ class Suggestion {
     this.sourceId,
     this.deepLink,
     this.imageUrl,
+    this.address,
+    this.distanceMeters,
+    this.distanceText,
   });
 
   factory Suggestion.fromJson(Map<String, dynamic> j) => Suggestion(
@@ -264,5 +364,16 @@ class Suggestion {
         sourceId: j['sourceId'] as String?,
         deepLink: j['deepLink'] as String?,
         imageUrl: j['imageUrl'] as String?,
+        address: j['address'] as String?,
+        distanceMeters: (j['distanceMeters'] as num?)?.toInt(),
+        distanceText: j['distanceText'] as String?,
       );
+
+  bool get hasDistance => distanceMeters != null;
+
+  /// "1.4 km · Rajpur Road, Dehradun" — empty when the row has neither.
+  String get locationLine => [
+        if (hasDistance && (distanceText?.isNotEmpty ?? false)) distanceText!,
+        if (address?.trim().isNotEmpty ?? false) address!.trim(),
+      ].join(' · ');
 }
