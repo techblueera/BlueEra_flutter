@@ -1,11 +1,13 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/search/controller/global_search_controller.dart';
+import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:BlueEra/features/common/search/view/product_inquiry_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -64,9 +66,19 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: PreferredSize(
-
-        preferredSize: const Size.fromHeight(60),
-        child: SafeArea(child: _buildSearchField()),
+        // Search field + the category strip beneath it. The strip stays pinned
+        // for both the suggestion and the results view, so the scope can be
+        // changed before *or* after a query is committed.
+        preferredSize: const Size.fromHeight(110),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSearchField(),
+              _buildCategoryBar(),
+            ],
+          ),
+        ),
       ),
       body: Obx(() {
         if (controller.showSuggestions.value) {
@@ -116,7 +128,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
-                        hintText: 'Search anything',
+                        hintText: AppStrings.globalSearchHint.tr,
                         hintStyle: TextStyle(
                           fontSize: 16,
                           color: AppColors.secondaryTextColor,
@@ -174,6 +186,102 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     );
   }
 
+  // ── Category scope chips ────────────────────────────────────────────
+  /// Icon shown on each category chip. Purely presentational — the wire value
+  /// lives on [SearchCategory].
+  static const Map<SearchCategory, IconData> _categoryIcons = {
+    SearchCategory.all: Icons.apps_outlined,
+    SearchCategory.content: Icons.dynamic_feed_outlined,
+    SearchCategory.video: Icons.play_circle_outline,
+    SearchCategory.userfeed: Icons.article_outlined,
+    SearchCategory.grocery: Icons.local_grocery_store_outlined,
+    SearchCategory.food: Icons.restaurant_outlined,
+    SearchCategory.shopping: Icons.shopping_bag_outlined,
+    SearchCategory.healthcare: Icons.local_hospital_outlined,
+    SearchCategory.automotive: Icons.directions_car_outlined,
+    SearchCategory.stay: Icons.hotel_outlined,
+    SearchCategory.homemadeFood: Icons.soup_kitchen_outlined,
+    SearchCategory.homemadeProducts: Icons.inventory_2_outlined,
+    SearchCategory.homeServices: Icons.home_repair_service_outlined,
+    SearchCategory.consultants: Icons.badge_outlined,
+    SearchCategory.services: Icons.handyman_outlined,
+    SearchCategory.rentals: Icons.vpn_key_outlined,
+    SearchCategory.finance: Icons.account_balance_outlined,
+    SearchCategory.jobs: Icons.work_outline,
+    SearchCategory.education: Icons.school_outlined,
+    SearchCategory.shops: Icons.storefront_outlined,
+  };
+
+  /// Horizontally scrolling scope selector shown under the search field. Picking
+  /// a chip sets the `category` sent with the search; "All" (also the ✕ on the
+  /// selected chip) clears it back to searching everything.
+  Widget _buildCategoryBar() {
+    const categories = SearchCategory.values;
+    return Container(
+      height: 48,
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        border: Border(bottom: BorderSide(color: AppColors.greyE5)),
+      ),
+      child: Obx(() {
+        final selected = controller.selectedCategory.value;
+        return ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+          itemCount: categories.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) =>
+              _categoryChip(categories[i], categories[i] == selected),
+        );
+      }),
+    );
+  }
+
+  Widget _categoryChip(SearchCategory category, bool selected) {
+    final isAll = category == SearchCategory.all;
+    return GestureDetector(
+      onTap: () => controller.selectCategory(category),
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.blue5CAF : AppColors.white,
+          border: Border.all(
+              color: selected ? AppColors.blue5CAF : AppColors.greyE5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _categoryIcons[category] ?? Icons.search,
+              size: 16,
+              color: selected ? AppColors.white : AppColors.secondaryTextColor,
+            ),
+            const SizedBox(width: 6),
+            CustomText(
+              category.labelKey.tr,
+              fontSize: SizeConfig.small,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? AppColors.white : AppColors.mainTextColor,
+            ),
+            // The selected vertical carries its own clear button, so the filter
+            // can be dropped without hunting for "All" at the far left.
+            if (selected && !isAll) ...[
+              const SizedBox(width: 6),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: controller.clearCategory,
+                child: const Icon(Icons.close, size: 14, color: AppColors.white),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Suggestions view ────────────────────────────────────────────────
   /// Shown while [GlobalSearchController.showSuggestions] is true. With an
   /// empty field it renders the Flipkart-style discovery landing (recent /
@@ -196,7 +304,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       if (items.isEmpty) {
         return _centeredHint(
           icon: Icons.search,
-          message: 'Keep typing to see suggestions',
+          message: AppStrings.globalSearchKeepTyping.tr,
         );
       }
       return ListView.separated(
@@ -215,20 +323,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       horizontalTitleGap: 12,
       leading: _thumb(s.imageUrl, s.entityType),
       title: _highlightedSuggestionTitle(s.title, query),
-      subtitle: (s.subtitle != null && s.subtitle!.trim().isNotEmpty)
-          ? Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: CustomText(
-                // "in {category}" context line, as in the reference.
-                'in ${s.subtitle!.trim()}',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blue5CAF,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            )
-          : null,
+      subtitle: _suggestionSubtitle(s),
       // The ↖ arrow lifts the term back into the field (doesn't run the
       // search) so the user can refine it further — matching the reference.
       trailing: GestureDetector(
@@ -238,6 +333,60 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             size: 20, color: AppColors.secondaryTextColor),
       ),
       onTap: () => controller.submitSearch(s.title),
+    );
+  }
+
+  /// "in {category}" context line, plus the row's distance / address when the
+  /// backend measured one. Both are per-row — a shop suggestion has them, the
+  /// product it stocks doesn't — so the line is built conditionally.
+  Widget? _suggestionSubtitle(Suggestion s) {
+    final context = s.subtitle?.trim() ?? '';
+    final location = s.locationLine;
+    if (context.isEmpty && location.isEmpty) return null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (context.isNotEmpty)
+            CustomText(
+              AppStrings.globalSearchInCategoryFmt
+                  .trParams({'category': context}),
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blue5CAF,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          if (location.isNotEmpty) _locationLine(location),
+        ],
+      ),
+    );
+  }
+
+  /// Distance · address line. Rendered only when the row actually carries one —
+  /// never as a fixed slot, since one list mixes rows that have it with rows
+  /// that don't (`healthcare` returns hospitals next to medicines).
+  Widget _locationLine(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.location_on_outlined,
+              size: 12, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 2),
+          Expanded(
+            child: CustomText(
+              text,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -293,24 +442,70 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   /// Curated trending terms. Trending is normally an admin/server-driven
   /// list; this static set gives the section shippable content and each
   /// entry commits a real search on tap.
-  static const List<String> _trendingSearches = [
-    'Mobiles under 15000',
-    'Shoes',
-    'Bike covers',
-    'Home cleaning',
-    'Salon at home',
-    'Men accessories',
+  ///
+  /// [query] is what actually goes to the search API and stays English on
+  /// purpose — the index is English, so searching a translated term would
+  /// return nothing. Only [labelKey] is localised.
+  static const List<({String query, String labelKey})> _trendingSearches = [
+    (
+      query: 'Mobiles under 15000',
+      labelKey: AppStrings.globalSearchTrendMobilesUnder15000
+    ),
+    (query: 'Shoes', labelKey: AppStrings.globalSearchTrendShoes),
+    (query: 'Bike covers', labelKey: AppStrings.globalSearchTrendBikeCovers),
+    (
+      query: 'Home cleaning',
+      labelKey: AppStrings.globalSearchTrendHomeCleaning
+    ),
+    (
+      query: 'Salon at home',
+      labelKey: AppStrings.globalSearchTrendSalonAtHome
+    ),
+    (
+      query: 'Men accessories',
+      labelKey: AppStrings.globalSearchTrendMenAccessories
+    ),
   ];
 
   /// Popular product/category shortcuts shown as cards. Each opens a real
-  /// search for its title.
-  static const List<({String title, String subtitle, IconData icon})>
-      _popularProducts = [
-    (title: 'Mobiles', subtitle: 'Latest 5G phones', icon: Icons.smartphone_outlined),
-    (title: 'Fashion', subtitle: 'Shoes & apparel', icon: Icons.checkroom_outlined),
-    (title: 'Grocery', subtitle: 'Daily essentials', icon: Icons.local_grocery_store_outlined),
-    (title: 'Electronics', subtitle: 'Gadgets & more', icon: Icons.headphones_outlined),
-    (title: 'Home', subtitle: 'Kitchen & decor', icon: Icons.chair_outlined),
+  /// search for its (English) [query]; the card text is localised.
+  static const List<
+      ({
+        String query,
+        String titleKey,
+        String subtitleKey,
+        IconData icon
+      })> _popularProducts = [
+    (
+      query: 'Mobiles',
+      titleKey: AppStrings.globalSearchPopMobiles,
+      subtitleKey: AppStrings.globalSearchPopMobilesSub,
+      icon: Icons.smartphone_outlined
+    ),
+    (
+      query: 'Fashion',
+      titleKey: AppStrings.globalSearchPopFashion,
+      subtitleKey: AppStrings.globalSearchPopFashionSub,
+      icon: Icons.checkroom_outlined
+    ),
+    (
+      query: 'Grocery',
+      titleKey: AppStrings.globalSearchPopGrocery,
+      subtitleKey: AppStrings.globalSearchPopGrocerySub,
+      icon: Icons.local_grocery_store_outlined
+    ),
+    (
+      query: 'Electronics',
+      titleKey: AppStrings.globalSearchPopElectronics,
+      subtitleKey: AppStrings.globalSearchPopElectronicsSub,
+      icon: Icons.headphones_outlined
+    ),
+    (
+      query: 'Home',
+      titleKey: AppStrings.globalSearchPopHome,
+      subtitleKey: AppStrings.globalSearchPopHomeSub,
+      icon: Icons.chair_outlined
+    ),
   ];
 
   Widget _buildSearchLanding() {
@@ -357,11 +552,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _landingSectionTitle(
-            'Recent Searches',
+            AppStrings.globalSearchRecentSearches.tr,
             trailing: GestureDetector(
               onTap: controller.clearRecentSearches,
               child: CustomText(
-                'Clear all',
+                AppStrings.clearAll.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
                 color: AppColors.blue5CAF,
@@ -428,7 +623,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _landingSectionTitle('Trending Searches'),
+        _landingSectionTitle(AppStrings.globalSearchTrendingSearches.tr),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
           child: LayoutBuilder(
@@ -452,9 +647,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     );
   }
 
-  Widget _trendingTile(String term) {
+  Widget _trendingTile(({String query, String labelKey}) term) {
     return GestureDetector(
-      onTap: () => controller.submitSearch(term),
+      onTap: () => controller.submitSearch(term.query),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
@@ -468,7 +663,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: CustomText(
-                term,
+                term.labelKey.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -487,7 +682,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _landingSectionTitle('Popular Products'),
+        _landingSectionTitle(AppStrings.globalSearchPopularProducts.tr),
         SizedBox(
           height: 190,
           child: ListView.separated(
@@ -503,9 +698,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   Widget _popularProductCard(
-      ({String title, String subtitle, IconData icon}) product) {
+      ({String query, String titleKey, String subtitleKey, IconData icon})
+          product) {
     return GestureDetector(
-      onTap: () => controller.submitSearch(product.title),
+      onTap: () => controller.submitSearch(product.query),
       child: Container(
         width: 132,
         decoration: BoxDecoration(
@@ -531,7 +727,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    product.title,
+                    product.titleKey.tr,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -540,7 +736,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                   ),
                   const SizedBox(height: 2),
                   CustomText(
-                    product.subtitle,
+                    product.subtitleKey.tr,
                     fontSize: SizeConfig.small,
                     color: AppColors.secondaryTextColor,
                     maxLines: 1,
@@ -609,22 +805,26 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               horizontal: SizeConfig.size12, vertical: 8),
           children: [
             _pillButton(
-              label: 'Sort',
+              label: AppStrings.globalSearchSort.tr,
               trailingIcon: Icons.keyboard_arrow_down,
               onTap: _openSortSheet,
             ),
             const SizedBox(width: 8),
             _pillButton(
-              label: 'Filter',
+              label: AppStrings.globalSearchFilter.tr,
               trailingIcon: Icons.tune,
-              onTap: () => commonSnackBar(message: 'Filters coming soon'),
+              onTap: () => commonSnackBar(
+                  message: AppStrings.globalSearchFiltersComingSoon.tr),
             ),
             if (entries.isNotEmpty) ...[
               const SizedBox(width: 8),
               _vDivider(),
               const SizedBox(width: 8),
-              _chip('All (${controller.total.value})', active == null,
-                  () => controller.selectType(null)),
+              // "100+" past the pool ceiling — `total` is the size of the
+              // server's candidate pool, not a global match count.
+              _chip(
+                  '${AppStrings.searchCatAll.tr} (${controller.totalLabel.value})',
+                  active == null, () => controller.selectType(null)),
               for (final e in entries)
                 _chip('${_entityLabel(e.key)} (${e.value})', active == e.key,
                     () => controller.selectType(e.key)),
@@ -674,10 +874,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       );
 
   void _openSortSheet() {
-    const options = <({String label, String? key})>[
-      (label: 'Relevance', key: null),
-      (label: 'Price -- Low to High', key: 'price_asc'),
-      (label: 'Price -- High to Low', key: 'price_desc'),
+    const options = <({String labelKey, String? key})>[
+      (labelKey: AppStrings.globalSearchRelevance, key: null),
+      (labelKey: AppStrings.globalSearchPriceLowToHigh, key: 'price_asc'),
+      (labelKey: AppStrings.globalSearchPriceHighToLow, key: 'price_desc'),
     ];
     showModalBottomSheet<void>(
       context: context,
@@ -693,7 +893,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: CustomText(
-                'Sort by',
+                AppStrings.globalSearchSortBy.tr,
                 fontSize: SizeConfig.large18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -706,7 +906,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                   for (final o in options)
                     ListTile(
                       title: CustomText(
-                        o.label,
+                        o.labelKey.tr,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                         fontWeight: current == o.key
@@ -786,10 +986,30 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return Obx(() {
       final items = controller.results;
       if (items.isEmpty) {
+        final category = controller.selectedCategory.value;
+        final scoped = category != SearchCategory.all;
         return _centeredHint(
           icon: Icons.search_off,
-          message:
-              'No results for "${controller.committedQuery}".\nTry a different search.',
+          message: scoped
+              ? AppStrings.globalSearchNoResultsInCategoryFmt.trParams({
+                  'query': controller.committedQuery,
+                  'category': category.labelKey.tr,
+                })
+              : AppStrings.globalSearchNoResultsFmt
+                  .trParams({'query': controller.committedQuery}),
+          // An empty scoped tab is usually the scope, not the query — offer the
+          // way out rather than making the user find the chip again.
+          action: scoped
+              ? TextButton(
+                  onPressed: controller.clearCategory,
+                  child: CustomText(
+                    AppStrings.globalSearchSearchAllCategories.tr,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.blue5CAF,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+              : null,
         );
       }
       // Two-column grid (Flipkart-style) for the results. Product entities get
@@ -878,7 +1098,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: CustomText(
-                        'Sponsored',
+                        AppStrings.globalSearchSponsored.tr,
                         fontSize: SizeConfig.small,
                         color: AppColors.secondaryTextColor,
                       ),
@@ -905,6 +1125,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       const SizedBox(height: 6),
                       _gridRatingRow(item, green),
                     ],
+                    if (item.locationLine.isNotEmpty)
+                      _locationLine(item.locationLine),
                     const Spacer(),
                     if (item.price != null) _gridPriceBlock(item, green),
                   ],
@@ -1010,7 +1232,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         ),
         if (item.hasDiscount)
           CustomText(
-            '${item.discountPercent}% off',
+            AppStrings.globalSearchDiscountFmt
+                .trParams({'percent': '${item.discountPercent}'}),
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
             color: green,
@@ -1054,6 +1277,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
+            if (item.locationLine.isNotEmpty) _locationLine(item.locationLine),
             const SizedBox(height: 8),
             _typeBadge(item.entityType),
             const Spacer(),
@@ -1121,15 +1345,16 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               size: 48, color: AppColors.secondaryTextColor),
           SizedBox(height: SizeConfig.size12),
           CustomText(
-            'Something went wrong',
+            AppStrings.globalSearchSomethingWentWrong.tr,
             fontSize: SizeConfig.medium,
             color: AppColors.mainTextColor,
+            textAlign: TextAlign.center,
           ),
           SizedBox(height: SizeConfig.size8),
           TextButton(
             onPressed: controller.retry,
             child: CustomText(
-              'Retry',
+              AppStrings.retry.tr,
               fontSize: SizeConfig.medium,
               color: AppColors.blue5CAF,
               fontWeight: FontWeight.w700,
@@ -1140,7 +1365,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     );
   }
 
-  Widget _centeredHint({required IconData icon, required String message}) {
+  Widget _centeredHint({
+    required IconData icon,
+    required String message,
+    Widget? action,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1155,6 +1384,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               color: AppColors.secondaryTextColor,
               textAlign: TextAlign.center,
             ),
+            if (action != null) action,
           ],
         ),
       ),
@@ -1177,20 +1407,23 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     switch (type) {
       case 'product':
       case 'variant':
-        return 'Product';
+        return AppStrings.searchEntityProduct.tr;
       case 'grocery_product':
-        return 'Grocery';
+        return AppStrings.searchEntityGrocery.tr;
       case 'grocery_shop':
-        return 'Grocery Shop';
+        return AppStrings.searchEntityGroceryShop.tr;
       case 'user':
-        return 'People';
+        return AppStrings.searchEntityPeople.tr;
       case 'business':
-        return 'Business';
+        return AppStrings.searchEntityBusiness.tr;
       case 'service':
-        return 'Service';
+        return AppStrings.searchEntityService.tr;
       default:
+        // New entity types ship server-side without a client release, so an
+        // unknown one falls back to its own (untranslated) name rather than
+        // rendering blank.
         return type.isEmpty
-            ? 'Result'
+            ? AppStrings.searchEntityResult.tr
             : '${type[0].toUpperCase()}${type.substring(1)}';
     }
   }

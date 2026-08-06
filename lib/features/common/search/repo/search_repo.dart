@@ -33,12 +33,18 @@ class SearchRepo {
   ///
   /// Throws (via [ApiBaseHelper.handleError]) on network failure — callers
   /// wrap in try/catch.
+  /// [lat]/[lng] are the searcher's position and give every located row an
+  /// `address` + `distanceMeters`/`distanceText`. They are sent **both or
+  /// neither** — one alone is a `400`, and so is `0,0` (what an unset location
+  /// object usually serialises to), hence [_geoParams].
   Future<SearchResponse> search(
     String q, {
     SearchCategory? category,
     String? type,
     int page = 1,
     int limit = 20,
+    double? lat,
+    double? lng,
   }) async {
     final ResponseModel res = await ApiBaseHelper().getHTTP(
       _searchPath,
@@ -53,6 +59,7 @@ class SearchRepo {
         if (type != null && type.isNotEmpty) 'type': type,
         'page': page,
         'limit': limit,
+        ..._geoParams(lat, lng),
       },
       onError: (_) {},
       onSuccess: (_) {},
@@ -92,14 +99,45 @@ class SearchRepo {
     );
   }
 
+  /// Coordinates for a search/suggest request, or an empty map when they can't
+  /// legally be sent. The API rejects a lone `lat`, a lone `lng` and `0,0`
+  /// outright, so a half-known position is dropped rather than half-sent.
+  Map<String, dynamic> _geoParams(double? lat, double? lng) {
+    if (lat == null || lng == null) return const {};
+    if (lat == 0 && lng == 0) return const {};
+    if (lat.abs() > 90 || lng.abs() > 180) return const {};
+    return {'lat': lat, 'lng': lng};
+  }
+
   /// Type-ahead suggestions (call while typing, debounced). Empty query short
   /// circuits to an empty list without a network call.
-  Future<List<Suggestion>> suggest(String q, {int limit = 8}) async {
+  ///
+  /// [category] scopes the dropdown exactly like it scopes [search], and a
+  /// scoped screen MUST pass its own rather than filter the response: the row
+  /// cap is applied inside the query, so asking for 8 unscoped rows and
+  /// discarding the off-vertical ones can leave a near-empty panel. Omitted for
+  /// [SearchCategory.all] — the server default.
+  ///
+  /// `type` is not accepted here — an 8-row dropdown has no sub-filter.
+  /// [lat]/[lng] follow the same both-or-neither rule as [search].
+  Future<List<Suggestion>> suggest(
+    String q, {
+    SearchCategory? category,
+    int limit = 8,
+    double? lat,
+    double? lng,
+  }) async {
     if (q.trim().isEmpty) return [];
     final ResponseModel res = await ApiBaseHelper().getHTTP(
       _suggestPath,
       showProgress: false,
-      params: {'q': q, 'limit': limit},
+      params: {
+        'q': q,
+        if (category != null && category != SearchCategory.all)
+          'category': category.value,
+        'limit': limit,
+        ..._geoParams(lat, lng),
+      },
       onError: (_) {},
       onSuccess: (_) {},
     );
