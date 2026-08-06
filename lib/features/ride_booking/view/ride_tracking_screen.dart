@@ -2,8 +2,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/route_polyline_service.dart';
@@ -224,44 +222,22 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// BEFORE the ride starts, backing out is abandoning a booking, so it goes
   /// through the cancel confirmation. AFTER the OTP is handed over the ride is
   /// running and cannot be cancelled — asking "cancel your ride?" there is
-  /// wrong, and offering it at all is worse. Minimise into the floating
-  /// mini-map instead, so the customer can use the rest of the app while the
-  /// ride carries on; tapping the mini-map re-opens live tracking.
+  /// wrong, and offering it at all is worse. So on-trip, leaving just unwinds
+  /// to home and the ride carries on.
+  ///
+  /// This used to also publish a floating mini-map (PiP) on the way out. It
+  /// doesn't any more: Discover carries an ongoing-ride strip
+  /// ([OngoingBookingChip]) that already shows the captain, their distance,
+  /// "On trip" and a call button, and taps straight back into this screen. Two
+  /// persistent handles on one ride is one too many — the PiP also floated over
+  /// every screen in the app to say what the strip says in place.
   void _handleLeave() {
     final booking = controller.activeBooking.value;
     if (booking != null && booking.status == RideStatus.onTrip) {
-      _minimiseToOverlay(booking);
+      Get.until((route) => route.isFirst);
       return;
     }
     _openCancelFlow();
-  }
-
-  /// Publishes the floating mini-map and unwinds to the home screen.
-  ///
-  /// Typed `ride_booking` rather than `track_rider`: tapping the PiP must come
-  /// back to THIS details screen — the one the customer minimised — and live
-  /// tracking is a button away from here. `track_rider` jumps straight to the
-  /// map, which is the chat flow's behaviour, not this one's.
-  void _minimiseToOverlay(RideBooking booking) {
-    final overlay = Get.put(RideNavigationOverlayController());
-    overlay.showOverlay(
-      riderLatVal: booking.captain?.latitude ?? 0,
-      riderLngVal: booking.captain?.longitude ?? 0,
-      destLatVal: booking.drop.latitude,
-      destLngVal: booking.drop.longitude,
-      destLabelVal: booking.drop.title,
-      customerNameVal: AppStrings.trackYourRider.tr,
-      fareAmountVal: booking.fare,
-      routePoints: const [],
-      type: 'ride_booking',
-      params: {
-        'riderId': booking.captain?.id ?? '',
-        'dropLat': booking.drop.latitude,
-        'dropLng': booking.drop.longitude,
-        'orderId': booking.rideId,
-      },
-    );
-    Get.until((route) => route.isFirst);
   }
 
   Future<void> _openCancelFlow() async {

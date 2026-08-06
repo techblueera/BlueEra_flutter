@@ -334,40 +334,62 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
+  /// The artwork inside a category tab, sized to FILL the tile.
+  ///
+  /// It used to be pinned to 30px inside a 48px tile, leaving a ~9px white
+  /// margin on every side. That margin was right when the icons were bare
+  /// transparent glyphs needing a plate to sit on — the `/category` art now
+  /// ships with its own tinted rounded square baked in, so the plate became a
+  /// second background around the first, and each tab read as a small coloured
+  /// square marooned in a white one.
+  ///
+  /// Filling the tile also buys the illustration 60% more area in a strip where
+  /// it only ever gets 48px to identify itself.
+  ///
+  /// ## CONTAIN, not cover
+  ///
+  /// The art reaching this widget is mixed and cannot be told apart from its
+  /// path: some categories ship a square with the tint baked in, others are
+  /// still bare transparent cut-outs, and BOTH shapes arrive over the same
+  /// `/category` URLs (see docs/discover_dynamic_icons.txt). `cover` would suit
+  /// the first and crop the second. `contain` serves both — a square source
+  /// fills a square tile exactly, so the baked art still goes edge to edge,
+  /// while a cut-out scales to fit with nothing sliced off.
+  ///
+  /// Only the FALLBACK stays inset: a Material glyph is not artwork and would
+  /// look stretched edge to edge.
   Widget _buildCategoryIcon(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Icon(
-        Icons.category_outlined,
-        size: SizeConfig.size30,
-        color: AppColors.secondaryTextColor,
-      );
-    }
+    if (imageUrl == null || imageUrl.isEmpty) return _fallbackIcon();
+
     // Network image (http/https)
     if (imageUrl.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
-        width: SizeConfig.size30,
-        height: SizeConfig.size30,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => SizedBox(
-          width: SizeConfig.size30,
-          height: SizeConfig.size30,
-        ),
-        errorWidget: (_, __, ___) => Icon(
-          Icons.category_outlined,
-          size: SizeConfig.size30,
-          color: AppColors.secondaryTextColor,
-        ),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.contain,
+        // Nothing while loading — the tile's own surface is already the right
+        // shape and colour, so a spinner here would flash on every scroll.
+        placeholder: (_, __) => const SizedBox.shrink(),
+        errorWidget: (_, __, ___) => _fallbackIcon(),
       );
     }
     // Local asset
     return LocalAssets(
       imagePath: imageUrl,
-      width: SizeConfig.size30,
-      height: SizeConfig.size30,
-      boxFix: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      boxFix: BoxFit.contain,
     );
   }
+
+  Widget _fallbackIcon() => Center(
+        child: Icon(
+          Icons.category_outlined,
+          size: SizeConfig.size24,
+          color: AppColors.secondaryTextColor,
+        ),
+      );
 
   @override
   bool shouldRebuild(
@@ -408,6 +430,10 @@ class _CategoryIconTile extends StatefulWidget {
 
 class _CategoryIconTileState extends State<_CategoryIconTile>
     with SingleTickerProviderStateMixin {
+  /// Ring + glow on the selected tab. One constant so the outline and the light
+  /// it throws can't drift apart.
+  static const Color _kActiveRing = AppColors.yellow00;
+
   static const List<RadialGradient> _gradients = <RadialGradient>[
     RadialGradient(
       center: Alignment.center,
@@ -466,7 +492,9 @@ class _CategoryIconTileState extends State<_CategoryIconTile>
       return Container(
         width: widget.size,
         height: widget.size,
-        alignment: Alignment.center,
+        // Clipped, because the artwork now fills the tile — without this a
+        // square image would paint over the rounded corners.
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
@@ -485,13 +513,28 @@ class _CategoryIconTileState extends State<_CategoryIconTile>
         return Container(
           width: widget.size,
           height: widget.size,
-          alignment: Alignment.center,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             gradient: g,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.white, width: 1.5),
-            boxShadow: const [
+            // AMBER, not white. The ring is the whole active cue now that
+            // artwork fills the tile and hides the gradient behind it — and a
+            // white ring had two things working against it here: the header it
+            // sits on is a pale-to-mid blue, and most of the category art is
+            // itself light, so the ring was low-contrast on both sides at once.
+            // A warm accent is the one hue neither the blue chrome nor the
+            // illustrations occupy, so it reads as "chosen" at a glance without
+            // competing with the picture it frames.
+            border: Border.all(color: _kActiveRing, width: 2.5),
+            boxShadow: [
+              // Amber glow so the tile reads as lit rather than merely outlined,
+              // over the dark grounding shadow that lifts it off the header.
               BoxShadow(
+                color: _kActiveRing.withValues(alpha: 0.45),
+                blurRadius: 10,
+                spreadRadius: 0.5,
+              ),
+              const BoxShadow(
                 color: Color(0x4D00294E),
                 offset: Offset(0, 2),
                 blurRadius: 10,

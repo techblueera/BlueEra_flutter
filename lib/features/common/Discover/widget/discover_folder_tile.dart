@@ -3,9 +3,12 @@ import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +43,34 @@ class DiscoverFolderScope extends InheritedWidget {
   @override
   bool updateShouldNotify(DiscoverFolderScope oldWidget) =>
       enabled != oldWidget.enabled;
+}
+
+/// Columns the category grid uses inside an opened folder.
+///
+/// Three, against the five the landing card uses. The card is a preview strip
+/// competing with fourteen others for a screen; the sheet is a picker with the
+/// screen to itself, and it is the only place the illustrated artwork is ever
+/// seen at a size where you can tell one shop type from another. Five columns
+/// left each tile ~58px with an 11px label wrapping to two lines — three gives
+/// it ~105px.
+const int kDiscoverSheetColumns = 3;
+
+/// Marks the subtree inside an opened folder's sheet.
+///
+/// Presence alone is the signal — a section that finds this renders as a bare
+/// PICKER GRID (see `DiscoverSheetTile`) rather than as its landing card: no
+/// white card, no title, no "View All", just the categories at a size worth
+/// tapping. The chrome around them belongs to [DiscoverFolderSheet], which
+/// already knows the title it was opened with; a section drawing its own
+/// produced the same heading twice, on two stacked surfaces.
+class DiscoverSheetScope extends InheritedWidget {
+  const DiscoverSheetScope({super.key, required super.child});
+
+  static bool isActive(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverSheetScope>() != null;
+
+  @override
+  bool updateShouldNotify(DiscoverSheetScope oldWidget) => false;
 }
 
 /// Carries the *section widget* a folder was built from, so opening the folder
@@ -129,60 +160,21 @@ class DiscoverFolderTile extends StatelessWidget {
   /// folder is the same neutral glass, and what identifies one is the icons
   /// inside it, not the colour of the box.
   ///
-  /// A dark ink at low alpha rather than a white wash: the default background
-  /// ([AppImageAssets.chatBgBlueShade]) is a very PALE blue, and white-on-
-  /// near-white leaves the grid dissolving into the page. #101922 sits a step
-  /// DARKER than the background instead, which is what gives every tile an edge
-  /// without giving it a colour of its own.
-  ///
-  /// Held at 12%, not the 20% this started at. At 20% the ink stopped reading as
-  /// a tint over the background and started reading as a grey card painted on
-  /// top of it — the tiles went heavy and the pale blue no longer came through.
-  /// The blur below is doing most of the work; the fill only has to separate the
-  /// tile from the page.
-  static const Color _kTileFill = Color(0x1F101922);
-
-  /// ## This is a real [BackdropFilter], against the standing advice on this page
-  ///
-  /// `glass_surface.dart` and [DiscoverFolderSheet]'s neighbour
-  /// `_DiscoverHeaderDelegate` both say not to blur here, and they are not
-  /// stale: a BackdropFilter forces a `saveLayer` and re-samples what is painted
-  /// beneath it every frame. This grid is ~14 tiles inside a scroll view, so
-  /// that is ~14 sampled layers, and it is the same shape as the setup that
-  /// smeared text on this page twice before — a device-dependent Android
-  /// GPU/driver bug that does NOT reproduce on most dev hardware.
-  ///
-  /// It is here because the design calls for true frosted glass and was
-  /// specified with this radius. Two things make it survivable where the header
-  /// did not: each filter is CLIPPED to its own tile (a small, bounded region
-  /// rather than the full width of a pinned header), and what it samples is the
-  /// static page background, not the live feed scrolling underneath.
-  ///
-  /// If smearing or a frame-time cliff shows up on real devices, the fix is to
-  /// drop this to plain alpha — the fill above already carries the look on its
-  /// own — not to tune the sigma.
-  static const double _kTileBlur = 10;
-
-  /// Rim. Solid white at 1px — the tile is darker than the page it sits on, and
-  /// the white edge is what gives it a shape.
-  static const Color _kTileBorder = Colors.white;
-
-  /// Lift, in the same ink as the fill so the shadow belongs to the tile rather
-  /// than greying the background under it.
-  static const List<BoxShadow> _kTileShadow = [
-    BoxShadow(color: Color(0x1F101922), blurRadius: 14, offset: Offset(0, 6)),
-    BoxShadow(color: Color(0x14101922), blurRadius: 4, offset: Offset(0, 1)),
-  ];
-
-  /// Corner radius, shared by the clip and the fill: a [BackdropFilter] has to
-  /// be clipped to the tile's own shape, and the two radii must agree or the
-  /// blur bleeds past the corners.
-  static const double _kTileRadius = 26;
+  /// The recipe itself — fill, blur, rim, lift, radius, and WHY each is the
+  /// value it is — lives in `discover_glass.dart`, because the header banner and
+  /// the recent-orders rail paint themselves with the same one. It used to be
+  /// copied per call site, which is how two panels on one page end up a shade
+  /// apart after someone tunes one of them.
+  static const Color _kTileFill = kDiscoverGlassFill;
+  static const double _kTileBlur = kDiscoverGlassBlur;
+  static const Color _kTileBorder = kDiscoverGlassBorder;
+  static const List<BoxShadow> _kTileShadow = kDiscoverGlassShadow;
+  static const double _kTileRadius = kDiscoverGlassRadius;
 
   /// Plate behind each icon — a brighter white than the tile it sits on, so the
   /// illustrated icons keep a clean base and the 2x2 reads as four slots rather
   /// than one wash.
-  static const Color _kPlateFill = Color(0x8FFFFFFF);
+  static const Color _kPlateFill = kDiscoverGlassPlateFill;
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +439,17 @@ class _DiscoverFolderPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // [DiscoverIcons] art already sits on its own tinted rounded-square, so it
+    // fills the slot edge-to-edge and the translucent plate is dropped —
+    // otherwise the folder shows a coloured square inset inside a white one.
+    // Everything else (legacy assets, `/category` URLs) is a transparent
+    // cut-out and still needs the plate. Same rule as [DiscoverTilePlate].
+    if (DiscoverIcons.isSelfContained(iconPath)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: DiscoverFolderIcon(iconPath: iconPath!),
+      );
+    }
     return Container(
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
@@ -469,22 +472,39 @@ class DiscoverFolderIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Self-contained art fills the slot; a cut-out is contained. See
+    // [DiscoverIcons.fitFor].
+    final fit = DiscoverIcons.fitFor(iconPath);
     if (isNetworkImage(iconPath)) {
       return CachedNetworkImage(
         imageUrl: iconPath,
-        fit: BoxFit.contain,
+        fit: fit,
         placeholder: (_, __) => const SizedBox.shrink(),
         errorWidget: (_, __, ___) => const SizedBox.shrink(),
       );
     }
-    return LocalAssets(imagePath: iconPath, boxFix: BoxFit.contain);
+    return LocalAssets(imagePath: iconPath, boxFix: fit);
   }
 }
 
-/// Sheet a folder opens into. It hosts the section's ORIGINAL card — same
-/// grid, same labels, same tap routing — with [DiscoverFolderScope] switched
-/// off so the section renders its normal full-width self inside.
+/// Sheet a folder opens into — the category picker.
+///
+/// It mounts the section's own widget (so every tap routes exactly as it did on
+/// the landing card) but under [DiscoverSheetScope], which makes that section
+/// render as a bare 3-column grid. The heading, the count and the close control
+/// belong to the sheet: it is the thing that was opened, so it is the thing
+/// that should name itself.
+///
+/// The field colour is the same `#F3F7FD` the sheet always used. It is what
+/// makes this read as the folder OPENING rather than as a modal arriving over
+/// it — and it is now the only surface here. Previously a white card sat on top
+/// of it carrying a second copy of the title, which is two panels and two
+/// headings to say one thing.
 class DiscoverFolderSheet {
+  static const Color _field = Color(0xFFF3F7FD);
+  static const Color _ink = Color(0xFF0F1722);
+  static const Color _inkSoft = Color(0xFF5D6B7C);
+
   static Future<void> show(
     BuildContext context,
     String title,
@@ -496,15 +516,18 @@ class DiscoverFolderSheet {
       isScrollControlled: true,
       builder: (sheetContext) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.35,
+          // Opens tall enough that two full rows of the 3-column grid are on
+          // screen without a drag — at 0.6 the third row was cut mid-artwork,
+          // which reads as "there is nothing more" rather than "scroll".
+          initialChildSize: 0.68,
+          minChildSize: 0.4,
           maxChildSize: 0.92,
           expand: false,
           builder: (_, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF3F7FD),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                color: _field,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: Column(
                 children: [
@@ -512,26 +535,28 @@ class DiscoverFolderSheet {
                   Container(
                     width: 44,
                     height: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.greyE5,
+                      color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
+                  _header(sheetContext, title),
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      padding: EdgeInsets.only(
-                        left: SizeConfig.size12,
-                        right: SizeConfig.size12,
-                        bottom: SizeConfig.size24,
+                      padding: EdgeInsets.fromLTRB(
+                        SizeConfig.size16,
+                        SizeConfig.size4,
+                        SizeConfig.size16,
+                        SizeConfig.size24 +
+                            MediaQuery.of(sheetContext).padding.bottom,
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        // Scope off: the section renders its normal card here,
-                        // with every tap routing exactly as before.
-                        child: DiscoverFolderScope(
-                          enabled: false,
+                      // Folder scope OFF (don't render another folder tile),
+                      // sheet scope ON (render as the picker grid).
+                      child: DiscoverFolderScope(
+                        enabled: false,
+                        child: DiscoverSheetScope(
                           child: Builder(builder: builder),
                         ),
                       ),
@@ -543,6 +568,59 @@ class DiscoverFolderSheet {
           },
         );
       },
+    );
+  }
+
+  /// Title and the way out.
+  ///
+  /// A category COUNT was tried here and cut. The only number available to the
+  /// sheet is the one the landing card previewed, and the sheet deliberately
+  /// shows more than that card does (the paging sections drop their cap in
+  /// here) — so the count would have contradicted the grid under it. A heading
+  /// that has to be qualified is worse than no second line.
+  static Widget _header(BuildContext context, String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size6,
+        SizeConfig.size10,
+        SizeConfig.size12,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: CustomText(
+              title,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: _ink,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Explicit close, because the sheet opens tall — reaching the handle
+          // to dismiss means crossing the whole grid with your thumb.
+          Semantics(
+            button: true,
+            label: 'Close',
+            child: InkResponse(
+              onTap: () => Navigator.of(context).maybePop(),
+              radius: 24,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFE8EEF7),
+                ),
+                child: const Icon(Icons.close_rounded, size: 18, color: _inkSoft),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

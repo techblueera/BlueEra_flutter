@@ -469,6 +469,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     bottomBarController.currentIndex.value = landing;
   }
 
+  /// True once the user has actually tapped a bottom-nav tab on this mount.
+  /// Guards [_maybeCorrectLandingTabForMeProfile] so the deferred correction
+  /// can never yank someone off a tab they picked themselves.
+  bool _userPickedTab = false;
+
+  /// Single source of truth for the landing tab. Callers (splash, post-login
+  /// nav) deliberately pass NO `initialIndex` so this decides; only an
+  /// explicit tab request (deep link / notification) overrides it.
   int _resolveLandingIndex() {
     if (isBusiness()) {
       // Business users land on Discover (1) by default on app open / login /
@@ -534,6 +542,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // login the rider go-live gate runs once userProfessionGlobal is known.
         fetch.whenComplete(() {
           viewPersonalDetailsController.isPersonalProfileReady.value = true;
+          _maybeCorrectLandingTabForMeProfile();
           if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
         });
       } else {
@@ -543,6 +552,30 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
       }
     }
+  }
+
+  /// Re-runs the landing-tab decision once the personal-profile fetch has
+  /// resolved `userProfileTypeGlobal` / `userProfessionGlobal`.
+  ///
+  /// Needed because on a FRESH login those globals don't exist yet — verifyOTP
+  /// navigates here before the profile is fetched (deliberately: the fetch is a
+  /// full round-trip and would sit on the OTP screen). So the shell lands on
+  /// Discover, and this snaps gig workers / riders onto Me the moment their
+  /// type lands. On a cold start the globals are already loaded from prefs, so
+  /// [_resolveLandingIndex] got it right in initState and this is a no-op.
+  ///
+  /// Deliberately conservative — it only moves the tab when NOTHING else has
+  /// claimed it: no explicit `initialIndex` (deep link / notification), no tab
+  /// tap by the user, and the app is still sitting on the Discover default.
+  void _maybeCorrectLandingTabForMeProfile() {
+    if (!mounted) return;
+    if (_userPickedTab) return;
+    if (widget.initialIndex != null) return;
+    if (bottomBarController.currentIndex.value != 1) return;
+    if (_resolveLandingIndex() != 0) return;
+    logs("LANDING_TAB: profile resolved to "
+        "'$userProfileTypeGlobal'/'$userProfessionGlobal' — moving to Me tab");
+    bottomBarController.onChangeIndex(0);
   }
 
   /// Rider go-live permission gate — runs after the personal-profile fetch on
@@ -748,6 +781,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                               // run the home init that cold start skipped now
                               // that the user is actually navigating.
                               _ensureHeavyInit();
+                              // From here on the tab is the user's choice — the
+                              // deferred landing-tab correction must not move
+                              // it out from under them.
+                              _userPickedTab = true;
                               bottomBarController.onChangeIndex(index);
                             },
                             chatNotificationCount: chatNotificationCount,

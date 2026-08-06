@@ -101,10 +101,33 @@ class InitiateSecurityDepositResponse {
   final int baseAmount; // paise, pre-discount
   final int discountAmount; // paise
   final int referralDiscountPercent;
-  final int finalAmount; // paise, payable (base − discount)
+
+  /// paise — THE amount to charge: `(base − discount) + GST`.
+  ///
+  /// The GST term is new; this was `(base − discount)` before tax shipped. It
+  /// has always meant "what to hand Razorpay" and still does — the number is
+  /// simply larger now. Never recompute it client-side: it is frozen server-side
+  /// against the Razorpay order, and any drift is a failed payment.
+  final int finalAmount;
   final int refundAfterMonths;
   final String securityDepositId;
   final String status;
+
+  // ── Tax breakup (additive; all zero/empty before GST was enabled) ───────
+  /// paise — deposit after discount, BEFORE tax.
+  final int taxableAmount;
+
+  /// The rate this order was frozen at. On a resumed order this is the rate at
+  /// creation time, which may differ from today's `/gst` — render what came
+  /// back rather than "correcting" it.
+  final int gstPercent;
+
+  /// paise — tax on [taxableAmount]. Zero for every pre-GST and legacy user;
+  /// render no tax row at all in that case.
+  final int gstAmount;
+
+  /// Ready-made breakup string, e.g. `"200 + 36"`. Empty when absent.
+  final String amountDisplay;
 
   InitiateSecurityDepositResponse.fromJson(Map<String, dynamic> j)
       : orderId = (j['order_id'] == null || j['order_id'].toString().isEmpty)
@@ -119,7 +142,11 @@ class InitiateSecurityDepositResponse {
         refundAfterMonths =
             j['refund_after_months'] == null ? 6 : _asInt(j['refund_after_months']),
         securityDepositId = (j['security_deposit_id'] ?? '').toString(),
-        status = (j['status'] ?? '').toString();
+        status = (j['status'] ?? '').toString(),
+        taxableAmount = _asInt(j['taxable_amount']),
+        gstPercent = _asInt(j['gst_percent']),
+        gstAmount = _asInt(j['gst_amount']),
+        amountDisplay = (j['amount_display'] ?? '').toString();
 
   /// True when no payment is needed — the deposit is already `held`.
   bool get isZeroDeposit => orderId == null || finalAmount <= 0;
@@ -136,7 +163,23 @@ class UserSecurityDeposit {
   final int depositAmount; // paise — catalog snapshot
   final int baseAmount; // paise — pre-discount base
   final int discountAmount; // paise — referral discount
-  final int finalAmount; // paise — amount actually paid AND refunded
+
+  /// paise — the amount actually PAID. **Not** the amount refunded.
+  ///
+  /// It once was both. Since GST shipped it includes tax, and tax is remitted
+  /// to the government rather than returned: a refund pays back the deposit
+  /// only. Any refund figure must read [refundableAmount], never this.
+  final int finalAmount;
+
+  /// paise — what a refund would actually return (deposit, excluding GST).
+  ///
+  /// Falls back to [finalAmount] when the backend doesn't send it, which is the
+  /// correct equivalence for every pre-GST deposit: no tax was charged, so the
+  /// whole payment is refundable.
+  ///
+  /// Nothing renders a refund figure today. This exists so that whatever
+  /// eventually does has the right field sitting there to reach for.
+  final int refundableAmount;
   final String referralCode;
   final int referralDiscountPercent;
   final String currency;
@@ -166,6 +209,9 @@ class UserSecurityDeposit {
         baseAmount = _asInt(j['base_amount']),
         discountAmount = _asInt(j['discount_amount']),
         finalAmount = _asInt(j['final_amount']),
+        refundableAmount = j['refundable_amount'] == null
+            ? _asInt(j['final_amount'])
+            : _asInt(j['refundable_amount']),
         referralCode = (j['referralCode'] ?? '').toString(),
         referralDiscountPercent = _asInt(j['referral_discount_percent']),
         currency = (j['currency'] ?? 'INR').toString(),

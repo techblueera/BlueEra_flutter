@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_vehicle_select_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
+import 'package:BlueEra/features/ride_booking/widget/ride_marker_icons.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,9 +26,24 @@ class RideConfirmPickupScreen extends StatefulWidget {
       _RideConfirmPickupScreenState();
 }
 
-class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
+class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
+    with RideLiveRiderMarkers {
   final RideBookingController controller = Get.find<RideBookingController>();
   GoogleMapController? _mapController;
+
+  /// How often the live vehicles around the pin are refreshed while this screen
+  /// is open. Riders move, and the customer can sit here a while deciding on a
+  /// pickup point, so the map would otherwise show where everyone was when the
+  /// screen opened.
+  static const Duration _liveRiderRefresh = Duration(minutes: 1);
+
+  /// Drives that refresh. Lives and dies with the screen — polling is only
+  /// worth its cost while someone is looking at the map.
+  Timer? _liveRiderTimer;
+
+  /// Rebuilds the marker artwork when a lookup brings back a vehicle type that
+  /// hasn't been rasterised yet.
+  Worker? _liveRiderWorker;
 
   /// Coordinate under the centre pin right now. Updated on camera-idle.
   late LatLng _pinPosition;
@@ -48,10 +66,24 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   /// Gates the tick, so opening the screen is silent.
   bool _cameraMoved = false;
 
+  /// False while the pin is still sitting on the hardcoded fallback city — no
+  /// seeded pickup, no device fix yet.
+  ///
+  /// The rider lookup is gated on it. The controller drops a lookup at 0,0, but
+  /// this screen never asks for 0,0: it opens the map on Bhopal so the frame
+  /// isn't the null island, and querying THAT would draw a map full of vehicles
+  /// 800 km from the customer. Flips true when the fix lands, or as soon as the
+  /// user drags the map — at that point they are looking at a real place and
+  /// the vehicles there are the honest answer, fallback centre or not.
+  bool _hasRealPin = false;
+
   @override
   void initState() {
     super.initState();
     final existing = controller.pickup.value;
+    _hasRealPin = (existing != null && existing.hasCoordinates) ||
+        controller.currentLat.value != 0 ||
+        controller.currentLng.value != 0;
     _pinPosition = existing != null && existing.hasCoordinates
         ? LatLng(existing.latitude, existing.longitude)
         : LatLng(
@@ -80,16 +112,48 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
         _locationWorker = null;
         final target = LatLng(lat, controller.currentLng.value);
         _pinPosition = target;
+        _hasRealPin = true;
         // Camera-idle then fires and resolves the address for it.
         _mapController?.animateCamera(
           CameraUpdate.newLatLngZoom(target, 17),
         );
+        // The opening lookup was gated on the fallback centre — run it now we
+        // have a real point.
+        _fetchLiveRiders();
       });
     }
+
+    _liveRiderWorker = ever<List<RideLiveRider>>(
+      controller.liveRiders,
+      ensureRiderMarkerIcons,
+    );
+    // Draw what is out there immediately, then keep it current.
+    _fetchLiveRiders();
+    _liveRiderTimer =
+        Timer.periodic(_liveRiderRefresh, (_) => _fetchLiveRiders());
+  }
+
+  /// One `riders/live-in-radius` lookup around the CURRENT pin.
+  ///
+  /// [_pinPosition], not `controller.pickup` — the pickup isn't committed until
+  /// Confirm, so the controller's copy is still wherever the customer arrived
+  /// from. Reading the pin means each tick shows the vehicles around the point
+  /// they are actually considering.
+  ///
+  /// No vehicle type is passed: nothing upstream picks a class any more, so the
+  /// controller's default coarse category (`rider`) is what we want here.
+  void _fetchLiveRiders() {
+    if (!_hasRealPin) return;
+    controller.fetchLiveRiders(
+      atLat: _pinPosition.latitude,
+      atLng: _pinPosition.longitude,
+    );
   }
 
   @override
   void dispose() {
+    _liveRiderTimer?.cancel();
+    _liveRiderWorker?.dispose();
     _locationWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
@@ -101,6 +165,9 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
     final position = _pinPosition;
     if (_cameraMoved) {
       _cameraMoved = false;
+      // The user has driven the map themselves — wherever the pin is now is a
+      // real place, even if the screen opened on the fallback centre.
+      _hasRealPin = true;
       _playPinTick();
     }
     final seq = ++_resolveSeq;
@@ -217,16 +284,24 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        GoogleMap(
-          initialCameraPosition: CameraPosition(target: _pinPosition, zoom: 17),
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-          mapToolbarEnabled: false,
-          onMapCreated: (c) => _mapController = c,
-          onCameraMoveStarted: () => _cameraMoved = true,
-          onCameraMove: (position) => _pinPosition = position.target,
-          onCameraIdle: _onCameraIdle,
+        // Obx so a finished live-rider lookup repaints the markers. It wraps
+        // the map rather than sitting inside it because `markers` is a
+        // constructor argument — the platform view itself is reused, only the
+        // marker set is diffed.
+        Obx(
+          () => GoogleMap(
+            initialCameraPosition:
+                CameraPosition(target: _pinPosition, zoom: 17),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            markers: liveRiderMarkers(controller.liveRiders),
+            onMapCreated: (c) => _mapController = c,
+            onCameraMoveStarted: () => _cameraMoved = true,
+            onCameraMove: (position) => _pinPosition = position.target,
+            onCameraIdle: _onCameraIdle,
+          ),
         ),
         // The two halves of the marker, both registered on the map centre: the
         // ring IS the coordinate, the label hangs above it.

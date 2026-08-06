@@ -16,7 +16,8 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_store_card.dart';
+import 'package:BlueEra/features/common/store/widget/store_list_card.dart';
+import 'package:BlueEra/features/common/store/widget/store_sort_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +97,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   }
 
   int _locationVersion = 0;
+
+  /// Active sort chip. See [StoreSort] for why this is applied over the loaded
+  /// list rather than sent to the API.
+  StoreSort _sort = StoreSort.nearest;
 
   /// Measured height of a real store card (its outer box, including the
   /// `size10` bottom margin) so native ad slots can match the card height
@@ -340,6 +345,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                 EmptyStateWidget(message: AppStrings.groceryNoStoresFound));
       }
 
+      // Ordered copy — see [sortStores]. Built inside the Obx so it re-runs
+      // when a page lands AND when the counts call answers (the products sort
+      // reads `storeCounts`, which is observable).
+      final stores = sortStores(controller.allStore, _sort);
+
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: Column(
@@ -379,7 +389,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
             //   ),
             // ),
 
-            SizedBox(height: SizeConfig.paddingXSL),
+            StoreSortBar(
+              sort: _sort,
+              onChanged: (s) => setState(() => _sort = s),
+            ),
 
             Expanded(
               child: Builder(
@@ -387,7 +400,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                   // Interleave native ads between the store cards using the
                   // shared cadence (single source of truth in
                   // native_ad_list_inserter.dart), never after the last card.
-                  final rows = buildNativeAdRows(controller.allStore.length);
+                  final rows = buildNativeAdRows(stores.length);
                   final showLoadMore =
                       controller.isAllStoreLoadingMore.value;
                   return RefreshIndicator(
@@ -398,6 +411,9 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     padding: EdgeInsets.only(
                       left: SizeConfig.size12,
                       right: SizeConfig.size12,
+                      // Breathing room under the sort chips; each card supplies
+                      // the gap below itself.
+                      top: SizeConfig.size4,
                       bottom: SizeConfig.paddingL + 70,
                     ),
                     itemBuilder: (context, index) {
@@ -419,12 +435,12 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
                       final row = rows[index];
                       if (row.isAd) {
-                        // Track the card height (minus the card's own size10
-                        // bottom margin, which the ad re-adds itself), but never
+                        // Track the card height (minus the card's own size12
+                        // bottom gap, which the ad re-adds itself), but never
                         // go below _kMinNativeAdHeight — the native layout needs
                         // room for the media view so the Meta native template
                         // renders without clipping.
-                        final base = (_measuredCardHeight ?? 0) - SizeConfig.size10;
+                        final base = (_measuredCardHeight ?? 0) - SizeConfig.size12;
                         final adHeight =
                             base < _kMinNativeAdHeight ? _kMinNativeAdHeight : base;
                         // NativeAdSlot supplies the stable key (keyed on the
@@ -438,18 +454,12 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         );
                       }
 
-                      final store = controller.allStore[row.contentIndex];
+                      final store = stores[row.contentIndex];
 
-                      // Card visuals are driven entirely by
-                      // `_GroceryCardPalette` inside `GroceryStoreCard` —
-                      // bg, border, tile bg, tile border, divider all
-                      // come from a single palette. Pass the row index so
-                      // cards alternate (teal → violet → teal …) instead
-                      // of being picked by a hash of `store.id`.
-                      final card = GroceryStoreCard(
-                        store: store,
-                        index: row.contentIndex,
-                      );
+                      // The card carries its own gap underneath, so nothing to
+                      // pass here — every card is self-contained and the ad
+                      // slots below inherit the same rhythm.
+                      final card = StoreListCard(store: store);
 
                       // Measure the first card so ad slots can mirror its
                       // height. Only the first card is measured to avoid a
@@ -492,145 +502,55 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
           child: child,
         );
       },
+      // Mirrors the real card — ringed avatar, name, two badges, stat pill and
+      // the two trailing pills — including its gap, so the swap to real content
+      // reads as a load finishing rather than a relayout.
       child: ListView.builder(
-        padding: EdgeInsets.only(
-          top: SizeConfig.paddingS,
-          left: SizeConfig.size12,
-          right: SizeConfig.size12,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.only(
+            top: SizeConfig.size4,
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+          ),
+          itemCount: 5,
+          itemBuilder: (_, index) {
+            return Container(
+              margin: EdgeInsets.only(bottom: SizeConfig.size12),
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size14,
+                vertical: SizeConfig.size14,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEDF1F5), width: 1),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _shimmerBox(64, 64, radius: 32),
+                  SizedBox(width: SizeConfig.size12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name, then the rating line, then the location line —
+                        // the three rows the real card carries.
+                        _shimmerBox(17, 170),
+                        SizedBox(height: SizeConfig.size8),
+                        _shimmerBox(13, 130),
+                        SizedBox(height: SizeConfig.size8),
+                        _shimmerBox(13, double.infinity),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size10),
+                  _shimmerBox(46, 62, radius: 10),
+                ],
+              ),
+            );
+          },
         ),
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 4,
-        itemBuilder: (_, index) {
-          // Mirror the two card backgrounds the real cards use (now
-          // driven by `_GroceryCardPalette.cardBg` inside the card
-          // widget) so the skeleton previews match the eventual look.
-          final Color bgColor = index.isEven
-              ? const Color(0xFFEDFDFF)
-              : const Color(0xFFFCF5FF);
-          return Container(
-            margin: EdgeInsets.only(bottom: SizeConfig.size10),
-            padding: EdgeInsets.all(SizeConfig.size10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: bgColor,
-              border: Border.all(color: AppColors.greyE5, width: 0.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _shimmerBox(SizeConfig.size40, SizeConfig.size40,
-                        radius: SizeConfig.size20),
-                    SizedBox(width: SizeConfig.size8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _shimmerBox(14, 120),
-                          SizedBox(height: SizeConfig.size6),
-                          Row(
-                            children: [
-                              _shimmerBox(20, 50, radius: 10),
-                              const SizedBox(width: 6),
-                              _shimmerBox(20, 60, radius: 10),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.paddingXSL),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: AppColors.greyE5, width: 0.5),
-                    color: AppColors.white,
-                  ),
-                  child: Row(
-                    children: [
-                      _shimmerBox(32, 32, radius: 6),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _shimmerBox(12, 90),
-                            SizedBox(height: SizeConfig.size4),
-                            _shimmerBox(10, double.infinity),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size6),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.greyE5, width: 0.5),
-                          color: AppColors.white,
-                        ),
-                        child: Row(
-                          children: [
-                            _shimmerBox(30, 30, radius: 6),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                _shimmerBox(12, 24),
-                                const SizedBox(height: 4),
-                                _shimmerBox(10, 48),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.greyE5, width: 0.5),
-                          color: AppColors.white,
-                        ),
-                        child: Row(
-                          children: [
-                            _shimmerBox(30, 30, radius: 6),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                _shimmerBox(12, 24),
-                                const SizedBox(height: 4),
-                                _shimmerBox(10, 44),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
     );
   }
 

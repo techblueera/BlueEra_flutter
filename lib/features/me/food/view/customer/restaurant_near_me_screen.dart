@@ -135,7 +135,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   /// taps) skips the network call when the cached list for this type/category
   /// is still fresh. Pass false only to force a fresh fetch (pull-to-refresh).
   void _fetchStores({String? categoryId, bool ifNeeded = true}) {
-    storeController.typeOfBusiness = AppConstants.food;
+    storeController.typeOfBusiness = BusinessType.Food.name;
     storeController.businessCategoryId = categoryId;
     if (ifNeeded) {
       storeController.getAllStoreNearByIfNeeded();

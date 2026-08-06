@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -51,44 +52,42 @@ class RecentOrdersSection extends StatelessWidget {
       if (orders.isEmpty) return const SizedBox.shrink();
 
       final rows = orders.take(maxRows).toList();
-      return Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12, left: 12, right: 12),
-        // Uniform inset now that the card ends on the last order row — the
-        // tighter bottom value existed only to offset the Book-a-Ride button's
-        // own padding.
-        padding: EdgeInsets.all(SizeConfig.size14),
-        decoration: BoxDecoration(
-          // Glass panel, matching the rest of the redesigned Discover page: a
-          // translucent white wash over the blurred profile photo behind the
-          // feed, NOT a solid card. Kept high-alpha because this panel is dense
-          // dark text — the folder tiles can sit at 0.22, a list of shop names
-          // and messages cannot.
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.1),
-              Colors.white.withValues(alpha: 0.1),
+      return Padding(
+        // Side inset matches the landing grid's gutter (`_kFolderGap`), so this
+        // panel's edges line up with the folder tiles directly under it rather
+        // than sitting 2px proud of them.
+        padding: EdgeInsets.only(
+          bottom: SizeConfig.size12,
+          left: _kGridGutter,
+          right: _kGridGutter,
+        ),
+        // The SAME glass every panel on the Discover landing page is painted
+        // with — see `discover_glass.dart`. This used to be a hand-rolled
+        // white-10% wash with no blur, which read as a different material from
+        // the folder tiles it sits directly on top of.
+        //
+        // Switching from a white wash to that recipe's dark ink IMPROVES the
+        // text here rather than threatening it: the header is white-on-glass and
+        // gains contrast against a darker panel, and the order rows carry their
+        // own bright plates ([kDiscoverGlassPlateFill]) which is where the dark
+        // shop names and message previews actually sit.
+        child: DiscoverGlassPanel(
+          padding: EdgeInsets.all(SizeConfig.size14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header(orders.length),
+              SizedBox(height: SizeConfig.size12),
+              // Each order on its own frosted plate instead of divider-separated
+              // rows: the plates read as glass-on-glass and give the tap target a
+              // visible edge, which a hairline divider over a translucent panel
+              // does not.
+              for (var i = 0; i < rows.length; i++) ...[
+                _OrderRow(chat: rows[i]),
+                if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
+              ],
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
-          boxShadow: _kGlassCardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _header(orders.length),
-            SizedBox(height: SizeConfig.size12),
-            // Each order on its own frosted plate instead of divider-separated
-            // rows: the plates read as glass-on-glass and give the tap target a
-            // visible edge, which a hairline divider over a translucent panel
-            // does not.
-            for (var i = 0; i < rows.length; i++) ...[
-              _OrderRow(chat: rows[i]),
-              if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),
-            ],
-          ],
         ),
       );
     });
@@ -138,21 +137,9 @@ class RecentOrdersSection extends StatelessWidget {
 /// Bottom-nav index the Connect (chat / inquiry) tab lives at.
 const int _kConnectTabIndex = 2;
 
-/// Lift under the glass panel. A translucent panel has no fill of its own to
-/// separate it from the photo behind the feed, so the shadow is what makes it
-/// read as a pane floating above the page rather than a tint painted on it.
-const List<BoxShadow> _kGlassCardShadow = [
-  BoxShadow(
-    color: Color(0x1F101828),
-    blurRadius: 18,
-    offset: Offset(0, 8),
-  ),
-  BoxShadow(
-    color: Color(0x14101828),
-    blurRadius: 4,
-    offset: Offset(0, 1),
-  ),
-];
+/// Side gutter of the Discover landing grid (`_DiscoverScreenState._kFolderGap`),
+/// mirrored here so this rail's edges line up with the folder tiles below it.
+const double _kGridGutter = 14;
 
 class _OrderRow extends StatelessWidget {
   const _OrderRow({required this.chat});
@@ -166,8 +153,12 @@ class _OrderRow extends StatelessWidget {
     // Material + InkWell rather than a decorated Container: the plate's fill
     // has to come from the Material itself, otherwise the tap ripple paints on
     // the Scaffold underneath and is hidden behind the plate.
+    //
+    // The shared plate white, same as the icon slots inside a folder tile — a
+    // block sitting ON the Discover glass, bright enough to carry dark text
+    // that the translucent panel underneath could not.
     return Material(
-      color: Colors.white.withValues(alpha: 0.55),
+      color: kDiscoverGlassPlateFill,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: () => getOrPut(() => BottomBarController()).currentIndex.value =

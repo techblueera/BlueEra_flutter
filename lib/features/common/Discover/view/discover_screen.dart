@@ -21,6 +21,7 @@ import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
@@ -1287,8 +1288,8 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
     );
   }
 
-  /// The banner's own plate, matching the folder tiles: #101922 at 12% behind a
-  /// 10px blur — light enough that the pale background still reads through it.
+  /// The banner's own plate, matching the folder tiles: the shared Discover
+  /// glass recipe (see `discover_glass.dart` for the values and the reasoning).
   ///
   /// The artwork is drawn CONTAIN, so on a card whose ratio doesn't match the
   /// box there is bare page either side of it. That gap used to show the raw
@@ -1296,8 +1297,12 @@ class _DiscoverHeaderBannerState extends State<_DiscoverHeaderBanner> {
   /// frosted plate the grid below is built from, and the blur under a
   /// translucent slide gives the artwork something to sit on rather than
   /// floating on the page.
-  static const Color _kBannerFill = Color(0x1F101922);
-  static const double _kBannerBlur = 10;
+  ///
+  /// The RADIUS is this banner's own (18, not the grid's 26): it is a wide strip
+  /// framing artwork rather than a square tile, and the grid's corner would eat
+  /// into the card inside it.
+  static const Color _kBannerFill = kDiscoverGlassFill;
+  static const double _kBannerBlur = kDiscoverGlassBlur;
 
   Widget _banner(String path) {
     return ClipRRect(
