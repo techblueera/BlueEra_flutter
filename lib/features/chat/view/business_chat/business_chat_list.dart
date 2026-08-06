@@ -32,6 +32,38 @@ import '../../../../widgets/glass_surface.dart';
 ///             so existing call-sites/switches stay valid)
 enum ChatBucket { chats, me, skip }
 
+/// Chat-card `message_type`s the ride/goods dispatch flow posts into a
+/// conversation. A thread carrying any of them is a ride booking, whichever
+/// route it was booked through (Discover transport, the Inquiry tab's rider
+/// shortcut, a grocery/food order handed to a rider, or a fare call):
+///   order_request — the booking request card
+///   rider         — rider details + Track Order / Cancel Ride
+///   rider_map     — the live-location card (suppressed inside the thread)
+///   rider_otp     — the pickup / delivery handoff OTP card
+const Set<String> _kRideDispatchMessageTypes = {
+  'order_request',
+  'rider',
+  'rider_map',
+  'rider_otp',
+};
+
+/// Conversations already identified as ride threads. A chat-list row only
+/// carries its LAST message type, so once either party sends a plain message
+/// the ride card scrolls out of that field — without this the thread would pop
+/// back into the Inquiry tab. Seeded as rows arrive, so it costs nothing; it is
+/// in-memory only, and a relaunch simply falls back to the last-message check.
+final Set<String> _knownRideChats = <String>{};
+
+/// True when [chat] is a ride booking (see [_kRideDispatchMessageTypes]).
+bool isRideDispatchChat(ChatList chat) {
+  final id = chat.conversationId ?? '';
+  if (_kRideDispatchMessageTypes.contains(chat.lastMessageType)) {
+    if (id.isNotEmpty) _knownRideChats.add(id);
+    return true;
+  }
+  return id.isNotEmpty && _knownRideChats.contains(id);
+}
+
 /// Single source of truth for routing one order/enquiry row — the Dart twin
 /// of the backend routing spec. An order/enquiry I *receive* (someone ordered
 /// from / enquired to my business) goes to my "Me" section; one I *placed*
@@ -52,6 +84,19 @@ enum ChatBucket { chats, me, skip }
 ///
 /// `me` is the logged-in user's id (`userId`).
 ChatBucket bucketChat(ChatList chat) {
+  // A ride booking is just a grocery order with the rider as the shop: the
+  // person who booked is the customer (buyer) and the rider fulfils it
+  // (seller). The backend can't express that through `business_owner_user_id`
+  // — a direct ride has no business behind it — so the rider side is decided
+  // from the logged-in user's profession. On a rider's device the ride thread
+  // is therefore an order (the "me" lane) and never shows up in their Inquiry
+  // tab, which they don't use: riders work the ride out of their dispatch
+  // screens, not chat. The customer's copy of the same thread is untouched and
+  // stays in Inquiry next to their grocery / Discover orders.
+  if (isRiderProfession(userProfessionGlobal) && isRideDispatchChat(chat)) {
+    return ChatBucket.me;
+  }
+
   final isOrder = chat.isOrder == true;
   if (!isOrder) return ChatBucket.chats;
 
