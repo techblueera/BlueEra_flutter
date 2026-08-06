@@ -112,27 +112,17 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
     );
   }
 
-  /// Book is a two-beat action: show who is out there for the chosen vehicle,
-  /// then commit.
+  /// Book straight through to the searching screen.
   ///
-  /// The customer has just picked a class off a price list, which says nothing
-  /// about whether anyone is actually driving one nearby. This is the last
-  /// screen before a broadcast goes out and a rider's phone rings, so it is the
-  /// right place to show the supply behind the choice.
+  /// This used to open a sheet listing who was live nearby and ask the customer
+  /// to confirm a second time. It was informational only — dispatch is a
+  /// BROADCAST, so nothing in that list could be picked — and it sat between a
+  /// button already labelled with the vehicle and the price and the action it
+  /// promised. The supply it showed is on the map behind it anyway, and the
+  /// searching screen is where waiting for a rider belongs.
   void _confirmBooking() {
-    final selected = controller.selectedVehicle.value;
-    if (selected == null) return;
-    // Refresh rather than trust what the map happens to be holding — the pick
-    // may have been made minutes ago.
-    controller.fetchLiveRiders(vehicleType: selected.code);
-    Get.bottomSheet(
-      _RidersSheet(
-        controller: controller,
-        option: selected,
-        onBook: _book,
-      ),
-      isScrollControlled: true,
-    );
+    if (controller.selectedVehicle.value == null) return;
+    _book();
   }
 
   Future<void> _book() async {
@@ -142,9 +132,6 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
       commonSnackBar(message: 'Could not book this ride. Please try again.');
       return;
     }
-    // Close the riders sheet first, or it stays stacked over the searching
-    // screen and a back gesture lands on a sheet for a ride already placed.
-    if (Get.isBottomSheetOpen ?? false) Get.back();
     Get.to(() => const RideSearchingScreen());
   }
 
@@ -864,196 +851,6 @@ class _ServiceTileSpec {
       if (type != null) return type;
     }
     return null;
-  }
-}
-
-/// Who is out there for the chosen vehicle, and the button that commits.
-///
-/// Informational, not a picker: dispatch is a BROADCAST — the server rings
-/// nearby riders in expanding waves and the first to accept wins — so tapping a
-/// name would promise something the flow cannot keep. What it does answer is
-/// "is anyone actually driving one of these near me", which the fare list can't.
-class _RidersSheet extends StatelessWidget {
-  const _RidersSheet({
-    required this.controller,
-    required this.option,
-    required this.onBook,
-  });
-
-  final RideBookingController controller;
-  final RideVehicleOption option;
-  final VoidCallback onBook;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(RideStyle.sheetRadius),
-        ),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + 16,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const RideSheetHandle(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 52,
-                  height: 40,
-                  child: LocalAssets(
-                    imagePath: RideVehicleArt.assetFor(
-                      option.code,
-                      orderFor: controller.orderFor.value,
-                    ),
-                    boxFix: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Obx(() {
-                    final count = controller.liveRiders.length;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          count == 0
-                              ? 'Riders near you'
-                              : '$count ${count == 1 ? 'rider' : 'riders'} near you',
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: RideStyle.ink,
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          '${option.name} · ₹${option.fare.toStringAsFixed(0)}',
-                          fontSize: 13,
-                          color: RideStyle.inkMuted,
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: RideStyle.hairline),
-          Obx(() {
-            if (controller.isLoadingLiveRiders.value &&
-                controller.liveRiders.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 28),
-                child: CircularProgressIndicator(strokeWidth: 2.4),
-              );
-            }
-            if (controller.liveRiders.isEmpty) {
-              // Still bookable: the broadcast widens its radius in waves, so
-              // "none in this circle right now" is not "nobody will come".
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(24, 22, 24, 18),
-                child: CustomText(
-                  'No riders in range right now. Booking still sends your '
-                  'request out — it widens until someone accepts.',
-                  fontSize: 13,
-                  color: RideStyle.inkMuted,
-                  textAlign: TextAlign.center,
-                ),
-              );
-            }
-            return ConstrainedBox(
-              // Caps the sheet so the Book button is never pushed off-screen by
-              // a busy neighbourhood.
-              constraints: const BoxConstraints(maxHeight: 280),
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                itemCount: controller.liveRiders.length,
-                separatorBuilder: (_, __) => const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18),
-                  child: Divider(height: 1, color: RideStyle.hairline),
-                ),
-                itemBuilder: (context, index) =>
-                    _RiderRow(rider: controller.liveRiders[index]),
-              ),
-            );
-          }),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Obx(
-              () => RidePrimaryButton(
-                label: 'Confirm & Book · ₹${option.fare.toStringAsFixed(0)}',
-                isLoading: controller.isBooking.value,
-                onTap: onBook,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One live rider in the sheet: who they are and how far off.
-class _RiderRow extends StatelessWidget {
-  const _RiderRow({required this.rider});
-
-  final RideLiveRider rider;
-
-  @override
-  Widget build(BuildContext context) {
-    final available = rider.riderStatus.toLowerCase() == 'available';
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: const BoxDecoration(
-              color: RideStyle.surfaceTint,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.person, size: 21, color: RideStyle.inkMuted),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: CustomText(
-              rider.name.isNotEmpty ? rider.name : 'Rider',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: RideStyle.ink,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (rider.distanceKm != null) ...[
-            CustomText(
-              '${rider.distanceKm!.toStringAsFixed(1)} km',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: RideStyle.inkMuted,
-            ),
-            const SizedBox(width: 10),
-          ],
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              // Green for available, grey for anything else — the server owns
-              // the vocabulary, so anything unrecognised reads as "not idle".
-              color: available ? RideStyle.pickup : RideStyle.hairline,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

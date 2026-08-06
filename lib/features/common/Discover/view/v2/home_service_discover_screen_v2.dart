@@ -28,7 +28,14 @@ import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 /// [ServiceController.serviceCategoryOptions]). Tapping a tab refetches
 /// `getBusinessServices` (providerType = **user**) scoped to that category.
 class HomeServiceDiscoverScreenV2 extends StatefulWidget {
-  const HomeServiceDiscoverScreenV2({super.key});
+  const HomeServiceDiscoverScreenV2({super.key, this.initialCategoryName});
+
+  /// Category tab to open on, by display name ('Tailor', 'Beautician', …).
+  ///
+  /// Set by the Discover folder sheet so tapping a service there lands on that
+  /// service rather than on whichever one happens to be first. Null, or a name
+  /// this screen doesn't carry, keeps the default.
+  final String? initialCategoryName;
   @override
   State<HomeServiceDiscoverScreenV2> createState() =>
       _HomeServiceDiscoverScreenV2State();
@@ -46,7 +53,18 @@ class _HomeServiceDiscoverScreenV2State
   final controller = getOrPut(() => ServiceController(), tag: _ctrlTag);
   final List<ServiceCategoryOption> _categories =
       ServiceController.serviceCategoryOptions;
-  late ServiceCategoryOption _selected = _categories.first;
+  /// Opens on the category the caller named, else the first.
+  ///
+  /// Matched loosely — case and punctuation stripped from both sides — because
+  /// the name arrives from the Discover catalogue, which writes its own labels
+  /// and need not spell them exactly as this list does.
+  late ServiceCategoryOption _selected = _categories.firstWhere(
+    (c) => _normalisedCategory(c.name) == _normalisedCategory(widget.initialCategoryName),
+    orElse: () => _categories.first,
+  );
+
+  static String _normalisedCategory(String? value) =>
+      (value ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   final List<String> _bannerImages = const [
     // Electrical repair, home cleaning, plumbing. Each URL was downloaded and

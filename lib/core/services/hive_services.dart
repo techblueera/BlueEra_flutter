@@ -49,6 +49,17 @@ class HiveServices{
   static const String _savedFoodNestedCategoryBox = 'savedFoodNestedCategoryBox';
   static const String _savedVehicleCategoryBox = 'savedVehicleCategoryBox';
 
+  /// Product / category counts per store, keyed by store id.
+  ///
+  /// Deliberately NOT in the geo box beside the stores themselves. That cache
+  /// is one entry per dataset identity, scoped to where it was fetched, and is
+  /// replaced wholesale on every refresh — counts keyed that way would be
+  /// discarded every time the list reloaded, and re-fetched for stores whose
+  /// numbers had not changed. A store's counts are a property of the STORE, not
+  /// of the place the user was standing when the list came back, so they live
+  /// one-row-per-store and survive the list being replaced.
+  static const String _savedStoreCountsBox = 'savedStoreCountsBox';
+
   /// Initialize Hive boxes
   static Future<void> init() async {
     await Hive.openBox(_savedPosts);
@@ -65,6 +76,7 @@ class HiveServices{
     await Hive.openBox(_savedProductNestedCategoryBox);
     await Hive.openBox(_savedFoodNestedCategoryBox);
     await Hive.openBox(_savedVehicleCategoryBox);
+    await Hive.openBox(_savedStoreCountsBox);
   }
 
   static List<String> get allBoxNames => [
@@ -82,6 +94,7 @@ class HiveServices{
     _savedProductNestedCategoryBox,
     _savedFoodNestedCategoryBox,
     _savedVehicleCategoryBox,
+    _savedStoreCountsBox,
   ];
 
   // ── Category-tree caches (raw JSON) ──────────────────────────────────────
@@ -392,6 +405,61 @@ class HiveServices{
   /// Box name for the near-by store / service geo-cache, exposed so callers
   /// can pass it to [saveGeoList] / [getGeoList].
   static String get nearByStoreBox => _savedAllNearByStore;
+
+  // ── Store product / category counts ──────────────────────────────────────
+  //
+  // One row per store id, written as it arrives and read on the next cold
+  // start. See [_savedStoreCountsBox] for why these are not in the geo cache
+  // with the stores.
+
+  /// Merges [counts] — `storeId → row JSON` — into the counts cache.
+  ///
+  /// Merge rather than replace: a page of stores answers for its own ids only,
+  /// so overwriting the box would drop the counts for every store the user has
+  /// already scrolled past.
+  Future<void> saveStoreCounts(Map<String, Map<String, dynamic>> counts) async {
+    if (counts.isEmpty) return;
+    try {
+      final box = Hive.box(_savedStoreCountsBox);
+      await box.putAll({
+        for (final entry in counts.entries)
+          entry.key: {
+            'savedAt': DateTime.now().millisecondsSinceEpoch,
+            'row': entry.value,
+          },
+      });
+    } catch (e) {
+      print('Error saving store counts: $e');
+    }
+  }
+
+  /// Cached counts for [storeIds], as `storeId → row JSON`.
+  ///
+  /// Rows older than [maxAge] are skipped: a stale count is worse than none,
+  /// because a store card showing "0 products" reads as a fact rather than as
+  /// a number that hasn't loaded. Ids with no usable row are simply absent —
+  /// the caller fetches those.
+  Map<String, Map<String, dynamic>> getStoreCounts(
+    Iterable<String> storeIds, {
+    Duration maxAge = const Duration(hours: 6),
+  }) {
+    final out = <String, Map<String, dynamic>>{};
+    try {
+      final box = Hive.box(_savedStoreCountsBox);
+      final cutoff = DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
+      for (final id in storeIds) {
+        final data = box.get(id);
+        if (data is! Map) continue;
+        final savedAt = (data['savedAt'] as num?)?.toInt() ?? 0;
+        if (savedAt < cutoff) continue;
+        final row = data['row'];
+        if (row is Map) out[id] = Map<String, dynamic>.from(row);
+      }
+    } catch (e) {
+      print('Error loading store counts: $e');
+    }
+    return out;
+  }
 
   /// All Stores Products
   Future<bool> saveAllStoreProduct(

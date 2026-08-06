@@ -234,8 +234,10 @@ class RouteConstant {
 
   // Rider call screens
   static const String IncomingRiderOrderScreen = "/IncomingRiderOrderScreen";
-  static const String RiderPickupNavigationScreen = "/RiderPickupNavigationScreen";
-  static const String RiderRideNavigationScreen = "/RiderRideNavigationScreen";
+  // NOTE: RiderPickupNavigationScreen / RiderRideNavigationScreen route names
+  // lived here. Both screens were the rider's in-app live maps and are gone —
+  // riders navigate in the phone's Google Maps and the order card carries the
+  // job — so the names went with them rather than pointing at nothing.
 
   // Business onboarding (WhatsApp-style)
   static const String BusinessOnboardingCategoryScreen =

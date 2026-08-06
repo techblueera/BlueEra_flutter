@@ -25,6 +25,17 @@ mixin GroceryServiceApi {
       'grocery-service/api/products/$productId/variants';
   final String groceryProducts = 'grocery-service/api/inventory/my-products';
 
+  /// Batched product / root-category counts per owner.
+  /// `POST { businesses: [{ businessId?, userId? }] }`, max 100 entries.
+  /// See docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md.
+  ///
+  /// NOTE: product-service uses the IDENTICAL path on its own host
+  /// ([ProductServiceApi.productBusinessProductStats]) — the two differ only by
+  /// service prefix, and swapping them returns the wrong catalogue's numbers
+  /// with no error.
+  final String groceryBusinessProductStats =
+      'grocery-service/api/inventory/business-product-stats';
+
   /// Public single-product fetch used by the grocery share deep-link landing
   /// (`https://beapp.in/app/grocery/{productId}`).
   /// `GET grocery-service/api/products/{productId}`.

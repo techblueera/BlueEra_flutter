@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:get/get.dart';
 
 class _AutomotiveProductCardPalette {
@@ -212,26 +213,33 @@ class AutomotiveProductStoreCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: _formatCount(_store.totalCategoryCount ??
-                            (_store.categories?.length ?? 0)),
-                        label: AppStrings.category.tr,
-                        iconColor: const Color(0xFF9964F4),
-                        borderColor: palette.tileBorder,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: _formatCount(_store.totalProductCount ?? 0),
-                        label: AppStrings.automotiveProductTitle.tr,
-                        iconColor: const Color(0xFF6179CD),
-                        borderColor: palette.tileBorder,
-                      ),
-                    ],
-                  ),
+                  // Counts come from their own call, after this card is on
+                  // screen — see [StoreController.fetchStoreCountsFor]. The
+                  // store listing no longer carries them, so there is nothing
+                  // to fall back to; Obx fills the two figures in when they
+                  // land.
+                  Obx(() {
+                    final counts = storeCountsFor(_store);
+                    return Row(
+                      children: [
+                        _buildStatBox(
+                          icon: AppIconAssets.staggeredIcon,
+                          count: _formatCount(counts?.categoryCount),
+                          label: AppStrings.category.tr,
+                          iconColor: const Color(0xFF9964F4),
+                          borderColor: palette.tileBorder,
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        _buildStatBox(
+                          icon: AppIconAssets.productCartIcon,
+                          count: _formatCount(counts?.productCount),
+                          label: AppStrings.automotiveProductTitle.tr,
+                          iconColor: const Color(0xFF6179CD),
+                          borderColor: palette.tileBorder,
+                        ),
+                      ],
+                    );
+                  }),
                   SizedBox(height: SizeConfig.size8),
                   Expanded(child: _buildAddressCard(context, palette)),
                 ],
@@ -665,7 +673,14 @@ class AutomotiveProductStoreCard extends StatelessWidget {
     );
   }
 
-  String _formatCount(int n) {
+  /// A count for a stat tile, or `-` when it isn't known yet.
+  ///
+  /// Null is the pre-answer state, not zero: counts come from their own call
+  /// after the card is on screen, and a `0` shown meanwhile reads as "this
+  /// store stocks nothing" rather than "not loaded".
+  String _formatCount(int? count) {
+    if (count == null) return '-';
+    final n = count;
     if (n >= 1000000) {
       final v = n / 1000000;
       return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}M';

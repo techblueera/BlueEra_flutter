@@ -26,8 +26,13 @@ class GetAllStoreResModel {
   bool? isFollowed;
   CategoryOfBusiness? categoryOfBusiness;
   SubCategoryOfBusiness? subCategoryOfBusiness;
-  int? totalProductCount;
-  int? totalCategoryCount;
+
+  // `total_product_count` / `total_category_count` used to arrive here. The
+  // listing dropped them — it no longer fans out to the inventory services to
+  // collect them — and they now come from the per-catalogue
+  // `business-product-stats` endpoints instead. Kept out of the model on
+  // purpose: parsed-but-always-null fields invite a fallback that would render
+  // a permanent `0`. See StoreCountsModel.
   String? quirkyMessage;
   int? chatClickCount;
   List<StoreCategoryBrief>? categories;
@@ -52,20 +57,43 @@ class GetAllStoreResModel {
     this.isFollowed,
     this.categoryOfBusiness,
     this.subCategoryOfBusiness,
-    this.totalProductCount,
-    this.totalCategoryCount,
     this.quirkyMessage,
     this.chatClickCount,
     this.categories,
   });
 
+  /// Parses a store from `user-service/business/search` — and still from the
+  /// old `map-service/api/stores` payload, which is also what [toJson] writes,
+  /// so the Hive cache round-trips through here unchanged.
+  ///
+  /// The two shapes disagree on more than field names:
+  ///  * the id is `_id` on search, `id` on the old listing (and in the cache);
+  ///  * `total_ratings` arrives as a NUMBER on search and a string before, so
+  ///    it is stringified rather than cast — an `as String?` on `0` throws;
+  ///  * the category comes as `category_details` (an object) alongside
+  ///    `category_Of_Business`, which on search is a bare tag STRING and must
+  ///    not be fed to [CategoryOfBusiness.fromJson].
+  ///
+  /// Fields search does not return at all — `views`, `follower_count`,
+  /// `is_followed`, `quirky_message`, `chat_click_count`, `categories` — land
+  /// as null, which is what the widgets reading them already handle.
   factory GetAllStoreResModel.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? asObject(dynamic value) =>
+        value is Map ? Map<String, dynamic>.from(value) : null;
+
+    final categoryJson = asObject(json['category_of_business']) ??
+        asObject(json['category_details']) ??
+        asObject(json['category_Of_Business']);
+    final subCategoryJson = asObject(json['sub_category_of_business']) ??
+        asObject(json['sub_category_details']) ??
+        asObject(json['sub_category_Of_Business']);
+
     return GetAllStoreResModel(
       livePhotos: json['live_photos'] != null
           ? List<String>.from(json['live_photos'].map((x) => x.toString()))
           : [],
-      id: json['id'],
-      userId: json['user_id'],
+      id: (json['id'] ?? json['_id'])?.toString(),
+      userId: json['user_id']?.toString(),
       businessName: json['business_name'],
       dateOfIncorporation: json['date_of_incorporation'] != null
           ? DateOfIncorporation.fromJson(json['date_of_incorporation'])
@@ -79,19 +107,16 @@ class GetAllStoreResModel {
           : null,
       websiteUrl: json['website_url'],
       createdAt: json['created_at'],
-      avgRating: json['avg_rating'],
-      totalRatings: json['total_ratings'],
-      views: json['views'],
-      followerCount: json['follower_count'],
+      avgRating: (json['avg_rating'] as num?)?.toInt(),
+      totalRatings: json['total_ratings']?.toString(),
+      views: json['views']?.toString(),
+      followerCount: json['follower_count']?.toString(),
       isFollowed: json['is_followed'],
-      categoryOfBusiness: json['category_of_business'] != null
-          ? CategoryOfBusiness.fromJson(json['category_of_business'])
+      categoryOfBusiness:
+          categoryJson != null ? CategoryOfBusiness.fromJson(categoryJson) : null,
+      subCategoryOfBusiness: subCategoryJson != null
+          ? SubCategoryOfBusiness.fromJson(subCategoryJson)
           : null,
-      subCategoryOfBusiness: json['sub_category_of_business'] != null
-          ? SubCategoryOfBusiness.fromJson(json['sub_category_of_business'])
-          : null,
-      totalProductCount: json['total_product_count'],
-      totalCategoryCount: json['total_category_count'],
       quirkyMessage: json['quirky_message'],
       chatClickCount: json['chat_click_count'] is int
           ? json['chat_click_count'] as int
@@ -129,8 +154,6 @@ class GetAllStoreResModel {
     map['is_followed'] = isFollowed;
     map['category_of_business'] = categoryOfBusiness?.toJson();
     map['sub_category_of_business'] = subCategoryOfBusiness?.toJson();
-    map['total_product_count'] = totalProductCount;
-    map['total_category_count'] = totalCategoryCount;
     map['quirky_message'] = quirkyMessage;
     map['chat_click_count'] = chatClickCount;
     map['categories'] = categories?.map((c) => c.toJson()).toList();
@@ -164,8 +187,6 @@ class GetAllStoreResModel {
     num? distance,
     CategoryOfBusiness? categoryOfBusiness,
     SubCategoryOfBusiness? subCategoryOfBusiness,
-    int? totalProductCount,
-    int? totalCategoryCount,
     String? quirkyMessage,
     int? chatClickCount,
     List<StoreCategoryBrief>? categories,
@@ -190,8 +211,6 @@ class GetAllStoreResModel {
       isFollowed: isFollowed ?? this.isFollowed,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
       subCategoryOfBusiness: subCategoryOfBusiness ?? this.subCategoryOfBusiness,
-      totalProductCount: totalProductCount ?? this.totalProductCount,
-      totalCategoryCount: totalCategoryCount ?? this.totalCategoryCount,
       quirkyMessage: quirkyMessage ?? this.quirkyMessage,
       chatClickCount: chatClickCount ?? this.chatClickCount,
       categories: categories ?? this.categories,
@@ -298,7 +317,9 @@ class CategoryOfBusiness {
         this.imageUrl});
 
   CategoryOfBusiness.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    // `_id` on `business/search`'s `category_details`, `id` on the old listing
+    // and on anything read back out of the cache.
+    id = (json['id'] ?? json['_id'])?.toString();
     name = json['name'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -347,7 +368,8 @@ class SubCategoryOfBusiness {
         this.categoryId});
 
   SubCategoryOfBusiness.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    // `_id` on `business/search`, `id` on the old listing / the cache.
+    id = (json['id'] ?? json['_id'])?.toString();
     name = json['name'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];

@@ -101,16 +101,56 @@ class StoreRepo extends BaseService {
     return response;
   }
 
-  ///GET SPECIFIC STORES......
+  /// GET SPECIFIC STORES......
+  ///
+  /// `GET user-service/business/search` — the near-by store list for every
+  /// store screen (grocery / food / product / …). Filters are `typeOfBusiness`,
+  /// `category`, `subCategory` and `radius`, paged with `page` / `limit` and
+  /// centred on `lat` / `lng`.
+  ///
+  /// Replaces `map-service/api/stores`, which took a differently-spelled set of
+  /// filters (`type`, `category_id`) — passing the old keys here silently
+  /// returns an unfiltered list rather than an error, so the params are built
+  /// from [ApiKeys.typeOfBusiness] / [ApiKeys.category], not [ApiKeys.type] /
+  /// [ApiKeys.category_id].
   Future<ResponseModel> getSpecificStores({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      getStoreListing,
+      businessSearch,
       showProgress: false,
       params: queryParams,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
+  }
+
+  /// Product / category counts for a batch of stores.
+  ///
+  /// [businesses] is one entry per store, each carrying `businessId`, `userId`,
+  /// or both — the server matches on whichever it is given, which is why the
+  /// caller sends both when it has them.
+  ///
+  /// [path] is the catalogue this asks: [groceryBusinessProductStats],
+  /// [foodBusinessProductStats] or [productBusinessProductStats]. It is a
+  /// parameter rather than a fixed constant because the same store list screen
+  /// backs grocery, food and product, and each has its own catalogue — asking
+  /// grocery for a restaurant's numbers returns a clean, wrong `0`.
+  ///
+  /// `showProgress: false`: this runs BEHIND an already-rendered store list. A
+  /// blocking spinner over a screen the user is reading would be worse than the
+  /// two counts arriving a moment late, which is the whole point of splitting
+  /// this off the listing.
+  Future<ResponseModel> getStoreCountsRepo({
+    required String path,
+    required List<Map<String, String>> businesses,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      path,
+      showProgress: false,
+      params: {'businesses': businesses},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
   }
 
   ///GET SPECIFIC STORES......

@@ -2,32 +2,36 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/core/services/route_polyline_service.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-/// A reusable bottom sheet that shows a Google Map with a driving route
-/// between the user's current location and a destination.
+/// The sheet that opens when a location is tapped: which place, how far, the
+/// address, its photos, and one button that hands the route to Google Maps.
 ///
-/// Usage:
-/// ```dart
-/// RouteMapBottomSheet.show(
-///   context: context,
-///   destinationName: 'Store Name',
-///   destinationAddress: '123 Main St',
-///   destinationLat: 12.9716,
-///   destinationLng: 77.5946,
-/// );
-/// ```
-class RouteMapBottomSheet extends StatefulWidget {
+/// ## Why there is no map in here any more
+///
+/// This used to embed a live [GoogleMap] with a polyline fetched from the
+/// Directions API. It was the wrong trade three times over:
+///
+///  * **It cost money on every open.** One Directions call plus a Maps SDK
+///    render per tap, on a sheet that is tapped from every store card in the
+///    app. See docs/GOOGLE_MAPS_COST_GUIDE.md.
+///  * **It was a picture, not a route.** 200px of non-interactive preview can't
+///    reroute, can't say "12 min", and can't be followed while walking. The
+///    user's next move after looking at it was always to open Google Maps.
+///  * **It delayed the sheet.** The route arrived after the sheet did, so the
+///    first thing the user saw was a "Loading route…" chip over an empty map.
+///
+/// So the sheet now answers what it is actually good at — identity, distance,
+/// address, photos — and [openGoogleMapsDirections] draws the real line, in the
+/// app that owns navigation, with live traffic and an ETA.
+class RouteMapBottomSheet extends StatelessWidget {
   final String destinationName;
   final String destinationAddress;
   final double destinationLat;
@@ -83,119 +87,75 @@ class RouteMapBottomSheet extends StatefulWidget {
     );
   }
 
-  @override
-  State<RouteMapBottomSheet> createState() => _RouteMapBottomSheetState();
-}
+  List<String> get _validPhotos =>
+      livePhotos?.where((p) => p.trim().isNotEmpty).toList() ?? [];
 
-class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
-  GoogleMapController? _mapController;
-  final Set<Polyline> _polylines = {};
-  final Set<Marker> _markers = {};
-  bool _isLoadingRoute = true;
-
-  LatLng get _userLatLng => LatLng(widget.userLat, widget.userLng);
-  LatLng get _destinationLatLng => LatLng(widget.destinationLat, widget.destinationLng);
-
-  @override
-  void initState() {
-    super.initState();
-    _setupMarkers();
-    _fetchRoute();
-  }
-
-  @override
-  void dispose() {
-    _mapController?.dispose();
-    super.dispose();
-  }
-
-  void _setupMarkers() {
-    _markers.addAll({
-      Marker(
-        markerId: const MarkerId('user'),
-        position: _userLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(title: 'Your Location'),
-      ),
-      Marker(
-        markerId: const MarkerId('destination'),
-        position: _destinationLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: InfoWindow(title: widget.destinationName),
-      ),
-    });
-  }
-
-  Future<void> _fetchRoute() async {
+  /// Hands the leg to Google Maps on its DIRECTIONS view — the drawn route with
+  /// distance and ETA, not turn-by-turn guidance, which would be presumptuous
+  /// for someone who has only tapped a shop's address.
+  ///
+  /// The origin is passed only when the device actually has a fix. Sending
+  /// `0,0` would route the user from the Gulf of Guinea; omitting it lets
+  /// Google Maps use its own current location, which is the better answer
+  /// anyway when ours is stale.
+  Future<void> _openDirections(BuildContext context) async {
+    final hasOrigin = userLat != 0.0 || userLng != 0.0;
     try {
-      final result = await RoutePolylineService.fetch(
-        origin: PointLatLng(_userLatLng.latitude, _userLatLng.longitude),
-        destination: PointLatLng(
-            _destinationLatLng.latitude, _destinationLatLng.longitude),
+      await openGoogleMapsDirections(
+        destinationLat: destinationLat,
+        destinationLng: destinationLng,
+        originLat: hasOrigin ? userLat : null,
+        originLng: hasOrigin ? userLng : null,
       );
-
-      if (!mounted) return;
-
-      if (result != null && result.points.isNotEmpty) {
-        final routeCoords = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList();
-
-        setState(() {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('route'),
-              points: routeCoords,
-              width: 5,
-              color: Colors.blue,
-              geodesic: true,
-              jointType: JointType.round,
-              startCap: Cap.roundCap,
-              endCap: Cap.roundCap,
-            ),
-          );
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching route: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingRoute = false);
-      }
+    } catch (_) {
+      commonSnackBar(message: 'Could not open Google Maps');
     }
   }
 
-  void _fitBounds() {
-    if (_mapController == null) return;
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        _userLatLng.latitude < _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude < _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
-      ),
-      northeast: LatLng(
-        _userLatLng.latitude > _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude > _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
+  /// Compact directions affordance — the standard maps glyph, tinted rather
+  /// than filled, with a label so it isn't a guess. 40px square keeps it above
+  /// the minimum tap target while staying subordinate to the address beside it.
+  Widget _directionsButton(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Get directions',
+      child: Tooltip(
+        message: 'Get directions',
+        child: InkResponse(
+          onTap: () => _openDirections(context),
+          radius: 28,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+              ),
+            ),
+            child: const Icon(
+              Icons.directions_rounded,
+              size: 20,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ),
       ),
     );
-
-    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
   }
-
-
-List<String> get _validPhotos =>
-      widget.livePhotos?.where((p) => p.trim().isNotEmpty).toList() ?? [];
 
   @override
   Widget build(BuildContext context) {
     final distance = calculateDistanceKm(
-      widget.userLat, widget.userLng, widget.destinationLat, widget.destinationLng,
+      userLat,
+      userLng,
+      destinationLat,
+      destinationLng,
     ).toStringAsFixed(2);
     final hasPhotos = _validPhotos.isNotEmpty;
 
     return Container(
-      // height: MediaQuery.of(context).size.height * (hasPhotos ? 0.7 : 0.4),
-      // height: MediaQuery.of(context).size.height * (hasPhotos ? 0.8 : 0.6),
       decoration: const BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -214,7 +174,7 @@ List<String> get _validPhotos =>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-        
+
             // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -222,12 +182,12 @@ List<String> get _validPhotos =>
                 children: [
                   Expanded(
                     child: InkWell(
-                     onTap: widget.visitCallback!=null ? widget.visitCallback : null,
+                      onTap: visitCallback,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            widget.destinationName,
+                            destinationName,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
@@ -244,33 +204,35 @@ List<String> get _validPhotos =>
                     ),
                   ),
                   // Visit Store button
-                  if(widget.visitCallback!=null)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).maybePop();
-                      widget.visitCallback!();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.storefront_rounded, size: 16, color: Colors.white),
-                          SizedBox(width: 6),
-                          CustomText(
-                            AppStrings.view,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ],
+                  if (visitCallback != null)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).maybePop();
+                        visitCallback!();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.storefront_rounded,
+                                size: 16, color: Colors.white),
+                            SizedBox(width: 6),
+                            CustomText(
+                              AppStrings.view,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(width: 10),
 
@@ -282,7 +244,7 @@ List<String> get _validPhotos =>
                       border: Border.all(color: AppColors.greyE5, width: 0.5),
                     ),
                     child: CloseButton(
-                      style: ButtonStyle(
+                      style: const ButtonStyle(
                         iconSize: WidgetStatePropertyAll(18),
                         padding: WidgetStatePropertyAll(EdgeInsets.all(6)),
                         minimumSize: WidgetStatePropertyAll(Size.zero),
@@ -294,194 +256,32 @@ List<String> get _validPhotos =>
                 ],
               ),
             ),
-        
-        
-        
-            const SizedBox(height: 4),
-        
-            // Map (card view)
-            SizedBox(
-              height: 200,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.greyE5, width: 1.0),
-                  ),
-                  child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _destinationLatLng,
-                          zoom: 13,
-                        ),
-                        markers: _markers,
-                        polylines: _polylines,
-                        myLocationEnabled: false,
-                        zoomControlsEnabled: true,
-                        zoomGesturesEnabled: true,
-                        scrollGesturesEnabled: true,
-                        rotateGesturesEnabled: true,
-                        tiltGesturesEnabled: true,
-                        mapToolbarEnabled: false,
-                        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                          Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                        },
-                        onMapCreated: (controller) {
-                          _mapController = controller;
-                          Future.delayed(const Duration(milliseconds: 500), _fitBounds);
-                        },
-                      ),
-                      if (_isLoadingRoute)
-                        Positioned(
-                          top: 12,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    height: 14,
-                                    width: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.blue.shade400,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const CustomText(
-                                    'Loading route...',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                ),
-              ),
-            ),
-
-            // Expanded(
-            //   child: Padding(
-            //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            //     child: Card(
-            //       elevation: 3,
-            //       color: AppColors.white,
-            //       clipBehavior: Clip.antiAlias,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(16),
-            //         side: BorderSide(color: AppColors.greyE5, width: 0.5),
-            //       ),
-            //       child: Stack(
-            //         children: [
-            //           GoogleMap(
-            //           initialCameraPosition: CameraPosition(
-            //             target: _destinationLatLng,
-            //             zoom: 15,
-            //           ),
-            //           markers: _markers,
-            //           polylines: _polylines,
-            //           myLocationEnabled: false,
-            //           zoomControlsEnabled: false,
-            //           zoomGesturesEnabled: false,
-            //           scrollGesturesEnabled: false,
-            //           rotateGesturesEnabled: false,
-            //           tiltGesturesEnabled: false,
-            //           mapToolbarEnabled: false,
-            //           liteModeEnabled: true,
-            //           onTap: (_) => _openInGoogleMaps(),
-            //           onMapCreated: (controller) {
-            //             _mapController = controller;
-            //           },
-            //         ),
-            //         if (_isLoadingRoute)
-            //           Positioned(
-            //             top: 12,
-            //             left: 0,
-            //             right: 0,
-            //             child: Center(
-            //               child: Container(
-            //                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            //                 decoration: BoxDecoration(
-            //                   color: AppColors.white,
-            //                   borderRadius: BorderRadius.circular(20),
-            //                   boxShadow: [
-            //                     BoxShadow(
-            //                       color: Colors.black.withValues(alpha: 0.1),
-            //                       blurRadius: 8,
-            //                     ),
-            //                   ],
-            //                 ),
-            //                 child: Row(
-            //                   mainAxisSize: MainAxisSize.min,
-            //                   children: [
-            //                     SizedBox(
-            //                       height: 14,
-            //                       width: 14,
-            //                       child: CircularProgressIndicator(
-            //                         strokeWidth: 2,
-            //                         color: Colors.blue.shade400,
-            //                       ),
-            //                     ),
-            //                     const SizedBox(width: 8),
-            //                     const CustomText(
-            //                       'Loading route...',
-            //                       fontSize: 11,
-            //                       fontWeight: FontWeight.w500,
-            //                       color: AppColors.secondaryTextColor,
-            //                     ),
-            //                   ],
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // Address
 
             const SizedBox(height: 4),
 
-            if (widget.destinationAddress.isNotEmpty)
+            // Address, with directions on the end of the same row.
+            //
+            // This was a full-width filled button under the address. Too loud
+            // for what it is: opening Maps is one of several things you can do
+            // from here (visit the store, look at the photos), not the sheet's
+            // conclusion, and a 46px slab of brand blue claimed otherwise. As
+            // an icon at the end of the line it sits with the address it acts
+            // on — which is also where the eye already is by the time it wants
+            // directions.
+            if (destinationAddress.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          vertical: 4.0,
-                          horizontal: 6.0,
+                        vertical: 4.0,
+                        horizontal: 6.0,
                       ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6.0),
                         color: AppColors.white,
-                        border: Border.all(
-                          color: AppColors.greyE5
-                        ),
+                        border: Border.all(color: AppColors.greyE5),
                       ),
                       child: LocalAssets(
                         imagePath: AppIconAssets.location_outline,
@@ -493,22 +293,36 @@ List<String> get _validPhotos =>
                     const SizedBox(width: 10),
                     Expanded(
                       child: CustomText(
-                        widget.destinationAddress,
+                        destinationAddress,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
                         maxLines: 2,
                       ),
                     ),
+                    const SizedBox(width: 10),
+                    _directionsButton(context),
                   ],
                 ),
+              )
+            else
+              // No address to hang it off — the action still has to be
+              // reachable, so it stands on its own line.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [_directionsButton(context)],
+                ),
               ),
-            const SizedBox(height: 10),
-        
+
+            const SizedBox(height: 6),
+
             // Live Photos
             if (hasPhotos) ...[
               Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
+                padding:
+                    const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
                 child: Row(
                   children: [
                     Icon(Icons.store, size: 16, color: AppColors.primaryColor),
@@ -526,7 +340,7 @@ List<String> get _validPhotos =>
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: StoreLivePhotoWidget(
                   livePhotos: _validPhotos,
-                  natureOfBusiness: widget.destinationName,
+                  natureOfBusiness: destinationName,
                   height: 160,
                   onViewFullScreen: ({
                     required int index,
@@ -537,8 +351,8 @@ List<String> get _validPhotos =>
                       context,
                       MaterialPageRoute(
                         builder: (_) => ImageViewScreen(
-                          appBarTitle: widget.destinationName,
-                          subTitle: widget.destinationName,
+                          appBarTitle: destinationName,
+                          subTitle: destinationName,
                           imageUrls: storeImage,
                           initialIndex: index,
                         ),

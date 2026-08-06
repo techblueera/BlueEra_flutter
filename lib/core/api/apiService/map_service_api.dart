@@ -18,6 +18,10 @@ mixin MapServiceApi {
   final String storesByLatLng = "map-service/stores";
   String getStoresDetailsByStoreId(String storeId) =>
       "map-service/stores/$storeId";
+  /// Stores near a point. No longer carries product / category counts — those
+  /// moved to the per-catalogue `business-product-stats` endpoints (see
+  /// docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md) when this endpoint
+  /// dropped its gRPC fan-out to the inventory services.
   final String getStoreListing = "map-service/api/stores";
   final String storesFeed = "map-service/api/feed";
   final String mapServiceProviderStatus = "map-service/api/provider/status";

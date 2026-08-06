@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -71,7 +70,16 @@ const _restaurantPalettes = <_RestaurantCardPalette>[
 ];
 
 class RestaurantNearMeScreen extends StatefulWidget {
-  const RestaurantNearMeScreen({super.key});
+  const RestaurantNearMeScreen({super.key, this.initialCategoryTagId});
+
+  /// Category tab to open on — an onboarding food `tagId`, e.g.
+  /// [PURE_VEG_RESTAURANT].
+  ///
+  /// Set by callers that already know which category the user picked (the
+  /// Discover folder sheet), so tapping "Pure - Veg Restaurant" there lands on
+  /// that tab instead of on "All Food" with the choice thrown away. Null keeps
+  /// the plain entry behaviour.
+  final String? initialCategoryTagId;
 
   @override
   State<RestaurantNearMeScreen> createState() => _RestaurantNearMeScreenState();
@@ -97,22 +105,13 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
 
   List<CategoryData> get _categories => _authController.businessOnboardingFoodsCategories;
 
-  static final Map<String, String> _foodCategoryIcons = {
-    MULTI_CUISINE_RESTAURANT: OnboardingBusinessAssets.multicuisineRestaurant,
-    PURE_VEG_RESTAURANT: OnboardingBusinessAssets.pureVegRestaurant,
-    COFFEE_BEVERAGES_SHOP: OnboardingBusinessAssets.coffeeBeveragesShop,
-    ECONOMY_DHABA: OnboardingBusinessAssets.economyDhaba,
-    SWEET_NAMKEEN_SHOP: OnboardingBusinessAssets.sweetNamkeenShop,
-    BREAKFAST_FAST_FOOD: OnboardingBusinessAssets.breakfastFastFood,
-    GARDEN_BUFFET_RESTAURANT: OnboardingBusinessAssets.gardenBuffetRestaurant,
-    CLOUD_KITCHEN_MESS: OnboardingBusinessAssets.cloudKitchenMess,
-    NON_VEG_RESTAURANT: OnboardingBusinessAssets.nonVegRestaurant,
-    ICE_CREAM_CORNER: OnboardingBusinessAssets.iceCreamCorner,
-  };
-
-  String _getCategoryIcon(CategoryData item) {
-    return _foodCategoryIcons[item.tagId] ?? item.imageUrl ?? '';
-  }
+  /// The category's artwork, straight from the categories API.
+  ///
+  /// This used to prefer a bundled tag→asset table over the API's own
+  /// `imageUrl`, which meant a category added or re-illustrated server-side
+  /// silently kept the old picture — or showed none at all, since a new tag
+  /// isn't in the table.
+  String _getCategoryIcon(CategoryData item) => item.imageUrl ?? '';
 
   final List<String> _bannerImages = const [
     "https://img.freepik.com/free-photo/top-view-table-full-food_23-2149209253.jpg?w=1380",
@@ -123,16 +122,20 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   void initState() {
     super.initState();
-    // Lands on "All Food": no category filter, so every restaurant nearby is
-    // listed. (It used to land on the first onboarding category.)
-    _fetchStores(ifNeeded: true);
+    // Lands on "All Food" — no category filter, so every restaurant nearby is
+    // listed — UNLESS the caller named a category, in which case that tab is
+    // selected and the first fetch is already filtered to it. Anything else
+    // would open the screen on a list the user has to re-filter by hand after
+    // having just told us what they wanted.
+    _selectedCategoryTagId = widget.initialCategoryTagId;
+    _fetchStores(categoryId: _selectedCategoryTagId, ifNeeded: true);
   }
 
   /// [ifNeeded] = true (the default, used by both screen entry and category
   /// taps) skips the network call when the cached list for this type/category
   /// is still fresh. Pass false only to force a fresh fetch (pull-to-refresh).
   void _fetchStores({String? categoryId, bool ifNeeded = true}) {
-    storeController.typeOfBusiness = AppConstants.food;
+    storeController.typeOfBusiness = BusinessType.Food.name;
     storeController.businessCategoryId = categoryId;
     if (ifNeeded) {
       storeController.getAllStoreNearByIfNeeded();
@@ -526,7 +529,14 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     return _restaurantPalettes[index.abs() % _restaurantPalettes.length];
   }
 
-  String _formatCount(int n) {
+  /// A count for a stat tile, or `-` when it isn't known yet.
+  ///
+  /// Null is the pre-answer state, not zero: counts come from their own call
+  /// after the card is on screen, and a `0` shown meanwhile reads as "this
+  /// restaurant serves nothing" rather than "not loaded".
+  String _formatCount(int? count) {
+    if (count == null) return '-';
+    final n = count;
     if (n >= 1000000) {
       final v = n / 1000000;
       return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}M';
@@ -701,26 +711,33 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: _formatCount(store.totalCategoryCount ??
-                            (store.categories?.length ?? 0)),
-                        label: AppStrings.foodCategoryLabel.tr,
-                        iconColor: const Color(0xFF9964F4),
-                        borderColor: palette.tileBorder,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: _formatCount(store.totalProductCount ?? 0),
-                        label: AppStrings.foodProductLabel.tr,
-                        iconColor: const Color(0xFF6179CD),
-                        borderColor: palette.tileBorder,
-                      ),
-                    ],
-                  ),
+                  // Counts come from their own call (the food catalogue's
+                  // `kitchen-inventory` one), after this card is on screen —
+                  // see [StoreController.fetchStoreCountsFor]. The store
+                  // listing no longer carries them, so there is nothing to
+                  // fall back to; Obx fills the figures in when they land.
+                  Obx(() {
+                    final counts = storeCountsFor(store);
+                    return Row(
+                      children: [
+                        _buildStatBox(
+                          icon: AppIconAssets.staggeredIcon,
+                          count: _formatCount(counts?.categoryCount),
+                          label: AppStrings.foodCategoryLabel.tr,
+                          iconColor: const Color(0xFF9964F4),
+                          borderColor: palette.tileBorder,
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        _buildStatBox(
+                          icon: AppIconAssets.productCartIcon,
+                          count: _formatCount(counts?.productCount),
+                          label: AppStrings.foodProductLabel.tr,
+                          iconColor: const Color(0xFF6179CD),
+                          borderColor: palette.tileBorder,
+                        ),
+                      ],
+                    );
+                  }),
                   SizedBox(height: SizeConfig.size8),
                   Expanded(child: _buildAddressCard(store, palette)),
                 ],

@@ -1,0 +1,237 @@
+DISCOVER SECTIONS — WHERE EACH TILE'S IMAGE COMES FROM
+======================================================
+Source of truth for the section list:
+lib/features/common/Discover/view/discover_screen.dart, `_sections` (line ~110).
+
+RULE
+----
+If a section's CATEGORY LIST comes from the API, its tile IMAGE comes from the
+API too (`image_url` on the category/profession object). If the list is bundled
+in the app, the image is bundled with it (assets/discover/, class DiscoverIcons).
+
+No section mixes the two any more. There used to be four "hybrid" sections —
+API list, bundled artwork keyed by tagId — and they were the worst of both:
+a category the backend added rendered blank until the app shipped an asset for
+it, which is exactly what reading the list from the API is supposed to avoid.
+
+Consequence: for the seven sections in §1, NOTHING can be fixed from the app.
+The art has to be uploaded backend-side. The per-category mapping below says
+which file from assets/discover/ belongs to each, so that upload doesn't have
+to be re-derived.
+
+
+===============================================================================
+1. DYNAMIC — list AND image from the API  (7 sections)
+===============================================================================
+Business categories:  GET user-service/business/getAllcategories
+Individual profs:     GET user-service/individual-professions
+Both are cached in Hive (HiveServices.saveCategoryList / saveProfessionList) and
+read cache-first, so an image swap on the server appears on the NEXT launch,
+not immediately.
+
+-------------------------------------------------------------------------------
+1.1  GROCERY & GENERAL STORE                                       Tab 1
+     discover_screen.dart:142
+     list: AuthController.businessOnboardingGroceriesCategories (businessType=Grocery)
+
+       MOHALLA_KIRANA        -> kirana_store.png
+       GENERAL_STORE         -> general_store.png
+       DAIRY_BAKERY          -> dairy_bakery.png
+       HOME_ESSENTIALS       -> home_essentials.png
+       STATIONARY_SHOP       -> books_stationery.png
+       VEGETABLE_FRUIT       -> (no icon delivered)
+
+-------------------------------------------------------------------------------
+1.2  RESTAURANT & FOOD SERVICE                                     Tab 1
+     discover_screen.dart:158
+     list: AuthController.businessOnboardingFoodsCategories (businessType=Food)
+
+       MULTI_CUISINE_RESTAURANT -> multicuisine_restaurant.png
+       PURE_VEG_RESTAURANT      -> pure_veg_restaurant.png
+       NON_VEG_RESTAURANT       -> non_veg_restaurant.png
+       BREAKFAST_FAST_FOOD      -> breakfast_fast_food.png
+       SWEET_NAMKEEN_SHOP       -> sweet_namkeen.png
+       ICE_CREAM_CORNER         -> ice_cream_corner.png
+       COFFEE_BEVERAGES_SHOP    -> coffee_beverages.png
+       ECONOMY_DHABA            -> (no icon delivered)
+       GARDEN_BUFFET_RESTAURANT -> (no icon delivered)
+       CLOUD_KITCHEN_MESS       -> (no icon delivered)
+
+-------------------------------------------------------------------------------
+1.3  FIND SERVICES                                                 Tab 4
+     find_service_card_widget.dart:14   (first 8 only; also services_near_screen.dart:38)
+     list: AuthController.businessOnboardingServicesCategories (businessType=Service)
+
+       CONSULTING_BUSINESS_SERVICES -> consulting_firm.png
+       BEAUTY_FITNESS_PERSONAL_CARE -> beauty_personal_care.png
+       HEALTHCARE_MEDICAL_SERVICES  -> health_medical.png
+       REPAIR_ESSENTIAL_SERVICES    -> service_centre_utility.png
+       HOME_SERVICES_CONTRACTORS    -> home_services_utility.png
+       IT_DIGITAL_SERVICES          -> tech_digital.png
+       MEDIA_NEWS_CREATIVE          -> media_publicity.png
+       TRAVEL_HOSPITALITY           -> travel_hospitality.png
+       REAL_ESTATE_PROPERTY         -> real_estate_property.png
+
+     NOTE: `serviceCategoryIcons` in app_constant.dart maps these same tags to
+     bundled art. This card does NOT read it. Dead weight; left alone.
+
+-------------------------------------------------------------------------------
+1.4  SHOPPING & SALES                                              Tab 3
+     shopping_card_widget.dart:22   (first 10, Show more/less)
+     list: AuthController.businessOnboardingProductsCategories (businessType=Product)
+
+       ELECTRONICS_MOBILE_STORE -> electronics_gadgets.png  (or mobiles_accessories.png)
+       FURNITURE_CONSTRUCTION   -> tools_hardware.png
+       FASHION_LIFESTYLE        -> textile.png
+       JEWELLERY_LUXURY_STORE   -> fashion_jewellery.png
+       BEAUTY_WELLNESS          -> beauty_personal_care.png
+       BOOKS_TOYS_BABY          -> books_stationery.png     (or kids_products.png)
+       HOME_APPLIANCES_KITCHEN  -> home_essentials.png
+       SPORTS_FITNESS_STORE     -> sports_hobby.png
+       RELIGIOUS_AGRI_PETS      -> (no icon delivered)
+       INDUSTRIAL_WHOLESALE     -> (no icon delivered)
+
+     `getProductCategoryIcon` / `productCategoryIcons` still exist — the product
+     STORE screens use them (products_store_discover_screen.dart:279,
+     automotive_products_store_screen.dart:250). Those are not Discover tiles.
+
+-------------------------------------------------------------------------------
+1.5  AUTOMOTIVE SHOWROOM                                           Tab 3
+     automotive_service_card_widget.dart:47
+     list: AuthController.businessOnboardingAutomotiveServicesCategories
+
+       VEHICLE_SALES               -> vehicle_sales.png
+       AUTO_PARTS / VEHICLE_PARTS  -> vehicle_parts.png
+       VEHICLE_SERVICE             -> vehicle_service.png
+       VEHICLE_RENTAL              -> vehicle_rental.png
+       VEHICLE_SUPPORT             -> service_centre_utility.png
+       TRANSPORT_LOGISTICS_PARKING -> transport_logistic.png
+
+     The card splits the single VEHICLE_SALES category into two tiles ("New …"
+     / "Old …") so the listing opens pre-filtered on condition. Both halves show
+     the SAME image, because the backend models them as one category.
+
+-------------------------------------------------------------------------------
+1.6  BOOK HOME SERVICES                                            Tab 4
+     book_home_service_widget.dart:20   (first 10, Show more/less)
+     list: AuthController.individualOnboardingSkillWorkList
+
+       ELECTRICIAN     -> electrician.png
+       PLUMBER         -> plumber.png
+       MAID_FEMALE     -> maid.png
+       MECHANIC        -> mechanic.png
+       CLEANER         -> cleaner.png
+       LABOUR          -> labour.png
+       HOME_RENOVATOR  -> renovator.png
+       TECHNICIAN      -> service_centre_utility.png
+       PAINTER         -> (no icon delivered)
+       CARPENTER       -> (no icon delivered)
+       GARDENER        -> (no icon delivered)
+       SECURITY_PERSON -> (no icon delivered)
+
+-------------------------------------------------------------------------------
+1.7  PROFESSIONALS & CONSULTANT                                    Tab 4
+     professionals_card_widget.dart:13   (first 10)
+     list: AuthController.individualOnboardingConsultationList — same feed as 1.6
+
+       LEGAL_GOVT_CONSULTANT       -> legal_govt_consultant.png
+       FINANCE_TAX_CONSULTANT      -> finance_tax_consultant.png
+       TRAINEE_CAREER_CONSULTANT   -> trainee_career.png
+       ADVERTISING_CONSULTANT      -> media_publicity.png
+       PROPERTY_BROKER_ARCHITECT   -> property_broker.png
+       BUSINESS_HR_CONSULTANT      -> consulting_firm.png
+       TECH_DIGITAL_FREELANCER     -> tech_digital.png
+       SPIRITUAL_CONSULTANT        -> (no icon delivered)
+       EVENT_PLANNER_DETECTIVE     -> (no icon delivered)
+       INDUSTRY_QUALITY_CONSULTANT -> (no icon delivered)
+
+     `getIndividualProfessionIcon` / `individualProfessionIcons` still exist —
+     the two profession ENTRY screens and franchise_home use them. Not Discover
+     tiles.
+
+
+===============================================================================
+2. STATIC — list and artwork both bundled  (10 sections)
+===============================================================================
+All on DiscoverIcons except "Book your Stay" (see §4).
+
+  2.1  HOME MADE FOOD          Tab 1  discover_categories_data.dart
+  2.2  BOOK YOUR TRANSPORT     Tab 2  transportItemsCategories (app_constant)
+  2.3  BOOK YOUR STAY          Tab 2  stayItemsCategories       — NOT migrated
+  2.4  HOME MADE PRODUCTS      Tab 3  discover_categories_data.dart
+  2.5  RENT & PROPERTIES       Tab 3  propertyDiscoverTiles
+  2.6  HEALTHCARE SERVICES     Tab 4  healthCareList
+  2.7  HOME SERVICES           Tab 4  discoverHomeServicesCategories
+  2.8  FINANCIAL SECTORS       Tab 4  financeCategories
+  2.9  JOBS NEAR ME            Tab 5  jobCategories
+  2.10 EDUCATION & TRAINING    Tab 5  businessOnboardingEducationTrainingCategories
+
+  Trap on 2.10: that name exists TWICE — as an RxList on AuthController (API)
+  and as a top-level bundled list in app_constant.dart:1449. The card reads it
+  unqualified, so it gets the BUNDLED one. Education is static, not API-fed.
+
+
+===============================================================================
+3. THE PLATE RULE  ***read before uploading any of §1***
+===============================================================================
+Old Discover art was a transparent cut-out, so the tile drew a pale-blue CIRCLE
+behind it (#F2F6FF, 14% padding). Every icon in assets/discover/ instead ships
+its artwork already on a tinted rounded-square. Put one in the circle and you
+get a coloured square floating on a blue disc, disc poking out at the corners.
+
+So the tile asks DiscoverIcons.isSelfContained(path) — a prefix test on
+'assets/discover/' — and drops the plate when true. Implemented in:
+    DiscoverTilePlate       discover_category_section.dart
+    _DiscoverFolderPlate    discover_folder_tile.dart
+
+A URL is never self-contained, so every §1 section still gets the circle. THIS
+MATTERS FOR THE UPLOAD — two options, pick one:
+
+  (a) Upload TRANSPARENT CUT-OUTS (strip the tinted square). Everything works
+      as-is, and §1 keeps the same circular look it has today.
+  (b) Upload the files as delivered, WITH the tinted square, and widen the rule
+      so category URLs count as self-contained too. One edit in each of the two
+      widgets above. §1 and §2 then look identical.
+
+Do NOT upload the files as delivered without doing (b) — that is the
+square-on-circle case.
+
+
+===============================================================================
+4. GAPS — no icon in the delivered set
+===============================================================================
+Still rendering their previous artwork, i.e. the tiles that look "old":
+
+  Book your Stay (whole section, 5 tiles) — Hotel Stay, Economic Stay,
+      Hostels & PG, Functions & Vacation, Alternative Stays. Nothing in the zip
+      is a stay/hotel subject, so it was left entirely on its old icons rather
+      than half-migrated.
+  Jobs -> "Near By"                 reuses job_onsite.png (duplicate art)
+  Property -> PG & Guest House      reuses houses_apartments_rent.png
+  Property -> Lands & Plots (Rent)  reuses lands_plots.png (the sale tile)
+  Healthcare -> Surgical            reuses health_medical.png
+  Home Services -> Tailor           reuses textile.png
+  Plus every "(no icon delivered)" row in §1.
+
+
+===============================================================================
+5. FILES IN assets/discover/ NOT WIRED TO ANY TILE
+===============================================================================
+Present and declared on DiscoverIcons, but nothing in the app points at them —
+they are the §1 uploads waiting to happen:
+
+  general_store, kirana_store, dairy_bakery                     §1.1
+  multicuisine_restaurant, pure_veg_restaurant, non_veg_restaurant,
+  breakfast_fast_food, coffee_beverages, ice_cream_corner,
+  sweet_namkeen                                                 §1.2
+  home_services_utility, travel_hospitality, real_estate_property   §1.3
+  mobiles_accessories, kids_products                            §1.4 alternates
+  vehicle_sales, vehicle_parts, vehicle_service,
+  transport_logistic                                            §1.5
+  frame_unlabelled   delivered as "Frame 1984081541.png", untitled — a
+                     near-duplicate of media_publicity with different framing.
+                     Kept so the bundle matches what design shipped.
+
+Keep these in the repo even though they are unreferenced: they are the source
+files for the backend upload, and §3 is the reason they can't simply be pointed
+at from Dart.

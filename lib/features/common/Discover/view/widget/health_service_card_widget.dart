@@ -54,9 +54,6 @@ class HealthServiceCardWidget extends StatelessWidget {
       // slug and falls through to "Coming soon" when there isn't one. The
       // listing's own category header covers the rest, Pharmacy included — it
       // special-cases that chip exactly like [_open] does.
-      onFolderTap: () => Get.to(() => HealthCareListingScreen(
-            selectedProfessionConsultantData: healthCareList.first,
-          )),
     );
   }
 }

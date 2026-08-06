@@ -1,10 +1,14 @@
+import 'dart:ui' as ui;
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_folder_palette.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +43,34 @@ class DiscoverFolderScope extends InheritedWidget {
   @override
   bool updateShouldNotify(DiscoverFolderScope oldWidget) =>
       enabled != oldWidget.enabled;
+}
+
+/// Columns the category grid uses inside an opened folder.
+///
+/// Three, against the five the landing card uses. The card is a preview strip
+/// competing with fourteen others for a screen; the sheet is a picker with the
+/// screen to itself, and it is the only place the illustrated artwork is ever
+/// seen at a size where you can tell one shop type from another. Five columns
+/// left each tile ~58px with an 11px label wrapping to two lines — three gives
+/// it ~105px.
+const int kDiscoverSheetColumns = 3;
+
+/// Marks the subtree inside an opened folder's sheet.
+///
+/// Presence alone is the signal — a section that finds this renders as a bare
+/// PICKER GRID (see `DiscoverSheetTile`) rather than as its landing card: no
+/// white card, no title, no "View All", just the categories at a size worth
+/// tapping. The chrome around them belongs to [DiscoverFolderSheet], which
+/// already knows the title it was opened with; a section drawing its own
+/// produced the same heading twice, on two stacked surfaces.
+class DiscoverSheetScope extends InheritedWidget {
+  const DiscoverSheetScope({super.key, required super.child});
+
+  static bool isActive(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverSheetScope>() != null;
+
+  @override
+  bool updateShouldNotify(DiscoverSheetScope oldWidget) => false;
 }
 
 /// Carries the *section widget* a folder was built from, so opening the folder
@@ -119,13 +151,33 @@ class DiscoverFolderTile extends StatelessWidget {
   /// it — the folder goes straight to the screen.
   final VoidCallback? onTap;
 
+  /// The folder's own surface: ONE frosted plate, identical for every folder.
+  ///
+  /// Each folder used to carry its own hue (see `discover_folder_palette.dart`),
+  /// which turned the grid into fourteen different coloured cards competing with
+  /// the illustrated icons on them and with the user's background behind them.
+  /// The reference (`assets/discover_tab.jpeg`) is the iOS App Library: every
+  /// folder is the same neutral glass, and what identifies one is the icons
+  /// inside it, not the colour of the box.
+  ///
+  /// The recipe itself — fill, blur, rim, lift, radius, and WHY each is the
+  /// value it is — lives in `discover_glass.dart`, because the header banner and
+  /// the recent-orders rail paint themselves with the same one. It used to be
+  /// copied per call site, which is how two panels on one page end up a shade
+  /// apart after someone tunes one of them.
+  static const Color _kTileFill = kDiscoverGlassFill;
+  static const double _kTileBlur = kDiscoverGlassBlur;
+  static const Color _kTileBorder = kDiscoverGlassBorder;
+  static const List<BoxShadow> _kTileShadow = kDiscoverGlassShadow;
+  static const double _kTileRadius = kDiscoverGlassRadius;
+
+  /// Plate behind each icon — a brighter white than the tile it sits on, so the
+  /// illustrated icons keep a clean base and the 2x2 reads as four slots rather
+  /// than one wash.
+  static const Color _kPlateFill = kDiscoverGlassPlateFill;
+
   @override
   Widget build(BuildContext context) {
-    // Colour comes from the folder's slot in the landing grid, published by the
-    // [DiscoverFolderHost] the grid wraps every section in. Nothing is passed in
-    // by the ~15 section widgets that build these tiles.
-    final theme = discoverFolderThemeFor(DiscoverFolderHost.indexOf(context));
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap ??
@@ -135,22 +187,35 @@ class DiscoverFolderTile extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 1,
-            child: Container(
-              padding: const EdgeInsets.all(10),
+            // Shadow OUTSIDE the clip: a ClipRRect crops its child, so a
+            // boxShadow declared inside it is clipped away with everything else
+            // past the rounded edge.
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                // Coloured wash over the app background behind the page: still
-                // translucent, so the folder keeps picking up whatever it sits
-                // on, but tinted with this folder's own hue.
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: theme.tileGradient,
-                ),
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: theme.border),
-                boxShadow: theme.shadow,
+                borderRadius: BorderRadius.circular(_kTileRadius),
+                boxShadow: _kTileShadow,
               ),
-              child: _preview(theme),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(_kTileRadius),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(
+                    sigmaX: _kTileBlur,
+                    sigmaY: _kTileBlur,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      // Translucent, so the folder keeps picking up whatever it
+                      // sits on — the background is unchanged, only the tile
+                      // over it is.
+                      color: _kTileFill,
+                      borderRadius: BorderRadius.circular(_kTileRadius),
+                      border: Border.all(color: _kTileBorder, width: 1),
+                    ),
+                    child: _preview(),
+                  ),
+                ),
+              ),
             ),
           ),
           SizedBox(height: SizeConfig.size8),
@@ -170,7 +235,7 @@ class DiscoverFolderTile extends StatelessWidget {
   /// The 2x2 body of the folder. Beyond four icons the last slot becomes a
   /// mini 2x2 of the next four, so a long section still reads as "one folder"
   /// rather than an arbitrary truncation.
-  Widget _preview(DiscoverFolderTheme theme) {
+  Widget _preview() {
     final icons = iconPaths.where((e) => e.trim().isNotEmpty).toList();
     final bool overflows = icons.length > 4;
     final slots = <Widget>[];
@@ -178,11 +243,11 @@ class DiscoverFolderTile extends StatelessWidget {
     for (int i = 0; i < (overflows ? 3 : 4); i++) {
       slots.add(_DiscoverFolderPlate(
         iconPath: i < icons.length ? icons[i] : null,
-        color: theme.plateTint(i),
+        color: _kPlateFill,
       ));
     }
     if (overflows) {
-      slots.add(_miniGrid(theme, icons.skip(3).take(4).toList()));
+      slots.add(_miniGrid(icons.skip(3).take(4).toList()));
     }
 
     return Column(
@@ -212,12 +277,10 @@ class DiscoverFolderTile extends StatelessWidget {
 
   /// Last slot when the section has more than four categories: four quarter-size
   /// plates in their own 2x2.
-  Widget _miniGrid(DiscoverFolderTheme theme, List<String> icons) {
+  Widget _miniGrid(List<String> icons) {
     Widget cell(int i) => _DiscoverFolderPlate(
           iconPath: i < icons.length ? icons[i] : null,
-          // Offset by one so the mini cells don't repeat the tint of the
-          // full-size plate they sit next to.
-          color: theme.plateTint(i + 1),
+          color: _kPlateFill,
           radius: 7,
           padding: 3,
         );
@@ -368,13 +431,25 @@ class _DiscoverFolderPlate extends StatelessWidget {
 
   final String? iconPath;
 
-  /// Pastel fill for this slot, from [DiscoverFolderTheme.plateTint].
+  /// Fill behind the icon — one translucent white for every slot in every
+  /// folder, so the grid reads as one material.
   final Color color;
   final double radius;
   final double padding;
 
   @override
   Widget build(BuildContext context) {
+    // [DiscoverIcons] art already sits on its own tinted rounded-square, so it
+    // fills the slot edge-to-edge and the translucent plate is dropped —
+    // otherwise the folder shows a coloured square inset inside a white one.
+    // Everything else (legacy assets, `/category` URLs) is a transparent
+    // cut-out and still needs the plate. Same rule as [DiscoverTilePlate].
+    if (DiscoverIcons.isSelfContained(iconPath)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: DiscoverFolderIcon(iconPath: iconPath!),
+      );
+    }
     return Container(
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
@@ -397,22 +472,39 @@ class DiscoverFolderIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Self-contained art fills the slot; a cut-out is contained. See
+    // [DiscoverIcons.fitFor].
+    final fit = DiscoverIcons.fitFor(iconPath);
     if (isNetworkImage(iconPath)) {
       return CachedNetworkImage(
         imageUrl: iconPath,
-        fit: BoxFit.contain,
+        fit: fit,
         placeholder: (_, __) => const SizedBox.shrink(),
         errorWidget: (_, __, ___) => const SizedBox.shrink(),
       );
     }
-    return LocalAssets(imagePath: iconPath, boxFix: BoxFit.contain);
+    return LocalAssets(imagePath: iconPath, boxFix: fit);
   }
 }
 
-/// Sheet a folder opens into. It hosts the section's ORIGINAL card — same
-/// grid, same labels, same tap routing — with [DiscoverFolderScope] switched
-/// off so the section renders its normal full-width self inside.
+/// Sheet a folder opens into — the category picker.
+///
+/// It mounts the section's own widget (so every tap routes exactly as it did on
+/// the landing card) but under [DiscoverSheetScope], which makes that section
+/// render as a bare 3-column grid. The heading, the count and the close control
+/// belong to the sheet: it is the thing that was opened, so it is the thing
+/// that should name itself.
+///
+/// The field colour is the same `#F3F7FD` the sheet always used. It is what
+/// makes this read as the folder OPENING rather than as a modal arriving over
+/// it — and it is now the only surface here. Previously a white card sat on top
+/// of it carrying a second copy of the title, which is two panels and two
+/// headings to say one thing.
 class DiscoverFolderSheet {
+  static const Color _field = Color(0xFFF3F7FD);
+  static const Color _ink = Color(0xFF0F1722);
+  static const Color _inkSoft = Color(0xFF5D6B7C);
+
   static Future<void> show(
     BuildContext context,
     String title,
@@ -424,15 +516,18 @@ class DiscoverFolderSheet {
       isScrollControlled: true,
       builder: (sheetContext) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.35,
+          // Opens tall enough that two full rows of the 3-column grid are on
+          // screen without a drag — at 0.6 the third row was cut mid-artwork,
+          // which reads as "there is nothing more" rather than "scroll".
+          initialChildSize: 0.68,
+          minChildSize: 0.4,
           maxChildSize: 0.92,
           expand: false,
           builder: (_, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF3F7FD),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                color: _field,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: Column(
                 children: [
@@ -440,26 +535,28 @@ class DiscoverFolderSheet {
                   Container(
                     width: 44,
                     height: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.greyE5,
+                      color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
+                  _header(sheetContext, title),
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      padding: EdgeInsets.only(
-                        left: SizeConfig.size12,
-                        right: SizeConfig.size12,
-                        bottom: SizeConfig.size24,
+                      padding: EdgeInsets.fromLTRB(
+                        SizeConfig.size16,
+                        SizeConfig.size4,
+                        SizeConfig.size16,
+                        SizeConfig.size24 +
+                            MediaQuery.of(sheetContext).padding.bottom,
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        // Scope off: the section renders its normal card here,
-                        // with every tap routing exactly as before.
-                        child: DiscoverFolderScope(
-                          enabled: false,
+                      // Folder scope OFF (don't render another folder tile),
+                      // sheet scope ON (render as the picker grid).
+                      child: DiscoverFolderScope(
+                        enabled: false,
+                        child: DiscoverSheetScope(
                           child: Builder(builder: builder),
                         ),
                       ),
@@ -471,6 +568,59 @@ class DiscoverFolderSheet {
           },
         );
       },
+    );
+  }
+
+  /// Title and the way out.
+  ///
+  /// A category COUNT was tried here and cut. The only number available to the
+  /// sheet is the one the landing card previewed, and the sheet deliberately
+  /// shows more than that card does (the paging sections drop their cap in
+  /// here) — so the count would have contradicted the grid under it. A heading
+  /// that has to be qualified is worse than no second line.
+  static Widget _header(BuildContext context, String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size6,
+        SizeConfig.size10,
+        SizeConfig.size12,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: CustomText(
+              title,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: _ink,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Explicit close, because the sheet opens tall — reaching the handle
+          // to dismiss means crossing the whole grid with your thumb.
+          Semantics(
+            button: true,
+            label: 'Close',
+            child: InkResponse(
+              onTap: () => Navigator.of(context).maybePop(),
+              radius: 24,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFE8EEF7),
+                ),
+                child: const Icon(Icons.close_rounded, size: 18, color: _inkSoft),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

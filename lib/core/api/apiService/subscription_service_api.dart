@@ -37,6 +37,13 @@ mixin SubscriptionServiceApi {
   final String securityDepositVideos =
       'subscription-service/security-deposit/videos';
 
+  /// `GET /security-deposit/gst` — the CURRENT tax rate for security deposits.
+  /// Display only: the amount actually charged is always `final_amount` off
+  /// `/initiate`, which the backend freezes per order.
+  /// See docs/backend/SECURITY_DEPOSIT_GST_INVOICE_FLUTTER_GUIDE.md.
+  final String securityDepositGst =
+      'subscription-service/security-deposit/gst';
+
   /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
   /// the platform pays the user a one-time joining bonus once genuine
   /// onboarding is proven. No Razorpay / payment — it's a wallet payout.

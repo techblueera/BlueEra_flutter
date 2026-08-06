@@ -120,4 +120,14 @@ class SecurityDepositRepo extends BaseService {
   Future<ResponseModel> fetchVideos() {
     return ApiBaseHelper().getHTTP(securityDepositVideos, showProgress: false);
   }
+
+  /// `GET /security-deposit/gst` — the current tax rate, so the catalog can
+  /// price itself the way checkout will.
+  ///
+  /// `{ gst_percent, hsn_sac_code, tax_label, is_configured }`. Purely for
+  /// display: the charged amount is `final_amount` off [initiate], never
+  /// anything computed from this.
+  Future<ResponseModel> getGstConfig() {
+    return ApiBaseHelper().getHTTP(securityDepositGst, showProgress: false);
+  }
 }

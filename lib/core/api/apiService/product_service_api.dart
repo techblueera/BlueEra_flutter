@@ -52,6 +52,17 @@ mixin ProductServiceApi {
   /// Add product to inventory. `POST product-service/api/inventory`.
   final String addProductToInventory = "product-service/api/inventory";
 
+  /// Batched product / root-category counts per owner, for the PRODUCT
+  /// catalogue. `POST { businesses: [{ businessId?, userId? }] }`, max 100.
+  /// See docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md.
+  ///
+  /// NOTE: grocery-service exposes the IDENTICAL sub-path
+  /// ([GroceryServiceApi.groceryBusinessProductStats]) — the two differ only by
+  /// service prefix, and swapping them returns the wrong catalogue's numbers
+  /// with no error.
+  final String productBusinessProductStats =
+      'product-service/api/inventory/business-product-stats';
+
   /// Update a product inventory record by id.
   /// `PATCH product-service/api/inventory/{id}`.
   String updateProductInventory(String id) =>

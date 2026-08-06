@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -925,6 +926,7 @@ const String MISCELLANEOUS_RETAIL = "MISCELLANEOUS_RETAIL";
 
 int kmRadius100 = 100;
 int kmRadius200 = 200;
+int kmRadius300 = 300;
 int kmRadius500 = 500;
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
@@ -1449,37 +1451,37 @@ final List<OnboardingCategoryModel>
   OnboardingCategoryModel(
       name: AppStrings.schoolEducation,
       slugId: SCHOOL_EDUCATION,
-      icon: OnboardingBusinessAssets.EduSchoolEducation,
+      icon: DiscoverIcons.schoolEducation,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.collageUniversity,
       slugId: COLLEGE_UNIVERSITY,
-      icon: OnboardingBusinessAssets.EduUniversity,
+      icon: DiscoverIcons.collegeUniversity,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.coachingInstitute,
       slugId: COACHING_INSTITUTE,
-      icon: OnboardingBusinessAssets.EduCoaching,
+      icon: DiscoverIcons.coachingInstitute,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.sportsAndHobby,
       slugId: SPORTS_HOBBY,
-      icon: OnboardingBusinessAssets.EduSports,
+      icon: DiscoverIcons.sportsHobby,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.professionalLearn,
       slugId: PROFESSIONAL_LEARN,
-      icon: OnboardingBusinessAssets.EduProfessional,
+      icon: DiscoverIcons.professionalLearn,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.skillTraining,
       slugId: SKILL_TRAINING,
-      icon: OnboardingBusinessAssets.EduSkill,
+      icon: DiscoverIcons.traineeCareer,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
 ];
@@ -1488,31 +1490,33 @@ final List<OnboardingCategoryModel> jobCategories = [
   OnboardingCategoryModel(
     name: 'Full Time',
     slugId: '',
-    icon: AppImageAssets.job_full_time,
+    icon: DiscoverIcons.jobFullTime,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Part Time',
     slugId: '',
-    icon: AppImageAssets.job_part_time,
+    icon: DiscoverIcons.jobPartTime,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Remote',
     slugId: '',
-    icon: AppImageAssets.job_remote,
+    icon: DiscoverIcons.jobRemote,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Onsite',
     slugId: '',
-    icon: AppImageAssets.job_onsite,
+    icon: DiscoverIcons.jobOnsite,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Near By',
     slugId: '',
-    icon: AppImageAssets.job_near_by,
+    // "Near By" isn't in the 2026 set — onsite (a workplace pin) is the
+    // closest read of it and keeps the row on one style.
+    icon: DiscoverIcons.jobOnsite,
     accountType: AppConstants.business,
   ),
 ];
@@ -2019,17 +2023,28 @@ final List<OnboardingCategoryModel> businessOnboardingHospitalityStayCategories 
 
 // businessProductsCategories moved to dynamic API list in AuthController.businessOnboardingProductsCategories
 
-/// tagId → local icon mapping for product categories
+/// tagId → local icon mapping for product categories.
+///
+/// The CATEGORIES themselves come from `/category` (see
+/// `AuthController.businessOnboardingProductsCategories`) — only the artwork is
+/// bundled, because the API's photographic S3 images don't match the flat
+/// illustrated style of the Discover grid.
+///
+/// Art is the 2026 [DiscoverIcons] set. Two tags have no tile in it and keep
+/// their previous icon; they're listed in `docs/discover_dynamic_icons.txt` as
+/// gaps for design.
 final Map<String, String> productCategoryIcons = {
-  ELECTRONICS_MOBILE_STORE: AppImageAssets.electronicsApplianceStore,
-  FURNITURE_CONSTRUCTION: AppImageAssets.furnitureHomeDecor,
-  // FASHION_LIFESTYLE: AppImageAssets.fashionLifestyle, // will changed
-  FASHION_LIFESTYLE: AppImageAssets.artsCraftsSewing, // will changed
-  JEWELLERY_LUXURY_STORE: AppImageAssets.jewelleryLuxuryStore,
-  BEAUTY_WELLNESS: AppImageAssets.beautyAndCosmetics,
-  BOOKS_TOYS_BABY: AppImageAssets.booksStationary,
-  HOME_APPLIANCES_KITCHEN: AppImageAssets.homeKitchenUtensils,
-  SPORTS_FITNESS_STORE: AppImageAssets.sportsFitnessStore,
+  ELECTRONICS_MOBILE_STORE: DiscoverIcons.electronicsGadgets,
+  FURNITURE_CONSTRUCTION: DiscoverIcons.toolsHardware,
+  // Fashion gets the fabric/clothing tile, jewellery the jewellery one — the
+  // 2026 set draws them separately, so these two no longer share art.
+  FASHION_LIFESTYLE: DiscoverIcons.textile,
+  JEWELLERY_LUXURY_STORE: DiscoverIcons.fashionJewellery,
+  BEAUTY_WELLNESS: DiscoverIcons.beautyPersonalCare,
+  BOOKS_TOYS_BABY: DiscoverIcons.booksStationery,
+  HOME_APPLIANCES_KITCHEN: DiscoverIcons.homeEssentials,
+  SPORTS_FITNESS_STORE: DiscoverIcons.sportsHobby,
+  // No tile in the 2026 set for either of these — left on the old art.
   RELIGIOUS_AGRI_PETS: AppImageAssets.farmingLawnGarden,
   INDUSTRIAL_WHOLESALE: AppImageAssets.industrialWholesale,
 };
@@ -2378,38 +2393,51 @@ final List<OnboardingCategoryModel> individualOnboardingProfilesCategory = [
 //   ),
 // ];
 
-/// tagId → local icon mapping for individual professions
+/// tagId → local icon mapping for individual professions.
+///
+/// Read by the Discover-side surfaces only — "Book Home Services",
+/// "Professionals & Consultant", the two profession entry screens and the
+/// franchise home. ONBOARDING does not go through here; it renders its own
+/// lists straight off [OnboardingIndividualAssets], so retargeting this map
+/// leaves the signup flow alone.
+///
+/// Art is the 2026 [DiscoverIcons] set wherever it ships a tile for the
+/// profession. The ones it doesn't cover keep their onboarding icon and are
+/// listed in `docs/discover_dynamic_icons.txt` as gaps for design — those tiles
+/// are the ones that still render on the pale-blue circular plate.
 final Map<String, String> individualProfessionIcons = {
   // Skill Work / Self Employed
-  ELECTRICIAN: OnboardingIndividualAssets.electrician,
-  PLUMBER: OnboardingIndividualAssets.plumber,
-  MAID_FEMALE: OnboardingIndividualAssets.maid,
-  MECHANIC: OnboardingIndividualAssets.mechanic,
-  TECHNICIAN: OnboardingIndividualAssets.technician,
-  PAINTER: OnboardingIndividualAssets.painter,
-  CARPENTER: OnboardingIndividualAssets.carpenter,
-  HOME_RENOVATOR: OnboardingIndividualAssets.homeRenovator,
-  LABOUR: OnboardingIndividualAssets.labour,
-  GARDENER: OnboardingIndividualAssets.gardener,
-  SECURITY_PERSON: OnboardingIndividualAssets.securityPerson,
-  CLEANER: OnboardingIndividualAssets.cleaner,
+  ELECTRICIAN: DiscoverIcons.electrician,
+  PLUMBER: DiscoverIcons.plumber,
+  MAID_FEMALE: DiscoverIcons.maid,
+  MECHANIC: DiscoverIcons.mechanic,
+  TECHNICIAN: DiscoverIcons.serviceCentreUtility,
+  PAINTER: OnboardingIndividualAssets.painter, // no 2026 tile
+  CARPENTER: OnboardingIndividualAssets.carpenter, // no 2026 tile
+  HOME_RENOVATOR: DiscoverIcons.renovator,
+  LABOUR: DiscoverIcons.labour,
+  GARDENER: OnboardingIndividualAssets.gardener, // no 2026 tile
+  SECURITY_PERSON: OnboardingIndividualAssets.securityPerson, // no 2026 tile
+  CLEANER: DiscoverIcons.cleaner,
   // Gig Work
-  BIKE_RIDER: OnboardingIndividualAssets.bikeRider,
-  CAR_TAXI: OnboardingIndividualAssets.taxiCarDriver,
-  GOODS_TAXI: OnboardingIndividualAssets.goodsSupplier,
-  AUTO_TAXI: OnboardingIndividualAssets.autoERickshaw,
+  BIKE_RIDER: DiscoverIcons.twoWheeler,
+  CAR_TAXI: DiscoverIcons.passenger,
+  GOODS_TAXI: DiscoverIcons.goods,
+  AUTO_TAXI: OnboardingIndividualAssets.autoERickshaw, // no 2026 tile
   // Professional / Consultation
-  LEGAL_GOVT_CONSULTANT: OnboardingIndividualAssets.legalGovtConsultant,
-  FINANCE_TAX_CONSULTANT: OnboardingIndividualAssets.financeTaxConsultant,
-  SPIRITUAL_CONSULTANT: OnboardingIndividualAssets.spiritualConsultant,
-  TRAINEE_CAREER_CONSULTANT: OnboardingIndividualAssets.traineeCareerConsultant,
-  ADVERTISING_CONSULTANT: OnboardingIndividualAssets.advertisingConsultant,
-  EVENT_PLANNER_DETECTIVE: OnboardingIndividualAssets.eventPlanDetective,
-  PROPERTY_BROKER_ARCHITECT: OnboardingIndividualAssets.propertyBrokerArchitect,
-  BUSINESS_HR_CONSULTANT: OnboardingIndividualAssets.businessHrConsultant,
+  LEGAL_GOVT_CONSULTANT: DiscoverIcons.legalGovtConsultant,
+  FINANCE_TAX_CONSULTANT: DiscoverIcons.financeTaxConsultant,
+  SPIRITUAL_CONSULTANT:
+      OnboardingIndividualAssets.spiritualConsultant, // no 2026 tile
+  TRAINEE_CAREER_CONSULTANT: DiscoverIcons.traineeCareer,
+  ADVERTISING_CONSULTANT: DiscoverIcons.mediaPublicity,
+  EVENT_PLANNER_DETECTIVE:
+      OnboardingIndividualAssets.eventPlanDetective, // no 2026 tile
+  PROPERTY_BROKER_ARCHITECT: DiscoverIcons.propertyBroker,
+  BUSINESS_HR_CONSULTANT: DiscoverIcons.consultingFirm,
   INDUSTRY_QUALITY_CONSULTANT:
-      OnboardingIndividualAssets.industryQualityConsultant,
-  TECH_DIGITAL_FREELANCER: OnboardingIndividualAssets.techDigitalFreelancer,
+      OnboardingIndividualAssets.industryQualityConsultant, // no 2026 tile
+  TECH_DIGITAL_FREELANCER: DiscoverIcons.techDigital,
 };
 
 String getIndividualProfessionIcon(String? tagId) {
@@ -2427,21 +2455,21 @@ final List<OnboardingCategoryModel> healthCareList = [
   OnboardingCategoryModel(
     name: AppStrings.healthcareHospitals,
     slugId: HOSPITAL,
-    icon: "assets/category/medical/health_hospitals.png",
+    icon: DiscoverIcons.hospitals,
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.healthcareDoctors,
     slugId: CLINIC_DOCTORS,
-    icon: "assets/category/medical/health_doctors.png",
+    icon: DiscoverIcons.doctors,
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.healthcareLabs,
     slugId: LABTEST,
-    icon: "assets/category/medical/health_labs.png",
+    icon: DiscoverIcons.labs,
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
@@ -2454,14 +2482,16 @@ final List<OnboardingCategoryModel> healthCareList = [
   OnboardingCategoryModel(
     name: AppStrings.healthcarePharmacy,
     slugId: PHARMACY,
-    icon: "assets/category/medical/health_pharmacy.png",
+    icon: DiscoverIcons.pharmacy,
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
     name: AppStrings.healthcareSurgical,
     slugId: SURGICAL,
-    icon: "assets/category/medical/health_surgical.png",
+    // No dedicated "surgical" tile in the 2026 set — the general medical
+    // supplies icon is the closest, and keeps the row on one style.
+    icon: DiscoverIcons.healthMedical,
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
@@ -2576,51 +2606,56 @@ class PropertyTileData {
   });
 }
 
+/// Rent & Property tiles on Discover. The 2026 [DiscoverIcons] set draws the
+/// sell/rent split for houses and for shops & offices, so those four keep
+/// distinct art; lands & plots ships one icon and both listing types share it.
 final List<PropertyTileData> propertyDiscoverTiles = [
   PropertyTileData(
-      image: AppImageAssets.propertyHouseSell,
+      image: DiscoverIcons.housesApartments,
       label: 'Houses & Apartments',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'HouseAndApartment'),
   PropertyTileData(
-      image: AppImageAssets.propertyHouseRent,
+      image: DiscoverIcons.housesApartmentsRent,
       label: 'Houses & Apartments',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'HouseAndApartment'),
   PropertyTileData(
-      image: AppImageAssets.propertyNewProjectSell,
+      image: DiscoverIcons.newProjectsProperties,
       label: 'New Projects & Properties',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'NewProjectsAndProperties'),
   PropertyTileData(
-      image: AppImageAssets.propertyLandPlotSell,
+      image: DiscoverIcons.landsPlots,
       label: 'Lands & Plots',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'LandAndPlots'),
   PropertyTileData(
-      image: AppImageAssets.propertyShopOfficeRent,
+      image: DiscoverIcons.shopsOffices,
       label: 'Shops & Offices',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'ShopAndOffices'),
   PropertyTileData(
-      image: AppImageAssets.propertyShopOfficeSell,
+      image: DiscoverIcons.shopsOfficesSell,
       label: 'Shops & Offices',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'ShopAndOffices'),
   PropertyTileData(
-      image: AppImageAssets.propertyLandPlotRent,
+      image: DiscoverIcons.landsPlots,
       label: 'Lands & Plots',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'LandAndPlots'),
   PropertyTileData(
-      image: AppImageAssets.propertyPgRent,
+      // PG & Guest House has no tile in the 2026 set; the rent-house icon is
+      // the nearest subject in it, so the row stays on one style.
+      image: DiscoverIcons.housesApartmentsRent,
       label: 'PG & Guest House',
       isSale: false,
       listingType: 'Rent',
@@ -2686,51 +2721,53 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   ),*/
 ];
 
+/// Transport types on the Discover "Book your Transport" card. Artwork is the
+/// 2026 [DiscoverIcons] set — the delivered zip covers all six by name.
 final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(
       name: '2 Wheeler',
       slugId: 'TWO_WHEELER',
-      icon: AppImageAssets.twoWheelerBike),
+      icon: DiscoverIcons.twoWheeler),
   CollapsibleGridModel(
       name: 'Passenger',
       slugId: 'PASSENGER',
-      icon: AppImageAssets.passengerCar),
+      icon: DiscoverIcons.passenger),
   CollapsibleGridModel(
-      name: 'Goods', slugId: 'GOODS', icon: AppImageAssets.goodsMiniBus),
+      name: 'Goods', slugId: 'GOODS', icon: DiscoverIcons.goods),
   CollapsibleGridModel(
-      name: 'Out Station', slugId: 'OUR_STATION', icon: AppImageAssets.car),
+      name: 'Out Station', slugId: 'OUR_STATION', icon: DiscoverIcons.outStation),
   CollapsibleGridModel(
-      name: 'Rental', slugId: 'RENTAL', icon: AppImageAssets.car_rental),
+      name: 'Rental', slugId: 'RENTAL', icon: DiscoverIcons.vehicleRental),
   CollapsibleGridModel(
-      name: 'Logistics', slugId: 'LOGISTICS', icon: AppImageAssets.logistics),
+      name: 'Logistics', slugId: 'LOGISTICS', icon: DiscoverIcons.logistics),
 ];
 
 final List<OnboardingCategoryModel> financeCategories = [
   OnboardingCategoryModel(
     name: 'Banking Sector',
     slugId: 'BANKING_SECTOR',
-    icon: AppImageAssets.bankingSector,
+    icon: DiscoverIcons.banking,
     subtitle: "Accounts, FD,\nsavings",
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Loan Sector',
     slugId: 'LOANS_SECTOR',
-    icon: AppImageAssets.loanSector,
+    icon: DiscoverIcons.loan,
     subtitle: "Home, vehicle,\npersonal",
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Insurance Sector',
     slugId: 'INSURANCE_SECTOR',
-    icon: AppImageAssets.insuranceSector,
+    icon: DiscoverIcons.insurance,
     subtitle: "Health.\nlife, vehicle",
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Finance',
     slugId: 'FINANCIAL_SERVICES',
-    icon: AppImageAssets.capitalMarket,
+    icon: DiscoverIcons.capitalMarket,
     subtitle: "Stocks, mutual\nfunds, trading",
     accountType: AppConstants.business,
   ),

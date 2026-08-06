@@ -35,7 +35,15 @@ import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 
 class HmfCategoryDiscoverScreen extends StatefulWidget {
-  const HmfCategoryDiscoverScreen({super.key});
+  const HmfCategoryDiscoverScreen({super.key, this.initialCategoryName});
+
+  /// Category tab to open on, by its stable English name ('Tiffin', 'Bakery',
+  /// 'Sweets', …) — the same id [_FoodCategory.name] carries.
+  ///
+  /// Set by the Discover folder sheet so tapping "Sweets" there opens on
+  /// Sweets. Null, or a name this screen doesn't carry, keeps the default first
+  /// tab.
+  final String? initialCategoryName;
 
   @override
   State<HmfCategoryDiscoverScreen> createState() => _HmfCategoryDiscoverScreenState();
@@ -79,8 +87,28 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   @override
   void initState() {
     super.initState();
+    _applyInitialCategory();
     controller.fetchAllTiffinsIfNeeded();
   }
+
+  /// Selects the tab the caller asked for, before the first fetch, so the
+  /// screen never paints the default category and then jumps.
+  ///
+  /// Matched loosely — case and punctuation are stripped from both sides —
+  /// because the name comes from the Discover catalogue, which writes its own
+  /// labels and need not spell them exactly as the tab list does. An unknown
+  /// name leaves the default selection alone rather than clearing the screen.
+  void _applyInitialCategory() {
+    final wanted = _normalisedCategory(widget.initialCategoryName);
+    if (wanted.isEmpty) return;
+    final index = _categories
+        .indexWhere((c) => _normalisedCategory(c.name) == wanted);
+    if (index < 0) return;
+    controller.selectedCategoryIndex.value = index;
+  }
+
+  static String _normalisedCategory(String? value) =>
+      (value ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   @override
   void dispose() {

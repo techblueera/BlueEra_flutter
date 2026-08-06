@@ -246,15 +246,16 @@ class AuthController extends GetxController {
               // permanent instance the home screen fetches into.
               getOrPut(() => ViewBusinessDetailsController(), permanent: true);
               navigatedAway = true;
+              // No `initialIndex`: the home shell resolves the landing tab
+              // itself (_resolveLandingIndex) and puts a business user on
+              // Discover — the marketplace, not their own dashboard, which is
+              // one tab away. Passing 0 here was overriding that and dropping
+              // every business login straight onto the Me tab. The
+              // business-profile fetch still runs from the home screen's
+              // post-frame init regardless of which tab is showing.
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
-                // Discover (1), same as individuals — a business user logging
-                // in lands on the marketplace, not their own dashboard. Their
-                // shop is one tab away. The business-profile fetch still runs
-                // from the home screen's post-frame init regardless of which
-                // tab is showing.
-                arguments: {ApiKeys.initialIndex: 0},
               );
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
@@ -298,11 +299,17 @@ class AuthController extends GetxController {
               Get.put(ViewPersonalDetailsController(), permanent: true);
 
               navigatedAway = true;
+              // No `initialIndex` — same reason as the business branch. On a
+              // FRESH login `userProfileTypeGlobal` isn't known yet (the
+              // profile fetch is deliberately deferred to the home shell), so
+              // the shell lands on Discover and then snaps gig workers /
+              // riders onto Me once that fetch resolves the type
+              // (_maybeCorrectLandingTabForMeProfile). Every other individual
+              // type stays on Discover.
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
                 arguments: {
-                  ApiKeys.initialIndex: 0,
                   'runRiderGoLiveGate': true,
                 },
               );

@@ -1,124 +1,51 @@
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 
-/// Static category data for the redesigned Discover landing page.
+/// Static category data for the Discover landing page.
 ///
 /// The illustrated icons already ship in the asset bundle (see
 /// [AppImageAssets] / [OnboardingBusinessAssets]). `slugId`s reuse the
-/// existing service slugs so taps can route into the current grocery / food
-/// flows unchanged.
-
-final List<CollapsibleGridModel> discoverGroceryCategories = [
-  CollapsibleGridModel(
-    name: 'Kirana Store',
-    slugId: 'KIRANA_STORE',
-    icon: AppImageAssets.kiranaStore,
-  ),
-  CollapsibleGridModel(
-    name: 'General Store',
-    slugId: 'GENERAL_STORE',
-    icon: AppImageAssets.generalStore,
-  ),
-  CollapsibleGridModel(
-    name: 'Vegetable & Fruits',
-    slugId: 'VEG_FRUITS',
-    icon: AppImageAssets.vegFruitStore,
-  ),
-  CollapsibleGridModel(
-    name: 'Dairy & Bakery',
-    slugId: 'DAIRY_BAKERY',
-    icon: AppImageAssets.dairyBakeryStore,
-  ),
-  CollapsibleGridModel(
-    name: 'Home Essentials',
-    slugId: 'HOME_ESSENTIALS',
-    icon: AppImageAssets.homeEssentialsStore,
-  ),
-];
-
-final List<CollapsibleGridModel> discoverFoodCategories = [
-  CollapsibleGridModel(
-    name: 'Multicuisine Restaurant',
-    slugId: 'MULTICUISINE',
-    icon: OnboardingBusinessAssets.multicuisineRestaurant,
-  ),
-  CollapsibleGridModel(
-    name: 'Pure - Veg Restaurant',
-    slugId: 'PURE_VEG',
-    icon: OnboardingBusinessAssets.pureVegRestaurant,
-  ),
-  CollapsibleGridModel(
-    name: 'Non-Veg Restaurant',
-    slugId: 'NON_VEG',
-    icon: OnboardingBusinessAssets.nonVegRestaurant,
-  ),
-  CollapsibleGridModel(
-    name: 'Economy Dhaba',
-    slugId: 'ECONOMY_DHABA',
-    icon: OnboardingBusinessAssets.economyDhaba,
-  ),
-  CollapsibleGridModel(
-    name: 'Garden/ Buffet Restaurant',
-    slugId: 'GARDEN_BUFFET',
-    icon: OnboardingBusinessAssets.gardenBuffetRestaurant,
-  ),
-  CollapsibleGridModel(
-    name: 'Cloud Kitchen',
-    slugId: 'CLOUD_KITCHEN',
-    icon: OnboardingBusinessAssets.cloudKitchenMess,
-  ),
-  CollapsibleGridModel(
-    name: 'Breakfast / Fast-food',
-    slugId: 'BREAKFAST_FASTFOOD',
-    icon: OnboardingBusinessAssets.breakfastFastFood,
-  ),
-  CollapsibleGridModel(
-    name: 'Sweet & Namkeen',
-    slugId: 'SWEET_NAMKEEN',
-    icon: OnboardingBusinessAssets.sweetNamkeenShop,
-  ),
-  CollapsibleGridModel(
-    name: 'Ice Cream Corner',
-    slugId: 'ICE_CREAM',
-    icon: OnboardingBusinessAssets.iceCreamCorner,
-  ),
-  CollapsibleGridModel(
-    name: 'Coffee & Braverages',
-    slugId: 'COFFEE_BEVERAGES',
-    icon: OnboardingBusinessAssets.coffeeBeveragesShop,
-  ),
-];
+/// existing service slugs so taps can route into the current flows unchanged.
+///
+/// Grocery and Food used to be listed here too. They are not any more: those
+/// two verticals have real onboarding categories on the API, and a bundled
+/// copy whose ids only nearly matched the server's meant a tapped tile could
+/// not name its own category to the screen it opened. They now read
+/// [AuthController]'s lists directly — see `discover_screen.dart`. What is left
+/// here is the sets the backend has no category endpoint for.
 
 /// Home Made Food sub-categories for the redesigned Discover page.
 ///
-/// The app has no dedicated per-item routing/icons for these yet, so every
-/// tile reuses the closest existing illustrated icon and opens the shared
-/// Home Made Food discover flow (see `HmfCategoryDiscoverScreen`).
+/// Routing is uniform — every tile opens the shared Home Made Food discover
+/// flow (see `HmfCategoryDiscoverScreen`) — but the artwork is no longer a
+/// "closest existing icon" stand-in: the 2026 [DiscoverIcons] set ships one
+/// drawn for each of these five.
 final List<CollapsibleGridModel> discoverHomeMadeFoodCategories = [
   CollapsibleGridModel(
     name: 'Tiffin',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.tiffin,
+    icon: DiscoverIcons.tiffin,
   ),
   CollapsibleGridModel(
     name: 'Bakery',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.dairyBakeryStore,
+    icon: DiscoverIcons.bakery,
   ),
   CollapsibleGridModel(
     name: 'Sweets',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.sweets,
+    icon: DiscoverIcons.sweets,
   ),
   CollapsibleGridModel(
     name: 'Namkeen',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.namkeens,
+    icon: DiscoverIcons.namkeen,
   ),
   CollapsibleGridModel(
     name: 'Pickles',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.pickels,
+    icon: DiscoverIcons.pickles,
   ),
 ];
 
@@ -130,27 +57,27 @@ final List<CollapsibleGridModel> discoverHomeMadeProductCategories = [
   CollapsibleGridModel(
     name: 'Art & Craft',
     slugId: 'PRODUCT',
-    icon: AppImageAssets.artCrafts,
+    icon: DiscoverIcons.artCraft,
   ),
   CollapsibleGridModel(
     name: 'Gift Items',
     slugId: 'PRODUCT',
-    icon: AppImageAssets.giftItems,
+    icon: DiscoverIcons.giftItems,
   ),
   CollapsibleGridModel(
     name: 'Handicrafts',
     slugId: 'PRODUCT',
-    icon: AppImageAssets.handicraft,
+    icon: DiscoverIcons.handicrafts,
   ),
   CollapsibleGridModel(
     name: 'Textile',
     slugId: 'PRODUCT',
-    icon: AppImageAssets.artsCraftsSewing,
+    icon: DiscoverIcons.textile,
   ),
   CollapsibleGridModel(
     name: 'Utility Product',
     slugId: 'PRODUCT',
-    icon: AppImageAssets.utilityProducts,
+    icon: DiscoverIcons.utilityProduct,
   ),
 ];
 
@@ -163,22 +90,24 @@ final List<CollapsibleGridModel> discoverHomeServicesCategories = [
   CollapsibleGridModel(
     name: 'Tailor',
     slugId: 'SERVICE',
-    icon: AppImageAssets.tailor,
+    // No tailoring icon in the 2026 set; textile (bolts of cloth) is the
+    // nearest subject in it and keeps the row on one style.
+    icon: DiscoverIcons.textile,
   ),
   CollapsibleGridModel(
     name: 'Beautician',
     slugId: 'SERVICE',
-    icon: AppImageAssets.beautician,
+    icon: DiscoverIcons.beautyPersonalCare,
   ),
   CollapsibleGridModel(
     name: 'Interior Decor',
     slugId: 'SERVICE',
-    icon: AppImageAssets.interiorDesigner,
+    icon: DiscoverIcons.renovator,
   ),
   CollapsibleGridModel(
     name: 'Digital Marketing',
     slugId: 'SERVICE',
-    icon: AppImageAssets.digitalMarketing,
+    icon: DiscoverIcons.mediaPublicity,
   ),
 ];
 

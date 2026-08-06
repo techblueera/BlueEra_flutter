@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
+import 'package:BlueEra/core/api/model/store_counts_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -52,6 +53,12 @@ class StoreController extends GetxController{
   String? typeOfBusiness;
   String? businessCategoryId;
 
+  /// Optional `subCategory` filter for the near-by store search — e.g.
+  /// `Stationery Store` under the `STATIONARY_SHOP` category. Null on every
+  /// screen that filters by category alone, which is all of them today; the
+  /// param is simply left off the request then.
+  String? businessSubCategoryId;
+
   /// All Stores data
   RxList<GetAllStoreResModel> allStore = <GetAllStoreResModel>[].obs;
   RxBool isAllStoreLoadingMore = false.obs;
@@ -67,13 +74,189 @@ class StoreController extends GetxController{
   /// screen never serves a food screen's leftovers, and vice-versa.
   final FetchCache _allStoreCache = FetchCache();
 
+  // ── Store product / category counts ──────────────────────────────────────
+
+  /// Counts by `<catalogue>|<store id>`, for every store seen this session.
+  ///
+  /// Separate from [allStore] rather than written back onto each model: the
+  /// store list is replaced wholesale on every refresh and on every category
+  /// switch, and counts merged into it would be thrown away with it and
+  /// re-fetched for stores whose numbers had not changed. Keyed by BOTH the
+  /// business id and the owner user id — see [StoreCountsModel.lookupKeys].
+  ///
+  /// The catalogue is part of the key because one business can trade in more
+  /// than one of them: a shop selling groceries and cooked food has a grocery
+  /// count and a food count, and keying on the id alone would let whichever
+  /// screen loaded first answer for the other.
+  ///
+  /// Observable so a card can paint without counts and fill them in when they
+  /// arrive; [countsFor] is what the cards read.
+  final RxMap<String, StoreCountsModel> storeCounts =
+      <String, StoreCountsModel>{}.obs;
+
+  /// Cache keys with a counts request in flight, so paging back and forth over
+  /// the same stores doesn't re-ask for them.
+  final Set<String> _countsInFlight = {};
+
+  /// Held rather than constructed per call: [_countsCatalogue] is read from
+  /// inside every card's `Obx`, i.e. on every list frame, purely to reach the
+  /// three path constants that hang off [BaseService].
+  final StoreRepo _countsRepo = StoreRepo();
+
+  /// Which catalogue [typeOfBusiness] maps onto, as `(path, cache prefix)`.
+  ///
+  /// The three services take an identical request and return an identical
+  /// response, so only the URL changes — but they answer for different
+  /// inventories, and asking grocery about a restaurant returns a clean,
+  /// wrong `0`. Paths are the doc's, per service:
+  /// docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md.
+  ///
+  /// Anything not food or grocery (Product, Manufacturing, Automotive, …)
+  /// reads the product catalogue, which is where those listings' inventory
+  /// lives.
+  ({String path, String prefix}) get _countsCatalogue {
+    final repo = _countsRepo;
+    final type = (typeOfBusiness ?? '').toLowerCase();
+    if (type == AppConstants.food.toLowerCase() ||
+        type == BusinessType.Food.name.toLowerCase()) {
+      return (path: repo.foodBusinessProductStats, prefix: 'food');
+    }
+    if (type == BusinessType.Grocery.name.toLowerCase()) {
+      return (path: repo.groceryBusinessProductStats, prefix: 'grocery');
+    }
+    return (path: repo.productBusinessProductStats, prefix: 'product');
+  }
+
+  String _countsKey(String prefix, String id) => '$prefix|$id';
+
+  /// The counts for a store in the CURRENT screen's catalogue, or null while
+  /// they are still unknown.
+  ///
+  /// Takes both ids because callers have different ones to hand and the server
+  /// may have matched on either.
+  StoreCountsModel? countsFor({String? businessId, String? userId}) =>
+      _countsIn(_countsCatalogue.prefix, businessId: businessId, userId: userId);
+
+  StoreCountsModel? _countsIn(String prefix,
+      {String? businessId, String? userId}) {
+    if (businessId?.isNotEmpty == true) {
+      final hit = storeCounts[_countsKey(prefix, businessId!)];
+      if (hit != null) return hit;
+    }
+    if (userId?.isNotEmpty == true) {
+      return storeCounts[_countsKey(prefix, userId!)];
+    }
+    return null;
+  }
+
+  /// Load counts for [stores] — memory, then disk, then the network for
+  /// whatever neither could answer.
+  ///
+  /// Fired AFTER a page of stores is on screen, never before: the whole reason
+  /// the backend split this off the listing is that the stores should not wait
+  /// on the counts. Failure is silent for the same reason — the cards are
+  /// already rendered and complete apart from two figures.
+  Future<void> fetchStoreCountsFor(List<GetAllStoreResModel> stores) async {
+    if (stores.isEmpty) return;
+
+    final catalogue = _countsCatalogue;
+    final prefix = catalogue.prefix;
+
+    // 1. In memory already? A page revisited, or a store that appeared in an
+    //    earlier page, costs nothing.
+    final pending = <GetAllStoreResModel>[];
+    for (final store in stores) {
+      final businessId = store.id ?? '';
+      final userId = store.userId ?? '';
+      if (businessId.isEmpty && userId.isEmpty) continue;
+      if (_countsIn(prefix, businessId: businessId, userId: userId) != null) {
+        continue;
+      }
+      if (_countsInFlight.contains(_countsKey(prefix, businessId)) ||
+          _countsInFlight.contains(_countsKey(prefix, userId))) {
+        continue;
+      }
+      pending.add(store);
+    }
+    if (pending.isEmpty) return;
+
+    // 2. Disk — a cold start shows real numbers on the first frame the cards
+    //    paint, instead of blanks that fill in a round-trip later.
+    final cached = HiveServices().getStoreCounts([
+      for (final s in pending) ...[
+        if (s.id?.isNotEmpty == true) _countsKey(prefix, s.id!),
+        if (s.userId?.isNotEmpty == true) _countsKey(prefix, s.userId!),
+      ],
+    ]);
+    if (cached.isNotEmpty) {
+      final hydrated = <String, StoreCountsModel>{};
+      for (final row in cached.values) {
+        final counts = StoreCountsModel.fromJson(row);
+        for (final key in counts.lookupKeys) {
+          hydrated[_countsKey(prefix, key)] = counts;
+        }
+      }
+      if (hydrated.isNotEmpty) storeCounts.addAll(hydrated);
+      pending.removeWhere(
+        (s) => _countsIn(prefix, businessId: s.id, userId: s.userId) != null,
+      );
+      if (pending.isEmpty) return;
+    }
+
+    // 3. Network, for the remainder only.
+    final requestKeys = <String>{
+      for (final s in pending) ...[
+        if (s.id?.isNotEmpty == true) _countsKey(prefix, s.id!),
+        if (s.userId?.isNotEmpty == true) _countsKey(prefix, s.userId!),
+      ],
+    };
+    _countsInFlight.addAll(requestKeys);
+    try {
+      final response = await StoreRepo().getStoreCountsRepo(
+        path: catalogue.path,
+        businesses: [
+          for (final s in pending)
+            {
+              // Both ids when we have them: the server matches on either, and
+              // which one carries the inventory differs per store.
+              if (s.id?.isNotEmpty == true) 'businessId': s.id!,
+              if (s.userId?.isNotEmpty == true) 'userId': s.userId!,
+            },
+        ],
+      );
+      if (!response.isSuccess) return;
+
+      final body = response.response?.data;
+      final rows = body is Map ? body['data'] : body;
+      if (rows is! List) return;
+
+      final parsed = <String, StoreCountsModel>{};
+      final toPersist = <String, Map<String, dynamic>>{};
+      for (final row in rows.whereType<Map>()) {
+        final counts = StoreCountsModel.fromJson(row);
+        for (final key in counts.lookupKeys) {
+          parsed[_countsKey(prefix, key)] = counts;
+          toPersist[_countsKey(prefix, key)] = counts.toJson();
+        }
+      }
+      if (parsed.isEmpty) return;
+      storeCounts.addAll(parsed);
+      unawaited(HiveServices().saveStoreCounts(toPersist));
+    } catch (e) {
+      log('Store counts fetch failed: $e');
+    } finally {
+      _countsInFlight.removeAll(requestKeys);
+    }
+  }
+
   /// `stores|<user>|<type>|<category>` — the dataset *identity*. Location is no
   /// longer baked into the key; instead it's tracked as a distance delta (see
   /// [_lastStoreFetchLat]/[_lastStoreFetchLng] + [_moveInvalidationMeters]) so
   /// a small walk doesn't refetch but a real relocation does. This is also the
   /// Hive key, so each (user, type, category) gets its own persisted entry.
   String get _storeIdentity =>
-      'stores|$userId|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}';
+      'stores|$userId|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}'
+      '|${businessSubCategoryId ?? ''}';
 
   /// `services|<user>|<category>` — service search ignores [typeOfBusiness].
   String get _serviceIdentity => 'services|$userId|${businessCategoryId ?? ''}';
@@ -204,6 +387,11 @@ class StoreController extends GetxController{
         allStoreHasMore = true;
         _allStoreCache.mark(_storeIdentity);
 
+        // The cached STORES carry no counts — those live in their own box, so
+        // hydrate them for this page too. Reads disk first and only calls the
+        // network for stores it can't answer, which on a warm cache is none.
+        unawaited(fetchStoreCountsFor(cachedStores));
+
         final tooOld = DateTime.now().difference(entry.savedAt) > _persistTtl;
         final movedFar =
             LocationService.metersFromCurrent(entry.lat, entry.lng) >
@@ -270,16 +458,24 @@ class StoreController extends GetxController{
 
     try {
 
+      // `user-service/business/search` params. The old map-service listing
+      // spelled these `type` / `category_id`; this endpoint wants
+      // `typeOfBusiness` / `category` and ignores anything it doesn't know —
+      // an unfiltered list, not an error — so the spellings matter.
       Map<String, dynamic> queryParams = {
         ApiKeys.page: allStorePage,
         ApiKeys.limit: 20,
         ApiKeys.lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "0.0",
         ApiKeys.lng: LocationService.lng != 0.0 ? "${LocationService.lng}" : "0.0",
-        ApiKeys.type: typeOfBusiness,
-        ApiKeys.radius: kmRadius500
+        ApiKeys.typeOfBusiness: typeOfBusiness,
+        ApiKeys.radius: kmRadius300
       };
-      // if(businessCategoryId!=null) queryParams['categoryOfBusiness'] = businessCategoryId;
-      if(businessCategoryId!=null) queryParams[ApiKeys.category_id] = businessCategoryId;
+      if (businessCategoryId != null) {
+        queryParams[ApiKeys.category] = businessCategoryId;
+      }
+      if (businessSubCategoryId != null) {
+        queryParams[ApiKeys.subCategory] = businessSubCategoryId;
+      }
 
       final response = await StoreRepo().getSpecificStores(
         queryParams: queryParams
@@ -333,7 +529,21 @@ class StoreController extends GetxController{
             ));
           }
 
+          // Counts come from their own endpoint now — fired here, after the
+          // stores are in the list and on screen, and NOT awaited. The listing
+          // dropped its gRPC fan-out precisely so it need not wait on these.
+          unawaited(fetchStoreCountsFor(newStores));
+
           allStorePage++;
+
+          // `business/search` reports how many pages exist, so stop at the last
+          // one instead of discovering the end by fetching an empty page.
+          final pagination =
+              responseData is Map ? responseData['pagination'] : null;
+          final totalPages = pagination is Map
+              ? (pagination['totalPages'] as num?)?.toInt()
+              : null;
+          if (totalPages != null) allStoreHasMore = allStorePage <= totalPages;
         } else {
           allStoreHasMore = false;
         }
@@ -845,4 +1055,20 @@ class StoreController extends GetxController{
     log('Store rating count updated for businessId: $businessId');
   }
 
+}
+
+/// Counts for [store] in the catalogue the current screen is listing, or null
+/// while they are still unknown.
+///
+/// A free function so every store card reads them the same way without each one
+/// repeating the registered check: these cards are also built on screens that
+/// never put a [StoreController], where a bare `Get.find` would throw rather
+/// than simply show no numbers yet.
+///
+/// Read inside an `Obx` — [StoreController.storeCounts] is observable, so the
+/// two figures fill themselves in when the counts call lands.
+StoreCountsModel? storeCountsFor(GetAllStoreResModel store) {
+  if (!Get.isRegistered<StoreController>()) return null;
+  return Get.find<StoreController>()
+      .countsFor(businessId: store.id, userId: store.userId);
 }

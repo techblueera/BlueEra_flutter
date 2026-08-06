@@ -14,9 +14,6 @@ import '../../../../../core/constants/app_enum.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'no_orders_widget.dart';
-import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
-import '../../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
-import '../../controller/pip_floating_page_controller.dart';
 
 class PassengerOrderScreen extends StatefulWidget {
   /// When true, the widget skips its [Scaffold] chrome, drops the
@@ -390,42 +387,13 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () {
-              if (type == 'pickup') {
-                Get.to(() => RiderPickupNavigationScreen(
-                      pickupLocation: p['pickupLocation'] ?? '',
-                      dropLocation: p['dropLocation'] ?? '',
-                      pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
-                      pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
-                      dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
-                      dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
-                      fareAmount: fareAmount,
-                      distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
-                      customerName: customerName,
-                      customerImage: p['customerImage'] ?? '',
-                      otp: p['otp'] ?? '',
-                      paymentMethod: paymentMethod,
-                      orderId: p['orderId'] ?? '',
-                      customerUserId: p['customerUserId'] ?? '',
-                    ));
-              } else {
-                Get.to(() => PassengerDestinationScreen(
-                      pickupLocation: p['pickupLocation'] ?? '',
-                      dropLocation: p['dropLocation'] ?? '',
-                      pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
-                      pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
-                      dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
-                      dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
-                      fareAmount: fareAmount,
-                      distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
-                      customerName: customerName,
-                      customerImage: p['customerImage'] ?? '',
-                      paymentMethod: paymentMethod,
-                      orderId: p['orderId'] ?? '',
-                      customerUserId: p['customerUserId'] ?? '',
-                    ));
-              }
-            },
+            // Tapping this used to open the live-map ride screens
+            // (RiderPickupNavigationScreen / PassengerDestinationScreen). The
+            // rider flow no longer opens maps in-app: the job's own card on the
+            // Ongoing tab holds the direction hand-off to Google Maps, the
+            // pickup OTP and the slide-to-complete. So this drops the rider
+            // onto that tab instead of a second, parallel ride UI.
+            onTap: () => controller.selectedPickUp.value = PickUpTab.onGoing,
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -782,30 +750,15 @@ class OngoingRideCard extends StatefulWidget {
 
 class _OngoingRideCardState extends State<OngoingRideCard> {
   double dragX = 0;
-  final controller = getOrPut(() => PipFloatingPageController());
 
-  @override
-  void initState() {
-    super.initState();
-
-  }
-
-  // @override
-  // void dispose() {
-  //   controller.setPipStatus(false);
-  //   super.dispose();
-  // }
+  // NOTE: this card used to hold a PipFloatingPageController and push the
+  // ongoing ride into an Android picture-in-picture window on back. Rider PiP
+  // is gone — navigation happens in the phone's Google Maps and the order card
+  // carries the job — so the PopScope that wrapped this went with it.
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        // await controller.platformData.invokeMethod('enterPip');
-        // Get.to(OnGoingPipScreen());
-      },
-      child: Material(
+    return Material(
         color: Colors.transparent,
         child: Center(
           child: ConstrainedBox(
@@ -822,7 +775,6 @@ class _OngoingRideCardState extends State<OngoingRideCard> {
             ),
           ),
         ),
-      ),
     );
   }
 

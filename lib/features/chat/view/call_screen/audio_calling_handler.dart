@@ -12,7 +12,6 @@ import 'package:get/get.dart';
 
 import '../../auth/controller/call_controller.dart';
 import '../../auth/service/call_pip_service.dart';
-import 'rider_call/rider_pickup_navigation_screen.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CallActivityRoomScreen — Unified call screen for both incoming and outgoing calls.
@@ -71,19 +70,13 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   // Incoming call accepting state
   bool _isAccepting = false;
 
-  // Rider fare-call: snapshot of ride details captured while connected so we
-  // can navigate to the pickup/OTP screen after the call ends. CallController
-  // resets isFareCall/fareCallOrderId/fareCallRideDetails during cleanup, so
-  // reading them in the call:ended path is too late.
+  // Rider fare-call: latched while connected so the call:ended path knows this
+  // was an accepted offer and can send the rider to their orders.
+  // CallController resets isFareCall/fareCallOrderId during cleanup, so reading
+  // those in the call:ended path is too late.
   bool _riderFareCallSnapshotTaken = false;
   bool _riderAcceptedRide = false; // set only when rider taps "Accept Ride"
   bool _riderAcceptingRide = false; // in-flight guard for the API call
-  Map<String, dynamic>? _riderFareCallRideDetails;
-  String _riderFareCallOrderId = '';
-  String _riderFareCallOrderMongoId = '';
-  String _riderFareCallCustomerUserId = '';
-  String _riderFareCallCustomerName = '';
-  String _riderFareCallCustomerImage = '';
 
   @override
   void initState() {
@@ -261,32 +254,19 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     }
   }
 
+  /// Remembers that THIS call was an accepted fare-call offer, so the rider is
+  /// sent on to their orders when it ends.
+  ///
+  /// It used to copy the whole ride payload — ids, customer, pickup/drop
+  /// coordinates, fare — because the next screen was a map built from those
+  /// values. That screen is gone; the order card renders from the order itself,
+  /// so a flag is all that survives.
   void _captureRiderFareCallSnapshot(CallController controller) {
     if (_riderFareCallSnapshotTaken) return;
     if (!controller.isFareCall.value) return;
     if (controller.isCaller.value) return;
-    final orderId = controller.fareCallOrderId.value;
-    if (orderId.isEmpty) return;
-    final ride = controller.fareCallRideDetails.value;
-    _riderFareCallRideDetails = ride != null
-        ? Map<String, dynamic>.from(ride)
-        : null;
-    _riderFareCallOrderId = orderId;
-    _riderFareCallOrderMongoId = controller.fareCallOrderMongoId.value;
-    _riderFareCallCustomerUserId = controller.remoteUserId ?? '';
-    _riderFareCallCustomerName = controller.callerName.value.isNotEmpty
-        ? controller.callerName.value
-        : controller.remoteUserName.value;
-    _riderFareCallCustomerImage = controller.callerImage.value.isNotEmpty
-        ? controller.callerImage.value
-        : controller.remoteUserImage.value;
+    if (controller.fareCallOrderId.value.isEmpty) return;
     _riderFareCallSnapshotTaken = true;
-  }
-
-  double _toDouble(dynamic v) {
-    if (v is num) return v.toDouble();
-    if (v is String) return double.tryParse(v) ?? 0.0;
-    return 0.0;
   }
 
   void _popRiderCallScreen() {
@@ -369,63 +349,27 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     );
   }
 
+  /// Where the rider lands once an accepted fare-call ends: the orders
+  /// dashboard, for EVERY order type.
+  ///
+  /// This used to fork — goods to the dashboard, passenger rides and parcels
+  /// into [RiderPickupNavigationScreen]'s live map. The rider flow no longer
+  /// renders maps: the in-list order card carries the whole job (pickup
+  /// direction in the phone's Google Maps, pickup OTP, drop direction,
+  /// slide-to-complete), so both branches now end in the same place and the
+  /// fork — which built its screen from the CALL payload while the card builds
+  /// from the ORDER, and so could disagree about ids and addresses for the same
+  /// ride — is gone with it.
   void _navigateRiderToPickup() {
     if (!_riderFareCallSnapshotTaken) return;
     _riderFareCallSnapshotTaken = false; // one-shot
 
-    final ride = _riderFareCallRideDetails;
-
-    // Goods/shop pickups (grocery / food / medical / generic goods) are handled
-    // entirely by the in-list order card (MultiShopOrderCard / OrderCard) — the
-    // rider reads out each shop's pickup OTP and enters the customer delivery
-    // OTP there. They have no passenger pickup/OTP/PiP leg, so skip the pickup
-    // navigation screen and drop the rider onto the orders dashboard where the
-    // card takes over. Only passenger rides & parcels use the pickup screen.
-    final rawJobType = (ride?['jobType'] ?? '').toString().toLowerCase();
-    final rawOrderFor = (ride?['orderFor'] ?? '').toString().toLowerCase();
-    final isGoodsOrder = rawJobType.isNotEmpty
-        ? rawJobType == 'goods'
-        : const {'grocery', 'food', 'medical', 'goods', 'product'}
-            .contains(rawOrderFor);
-    if (isGoodsOrder) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Get.offNamed(RouteHelper.getRiderServiceScreenRoute());
-      });
-      return;
-    }
-
-    final pickup = ride?['pickup'] is Map ? ride!['pickup'] as Map : const {};
-    final drop = ride?['drop'] is Map ? ride!['drop'] as Map : const {};
-    final orderId = _riderFareCallOrderMongoId.isNotEmpty
-        ? _riderFareCallOrderMongoId
-        : _riderFareCallOrderId;
-
-    final target = RiderPickupNavigationScreen(
-      pickupLocation: (pickup['address'] ?? '').toString(),
-      dropLocation: (drop['address'] ?? '').toString(),
-      pickupLat: _toDouble(pickup['lat']),
-      pickupLng: _toDouble(pickup['lng']),
-      dropLat: _toDouble(drop['lat']),
-      dropLng: _toDouble(drop['lng']),
-      fareAmount: _toDouble(ride?['fare']),
-      distanceKm: _toDouble(ride?['distance']),
-      customerName: _riderFareCallCustomerName.isNotEmpty
-          ? _riderFareCallCustomerName
-          : 'Customer',
-      customerImage: _riderFareCallCustomerImage,
-      otp: '',
-      paymentMethod: (ride?['modeOfPayment'] ?? 'Cash').toString(),
-      orderId: orderId,
-      customerUserId: _riderFareCallCustomerUserId,
-    );
-
-    // Use offAll-style replace so the empty call screen doesn't linger in the
-    // back stack. Defer to next frame so we don't mutate the navigator while
-    // the Obx is rebuilding.
+    // Deferred to the next frame so the navigator isn't mutated while the Obx
+    // that triggered this is still rebuilding. `offNamed` so the spent call
+    // screen doesn't linger in the back stack.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Get.off(() => target);
+      Get.offNamed(RouteHelper.getRiderServiceScreenRoute());
     });
   }
 

@@ -7,11 +7,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
 import '../../business_chat/widgets/track_rider_live_location_page.dart';
 import 'ride_navigation_overlay_controller.dart';
-import 'rider_pickup_navigation_screen.dart';
-import 'passenger_destination_screen.dart';
 
-/// Draggable floating mini-map overlay shown when rider minimises the
-/// pickup / ride navigation screen.
+/// Draggable floating mini-map overlay for a CUSTOMER's live ride/booking —
+/// their own booked ride, a fare-call queue, or a rider they're tracking from
+/// chat.
+///
+/// It used to serve the rider too, as the thing their pickup/ride navigation
+/// screens minimised into. Those screens are gone (riders navigate in the
+/// phone's Google Maps and their order card carries the job), so nothing on the
+/// rider side feeds this any more.
 class RideNavigationFloatingOverlay extends StatelessWidget {
   const RideNavigationFloatingOverlay({super.key});
 
@@ -99,24 +103,13 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
     // Hide overlay and navigate back to the full screen
     ctrl.hideOverlay();
 
-    if (type == 'pickup') {
-      Get.to(() => RiderPickupNavigationScreen(
-            pickupLocation: p['pickupLocation'] ?? '',
-            dropLocation: p['dropLocation'] ?? '',
-            pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
-            pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
-            dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
-            dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
-            fareAmount: (p['fareAmount'] as num?)?.toDouble() ?? 0,
-            distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
-            customerName: p['customerName'] ?? '',
-            customerImage: p['customerImage'] ?? '',
-            otp: p['otp'] ?? '',
-            paymentMethod: p['paymentMethod'] ?? 'Cash',
-            orderId: p['orderId'] ?? '',
-            customerUserId: p['customerUserId'] ?? '',
-          ));
-    } else if (type == 'customer_tracking') {
+    // NOTE: `pickup` and the old `else` fell through to the rider's live-map
+    // screens. This overlay is a CUSTOMER affordance now — the rider flow keeps
+    // no map of its own, so nothing on the rider side puts a ride in here any
+    // more, and a leftover rider entry could only reopen a screen that no
+    // longer belongs to the flow. Unrecognised types drop the stale overlay
+    // instead (see the fallback below).
+    if (type == 'customer_tracking') {
       Get.to(() => FareCallQueueScreen(
             orderId: p['orderId'] ?? '',
           ));
@@ -146,21 +139,10 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
             orderId: p['orderId'],
           ));
     } else {
-      Get.to(() => PassengerDestinationScreen(
-            pickupLocation: p['pickupLocation'] ?? '',
-            dropLocation: p['dropLocation'] ?? '',
-            pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
-            pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
-            dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
-            dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
-            fareAmount: (p['fareAmount'] as num?)?.toDouble() ?? 0,
-            distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
-            customerName: p['customerName'] ?? '',
-            customerImage: p['customerImage'] ?? '',
-            paymentMethod: p['paymentMethod'] ?? 'Cash',
-            orderId: p['orderId'] ?? '',
-            customerUserId: p['customerUserId'] ?? '',
-          ));
+      // Nothing this overlay still knows how to reopen — a ride left over from
+      // the rider screens that no longer exist, or a type added without a
+      // handler. Clear it rather than strand a tap that does nothing.
+      ctrl.clearRideData();
     }
   }
 

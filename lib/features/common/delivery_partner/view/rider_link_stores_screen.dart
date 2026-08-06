@@ -322,25 +322,34 @@ class _LinkStoreCard extends StatelessWidget {
                 SizedBox(height: SizeConfig.size6),
 
                 // ─── Stats ───
-                Row(
-                  children: [
-                    _statBox(
-                      icon: AppIconAssets.staggeredIcon,
-                      count: '${store.totalCategoryCount}',
-                      label: 'Category',
-                      iconColor: const Color(0xFF9964F4),
-                      bgColor: AppColors.purpleFD,
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    _statBox(
-                      icon: AppIconAssets.productCartIcon,
-                      count: '${store.totalProductCount}',
-                      label: 'Product',
-                      iconColor: const Color(0xFF6179CD),
-                      bgColor: AppColors.purpleFF,
-                    ),
-                  ],
-                ),
+                // Counts come from their own call, after this card is on
+                // screen — see [StoreController.fetchStoreCountsFor]. The store
+                // listing no longer carries them, so there is nothing to fall
+                // back to; Obx fills the figures in when they land, and `-`
+                // stands in meanwhile rather than a `0` that would read as
+                // "this store stocks nothing".
+                Obx(() {
+                  final counts = storeCountsFor(store);
+                  return Row(
+                    children: [
+                      _statBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: '${counts?.categoryCount ?? '-'}',
+                        label: 'Category',
+                        iconColor: const Color(0xFF9964F4),
+                        bgColor: AppColors.purpleFD,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      _statBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: '${counts?.productCount ?? '-'}',
+                        label: 'Product',
+                        iconColor: const Color(0xFF6179CD),
+                        bgColor: AppColors.purpleFF,
+                      ),
+                    ],
+                  );
+                }),
               ],
             ),
           ),

@@ -255,10 +255,17 @@ class RideBookingController extends GetxController {
   /// there under a different heading.
   /// [radiusKm] defaults to the radius for the trip type currently set — see
   /// [liveRiderRadiusFor]. Pass one only to override that.
+  ///
+  /// [atLat]/[atLng] override the point to look around. Only the confirm-pickup
+  /// screen passes them: there the pin is being DRAGGED and nothing is committed
+  /// yet, so `pickup` still holds wherever the customer started and the vehicles
+  /// on screen would be the ones around the old point.
   Future<void> fetchLiveRiders({
     String? vehicleType,
     int? radiusKm,
     int limit = 20,
+    double? atLat,
+    double? atLng,
   }) async {
     // Around the PICKUP, not the device: once the customer has moved the pin
     // (or come back to change it), the vehicles that matter are the ones near
@@ -266,8 +273,9 @@ class RideBookingController extends GetxController {
     // screen, before a pickup has been confirmed.
     final place = pickup.value;
     final hasPickup = place != null && place.hasCoordinates;
-    final lat = hasPickup ? place.latitude : currentLat.value;
-    final lng = hasPickup ? place.longitude : currentLng.value;
+    final explicit = atLat != null && atLng != null;
+    final lat = explicit ? atLat : (hasPickup ? place.latitude : currentLat.value);
+    final lng = explicit ? atLng : (hasPickup ? place.longitude : currentLng.value);
     // No fix yet — the caller retries once the device position lands.
     if (lat == 0 && lng == 0) return;
 

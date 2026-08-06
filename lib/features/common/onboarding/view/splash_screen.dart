@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -109,9 +108,11 @@ class _SplashScreenState extends State<SplashScreen> {
       final sharedText = media.content;
       final attachments = media.attachments ?? [];
       if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
+        // No `initialIndex` — the home shell resolves the landing tab itself
+        // (see BottomNavigationBarScreen._resolveLandingIndex): Discover for
+        // everyone, Me only for gig workers / riders.
         Navigator.of(context).pushNamedAndRemoveUntil(
           RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: _coldStartTabIndex()},
           (Route<dynamic> route) => false,
         );
 
@@ -183,8 +184,11 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.of(context).pushNamedAndRemoveUntil(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           (Route<dynamic> route) => false,
+          // Deliberately NO `initialIndex`: leaving it unset is what lets the
+          // home shell pick the landing tab from the profile globals (which
+          // main() has already loaded from prefs by now) instead of the splash
+          // hard-coding one. See _resolveLandingIndex.
           arguments: {
-            ApiKeys.initialIndex: _coldStartTabIndex(),
             if (sharedMedia != null) 'sharedMedia': sharedMedia,
           },
         );
@@ -207,19 +211,14 @@ class _SplashScreenState extends State<SplashScreen> {
     // await OnesignalService().initialize();
   }
 
-  /// Which bottom-nav tab a cold start lands on.
-  ///
-  /// Discover (1) for both individuals and businesses — a shop owner opening
-  /// the app sees the marketplace, not their own dashboard, which they already
-  /// know and which is one tab away. This used to branch on account type and
-  /// drop businesses on the Me tab (0).
-  ///
-  /// Guests keep the Me tab: that's where their limited / sign-up state lives,
-  /// and it matches where [AuthController] sends them after guest login.
-  ///
-  /// A deep link or notification still overrides this — those pass their own
-  /// `initialIndex` through the route arguments.
-  int _coldStartTabIndex() => isGuestUser() ? 1 : 0;
+  // The cold-start landing tab is NOT decided here any more. This used to
+  // return an index (and returned 0 — the Me tab — for every logged-in user,
+  // which is why businesses opened on their own dashboard instead of
+  // Discover). The single source of truth is now
+  // BottomNavigationBarScreen._resolveLandingIndex, which reads the profile
+  // globals: Discover (1) for business and individual alike, Me (0) only for
+  // gig workers / riders. A deep link or notification still overrides it by
+  // passing its own `initialIndex` through the route arguments.
 
   Future<SharedMedia?> _getSharedMedia() async {
     try {

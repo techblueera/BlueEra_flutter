@@ -23,10 +23,6 @@ class HotelStayServiceCard extends StatelessWidget {
       // carries a header of every stay category, so nothing is lost by not
       // picking one here — and it must be given ONE: `AllStayServiceScreen`
       // dereferences `selectedStayCategory` in its initState.
-      onFolderTap: () => Get.to(() => AllStayServiceScreen(
-            stayCategories: stayItemsCategories,
-            selectedStayCategory: stayItemsCategories.first,
-          )),
     );
   }
 }

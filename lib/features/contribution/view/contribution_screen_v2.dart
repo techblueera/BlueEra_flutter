@@ -50,6 +50,9 @@ class ContributionScreenV2 extends StatelessWidget {
         return _PayBottomBar(
           plan: plan,
           busy: controller.isProcessing.value,
+          // Read inside this Obx so the label re-renders when the rate lands —
+          // it arrives on its own call and is usually later than the plans.
+          gstPercent: controller.gstPercent.value,
           onPay: () => controller.payDeposit(plan),
         );
       }),
@@ -117,6 +120,22 @@ String _rupees(int paise) {
   final r = paise / 100.0;
   return r == r.roundToDouble() ? r.toStringAsFixed(0) : r.toStringAsFixed(2);
 }
+
+/// GST on [depositPaise] at [pct] percent, in paise.
+///
+/// ## DISPLAY ONLY — never charge this
+///
+/// The amount charged is always `order.finalAmount` from `/initiate`, which the
+/// backend freezes against the Razorpay order. This exists solely because both
+/// price widgets on this screen render from the PLAN catalog, *before* any
+/// order is created — so there is no server total to show yet, and without it
+/// the screen promises ₹200 and checkout opens at ₹236.
+///
+/// Any rounding drift between this and the server figure is a cosmetic
+/// mismatch here; sending it to Razorpay would be a failed payment.
+/// See docs/backend/SECURITY_DEPOSIT_GST_INVOICE_FLUTTER_GUIDE.md §2.
+int _gstOn(int depositPaise, int pct) =>
+    pct <= 0 ? 0 : (depositPaise * pct / 100).round();
 
 // ─────────────────────────────────────────────
 // EXPLAINER VIDEO (top of screen)
@@ -373,11 +392,23 @@ class _PayBottomBar extends StatelessWidget {
     required this.plan,
     required this.busy,
     required this.onPay,
+    this.gstPercent = 0,
   });
 
   final SecurityDepositPlan plan;
   final bool busy;
   final VoidCallback onPay;
+
+  /// Current GST rate, for the label only — see [_gstOn]. Zero renders the
+  /// plain deposit, which is both the pre-GST behaviour and the correct one
+  /// while the rate call is still in flight.
+  final int gstPercent;
+
+  /// Deposit + GST. Matches the `final_amount` checkout will be opened with,
+  /// barring a rounding paisa — which is why only the SERVER figure is ever
+  /// sent to Razorpay (see [_gstOn]).
+  int get _payableTotal =>
+      plan.depositAmount + _gstOn(plan.depositAmount, gstPercent);
 
   @override
   Widget build(BuildContext context) {
@@ -423,8 +454,12 @@ class _PayBottomBar extends StatelessWidget {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // The GST-INCLUSIVE total, so the button promises what
+                      // Razorpay will open at. It used to print the catalog
+                      // deposit, which stopped matching the moment tax was
+                      // switched on server-side.
                       CustomText(
-                        'Pay Security Deposit  ₹${_rupees(plan.depositAmount)}',
+                        'Pay Security Deposit  ₹${_rupees(_payableTotal)}',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -579,25 +614,46 @@ class _PlanCardState extends State<_PlanCard>
                     color: AppColors.primaryColor.withValues(alpha: 0.15),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(
-                      zeroDeposit ? '₹0' : '₹${_rupees(plan.depositAmount)}',
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.primaryColor,
-                    ),
-                    CustomText(
-                      'Security deposit',
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                      letterSpacing: 0.3,
-                    ),
-                  ],
-                ),
+                // Obx: the rate arrives on its own call, after the plans have
+                // usually already painted, so the tile has to re-render when it
+                // lands rather than freezing on the pre-tax figure.
+                child: Obx(() {
+                  final pct = widget.controller.gstPercent.value;
+                  final gst = _gstOn(plan.depositAmount, pct);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomText(
+                        // A zero-deposit tag stays a plain "₹0" — no tax is
+                        // charged on nothing, and "₹0 + GST" is nonsense.
+                        zeroDeposit
+                            ? '₹0'
+                            : '₹${_rupees(plan.depositAmount + gst)}',
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primaryColor,
+                      ),
+                      CustomText(
+                        'Security deposit',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryTextColor,
+                        letterSpacing: 0.3,
+                      ),
+                      // Only when tax actually applies. The guide is explicit:
+                      // never render a tax line for a pre-GST or legacy user,
+                      // and never print "GST 0%".
+                      if (!zeroDeposit && gst > 0)
+                        CustomText(
+                          '₹${_rupees(plan.depositAmount)} + ₹${_rupees(gst)} GST',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                    ],
+                  );
+                }),
               ),
               const Spacer(),
               if (!zeroDeposit) const _RefundableBadge(),

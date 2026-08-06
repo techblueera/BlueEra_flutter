@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/Discover/view/automotive_other_services_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/automotive_category_icons.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_discover_screen_v3.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -17,9 +16,11 @@ import 'package:get/get.dart';
 /// `automotiveServiceItemsCategories` it used to render is gone, so a category
 /// added or renamed server-side lands here without an app release.
 ///
-/// The tile **artwork** is the deliberate exception: it stays bundled, keyed by
-/// tag in [AutomotiveCategoryIcons], so the grid keeps one consistent
-/// illustrated style and paints without waiting on image downloads.
+/// Tile artwork comes from the same response (`image_url`). It used to be
+/// bundled and keyed by tag in `AutomotiveCategoryIcons` — that map is gone,
+/// because it meant a category the backend added rendered blank until the app
+/// shipped an asset for it, which is the opposite of what reading the category
+/// list from the API buys us.
 ///
 /// The one thing the backend doesn't model is the new/used split: it returns a
 /// single `VEHICLE_SALES` category, while the listing screen wants a condition.
@@ -33,13 +34,8 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
   /// Synthetic slugs for the two halves of [_vehicleSalesTag]. They exist only
   /// on this card — nothing is sent to the server under these names; they just
   /// carry the new/used intent from the tile to [_conditionForSlug].
-  ///
-  /// Defined on [AutomotiveCategoryIcons] and referenced here so the slug and
-  /// the artwork keyed to it can't drift apart.
-  static const String _newVehicleSalesSlug =
-      AutomotiveCategoryIcons.newVehicleSales;
-  static const String _oldVehicleSalesSlug =
-      AutomotiveCategoryIcons.oldVehicleSales;
+  static const String _newVehicleSalesSlug = 'VEHICLE_SALES_NEW';
+  static const String _oldVehicleSalesSlug = 'VEHICLE_SALES_OLD';
 
   @override
   Widget build(BuildContext context) {
@@ -62,33 +58,32 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
 
   /// Flattens the API categories into grid tiles, splitting `VEHICLE_SALES`
   /// into "New …" and "Old …" so the vehicle listing can open pre-filtered on
-  /// condition. The two halves get different art (new vs used); every other
-  /// category maps straight across, `tagId → slugId`, so the routing below
-  /// keys off the backend tag rather than a local slug.
+  /// condition. Every other category maps straight across, `tagId → slugId`, so
+  /// the routing below keys off the backend tag rather than a local slug.
   ///
   /// Names are prefixed onto whatever the backend calls the category rather
   /// than hardcoded, so a server-side rename carries through.
   ///
-  /// Icons come from [AutomotiveCategoryIcons], NOT from `category.imageUrl` —
-  /// the API's photographic S3 art doesn't match the flat illustrated style of
-  /// the rest of the Discover grid, and a bundled asset paints immediately
-  /// instead of after a fetch.
+  /// Icons are `category.imageUrl`. The two halves of the sales split share one
+  /// image, since the backend models them as a single category — they're told
+  /// apart by their labels ("New …" / "Old …") and by where they land.
   List<CollapsibleGridModel> _tilesFromApi(List<CategoryData> apiCategories) {
     final tiles = <CollapsibleGridModel>[];
     for (final category in apiCategories) {
       final tag = category.tagId ?? '';
       final name = category.name ?? '';
+      final icon = category.imageUrl ?? '';
 
       if (tag == _vehicleSalesTag) {
         tiles.add(CollapsibleGridModel(
           name: 'New $name',
           slugId: _newVehicleSalesSlug,
-          icon: AutomotiveCategoryIcons.assetFor(_newVehicleSalesSlug),
+          icon: icon,
         ));
         tiles.add(CollapsibleGridModel(
           name: 'Old $name',
           slugId: _oldVehicleSalesSlug,
-          icon: AutomotiveCategoryIcons.assetFor(_oldVehicleSalesSlug),
+          icon: icon,
         ));
         continue;
       }
@@ -96,7 +91,7 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
       tiles.add(CollapsibleGridModel(
         name: name,
         slugId: tag,
-        icon: AutomotiveCategoryIcons.assetFor(tag),
+        icon: icon,
       ));
     }
     return tiles;

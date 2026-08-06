@@ -57,6 +57,29 @@ class SecurityDepositController extends GetxController {
   // ── Explainer videos (shown on top of the deposit screen) ────
   final RxList<SecurityDepositVideo> videos = <SecurityDepositVideo>[].obs;
 
+  // ── GST (display only) ───────────────────────────────────────
+  /// Current GST percent, `0` when tax is not configured.
+  ///
+  /// DISPLAY ONLY — never compute a charge from this. The amount charged is
+  /// always `final_amount` off `/initiate`, which the backend freezes per order
+  /// and hands to Razorpay; a client-side total that drifts by a rounding paisa
+  /// is a failed payment.
+  ///
+  /// The catalog screen needs it because both price widgets render from the
+  /// PLAN list, before `/initiate` exists — so there is no order to read a real
+  /// total off yet, and without this the screen would promise ₹200 and open
+  /// checkout at ₹236.
+  ///
+  /// Deliberately NOT cached across sessions: an admin can change the rate at
+  /// any time (see the guide's "Never do this").
+  final RxInt gstPercent = 0.obs;
+
+  /// Whether the backend has GST switched on at all.
+  ///
+  /// Separate from `gstPercent > 0` so the UI can tell "tax is off" from "tax
+  /// is on at 0%" — the guide is explicit that a 0% tax line must never render.
+  final RxBool gstConfigured = false.obs;
+
   // ── Current (held) deposit ───────────────────────────────────
   final Rx<Status> currentStatus = Status.INITIAL.obs;
   final Rxn<UserSecurityDeposit> currentDeposit = Rxn<UserSecurityDeposit>();
@@ -87,6 +110,44 @@ class SecurityDepositController extends GetxController {
     fetchCurrent();
     fetchPlans();
     fetchVideos();
+    // Alongside the plan fetch: the catalog prices itself off the rate, so it
+    // has to be in flight from the same moment the plans are.
+    fetchGstConfig();
+  }
+
+  /// Loads the current GST rate for display. Non-fatal on every failure path —
+  /// the screen falls back to showing the deposit with no tax line, which is
+  /// exactly the pre-GST rendering.
+  Future<void> fetchGstConfig() async {
+    try {
+      final ResponseModel res = await _repo.getGstConfig();
+      if (!res.isSuccess) return;
+      final body = res.response?.data;
+      if (body is! Map) return;
+      // The endpoint is documented BOTH ways in the guide — the repo snippet
+      // says `data` = {...}, the API reference shows the keys at the root. Read
+      // the wrapper when it's there and the root when it isn't, so whichever
+      // shape ships works and neither needs a follow-up release.
+      final Map raw = body['data'] is Map ? body['data'] as Map : body;
+      gstPercent.value = _toInt(raw['gst_percent']);
+      // Absent `is_configured` is inferred from the rate rather than assumed
+      // false, so an older backend that only sends `gst_percent` still renders.
+      gstConfigured.value = raw['is_configured'] == null
+          ? gstPercent.value > 0
+          : raw['is_configured'] == true;
+    } catch (_) {
+      // Leave the defaults (0 / not configured) — no tax line.
+    }
+  }
+
+  /// Lenient int parse — the API sends these as num or String depending on the
+  /// path. Mirrors `_asInt` in security_deposit_models.dart, which is private
+  /// to that file.
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.round();
+    return int.tryParse(v.toString()) ?? 0;
   }
 
   @override
