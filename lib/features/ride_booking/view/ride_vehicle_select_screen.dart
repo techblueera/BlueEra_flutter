@@ -8,6 +8,7 @@ import 'package:BlueEra/features/ride_booking/widget/ride_marker_icons.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_vehicle_presentation.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -142,7 +143,22 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
       body: Column(
         children: [
           Expanded(flex: 4, child: _mapArea()),
-          Expanded(flex: 6, child: _vehicleSheet()),
+          // The hint rides INSIDE the sheet's bounds, over the vehicle list.
+          // Given its own row between the two surfaces it sat in the fare bar's
+          // upward shadow (`sheetShadow` is offset (0, -6) at 24 blur) with
+          // nothing painted over it — which read as a grey band behind the
+          // arrow. Here the list is what shows through instead.
+          Expanded(
+            flex: 6,
+            child: Stack(
+              children: [
+                _vehicleSheet(),
+                // Inside the Stack's bounds, so it is hit-tested: a child
+                // painted outside a parent's box is drawn but never tappable.
+                Positioned(left: 0, right: 0, bottom: 0, child: _bookHint()),
+              ],
+            ),
+          ),
           _fareBar(),
         ],
       ),
@@ -334,7 +350,10 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
         boxShadow: RideStyle.sheetShadow,
       ),
       child: ListView(
-        padding: EdgeInsets.zero,
+        // Room at the foot for the book hint, which floats over this list —
+        // without it the last section can never be scrolled clear of the
+        // chevron.
+        padding: const EdgeInsets.only(bottom: _BookHintArrow.reservedHeight),
         children: [
           const RideSheetHandle(),
           _quoteNotice(),
@@ -405,12 +424,14 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
   /// What this flow can book, grouped the way the customer thinks about it.
   ///
   /// A section owns the ORDER it wants to show and the `orderFor` it books;
-  /// which of those codes actually exist — and what each is called — comes
-  /// from the backend catalogue
-  /// ([RideBookingController.fetchVehicleTypes], `GET
-  /// riders/onboarding/vehicle-enums`). A type retired server-side vanishes
-  /// here without a release, and a tile can never send a `vehicleType` the
-  /// server would reject.
+  /// which of those codes actually exist — and what each is called — comes from
+  /// the backend, via [RideBookingController.vehicleTypesFor]. That answers
+  /// from this trip's fare catalog first (`fare/riders/dynamic` with
+  /// `allVehicleTypes=true`, which prices every type) and falls back to the
+  /// vehicle enum (`GET riders/onboarding/vehicle-enums`) for its display names
+  /// and for the sections not currently being quoted. A type retired
+  /// server-side vanishes here without a release, and a tile can never send a
+  /// `vehicleType` the server would reject.
   ///
   /// The vehicle/trip pairing is the point: the same `twoWheelerRider` is a
   /// passenger ride under Passenger and a parcel run under Parcel/Goods, and
@@ -485,11 +506,20 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
     required String vehicleType,
     required String orderFor,
   }) async {
+    // Whether the TRIP changed, not just the vehicle. Read before setTripType
+    // overwrites it.
+    final tripChanged = controller.orderFor.value != orderFor;
+
     controller.setTripType(vehicleType: vehicleType, orderFor: orderFor);
 
-    // Instant feedback where we already have it: the Book button carries a
-    // fare, and waiting for the re-quote to echo the tap leaves it showing the
-    // previous vehicle's price. The quote below still overwrites this.
+    // Selecting a vehicle no longer re-quotes. The catalog call made on entry
+    // already carries a fare for EVERY type, so the price for the tapped tile
+    // is in hand — re-fetching it blanked the whole grid behind a spinner and
+    // came back with the same numbers.
+    //
+    // A trip-type change is different: "Bike" and "Parcel on Bike" are the same
+    // vehicle priced two ways, and only the server knows the second. That still
+    // re-quotes.
     for (final option in controller.vehicleOptions) {
       if (option.code == vehicleType) {
         controller.selectVehicle(option);
@@ -497,12 +527,26 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
       }
     }
 
-    await _loadForSelection();
+    if (tripChanged) {
+      await controller.fetchQuotes();
+      if (!mounted) return;
+    }
+
+    // Always: the map shows who is out there in the SELECTED family, which is
+    // a different question from what the ride costs.
+    await controller.fetchLiveRiders(
+      vehicleType: controller.preselectedVehicleCode.value,
+    );
   }
 
-  /// The quote, then the live riders, for whatever is currently selected.
+  /// The quote, then the live riders — the screen's opening load.
+  ///
+  /// `IfNeeded`: confirming the pickup already fired this exact quote a moment
+  /// ago, so on the normal path this joins that request rather than making a
+  /// second identical one. It still fetches when the screen is reached any
+  /// other way, or when the trip changed under it.
   Future<void> _loadForSelection() async {
-    await controller.fetchQuotes();
+    await controller.fetchQuotesIfNeeded();
     if (!mounted) return;
     await controller.fetchLiveRiders(
       vehicleType: controller.preselectedVehicleCode.value,
@@ -516,8 +560,12 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
           type.code: type,
       };
       if (catalogue.isEmpty) {
-        // Still loading, or this section has nothing the backend offers.
-        return controller.isLoadingVehicleTypes.value
+        // Nothing to show YET, or nothing to show at all. Either source can
+        // still fill this in — the vehicle enum or this trip's own fare catalog
+        // — so the skeleton stands while either is in flight, and the section
+        // only collapses once both have answered and neither knows these types.
+        return controller.isLoadingVehicleTypes.value ||
+                controller.isQuoting.value
             ? _sectionSkeleton(section.title)
             : const SizedBox.shrink();
       }
@@ -532,10 +580,11 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
 
       // What is being booked. Both halves have to match: `twoWheelerRider` is a
       // tile in Passenger AND in Parcel/Goods, and only the `orderFor` tells
-      // them apart.
-      final isCurrentTrip = section.orderFor == controller.orderFor.value;
-      final selectedCode =
-          isCurrentTrip ? controller.preselectedVehicleCode.value : null;
+      // them apart. This still gates the SELECTION — one tile is lit across the
+      // whole sheet — even though prices are no longer gated.
+      final selectedCode = section.orderFor == controller.orderFor.value
+          ? controller.preselectedVehicleCode.value
+          : null;
 
       // Fares are read HERE, in the Obx's own build, and handed down as a plain
       // map — never touched inside the LayoutBuilder below.
@@ -548,11 +597,16 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
       // values (or at '—') until some unrelated rebuild happened to refresh
       // them.
       //
-      // Priced only for the trip currently quoted — a tile in another section
-      // would otherwise show a fare computed for a different service.
-      final quotes = isCurrentTrip
-          ? {for (final option in controller.vehicleOptions) option.code: option}
-          : const <String, RideVehicleOption>{};
+      // EVERY section reads the same catalog. `allVehicleTypes=true` prices all
+      // twelve types in one answer — the goods classes and the out-station cars
+      // among them — whatever `orderFor` the call was made with. This used to be
+      // gated on the section matching the trip currently being quoted, on the
+      // assumption that a fare fetched for InCity said nothing about Parcel;
+      // the response says otherwise, and the gate cost Parcel/Goods and Out
+      // Station a dash on prices the server had already sent.
+      final quotes = {
+        for (final option in controller.vehicleOptions) option.code: option,
+      };
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,6 +720,32 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
   }
 
   // --------------------------------------------------------------- fare bar
+
+  /// The bobbing chevron at the foot of the vehicle sheet, pointing down at the
+  /// thing to tap next.
+  ///
+  /// Transparent and laid over the list rather than given a row of its own, so
+  /// what sits behind it is the vehicle grid — see the note at the call site
+  /// for what a dedicated row looked like instead. The sheet's own bottom
+  /// padding keeps the last section scrollable clear of it.
+  Widget _bookHint() {
+    return SizedBox(
+      height: _BookHintArrow.reservedHeight,
+      child: Obx(() {
+        // Only once there is something to book. An arrow pointing at a disabled
+        // button, insisting you tap it, is worse than no arrow.
+        final ready = controller.selectedVehicle.value != null;
+        return AnimatedOpacity(
+          opacity: ready ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: IgnorePointer(
+            ignoring: !ready,
+            child: Center(child: _BookHintArrow(onTap: _confirmBooking)),
+          ),
+        );
+      }),
+    );
+  }
 
   Widget _fareBar() {
     return Container(
@@ -947,7 +1027,130 @@ class _ServiceTile extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
           ),
+          // What the fare buys: the distance the server priced this row over
+          // and how long the drive takes. A bare number is a number; "₹40" next
+          // to "2.0 km · 3 min" is a price the customer can judge — which is
+          // the whole reason to show a catalogue rather than one quote.
+          if (quote?.tripSummary case final summary?)
+            CustomText(
+              summary,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: RideStyle.inkMuted,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
+          // "None nearby" for a type the server has explicitly said has no
+          // riders in range.
+          //
+          // The catalog call returns EVERY vehicle type, including ones nobody
+          // is driving here — before it, those simply weren't in the list. So
+          // the tile has to say so, or the customer picks a bike, books, and
+          // waits out a broadcast that was never going to be answered.
+          //
+          // Still tappable: dispatch widens its radius in waves, so "none in
+          // this circle right now" is not "nobody will come".
+          if (quote?.isUnavailable == true)
+            CustomText(
+              'None nearby',
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: RideStyle.inkMuted,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// The chevron that nudges the customer toward the Book button, bobbing up and
+/// down the way a ride app's does.
+///
+/// It is a HINT, not the control — the button below is what books — but it is
+/// tappable, because an element that beckons and then does nothing when you
+/// follow it is a worse answer than one that isn't tappable at all.
+class _BookHintArrow extends StatefulWidget {
+  const _BookHintArrow({required this.onTap});
+
+  final VoidCallback onTap;
+
+  /// Height the hint occupies at the foot of the sheet. Bigger than the glyph
+  /// so the bob has somewhere to travel and the tap target clears the ~44px
+  /// minimum on its long axis.
+  static const double reservedHeight = 52;
+
+  /// How far the chevron travels upward, in logical pixels. Enough to catch the
+  /// eye across the sheet; the rest position stays at the bottom of the stroke,
+  /// nearest what it points at. [reservedHeight] carries it so the stroke has
+  /// room — raise them together.
+  static const double _travel = 20;
+
+  @override
+  State<_BookHintArrow> createState() => _BookHintArrowState();
+}
+
+class _BookHintArrowState extends State<_BookHintArrow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 850),
+  );
+
+  /// Up at the start, resting at the bottom — so a stopped animation leaves the
+  /// chevron closest to what it points at, which is the meaningful position.
+  late final Animation<double> _offset = Tween<double>(
+    begin: -_BookHintArrow._travel,
+    end: 0,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // "Reduce motion" exists precisely to stop indefinite loops like this one.
+    // The chevron stays — it still points at the button — it just holds still.
+    final animate = !MediaQuery.of(context).disableAnimations;
+    if (animate && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!animate && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = _controller.upperBound;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // Opaque so the whole reserved box takes the tap, not just the glyph's
+      // own thin strokes.
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      child: SizedBox(
+        height: _BookHintArrow.reservedHeight,
+        width: 64,
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _offset,
+            builder: (context, child) => Transform.translate(
+              offset: Offset(0, _offset.value),
+              child: child,
+            ),
+            // Built once and reused across every frame of the bob — only the
+            // transform above it changes.
+            child: const Icon(
+              CupertinoIcons.chevron_down,
+              size: 24,
+              color: AppColors.black,
+            ),
+          ),
+        ),
       ),
     );
   }

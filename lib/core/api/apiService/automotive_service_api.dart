@@ -9,6 +9,17 @@ mixin AutomotiveServiceApi {
   final String automotiveSearchProductCategory =
       "automotive-service/api/categories/searchCategories";
 
+  /// `POST /api/inventory/business-product-stats` — category + product counts
+  /// for a batch of businesses, for the stat box on each store row.
+  ///
+  /// Same request and same response as the grocery / food / product-catalogue
+  /// endpoints; only the SERVICE differs, because each answers for its own
+  /// inventory. Asking product-service about an automotive shop returns a
+  /// clean, wrong `0` — see [StoreController.countsCatalogueOverride] and
+  /// docs/backend/BUSINESS_PRODUCT_STATS_FLUTTER_GUIDE.md.
+  final String automotiveBusinessProductStats =
+      'automotive-service/api/inventory/business-product-stats';
+
   /// Admin product create endpoint used by the AI flow's "Post Product".
   final String automotiveCreateProductAdmin =
       "automotive-service/api/products/admin";

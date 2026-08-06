@@ -219,9 +219,33 @@ class RideVehicleOption {
   /// Minutes until the captain reaches pickup.
   final int? pickupEtaMinutes;
 
+  /// Road distance this fare was computed over, in km.
+  ///
+  /// Off the row's own `fareBreakdown.distanceKm`, so it is the distance the
+  /// SERVER priced — not the one the app measured off the polyline. They agree
+  /// today; when a type starts being routed differently (a truck barred from a
+  /// street a bike can take) the row will say so on its own.
+  final double? distanceKm;
+
   /// Short-lived token that must be echoed back when booking, so the fare the
   /// user saw is the fare that gets charged.
   final String quoteId;
+
+  // ── Availability, per type (catalog mode only) ─────────────────────────
+  //
+  // `allVehicleTypes=true` returns every type whether or not anyone is driving
+  // one nearby, so a row now has to say which it is. Null means the server
+  // didn't send it — an older response, not "none available"; the UI shows
+  // nothing rather than claiming the city is empty.
+
+  /// Whether any rider of this type is currently reachable.
+  final bool? ridersAvailable;
+
+  /// How many are, within the searched radius.
+  final int? riderCount;
+
+  /// Distance to the closest one, in km.
+  final double? nearestRiderKm;
 
   const RideVehicleOption({
     required this.code,
@@ -233,6 +257,10 @@ class RideVehicleOption {
     this.seats,
     this.dropEtaMinutes,
     this.pickupEtaMinutes,
+    this.distanceKm,
+    this.ridersAvailable,
+    this.riderCount,
+    this.nearestRiderKm,
   });
 
   factory RideVehicleOption.fromJson(Map<dynamic, dynamic> json) {
@@ -245,8 +273,37 @@ class RideVehicleOption {
       seats: _toInt(json['seats']),
       dropEtaMinutes: _toInt(json['dropEtaMinutes']),
       pickupEtaMinutes: _toInt(json['pickupEtaMinutes']),
+      distanceKm: _toDouble(json['distanceKm']),
       quoteId: (json['quoteId'] ?? '').toString(),
+      // Read as null when absent, NOT as false/0 — see the field docs.
+      ridersAvailable:
+          json['ridersAvailable'] is bool ? json['ridersAvailable'] as bool : null,
+      riderCount: _toInt(json['riderCount']),
+      nearestRiderKm: _toDouble(json['nearestRiderKm']),
     );
+  }
+
+  /// True only when the server has actually said nobody is driving this type
+  /// nearby. Absent availability is NOT "unavailable".
+  bool get isUnavailable => ridersAvailable == false;
+
+  /// `"2.0 km · 3 min"` — what this fare buys, for the tile under the price.
+  ///
+  /// Built from whichever halves the server sent, so a payload carrying only
+  /// one of them still says something. Null when it sent neither, and the tile
+  /// then shows nothing rather than a stray separator.
+  ///
+  /// One decimal under 10 km, none above: "2.0 km" is the precision a rider
+  /// cares about on a short hop, "23 km" is, and "23.4 km" is false precision
+  /// on a number that moves with the route taken.
+  String? get tripSummary {
+    final km = distanceKm;
+    final minutes = dropEtaMinutes;
+    final parts = <String>[
+      if (km != null && km > 0) '${km.toStringAsFixed(km < 10 ? 1 : 0)} km',
+      if (minutes != null && minutes > 0) '$minutes min',
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 }
 

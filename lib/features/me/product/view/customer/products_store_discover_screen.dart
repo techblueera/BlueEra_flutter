@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
+import 'package:BlueEra/features/common/store/widget/store_sort_bar.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_store_card.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_self_pickup_cart_screen.dart';
@@ -38,6 +40,10 @@ class ProductsStoreDiscoverScreen extends StatefulWidget {
 class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScreen> {
   final controller = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
+
+  /// Active sort chip. See [StoreSort] for why this is applied over the loaded
+  /// list rather than sent to the API.
+  StoreSort _sort = StoreSort.nearest;
 
   /// Sentinel tag id for the leading "All Products" tab. Selecting it clears
   /// the category filter, so the store API returns stores across every product
@@ -228,8 +234,6 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final width = SizeConfig.screenWidth;
-    double dynamicSize(double base) => base * (width / 390);
 
     return PopScope(
       canPop: false,
@@ -276,8 +280,11 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                           return StickyCategory(
                             id: c.tagId ?? '',
                             name: c.name ?? '',
-                            imageUrl: getProductCategoryIcon(c.tagId),
-                            // imageUrl: c.imageUrl,
+                            // The API's own artwork. A bundled tag→asset table
+                            // meant a category added or re-illustrated
+                            // server-side kept the old picture — or showed
+                            // none at all, its tag not being in the table.
+                            imageUrl: c.imageUrl,
                           );
                         }),
                       ],
@@ -310,7 +317,7 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                 ],
                 body: NotificationListener<ScrollNotification>(
                   onNotification: _onScrollNotification,
-                  child: _buildStoreContent(dynamicSize),
+                  child: _buildStoreContent(),
                 ),
               ),
               Positioned(
@@ -328,11 +335,11 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
     );
   }
 
-  Widget _buildStoreContent(double Function(double) dynamicSize) {
+  Widget _buildStoreContent() {
     return Obx(() {
       if (controller.isAllStoreFirstLoading.value &&
           controller.allStore.isEmpty) {
-        return const Center(child: CircularProgressIndicator());
+        return _buildSkeletonLoading();
       }
 
       if (controller.allStore.isEmpty) {
@@ -344,81 +351,99 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
         );
       }
 
+      // Ordered copy — see [sortStores]. Built inside the Obx so it re-runs when
+      // a page lands AND when the counts call answers (the products sort reads
+      // `storeCounts`, which is observable).
+      final stores = sortStores(controller.allStore, _sort);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          // Padding(
-          //   padding: EdgeInsets.only(
-          //     left: SizeConfig.size12,
-          //     right: SizeConfig.size12,
-          //     bottom: SizeConfig.size6,
-          //     top: SizeConfig.size6,
-          //   ),
-          //   child: Container(
-          //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          //     decoration: BoxDecoration(
-          //       color: AppColors.white,
-          //       borderRadius: BorderRadius.circular(20),
-          //       border: Border.all(color: AppColors.greyE5, width: 0.5),
-          //     ),
-          //     child: Row(
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         Icon(Icons.storefront_rounded,
-          //             size: 14, color: AppColors.primaryColor),
-          //         const SizedBox(width: 6),
-          //         CustomText(
-          //           "${controller.allStore.length}${controller.isAllStoreLoadingMore.value ? '+' : ''} Stores",
-          //           fontSize: 11,
-          //           fontWeight: FontWeight.w600,
-          //           color: AppColors.mainTextColor,
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
+          StoreSortBar(
+            sort: _sort,
+            onChanged: (s) => setState(() => _sort = s),
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => controller.getAllStoreNearBy(),
               child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(
-                left: SizeConfig.size12,
-                right: SizeConfig.size12,
-                bottom: SizeConfig.paddingL + 70,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(
+                  left: SizeConfig.size12,
+                  right: SizeConfig.size12,
+                  // Each card supplies the gap below itself.
+                  top: SizeConfig.size4,
+                  bottom: SizeConfig.paddingL + 70,
+                ),
+                itemCount: stores.length +
+                    (controller.isAllStoreLoadingMore.value ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= stores.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  }
+                  return ProductStoreCard(store: stores[index]);
+                },
               ),
-              itemCount: controller.allStore.length +
-                  (controller.isAllStoreLoadingMore.value ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= controller.allStore.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
-
-                final storeData = controller.allStore[index];
-
-                return Padding(
-                  padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                  child: ProductStoreCard(
-                    ds: dynamicSize,
-                    index: index,
-                    getAllStoreResData: storeData,
-                  ),
-                );
-              },
-            ),
             ),
           ),
         ],
       );
     });
+  }
+
+  /// Mirrors the real row — ringed avatar, name, rating line, location line and
+  /// the trailing products box — so the swap to real content reads as a load
+  /// finishing rather than a relayout. This screen used to show a bare
+  /// CircularProgressIndicator, which gave no hint of what was coming.
+  Widget _buildSkeletonLoading() {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.only(
+        top: SizeConfig.size4,
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
+      ),
+      itemCount: 5,
+      itemBuilder: (_, __) => buildLoadingShimmer(
+        child: Container(
+          margin: EdgeInsets.only(bottom: SizeConfig.size10),
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14,
+            vertical: SizeConfig.size14,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.greyE5, width: 1),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              shimmerContainer(width: 64, height: 64, radius: 32),
+              SizedBox(width: SizeConfig.size12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    shimmerContainer(height: 17, width: 170, radius: 4),
+                    SizedBox(height: SizeConfig.size8),
+                    shimmerContainer(height: 13, width: 130, radius: 4),
+                    SizedBox(height: SizeConfig.size8),
+                    shimmerContainer(height: 13, radius: 4),
+                  ],
+                ),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              shimmerContainer(width: 62, height: 46, radius: 10),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

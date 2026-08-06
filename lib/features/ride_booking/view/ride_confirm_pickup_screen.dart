@@ -66,16 +66,37 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   /// Gates the tick, so opening the screen is silent.
   bool _cameraMoved = false;
 
-  /// False while the pin is still sitting on the hardcoded fallback city — no
-  /// seeded pickup, no device fix yet.
+  /// The move currently settling was made by [_moveCameraTo], not by the user's
+  /// finger. Silences the tick for it — see that method.
+  bool _programmaticMove = false;
+
+  /// False while the pin is still sitting on the fallback centre — no seeded
+  /// pickup, no device fix yet.
   ///
-  /// The rider lookup is gated on it. The controller drops a lookup at 0,0, but
-  /// this screen never asks for 0,0: it opens the map on Bhopal so the frame
-  /// isn't the null island, and querying THAT would draw a map full of vehicles
-  /// 800 km from the customer. Flips true when the fix lands, or as soon as the
-  /// user drags the map — at that point they are looking at a real place and
-  /// the vehicles there are the honest answer, fallback centre or not.
+  /// The rider lookup and the address resolve are both gated on it. The
+  /// controller drops a lookup at 0,0, but this screen never asks for 0,0: a
+  /// [GoogleMap] must be handed SOME initial camera position, so it opens on
+  /// [_fallbackCentre] rather than the null island — and querying that would
+  /// draw a map full of vehicles 800 km from the customer, while geocoding it
+  /// would put a strange city's address in the card. Flips true when the fix
+  /// lands, or as soon as the user drags the map — at that point they are
+  /// looking at a real place and it is the honest answer either way.
   bool _hasRealPin = false;
+
+  /// Where to point the map the moment it exists.
+  ///
+  /// The device fix routinely lands BEFORE `onMapCreated` on a cold open, and
+  /// `_mapController` is null until then — so the camera move was going out to
+  /// nothing and the screen sat on the fallback centre for good. Parking the
+  /// target here and applying it on creation is what makes the late fix stick.
+  LatLng? _pendingCameraTarget;
+
+  /// Frame only until a real point is known — never somewhere to confirm from.
+  /// Central India, so the first frame is a country-scale view rather than a
+  /// street in a city the user has nothing to do with.
+  static const LatLng _fallbackCentre = LatLng(23.2599, 77.4126);
+  static const double _fallbackZoom = 4;
+  static const double _pinZoom = 17;
 
   @override
   void initState() {
@@ -86,14 +107,9 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
         controller.currentLng.value != 0;
     _pinPosition = existing != null && existing.hasCoordinates
         ? LatLng(existing.latitude, existing.longitude)
-        : LatLng(
-            controller.currentLat.value == 0
-                ? 23.2599
-                : controller.currentLat.value,
-            controller.currentLng.value == 0
-                ? 77.4126
-                : controller.currentLng.value,
-          );
+        : (_hasRealPin
+            ? LatLng(controller.currentLat.value, controller.currentLng.value)
+            : _fallbackCentre);
     // Only adopt the seeded pickup if it carries a real address. The
     // controller seeds `{title: 'Current location', subtitle: ''}` from the GPS
     // fix alone, which would otherwise sit in the card as a blank second line
@@ -104,23 +120,32 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
 
     // The device fix is resolved asynchronously in the controller, so on a cold
     // open this screen is often built before it lands and frames the fallback
-    // city instead of the user. Follow the first real fix in.
+    // centre instead of the user. Follow the first real fix in.
     if (existing == null || !existing.hasCoordinates) {
       _locationWorker = ever<double>(controller.currentLat, (lat) {
         if (lat == 0 || !mounted) return;
         _locationWorker?.dispose();
         _locationWorker = null;
         final target = LatLng(lat, controller.currentLng.value);
-        _pinPosition = target;
-        _hasRealPin = true;
+        // setState because the address card is showing "Locating…" off
+        // [_hasRealPin] and has to stop.
+        setState(() {
+          _pinPosition = target;
+          _hasRealPin = true;
+        });
         // Camera-idle then fires and resolves the address for it.
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(target, 17),
-        );
+        _moveCameraTo(target);
         // The opening lookup was gated on the fallback centre — run it now we
         // have a real point.
         _fetchLiveRiders();
       });
+
+      // And make sure a fix is actually coming. The controller resolves one
+      // once, in `onInit`; if that attempt failed (permission still ungranted,
+      // location services off, cold-GPS timeout) nothing ever retried, so this
+      // screen framed the fallback centre forever and the worker above had
+      // nothing to wait for. This is the retry.
+      controller.ensureCurrentLocation();
     }
 
     _liveRiderWorker = ever<List<RideLiveRider>>(
@@ -150,6 +175,25 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     );
   }
 
+  /// Point the camera at [target], now or as soon as the map exists.
+  ///
+  /// Never call `_mapController?.animateCamera` directly for a move that has to
+  /// happen: before `onMapCreated` that `?.` throws the move away silently,
+  /// which is exactly how a fix arriving during the first frames left the
+  /// screen stranded on the fallback centre.
+  void _moveCameraTo(LatLng target) {
+    final map = _mapController;
+    if (map == null) {
+      _pendingCameraTarget = target;
+      return;
+    }
+    // The pin tick answers a GESTURE. A move we made ourselves still fires
+    // `onCameraMoveStarted`, so without this the screen clicks at the user as
+    // it centres on them.
+    _programmaticMove = true;
+    map.animateCamera(CameraUpdate.newLatLngZoom(target, _pinZoom));
+  }
+
   @override
   void dispose() {
     _liveRiderTimer?.cancel();
@@ -165,11 +209,18 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     final position = _pinPosition;
     if (_cameraMoved) {
       _cameraMoved = false;
-      // The user has driven the map themselves — wherever the pin is now is a
-      // real place, even if the screen opened on the fallback centre.
-      _hasRealPin = true;
-      _playPinTick();
+      final wasProgrammatic = _programmaticMove;
+      _programmaticMove = false;
+      // The pin has landed somewhere real — either the user drove the map here,
+      // or we centred it on the device fix. Either way it is no longer the
+      // fallback centre.
+      if (!_hasRealPin) setState(() => _hasRealPin = true);
+      if (!wasProgrammatic) _playPinTick();
     }
+    // Don't put the fallback centre's address in the card. It would read as a
+    // resolved pickup, and Confirm would light up on a point in a city the user
+    // has never been to.
+    if (!_hasRealPin) return;
     final seq = ++_resolveSeq;
     setState(() => _isResolving = true);
     try {
@@ -264,6 +315,21 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     final place = _resolved;
     if (place == null || !place.hasCoordinates) return;
     controller.setPickup(place);
+    // Start the fare catalog here rather than on arrival at the picker.
+    //
+    // Confirming the pickup is the moment both ends of the trip are finally
+    // known, and the quote needs a route lookup and a reverse geocode before it
+    // even reaches the server — so kicking it off now buys the picker most of
+    // that latency for free. It is one call for every vehicle type
+    // (`allVehicleTypes=true`), so nothing here depends on which vehicle the
+    // user goes on to pick.
+    //
+    // Unawaited on purpose: the navigation must not wait on the network. The
+    // picker asks for the quote in its own initState too — so that it is still
+    // correct when reached by any other route — but it asks with
+    // `fetchQuotesIfNeeded`, which joins THIS request instead of duplicating
+    // it. One `fare/riders/dynamic` call per trip, made as early as possible.
+    unawaited(controller.fetchQuotes());
     Get.to(() => const RideVehicleSelectScreen());
   }
 
@@ -290,14 +356,27 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
         // marker set is diffed.
         Obx(
           () => GoogleMap(
-            initialCameraPosition:
-                CameraPosition(target: _pinPosition, zoom: 17),
+            // Zoomed right out until we know where the user is, so the opening
+            // frame reads as "still locating" rather than as a confident (and
+            // wrong) street-level answer in a city they never asked about.
+            initialCameraPosition: CameraPosition(
+              target: _pinPosition,
+              zoom: _hasRealPin ? _pinZoom : _fallbackZoom,
+            ),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
             markers: liveRiderMarkers(controller.liveRiders),
-            onMapCreated: (c) => _mapController = c,
+            onMapCreated: (c) {
+              _mapController = c;
+              // A fix that landed while the platform view was still coming up.
+              final pending = _pendingCameraTarget;
+              if (pending != null) {
+                _pendingCameraTarget = null;
+                _moveCameraTo(pending);
+              }
+            },
             onCameraMoveStarted: () => _cameraMoved = true,
             onCameraMove: (position) => _pinPosition = position.target,
             onCameraIdle: _onCameraIdle,
@@ -328,10 +407,20 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   void _recentre() {
     final lat = controller.currentLat.value;
     final lng = controller.currentLng.value;
-    if (lat == 0 && lng == 0) return;
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(lat, lng), 17),
-    );
+    if (lat == 0 && lng == 0) {
+      // Nothing to centre on yet. The button used to do nothing at all here,
+      // and it is the one place the user can ask for their location again — so
+      // it asks, and frames whatever comes back.
+      controller.ensureCurrentLocation().then((_) {
+        if (!mounted) return;
+        final fixedLat = controller.currentLat.value;
+        final fixedLng = controller.currentLng.value;
+        if (fixedLat == 0 && fixedLng == 0) return;
+        _moveCameraTo(LatLng(fixedLat, fixedLng));
+      });
+      return;
+    }
+    _moveCameraTo(LatLng(lat, lng));
   }
 
   Widget _bottomPanel() {
@@ -401,7 +490,10 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: RideStyle.pickup, width: 1.4),
       ),
-      child: _isResolving && _resolved == null
+      // "Locating…" covers waiting for the device fix as well as waiting for
+      // the reverse geocode. Before the fix, the pin is on the fallback centre
+      // and there is deliberately no address to show.
+      child: (_isResolving || !_hasRealPin) && _resolved == null
           ? CustomText(
               'Locating…',
               fontSize: 15,

@@ -32,6 +32,15 @@ class RideBookingRepo extends BaseService {
   ///
   /// [distanceInKm] is ROAD distance, not straight-line — the old flow measures
   /// it off the driving polyline and the fare slabs are built for that number.
+  /// [allVehicleTypes] switches the endpoint into CATALOG mode: it returns the
+  /// full 12-type fare list — passenger and parcel/goods alike — each with
+  /// `ridersAvailable` / `riderCount` / `nearestRiderKm`, and it never answers
+  /// with a bare `{}`.
+  ///
+  /// That is what lets the picker be quoted ONCE per trip. Without it the
+  /// response only covers the types with riders nearby, so the screen had to
+  /// re-quote every time the user tapped a different vehicle — and an empty
+  /// city returned `{}`, leaving nothing to render at all.
   Future<ResponseModel> getDynamicFare({
     required double pickupLat,
     required double pickupLng,
@@ -41,6 +50,7 @@ class RideBookingRepo extends BaseService {
     int? rangeInKm,
     String? pincode,
     double? distanceInKm,
+    bool allVehicleTypes = false,
   }) {
     return ApiBaseHelper().getHTTP(
       getBookingRidersDynamic,
@@ -54,6 +64,7 @@ class RideBookingRepo extends BaseService {
         if (pincode != null && pincode.isNotEmpty) 'pincode': pincode,
         if (distanceInKm != null && distanceInKm > 0)
           'distance_in_km': distanceInKm,
+        if (allVehicleTypes) 'allVehicleTypes': true,
       },
       showProgress: false,
     );

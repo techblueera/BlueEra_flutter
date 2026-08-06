@@ -17,8 +17,9 @@ import 'package:get/get.dart';
 /// Mirrors [FoodSelfPickupController] / [GrocerySelfPickupConsumerController]
 /// but for [GetProductData] (the shape returned by
 /// `AutomotiveInventoryController.fetchProductsByCategory`). Registered when the
-/// user enters [AutomotiveProductsStoreScreen] (the products entry point) and
-/// deleted on exit so cart state is scoped to a browsing session.
+/// user enters the automotive browsing flow ([AutomotiveCategoryDiscoverScreen]
+/// and the store screens it opens) and deleted on exit, so cart state is scoped
+/// to a browsing session.
 ///
 /// Keyed by the first variant id of each product — that variant is what
 /// carries the selling price / MRP used for totals.

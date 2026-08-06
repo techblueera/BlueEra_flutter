@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photos_viewer.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,15 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 
-/// One shop in the product listing — the same flat white row the grocery and
-/// restaurant listings use (`assets/grocery_card.jpeg`).
+/// One restaurant in the near-me listing — the flat white row from
+/// `assets/food_card.jpeg`.
 ///
-/// Each vertical keeps its OWN card rather than sharing one with slots for the
-/// differences: they already diverge on where a tap lands and on what a row has
-/// to say, and separate files mean neither has to reason about the others
-/// before changing its own list.
+/// A sibling of `GroceryStoreCard`, deliberately separate rather than one
+/// shared row with a slot for the differences. They look alike today and are
+/// already not the same object: this one states a veg / non-veg claim, opens
+/// the food store screen rather than the grocery one, and is the likelier of
+/// the two to grow menu-specific detail. Apart, neither vertical has to reason
+/// about the other before changing its own list.
 ///
 /// ## What each part does when tapped
 ///
@@ -38,8 +41,8 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 /// sheet: butted together with only a hairline between them the rows read as one
 /// undifferentiated block, and it's the gap that makes each store scan as a
 /// separate thing you can tap.
-class ProductStoreCard extends StatelessWidget {
-  const ProductStoreCard({super.key, required this.store});
+class RestaurantStoreCard extends StatelessWidget {
+  const RestaurantStoreCard({super.key, required this.store});
 
   final GetAllStoreResModel store;
 
@@ -62,7 +65,7 @@ class ProductStoreCard extends StatelessWidget {
 
   /// Hero tag tying the avatar to the first photo in the lightbox. Keyed on the
   /// store id so two cards can never claim the same tag.
-  String get _heroTag => 'product_live_${store.id ?? store.userId ?? ''}';
+  String get _heroTag => 'restaurant_live_${store.id ?? store.userId ?? ''}';
 
   @override
   Widget build(BuildContext context) {
@@ -212,11 +215,15 @@ class ProductStoreCard extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
         _divider(),
+        // The veg / non-veg square sits INSIDE the rating line, immediately
+        // before the category — it qualifies the cuisine ("veg — Cloud
+        // Kitchen"), not the business. Hung off the store name it would read as
+        // a badge the restaurant had earned.
+        _vegMark(_isVeg(_subCategory)),
+        const SizedBox(width: 5),
         Flexible(
           child: CustomText(
-            store.subCategoryOfBusiness?.name ??
-                store.categoryOfBusiness?.name ??
-                AppStrings.na,
+            _subCategory,
             fontSize: 13,
             color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
@@ -225,6 +232,45 @@ class ProductStoreCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  String get _subCategory =>
+      store.subCategoryOfBusiness?.name ??
+      store.categoryOfBusiness?.name ??
+      AppStrings.na;
+
+  /// Whether a cuisine name reads as vegetarian.
+  ///
+  /// Keyword sniffing on the category NAME, because the listing carries no veg
+  /// flag. Deliberately biased toward "veg": the mark is a claim about someone's
+  /// food, and of the two possible errors, labelling a veg kitchen non-veg is
+  /// the one that matters to the diner who cares.
+  bool _isVeg(String subCategoryName) {
+    final name = subCategoryName.toLowerCase();
+    return !name.contains('non') &&
+        !name.contains('meat') &&
+        !name.contains('chicken') &&
+        !name.contains('fish');
+  }
+
+  /// The FSSAI-style square — green ring + dot for veg, red for non-veg.
+  Widget _vegMark(bool isVeg, {double size = 12}) {
+    final color = isVeg ? const Color(0xFF1B7F4B) : const Color(0xFFD22B2B);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 1.4),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Center(
+        child: Container(
+          width: size * 0.5,
+          height: size * 0.5,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+      ),
     );
   }
 
@@ -352,17 +398,23 @@ class ProductStoreCard extends StatelessWidget {
   /// route, which was invisible while grocery was the only caller and would
   /// have quietly sent every restaurant to a grocery screen the moment it
   /// wasn't.
-  /// The product store screen hydrates itself from the owner's user id alone.
+  /// Routed through [openVisitProfile] so the type→screen mapping stays in one
+  /// place. The food store screen hydrates from the business id alone, so
+  /// there's nothing to hand over beyond it.
   void _openStore() {
-    Get.to(() => VisitProductStoreDetailsScreen(
-          visitUserId: store.userId ?? '',
-        ));
+    if (store.id == null) return;
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: BusinessType.Food.name,
+      businessId: store.id,
+      userId: store.userId,
+    );
   }
 
   void _showMapBottomSheet(BuildContext context) {
     RouteMapBottomSheet.show(
       context: context,
-      destinationName: store.businessName ?? 'Store',
+      destinationName: store.businessName ?? AppStrings.restaurant.tr,
       destinationAddress: store.address ?? '',
       destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,

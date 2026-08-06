@@ -2,7 +2,9 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/doctor_discover_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/health_care_listing_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/me/medical/view/pharmacy_stores_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:flutter/material.dart';
@@ -41,19 +43,31 @@ class HealthServiceCardWidget extends StatelessWidget {
     // No "View All": the grid is 5 columns wide and [healthCareList] is short
     // enough to show every category at once, so the link would promise more
     // than exists.
-    return DiscoverGridSection(
-      title: AppStrings.healthcareServices.tr,
-      items: healthCareList,
-      // `healthCareList` stores translation keys in `name` — resolve here, at
-      // render time, so the labels follow a language change.
-      getName: (item) => item.name.tr,
-      getIcon: (item) => item.icon ?? '',
-      onItemTap: (item) => _open(item),
-      // Folder tap → the healthcare listing on Hospitals (the first entry).
-      // A category MUST be passed: `rightContent()` switches on the selected
-      // slug and falls through to "Coming soon" when there isn't one. The
-      // listing's own category header covers the rest, Pharmacy included — it
-      // special-cases that chip exactly like [_open] does.
-    );
+    // The categories stay bundled (the tap routing switches on their local
+    // slugs) but the ARTWORK comes off `/category` when the API carries it —
+    // see [apiCategoryIcon]. Obx so the tiles repaint when that list lands.
+    final api = Get.find<AuthController>();
+    return Obx(() {
+      // Read the RxList HERE, in the builder body. `getIcon` runs later, while
+      // the grid builds its tiles — outside Obx's reactive scope — so touching
+      // the list only in that callback registers no dependency and Obx throws
+      // "improper use of GetX".
+      final apiCategories = api.businessOnboardingHealthcareSectorsCategories.toList();
+      return DiscoverGridSection(
+        title: AppStrings.healthcareServices.tr,
+        items: healthCareList,
+        // `healthCareList` stores translation keys in `name` — resolve here, at
+        // render time, so the labels follow a language change.
+        getName: (item) => item.name.tr,
+        getIcon: (item) =>
+            apiCategoryIcon(apiCategories, item.slugId) ?? (item.icon ?? ''),
+        onItemTap: (item) => _open(item),
+        // Folder tap → the healthcare listing on Hospitals (the first entry).
+        // A category MUST be passed: `rightContent()` switches on the selected
+        // slug and falls through to "Coming soon" when there isn't one. The
+        // listing's own category header covers the rest, Pharmacy included — it
+        // special-cases that chip exactly like [_open] does.
+      );
+    });
   }
 }

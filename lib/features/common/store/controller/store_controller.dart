@@ -53,10 +53,11 @@ class StoreController extends GetxController{
   String? typeOfBusiness;
   String? businessCategoryId;
 
-  /// Optional `subCategory` filter for the near-by store search — e.g.
-  /// `Stationery Store` under the `STATIONARY_SHOP` category. Null on every
-  /// screen that filters by category alone, which is all of them today; the
-  /// param is simply left off the request then.
+  /// Optional `subCategory` filter for the near-by store search — the
+  /// sub-category's `_id`, one level below [businessCategoryId]. Used by the
+  /// auto-parts discover screen, whose tabs ARE the sub-categories; null on
+  /// screens that filter by category alone, and the param is simply left off
+  /// the request then.
   String? businessSubCategoryId;
 
   /// All Stores data
@@ -123,6 +124,9 @@ class StoreController extends GetxController{
     }
     if (type == BusinessType.Grocery.name.toLowerCase()) {
       return (path: repo.groceryBusinessProductStats, prefix: 'grocery');
+    }
+    if (type == BusinessType.Automotive.name.toLowerCase()) {
+      return (path: repo.automotiveBusinessProductStats, prefix: 'automotive');
     }
     return (path: repo.productBusinessProductStats, prefix: 'product');
   }

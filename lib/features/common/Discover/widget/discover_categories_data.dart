@@ -1,6 +1,32 @@
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/discover_icon_assets.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
+
+/// The API's own artwork for the category whose `tagId` matches [slugId].
+///
+/// Four Discover sections — Healthcare, Book your Stay, Education, Financial —
+/// render from a BUNDLED list even though `/category` carries the same
+/// categories with their own images. The list stays bundled on purpose: their
+/// tap routing switches on the local `slugId`, and the two vocabularies have
+/// already drifted once (`HOTELS_RESORTS` here vs `HOTELS_RESORT` in the
+/// constants), so swapping the list wholesale would silently break a tile's
+/// destination. Taking only the IMAGE off the API gets those sections onto
+/// server-managed artwork — re-illustrate a category backend-side and it lands
+/// in the app — without touching where anything goes.
+///
+/// Null when the categories haven't loaded yet, the tag isn't in the list, or
+/// the entry has no image. Callers fall back to their bundled icon, so a
+/// mismatch is a stale picture rather than a blank tile.
+String? apiCategoryIcon(List<CategoryData> apiCategories, String? slugId) {
+  if (slugId == null || slugId.isEmpty) return null;
+  for (final category in apiCategories) {
+    if (category.tagId != slugId) continue;
+    final url = category.imageUrl?.trim();
+    return (url == null || url.isEmpty) ? null : url;
+  }
+  return null;
+}
 
 /// Static category data for the Discover landing page.
 ///

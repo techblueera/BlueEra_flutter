@@ -1,5 +1,6 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photos_viewer.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,15 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 
-/// One shop in the product listing — the same flat white row the grocery and
-/// restaurant listings use (`assets/grocery_card.jpeg`).
+/// One shop in the grocery listing — the flat white row from
+/// `assets/grocery_card.jpeg`.
 ///
-/// Each vertical keeps its OWN card rather than sharing one with slots for the
-/// differences: they already diverge on where a tap lands and on what a row has
-/// to say, and separate files mean neither has to reason about the others
-/// before changing its own list.
+/// The restaurant listing has its OWN card (`RestaurantStoreCard`) rather than
+/// a shared one with a slot for the differences. The two rows look alike today
+/// and are already not the same object: a restaurant carries a veg / non-veg
+/// claim, opens a different store screen, and is the one of the two likely to
+/// grow menu-specific detail. Keeping them apart means neither vertical has to
+/// reason about the other before changing its own list.
 ///
 /// ## What each part does when tapped
 ///
@@ -38,8 +41,8 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 /// sheet: butted together with only a hairline between them the rows read as one
 /// undifferentiated block, and it's the gap that makes each store scan as a
 /// separate thing you can tap.
-class ProductStoreCard extends StatelessWidget {
-  const ProductStoreCard({super.key, required this.store});
+class GroceryStoreCard extends StatelessWidget {
+  const GroceryStoreCard({super.key, required this.store});
 
   final GetAllStoreResModel store;
 
@@ -62,7 +65,7 @@ class ProductStoreCard extends StatelessWidget {
 
   /// Hero tag tying the avatar to the first photo in the lightbox. Keyed on the
   /// store id so two cards can never claim the same tag.
-  String get _heroTag => 'product_live_${store.id ?? store.userId ?? ''}';
+  String get _heroTag => 'grocery_live_${store.id ?? store.userId ?? ''}';
 
   @override
   Widget build(BuildContext context) {
@@ -352,11 +355,14 @@ class ProductStoreCard extends StatelessWidget {
   /// route, which was invisible while grocery was the only caller and would
   /// have quietly sent every restaurant to a grocery screen the moment it
   /// wasn't.
-  /// The product store screen hydrates itself from the owner's user id alone.
   void _openStore() {
-    Get.to(() => VisitProductStoreDetailsScreen(
-          visitUserId: store.userId ?? '',
-        ));
+    Get.toNamed(
+      RouteHelper.getVisitGroceryStoreScreenRoute(),
+      arguments: {
+        ApiKeys.userId: store.userId,
+        ApiKeys.businessId: store.id,
+      },
+    );
   }
 
   void _showMapBottomSheet(BuildContext context) {

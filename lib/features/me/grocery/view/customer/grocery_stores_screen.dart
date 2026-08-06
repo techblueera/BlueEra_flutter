@@ -16,7 +16,7 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
-import 'package:BlueEra/features/common/store/widget/store_list_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_store_card.dart';
 import 'package:BlueEra/features/common/store/widget/store_sort_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -250,7 +250,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                           name: 'All Grocery',
                         ),
                         ..._arrCategories.map((c) {
-                          debugPrint('GroceryCategory tagId=${c.tagId} name=${c.name}');
                           return StickyCategory(
                             id: c.tagId ?? '',
                             name: c.name ?? '',
@@ -459,7 +458,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       // The card carries its own gap underneath, so nothing to
                       // pass here — every card is self-contained and the ad
                       // slots below inherit the same rhythm.
-                      final card = StoreListCard(store: store);
+                      final card = GroceryStoreCard(store: store);
 
                       // Measure the first card so ad slots can mirror its
                       // height. Only the first card is measured to avoid a
