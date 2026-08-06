@@ -8158,4 +8158,12 @@ class AppStrings {
       "globalSearchPopElectronicsSub";
   static const String globalSearchPopHome = "globalSearchPopHome";
   static const String globalSearchPopHomeSub = "globalSearchPopHomeSub";
+
+  /// Listing card ("Products" badge, and the fallbacks used when a result
+  /// arrives without a name / rating / address).
+  static const String globalSearchProducts = "globalSearchProducts";
+  static const String globalSearchUntitled = "globalSearchUntitled";
+  static const String globalSearchNoRating = "globalSearchNoRating";
+  static const String globalSearchLocationUnavailable =
+      "globalSearchLocationUnavailable";
 }

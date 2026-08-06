@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
@@ -315,6 +318,88 @@ class GlobalSearchController extends GetxController {
   /// Re-run the last committed search (used by the error-state retry button).
   void retry() {
     if (_committedQuery.isNotEmpty) _runSearch(reset: true);
+  }
+
+  // ── Opening a result's profile ──────────────────────────────────────
+  /// Entity types that are a **person**. All are owned by `be_user_service`,
+  /// so the id on the row resolves against [NewVisitProfileScreen].
+  static const Set<String> peopleEntityTypes = {
+    'user',
+    'professional',
+    'home_food_center',
+    'home_product_seller',
+    'home_service_provider',
+  };
+
+  /// Entity types that are a **business / shop**, whatever the vertical —
+  /// their `sourceId` is the business id in `be_user_service`.
+  ///
+  /// Deliberately excludes `hospital`, `hotel`, `home_stay`, `school`,
+  /// `course`, `rental` and `job`: those ids belong to their own services, so
+  /// the business profile would open on an id it cannot fetch. Those rows keep
+  /// the existing no-op until a screen is wired for them.
+  static const Set<String> businessEntityTypes = {
+    'business',
+    'grocery_shop',
+    'food_business',
+    'retail_business',
+    'service_business',
+    'healthcare_business',
+    'hotel_business',
+    'education_business',
+    'finance_business',
+    'automotive_business',
+  };
+
+  /// The profile screen behind a result row, or null when the row isn't a
+  /// profile (a product, a job listing, a course…).
+  ///
+  /// Routes on `sourceId` — the id in the owning service. `_id` is the
+  /// search-index document id and resolves to nothing anywhere in the app.
+  static Widget? profileScreenFor(SearchResultItem item) {
+    final sourceId = item.sourceId?.trim() ?? '';
+    final ownerId = item.ownerUserId?.trim() ?? '';
+    final type = item.entityType;
+
+    if (peopleEntityTypes.contains(type)) {
+      // A `user` row *is* the person, so its own id wins. A provider row
+      // (professional / home-*) is a listing owned by someone, so the owner id
+      // is the profile to open and the listing id is only the fallback.
+      final userId = type == 'user'
+          ? (sourceId.isNotEmpty ? sourceId : ownerId)
+          : (ownerId.isNotEmpty ? ownerId : sourceId);
+      if (userId.isEmpty) return null;
+      return NewVisitProfileScreen(
+        authorId: userId,
+        screenFromName: AppConstants.feedScreen,
+      );
+    }
+
+    if (businessEntityTypes.contains(type)) {
+      final businessId = sourceId.isNotEmpty ? sourceId : (item.businessId ?? '');
+      if (businessId.isEmpty) return null;
+      return VisitBusinessProfileNew(
+        businessId: businessId,
+        screenName: AppConstants.feedScreen,
+      );
+    }
+
+    return null;
+  }
+
+  /// Open the profile behind a tapped result card — a person's visiting
+  /// profile for people rows, the business profile for shop/business rows.
+  /// Rows with no profile behind them fall back to the previous no-op toast.
+  void openProfile(SearchResultItem item) {
+    final screen = profileScreenFor(item);
+    if (screen == null) {
+      commonSnackBar(message: item.title);
+      return;
+    }
+    // The search field can still hold focus behind the results list; leaving
+    // it focused pops the keyboard back up on return from the profile.
+    focusNode.unfocus();
+    Get.to(() => screen);
   }
 
   /// Fetch the nearby stores that stock a product (grocery Search-Order flow,
