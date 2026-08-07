@@ -447,6 +447,21 @@ bool isIndividualUser() =>
 bool isBusinessUser() =>
     (accountTypeGlobal.toUpperCase() == AppConstants.business);
 
+/// Whether the Connect screen's third tab is the merchant-style Order tab
+/// rather than call history. True for business accounts, for INDIVIDUAL
+/// accounts, and for the individual profile types that can receive orders
+/// (Social, Self Employed, Skill Worker, Professional).
+///
+/// Single source of truth — `ConnectMainPage` builds the tab from this, and
+/// `recent_orders_section` uses it to decide which sub-tab to open.
+bool showsConnectOrderTab() =>
+    isBusinessUser() ||
+    isIndividualUser() ||
+    userProfileTypeGlobal == SOCIAL_PROFILE ||
+    userProfileTypeGlobal == SELF_EMPLOYED ||
+    userProfileTypeGlobal == SKILL_WORKER ||
+    userProfileTypeGlobal == PROFESSIONAL;
+
 String formatNumber(int number) {
   final formatter = NumberFormat('#,###');
   return formatter.format(number);

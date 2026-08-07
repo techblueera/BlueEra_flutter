@@ -197,10 +197,18 @@ class BusinessChatsList extends StatefulWidget {
     this.onlySenderId,
     this.isInParentScroll = false,
     this.showNewIfRecentlyCreated = false,
+    this.showEmptyState = false,
     this.listTitle,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+
+  /// When `true`, a truly-empty list renders the shared [noChatsFound]
+  /// placeholder instead of a zero-row `ListView`. Mirrors what
+  /// `PersonalChatsList` already does on the Chat tab. Opt-in because the
+  /// forward / group-add pickers and the Me-side order cards have their own
+  /// empty handling and must keep rendering their chrome.
+  final bool showEmptyState;
 
   /// Header title shown at the top of the white list card (e.g. "Orders" on
   /// the seller order tabs, "Inquiry" on the service inquiry tabs). When set,
@@ -607,6 +615,18 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
         chatList.length +
         (showHistoryHeader ? 1 : 0) +
         historyList.length;
+
+    // Nothing at all to show — no live chats, no history, and no Records row.
+    // Render the shared empty placeholder rather than a blank zero-row list.
+    // The Records row is deliberately part of the test: when something has
+    // been archived the list isn't really empty, so that shortcut must stay
+    // reachable.
+    if (widget.showEmptyState && itemCount == 0) {
+      return Container(
+        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        child: noChatsFound(),
+      );
+    }
 
     final listView = ListView.builder(
         itemCount: itemCount,
