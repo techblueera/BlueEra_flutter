@@ -34,7 +34,7 @@ class Resumes {
   Resumes({this.id, this.userId, this.fileName, this.fileUrl, this.createdAt});
 
   Resumes.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = json['_id'];
     userId = json['userId'];
     fileName = json['fileName'];
     fileUrl = json['fileUrl'];
@@ -43,7 +43,7 @@ class Resumes {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
+    data['_id'] = this.id;
     data['userId'] = this.userId;
     data['fileName'] = this.fileName;
     data['fileUrl'] = this.fileUrl;

@@ -51,7 +51,14 @@ class ShowResumesScreenController extends GetxController{
       error.value = 'Something went wrong: $e';
       getResumeById.value = null;
     } finally {
-
+      // Must always release the in-flight flag. This controller is a singleton
+      // that outlives the ShowResumes route (JobDetailsOverviewScreen does a
+      // Get.find on it), and Get.put keeps the existing instance instead of
+      // replacing it. Leaving isLoading == true made the `if (isLoading.value)
+      // return;` guard above swallow every later tap on "Submit Resume", so
+      // coming back from the Q&A screen and picking a resume again did nothing
+      // at all — no API call, no navigation.
+      isLoading.value = false;
     }
   }
 }
