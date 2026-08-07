@@ -37,6 +37,7 @@ import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/pending_message_drainer.dart';
 import '../../../personal/personal_profile/model/check_chat_connection_model.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
+import '../../view/business_chat/ride_chat_registry.dart';
 import '../../view/group_chat/group_chat_screen.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../../view/widget/phone_user_bottom_sheet.dart';
@@ -1027,6 +1028,15 @@ class ChatViewController extends GetxController {
               if (id.isEmpty || seen.add(id)) {
                 deduped.add(m);
               }
+            }
+            // A ride thread stays a ride thread after the dispatch card
+            // scrolls out of the chat-list row's `last_message_type`. The full
+            // history arriving here is the only place that can still be seen,
+            // so latch it — the rider's Inquiry tab then keeps hiding the
+            // thread (it belongs to their Order tab) across relaunches.
+            if (isRiderProfession(userProfessionGlobal)) {
+              RideChatRegistry.registerIfRideThread(
+                  conversationId, deduped.map((m) => m.messageType));
             }
             // Preserve locally-latched enquiry_status on the owner's
             // service+enquiry_only cards. The chat wire has no field for

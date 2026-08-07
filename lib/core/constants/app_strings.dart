@@ -5531,6 +5531,22 @@ class AppStrings {
   static const String guestCreateAccountMessage = "guestCreateAccountMessage";
   static const String createProfile = "createProfile";
 
+  /// Shown when a guest taps an action that needs a real account — e.g.
+  /// placing a grocery order from the cart.
+  static const String guestOrderRestricted = "guestOrderRestricted";
+
+  /// Shown when a guest tries to post a symbol.
+  static const String guestSymbolRestricted = "guestSymbolRestricted";
+
+  /// Guest-restricted symbol interactions — like, comment, and the two
+  /// delete actions.
+  static const String guestLikeRestricted = "guestLikeRestricted";
+  static const String guestCommentRestricted = "guestCommentRestricted";
+  static const String guestCommentDeleteRestricted =
+      "guestCommentDeleteRestricted";
+  static const String guestSymbolDeleteRestricted =
+      "guestSymbolDeleteRestricted";
+
   ///CHAT CONTROLLERS
   static const String symbolAddedSuccessfully = "symbolAddedSuccessfully";
   static const String noSymbolsYet = "noSymbolsYet";

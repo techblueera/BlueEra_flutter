@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -325,6 +326,10 @@ class AddChatSymbolController extends GetxController {
   }
 
   Future<bool> createSymbol() async {
+    /// A guest has no real profile to post the symbol under — validate before
+    /// any upload work starts.
+    if (isGuestActionBlocked(AppStrings.guestSymbolRestricted.tr)) return false;
+
     if (itTextOrLinkPost() && linkTextSymbolController.text.trim().isEmpty) {
       commonSnackBar(message: "Please enter some text");
       return false;
@@ -441,6 +446,10 @@ class AddChatSymbolController extends GetxController {
 
   Future<List<SymbolDetailsModel>?> deleteSymbol(
       {required SymbolDetailsModel symbolData}) async {
+    if (isGuestActionBlocked(AppStrings.guestSymbolDeleteRestricted.tr)) {
+      return null;
+    }
+
     ResponseModel responseModel =
         await symbolRepo.deleteSymbol(symbolData.id ?? '');
     if (responseModel.isSuccess) {
@@ -512,6 +521,9 @@ class AddChatSymbolController extends GetxController {
   }
 
   Future<bool> toggleLikeSymbol(String symbolId, {required bool isLiked}) async {
+    /// Returning false makes the caller revert its optimistic heart state.
+    if (isGuestActionBlocked(AppStrings.guestLikeRestricted.tr)) return false;
+
     try {
       ResponseModel response;
       if (isLiked) {
@@ -526,6 +538,10 @@ class AddChatSymbolController extends GetxController {
   }
 
   Future<void> markViewed(String symbolId) async {
+    /// A guest's view must not be recorded. Silent by design — this fires
+    /// automatically as symbols are paged through, not on a user tap.
+    if (isGuestUser()) return;
+
     try {
       await symbolRepo.markSymbolViewed(symbolId);
     } catch (_) {}

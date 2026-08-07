@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -431,6 +432,25 @@ class MedicalStoreType {
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
 
+/// Guard for any action a guest account isn't allowed to perform.
+///
+/// A guest has no real profile behind it, so the action can never complete —
+/// stop before the API call and show [message]. Returns true when the caller
+/// must abort:
+///
+/// ```dart
+/// if (isGuestActionBlocked(AppStrings.guestSymbolRestricted.tr)) return;
+/// ```
+bool isGuestActionBlocked(String message) {
+  if (!isGuestUser()) return false;
+  commonSnackBar(message: message);
+  return true;
+}
+
+/// [isGuestActionBlocked] for every consumer "place order / book" entry point.
+bool isGuestOrderBlocked() =>
+    isGuestActionBlocked(AppStrings.guestOrderRestricted.tr);
+
 /// Returns true only when an authenticated session is active. Used to
 /// guard authenticated API calls so they no-op after logout (when the
 /// token global has been cleared but stale controllers, in-flight
@@ -448,19 +468,14 @@ bool isBusinessUser() =>
     (accountTypeGlobal.toUpperCase() == AppConstants.business);
 
 /// Whether the Connect screen's third tab is the merchant-style Order tab
-/// rather than call history. True for business accounts, for INDIVIDUAL
-/// accounts, and for the individual profile types that can receive orders
-/// (Social, Self Employed, Skill Worker, Professional).
+/// rather than call history. The Order tab is the default for everyone; only
+/// the Gig Worker and Social profile types keep call history there.
 ///
 /// Single source of truth — `ConnectMainPage` builds the tab from this, and
 /// `recent_orders_section` uses it to decide which sub-tab to open.
 bool showsConnectOrderTab() =>
-    isBusinessUser() ||
-    isIndividualUser() ||
-    userProfileTypeGlobal == SOCIAL_PROFILE ||
-    userProfileTypeGlobal == SELF_EMPLOYED ||
-    userProfileTypeGlobal == SKILL_WORKER ||
-    userProfileTypeGlobal == PROFESSIONAL;
+    userProfileTypeGlobal != GIG_WORKER &&
+    userProfileTypeGlobal != SOCIAL_PROFILE;
 
 String formatNumber(int number) {
   final formatter = NumberFormat('#,###');
