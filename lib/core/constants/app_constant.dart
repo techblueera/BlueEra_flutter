@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -430,6 +431,25 @@ class MedicalStoreType {
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
+
+/// Guard for any action a guest account isn't allowed to perform.
+///
+/// A guest has no real profile behind it, so the action can never complete —
+/// stop before the API call and show [message]. Returns true when the caller
+/// must abort:
+///
+/// ```dart
+/// if (isGuestActionBlocked(AppStrings.guestSymbolRestricted.tr)) return;
+/// ```
+bool isGuestActionBlocked(String message) {
+  if (!isGuestUser()) return false;
+  commonSnackBar(message: message);
+  return true;
+}
+
+/// [isGuestActionBlocked] for every consumer "place order / book" entry point.
+bool isGuestOrderBlocked() =>
+    isGuestActionBlocked(AppStrings.guestOrderRestricted.tr);
 
 /// Returns true only when an authenticated session is active. Used to
 /// guard authenticated API calls so they no-op after logout (when the

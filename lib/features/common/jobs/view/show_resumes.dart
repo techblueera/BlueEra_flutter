@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_resumes_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_details_screen_controller.dart';
@@ -29,8 +31,12 @@ class _ShowResumesState extends State<ShowResumes> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers properly
-    jobId = Get.arguments['jobId'];
+    // Initialize controllers properly.
+    // Read the argument defensively: Get.arguments is null when this screen is
+    // reached without arguments, and `Get.arguments['jobId']` would throw
+    // before the first frame instead of failing gracefully.
+    final args = Get.arguments;
+    jobId = (args is Map) ? args['jobId'] as String? : null;
     jobDetailsScreenController = Get.find<JobDetailsScreenController>();
     showResumesController = Get.put(ShowResumesScreenController());
   }
@@ -139,23 +145,42 @@ class _ShowResumesState extends State<ShowResumes> {
           ),
         ),
         SizedBox(height: SizeConfig.size20),
+        // CustomText("selectedResumeId ${selectedResumeId}"),
         if (selectedResumeId != null)
-          CustomBtn(
-            onTap: () async {
-              if (selectedResumeId != null && selectedResumeId!.isNotEmpty) {
-                await showResumesController.getResumeByIdApi(
-                    resumeId: selectedResumeId!,
-                    jobId: jobId ?? "");
-              }
-              ;
-            },
-            title:AppStrings.submitResume,
-            bgColor: AppColors.primaryColor,
-            borderColor: Colors.transparent,
-            fontWeight: FontWeight.w600,
-            textColor: AppColors.white,
-            fontSize: SizeConfig.medium,
-          ),
+          // Obx so the button reflects the in-flight request: without it the
+          // screen looks frozen while the resume is being fetched and the user
+          // keeps tapping, which the controller's isLoading guard ignores.
+          Obx(() {
+            final isSubmitting = showResumesController.isLoading.value;
+            logs("isSubmitting= ${isSubmitting}");
+            return CustomBtn(
+              onTap: isSubmitting
+                  ? null
+                  : () async {
+                      final resumeId = selectedResumeId;
+                      if (resumeId == null || resumeId.isEmpty) return;
+                      // Without a jobId the Q&A screen and the application
+                      // submit that follows it have nothing to post against, so
+                      // stop here with a message rather than walking into a
+                      // flow that silently fails at the end.
+                      if (jobId == null || jobId!.isEmpty) {
+                        commonSnackBar(message: AppStrings.somethingWentWrong);
+                        return;
+                      }
+                      await showResumesController.getResumeByIdApi(
+                        resumeId: resumeId,
+                        jobId: jobId!,
+                      );
+                    },
+              isLoading: isSubmitting,
+              title: AppStrings.submitResume,
+              bgColor: AppColors.primaryColor,
+              borderColor: Colors.transparent,
+              fontWeight: FontWeight.w600,
+              textColor: AppColors.white,
+              fontSize: SizeConfig.medium,
+            );
+          }),
       ],
     );
   }
@@ -166,6 +191,8 @@ class _ShowResumesState extends State<ShowResumes> {
         setState(() {
           selectedResumeId = resume.id;
         });
+        logs("selectedResumeId = ${selectedResumeId}");
+        logs(" resume.id = ${ resume.id}");
       },
       child: Container(
         decoration: BoxDecoration(

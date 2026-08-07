@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
@@ -194,6 +196,11 @@ class SymbolFeedController extends GetxController {
 
   /// Mark a symbol as viewed
   Future<void> markAsViewed(String symbolId) async {
+    /// A guest's view must not be recorded. This one is silent — the call
+    /// fires on its own as symbols scroll past, so a snackbar here would
+    /// fire repeatedly without the user ever having tapped anything.
+    if (isGuestUser()) return;
+
     try {
       final response = await _repo.markSymbolViewed(symbolId);
       if (response.isSuccess) {
@@ -216,6 +223,10 @@ class SymbolFeedController extends GetxController {
 
   /// Toggle like on a symbol
   Future<void> toggleLike(SymbolFeedItem symbol) async {
+    /// Guard ahead of the optimistic update below, so the heart never
+    /// flips on and back off again for a guest.
+    if (isGuestActionBlocked(AppStrings.guestLikeRestricted.tr)) return;
+
     try {
       final wasLiked = symbol.hasLiked == true;
 
@@ -279,6 +290,10 @@ class SymbolFeedController extends GetxController {
 
   /// Add a comment
   Future<bool> addComment(String symbolId, String commentText) async {
+    if (isGuestActionBlocked(AppStrings.guestCommentRestricted.tr)) {
+      return false;
+    }
+
     try {
       final response = await _repo.addComment(symbolId, commentText);
       if (response.isSuccess) {
@@ -297,6 +312,10 @@ class SymbolFeedController extends GetxController {
   /// Edit own comment
   Future<bool> editComment(
       String symbolId, String commentId, String newText) async {
+    if (isGuestActionBlocked(AppStrings.guestCommentRestricted.tr)) {
+      return false;
+    }
+
     try {
       final response = await _repo.editComment(commentId, newText);
       if (response.isSuccess) {
@@ -311,6 +330,10 @@ class SymbolFeedController extends GetxController {
 
   /// Delete own comment
   Future<bool> deleteComment(String symbolId, String commentId) async {
+    if (isGuestActionBlocked(AppStrings.guestCommentDeleteRestricted.tr)) {
+      return false;
+    }
+
     try {
       final response = await _repo.deleteComment(commentId);
       if (response.isSuccess) {
