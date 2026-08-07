@@ -40,7 +40,7 @@ class _CreateResumeScreenState extends State<CreateResumeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.createResume,
+        title: AppStrings.createResume.tr,
         titleColor: AppColors.mainTextColor,
         showRightTextButton: true,
         rightTextButtonText: AppStrings.template.tr,

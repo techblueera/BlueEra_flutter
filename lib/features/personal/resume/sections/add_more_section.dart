@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/add_more_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/additional_info_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -38,13 +37,27 @@ class _AddMoreSectionState extends State<AddMoreSection> {
 
   @override
   Widget build(BuildContext context) {
-
+    // No SizedBox separators between the cards: every card here is a
+    // CommonCardWidget, which already carries `margin: EdgeInsets.all(10)`,
+    // so adjacent cards sit 20dp apart on their own.
+    // `stretch` keeps every card the same width — without it a card whose
+    // list is empty (title + Add row only) shrink-wraps and sits narrower
+    // than its filled neighbours.
+    //
+    // The add/edit screens are pushed WITHOUT a `.then(getMyResume())`: a plain
+    // back press means nothing was added or updated, so re-fetching the resume
+    // there is a wasted network call. When something IS saved or deleted, the
+    // controllers (EntityController.add/update/deleteEntity and
+    // AdditionalInfoController.add/update/deleteAdditionalInfo) already refresh
+    // the resume themselves before the screen pops, and the lists below are
+    // Obx-bound, so the cards update on their own.
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Obx(() {
           final items = additionalInfoController.additionalInfoList;
           return ResumeProfileSectionCard(
-            title: AppStrings.addAdditionalInformation,
+            title: AppStrings.addAdditionalInformation.tr,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -53,7 +66,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
                       context,
                       MaterialPageRoute(
                           builder: (_) => AdditionalInfoScreen(isEdit: false)),
-                    ).then((_) => getResumeController.getMyResume());
+                    );
                   }
                 : null,
             itemsEditCallback: (index) {
@@ -65,7 +78,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
                   builder: (_) =>
                       AdditionalInfoScreen(isEdit: true, infoId: data['_id']),
                 ),
-              ).then((_) => getResumeController.getMyResume());
+              );
             },
             itemsDeleteCallback: (index) {
               final data = items[index];
@@ -78,17 +91,16 @@ class _AddMoreSectionState extends State<AddMoreSection> {
             },
           );
         }),
-        SizedBox(height: SizeConfig.size10),
         Obx(() {
           final items = ngoController.entityList;
           return ResumeProfileSectionCard(
-            title: AppStrings.ngoStudentOrganisations,
+            title: AppStrings.ngoStudentOrganisations.tr,
             items: items.toList(),
             onAddPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => AddNgoScreen(isEdit: false)),
-              ).then((_) => getResumeController.getMyResume());
+              );
             },
             itemsEditCallback: (index) {
               final data = items[index];
@@ -101,7 +113,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
                 MaterialPageRoute(
                     builder: (_) =>
                         AddNgoScreen(isEdit: true, experienceId: id)),
-              ).then((_) => getResumeController.getMyResume());
+              );
             },
             itemsDeleteCallback: (index) {
               final data = items[index];
@@ -112,16 +124,14 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
                 await ngoController.deleteEntity(id);
-                getResumeController.getMyResume();
               });
             },
           );
         }),
-        SizedBox(height: 10),
         Obx(() {
           final items = patentController.entityList;
           return ResumeProfileSectionCard(
-            title: AppStrings.patents,
+            title: AppStrings.patents.tr,
             items: items.toList(),
             onAddPressed: () {
               Navigator.push(
@@ -129,7 +139,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
                 MaterialPageRoute(
                   builder: (_) => AddPatentsScreen(isEdit: false),
                 ),
-              ).then((_) => getResumeController.getMyResume());
+              );
             },
             itemsEditCallback: (index) {
               final data = items[index];
@@ -143,7 +153,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
                   builder: (_) =>
                       AddPatentsScreen(isEdit: true, experienceId: id),
                 ),
-              ).then((_) => getResumeController.getMyResume());
+              );
             },
             itemsDeleteCallback: (index) {
               final data = items[index];
@@ -154,7 +164,6 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
                 await patentController.deleteEntity(id);
-                getResumeController.getMyResume();
               });
             },
           );

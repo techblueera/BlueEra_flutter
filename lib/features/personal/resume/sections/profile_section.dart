@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/bio_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/current_job_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -44,17 +43,21 @@ class _ProfileSectionState extends State<ProfileSection> {
 
   @override
   Widget build(BuildContext context) {
+    // No SizedBox separators between the cards: the header, the bio and every
+    // section card below are CommonCardWidgets, which already carry
+    // `margin: EdgeInsets.all(10)`, so adjacent cards sit 20dp apart on their
+    // own — the old spacers made those gaps 30dp.
+    // `stretch` replaces the SizedBox(width: double.infinity) the header
+    // needed under `start`, and keeps every card the same width: without it a
+    // card whose list is empty (title + Add row only) shrink-wraps and sits
+    // narrower than its filled neighbours.
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: ResumeProfileHeader(),
-        ),
+        ResumeProfileHeader(),
 
         /// Bio
         ResumeProfileBio(),
-        SizedBox(height: SizeConfig.size10),
 
         Obx(() {
           final items = bioController.educationList;
@@ -87,11 +90,10 @@ class _ProfileSectionState extends State<ProfileSection> {
           );
         }),
 
-        SizedBox(height: SizeConfig.size10),
         Obx(() {
           final items = qualificationController.educationList;
           return ResumeProfileSectionCard(
-            title:AppStrings.highestQualification,
+            title: AppStrings.highestQualification,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -132,8 +134,6 @@ class _ProfileSectionState extends State<ProfileSection> {
             titleColor: AppColors.black28,
           );
         }),
-
-        SizedBox(height: SizeConfig.size10),
 
         Obx(() {
           final items = salaryController.workExperienceList;
@@ -177,12 +177,10 @@ class _ProfileSectionState extends State<ProfileSection> {
           );
         }),
 
-        SizedBox(height: SizeConfig.size10),
-
         Obx(() {
           final items = currentJobController.workExperienceList;
           return ResumeJobSectionCard(
-            title:AppStrings.currentJob,
+            title: AppStrings.currentJob,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -204,7 +202,10 @@ class _ProfileSectionState extends State<ProfileSection> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => AddCurrentJobScreen(isEdit: true, jobData: rawJobData,)),
+                    builder: (_) => AddCurrentJobScreen(
+                          isEdit: true,
+                          jobData: rawJobData,
+                        )),
               ).then((_) => getResumeController.getMyResume());
             },
             itemsDeleteCallback: (index) {
@@ -215,8 +216,6 @@ class _ProfileSectionState extends State<ProfileSection> {
             },
           );
         }),
-
-        SizedBox(height: SizeConfig.size10),
       ],
     );
   }

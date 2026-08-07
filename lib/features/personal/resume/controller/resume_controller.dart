@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -28,13 +29,17 @@ class ResumeController extends GetxController {
   final ngoExperienceList = <Map<String, String>>[].obs;
   final patentsList = <Map<String, String>>[].obs;
 
-  final List<String> sectionChips = [
-    "Profile",
-    "Education",
-    "Experience",
-    "About Me",
-    "Add More",
-  ];
+  /// Tab labels for the create-resume header. A getter, not a field, so
+  /// `.tr` is resolved on every rebuild — a `final` list would bake in
+  /// whatever locale was active when the controller was first put, and
+  /// switching language would leave the chips in the old language.
+  List<String> get sectionChips => [
+        AppStrings.profile.tr,
+        AppStrings.education.tr,
+        AppStrings.experience.tr,
+        AppStrings.aboutMe.tr,
+        AppStrings.addMore.tr,
+      ];
   final RxInt selectedChip = 0.obs;
 
   final maxLength = 200;
