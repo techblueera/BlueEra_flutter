@@ -22,46 +22,30 @@ import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/business_flag_chat_list.dart';
 import '../pin_chat/business_pin_chat_list.dart';
 import '../reminder_chat/reminder_chat_list.dart';
+import 'ride_chat_registry.dart';
 import '../widget/component_widgets.dart';
 import '../../../../widgets/glass_surface.dart';
 
 /// Where a business-list row belongs:
 ///   [chats] — the main Chat tab (buyers, normal chats, groups)
 ///   [me]    — the seller/receiver's "Me" section (orders I own)
-///   [skip]  — excluded entirely (not produced by the current rule; kept
-///             so existing call-sites/switches stay valid)
+///   [skip]  — excluded entirely, on every surface that buckets rows. Used
+///             for a rider's own ride threads, which they never chat in.
 enum ChatBucket { chats, me, skip }
 
-/// Chat-card `message_type`s the ride/goods dispatch flow posts into a
-/// conversation. A thread carrying any of them is a ride booking, whichever
-/// route it was booked through (Discover transport, the Inquiry tab's rider
-/// shortcut, a grocery/food order handed to a rider, or a fare call):
-///   order_request — the booking request card
-///   rider         — rider details + Track Order / Cancel Ride
-///   rider_map     — the live-location card (suppressed inside the thread)
-///   rider_otp     — the pickup / delivery handoff OTP card
-const Set<String> _kRideDispatchMessageTypes = {
-  'order_request',
-  'rider',
-  'rider_map',
-  'rider_otp',
-};
-
-/// Conversations already identified as ride threads. A chat-list row only
-/// carries its LAST message type, so once either party sends a plain message
-/// the ride card scrolls out of that field — without this the thread would pop
-/// back into the Inquiry tab. Seeded as rows arrive, so it costs nothing; it is
-/// in-memory only, and a relaunch simply falls back to the last-message check.
-final Set<String> _knownRideChats = <String>{};
-
-/// True when [chat] is a ride booking (see [_kRideDispatchMessageTypes]).
+/// True when [chat] is a ride booking (see [kRideDispatchMessageTypes]).
+///
+/// The row's own `last_message_type` only tells the truth while a dispatch
+/// card is still the newest message, so every thread recognised that way is
+/// latched in [RideChatRegistry] — which remembers it across relaunches and
+/// answers for the rest.
 bool isRideDispatchChat(ChatList chat) {
   final id = chat.conversationId ?? '';
-  if (_kRideDispatchMessageTypes.contains(chat.lastMessageType)) {
-    if (id.isNotEmpty) _knownRideChats.add(id);
+  if (kRideDispatchMessageTypes.contains(chat.lastMessageType)) {
+    RideChatRegistry.register(id);
     return true;
   }
-  return id.isNotEmpty && _knownRideChats.contains(id);
+  return RideChatRegistry.contains(id);
 }
 
 /// Single source of truth for routing one order/enquiry row — the Dart twin
@@ -88,13 +72,18 @@ ChatBucket bucketChat(ChatList chat) {
   // person who booked is the customer (buyer) and the rider fulfils it
   // (seller). The backend can't express that through `business_owner_user_id`
   // — a direct ride has no business behind it — so the rider side is decided
-  // from the logged-in user's profession. On a rider's device the ride thread
-  // is therefore an order (the "me" lane) and never shows up in their Inquiry
-  // tab, which they don't use: riders work the ride out of their dispatch
-  // screens, not chat. The customer's copy of the same thread is untouched and
-  // stays in Inquiry next to their grocery / Discover orders.
+  // from the logged-in user's profession.
+  //
+  // On a rider's device the thread is dropped outright: a rider does not chat
+  // with the customer at all. They work the ride out of their dispatch screens
+  // (accept / navigate / OTP / complete), so the conversation has no surface
+  // to live on — not Inquiry, not the Discover "Orders in 12 Hrs." rail, not
+  // the forward picker. [ChatBucket.skip] is checked by every consumer, so
+  // this one return keeps them all consistent. The customer's copy of the same
+  // thread is untouched and stays in Inquiry next to their grocery / Discover
+  // orders — that side is a real conversation with the captain.
   if (isRiderProfession(userProfessionGlobal) && isRideDispatchChat(chat)) {
-    return ChatBucket.me;
+    return ChatBucket.skip;
   }
 
   final isOrder = chat.isOrder == true;
@@ -274,6 +263,10 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     // which previously relied on ConnectMainPage having pre-registered them.
     getOrPut(() => ChatFlagController());
     getOrPut(() => ChatThemeController());
+    // Ride threads a rider has already worked are remembered on disk (see
+    // [RideChatRegistry]) — read them back before the first rows are bucketed
+    // so finished rides don't flash into the Inquiry tab after a relaunch.
+    RideChatRegistry.ensureHydrated();
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
@@ -387,7 +380,18 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   /// history; provider `excludeSenderId` sees the seller's "me" history;
   /// pickers see everything). Shared by the History sub-tab and the All tab's
   /// inline History section.
+  /// Rows [bucketChat] excludes outright ([ChatBucket.skip]) — a rider's own
+  /// ride threads. Unlike the chats/me split, this one applies to every
+  /// variant of the list, pickers included: a rider has no conversation with
+  /// the customer to show, forward into, or add to a group.
+  bool _isNotSkipped(ChatList? chat) =>
+      chat == null || bucketChat(chat) != ChatBucket.skip;
+
   List<ChatList?> _filteredHistoryList() {
+    // `bucketChat` below consults [RideChatRegistry]; depend on its revision
+    // so a hydration (or a thread newly recognised as a ride) re-buckets.
+    // ignore: unused_local_variable
+    final _ = RideChatRegistry.revision.value;
     List<ChatList?> chatList =
         chatViewController.getHistoryChatListModel?.value.chatList ?? [];
 
@@ -399,6 +403,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             chat == null || !archivedIds.contains(chat.conversationId))
         .where((chat) =>
             chat == null || !lockedIds.contains(chat.conversationId))
+        // Same unconditional drop as the live list — see `_isNotSkipped`.
+        .where(_isNotSkipped)
         .toList();
 
     final isPicker =
@@ -534,6 +540,11 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   }
 
   Widget _businessChatListWidget(GetChatListModel? data, ThemeData theme) {
+    // Same registry dependency as `_filteredHistoryList` — the live list
+    // buckets rows through `bucketChat` too, and on a rider's device that is
+    // what keeps ride threads out of Inquiry.
+    // ignore: unused_local_variable
+    final _ = RideChatRegistry.revision.value;
     List<ChatList?> chatList = data?.chatList ?? [];
     final archivedIds = pinArchiveController.businessArchivedIds;
     final pinnedIds = pinArchiveController.businessPinnedIds;
@@ -549,6 +560,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     chatList = chatList.where((chat) {
       return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
+
+    // [ChatBucket.skip] rows have no surface anywhere — currently a rider's
+    // own ride threads, which they never chat in. Applied before the routing
+    // branches below because two of them (onlySenderId, and the pickers that
+    // deliberately show everything) don't bucket at all.
+    chatList = chatList.where(_isNotSkipped).toList();
 
     // B2B routing — split the business list into "chats" vs the seller's
     // "me" (my customers) section via [bucketChat]. The Order tabs that

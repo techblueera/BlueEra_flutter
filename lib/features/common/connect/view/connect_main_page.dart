@@ -82,10 +82,9 @@ class ConnectMainPage extends StatefulWidget {
 
 class _ConnectMainPageState extends State<ConnectMainPage>
     with SingleTickerProviderStateMixin {
-  /// Business and INDIVIDUAL accounts — plus the Social, Self Employed, Skill
-  /// Worker and Professional profile types — trade the Call tab for an Order
-  /// tab that mirrors the merchant dashboard's first tab (see
-  /// [OrdersTabBody]); anyone else keeps the call history.
+  /// Every profile except Gig Worker and Social trades the Call tab for an
+  /// Order tab that mirrors the merchant dashboard's first tab (see
+  /// [OrdersTabBody]); those two keep the call history.
   bool get _showsOrderTab => showsConnectOrderTab();
 
   List<String> get iconTab => [
@@ -844,9 +843,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                         ),
                       ],
                     ),
-                    // Third tab. Business / Social / Skill Worker profiles
-                    // get the merchant Order tab (identical to the Me-tab
-                    // dashboard's first tab); everyone else gets call
+                    // Third tab. Everyone gets the merchant Order tab
+                    // (identical to the Me-tab dashboard's first tab) except
+                    // Gig Worker / Social profiles, which get call
                     // history. Both own their own
                     // scrollable, so detach them from the parent
                     // NestedScrollView's inherited PrimaryScrollController —
