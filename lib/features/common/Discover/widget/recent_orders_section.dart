@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
@@ -177,15 +176,12 @@ const String _kOrderMessageMarker = 'Order Message';
 
 /// Connect sub-tab each lane belongs to: placed orders (lane 1) are the
 /// Inquiry tab (index 1), received orders (lane 0) the Order tab (index 2 —
-/// the merchant-style tab `ConnectMainPage` only builds for business / social
-/// / skill-worker profiles; anyone else has Call there, so those fall back to
-/// Chat).
+/// the merchant-style tab `ConnectMainPage` only builds for the profiles
+/// [showsConnectOrderTab] covers; anyone else has Call there, so those fall
+/// back to Chat).
 int _connectSubTabFor(int lane) {
   if (lane == 1) return 1;
-  final showsOrderTab = isBusinessUser() ||
-      userProfileTypeGlobal == SOCIAL_PROFILE ||
-      userProfileTypeGlobal == SKILL_WORKER;
-  return showsOrderTab ? 2 : 0;
+  return showsConnectOrderTab() ? 2 : 0;
 }
 
 /// Opens the Connect screen on the sub-tab holding [lane]. The sub-tab index

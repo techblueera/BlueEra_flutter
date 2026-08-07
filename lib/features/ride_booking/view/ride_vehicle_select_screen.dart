@@ -962,10 +962,22 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The server has explicitly said nobody is driving this type in range.
+    // Absent availability is NOT unavailable — see [RideVehicleOption
+    // .isUnavailable] — so an older response still prices and books normally.
+    final bool unavailable = quote?.isUnavailable == true;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Column(
+      // Dead tile while nobody is nearby: booking it would broadcast to an
+      // empty radius and leave the customer waiting on a ride that was never
+      // going to be answered.
+      onTap: unavailable ? null : onTap,
+      child: Opacity(
+        // Non-interactive tiles read as non-interactive. The red line below
+        // says why; this says "don't bother tapping" at a glance.
+        opacity: unavailable ? 0.55 : 1,
+        child: Column(
         // Stretch, otherwise the tinted box shrink-wraps its artwork and tiles
         // end up different widths (the rider SVG is near-square while the
         // vehicle SVGs are wide).
@@ -1015,51 +1027,56 @@ class _ServiceTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          // Always rendered, so a priced tile and an unpriced one keep the same
-          // height and the grid rows stay level. An em dash means the vehicle
-          // exists but this trip isn't priced for it — a different thing from
-          // the tile being missing.
-          CustomText(
-            quote == null ? '—' : '₹${quote!.fare.toStringAsFixed(0)}',
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: quote == null ? RideStyle.inkMuted : RideStyle.ink,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-          ),
-          // What the fare buys: the distance the server priced this row over
-          // and how long the drive takes. A bare number is a number; "₹40" next
-          // to "2.0 km · 3 min" is a price the customer can judge — which is
-          // the whole reason to show a catalogue rather than one quote.
-          if (quote?.tripSummary case final summary?)
-            CustomText(
-              summary,
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: RideStyle.inkMuted,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-            ),
-          // "None nearby" for a type the server has explicitly said has no
-          // riders in range.
+          // With no rider in range the fare, distance and ETA are all quoting
+          // a trip that can't be dispatched, so none of them are shown — the
+          // tile says only that the vehicle isn't bookable here. Red, because
+          // this is the one state on the grid the customer must not miss.
           //
           // The catalog call returns EVERY vehicle type, including ones nobody
           // is driving here — before it, those simply weren't in the list. So
           // the tile has to say so, or the customer picks a bike, books, and
           // waits out a broadcast that was never going to be answered.
-          //
-          // Still tappable: dispatch widens its radius in waves, so "none in
-          // this circle right now" is not "nobody will come".
-          if (quote?.isUnavailable == true)
+          if (unavailable)
             CustomText(
-              'None nearby',
+              'Riders not available',
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: RideStyle.inkMuted,
+              color: RideStyle.danger,
+              textAlign: TextAlign.center,
+              // Two lines: the label has to fit four-to-a-row on a small
+              // phone, where it won't sit on one.
+              maxLines: 2,
+            )
+          else ...[
+            // Always rendered, so a priced tile and an unpriced one keep the
+            // same height and the grid rows stay level. An em dash means the
+            // vehicle exists but this trip isn't priced for it — a different
+            // thing from the tile being missing.
+            CustomText(
+              quote == null ? '—' : '₹${quote!.fare.toStringAsFixed(0)}',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: quote == null ? RideStyle.inkMuted : RideStyle.ink,
               textAlign: TextAlign.center,
               maxLines: 1,
             ),
+            // What the fare buys: the distance the server priced this row over
+            // and how long the drive takes. A bare number is a number; "₹40"
+            // next to "2.0 km · 3 min" is a price the customer can judge —
+            // which is the whole reason to show a catalogue rather than one
+            // quote.
+            if (quote?.tripSummary case final summary?)
+              CustomText(
+                summary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: RideStyle.inkMuted,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+              ),
+          ],
         ],
+        ),
       ),
     );
   }

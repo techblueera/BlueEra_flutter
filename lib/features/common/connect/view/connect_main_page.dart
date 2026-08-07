@@ -82,14 +82,11 @@ class ConnectMainPage extends StatefulWidget {
 
 class _ConnectMainPageState extends State<ConnectMainPage>
     with SingleTickerProviderStateMixin {
-  /// Business profiles — plus the individual Social and Skill Worker profile
-  /// types — trade the Call tab for an Order tab that mirrors the merchant
-  /// dashboard's first tab (see [OrdersTabBody]); everyone else keeps the
-  /// call history.
-  bool get _showsOrderTab =>
-      isBusinessUser() ||
-      userProfileTypeGlobal == SOCIAL_PROFILE ||
-      userProfileTypeGlobal == SKILL_WORKER;
+  /// Business and INDIVIDUAL accounts — plus the Social, Self Employed, Skill
+  /// Worker and Professional profile types — trade the Call tab for an Order
+  /// tab that mirrors the merchant dashboard's first tab (see
+  /// [OrdersTabBody]); anyone else keeps the call history.
+  bool get _showsOrderTab => showsConnectOrderTab();
 
   List<String> get iconTab => [
         AppIconAssets.chat,
@@ -364,7 +361,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.personal_Chat_Type},
       );
-    } else if (index == 1 || (index == 2 && _showsOrderTab)) {
+    } else if (index == 1 || index == 2) {
       // Inquiry and the Order tab both render from the business chat list,
       // so both need the same socket emit.
       chatViewController.emitEvent(
@@ -372,8 +369,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         {ApiKeys.type: AppConstants.business_Chat_Type},
       );
     }
-    // For non-business profiles index == 2 is the Call tab —
-    // CallHistoryScreen loads its own data, so there is no emit for it.
   }
 
   @override
@@ -841,6 +836,10 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                             // with a "New" label below the time in the
                             // Inquiry tab.
                             showNewIfRecentlyCreated: true,
+                            // No inquiries yet → show the same empty-state
+                            // placeholder the Chat tab uses instead of a
+                            // blank tab.
+                            showEmptyState: true,
                           ),
                         ),
                       ],
