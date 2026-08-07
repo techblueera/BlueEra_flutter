@@ -24,45 +24,19 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 import '../../../business/widgets/rating_widget.dart';
-import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/auth/service/chat_click_tracker.dart';
 
-/// Tinted surface set for a school card. Mirrors the palette rotation
-/// used by `service_business_card.dart` so both discover directories
-/// share the same visual family — the outer wash + border + dashed
-/// divider all come from the same palette.
-class _CardPalette {
-  final Color cardBg;
-  final Color cardBorder;
-  final Color bodyDashedDivider;
+/// Card surface for one school tile. The listing is a two-up grid now,
+/// so the card is a plain white surface with a hairline border — the
+/// tinted wash rotation the single-column card used would fight with
+/// the cover images sitting side by side.
+const Color _kCardBorder = Color(0xFFE9EBF0);
 
-  const _CardPalette({
-    required this.cardBg,
-    required this.cardBorder,
-    required this.bodyDashedDivider,
-  });
-}
-
-/// Two-palette rotation — cards alternate as the user scrolls. Values
-/// match the teal / lavender pair in `service_business_card.dart` so
-/// the two discover cards read as a set. `bodyDashedDivider` picks a
-/// slightly darker shade of the wash so the divider is visible against
-/// the card background.
-const List<_CardPalette> _schoolCardPalettes = <_CardPalette>[
-  _CardPalette(
-    cardBg: Color(0xFFEDFCFE),
-    cardBorder: Color(0xFFCFEEF2),
-    bodyDashedDivider: Color(0xFFBBE3E8),
-  ),
-  _CardPalette(
-    cardBg: Color(0xFFFBF2FF),
-    cardBorder: Color(0xFFEDD3F7),
-    bodyDashedDivider: Color(0xFFE3D4E9),
-  ),
-];
+/// Hairline rule between the highlight cells and the students footer.
+const Color _kCardDivider = Color(0xFFEDEFF3);
 
 class AllEducationServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
@@ -197,29 +171,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
-  void _openChat(SchoolDetailsData service) {
-    final userId = service.ownerId ?? '';
-    if (userId.trim().isEmpty) return;
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final bId = service.id?.trim();
-    if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(
-        userId: bId,
-        source: ChatClickSource.searchResult,
-      );
-    }
-    final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: userId,
-      name: service.name,
-      profile: service.logo,
-      route: AppConstants.route_discover,
-    );
-  }
-
   Widget _buildListSliver() {
     return Obx(() {
       if (controller_.isEducationServiceLoading.value &&
@@ -248,39 +199,61 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
       final list = controller_.schoolDetailsDataDataList;
       final showMoreLoader = controller_.isEducationServiceLoadingMore.value;
-      final rows = buildNativeAdRows(list.length);
 
-      return SliverPadding(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size10,
-        ),
-        sliver: SliverList.builder(
-          itemCount: rows.length + (showMoreLoader ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == rows.length) {
-              return const Center(
+      // Column count scales with the viewport so the tile keeps a
+      // readable width from a small phone up to a tablet in landscape.
+      final crossAxisCount = _gridCrossAxisCount();
+
+      // Masonry (not a fixed-ratio grid) because tiles differ in height:
+      // a listing with no highlight cells or no students count is
+      // shorter than a full one, and masonry packs those without
+      // stretching or clipping. Ads stay full-width between chunks.
+      return SliverMainAxisGroup(
+        slivers: [
+          ...buildNativeAdGridSlivers(
+            itemCount: list.length,
+            keyPrefix: 'education_service_native_ad',
+            adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            gridSliverBuilder: (start, end) => SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10,
+                vertical: SizeConfig.size6,
+              ),
+              sliver: SliverMasonryGrid.count(
+                crossAxisCount: crossAxisCount,
+                mainAxisSpacing: SizeConfig.size10,
+                crossAxisSpacing: SizeConfig.size10,
+                childCount: end - start,
+                itemBuilder: (context, i) =>
+                    selfProfessionCard(list[start + i]),
+              ),
+            ),
+          ),
+          if (showMoreLoader)
+            const SliverToBoxAdapter(
+              child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-              );
-            }
-            final row = rows[index];
-            if (row.isAd) {
-              return NativeAdSlot(
-                adOrdinal: row.adOrdinal,
-                keyPrefix: 'education_service_native_ad',
-              );
-            }
-            return selfProfessionCard(list[row.contentIndex], row.contentIndex);
-          },
-        ),
+              ),
+            ),
+          SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size10)),
+        ],
       );
     });
   }
 
-  Widget selfProfessionCard(SchoolDetailsData service, int index) {
+  /// Two tiles on a phone, three on a tablet, four on a wide tablet /
+  /// landscape — keeps each tile between roughly 160dp and 220dp wide.
+  int _gridCrossAxisCount() {
+    final width = SizeConfig.screenWidth;
+    if (width >= 900) return 4;
+    if (width >= 600) return 3;
+    return 2;
+  }
+
+  Widget selfProfessionCard(SchoolDetailsData service) {
     // Hero shows the cover banner, never the logo. Priority:
     //   1. `coverPicture` — the field the backend now sets for schools
     //      (see the education-service payload sample).
@@ -306,30 +279,31 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         (service.name?.isNotEmpty ?? false) ? service.name! : '';
     final String numberOfStudents =
         (service.numberOfStudents != null && service.numberOfStudents! > 0)
-            ? '${service.numberOfStudents}'
+            ? _formatStudentCount(service.numberOfStudents!)
             : '';
     final double? ratingValue = service.avgRating;
     final String rating = (ratingValue != null && ratingValue > 0)
         ? ratingValue.toStringAsFixed(1)
         : '';
 
-    // Distance + address feed the location row under the header pill
-    // row — rendered by [_buildLocationRow], matching the exact style
-    // used in service_business_card.dart.
+    // Distance + address feed the location line under the meta row —
+    // the tile is half a screen wide, so distance wins the space and
+    // the address only fills whatever is left over.
     final String distance = _distanceFromUser(service);
     final String address = (service.location?.name?.isNotEmpty ?? false)
         ? service.location!.name!
         : '';
 
-    // Highlight cells now show two items only. The `board` field is
-    // rendered above in the header pill row, so it is filtered out of
-    // this row via [_buildHighlightCells].
+    // Highlight cells show two items. The category's headline field
+    // (board / streams / …) is rendered in the meta row above, so it
+    // is filtered out of this row via [_buildHighlightCells].
     final highlights = _buildHighlightCells(service);
+    final List<String> metaItems = _pillItems(service);
+    final String? pillField = _pillFieldFor(service);
+    final String metaSuffix = pillField == null ? '' : _suffixForKey(pillField);
 
-    // Outer wash rotates per card so adjacent items read as a set,
-    // matching the two-palette rotation in service_business_card.dart.
-    final palette =
-        _schoolCardPalettes[index.abs() % _schoolCardPalettes.length];
+    final bool showLocation = distance.isNotEmpty || address.isNotEmpty;
+    final bool showMeta = rating.isNotEmpty || metaItems.isNotEmpty;
 
     return InkWell(
       onTap: () {
@@ -345,24 +319,24 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           schoolData: service,
         );
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: palette.cardBg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: palette.cardBorder, width: 1),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _kCardBorder, width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x14001120),
-              blurRadius: 18,
-              offset: Offset(0, 6),
+              color: Color(0x0F001120),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
             _buildCoverSection(
               images: coverImages,
@@ -370,45 +344,60 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  SizeConfig.size12, SizeConfig.size12, SizeConfig.size12, 0),
-              child: _buildHeaderRow(
-                logoUrl: service.logo ?? '',
-                name: name,
-                distance: distance,
-                address: address,
-                rating: rating,
-                service: service,
+                SizeConfig.size10,
+                SizeConfig.size10,
+                SizeConfig.size10,
+                0,
               ),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            _DashedDivider(color: palette.bodyDashedDivider),
-            SizedBox(height: SizeConfig.size12),
-            if (highlights.isNotEmpty) ...[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                child: Row(
-                  children: [
-                    for (int i = 0; i < highlights.length; i++) ...[
-                      Expanded(
-                        child:
-                            _statCell(highlights[i].icon, highlights[i].label),
-                      ),
-                      if (i != highlights.length - 1)
-                        SizedBox(width: SizeConfig.size8),
-                    ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (name.isNotEmpty)
+                    CustomText(
+                      name,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black22,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (showMeta) ...[
+                    SizedBox(height: SizeConfig.size4),
+                    _buildMetaRow(rating, metaItems, metaSuffix),
                   ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.size10),
-            ],
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                  SizeConfig.size12, 0, SizeConfig.size12, SizeConfig.size12),
-              child: _buildFeeRow(
-                label: 'No. Of Students',
-                value: numberOfStudents,
+                  if (showLocation) ...[
+                    SizedBox(height: SizeConfig.size4),
+                    _buildLocationRow(distance, address),
+                  ],
+                  if (highlights.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size8),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < highlights.length; i++) ...[
+                            if (i > 0) SizedBox(width: SizeConfig.size8),
+                            Expanded(
+                              child: _statCell(
+                                  highlights[i].icon, highlights[i].label),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: SizeConfig.size10),
+                ],
               ),
             ),
+            if (numberOfStudents.isNotEmpty) ...[
+              Container(height: 1, color: _kCardDivider),
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: _buildStudentsRow(numberOfStudents),
+              ),
+            ],
           ],
         ),
       ),
@@ -697,6 +686,18 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
+  /// Thousands-separated head count — "25000" reads as "25,000" in the
+  /// tile footer.
+  String _formatStudentCount(num count) {
+    final digits = count.round().toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
+  }
+
   String _distanceFromUser(SchoolDetailsData service) {
     final coords = service.location?.coordinates;
     if (coords == null || coords.length < 2) return '';
@@ -711,9 +712,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     return '${km.toStringAsFixed(0)}KM Away';
   }
 
-  String? _operatingWindow(SchoolDetailsData service) {
+  /// Whether the listing is open on the current weekday. The tile has
+  /// room for a badge, not a full "Mon–Sat | 9:00 - 17:00" window, so
+  /// the cover shows a plain "Open" chip and the full schedule stays on
+  /// the school's profile page.
+  bool _isOpenToday(SchoolDetailsData service) {
     final availability = service.availability;
-    if (availability == null || availability.isEmpty) return null;
+    if (availability == null || availability.isEmpty) return false;
     const order = [
       'Monday',
       'Tuesday',
@@ -723,60 +728,23 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       'Saturday',
       'Sunday',
     ];
-    const shortNames = {
-      'Monday': 'Mon',
-      'Tuesday': 'Tue',
-      'Wednesday': 'Wed',
-      'Thursday': 'Thu',
-      'Friday': 'Fri',
-      'Saturday': 'Sat',
-      'Sunday': 'Sun',
-    };
-
-    final openSlots = <MapEntry<int, Availability>>[];
-    for (var i = 0; i < order.length; i++) {
-      final slot = availability.firstWhere(
-        (a) => (a.day ?? '').toLowerCase() == order[i].toLowerCase(),
-        orElse: () => Availability(),
-      );
-      if (slot.isOpen == true &&
-          (slot.openTime ?? '').isNotEmpty &&
-          (slot.closeTime ?? '').isNotEmpty) {
-        openSlots.add(MapEntry(i, slot));
-      }
-    }
-    if (openSlots.isEmpty) return null;
-
-    // Group consecutive open-day indexes into contiguous runs.
-    final groups = <List<MapEntry<int, Availability>>>[];
-    for (final entry in openSlots) {
-      if (groups.isEmpty || entry.key != groups.last.last.key + 1) {
-        groups.add([entry]);
-      } else {
-        groups.last.add(entry);
-      }
-    }
-
-    final dayRange = groups.map((g) {
-      final first = shortNames[g.first.value.day] ?? g.first.value.day ?? '';
-      final last = shortNames[g.last.value.day] ?? g.last.value.day ?? '';
-      return first == last ? first : '$first–$last';
-    }).join(', ');
-
-    final firstOpen = openSlots.first.value.openTime!;
-    final firstClose = openSlots.first.value.closeTime!;
-    final allSame = openSlots.every((e) =>
-        e.value.openTime == firstOpen && e.value.closeTime == firstClose);
-
-    if (allSame) return '$dayRange | $firstOpen - $firstClose';
-    return '$dayRange | varies';
+    // DateTime.weekday is 1 (Monday) … 7 (Sunday) — same order as above.
+    final today = order[DateTime.now().weekday - 1].toLowerCase();
+    final slot = availability.firstWhere(
+      (a) => (a.day ?? '').toLowerCase() == today,
+      orElse: () => Availability(),
+    );
+    return slot.isOpen == true;
   }
 
+  /// Cover uses an [AspectRatio] rather than a fixed height so the
+  /// image scales with the tile width — the same card has to work at
+  /// two, three or four columns.
   Widget _buildCoverSection({
     required List<String> images,
     required SchoolDetailsData service,
   }) {
-    final window = _operatingWindow(service);
+    final bool isOpen = _isOpenToday(service);
     final Widget imageWidget = images.isNotEmpty
         ? GestureDetector(
             onTap: () => navigatePushTo(
@@ -790,10 +758,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             ),
             child: CachedNetworkImage(
               imageUrl: images.first,
-              height: 170,
               width: double.infinity,
               fit: BoxFit.cover,
-              memCacheWidth: 800,
+              memCacheWidth: 600,
               placeholder: (_, __) => LocalAssets(
                 imagePath: AppIconAssets.place_holder_image,
                 boxFix: BoxFit.cover,
@@ -805,7 +772,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             ),
           )
         : Container(
-            height: 170,
             width: double.infinity,
             color: AppColors.greyE5,
             child: LocalAssets(
@@ -815,17 +781,16 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           );
 
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-      child: SizedBox(
-        height: SizeConfig.size200,
-        width: double.infinity,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      child: AspectRatio(
+        aspectRatio: 1.2,
         child: Stack(
           fit: StackFit.expand,
           children: [
             imageWidget,
             Positioned(
-              top: 10,
-              right: 10,
+              top: SizeConfig.size6,
+              right: SizeConfig.size6,
               child: Column(
                 children: [
                   GestureDetector(
@@ -837,7 +802,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   // lib/docs/rating-ui-integration.md §1) — without it the
                   // POST to /business/{businessId}/ratings would 404.
                   if ((service.id ?? '').trim().isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size8),
+                    SizedBox(height: SizeConfig.size6),
                     GestureDetector(
                       onTap: () => _openRateDialog(service),
                       child: _circleIcon(AppIconAssets.star),
@@ -846,40 +811,34 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 ],
               ),
             ),
-            if (window != null)
+            if (isOpen)
               Positioned(
-                bottom: 10,
-                right: 10,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size10,
-                        vertical: SizeConfig.size6),
-                    decoration: BoxDecoration(
-                      color: Color(0xffF2FFF2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.greenShade, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.access_time,
-                            size: SizeConfig.size12,
-                            color: AppColors.greenShade),
-                        SizedBox(width: SizeConfig.size4),
-                        Flexible(
-                          child: CustomText(
-                            window,
-                            fontSize: SizeConfig.size12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.greenShade,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                bottom: SizeConfig.size6,
+                right: SizeConfig.size6,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size6,
+                    vertical: SizeConfig.size3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF2FFF2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.greenShade, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time,
+                          size: SizeConfig.size12, color: AppColors.greenShade),
+                      SizedBox(width: SizeConfig.size3),
+                      CustomText(
+                        AppStrings.open.tr,
+                        fontSize: SizeConfig.extraSmall,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.greenShade,
+                        maxLines: 1,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -891,14 +850,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   Widget _circleIcon(String icon) {
     return Container(
-      width: 30,
-      height: 30,
-      decoration: BoxDecoration(
+      width: SizeConfig.size26,
+      height: SizeConfig.size26,
+      decoration: const BoxDecoration(
         color: AppColors.black25,
         shape: BoxShape.circle,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: EdgeInsets.all(SizeConfig.size6),
         child: LocalAssets(
           imagePath: icon,
           imgColor: AppColors.white,
@@ -907,160 +866,85 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
-  Widget _buildHeaderRow({
-    required String logoUrl,
-    required String name,
-    required String distance,
-    required String address,
-    required String rating,
-    required SchoolDetailsData service,
-  }) {
-    final bool showLocation = distance.isNotEmpty || address.isNotEmpty;
-    final bool showRating = rating.isNotEmpty;
-    final List<String> pillItems = _pillItems(service);
-    final String? pillField = _pillFieldFor(service);
-    final String pillSuffix = pillField == null ? '' : _suffixForKey(pillField);
-    final bool showPills = pillItems.isNotEmpty;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Logo / name open the school's business profile; the rest of
-        // the card still opens the school detail page.
-        _schoolLogo(logoUrl),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (name.isNotEmpty)
-                CustomText(
-                  name,
-                  fontSize: SizeConfig.size16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black22,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              //
-              Row(
-                children: [
-                  if (showRating) ...[
-                    SizedBox(height: SizeConfig.size6),
-                    _buildRatingPill(rating),
-                    SizedBox(width: SizeConfig.size6),
-                  ],
-                  if (showPills)
-                    Flexible(child: _buildInfoPillRow(pillItems, pillSuffix)),
-                ],
-              ),
-              if (showLocation) ...[
-                SizedBox(height: SizeConfig.size6),
-                _buildLocationRow(distance, address),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Rating pill styled to match `service_business_card.dart` so both
-  /// discover cards share the same rating badge.
-  Widget _buildRatingPill(String rating) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xffDDE2EE)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.fill_star,
-            width: 10,
-            height: 10,
-            imgColor: AppColors.yellow,
-          ),
-          const SizedBox(width: 3),
-          CustomText(
-            rating,
-            fontSize: SizeConfig.size10,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Header pill row (sits where `service_business_card.dart` puts
-  /// its "Open" pill). Each entry gets its own chip so multi-value
-  /// categories (e.g. CBSE + State boards, or Science + Commerce
-  /// streams) read as distinct items. Shows up to two chips and
-  /// appends a "+N" chip when the listing has more than two.
-  /// [suffix] pulls from [_suffixForKey] so schools render "CBSE
-  /// Board" while colleges/sports/skills render plain values.
-  Widget _buildInfoPillRow(List<String> items, String suffix) {
+  /// Meta line under the school name: `★ 4.8 | CBSE Board | State Board`.
+  /// A half-width tile has no room for individual chips, so the rating
+  /// and the category's headline values ([_pillItems]) are rendered as
+  /// one pipe-separated line that ellipsizes as a whole. Shows up to
+  /// two values and appends "+N" for the rest.
+  Widget _buildMetaRow(String rating, List<String> items, String suffix) {
     const int maxVisible = 2;
     final visible =
         items.length > maxVisible ? items.sublist(0, maxVisible) : items;
     final extra = items.length - visible.length;
 
+    final labels = <String>[
+      for (final item in visible) suffix.isEmpty ? item : '$item $suffix',
+      if (extra > 0) '+$extra',
+    ];
+
+    final separator = TextSpan(
+      text: '  |  ',
+      style: TextStyle(
+        color: AppColors.greyE5,
+        fontSize: SizeConfig.extraSmall,
+      ),
+    );
+
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        for (int i = 0; i < visible.length; i++) ...[
-          if (i > 0) SizedBox(width: SizeConfig.size4),
-          Flexible(
-            child: _boardChip(
-                suffix.isEmpty ? visible[i] : '${visible[i]} $suffix'),
+        if (rating.isNotEmpty) ...[
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size12,
+            height: SizeConfig.size12,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            rating,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
           ),
         ],
-        if (extra > 0) ...[
-          SizedBox(width: SizeConfig.size4),
-          _boardChip('+$extra'),
-        ],
+        if (labels.isNotEmpty)
+          Flexible(
+            child: RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  for (int i = 0; i < labels.length; i++) ...[
+                    if (i > 0 || rating.isNotEmpty) separator,
+                    TextSpan(
+                      text: labels[i],
+                      style: TextStyle(
+                        color: AppColors.secondaryTextColor,
+                        fontSize: SizeConfig.extraSmall,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  /// One rounded chip used inside [_buildInfoPillRow] — same shape as
-  /// the rating pill so the row reads as a set. Long labels ellipsize
-  /// inside the chip; the parent [Flexible] lets the chip itself
-  /// shrink if the header runs out of horizontal room.
-  Widget _boardChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xffDDE2EE)),
-      ),
-      child: CustomText(
-        label,
-        fontSize: SizeConfig.size10,
-        fontWeight: FontWeight.w500,
-        color: AppColors.secondaryTextColor,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
   /// Inline distance + " | " + address row — matches
-  /// `service_business_card.dart._buildLocationRow` exactly so both
-  /// discover cards share the same location styling (pin +
-  /// primary-coloured distance + secondary-coloured address).
+  /// `service_business_card.dart._buildLocationRow` so both discover
+  /// cards share the same location styling (pin + primary-coloured
+  /// distance + secondary-coloured address).
   Widget _buildLocationRow(String distanceText, String address) {
     return Row(
       children: [
         LocalAssets(
           imagePath: AppIconAssets.location_outline,
           imgColor: AppColors.primaryColor,
-          height: 10,
-          width: 10,
+          height: SizeConfig.size10,
+          width: SizeConfig.size10,
         ),
         SizedBox(width: SizeConfig.size4),
         Flexible(
@@ -1074,7 +958,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     text: distanceText,
                     style: TextStyle(
                       color: AppColors.primaryColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1083,7 +967,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     text: '  |  ',
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                     ),
                   ),
                 if (address.isNotEmpty)
@@ -1091,7 +975,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     text: address,
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -1103,221 +987,77 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
+  /// One highlight cell — icon stacked above the label so a two-up
+  /// tile can still show a full value like "Class 1-12" without
+  /// truncating it against a side-by-side icon.
   Widget _statCell(String icon, String label) {
     return Container(
-      padding: EdgeInsets.all(SizeConfig.size6),
+      padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5, width: 0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5, width: 1),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Fixed box so mixed-source assets (small SVGs like standard.svg
           // vs. large rasters like stream.png) all read at the same visual
           // weight across cells.
           SizedBox(
-            height: 20,
-            width: 20,
+            height: SizeConfig.size18,
+            width: SizeConfig.size18,
             child: LocalAssets(
               imagePath: icon,
-              height: 20,
-              width: 20,
-              imgColor: AppColors.primaryColor,
+              imgColor: AppColors.grey7E,
               boxFix: BoxFit.contain,
             ),
           ),
-          SizedBox(width: SizeConfig.size6),
-          // Flexible so long labels (e.g. "English, Hindi …+2")
-          // ellipsize inside the cell instead of overflowing the Row.
-          Flexible(
-            child: CustomText(
-              label,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey7E,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
+            color: AppColors.black22,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeeRow({required String label, required String value}) {
-    final hasValue = value.isNotEmpty;
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5, width: 0.5),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          hasValue
-              ? Container(
-                  padding: EdgeInsets.all(SizeConfig.size6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(24),
-                    // border: Border.all(color: AppColors.greyE5, width: 0.5),
-                  ),
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.multiPersonsIcon,
-                    imgColor: AppColors.primaryColor,
-                  ),
-                )
-              : SizedBox.shrink(),
-          SizedBox(width: SizeConfig.size6),
-          Expanded(
-            child: hasValue
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        label,
-                        fontSize: SizeConfig.size12,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      // const SizedBox(height: 2),
-                      CustomText(
-                        value,
-                        fontSize: SizeConfig.size16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  "Inquiry Now",
-                  fontSize: SizeConfig.size13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                const Icon(Icons.arrow_forward,
-                    size: 16, color: AppColors.white),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionsRow(SchoolDetailsData service) {
+  /// Footer line — "25,000 Students" with the head-count icon in the
+  /// brand colour, sitting below the hairline rule.
+  Widget _buildStudentsRow(String value) {
     return Row(
       children: [
-        // Expanded(
-        //   flex: 2,
-        //   child: InkWell(
-        //     onTap: () => _openChat(service),
-        //     child: Container(
-        //       height: 44,
-        //       decoration: BoxDecoration(
-        //         color: AppColors.skyBlueFF,
-        //         borderRadius: BorderRadius.circular(10),
-        //       ),
-        //       child: Row(
-        //         mainAxisAlignment: MainAxisAlignment.center,
-        //         children: [
-        //           LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-        //           SizedBox(width: SizeConfig.size6),
-        //           CustomText(
-        //             'Chat',
-        //             fontSize: SizeConfig.size13,
-        //             fontWeight: FontWeight.w600,
-        //             color: AppColors.primaryColor,
-        //           ),
-        //         ],
-        //       ),
-        //     ),
-        //   ),
-        // ),
-        // const SizedBox(width: 10),
+        SizedBox(
+          height: SizeConfig.size18,
+          width: SizeConfig.size18,
+          child: LocalAssets(
+            imagePath: AppIconAssets.multiPersonsIcon,
+            imgColor: AppColors.primaryColor,
+            boxFix: BoxFit.contain,
+          ),
+        ),
+        SizedBox(width: SizeConfig.size6),
         Expanded(
-          flex: 4,
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  AppStrings.inquiry.tr,
-                  fontSize: SizeConfig.size13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                const Icon(Icons.arrow_forward,
-                    size: 16, color: AppColors.white),
-              ],
-            ),
+          child: CustomText(
+            // Literal label, same as the "No. Of Students" copy this row
+            // replaces — there is no `students` translation key yet.
+            '$value Students',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
-
-  // Figma spec: 50×50 avatar (matches CachedAvatarWidget size used in
-  // service_business_card.dart).
-  static const double _schoolLogoSize = 50;
-
-  Widget _schoolLogo(String url) {
-    if (url.isEmpty) return _brokenSchoolLogo();
-    return ClipOval(
-      child: CachedNetworkImage(
-        imageUrl: url,
-        width: _schoolLogoSize,
-        height: _schoolLogoSize,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => Container(
-          width: _schoolLogoSize,
-          height: _schoolLogoSize,
-          color: AppColors.greyE5,
-        ),
-        errorWidget: (_, __, ___) => _brokenSchoolLogo(),
-      ),
-    );
-  }
-
-  Widget _brokenSchoolLogo() => Container(
-        width: _schoolLogoSize,
-        height: _schoolLogoSize,
-        decoration: BoxDecoration(
-          color: AppColors.greyE5,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          Icons.school_outlined,
-          size: SizeConfig.size28,
-          color: AppColors.secondaryTextColor,
-        ),
-      );
 }
 
 /// Value class for one stat cell rendered in the education card's
@@ -1327,52 +1067,6 @@ class _HighlightCell {
   final String icon;
   final String label;
   const _HighlightCell({required this.icon, required this.label});
-}
-
-/// Full-width dashed horizontal rule. Copied verbatim from
-/// `service_business_card.dart` so both discover cards share the
-/// same divider treatment between the header block and body.
-class _DashedDivider extends StatelessWidget {
-  final Color color;
-
-  const _DashedDivider({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1,
-      width: double.infinity,
-      child: CustomPaint(painter: _DashedLinePainter(color: color)),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  static const double _dashWidth = 4;
-  static const double _dashSpace = 4;
-  static const double _thickness = 1;
-
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = _thickness
-      ..strokeCap = StrokeCap.round;
-    final y = size.height / 2;
-    double x = 0;
-    while (x < size.width) {
-      final endX = (x + _dashWidth).clamp(0.0, size.width);
-      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
-      x += _dashWidth + _dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
 }
 
 class _NoSchoolsFound extends StatelessWidget {

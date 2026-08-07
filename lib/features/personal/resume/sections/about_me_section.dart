@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/add_achievement_screen.dart';
@@ -18,9 +19,11 @@ import 'package:BlueEra/features/personal/resume/hobbies_screen.dart';
 import 'package:BlueEra/features/personal/resume/portfolio_screen.dart';
 import 'package:BlueEra/features/personal/resume/resume_profile_section_card.dart';
 import 'package:BlueEra/features/personal/resume/skills_resume_screen.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_chip.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/delete_dialog.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -65,262 +68,112 @@ class _AboutMeSectionState extends State<AboutMeSection> {
 
   @override
   Widget build(BuildContext context) {
+    // No SizedBox separators between the cards: CommonCardWidget already
+    // carries `margin: EdgeInsets.all(10)`, so adjacent cards are 20dp
+    // apart on their own. The old spacers pushed some gaps to 30dp while
+    // others (portfolio → awards → achievements) had none, which is what
+    // made the tab look unevenly spaced.
+    // `stretch` keeps every card the same width — without it a card whose
+    // list is empty (title + Add row only) shrink-wraps and sits narrower
+    // than its filled neighbours.
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        /// SKILLS
         Obx(() {
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey..withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
+          final skills = skillsController.skillsList
+              .where((skill) => skill.trim().isNotEmpty)
+              .toList();
+          return SizedBox(
+            width: Get.width,
+            child: _ChipSectionCard(
+              title: AppStrings.skills,
+              addLabel: AppStrings.addSkills,
+              onAdd: () => navigatePushTo(context, SkillsResumeScreen()),
+              groups: [
+                _ChipGroup(
+                  chips: skills
+                      .map((skill) => _ChipData(
+                            label: skill,
+                            onDelete: () {
+                              showConfirmDialog(
+                                context,
+                                () {
+                                  skillsController.deleteSkillsApi(skill);
+                                  Navigator.of(context).pop();
+                                },
+                                title: AppStrings.deleteSkill,
+                                content:
+                                    "${AppStrings.deleteConfirm.tr} '$skill'?",
+                              );
+                            },
+                          ))
+                      .toList(),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                CustomText(AppStrings.skills,
-                    color: AppColors.grey72, fontSize: SizeConfig.medium),
+          );
+        }),
 
-                SizedBox(height: 16),
+        /// LANGUAGES
+        Obx(() {
+          Future<void> openLanguageScreen() async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddLanguageScreen()),
+            );
+            await langController.getLanguagesApi();
+          }
 
-                // Content based on skills availability
-                if (skillsController.skillsList.isEmpty)
-                  // Empty state - Career Objective jaisa design
-                  GestureDetector(
-                    onTap: () => navigatePushTo(context, SkillsResumeScreen()),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.add,
-                          size: 16,
-                          color: AppColors.primaryColor,
-                        ),
-                        SizedBox(width: 8),
-                        CustomText(
-                          AppStrings.addSkills,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: skillsController.skillsList
-                            .where((skill) => skill.trim().isNotEmpty)
-                            .map((skill) => CommonChip(
-                                  label: skill,
-                                  onDeleted: () {
-                                    showConfirmDialog(
-                                      context,
-                                      () {
-                                        skillsController.deleteSkillsApi(skill);
-                                        Navigator.of(context).pop();
-                                      },
-                                      title: AppStrings.deleteSkill,
-                                      content:
-                                          "${AppStrings.deleteConfirm.tr} '$skill'?",
-                                    );
-                                  },
+          // `isFirstTime` keeps the card in its empty state until the user
+          // has actually saved a selection, even if the lists carry
+          // defaults — same gate as before.
+          final showGroups = !langController.isFirstTime.value;
+          return SizedBox(
+            width: Get.width,
+            child: _ChipSectionCard(
+              title: AppStrings.language,
+              addLabel: AppStrings.addLanguages,
+              onAdd: openLanguageScreen,
+              groups: showGroups
+                  ? [
+                      _ChipGroup(
+                        label: AppStrings.languagesSpeakUnderstand,
+                        chips: langController.speakLanguages
+                            .map((language) => _ChipData(
+                                  label: language.label,
+                                  onDelete: () =>
+                                      showConfirmDialogForLanguageDeletion(
+                                    context,
+                                    language,
+                                    langController,
+                                    'speakAndUnderstand',
+                                  ),
                                 ))
                             .toList(),
                       ),
-                      SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () =>
-                            navigatePushTo(context, SkillsResumeScreen()),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.add,
-                              size: 16,
-                              color: AppColors.primaryColor,
-                            ),
-                            SizedBox(width: 8),
-                            CustomText(
-                              AppStrings.addSkills,
-                              color: AppColors.primaryColor,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
+                      _ChipGroup(
+                        label: AppStrings.languagesWrite,
+                        chips: langController.writeLanguages
+                            .map((language) => _ChipData(
+                                  label: language.label,
+                                  onDelete: () =>
+                                      showConfirmDialogForLanguageDeletion(
+                                    context,
+                                    language,
+                                    langController,
+                                    'write',
+                                  ),
+                                ))
+                            .toList(),
                       ),
-                    ],
-                  ),
-              ],
+                    ]
+                  : const [],
             ),
           );
         }),
-        SizedBox(height: SizeConfig.size10),
-        Obx(() {
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey..withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                CustomText(AppStrings.language,
-                    color: AppColors.grey72, fontSize: SizeConfig.medium),
 
-                SizedBox(height: 16),
-
-                if (langController.isFirstTime.value ||
-                    (langController.speakLanguages.isEmpty &&
-                        langController.writeLanguages.isEmpty))
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => AddLanguageScreen()),
-                      );
-                      await langController.getLanguagesApi();
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.add,
-                          size: 16,
-                          color: AppColors.primaryColor,
-                        ),
-                        SizedBox(width: 8),
-                        CustomText(
-                          AppStrings.addLanguages,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (langController.speakLanguages.isNotEmpty) ...[
-                        CustomText(
-                          AppStrings.languagesSpeakUnderstand,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
-                        ),
-                        SizedBox(height: 12),
-
-                        // For Speak and Understand languages
-                        Obx(() => Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: langController.speakLanguages
-                                  .map(
-                                    (language) => CommonChip(
-                                      label: language.label,
-                                      onDeleted: () {
-                                        // Show confirm dialog before removal
-                                        showConfirmDialogForLanguageDeletion(
-                                          context,
-                                          language,
-                                          langController,
-                                          'speakAndUnderstand',
-                                        );
-                                      },
-                                    ),
-                                  )
-                                  .toList(),
-                            )),
-                        SizedBox(height: 20),
-                      ],
-                      if (langController.writeLanguages.isNotEmpty) ...[
-                        CustomText(
-                          AppStrings.languagesWrite,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
-                        ),
-                        SizedBox(height: 12),
-
-                        // For Write languages
-                        Obx(() => Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: langController.writeLanguages
-                                  .map(
-                                    (language) => CommonChip(
-                                      label: language.label,
-                                      onDeleted: () {
-                                        // Show confirm dialog before removal
-                                        showConfirmDialogForLanguageDeletion(
-                                          context,
-                                          language,
-                                          langController,
-                                          'write',
-                                        );
-                                      },
-                                    ),
-                                  )
-                                  .toList(),
-                            )),
-                        SizedBox(height: 16),
-                      ],
-                      GestureDetector(
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => AddLanguageScreen()),
-                          );
-                          await langController.getLanguagesApi();
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.add,
-                              size: 16,
-                              color: AppColors.primaryColor,
-                            ),
-                            SizedBox(width: 8),
-                            CustomText(
-                              AppStrings.addLanguages,
-                              color: AppColors.primaryColor,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          );
-        }),
-        SizedBox(height: SizeConfig.size10),
-
+        /// CAREER OBJECTIVE
         Obx(() {
           final String objective = careerController.careerObjective.value;
           final items = objective.isNotEmpty
@@ -329,7 +182,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                 ]
               : <Map<String, dynamic>>[];
           return ResumeProfileSectionCard(
-            title: AppStrings.careerObjective,
+            title: AppStrings.careerObjective.tr,
             items: items,
             onAddPressed: items.isEmpty
                 ? () async {
@@ -361,7 +214,6 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           );
         }),
 
-        SizedBox(height: SizeConfig.size10),
         Obx(() {
           final items = portfolioController.portfolioLinks
               .map((link) => {
@@ -372,7 +224,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               .toList();
 
           return ResumeProfileSectionCard(
-            title: AppStrings.portfolioWorkSamples,
+            title: AppStrings.portfolioWorkSamples.tr,
             items: items,
             onAddPressed: () async {
               final result = await Navigator.push(
@@ -501,7 +353,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           }).toList();
 
           return ResumeProfileSectionCard(
-            title: AppStrings.awards,
+            title: AppStrings.awards.tr,
             items: items,
             onAddPressed: () {
               awardsController.clearForm();
@@ -536,7 +388,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
         Obx(() {
           final items = achievementsController.achievementsList;
           return ResumeProfileSectionCard(
-            title: AppStrings.achievements,
+            title: AppStrings.achievements.tr,
             items: items.toList(),
             onAddPressed: () {
               achievementsController.clearForm();
@@ -566,19 +418,18 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               if (id == null) return;
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
-                await achievementsController.deleteAchievement(id,index);
+                await achievementsController.deleteAchievement(id, index);
               });
             },
             titleColor: AppColors.black28,
           );
         }),
-        SizedBox(height: SizeConfig.size10),
 
         Obx(() {
           final items = certificationsController.certificationsList;
 
           return ResumeProfileSectionCard(
-            title: AppStrings.certifications,
+            title: AppStrings.certifications.tr,
             items: items.toList(),
             onAddPressed: () {
               certificationsController.clearForm();
@@ -607,20 +458,18 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               if (id == null) return;
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
-                await certificationsController.deleteCertification(id,index);
+                await certificationsController.deleteCertification(id, index);
               });
             },
             titleColor: AppColors.black28,
           );
         }),
 
-        SizedBox(height: SizeConfig.size10),
-
         Obx(() {
           final publications = publicationsController.publications;
 
           return ResumeProfileSectionCard(
-            title: AppStrings.publications,
+            title: AppStrings.publications.tr,
             items: publications.map((pub) {
               final pubDate = pub['publishedDate'];
               String pubDateStr = '';
@@ -656,8 +505,8 @@ class _AboutMeSectionState extends State<AboutMeSection> {
             itemsDeleteCallback: (index) {
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
-                await publicationsController
-                    .deletePublicationApi(publications[index]['_id'],index);
+                await publicationsController.deletePublicationApi(
+                    publications[index]['_id'], index);
                 await getResumeController.getMyResume();
                 commonSnackBar(message: AppStrings.publicationDeleted);
               });
@@ -665,120 +514,170 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           );
         }),
 
-        SizedBox(height: SizeConfig.size10),
+        /// HOBBIES
         Obx(() {
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey..withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
+          final hobbies = hobbiesController.hobbies
+              .where((hobby) =>
+                  hobby['name'] != null &&
+                  hobby['name'].toString().trim().isNotEmpty)
+              .toList();
+          return SizedBox(
+            width: Get.width,
+            child: _ChipSectionCard(
+              title: AppStrings.hobbies,
+              addLabel: AppStrings.addHobbies,
+              // Both states now refresh on return — the old empty state
+              // pushed without awaiting the result, so a first hobby only
+              // appeared after leaving and re-entering the tab.
+              onAdd: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => HobbiesScreen()),
+                );
+                if (result == true) {
+                  await getResumeController.getMyResume();
+                }
+              },
+              groups: [
+                _ChipGroup(
+                  chips: hobbies
+                      .map((hobby) => _ChipData(
+                            label: hobby['name'].toString(),
+                            onDelete: () {
+                              showConfirmDialog(
+                                context,
+                                () {
+                                  hobbiesController
+                                      .deleteHobby(hobby['_id'].toString());
+                                  Navigator.of(context).pop();
+                                },
+                                title: AppStrings.deleteHobby,
+                                content:
+                                    "${AppStrings.deleteConfirm.tr} '${hobby['name']}'?",
+                              );
+                            },
+                          ))
+                      .toList(),
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                CustomText(AppStrings.hobbies,
-                    color: AppColors.grey72, fontSize: SizeConfig.medium),
-
-                SizedBox(height: 16),
-
-                // Content based on hobbies availability
-                if (hobbiesController.hobbies.isEmpty)
-                  // Empty state - Career Objective jaisa design
-                  GestureDetector(
-                    onTap: () => navigatePushTo(context, HobbiesScreen()),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.add,
-                          size: 16,
-                          color: AppColors.primaryColor,
-                        ),
-                        SizedBox(width: 8),
-                        CustomText(
-                          AppStrings.addHobbies,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  // Hobbies exist - Show chips + Add button
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: hobbiesController.hobbies
-                            .where((hobby) =>
-                                hobby['name'] != null &&
-                                hobby['name'].toString().trim().isNotEmpty)
-                            .map((hobby) => CommonChip(
-                                  label: hobby['name'].toString(),
-                                  onDeleted: () {
-                                    showConfirmDialog(
-                                      context,
-                                      () {
-                                        hobbiesController.deleteHobby(
-                                            hobby['_id'].toString());
-                                        Navigator.of(context).pop();
-                                      },
-                                      title: AppStrings.deleteHobby,
-                                      content:
-                                          "${AppStrings.deleteConfirm.tr} '${hobby['name']}'?",
-                                    );
-                                  },
-                                ))
-                            .toList(),
-                      ),
-                      SizedBox(height: 16),
-                      GestureDetector(
-                        // onTap: () => navigatePushTo(context, HobbiesScreen()),
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => HobbiesScreen()),
-                          );
-                          if (result == true) {
-                            await getResumeController.getMyResume();
-                          }
-                        },
-
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.add,
-                              size: 16,
-                              color: AppColors.primaryColor,
-                            ),
-                            SizedBox(width: 8),
-                            CustomText(
-                              AppStrings.addHobbies,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
           );
         }),
       ],
+    );
+  }
+}
+
+/// One deletable chip inside a [_ChipGroup].
+class _ChipData {
+  final String label;
+  final VoidCallback onDelete;
+
+  const _ChipData({required this.label, required this.onDelete});
+}
+
+/// A labelled run of chips. [label] is optional — Skills and Hobbies have a
+/// single unlabelled group, Languages splits into "Speak & Understand" and
+/// "Write". Groups with no chips are dropped, so an empty section collapses
+/// straight to its Add row with no leftover gap.
+class _ChipGroup {
+  final String? label;
+  final List<_ChipData> chips;
+
+  const _ChipGroup({this.label, required this.chips});
+}
+
+/// Chip-based section card (Skills / Languages / Hobbies) built with the same
+/// anatomy as [ResumeProfileSectionCard] — grey title, `size15` rhythm, and a
+/// blue "Add …" row at the bottom — so every card in the About Me tab reads as
+/// one family instead of three bespoke layouts.
+///
+/// The old inline versions used `GestureDetector` around a bare `Row`: no
+/// ripple and a hit area only as tall as the text. This uses an [InkWell] with
+/// padding, so the whole icon + label block is a comfortable tap target.
+class _ChipSectionCard extends StatelessWidget {
+  final String title;
+  final String addLabel;
+  final VoidCallback onAdd;
+  final List<_ChipGroup> groups;
+
+  const _ChipSectionCard({
+    required this.title,
+    required this.addLabel,
+    required this.onAdd,
+    this.groups = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleGroups = groups.where((g) => g.chips.isNotEmpty).toList();
+
+    return CommonCardWidget(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            title,
+            color: AppColors.grey72,
+            fontSize: SizeConfig.medium,
+          ),
+          SizedBox(height: SizeConfig.size15),
+          for (final group in visibleGroups) ...[
+            if (group.label != null) ...[
+              CustomText(
+                group.label!,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey72,
+              ),
+              SizedBox(height: SizeConfig.size10),
+            ],
+            _buildChipWrap(group.chips),
+            SizedBox(height: SizeConfig.size15),
+          ],
+          InkWell(
+            onTap: onAdd,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LocalAssets(imagePath: AppIconAssets.addBlueIcon),
+                  SizedBox(width: SizeConfig.size4),
+                  CustomText(
+                    addLabel,
+                    color: AppColors.primaryColor,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [LayoutBuilder] caps each chip at the card's content width so a long
+  /// skill or language name ellipsizes inside its chip instead of pushing
+  /// past the card edge on a narrow screen.
+  Widget _buildChipWrap(List<_ChipData> chips) {
+    return LayoutBuilder(
+      builder: (context, constraints) => Wrap(
+        spacing: SizeConfig.size8,
+        runSpacing: SizeConfig.size8,
+        children: chips
+            .map((chip) => ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                  child: CommonChip(
+                    label: chip.label,
+                    onDeleted: chip.onDelete,
+                  ),
+                ))
+            .toList(),
+      ),
     );
   }
 }

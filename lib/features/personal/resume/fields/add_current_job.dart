@@ -77,7 +77,7 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: SizeConfig.size30),
+                    // SizedBox(height: SizeConfig.size30),
                     CustomText(
                       AppStrings.yourExperience,
                       fontSize: SizeConfig.small,
@@ -209,7 +209,7 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                       fontSize: SizeConfig.small,
                       title: AppStrings.description,
                       hintText:
-                      AppStrings.descriptionHint,
+                      "E.g. I m working at BlueCS",
                       textEditController: controller.descriptionController,
                       maxLine: 4,
                     ),
