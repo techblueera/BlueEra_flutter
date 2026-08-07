@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
@@ -54,10 +55,8 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
     if (booking == null || !mounted || _navigated) return;
 
     if (booking.status.hasCaptain) {
-      // `off` replaces this route: once a captain is assigned there is nothing
-      // to come back to here.
       _navigated = true;
-      Get.off(() => const RideTrackingScreen());
+      _openCaptainChat(booking);
       return;
     }
 
@@ -65,6 +64,37 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
       _navigated = true;
       _handleSearchFailed(booking.status);
     }
+  }
+
+  /// A captain accepted. No screen is pushed — the customer lands straight in
+  /// the captain's chat thread, which is where the ride is actually run from
+  /// (the OTP card, the rider details card and "on my way" all arrive there).
+  ///
+  /// Live tracking is still one tap away: the Discover "Your Ongoing Ride"
+  /// chip reads `activeBooking` directly, so it shows the captain the moment
+  /// this fires and opens [RideTrackingScreen] on tap.
+  void _openCaptainChat(RideBooking booking) {
+    final captain = booking.captain;
+
+    // `hasCaptain` flips on the status alone, so the id can still be a tick
+    // behind (it arrives with the winner payload or the next poll). With no id
+    // there is no thread to open — fall back to tracking rather than unwinding
+    // to a home screen with no explanation of what just happened.
+    if (captain == null || captain.id.isEmpty) {
+      Get.off(() => const RideTrackingScreen());
+      return;
+    }
+
+    // Unwind to the bottom nav BEFORE opening the chat, so the thread opens
+    // over home — otherwise back from the chat would return to this dead
+    // search screen.
+    Get.until((route) => route.isFirst);
+    openRiderInquiryChat(
+      riderUserId: captain.id,
+      name: captain.hasName ? captain.name : 'Captain',
+      phone: captain.phone,
+      photoUrl: captain.photoUrl,
+    );
   }
 
   void _handleSearchFailed(RideStatus status) {

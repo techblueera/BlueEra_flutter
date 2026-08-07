@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart'
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
+import 'package:BlueEra/features/ride_booking/widget/ride_customer_care_sheet.dart';
 import 'package:BlueEra/features/ride_booking/widget/rider_call_options_sheet.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
@@ -120,11 +122,17 @@ class OngoingBookingChip extends StatelessWidget {
     if (booking.status == RideStatus.completed) {
       return _ChipData(
         title: AppStrings.yourRideCompleted.tr,
+        // The row now carries its own stars, so the subtitle no longer has to
+        // say "tap to rate" — it points at the one thing the row can't show
+        // inline, the full receipt.
         subtitle: booking.captain?.hasName == true
-            ? '${booking.captain!.name} · ${AppStrings.tapToRateViewReceipt.tr}'
-            : AppStrings.tapToRateViewReceipt.tr,
+            ? booking.captain!.name
+            : AppStrings.captainLabel.tr,
         imageUrl: booking.captain?.photoUrl,
         isCompleted: true,
+        fareLabel:
+            booking.fare > 0 ? '₹${booking.fare.toStringAsFixed(0)}' : null,
+        onRate: (stars) => _rateAndClear(ctrl, booking, overlayCtrl, stars),
         onTap: () => _openCompleted(ctrl, booking, overlayCtrl),
         onDismiss: () => _clearBooking(ctrl, overlayCtrl),
       );
@@ -155,6 +163,10 @@ class OngoingBookingChip extends StatelessWidget {
           ? null
           : startOtp,
       otpLabel: AppStrings.rideStartOtp.tr,
+      // The trip is running, so the code has been read out — the pill's slot
+      // becomes the way to report the captain instead.
+      rideStarted: booking.status == RideStatus.onTrip,
+      shareText: _rideShareText(booking),
       distanceLabel: _captainDistanceLabel(booking),
       trailingLabel: booking.status == RideStatus.onTrip
           ? AppStrings.onTripLabel.tr
@@ -178,15 +190,44 @@ class OngoingBookingChip extends StatelessWidget {
     );
   }
 
-  /// "3.2 KM Away" between the captain and whichever end of the trip is next.
+  /// Plain-text ride summary for the OS share sheet — "who is driving me,
+  /// where am I going, what does it cost". Deliberately excludes the OTP:
+  /// that code is what proves the customer is the customer, and this text is
+  /// on its way out of the app to whoever they picked.
+  String _rideShareText(RideBooking booking) {
+    final captain = booking.captain;
+    final lines = <String>[
+      AppStrings.yourOngoingRideBooking.tr,
+      if (captain?.hasName == true) 'Captain: ${captain!.name}',
+      if ((captain?.phone ?? '').isNotEmpty) 'Phone: ${captain!.phone}',
+      if (booking.pickup.title.isNotEmpty) 'Pickup: ${booking.pickup.title}',
+      if (booking.drop.title.isNotEmpty) 'Drop: ${booking.drop.title}',
+      if (booking.fare > 0) 'Fare: ₹${booking.fare.toStringAsFixed(0)}',
+    ];
+    return lines.join('\n');
+  }
+
+  /// The distance to whichever end of the trip is next, and what it means:
+  /// "3.2 km away" while the captain is still coming to the pickup, "3.2 km to
+  /// destination" once the OTP has been handed over and the drop is the leg
+  /// being driven.
   ///
   /// Prefers the server's own `distanceMeters` from the location poll; falls
   /// back to a straight line from the last known captain position. Null when
   /// neither is available — the row then just omits the distance rather than
   /// printing "0 KM".
   String? _captainDistanceLabel(RideBooking booking) {
+    final bool onTrip = booking.status == RideStatus.onTrip;
     final meters = booking.captainDistanceMeters;
-    if (meters != null && meters > 0) return _kmLabel(meters / 1000);
+    // `captainDistanceMeters` measures the captain→PICKUP leg (see the model).
+    // Once the OTP has been read out that leg is finished, so trusting it here
+    // would print how far the captain was from the pickup under a label that
+    // now claims to mean the destination. Before the trip starts it is the
+    // better number (server-computed, road distance); after, it is ignored and
+    // the straight-line fallback below measures the drop leg instead.
+    if (!onTrip && meters != null && meters > 0) {
+      return _kmLabel(meters / 1000, onTrip: false);
+    }
 
     final captain = booking.captain;
     final lat = captain?.latitude;
@@ -203,7 +244,7 @@ class OngoingBookingChip extends StatelessWidget {
           target.longitude,
         ) /
         1000;
-    return km <= 0 ? null : _kmLabel(km);
+    return km <= 0 ? null : _kmLabel(km, onTrip: onTrip);
   }
 
   /// The end of the leg being driven: before the OTP the captain is coming to
@@ -213,9 +254,12 @@ class OngoingBookingChip extends StatelessWidget {
   RidePlace _legTarget(RideBooking booking) =>
       booking.status == RideStatus.onTrip ? booking.drop : booking.pickup;
 
-  static String _kmLabel(double km) =>
+  /// [onTrip] switches the suffix from "away" (captain approaching pickup) to
+  /// "to destination" (the drop leg), so the number is never ambiguous about
+  /// which end of the trip it is measuring to.
+  static String _kmLabel(double km, {required bool onTrip}) =>
       '${km < 1 ? km.toStringAsFixed(1) : km.toStringAsFixed(0)} '
-      '${AppStrings.kmAwayLabel.tr}';
+      '${onTrip ? 'km to destination' : AppStrings.kmAwayLabel.tr}';
 
   /// Open the end-of-ride summary from Discover.
   ///
@@ -237,6 +281,29 @@ class OngoingBookingChip extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// Rate the captain from the chip and retire the row.
+  ///
+  /// Rating is the whole reason the completed row outlives the ride, so once
+  /// it is given there is nothing left for the row to ask — it clears itself
+  /// rather than making the customer also press the ✕. The receipt is still
+  /// reachable until then by tapping the row.
+  ///
+  /// There is no rating endpoint on the ride service yet — the same gap
+  /// [RideCompletedScreen] documents on its own submit — so the stars are
+  /// acknowledged locally. When the endpoint lands, POST from here (and from
+  /// that screen) before clearing; keep it fail-soft, since a feedback call
+  /// that errors must not strand a finished ride on the customer's Discover.
+  void _rateAndClear(
+    RideBookingController ctrl,
+    RideBooking booking,
+    RideNavigationOverlayController? overlayCtrl,
+    int stars,
+  ) {
+    debugPrint('ride rating — order=${booking.rideId} stars=$stars');
+    commonSnackBar(message: 'Thanks for the feedback!');
+    _clearBooking(ctrl, overlayCtrl);
   }
 
   /// Drop the finished ride everywhere it is still referenced, so neither the
@@ -277,6 +344,10 @@ class OngoingBookingChip extends StatelessWidget {
       phone: ctrl.riderContact.value.isEmpty ? null : ctrl.riderContact.value,
       otp: otp,
       otpLabel: otpLabel,
+      // Same rule as the live-booking row, read from the legacy flow's own
+      // "ride has started" flag.
+      rideStarted: _isLegacyRideStarted(),
+      shareText: _overlayShareText(ctrl),
       riderUserId: _overlayRiderUserId(),
       // The overlay tracks rider → pickup, which is what its distance measures.
       distanceOriginLat: ctrl.riderLat.value,
@@ -288,6 +359,31 @@ class OngoingBookingChip extends StatelessWidget {
         Get.to(() => FareCallQueueScreen(orderId: orderId));
       },
     );
+  }
+
+  /// Whether the legacy transport ride has started (its pickup OTP is spent).
+  bool _isLegacyRideStarted() {
+    if (!Get.isRegistered<DiscoverController>()) return false;
+    return Get.find<DiscoverController>().isFareCallRideStarted.value;
+  }
+
+  /// [_rideShareText]'s twin for the legacy flow, built from the overlay
+  /// controller — which carries the rider's name / number, the destination and
+  /// the fare, but no pickup label.
+  String _overlayShareText(RideNavigationOverlayController ctrl) {
+    final name = ctrl.customerName.value;
+    final phone = ctrl.riderContact.value;
+    final drop =
+        ctrl.dropLabel.value.isNotEmpty ? ctrl.dropLabel.value : ctrl.destLabel.value;
+    final lines = <String>[
+      AppStrings.yourOngoingRideBooking.tr,
+      if (name.isNotEmpty) 'Captain: $name',
+      if (phone.isNotEmpty) 'Phone: $phone',
+      if (drop.isNotEmpty) 'Drop: $drop',
+      if (ctrl.fareAmount.value > 0)
+        'Fare: ₹${ctrl.fareAmount.value.toStringAsFixed(0)}',
+    ];
+    return lines.join('\n');
   }
 
   /// The accepted rider's user id for the legacy transport flow.
@@ -372,7 +468,9 @@ class OngoingBookingChip extends StatelessWidget {
     final pLng = ctrl.destLng.value;
     if (rLat == 0.0 || rLng == 0.0 || pLat == 0.0 || pLng == 0.0) return null;
     final km = geo.Geolocator.distanceBetween(rLat, rLng, pLat, pLng) / 1000;
-    return km <= 0 ? null : _kmLabel(km);
+    // Same suffix rule as the live-booking row: once the legacy ride has
+    // started, `destLat/destLng` is the drop the pair are heading for.
+    return km <= 0 ? null : _kmLabel(km, onTrip: _isLegacyRideStarted());
   }
 }
 
@@ -389,6 +487,10 @@ class _ChipData {
     this.phone,
     this.otp,
     this.otpLabel,
+    this.rideStarted = false,
+    this.shareText,
+    this.fareLabel,
+    this.onRate,
     this.isCompleted = false,
     this.onDismiss,
     this.riderUserId,
@@ -433,6 +535,25 @@ class _ChipData {
   /// while no OTP applies to the current phase of the ride.
   final String? otp;
   final String? otpLabel;
+
+  /// The OTP has been read out and the trip is under way. One flag, because
+  /// everything that changes at that moment changes together: the OTP pill
+  /// becomes Customer Care, the call button becomes share, and the distance
+  /// starts measuring to the destination instead of the pickup.
+  final bool rideStarted;
+
+  /// Ride details for the OS share sheet — captain, pickup, drop, fare — so
+  /// the customer can send someone their ride info. Null when there is nothing
+  /// worth sharing yet (no captain) and on the completed row.
+  final String? shareText;
+
+  /// What the finished ride cost, e.g. "₹120". Shown on the completed row so
+  /// the customer sees the fare without having to open the receipt.
+  final String? fareLabel;
+
+  /// Rate the captain inline, from the row. Set only on the completed row;
+  /// null everywhere else, which is what hides the stars. Receives 1–5.
+  final ValueChanged<int>? onRate;
 
   final bool isCompleted;
 
@@ -560,6 +681,23 @@ class _ChipCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            // What the ride cost, on the completed row. Sits right after the
+            // captain's name so the two read as one line: who drove, what it
+            // came to.
+            if (data.fareLabel != null) ...[
+              CustomText(
+                '  |  ',
+                fontSize: SizeConfig.size12,
+                color: AppColors.grayText,
+              ),
+              CustomText(
+                data.fareLabel!,
+                fontSize: SizeConfig.size12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+              ),
+            ],
             if (data.distanceLabel != null) ...[
               CustomText(
                 '  |  ',
@@ -582,14 +720,22 @@ class _ChipCard extends StatelessWidget {
                       Icon(Icons.location_on,
                           size: 13, color: AppColors.primaryColor),
                       const SizedBox(width: 2),
-                      CustomText(
-                        data.distanceLabel!,
-                        fontSize: SizeConfig.size12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primaryColor,
-                        // Underlined so it reads as the one tappable word in a
-                        // row that is otherwise all labels.
-                        decoration: TextDecoration.underline,
+                      // Flexible: "3.2 km to destination" is twice the width of
+                      // the "3.2 km away" this row was built for, and without a
+                      // bound it overflows the card on a narrow phone instead
+                      // of ellipsising.
+                      Flexible(
+                        child: CustomText(
+                          data.distanceLabel!,
+                          fontSize: SizeConfig.size12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primaryColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          // Underlined so it reads as the one tappable word in
+                          // a row that is otherwise all labels.
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ],
                   ),
@@ -604,18 +750,40 @@ class _ChipCard extends StatelessWidget {
             label: data.otpLabel ?? AppStrings.otp.tr,
             otp: data.otp!,
           ),
+        ] else if (data.rideStarted) ...[
+          const SizedBox(height: 6),
+          // The OTP has been handed over, so this slot stops being "read this
+          // out" and becomes "something's wrong with this ride".
+          _CustomerCarePill(
+            onTap: () => showRideCustomerCareSheet(riderName: data.subtitle),
+          ),
+        ] else if (data.onRate != null) ...[
+          const SizedBox(height: 6),
+          // Same slot again on the finished row: rate the captain without
+          // opening the receipt screen first.
+          _InlineRatingStars(onRate: data.onRate!),
         ],
       ],
     );
   }
 
-  /// Call the captain on a live ride, dismiss a finished one. Both fall back to
-  /// a chevron so the row always shows that it opens something.
+  /// The action changes with the phase of the ride, because what the customer
+  /// needs from a glanceable row does:
   ///
-  /// A live ride with an assigned captain also gets a chat button beside it:
-  /// tapping the row is "where is my ride", tapping chat is "talk to my
-  /// captain", and the two need to be reachable without going through each
-  /// other.
+  ///   • **Before the OTP** — call the captain. He is on his way to a pickup
+  ///     he may not be able to find, and that is the one moment a voice call
+  ///     beats everything else.
+  ///   • **After the OTP** — share the ride. The handover is done and the trip
+  ///     is running, so the live need becomes "tell someone where I am".
+  ///   • **Finished** — dismiss the row.
+  ///
+  /// All three fall back to a chevron so the row always shows that it opens
+  /// something.
+  ///
+  /// A live ride with an assigned captain also gets a chat button beside the
+  /// action: tapping the row is "where is my ride", tapping chat is "talk to
+  /// my captain", and the two need to be reachable without going through each
+  /// other. Calling stays reachable from that thread after the OTP, too.
   Widget _trailing() {
     final Widget action;
     if (data.isCompleted) {
@@ -624,13 +792,22 @@ class _ChipCard extends StatelessWidget {
         color: AppColors.secondaryTextColor,
         onTap: data.onDismiss ?? data.onTap,
       );
+    } else if (data.rideStarted && (data.shareText?.isNotEmpty ?? false)) {
+      action = _circleButton(
+        icon: Icons.share_outlined,
+        color: AppColors.primaryColor,
+        onTap: () => ShareService.instance.openShareSheet(
+          text: data.shareText!,
+          subject: AppStrings.yourOngoingRideBooking.tr,
+        ),
+      );
     } else if ((data.phone?.isNotEmpty ?? false) ||
         (data.riderUserId?.isNotEmpty ?? false)) {
       // Either route can carry the call, so the button appears whenever ONE of
       // them is available — the sheet then offers only what can actually be
-      // placed. It used to require a phone number, which hid the button
-      // entirely on rides where we know the captain's user id but not their
-      // number, even though an in-app call was possible the whole time.
+      // placed. Requiring a phone number would hide it entirely on rides where
+      // we know the captain's user id but not their number, even though an
+      // in-app call was possible the whole time.
       action = _circleButton(
         icon: Icons.call,
         color: const Color(0xFF1FA463),
@@ -719,6 +896,114 @@ class _ChipCard extends StatelessWidget {
           ],
         ),
         child: Icon(icon, color: color, size: 20),
+      ),
+    );
+  }
+}
+
+/// Five taps' worth of rating, inline on the completed row.
+///
+/// Rating is the only thing the finished row is still asking for, so it is
+/// answered where it is asked rather than behind a screen. The stars fill on
+/// tap and the row reports the score a beat later — long enough that the
+/// customer sees their tap land before the card disappears out from under it,
+/// short enough that it doesn't feel stuck.
+class _InlineRatingStars extends StatefulWidget {
+  const _InlineRatingStars({required this.onRate});
+
+  final ValueChanged<int> onRate;
+
+  @override
+  State<_InlineRatingStars> createState() => _InlineRatingStarsState();
+}
+
+class _InlineRatingStarsState extends State<_InlineRatingStars> {
+  static const Color _star = Color(0xFFF5A623);
+
+  int _selected = 0;
+
+  void _tap(int value) {
+    // First tap wins: the row is about to be cleared, and a second score
+    // landing mid-dismissal would fire `onRate` twice.
+    if (_selected != 0) return;
+    setState(() => _selected = value);
+    Future.delayed(const Duration(milliseconds: 450), () {
+      if (mounted) widget.onRate(value);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CustomText(
+          'Rate',
+          fontSize: SizeConfig.size11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondaryTextColor,
+        ),
+        const SizedBox(width: 6),
+        for (int i = 1; i <= 5; i++)
+          InkWell(
+            onTap: () => _tap(i),
+            customBorder: const CircleBorder(),
+            child: Padding(
+              // Padding, not size: keeps the tap target usable on a chip
+              // without making the stars themselves oversized.
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              child: Icon(
+                i <= _selected ? Icons.star_rounded : Icons.star_border_rounded,
+                size: 18,
+                color: i <= _selected ? _star : AppColors.grayText,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Sits where [_BlinkingOtpPill] was once the code has been used.
+///
+/// Same pill geometry as the OTP it replaces, so the card doesn't change
+/// height when the ride starts — but static and in a calm slate rather than
+/// blinking: the OTP was time-critical, this is only there if something goes
+/// wrong.
+class _CustomerCarePill extends StatelessWidget {
+  const _CustomerCarePill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFF5B6B7F);
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.support_agent_rounded, size: 13, color: accent),
+            const SizedBox(width: 5),
+            CustomText(
+              'Customer Care',
+              fontSize: SizeConfig.size11,
+              fontWeight: FontWeight.w700,
+              color: accent,
+            ),
+            const SizedBox(width: 3),
+            const Icon(Icons.keyboard_arrow_right_rounded,
+                size: 14, color: accent),
+          ],
+        ),
       ),
     );
   }
