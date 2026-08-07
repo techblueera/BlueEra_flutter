@@ -644,7 +644,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
             SizedBox(width: SizeConfig.size6),
             CustomText(
               label,
-              fontSize: SizeConfig.medium,
+              fontSize: 13.0,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: selected ? AppColors.white : AppColors.mainTextColor,
             ),

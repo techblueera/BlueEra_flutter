@@ -57,6 +57,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 
@@ -179,27 +180,71 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     });
   }
 
-  /// One-shot per launch: show the joining-bonus claim popup. The
-  /// `joining_bounce` object is read from the profile response the app already
-  /// loads (business → business profile, individual → personal profile) — no
-  /// extra API call. The gate is the backend's `show_card` flag (surfaced via
-  /// [JoiningBounce.shouldShow]); when it is false there is nothing to show.
+  /// One-shot PER DEVICE (not per launch): show the joining-bonus claim popup.
+  /// The `joining_bounce` object is read from the profile response the app
+  /// already loads (business → business profile, individual → personal profile)
+  /// — no extra API call. The gate is the backend's `show_card` flag (surfaced
+  /// via [JoiningBounce.shouldShow]); when it is false there is nothing to show.
   /// Claiming is handled inside the dialog.
+  ///
+  /// When the user DOES claim, the backend flips `show_card` off and the card
+  /// never returns on its own. When they just close it, `show_card` stays true
+  /// forever — which used to re-pop the card on every single app open. So the
+  /// display itself is also recorded locally ([_markJoiningBonusShownOnDevice])
+  /// and that record is the first gate: seen once, never auto-shown again.
   static bool _joiningBonusShown = false;
   Worker? _joiningBonusWorker;
+
+  /// Per-account prefix for the "this card has already been shown" flag.
+  /// Deliberately in SharedPreferences, NOT flutter_secure_storage: logout
+  /// wipes secure storage wholesale (clearPreferenceDataOnly), which would
+  /// resurrect the popup for a user who had already dismissed it.
+  static const String _joiningBonusShownPrefix = 'joining_bonus_shown_';
+
+  /// Keyed per account so a different login on the same device still gets its
+  /// own one-time card ('guest' before an account exists).
+  static String get _joiningBonusPrefKey =>
+      '$_joiningBonusShownPrefix${userId.isNotEmpty ? userId : 'guest'}';
+
+  static Future<bool> _joiningBonusShownOnDevice() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_joiningBonusPrefKey) ?? false;
+    } catch (_) {
+      // Storage hiccup — fail OPEN (show the card) rather than silently
+      // swallowing a bonus the user has never seen.
+      return false;
+    }
+  }
+
+  /// Records that the card has been put on screen. Written at DISPLAY time,
+  /// not on dismiss, so a process kill while the dialog is open can't hand out
+  /// a second showing.
+  static Future<void> _markJoiningBonusShownOnDevice() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_joiningBonusPrefKey, true);
+    } catch (_) {}
+  }
 
   Future<void> _maybeShowJoiningBonus() async {
     if (_joiningBonusShown) {
       logs("JOINING_BONUS: skip — already shown this launch");
       return;
     }
+    if (await _joiningBonusShownOnDevice()) {
+      logs("JOINING_BONUS: skip — already shown once on this device "
+          "(key=$_joiningBonusPrefKey)");
+      return;
+    }
+    if (!mounted) return;
     if (isGuestUser()) {
       // Guests have no profile (and no real bonus), so show the guest scratch
       // card — it never exposes an amount; scratching just unlocks the
-      // "Create Profile" CTA. Shown once per launch, like the real card.
-      if (!mounted) return;
+      // "Create Profile" CTA. Shown once per device, like the real card.
       logs("JOINING_BONUS: guest user — showing GuestClaimBonusDialog");
       _joiningBonusShown = true;
+      _markJoiningBonusShownOnDevice();
       _joiningBonusWorker?.dispose();
       showDialog(
         context: context,
@@ -244,6 +289,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return;
       }
       _joiningBonusShown = true;
+      // Burn the one-time device slot the moment it goes on screen — whether
+      // the user claims or just closes it, this card is done auto-popping.
+      _markJoiningBonusShownOnDevice();
       _joiningBonusWorker?.dispose();
       logs("JOINING_BONUS: showing ClaimBonusDialog ✅");
       showDialog(

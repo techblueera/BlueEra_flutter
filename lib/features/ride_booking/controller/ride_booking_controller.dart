@@ -631,14 +631,49 @@ class RideBookingController extends GetxController {
     }
   }
 
-  /// Push [place] to the front of the on-device recents, de-duped by
-  /// coordinates and capped at [_maxRecentPlaces].
+  /// Two recents closer together than this are the same destination as far as
+  /// a customer is concerned, so the newer one replaces the older rather than
+  /// stacking beside it.
+  ///
+  /// Exact-coordinate de-duping was enough while every recent came from the
+  /// search (the same place searched twice returns the same coordinate to the
+  /// decimal). A map pin never lands on the same pixel twice, so without a
+  /// radius the list fills with the same street over and over.
+  static const double _recentDedupeMetres = 80;
+
+  /// The coordinate-pair subtitle [RideReverseGeocodeService] falls back to when
+  /// the geocoder gives it nothing — e.g. `26.26841, 73.00594`. Recognising it
+  /// is how an unnamed point is kept OUT of Recent: a row a customer cannot
+  /// read is a row they cannot choose.
+  static final RegExp _coordinateSubtitle =
+      RegExp(r'^-?\d+\.\d+,\s*-?\d+\.\d+$');
+
+  /// Whether [place] is worth showing in a list of past destinations.
+  bool _isRecentWorthy(RidePlace place) {
+    if (!place.hasCoordinates) return false;
+    if (place.title.trim().isEmpty) return false;
+    // A failed reverse geocode — "Selected drop point" over a lat/lng pair.
+    // Honest on the map strip, useless as a history row.
+    if (_coordinateSubtitle.hasMatch(place.subtitle.trim())) return false;
+    return true;
+  }
+
+  /// Push [place] to the front of the on-device recents, de-duped within
+  /// [_recentDedupeMetres] and capped at [_maxRecentPlaces].
   Future<void> _rememberRecentPlace(RidePlace place) async {
+    if (!_isRecentWorthy(place)) return;
     try {
       final next = <RidePlace>[
         place,
         ...recentPlaces.where((p) =>
-            p.latitude != place.latitude || p.longitude != place.longitude),
+            calculateDistanceKm(
+              p.latitude,
+              p.longitude,
+              place.latitude,
+              place.longitude,
+            ) *
+                1000 >=
+            _recentDedupeMetres),
       ].take(_maxRecentPlaces).toList();
       recentPlaces.assignAll(next);
       await SharedPreferenceUtils.setSecureValue(
@@ -846,9 +881,21 @@ class RideBookingController extends GetxController {
 
   // -------------------------------------------------------------- trip ends
 
-  void setDrop(RidePlace place) {
+  /// Set the destination.
+  ///
+  /// [remember] controls whether it goes straight into Recent. It is true for a
+  /// place the user NAMED — picked out of the search, or tapped in Recent /
+  /// Saved — because choosing it by name is already an act of recognition, and
+  /// the row it produces is one they'll recognise again.
+  ///
+  /// The map pin passes false. A pin is dragged around while hunting, and every
+  /// stop is a candidate, not a decision — writing each one straight to Recent
+  /// fills the list with near-identical rows off the same street that the user
+  /// never travelled to. A pinned drop earns its place in Recent by being
+  /// BOOKED; see the call in [bookRide].
+  void setDrop(RidePlace place, {bool remember = true}) {
     drop.value = place;
-    _rememberRecentPlace(place);
+    if (remember) _rememberRecentPlace(place);
   }
 
   void setPickup(RidePlace place) => pickup.value = place;
@@ -1423,6 +1470,14 @@ class RideBookingController extends GetxController {
       final rideId =
           (order['orderId'] ?? order['_id'] ?? order['id'] ?? '').toString();
       if (rideId.isEmpty) return false;
+
+      // The destination is now somewhere the customer actually went, so it has
+      // earned a place in Recent. This is the ONLY thing that gets a map-pinned
+      // drop into the list — [setDrop] deliberately doesn't, so a pin dragged
+      // around while hunting leaves nothing behind. Idempotent for a drop that
+      // came from the search and is already at the front: _rememberRecentPlace
+      // de-dupes by proximity, so it just refreshes its position.
+      _rememberRecentPlace(to);
 
       // Build the local booking from what we already know rather than from the
       // create response — the order payload is the backend's own shape, and

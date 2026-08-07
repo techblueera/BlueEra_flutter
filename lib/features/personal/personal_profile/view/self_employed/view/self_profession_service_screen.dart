@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -63,9 +64,23 @@ class _SelfProfessionServiceScreenState
         );
       }
 
-      // 2. Empty / Not-yet-created State — show an empty profile
+      // 2. No service id — but WHY there is no id decides what we show.
+      //
+      // `professionData` starts as an empty EarnServiceModelResponse, so a
+      // FAILED fetch leaves `sId` null exactly like a user who has genuinely
+      // never created a service. Treating those the same showed the "Create
+      // your earn service profile" CTA to established workers whenever the
+      // network hiccuped — and tapping it POSTs a duplicate minimal service.
+      // Since the Service tab is now the landing tab, that was the first thing
+      // a self-employed user saw on a bad connection.
+      //
+      // So: consult the request status. ERROR → retry card. Anything else with
+      // no id → they really don't have one yet → the create CTA.
       final service = this.controller.professionData.value;
       if (service.sId == null || service.sId!.isEmpty) {
+        if (this.controller.serviceResponse.value.status == Status.ERROR) {
+          return _buildLoadFailed();
+        }
         return _buildEmptyProfile(userProfessionGlobal);
       }
 
@@ -875,6 +890,111 @@ class _SelfProfessionServiceScreenState
       imgStr,
     );
     controller.update(['professionPhotos']);
+  }
+
+  /// Shown when the profession fetch FAILED, in place of the create CTA.
+  ///
+  /// Deliberately offers only "Try again" — no create affordance. A worker who
+  /// already has a service profile must never be nudged into creating a second
+  /// one just because the request timed out.
+  Widget _buildLoadFailed() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14001120),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.secondaryTextColor.withValues(alpha: 0.08),
+                border: Border.all(
+                  color: AppColors.secondaryTextColor.withValues(alpha: 0.18),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.wifi_off_rounded,
+                size: 26,
+                color: AppColors.secondaryTextColor,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            // Plain literals rather than AppStrings keys: these are new copy,
+            // and `.tr` renders the raw key when the localization service
+            // hasn't got the entry yet — "serviceProfileLoadFailedTitle" on
+            // screen would be worse than untranslated English.
+            Text(
+              "Couldn't load your service profile",
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                letterSpacing: -0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size6),
+            Text(
+              'Check your internet connection and try again. Your saved '
+              'services are safe.',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                height: 1.45,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => controller.fetchSelfProfessionData(),
+                icon: const Icon(Icons.refresh_rounded,
+                    size: 18, color: Colors.white),
+                label: Text(
+                  'Try again',
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size12,
+                    horizontal: SizeConfig.size16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // Empty-state CTA shown to existing users who registered before

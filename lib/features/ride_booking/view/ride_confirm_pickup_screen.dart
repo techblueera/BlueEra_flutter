@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/service/ride_reverse_geocode_service.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_vehicle_select_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_marker_icons.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -97,6 +97,18 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   static const LatLng _fallbackCentre = LatLng(23.2599, 77.4126);
   static const double _fallbackZoom = 4;
   static const double _pinZoom = 17;
+
+  /// How long the camera must stay STILL before the address is looked up.
+  ///
+  /// Tuned for someone hunting rather than someone who has arrived: a pause to
+  /// read the map is shorter than this, so it buys no lookup, while a user who
+  /// has settled doesn't wait long enough to wonder if it's broken. It also
+  /// absorbs the extra `onCameraIdle` events a fling or a two-finger adjust
+  /// emits. Kept in step with the home screen's pin.
+  static const Duration _settleDebounce = Duration(milliseconds: 800);
+
+  /// Runs that debounce. Cancelled on every new idle and on dispose.
+  Timer? _settleTimer;
 
   @override
   void initState() {
@@ -196,6 +208,7 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
 
   @override
   void dispose() {
+    _settleTimer?.cancel();
     _liveRiderTimer?.cancel();
     _liveRiderWorker?.dispose();
     _locationWorker?.dispose();
@@ -203,10 +216,29 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     super.dispose();
   }
 
-  /// Resolve the address under the pin once the camera settles. Reverse
-  /// geocoding on every frame of a drag would be both janky and expensive.
-  Future<void> _onCameraIdle() async {
-    final position = _pinPosition;
+  /// The map started moving again.
+  ///
+  /// Kills anything pending: the debounce timer, AND — via the sequence bump —
+  /// the result of a lookup already out on the wire. Without this a lookup
+  /// armed by the previous pause fires mid-drag and names a point the map is
+  /// currently flying over, and Confirm briefly lights up on it.
+  void _onCameraMoveStarted() {
+    _cameraMoved = true;
+    _settleTimer?.cancel();
+    _resolveSeq++;
+    if (!_isResolving && _hasRealPin) {
+      setState(() => _isResolving = true);
+    }
+  }
+
+  /// Camera settled. The tick and the "we're on a real point now" flip happen
+  /// immediately — they answer the gesture — but the address lookup waits out
+  /// [_settleDebounce] first.
+  ///
+  /// `onCameraIdle` is not one event per gesture: a fling settles, reports idle,
+  /// drifts a few pixels and reports again, and a two-finger adjust can produce
+  /// three or four in under a second. Each one used to be a platform geocode.
+  void _onCameraIdle() {
     if (_cameraMoved) {
       _cameraMoved = false;
       final wasProgrammatic = _programmaticMove;
@@ -221,10 +253,27 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     // resolved pickup, and Confirm would light up on a point in a city the user
     // has never been to.
     if (!_hasRealPin) return;
+    // Show the pending state at once so Confirm greys out the moment the pin
+    // moves — confirming a stale address during the debounce would book the
+    // previous point.
+    if (!_isResolving) setState(() => _isResolving = true);
+    _settleTimer?.cancel();
+    _settleTimer = Timer(_settleDebounce, _resolveNow);
+  }
+
+  /// The debounced half of [_onCameraIdle].
+  Future<void> _resolveNow() async {
+    final position = _pinPosition;
     final seq = ++_resolveSeq;
-    setState(() => _isResolving = true);
     try {
-      final place = await _resolvePin(position);
+      // Cheap unless the pin has genuinely moved somewhere new — the service
+      // answers from its movement threshold / grid cache first, and shares the
+      // cache with the home screen's pin, which has usually just resolved this
+      // exact neighbourhood.
+      final place = await RideReverseGeocodeService.instance.resolve(
+        position,
+        fallbackTitle: 'Selected pickup point',
+      );
       // A newer idle already started — its answer is the one that counts.
       if (!mounted || seq != _resolveSeq) return;
       setState(() => _resolved = place);
@@ -247,68 +296,6 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   void _playPinTick() {
     SystemSound.play(SystemSoundType.click);
     HapticFeedback.selectionClick();
-  }
-
-  /// Reverse-geocode the coordinate under the pin.
-  ///
-  /// Broadcast dispatch has no pickup-points endpoint (guide §6), so this uses
-  /// the on-device geocoder — the same one the old booking screens use for
-  /// pincode lookup. It must key off [position], not the seeded pickup:
-  /// echoing `controller.pickup` back is why the card used to freeze on
-  /// "Current location" no matter where the map was dragged.
-  Future<RidePlace> _resolvePin(LatLng position) async {
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-
-        // Nearest thing to a name, falling back down to the street.
-        final title = _firstNonEmpty([p.name, p.street, p.subLocality]) ??
-            'Selected pickup point';
-        // Everything else, de-duped against the title so we don't render
-        // "Jodhpur, Jodhpur, Rajasthan".
-        final subtitle = <String?>[
-          p.street,
-          p.subLocality,
-          p.locality,
-          p.administrativeArea,
-          p.postalCode,
-        ]
-            .whereType<String>()
-            .where((s) => s.isNotEmpty && s != title)
-            .toSet()
-            .join(', ');
-
-        return RidePlace(
-          title: title,
-          subtitle: subtitle,
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-      }
-    } catch (_) {
-      // Geocoder unavailable / offline — fall through to coordinates.
-    }
-
-    // Never leave the card empty: coordinates are a poor address but they are
-    // honest, and `hasCoordinates` still lets the user confirm.
-    return RidePlace(
-      title: 'Selected pickup point',
-      subtitle: '${position.latitude.toStringAsFixed(5)}, '
-          '${position.longitude.toStringAsFixed(5)}',
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
-  }
-
-  static String? _firstNonEmpty(List<String?> values) {
-    for (final v in values) {
-      if (v != null && v.isNotEmpty) return v;
-    }
-    return null;
   }
 
   void _confirm() {
@@ -377,7 +364,7 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
                 _moveCameraTo(pending);
               }
             },
-            onCameraMoveStarted: () => _cameraMoved = true,
+            onCameraMoveStarted: _onCameraMoveStarted,
             onCameraMove: (position) => _pinPosition = position.target,
             onCameraIdle: _onCameraIdle,
           ),

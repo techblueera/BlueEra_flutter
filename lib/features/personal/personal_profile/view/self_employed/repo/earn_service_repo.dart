@@ -129,4 +129,20 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
+  /// Skilled-worker statistics dashboard (Statics tab on the self-employed
+  /// home). [period] is `today` | `week` | `month`. The worker is resolved
+  /// from the JWT server-side — deliberately no userId param, so one worker
+  /// can't read another's earnings by editing a URL.
+  Future<ResponseModel> getSelfWorkStatisticsRepo({
+    required String period,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      selfWorkStatistics,
+      params: {'period': period},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

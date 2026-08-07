@@ -10,18 +10,14 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_employee_inquiry_tab.dart';
-import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
@@ -29,14 +25,13 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/service/self_work_auto_golive_scheduler.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_work_statistics_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
@@ -70,31 +65,16 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
 
   late final TabController _tabController;
 
-  // Drives the inquiry list shown under the Order tab. Same controller
-  // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
-
-  // Backs the "Store" tab cards — holds the user's earn profile (logo,
-  // cover, address, diet, delivery flags, gallery) for the summary card.
-  final EarnProfileController _earnProfileCtrl =
-      getOrPut(() => EarnProfileController());
-
-  // True when the user has created one of the home-made earn profiles.
-  // Used to decide whether to hydrate the earn profile on load.
-  bool get _hasEarnProfile => _viewCtrl.earnProfileType.isNotEmpty;
-
-  // Store tab is index 3. We hydrate the earn profile lazily — only the
-  // first time the user actually opens the Store tab — so the three
-  // earn-profiles/user requests don't fire while sitting on the Order tab.
-  static const int _storeTabIndex = 3;
-  bool _earnProfileHydrated = false;
-
-  // The Store tab is always present, placed just before Statics (index 4).
+  // Service leads, Overview second. Overview MUST stay at index 1 —
+  // [BottomBarController.meOverviewTabIndex] is a hard-coded 1 that deep links
+  // (e.g. profile_completion_reminder) use to jump straight to this tab.
+  //
+  // The Inquiry and Store tabs used to sit here; both were removed along with
+  // the requests that backed them (the business chat-list socket emit and the
+  // lazy earn-profile fetch).
   List<String> get _tabs => [
-        AppStrings.inquiries.tr,
-        AppStrings.overview.tr,
         AppStrings.service.tr,
-        AppStrings.store.tr,
+        AppStrings.overview.tr,
         AppStrings.post.tr,
         AppStrings.statics.tr,
       ];
@@ -112,37 +92,15 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // in on a previous session (08:00–22:00 auto open/close while the app is
     // open — best-effort, foreground only).
     SelfWorkAutoGoLiveScheduler().ensureStartedIfEnabled();
-    // Hydrate the earn profile lazily when the Store tab is first opened.
-    _tabController.addListener(_maybeHydrateEarnProfile);
     _viewCtrl.UserFollowersAndPostsCount(userId);
-    // Hydrate the business chat list so the Order tab's inquiry list
-    // has data ready when the user switches to it. Mirrors what
-    // ConnectMainPage does for its Inquiry tab.
-    _chatViewController.emitEvent(
-      ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.business_Chat_Type},
-    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
     });
   }
 
-  // Fetches the earn profile the first time the Store tab is reached (via tap
-  // or swipe). Runs once — subsequent tab changes are no-ops. Only fires when
-  // the user actually owns an earn profile, so users without a store never
-  // trigger the earn-profiles/user requests.
-  void _maybeHydrateEarnProfile() {
-    if (_earnProfileHydrated) return;
-    if (_tabController.index != _storeTabIndex) return;
-    if (!_hasEarnProfile) return;
-    _earnProfileHydrated = true;
-    _earnProfileCtrl.fetchEarnProfile();
-  }
-
   @override
   void dispose() {
-    _tabController.removeListener(_maybeHydrateEarnProfile);
     _tabController.dispose();
     super.dispose();
   }
@@ -174,20 +132,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
               // across it — same treatment as the Connect tab strip.
               tabBarColor: Colors.white.withValues(alpha: 0.45),
               topBarHeight: topBarHeight,
+              // Order must match [_tabs].
               tabViews: [
-                // The Inquiry tab's chat section renders on the frosted chat
-                // sheet (docs/chat_new.jpeg). [GlassScope] is what switches the
-                // list card, its rows and its chips over; the other five tabs
-                // are outside it and keep their solid white cards.
-                _tabScroll(GlassScope(
-                  enabled: true,
-                  child: SelfEmployeeInquiryTab(
-                    onAddServices: () => _tabController.animateTo(2),
-                  ),
-                )),
-                _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),
-                _tabScroll(_buildEarnTab()),
+                _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildPostTab()),
                 _tabScroll(_buildStaticsTab()),
               ],
@@ -276,17 +224,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       child: child,
     );
   }
-
-  // STORE TAB — always visible. Lists all three earn flavours (food /
-  // product / service). The flavour the user has created shows a rich
-  // storefront card that opens the earn dashboard; the rest show an "Add"
-  // card that routes to that flavour's create flow.
-  Widget _buildEarnTab() {
-    // Reuses the shared [EarnStoreCards] so the made/add storefront cards are
-    // identical across all individual profile screens.
-    return const EarnStoreCards();
-  }
-
 
   // the parent CustomScrollView so its sections share the page's
   // scroll. That lets the sticky-tab overlay engage when the user
@@ -439,19 +376,23 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     }
   }
 
-  // dashboards' last tab. Uses the current user's id as the analytics
-  // key since self-employed accounts don't have a separate businessId.
+  // STATICS TAB — a purpose-built skilled-worker dashboard.
+  //
+  // This used to be the generic [ProfileStatisticsScreen] (chat clicks +
+  // profile visits) that every profile type shared, stacked with
+  // [EarnStatSections] (per-earn-flavour "coming soon" placeholders for home
+  // made food / products / services). Both are gone: those two numbers
+  // describe a *page*, and a self-employed account is a *trade* — an
+  // electrician, plumber, tutor or gardener wants earnings, the enquiry
+  // funnel, which of their services pay, their ratings, and how they stack up
+  // against others in the same trade nearby.
+  //
+  // [SelfWorkStatisticsView] owns all of that. It currently renders sample
+  // data behind SelfWorkStatisticsController.useSampleData because
+  // `earn-service/self-work/statistics` is not built yet — the contract we
+  // designed against is in docs/backend/SELF_WORK_STATISTICS_API_GUIDE.md.
   Widget _buildStaticsTab() {
-    return Column(
-      children: [
-        ProfileStatisticsScreen(userId: userId),
-        SizedBox(height: SizeConfig.size12),
-        // Only renders stat cards for the earn profiles the user actually has
-        // (nothing if none). Shared with the other individual dashboards.
-        const EarnStatSections(),
-        SizedBox(height: SizeConfig.size16),
-      ],
-    );
+    return const SelfWorkStatisticsView();
   }
 
   // OVERVIEW TAB â€” refined editorial identity dossier:

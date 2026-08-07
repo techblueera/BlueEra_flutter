@@ -151,35 +151,25 @@ class ApiBaseHelper {
             // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
 
-            // if (kDebugMode) {
-            // ====== 🌟 Beautified Request Log ======
+            if (kDebugMode) {
+              // ====== 🌟 Beautified Request Log ======
 
-            // Full resolved URL (baseUrl + path + query) and method — so
-            // every request shows its endpoint in the run tab, not just its
-            // body. `options.uri` folds in the base URL and query params.
-            logs("🌐 ${options.method} ${options.uri}");
-            // Auth token sent on this request. The header is (re)set from
-            // `authTokenGlobal` a few lines below, so log the live global —
-            // that's the exact value about to go out.
-            logs("🔑 Authorization: Bearer $authTokenGlobal");
-
-            if (isFormData) {
-              final formData = options.data as FormData;
-              logs("🔹 FormData Fields:");
-              for (final field in formData.fields) {
-                logs("    ${field.key}: ${field.value}");
+              if (isFormData) {
+                final formData = options.data as FormData;
+                log("🔹 FormData Fields:");
+                for (final field in formData.fields) {
+                  log("    ${field.key}: ${field.value}");
+                }
+                log("🔹 FormData Files:");
+                for (final file in formData.files) {
+                  log("    ${file.key}: ${file.value.filename}");
+                }
+              } else if (options.data != null) {
+                log("🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
+              } else {
+                log("🔹 Body: null");
               }
-              logs("🔹 FormData Files:");
-              for (final file in formData.files) {
-                logs("    ${file.key}: ${file.value.filename}");
-              }
-            } else if (options.data != null) {
-              logs(
-                  "🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
-            } else {
-              logs("🔹 Body: null");
             }
-            // }
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
               options.headers[ApiKeys.authorization] =
@@ -191,7 +181,7 @@ class ApiBaseHelper {
           onResponse: (response, handler) {
             numberOfReq--;
             if (showProgressDialog && numberOfReq == 0) {
-              logs('close dialog');
+              log('close dialog');
               ProgressDialog.showProgressDialog(false);
             }
             // ===== YOUR FIX BELOW: normalize all Map keys to String to prevent _Map<dynamic, dynamic> issues ===

@@ -38,6 +38,13 @@ mixin EarnServiceApi {
   String serviceEnquiryStatus(String enquiryId) =>
       'earn-service/service-enquiries/$enquiryId/status';
 
+  /// Statistics dashboard for a SELF_EMPLOYED skilled worker (electrician,
+  /// plumber, tutor, …) — one call backs the whole Statics tab.
+  /// `GET earn-service/self-work/statistics?period=today|week|month`.
+  /// The worker is taken from the JWT, never from a query param.
+  /// See docs/backend/SELF_WORK_STATISTICS_API_GUIDE.md.
+  final String selfWorkStatistics = 'earn-service/self-work/statistics';
+
   String predefinedServiceCategory(String category) =>
       'earn-service/predefined/$category';
   String predefinedProfessionServices(String professionSlugId) =>
