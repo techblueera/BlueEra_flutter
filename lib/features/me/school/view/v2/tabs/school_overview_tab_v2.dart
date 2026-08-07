@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -106,6 +107,52 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
       final management = data?.aboutId?.management ?? const [];
       final campusLife = data?.campusLife ?? const [];
       final contacts = data?.contacts ?? const [];
+
+      // Gate: when the listing's category is one of the six Siksha
+      // education categories and *every* required Quick Info field for
+      // that category is empty, hide every section below the header and
+      // surface a single banner that pushes into the Quick Info form.
+      // Required-field set per category comes from
+      // [kQuickInfoFieldsByCategory] so School Education, Coaching,
+      // College/University, Sports & Hobby, Professional Learn and
+      // Skill Training each gate on their own field list.
+      final quickInfoValues = widget.controller.quickInfoValues;
+      final resolvedCategory = resolveQuickInfoCategoryKey(
+          widget.controller.quickInfoCategory.value);
+      final requiredKeys = resolvedCategory != null
+          ? kQuickInfoFieldsByCategory[resolvedCategory]
+          : null;
+      final gateBehindQuickInfo = requiredKeys != null &&
+          requiredKeys.isNotEmpty &&
+          requiredKeys
+              .every((k) => _isQuickInfoValueEmpty(quickInfoValues[k]));
+
+      if (gateBehindQuickInfo) {
+        // Pull user-friendly labels from the loaded descriptors when
+        // available; fall back to a prettified key so the banner still
+        // reads correctly if descriptors haven't arrived yet.
+        final descriptorByKey = {
+          for (final f in widget.controller.quickInfoFields) f.key: f
+        };
+        final fieldLabels = requiredKeys
+            .map((k) => descriptorByKey[k]?.label ?? _prettifyFieldKey(k))
+            .toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Joined date + identity + cover (self-pads at _hInset) ──
+            BusinessJoinedProfileCard(businessController: _businessController),
+            SizedBox(height: SizeConfig.size10),
+            _QuickInfoRequiredBanner(
+              category: resolvedCategory,
+              fieldLabels: fieldLabels,
+              onTap: () => Get.to(const SchoolQuickInfoFormScreen())
+                  ?.then((_) => widget.controller.getSchoolByIdController()),
+            ),
+            SizedBox(height: SizeConfig.size16),
+          ],
+        );
+      }
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +282,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── Website (shared, business data) ──
           _hPad(
@@ -290,6 +337,27 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
       if (details == null) return const SizedBox.shrink();
       return NewBusinessQrCodeWidget(data: details);
     });
+  }
+
+  // A Quick Info value counts as "missing" when the backend returned null,
+  // an empty string, or an empty list — matching the shapes documented in
+  // school_quick_info_field.dart.
+  static bool _isQuickInfoValueEmpty(dynamic v) {
+    if (v == null) return true;
+    if (v is String) return v.trim().isEmpty;
+    if (v is List) return v.isEmpty;
+    return false;
+  }
+
+  // Fallback used only when the field descriptors haven't been loaded yet
+  // — converts a whitelist key ("mediumOfInstruction") into a readable
+  // label ("Medium Of Instruction") so the banner never renders a raw
+  // camelCase key.
+  static String _prettifyFieldKey(String key) {
+    if (key.isEmpty) return key;
+    final spaced = key.replaceAllMapped(
+        RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}');
+    return spaced[0].toUpperCase() + spaced.substring(1);
   }
 }
 
@@ -447,6 +515,112 @@ class _SplitEmptyCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Banner shown in place of the entire profile body when the listing's
+/// category is one of the six Siksha education categories and every
+/// required Quick Info field for that category is empty. Tapping it
+/// opens [SchoolQuickInfoFormScreen]; the parent refetches the listing
+/// when the form returns so the gate flips off as soon as any required
+/// field is saved.
+class _QuickInfoRequiredBanner extends StatelessWidget {
+  final String? category;
+  final List<String> fieldLabels;
+  final VoidCallback onTap;
+
+  const _QuickInfoRequiredBanner({
+    required this.category,
+    required this.fieldLabels,
+    required this.onTap,
+  });
+
+  String get _heading {
+    final c = category?.trim();
+    if (c == null || c.isEmpty) return 'Complete your Quick Info';
+    return 'Complete your $c Quick Info';
+  }
+
+  String get _message {
+    if (fieldLabels.isEmpty) {
+      return 'Please fill all required Quick Info fields — the rest of your profile can only be displayed once these basics are saved.';
+    }
+    return 'Please fill ${_joinWithAnd(fieldLabels)} — all fields are required before the rest of your profile can be displayed.';
+  }
+
+  static String _joinWithAnd(List<String> items) {
+    if (items.length == 1) return items.first;
+    if (items.length == 2) return '${items[0]} and ${items[1]}';
+    return '${items.sublist(0, items.length - 1).join(', ')} and ${items.last}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.size16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.emptyIcon,
+              height: 60,
+              width: 60,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            CustomText(
+              _heading,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size8),
+            CustomText(
+              _message,
+              fontSize: 13,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+              maxLines: 5,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size16,
+                  vertical: SizeConfig.size10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.edit_outlined,
+                        color: Colors.white, size: 16),
+                    const SizedBox(width: 6),
+                    CustomText(
+                      'Fill Quick Info',
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
