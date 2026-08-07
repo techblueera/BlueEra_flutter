@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
@@ -11,12 +12,12 @@ import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_c
 import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
 import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_customer_care_sheet.dart';
 import 'package:BlueEra/features/ride_booking/widget/rider_call_options_sheet.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
-import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -36,15 +37,22 @@ import 'package:get/get.dart';
 /// | State                          | Chip                | Tap target             |
 /// |--------------------------------|---------------------|------------------------|
 /// | Broadcast waves still ringing  | "Finding a captain" | [RideSearchingScreen]  |
-/// | Captain assigned / on trip     | captain + distance  | [RideTrackingScreen]   |
+/// | Captain assigned / on trip     | captain + distance  | captain's chat thread  | ride_tracking_screen.dart
 /// | Ride finished, not yet rated   | "Ride Completed"    | [RideCompletedScreen]  |
 /// | Old `book_your_transport` ride | captain + distance  | [FareCallQueueScreen]  |
 ///
+/// A live ride opens the CHAT, not a tracking map. Once a captain is assigned
+/// the ride is actually run from that thread — the OTP card, the captain's
+/// details and "on my way" all arrive there — and the customer's question at
+/// that point is "talk to my captain", not "watch a dot move". Seeing the route
+/// is still one tap away, on the map button and the distance, both of which hand
+/// the leg to the phone's own Google Maps. The floating mini-map lands in the
+/// same place, so the two entry points agree.
+///
 /// The completed row exists because a ride can end while the customer is
-/// somewhere else in the app: [RideTrackingScreen] only shows the summary when
-/// it is still mounted, so a ride completed behind the mini-map used to leave
-/// the fare receipt and the rating unreachable. The chip holds that state until
-/// they open it (or dismiss it with the ✕), then clears the booking.
+/// somewhere else in the app, which used to leave the fare receipt and the
+/// rating unreachable. The chip holds that state until they open it (or dismiss
+/// it with the ✕), then clears the booking.
 ///
 /// Cancelled / no-riders rides deliberately show nothing — there is no screen
 /// worth re-opening for them, and the flow already explained what happened.
@@ -181,13 +189,75 @@ class OngoingBookingChip extends StatelessWidget {
       distanceOriginLng: captain?.longitude,
       distanceDestLat: _legTarget(booking).latitude,
       distanceDestLng: _legTarget(booking).longitude,
+      supportOrderId: booking.rideId,
+      // The captain's own `vehicleType` is the backend enum the team filters
+      // on; the booking's `vehicleCode` is the same enum from the fare
+      // catalogue and stands in before the assignedRider payload lands.
+      supportVehicleType: (captain?.vehicleType?.isNotEmpty ?? false)
+          ? captain!.vehicleType
+          : (booking.vehicleCode.isEmpty ? null : booking.vehicleCode),
+      supportRide: _supportRideContext(booking),
       onTap: () {
         // Mirrors the mini-map's own tap: drop the floating overlay first, so
         // the customer isn't left with a PiP for the screen they're now on.
         overlayCtrl?.dismissOverlay();
-        Get.to(() => const RideTrackingScreen());
+        // Straight into the captain's thread. That is where the ride is run
+        // from once someone has accepted it, and it is the same destination the
+        // mini-map now uses — one ride, one place to land.
+        openRiderInquiryChat(
+          riderUserId: captain?.id ?? '',
+          name: captain?.hasName == true
+              ? captain!.name
+              : AppStrings.captainLabel.tr,
+          phone: captain?.phone,
+          photoUrl: captain?.photoUrl,
+        );
       },
     );
+  }
+
+  /// The `ride` context object the Customer Care call sends alongside the
+  /// reason (§1 of docs/backend/ORDER_CUSTOMER_SUPPORT_FLUTTER_GUIDE.md).
+  ///
+  /// The support team opens these threads in the admin panel and sees a
+  /// **Customer & Ride card** built from exactly this map, so every field they
+  /// get here is a lookup they don't have to do before phoning someone. All of
+  /// it is optional and all of it is already on the booking — there is no
+  /// reason to send less.
+  ///
+  /// Empty values are OMITTED rather than sent blank: a card showing
+  /// `Rider: —` reads as "we don't have a rider", which is a different and
+  /// wrong statement from the key simply being absent.
+  ///
+  /// Deliberately NOT included: the ride-start OTP. It is what proves the
+  /// customer is the customer, and this payload is on its way to an admin
+  /// panel — same rule the share text follows.
+  Map<String, dynamic> _supportRideContext(RideBooking booking) {
+    final captain = booking.captain;
+    // "Splendor · HR20AB1234" — the shape the guide's example uses. Either half
+    // alone is still useful, so the join drops whichever is missing.
+    final vehicle = [
+      captain?.vehicleModel,
+      captain?.vehicleNumber,
+    ].whereType<String>().where((s) => s.trim().isNotEmpty).join(' · ');
+
+    return <String, dynamic>{
+      if (booking.pickup.title.isNotEmpty) 'from': booking.pickup.fullAddress,
+      if (booking.drop.title.isNotEmpty) 'to': booking.drop.fullAddress,
+      if (booking.fare > 0) 'fare': booking.fare,
+      // The CUSTOMER is whoever is logged in — the booking carries the captain,
+      // not the passenger, so these come off the session globals.
+      if (userNameGlobal.isNotEmpty) 'userName': userNameGlobal,
+      if (userMobileGlobal.isNotEmpty) 'userNumber': userMobileGlobal,
+      if (captain?.name.isNotEmpty ?? false) 'riderName': captain!.name,
+      if (captain?.phone?.isNotEmpty ?? false) 'riderNumber': captain!.phone,
+      if (vehicle.isNotEmpty)
+        'vehicle': vehicle
+      else if (booking.vehicleName.isNotEmpty)
+        // No plate/model yet (pre-assignment, or a sparse rider payload) — the
+        // booked class is still better than nothing on the team's card.
+        'vehicle': booking.vehicleName,
+    };
   }
 
   /// Plain-text ride summary for the OS share sheet — "who is driving me,
@@ -290,18 +360,31 @@ class OngoingBookingChip extends StatelessWidget {
   /// rather than making the customer also press the ✕. The receipt is still
   /// reachable until then by tapping the row.
   ///
-  /// There is no rating endpoint on the ride service yet — the same gap
-  /// [RideCompletedScreen] documents on its own submit — so the stars are
-  /// acknowledged locally. When the endpoint lands, POST from here (and from
-  /// that screen) before clearing; keep it fail-soft, since a feedback call
-  /// that errors must not strand a finished ride on the customer's Discover.
+  /// Stars only — no tags, no comment. The row has room for five taps and
+  /// nothing else, and the endpoint is an UPSERT: if the customer then opens
+  /// the receipt and submits again with tags and a comment, that call updates
+  /// this same record rather than being rejected as a duplicate.
+  ///
+  /// FAIL SOFT, and clear the row either way. A feedback call that errors must
+  /// not strand a finished ride on the customer's Discover — they have already
+  /// given their answer, and re-showing the stars would ask for it twice. The
+  /// send is fire-and-forget for exactly that reason: nothing downstream waits
+  /// on it.
   void _rateAndClear(
     RideBookingController ctrl,
     RideBooking booking,
     RideNavigationOverlayController? overlayCtrl,
     int stars,
   ) {
-    debugPrint('ride rating — order=${booking.rideId} stars=$stars');
+    final orderId = booking.rideId;
+    if (orderId.isNotEmpty) {
+      RideBookingRepo().rateRide(orderId: orderId, rating: stars).catchError(
+        (Object error) {
+          debugPrint('ride rating failed — order=$orderId: $error');
+          return null;
+        },
+      );
+    }
     commonSnackBar(message: 'Thanks for the feedback!');
     _clearBooking(ctrl, overlayCtrl);
   }
@@ -354,6 +437,28 @@ class OngoingBookingChip extends StatelessWidget {
       distanceOriginLng: ctrl.riderLng.value,
       distanceDestLat: ctrl.destLat.value,
       distanceDestLng: ctrl.destLng.value,
+      // The legacy flow's own order id keys the same per-order support thread,
+      // so a complaint about one of these rides reaches the team the same way.
+      supportOrderId: orderId.isEmpty ? null : orderId,
+      // Thinner than the booking flow's card by necessity, not by choice: the
+      // overlay controller carries no pickup label and no vehicle details. Same
+      // omit-when-empty rule — a blank field on the team's card is a wrong
+      // statement, an absent one is just absent.
+      supportRide: <String, dynamic>{
+        if (ctrl.dropLabel.value.isNotEmpty)
+          'to': ctrl.dropLabel.value
+        else if (ctrl.destLabel.value.isNotEmpty)
+          'to': ctrl.destLabel.value,
+        if (ctrl.fareAmount.value > 0) 'fare': ctrl.fareAmount.value,
+        if (userNameGlobal.isNotEmpty) 'userName': userNameGlobal,
+        if (userMobileGlobal.isNotEmpty) 'userNumber': userMobileGlobal,
+        // `customerName` is the RIDER's name in this flow despite the field
+        // name — it is what the card renders as the captain (see `subtitle`).
+        if (ctrl.customerName.value.isNotEmpty)
+          'riderName': ctrl.customerName.value,
+        if (ctrl.riderContact.value.isNotEmpty)
+          'riderNumber': ctrl.riderContact.value,
+      },
       onTap: () {
         ctrl.hideOverlay();
         Get.to(() => FareCallQueueScreen(orderId: orderId));
@@ -498,6 +603,9 @@ class _ChipData {
     this.distanceOriginLng,
     this.distanceDestLat,
     this.distanceDestLng,
+    this.supportOrderId,
+    this.supportVehicleType,
+    this.supportRide,
   });
 
   /// The two ends [distanceLabel] measures between — the captain's last known
@@ -521,6 +629,16 @@ class _ChipData {
   /// button is hidden in both cases, since there is nobody to talk to yet and
   /// nothing left to arrange once the ride is over.
   final String? riderUserId;
+
+  /// The ORDER id, and enough of the trip to give a support agent context.
+  ///
+  /// Customer Care threads are keyed per order (see
+  /// docs/backend/ORDER_CUSTOMER_SUPPORT_FLUTTER_GUIDE.md), so without
+  /// [supportOrderId] the sheet has nothing to open. The legacy transport flow
+  /// carries its own order id, so both rows can raise a complaint.
+  final String? supportOrderId;
+  final String? supportVehicleType;
+  final Map<String, dynamic>? supportRide;
 
   /// "10 KM Away", or null while no live position is known.
   final String? distanceLabel;
@@ -755,7 +873,12 @@ class _ChipCard extends StatelessWidget {
           // The OTP has been handed over, so this slot stops being "read this
           // out" and becomes "something's wrong with this ride".
           _CustomerCarePill(
-            onTap: () => showRideCustomerCareSheet(riderName: data.subtitle),
+            onTap: () => showRideCustomerCareSheet(
+              riderName: data.subtitle,
+              rideId: data.supportOrderId,
+              vehicleType: data.supportVehicleType,
+              ride: data.supportRide,
+            ),
           ),
         ] else if (data.onRate != null) ...[
           const SizedBox(height: 6),
@@ -780,10 +903,17 @@ class _ChipCard extends StatelessWidget {
   /// All three fall back to a chevron so the row always shows that it opens
   /// something.
   ///
-  /// A live ride with an assigned captain also gets a chat button beside the
-  /// action: tapping the row is "where is my ride", tapping chat is "talk to
-  /// my captain", and the two need to be reachable without going through each
-  /// other. Calling stays reachable from that thread after the OTP, too.
+  /// A live ride also gets a MAP button beside the action. It used to be a chat
+  /// button, back when tapping the row opened a tracking screen; the two have
+  /// swapped. Tapping the row is now "talk to my captain" and the map button is
+  /// "show me the route", which is the pairing that matches what the customer
+  /// actually does with each: the thread is where the ride is run, and the map
+  /// is a glance they take once and leave.
+  ///
+  /// It hands off to the phone's own Google Maps rather than opening an in-app
+  /// map — the directions view draws the route line and the ETA for free, and a
+  /// second full-screen map inside the app for a journey the customer is not
+  /// driving was never worth its weight.
   Widget _trailing() {
     final Widget action;
     if (data.isCompleted) {
@@ -826,25 +956,27 @@ class _ChipCard extends StatelessWidget {
       );
     }
 
-    final riderId = data.riderUserId ?? '';
-    final showChat = !data.isCompleted && riderId.isNotEmpty;
+    // Gated on having somewhere to route TO, not on having a captain: with no
+    // destination coordinate the button would open Maps on nothing. A live ride
+    // that has not reported a position yet simply shows the action alone.
+    final destLat = data.distanceDestLat;
+    final destLng = data.distanceDestLng;
+    final showMap = !data.isCompleted &&
+        destLat != null &&
+        destLng != null &&
+        !(destLat == 0 && destLng == 0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showChat)
+        if (showMap)
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               _circleButton(
-                icon: Icons.chat_bubble_outline_rounded,
+                icon: Icons.map_outlined,
                 color: AppColors.primaryColor,
-                onTap: () => openRiderInquiryChat(
-                  riderUserId: riderId,
-                  name: data.subtitle,
-                  phone: data.phone,
-                  photoUrl: data.imageUrl,
-                ),
+                onTap: _openInGoogleMaps,
               ),
               const SizedBox(width: 8),
               action,

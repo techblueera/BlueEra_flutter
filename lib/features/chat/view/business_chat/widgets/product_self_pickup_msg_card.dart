@@ -19,7 +19,7 @@ import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.da
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
-import 'package:BlueEra/features/common/connect/view/inquiry_ride_order_selection_screen.dart';
+import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -1118,7 +1118,7 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
                 final drop = await showRideDropLocationSheet(context);
                 if (drop != null) {
                   Get.to(() =>
-                      InquiryRideOrderSelectionScreen(dropAddress: drop));
+                      GoodsMultiOrderBookingMain(dropAddress: drop));
                 }
               },
             ),

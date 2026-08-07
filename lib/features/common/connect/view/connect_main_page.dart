@@ -62,7 +62,7 @@ import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../../widgets/glass_surface.dart';
-import 'inquiry_ride_order_selection_screen.dart';
+import 'goods_multi_order_booking_main.dart';
 import '../widget/customer_ongoing_ride_card.dart';
 import '../widget/ongoing_call_banner.dart';
 
@@ -506,7 +506,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               final drop = await showRideDropLocationSheet(context);
               if (drop != null) {
                 Get.to(
-                    () => InquiryRideOrderSelectionScreen(dropAddress: drop));
+                    () => GoodsMultiOrderBookingMain(dropAddress: drop));
               }
             },
             customBorder: const CircleBorder(),

@@ -110,16 +110,27 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   /// Runs that debounce. Cancelled on every new idle and on dispose.
   Timer? _settleTimer;
 
+  /// True only when BOTH halves of the device fix have landed.
+  ///
+  /// `currentLat` and `currentLng` are separate observables assigned on
+  /// consecutive lines, so a listener can observe latitude-set-longitude-still-
+  /// zero. Treating that as a location put the pin at LatLng(lat, 0) — the
+  /// Sahara, for anyone in India. Matches [RidePlace.hasCoordinates], which
+  /// treats 0,0 as unset for the same reason.
+  bool get _hasFix =>
+      controller.currentLat.value != 0 && controller.currentLng.value != 0;
+
   @override
   void initState() {
     super.initState();
     final existing = controller.pickup.value;
-    _hasRealPin = (existing != null && existing.hasCoordinates) ||
-        controller.currentLat.value != 0 ||
-        controller.currentLng.value != 0;
+    // BOTH halves of the fix, never either — see [_hasFix]. Accepting a
+    // half-written fix framed the map on LatLng(lat, 0), which for an Indian
+    // user is the Sahara.
+    _hasRealPin = (existing != null && existing.hasCoordinates) || _hasFix;
     _pinPosition = existing != null && existing.hasCoordinates
         ? LatLng(existing.latitude, existing.longitude)
-        : (_hasRealPin
+        : (_hasFix
             ? LatLng(controller.currentLat.value, controller.currentLng.value)
             : _fallbackCentre);
     // Only adopt the seeded pickup if it carries a real address. The
@@ -134,23 +145,31 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
     // open this screen is often built before it lands and frames the fallback
     // centre instead of the user. Follow the first real fix in.
     if (existing == null || !existing.hasCoordinates) {
-      _locationWorker = ever<double>(controller.currentLat, (lat) {
-        if (lat == 0 || !mounted) return;
-        _locationWorker?.dispose();
-        _locationWorker = null;
-        final target = LatLng(lat, controller.currentLng.value);
-        // setState because the address card is showing "Locating…" off
-        // [_hasRealPin] and has to stop.
-        setState(() {
-          _pinPosition = target;
-          _hasRealPin = true;
-        });
-        // Camera-idle then fires and resolves the address for it.
-        _moveCameraTo(target);
-        // The opening lookup was gated on the fallback centre — run it now we
-        // have a real point.
-        _fetchLiveRiders();
-      });
+      // Watches BOTH observables. Watching latitude alone fired while longitude
+      // was still 0 and framed the map on a coordinate off the coast of Africa.
+      _locationWorker = everAll(
+        [controller.currentLat, controller.currentLng],
+        (_) {
+          if (!_hasFix || !mounted) return;
+          _locationWorker?.dispose();
+          _locationWorker = null;
+          final target = LatLng(
+            controller.currentLat.value,
+            controller.currentLng.value,
+          );
+          // setState because the address card is showing "Locating…" off
+          // [_hasRealPin] and has to stop.
+          setState(() {
+            _pinPosition = target;
+            _hasRealPin = true;
+          });
+          // Camera-idle then fires and resolves the address for it.
+          _moveCameraTo(target);
+          // The opening lookup was gated on the fallback centre — run it now we
+          // have a real point.
+          _fetchLiveRiders();
+        },
+      );
 
       // And make sure a fix is actually coming. The controller resolves one
       // once, in `onInit`; if that attempt failed (permission still ungranted,
@@ -392,22 +411,22 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen>
   }
 
   void _recentre() {
-    final lat = controller.currentLat.value;
-    final lng = controller.currentLng.value;
-    if (lat == 0 && lng == 0) {
+    // A half-written fix is NOT something to centre on — see [_hasFix].
+    if (!_hasFix) {
       // Nothing to centre on yet. The button used to do nothing at all here,
       // and it is the one place the user can ask for their location again — so
       // it asks, and frames whatever comes back.
       controller.ensureCurrentLocation().then((_) {
-        if (!mounted) return;
-        final fixedLat = controller.currentLat.value;
-        final fixedLng = controller.currentLng.value;
-        if (fixedLat == 0 && fixedLng == 0) return;
-        _moveCameraTo(LatLng(fixedLat, fixedLng));
+        if (!mounted || !_hasFix) return;
+        _moveCameraTo(
+          LatLng(controller.currentLat.value, controller.currentLng.value),
+        );
       });
       return;
     }
-    _moveCameraTo(LatLng(lat, lng));
+    _moveCameraTo(
+      LatLng(controller.currentLat.value, controller.currentLng.value),
+    );
   }
 
   Widget _bottomPanel() {

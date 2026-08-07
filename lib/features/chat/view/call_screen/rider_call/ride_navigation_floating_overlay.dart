@@ -1,5 +1,6 @@
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
-import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
+import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_searching_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -114,20 +115,39 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
             orderId: p['orderId'] ?? '',
           ));
     } else if (type == 'ride_booking') {
-      // Customer minimised their own booked ride → back to the ride screen,
-      // which carries its own live map. Never the chat flow's tracking page:
-      // that is a second full-screen map for the same ride.
+      // Customer minimised their own booked ride.
       //
-      // It reads the booking off RideBookingController, which is permanent for
+      // This used to reopen the full-screen tracking map. It opens the
+      // CAPTAIN'S CHAT instead: once someone has accepted, the ride is run from
+      // that thread, and the route is a tap away in the phone's own Google Maps
+      // from the Discover ongoing-ride card. Both entry points now land in the
+      // same place, so minimising and re-opening never changes what "my ride"
+      // means.
+      //
+      // Reads the booking off RideBookingController, which is permanent for
       // exactly this reason. If the ride is genuinely gone (cold start with no
       // booking restored) there is nothing to show, so drop the stale overlay
       // instead of opening an empty screen.
-      final hasBooking = Get.isRegistered<RideBookingController>() &&
-          Get.find<RideBookingController>().activeBooking.value != null;
-      if (hasBooking) {
-        Get.to(() => const RideTrackingScreen());
-      } else {
+      final rideCtrl = Get.isRegistered<RideBookingController>()
+          ? Get.find<RideBookingController>()
+          : null;
+      final booking = rideCtrl?.activeBooking.value;
+      final captainId = booking?.captain?.id ?? '';
+      if (booking == null) {
         ctrl.clearRideData();
+      } else if (captainId.isEmpty) {
+        // Still broadcasting — there is nobody to talk to yet, so the search
+        // screen is the only honest destination.
+        Get.to(() => const RideSearchingScreen());
+      } else {
+        openRiderInquiryChat(
+          riderUserId: captainId,
+          name: booking.captain?.hasName == true
+              ? booking.captain!.name
+              : 'Captain',
+          phone: booking.captain?.phone,
+          photoUrl: booking.captain?.photoUrl,
+        );
       }
     } else if (type == 'track_rider') {
       // Customer tapped the floating mini-map for a chat-initiated rider

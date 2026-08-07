@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 
 /// API layer for the Rapido-style BROADCAST ride flow.
 ///
@@ -174,5 +175,81 @@ class RideBookingRepo extends BaseService {
       },
       showProgress: false,
     );
+  }
+
+  // NOTE: the per-order customer-care call is NOT here. `order-support` is a
+  // chat-service route, so it lives on ChatViewRepo.openOrderSupportApi —
+  // putting it beside the `rider-service/fare/*` calls is exactly the mistake
+  // the guide warns about. Rating and reporting below ARE rider-service, so
+  // they belong here.
+
+  /// `POST fare/orders/{orderId}/rate` — customer rates the captain.
+  ///
+  /// Returns the parsed result, or **null** on any failure. These two methods
+  /// deviate from the `ResponseModel` convention the rest of this repo follows,
+  /// deliberately: rating is a fire-and-mostly-forget action with three call
+  /// sites, and making each one unwrap an envelope just to read `alreadyRated`
+  /// would put the same parsing in three places.
+  ///
+  /// Null rather than a throw because every caller treats failure the same way
+  /// — a light snackbar, and the screen still releases. See the guide's "fail
+  /// soft, always".
+  Future<RideRatingResult?> rateRide({
+    required String orderId,
+    required int rating,
+    List<String> tags = const [],
+    String? comment,
+  }) async {
+    final trimmed = comment?.trim() ?? '';
+    final response = await ApiBaseHelper().postHTTP(
+      rateFareOrder(orderId),
+      params: {
+        'rating': rating,
+        if (tags.isNotEmpty) 'tags': tags,
+        if (trimmed.isNotEmpty) 'comment': trimmed,
+      },
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+    return _parse(response, RideRatingResult.fromJson);
+  }
+
+  /// `POST fare/orders/{orderId}/report` — customer reports a problem.
+  ///
+  /// Multiple reports per order are allowed and it is accepted on completed OR
+  /// cancelled orders, so there is no client-side gate beyond having an id.
+  Future<RideReportResult?> reportRide({
+    required String orderId,
+    required String reason,
+    String? comment,
+  }) async {
+    final trimmed = comment?.trim() ?? '';
+    final response = await ApiBaseHelper().postHTTP(
+      reportFareOrder(orderId),
+      params: {
+        'reason': reason,
+        if (trimmed.isNotEmpty) 'comment': trimmed,
+      },
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+    return _parse(response, RideReportResult.fromJson);
+  }
+
+  /// Unwrap a `{...}` or `{ data: {...} }` body into [T], or null when the call
+  /// failed or the body isn't a map. Shared by both feedback calls so they
+  /// can't disagree about what "succeeded" means.
+  T? _parse<T>(
+    ResponseModel response,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    if (!response.isSuccess) return null;
+    final body = response.response?.data;
+    if (body is! Map) return null;
+    final map = Map<String, dynamic>.from(body);
+    final inner = map['data'];
+    return fromJson(inner is Map ? Map<String, dynamic>.from(inner) : map);
   }
 }

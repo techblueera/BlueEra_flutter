@@ -113,4 +113,15 @@ mixin ChatServiceApi {
   // first message. See lib/docs/HELP_WIDGET_FLUTTER_GUIDE.md.
   final String supportQuestions = 'chat-service/support/questions';
   final String supportInquiry = 'chat-service/support/inquiry';
+
+  /// Per-ORDER customer-care thread, opened from the ongoing-ride card's
+  /// Customer Care sheet. `POST { orderId, reason, note?, vehicleType?, ride? }`
+  /// opens (or reuses) a 2-way conversation with the ride/order team, posts the
+  /// reason as its first message, and returns `conversation_id` plus the
+  /// `display_name` to show at the top of the chat.
+  ///
+  /// One thread per order: a second complaint about the SAME ride appends to
+  /// it, a different ride opens a new one. See
+  /// docs/backend/ORDER_CUSTOMER_SUPPORT_FLUTTER_GUIDE.md.
+  final String orderSupport = 'chat-service/support/order-support';
 }

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -39,31 +40,46 @@ class RideCompletedScreen extends StatefulWidget {
 
 class _RideCompletedScreenState extends State<RideCompletedScreen> {
   int _rating = 0;
+
+  /// Selected tags, held as the API's **slugs** rather than the labels on
+  /// screen — the payload is the thing that has to be right, and keeping the
+  /// selection in the sent form means no lookup can go missing between tapping
+  /// a chip and posting it.
   final Set<String> _tags = {};
+
   final TextEditingController _commentController = TextEditingController();
   bool _submitting = false;
 
   /// Quick-tap feedback. Which set is offered depends on the rating: praising
   /// a 5-star ride and explaining a 2-star one need opposite vocabularies.
-  static const List<String> _positiveTags = [
-    'Safe driving',
-    'Polite',
-    'Clean vehicle',
-    'On time',
-    'Knows the route',
+  ///
+  /// Label and slug travel together in one record instead of a parallel
+  /// label→slug map. A map lets the two drift — reword a label and its entry
+  /// silently stops matching, which the server answers with a `400` nobody sees
+  /// until QA. Here a label without a slug does not compile.
+  ///
+  /// Slugs are the contract; labels are UI only. See
+  /// docs/backend/RIDE_RATING_AND_REPORT_FLUTTER_GUIDE.md §4.
+  static const List<({String label, String slug})> _positiveTags = [
+    (label: 'Safe driving', slug: 'safe_driving'),
+    (label: 'Polite', slug: 'polite'),
+    (label: 'Clean vehicle', slug: 'clean_vehicle'),
+    (label: 'On time', slug: 'on_time'),
+    (label: 'Knows the route', slug: 'knows_the_route'),
   ];
 
-  static const List<String> _negativeTags = [
-    'Rash driving',
-    'Rude behaviour',
-    'Took a longer route',
-    'Kept me waiting',
-    'Asked for extra fare',
+  static const List<({String label, String slug})> _negativeTags = [
+    (label: 'Rash driving', slug: 'rash_driving'),
+    (label: 'Rude behaviour', slug: 'rude_behaviour'),
+    (label: 'Took a longer route', slug: 'longer_route'),
+    (label: 'Kept me waiting', slug: 'kept_waiting'),
+    (label: 'Asked for extra fare', slug: 'extra_fare'),
   ];
 
   bool get _isNegative => _rating > 0 && _rating <= 3;
 
-  List<String> get _currentTags => _isNegative ? _negativeTags : _positiveTags;
+  List<({String label, String slug})> get _currentTags =>
+      _isNegative ? _negativeTags : _positiveTags;
 
   @override
   void dispose() {
@@ -275,10 +291,10 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
       spacing: 8,
       runSpacing: 8,
       children: _currentTags.map((tag) {
-        final selected = _tags.contains(tag);
+        final selected = _tags.contains(tag.slug);
         return GestureDetector(
           onTap: () => setState(() {
-            selected ? _tags.remove(tag) : _tags.add(tag);
+            selected ? _tags.remove(tag.slug) : _tags.add(tag.slug);
           }),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -293,7 +309,7 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
               ),
             ),
             child: CustomText(
-              tag,
+              tag.label,
               fontSize: 13,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected ? RideStyle.action : RideStyle.ink,
@@ -359,13 +375,14 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
   }
 
   void _openReportSheet() {
-    const reasons = [
-      'Driver behaved badly',
-      'I was overcharged',
-      'Unsafe or rash driving',
-      'Vehicle did not match',
-      'I left an item in the vehicle',
-      'Something else',
+    // Label + slug together, same reasoning as the rating tags above.
+    const reasons = <({String label, String slug})>[
+      (label: 'Driver behaved badly', slug: 'driver_behaviour'),
+      (label: 'I was overcharged', slug: 'overcharged'),
+      (label: 'Unsafe or rash driving', slug: 'unsafe_driving'),
+      (label: 'Vehicle did not match', slug: 'vehicle_mismatch'),
+      (label: 'I left an item in the vehicle', slug: 'item_left'),
+      (label: 'Something else', slug: 'other'),
     ];
 
     Get.bottomSheet(
@@ -402,7 +419,7 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: CustomText(
-                  reason,
+                  reason.label,
                   fontSize: 15,
                   color: RideStyle.ink,
                 ),
@@ -410,7 +427,7 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
                     size: 20, color: RideStyle.inkMuted),
                 onTap: () {
                   Get.back();
-                  _submitReport(reason);
+                  _submitReport(reason.slug);
                 },
               ),
           ],
@@ -422,12 +439,39 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
 
   // ── Submit ─────────────────────────────────────────────────────────
 
-  Future<void> _submitReport(String reason) async {
-    // Same missing-endpoint caveat as [_submit]. Logged rather than silently
-    // dropped so the choice is at least visible while the API is pending.
-    log('ride report — order=${widget.booking.rideId} reason=$reason');
+  /// [reasonSlug] is the API value, not the label the customer tapped — see the
+  /// reason list in [_openReportSheet].
+  ///
+  /// Accepted on completed OR cancelled orders and repeatable, so there is no
+  /// gate here beyond having an order id. The comment field belongs to the
+  /// RATING, not the report, so nothing is sent with it: the report sheet is
+  /// one tap by design.
+  Future<void> _submitReport(String reasonSlug) async {
+    final orderId = widget.booking.rideId;
+    if (orderId.isEmpty) {
+      commonSnackBar(message: 'Could not send your report. Please try again.');
+      return;
+    }
+
+    RideReportResult? result;
+    try {
+      result = await RideBookingRepo()
+          .reportRide(orderId: orderId, reason: reasonSlug);
+    } catch (e) {
+      log('ride report failed — order=$orderId reason=$reasonSlug: $e');
+    }
+
+    if (!mounted) return;
+    if (result == null || !result.success) {
+      commonSnackBar(message: 'Could not send your report. Please try again.');
+      return;
+    }
+    // The reference is the whole point of returning an id: "we've logged your
+    // report" used to be a claim with nothing behind it.
     commonSnackBar(
-      message: 'Thanks — we\'ve logged your report and will look into it.',
+      message: result.reportId.isEmpty
+          ? 'Thanks — we\'ve logged your report and will look into it.'
+          : 'Report logged (${result.reportId}). We\'ll look into it.',
     );
   }
 
@@ -438,17 +482,46 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
     }
     setState(() => _submitting = true);
 
-    // NOTE: there is no rating endpoint on the ride service yet — nothing in
-    // `rider_service_api.dart` accepts feedback for a completed order. The
-    // rating is collected and acknowledged here; once the endpoint exists,
-    // POST it from this method. Deliberately fail-soft either way: a customer
-    // must never be held on this screen because feedback couldn't be sent.
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    // `_tags` already holds SLUGS, and only the set matching the current star
+    // band is ever offered — so the server's "tags must match the star set"
+    // rule cannot be violated from here. It is still worth knowing the rule
+    // exists: a 5-star rating carrying `rash_driving` is a `400`.
+    final orderId = widget.booking.rideId;
+    RideRatingResult? result;
+    try {
+      if (orderId.isNotEmpty) {
+        result = await RideBookingRepo().rateRide(
+          orderId: orderId,
+          rating: _rating,
+          tags: _tags.toList(),
+          comment: _commentController.text,
+        );
+      }
+    } catch (e) {
+      log('ride rating failed — order=$orderId: $e');
+    }
 
     if (!mounted) return;
     setState(() => _submitting = false);
-    commonSnackBar(message: 'Thanks for the feedback!');
+    // FAIL SOFT: thank them and release the screen whatever happened. A
+    // customer must never be held on a finished ride because feedback could not
+    // be sent, and telling them their compliment failed to send helps nobody.
+    commonSnackBar(
+      message: result != null && result.hasAggregate
+          // The endpoint returns the captain's fresh aggregate, so the thanks
+          // can show what the rating did rather than just acknowledging it.
+          ? 'Thanks! ${_captainLabel()} is now rated '
+              '${result.riderAverage.toStringAsFixed(1)}★'
+          : 'Thanks for the feedback!',
+    );
     _finish();
+  }
+
+  /// First name of the captain for the thank-you line, or a neutral noun.
+  String _captainLabel() {
+    final name = widget.booking.captain?.name.trim() ?? '';
+    if (name.isEmpty) return 'Your captain';
+    return name.split(' ').first;
   }
 
   void _finish() {

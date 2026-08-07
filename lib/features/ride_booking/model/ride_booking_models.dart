@@ -747,3 +747,69 @@ class RideCancelReason {
     );
   }
 }
+
+/// Result of `POST fare/orders/{orderId}/rate`.
+///
+/// See docs/backend/RIDE_RATING_AND_REPORT_FLUTTER_GUIDE.md §2.
+class RideRatingResult {
+  final bool success;
+  final int rating;
+
+  /// True when this call UPDATED an earlier rating rather than creating one —
+  /// the endpoint is an upsert, so rating from the Discover chip and then again
+  /// from the receipt is one record, not a rejected duplicate.
+  final bool alreadyRated;
+
+  /// The captain's aggregate AFTER this rating, so the UI can show the effect
+  /// without a second call.
+  final double riderAverage;
+  final int riderCount;
+
+  const RideRatingResult({
+    this.success = false,
+    this.rating = 0,
+    this.alreadyRated = false,
+    this.riderAverage = 0,
+    this.riderCount = 0,
+  });
+
+  factory RideRatingResult.fromJson(Map<String, dynamic> json) {
+    final aggregate = json['riderRating'];
+    final map = aggregate is Map
+        ? Map<String, dynamic>.from(aggregate)
+        : const <String, dynamic>{};
+    return RideRatingResult(
+      success: json['success'] == true,
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
+      alreadyRated: json['alreadyRated'] == true,
+      riderAverage: (map['average'] as num?)?.toDouble() ?? 0,
+      riderCount: (map['count'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  bool get hasAggregate => riderCount > 0 && riderAverage > 0;
+}
+
+/// Result of `POST fare/orders/{orderId}/report`.
+class RideReportResult {
+  final bool success;
+
+  /// `RPT-…`. The reference behind "we've logged your report" — before this
+  /// endpoint existed that sentence had nothing to back it up.
+  final String reportId;
+  final String status;
+
+  const RideReportResult({
+    this.success = false,
+    this.reportId = '',
+    this.status = 'open',
+  });
+
+  factory RideReportResult.fromJson(Map<String, dynamic> json) {
+    return RideReportResult(
+      success: json['success'] == true,
+      reportId: (json['reportId'] ?? '').toString(),
+      status: (json['status'] ?? 'open').toString(),
+    );
+  }
+}

@@ -82,6 +82,20 @@ mixin RiderServiceApi {
   /// the old hand-picked flow.
   String cancelFareOrder(String orderId) =>
       'rider-service/fare/orders/$orderId/cancel';
+
+  /// Customer → captain rating for a completed ride. `POST { rating, tags?,
+  /// comment? }`. UPSERT, not reject: the chip's stars-only call and a later
+  /// receipt submit with tags update the SAME record (`alreadyRated: true`).
+  /// The captain is derived from the order — never send a riderId.
+  /// See docs/backend/RIDE_RATING_AND_REPORT_FLUTTER_GUIDE.md.
+  String rateFareOrder(String orderId) =>
+      'rider-service/fare/orders/$orderId/rate';
+
+  /// Customer report of a problem with a ride. `POST { reason, comment? }`.
+  /// Multiple reports per order are allowed, and it is accepted on completed
+  /// OR cancelled orders.
+  String reportFareOrder(String orderId) =>
+      'rider-service/fare/orders/$orderId/report';
   final String favoriteLocations = "rider-service/favorite-locations";
 
   // Claim an order surfaced on the rider's active route (the

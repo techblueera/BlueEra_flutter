@@ -597,7 +597,11 @@ class RideBookingController extends GetxController {
   /// Cheap when a fix is already in hand: it returns without touching the
   /// device. Concurrent calls collapse onto the one in flight.
   Future<void> ensureCurrentLocation() async {
-    if (currentLat.value != 0 || currentLng.value != 0) return;
+    // BOTH, not either. `||` meant a half-written fix (latitude assigned,
+    // longitude still 0 — they are set on consecutive lines, so a listener can
+    // observe the gap) counted as "we already have a location", and this never
+    // retried. The caller was then stuck on a coordinate that does not exist.
+    if (currentLat.value != 0 && currentLng.value != 0) return;
     await _bootstrapLocation();
   }
 

@@ -1638,26 +1638,43 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// In-City fare for the vehicle tab [index], mirroring the tab-0 mapping of
-  /// `getSelectedVehicleData` (0 Bike, 1 min(carMini,carSedan), 2 Auto,
-  /// 3 eRickshaw).
-  double? selectedInCityFare(int index) {
+  /// The backend `vehicleType` key currently selected for a multi-shop goods
+  /// order — e.g. `pickupGoods`.
+  ///
+  /// Replaces the old `selectedVehicleOptionIndex` addressing for this flow.
+  /// That index had to be decoded in THREE places (the fare sent on the order,
+  /// the vehicleType sent on a broadcast, and the riders list in the picker),
+  /// each with its own switch, and every one of them had to agree with the
+  /// option list rendered on screen. Changing which vehicles the flow offers
+  /// meant editing four switches in lockstep, and getting one wrong priced a
+  /// booking against a vehicle nobody chose. The key IS the answer, so nothing
+  /// decodes anything.
+  final RxString multiShopVehicleType = ''.obs;
+
+  /// The riders + fare the server returned for one vehicle key.
+  ///
+  /// Only goods-carrying types are listed: this flow collects orders from shops
+  /// and delivers them, so a passenger sedan is not a thing anyone can pick.
+  VehicleData? multiShopVehicleData(String key) {
     final r = ridersDetailsList.value;
-    switch (index) {
-      case 0:
-        return r.twoWheelerRider?.fare;
-      case 1:
-        final a = r.carMini?.fare;
-        final b = r.carSedan?.fare;
-        if (a != null && b != null) return a < b ? a : b;
-        return a ?? b;
-      case 2:
-        return r.autoTempo?.fare;
-      case 3:
-        return r.eRickshaw?.fare;
+    switch (key) {
+      case 'twoWheelerRider':
+        return r.twoWheelerRider;
+      case 'autoTempo':
+        return r.autoTempo;
+      case 'pickupGoods':
+        return r.pickupGoods;
+      case 'miniTruckGoods':
+        return r.miniTruckGoods;
+      case 'largeTruckGoods':
+        return r.largeTruckGoods;
     }
     return null;
   }
+
+  /// Fare for [key], or null when the server didn't price that type for this
+  /// route — which is what makes a row unbookable rather than hidden.
+  double? multiShopFare(String key) => multiShopVehicleData(key)?.fare;
 
   /// Book the multi-shop order via `/fare/multi-shop/orders` using the
   /// currently [selectedRiders] and the selected vehicle fare. Uses the
@@ -1691,7 +1708,7 @@ class DiscoverController extends GetxController {
       'shops': _multiShopOrderShops.map((s) => s.toRequestJson()).toList(),
       ApiKeys.orderFor: 'grocery',
       ApiKeys.modeOfPayment: 'prepaid',
-      ApiKeys.fare: selectedInCityFare(selectedVehicleOptionIndex.value),
+      ApiKeys.fare: multiShopFare(multiShopVehicleType.value),
       ApiKeys.orderType: 'fare-call',
       ApiKeys.orderForWhom: 'myself',
     };
@@ -1718,36 +1735,16 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// Backend `vehicleType` enum for the In-City vehicle tab [index], mirroring
-  /// [selectedInCityFare]. Sent on a broadcast order to restrict the race to
-  /// one vehicle type — without it any nearby rider of any type can win a
-  /// booking the customer priced as a bike.
+  /// The vehicle key to send on a broadcast, or null when nothing priced is
+  /// selected.
   ///
-  /// Tab 1 ("Taxi") covers two backend types and the quoted fare is the
-  /// cheaper of `carMini` / `carSedan`; the race is restricted to whichever
-  /// type produced that fare so the customer is charged what they were shown.
-  /// Returns null when the tab has no priced vehicle (broadcast then goes out
-  /// unrestricted, which is the server default).
-  String? multiShopBroadcastVehicleType(int index) {
-    final r = ridersDetailsList.value;
-    switch (index) {
-      case 0:
-        return r.twoWheelerRider != null ? 'twoWheelerRider' : null;
-      case 1:
-        final mini = r.carMini?.fare;
-        final sedan = r.carSedan?.fare;
-        if (mini != null && sedan != null) {
-          return mini <= sedan ? 'carMini' : 'carSedan';
-        }
-        if (mini != null) return 'carMini';
-        if (sedan != null) return 'carSedan';
-        return null;
-      case 2:
-        return r.autoTempo != null ? 'autoTempo' : null;
-      case 3:
-        return r.eRickshaw != null ? 'eRickshaw' : null;
-    }
-    return null;
+  /// Sent to restrict the race to one type — without it any nearby rider of any
+  /// type can win a booking the customer priced as a bike. Null lets the server
+  /// run unrestricted, which is its default.
+  String? get multiShopBroadcastVehicleType {
+    final key = multiShopVehicleType.value;
+    if (key.isEmpty) return null;
+    return multiShopVehicleData(key) == null ? null : key;
   }
 
   /// Book the multi-shop order as a BROADCAST via
@@ -1768,8 +1765,7 @@ class DiscoverController extends GetxController {
 
     bookRiderBtnLoading.value = true;
 
-    final vehicleType =
-        multiShopBroadcastVehicleType(selectedVehicleOptionIndex.value);
+    final vehicleType = multiShopBroadcastVehicleType;
     final params = {
       'userLocation': {
         ApiKeys.address: drop.fullAddress,
@@ -1779,7 +1775,7 @@ class DiscoverController extends GetxController {
       'shops': _multiShopOrderShops.map((s) => s.toRequestJson()).toList(),
       ApiKeys.orderFor: 'grocery',
       ApiKeys.modeOfPayment: 'prepaid',
-      ApiKeys.fare: selectedInCityFare(selectedVehicleOptionIndex.value),
+      ApiKeys.fare: multiShopFare(multiShopVehicleType.value),
       ApiKeys.orderType: 'broadcast',
       ApiKeys.orderForWhom: 'myself',
       if (vehicleType != null) ApiKeys.vehicleType: vehicleType,

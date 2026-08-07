@@ -416,4 +416,44 @@ class ChatViewRepo extends BaseService {
     return response;
   }
 
+  /// Open (or continue) the per-order customer-care thread with the ride/order
+  /// team. `POST chat-service/support/order-support` →
+  /// `{ success, conversation_id, message_id, display_name }`.
+  ///
+  /// It lives on the CHAT repo, not the ride one, because the endpoint is a
+  /// **chat-service** route. The guide calls this out as the single most common
+  /// mistake — `…/api/rider-service/support/order-support` does not exist and
+  /// answers with an HTML 404. In this app every path constant carries its own
+  /// service prefix and `ApiBaseHelper` has one shared base, so the prefix in
+  /// [orderSupport] is what decides the service; keeping the method here means
+  /// the ownership is obvious at the call site too.
+  ///
+  /// Optional fields are omitted rather than sent empty — the team filters the
+  /// queue on `vehicleType`, and an empty string there is worse than no key.
+  ///
+  /// See docs/backend/ORDER_CUSTOMER_SUPPORT_FLUTTER_GUIDE.md.
+  Future<ResponseModel> openOrderSupportApi({
+    required String orderId,
+    required String reason,
+    String? note,
+    String? vehicleType,
+    Map<String, dynamic>? ride,
+  }) async {
+    final trimmedNote = note?.trim() ?? '';
+    final response = await ApiBaseHelper().postHTTP(
+      orderSupport,
+      params: {
+        'orderId': orderId,
+        'reason': reason,
+        if (trimmedNote.isNotEmpty) 'note': trimmedNote,
+        if (vehicleType != null && vehicleType.isNotEmpty)
+          'vehicleType': vehicleType,
+        if (ride != null && ride.isNotEmpty) 'ride': ride,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

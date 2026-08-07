@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
-import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_trip_details_sheet.dart';
@@ -70,25 +70,35 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
   /// the captain's chat thread, which is where the ride is actually run from
   /// (the OTP card, the rider details card and "on my way" all arrive there).
   ///
-  /// Live tracking is still one tap away: the Discover "Your Ongoing Ride"
-  /// chip reads `activeBooking` directly, so it shows the captain the moment
-  /// this fires and opens [RideTrackingScreen] on tap.
+  /// The route is still one tap away: the Discover "Your Ongoing Ride" chip
+  /// reads `activeBooking` directly, so it shows the captain the moment this
+  /// fires, and its map button hands the leg to the phone's Google Maps.
   void _openCaptainChat(RideBooking booking) {
     final captain = booking.captain;
 
+    // Unwind to the bottom nav FIRST, in every branch. Back from the chat must
+    // not return to this dead search screen, and the branch below has nowhere
+    // to push at all.
+    Get.until((route) => route.isFirst);
+
     // `hasCaptain` flips on the status alone, so the id can still be a tick
-    // behind (it arrives with the winner payload or the next poll). With no id
-    // there is no thread to open — fall back to tracking rather than unwinding
-    // to a home screen with no explanation of what just happened.
+    // behind — it arrives with the winner payload or the next poll. There is no
+    // thread to open without it.
+    //
+    // This used to fall back to the full-screen tracking map. That screen is no
+    // longer a destination anywhere in the flow, so instead the customer is put
+    // on home with the Discover ongoing-ride chip already showing their
+    // captain: it is fed by the same `activeBooking`, and it starts working as
+    // a chat entry point the moment the id lands — which is a second or two, not
+    // a dead end. The snackbar is what stops home reading as "nothing
+    // happened".
     if (captain == null || captain.id.isEmpty) {
-      Get.off(() => const RideTrackingScreen());
+      commonSnackBar(
+        message: 'Captain assigned — opening your ride from Discover.',
+      );
       return;
     }
 
-    // Unwind to the bottom nav BEFORE opening the chat, so the thread opens
-    // over home — otherwise back from the chat would return to this dead
-    // search screen.
-    Get.until((route) => route.isFirst);
     openRiderInquiryChat(
       riderUserId: captain.id,
       name: captain.hasName ? captain.name : 'Captain',

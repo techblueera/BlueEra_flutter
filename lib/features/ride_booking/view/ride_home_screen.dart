@@ -131,41 +131,49 @@ class _RideHomeScreenState extends State<RideHomeScreen>
 
     // Show what is out there straight away, for whatever class is currently
     // selected (the bike by default). The picker re-runs it.
-    if (controller.currentLat.value != 0 || controller.currentLng.value != 0) {
+    if (_hasFix) {
       controller.fetchLiveRiders();
     } else {
       // Cold open: the device fix is still resolving, and a lookup at 0,0 is
       // dropped by the controller. Follow the first real fix in.
-      _locationWorker = ever<double>(controller.currentLat, (lat) {
-        if (lat == 0 || !mounted) return;
-        _locationWorker?.dispose();
-        _locationWorker = null;
-        controller.fetchLiveRiders();
-        // And move the camera there. `initialCameraPosition` is exactly that —
-        // INITIAL: GoogleMap ignores changes to it once created, so rebuilding
-        // this widget with a new centre does nothing. Without this the map
-        // opens on the fallback city and silently stays there for the whole
-        // session, however long ago the real fix landed.
-        final target = LatLng(lat, controller.currentLng.value);
-        setState(() {
-          _pinPosition = target;
-          // The strip is showing "Locating…" off this and has to stop.
-          _hasRealPin = true;
-        });
-        // Ours, not the user's — don't click at them for it.
-        _programmaticMove = true;
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(target, 15.5),
-        );
-      });
+      //
+      // Watches BOTH halves — see [_hasFix]. Watching latitude alone was the
+      // bug behind the blank Sahara opening frame: the worker fired on the
+      // latitude assignment and read a longitude that was still 0.
+      _locationWorker = everAll(
+        [controller.currentLat, controller.currentLng],
+        (_) {
+          if (!_hasFix || !mounted) return;
+          _locationWorker?.dispose();
+          _locationWorker = null;
+          controller.fetchLiveRiders();
+          // And move the camera there. `initialCameraPosition` is exactly that
+          // — INITIAL: GoogleMap ignores changes to it once created, so
+          // rebuilding this widget with a new centre does nothing. Without this
+          // the map opens on the fallback city and silently stays there for the
+          // whole session, however long ago the real fix landed.
+          final target = LatLng(
+            controller.currentLat.value,
+            controller.currentLng.value,
+          );
+          setState(() {
+            _pinPosition = target;
+            // The strip is showing "Locating…" off this and has to stop.
+            _hasRealPin = true;
+          });
+          // Ours, not the user's — don't click at them for it.
+          _programmaticMove = true;
+          _mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(target, 15.5),
+          );
+        },
+      );
     }
 
     // Seed the pin with the opening frame so the first camera-idle has a point
     // to resolve even when the fix was already in hand.
     _pinPosition = _center;
-    _hasRealPin = controller.currentLat.value != 0 ||
-        controller.currentLng.value != 0 ||
-        controller.drop.value?.hasCoordinates == true;
+    _hasRealPin = _hasFix || controller.drop.value?.hasCoordinates == true;
     // Already on a real point at build time (warm open, fix in hand): the
     // opening camera-idle resolves it. On a cold open the strip reads
     // "Locating…" until the fix lands or the user drags.
@@ -186,6 +194,28 @@ class _RideHomeScreenState extends State<RideHomeScreen>
     super.dispose();
   }
 
+  /// True only when BOTH halves of the device fix have landed.
+  ///
+  /// [RideBookingController.currentLat] and `currentLng` are two separate
+  /// observables, assigned one after the other:
+  ///
+  /// ```dart
+  /// currentLat.value = position.latitude;
+  /// currentLng.value = position.longitude;   // ← a whole frame later, to a listener
+  /// ```
+  ///
+  /// so there is a window where latitude is real and longitude is still 0. This
+  /// screen used to accept that half-state (`lat != 0 || lng != 0`, and a
+  /// `lat == 0 && lng == 0` fallback test), and the result was the opening
+  /// frame in assets/Screenshot_20260807_162206.png: for a Jodhpur customer,
+  /// `LatLng(26.24, 0)` is the middle of the Sahara, so the map opened on a
+  /// blank beige tile captioned "Reggane, Adrar Province".
+  ///
+  /// Requiring both matches [RidePlace.hasCoordinates], which treats 0,0 as
+  /// unset for the same reason. Neither is valid anywhere this app operates.
+  bool get _hasFix =>
+      controller.currentLat.value != 0 && controller.currentLng.value != 0;
+
   /// Opening frame for the map.
   ///
   /// Prefers an already-chosen drop over the raw device fix: coming back here
@@ -196,9 +226,9 @@ class _RideHomeScreenState extends State<RideHomeScreen>
     if (drop != null && drop.hasCoordinates) {
       return LatLng(drop.latitude, drop.longitude);
     }
-    final lat = controller.currentLat.value;
-    final lng = controller.currentLng.value;
-    return (lat == 0 && lng == 0) ? _fallbackCenter : LatLng(lat, lng);
+    return _hasFix
+        ? LatLng(controller.currentLat.value, controller.currentLng.value)
+        : _fallbackCenter;
   }
 
   /// False while the pin is still sitting on the fallback centre — no device
@@ -337,7 +367,6 @@ class _RideHomeScreenState extends State<RideHomeScreen>
           _map(),
           _dropPinOverlay(),
           _backButton(),
-          _recentreButton(),
           _dropAddressStrip(),
           _sheet(),
         ],
@@ -410,41 +439,24 @@ class _RideHomeScreenState extends State<RideHomeScreen>
   double _sheetHeight(BuildContext context) =>
       MediaQuery.of(context).size.height * _sheetInitialExtent;
 
-  /// Brings the map back to the device position after the user has panned off
-  /// it — the map's own button is off, since it would sit under the sheet.
-  ///
-  /// Parked just above where the sheet opens. It does not follow the sheet as
-  /// it is dragged: a control that slides under the user's thumb mid-drag is
-  /// worse than one that stays put.
-  Widget _recentreButton() {
-    return Positioned(
-      right: 16,
-      // Stacked above the address pill, which now owns the strip directly
-      // above the sheet.
-      bottom: _sheetHeight(context) + _stripReservedHeight + 14,
-      child: RideCircleButton(
-        icon: Icons.my_location,
-        iconColor: AppColors.primaryColor,
-        onTap: _recentre,
-      ),
-    );
-  }
-
-  void _recentre() {
-    final lat = controller.currentLat.value;
-    final lng = controller.currentLng.value;
-    if (lat == 0 && lng == 0) return;
-    // Ours, not the user's — silence the pin tick for it.
-    _programmaticMove = true;
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(lat, lng), 15.5),
-    );
-  }
-
-  /// Vertical room the address strip occupies, used to park the recentre button
-  /// clear of it. Tracks the strip's own padding + line height — if that gets
-  /// taller again, this moves with it.
-  static const double _stripReservedHeight = 36;
+  // There used to be a "my location" recentre button parked above the sheet
+  // here. It is gone, and deliberately.
+  //
+  // This map's pin sets the DESTINATION. A crosshair labelled "my current
+  // location" on a destination picker is at best ambiguous and at worst does
+  // real damage: tapping it snaps the pin onto the rider's own position, and
+  // the strip above then offers to start a trip to exactly where they are
+  // standing. The one gesture the control invites is the one answer that is
+  // never right.
+  //
+  // Nothing is lost by dropping it. The map already opens on the rider (or on
+  // their last chosen drop — see [_center]), so the "take me back" case only
+  // arises after they have deliberately panned away, and panning back is the
+  // same gesture that got them there.
+  //
+  // [RideConfirmPickupScreen] keeps its recentre button, and should: on a
+  // PICKUP picker, "where I am" is the most likely answer rather than the
+  // impossible one.
 
   /// The live address under the pin, floating just above the sheet — the same
   /// place it sits in the reference design.
