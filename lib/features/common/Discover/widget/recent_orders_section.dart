@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart'
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -362,10 +364,16 @@ class _OrderCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
-              Icons.chat_bubble_outline_rounded,
-              color: AppColors.primaryColor,
-              size: 20,
+            // The app's own chat glyph rather than the Material bubble — this
+            // row opens the same thread the Connect tab does, and it should be
+            // wearing the same icon that tab wears.
+            child: Center(
+              child: LocalAssets(
+                imagePath: AppIconAssets.chat,
+                height: 20,
+                width: 20,
+                imgColor: AppColors.primaryColor,
+              ),
             ),
           ),
         ),

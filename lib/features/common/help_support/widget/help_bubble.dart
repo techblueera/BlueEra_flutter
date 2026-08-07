@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/help_support/controller/help_support_controller.dart';
 import 'package:BlueEra/features/common/help_support/model/help_question.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -190,10 +192,16 @@ class _HelpBubbleState extends State<HelpBubble>
                 shape: BoxShape.circle,
                 color: AppColors.primaryColor,
               ),
-              child: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: Colors.white,
-                size: 24,
+              // The app's own chat glyph, not the Material bubble — tapping
+              // this opens a real conversation with the BlueEra team, and it
+              // should look like every other chat entry point in the app.
+              child: Center(
+                child: LocalAssets(
+                  imagePath: AppIconAssets.chat,
+                  height: 24,
+                  width: 24,
+                  imgColor: Colors.white,
+                ),
               ),
             ),
           ),
