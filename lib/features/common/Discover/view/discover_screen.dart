@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_restorer.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 // import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
@@ -280,6 +282,31 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     // Connect tab does the same — the first tab to mount wins, the other call
     // returns immediately.
     OngoingRideRestorer.restoreIfNeeded();
+
+    _loadBusinessChatList();
+  }
+
+  /// Ask the chat socket for the business chat list on entry.
+  ///
+  /// Discover renders straight off that list — [RecentOrdersSection] builds its
+  /// "Orders in 12 Hrs." cards from `getBusinessChatListModel`. Nothing on this
+  /// screen was fetching it, so the rail stayed empty until the user opened
+  /// Connect's Inquiry tab, whose `_emitChatListForTab` fires this same emit;
+  /// coming back to Discover afterwards was the only way the orders appeared.
+  /// After a logout + login (secure storage is wiped, so there is no cache to
+  /// paint from either) a user who never opened Connect saw nothing at all.
+  ///
+  /// Same event and payload the Inquiry tab sends, so the two can't drift.
+  /// `emitEvent` paints the local cache first and overwrites it when the socket
+  /// replies, so this is cheap on a warm start and safe offline.
+  void _loadBusinessChatList() {
+    // Guests have no chat lane, and the controller is owned by the bottom-nav
+    // shell hosting Discover — never construct the chat stack from here.
+    if (isGuestUser() || !Get.isRegistered<ChatViewController>()) return;
+    Get.find<ChatViewController>().emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
   }
 
   /// Pulls in the profile the header banner is built from.
