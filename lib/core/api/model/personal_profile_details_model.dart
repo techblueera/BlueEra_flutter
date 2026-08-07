@@ -41,11 +41,11 @@ class PersonalProfileDetailsModel {
     // First service free: the security-deposit gate is WAIVED until the
     // provider completes their first paid service/booking. Backend sends
     // `freeServiceUsed:false` while the free go-live is still available and
-    // flips it to true afterwards. `freeRideUsed` is accepted as an alias for
-    // cross-service consistency with the rider flag. Absent (old backend) →
-    // null → treated as "not free" so the deposit stays enforced (safe default,
-    // mirrors the rider `freeRideUsed` semantics). See
-    // docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
+    // flips it to true afterwards. `freeRideUsed` is still accepted as an alias
+    // because some payloads use that name — note the RIDER waiver it was named
+    // after has been removed, so this is a self-work-only concept now. Absent
+    // (old backend) → null → treated as "not free" so the deposit stays
+    // enforced (safe default). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     freeServiceUsed =
         json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
     // Referral promo clip — a TOP-LEVEL sibling of `user` / `securityDeposit`,
@@ -94,8 +94,10 @@ class PersonalProfileDetailsModel {
   /// The provider's FIRST service go-live is free — the security-deposit gate is
   /// waived until they use it. `freeServiceUsed == false` → still free. Absent
   /// (`null`, old backend) → treated as NOT free, so the deposit stays enforced
-  /// — a safe default that never hands out free go-live by accident. Mirrors the
-  /// rider `DeliveryPartnerController.isFirstRideFree` semantics.
+  /// — a safe default that never hands out free go-live by accident.
+  ///
+  /// Self-work only. The rider side had an equivalent waiver and no longer
+  /// does: a rider's deposit is now checked with no exceptions.
   bool get isFirstServiceFree => freeServiceUsed == false;
 
   Map<String, dynamic> toJson() {

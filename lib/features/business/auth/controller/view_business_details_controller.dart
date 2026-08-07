@@ -124,7 +124,8 @@ class ViewBusinessDetailsController extends GetxController
   /// Free intro quota (first N orders / enquiries) — waives the deposit while
   /// it lasts. Fail-closed: only an explicit `freeOrdersUsed == false` waives,
   /// so an absent flag enforces the deposit. Mirrors the individual
-  /// `isFirstServiceFree` and the rider `isFirstRideFree` waivers.
+  /// `isFirstServiceFree` waiver. (The rider had one too; it was removed —
+  /// their deposit is now checked with no exceptions.)
   bool get isFreeQuotaAvailable =>
       businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
 

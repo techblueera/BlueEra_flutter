@@ -48,6 +48,8 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrco
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/rider_go_live_prompts.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -166,10 +168,105 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _hydratePreference(controller.riderOnboardingStatusData.value);
     _prefWorker = ever(controller.riderOnboardingStatusData, _hydratePreference);
     _viewCtrl.UserFollowersAndPostsCount(userId);
+    // The onboarding status is fetched asynchronously, so on a cold open this
+    // screen is built before we know whether the rider is verified or has paid.
+    // Re-check the prompt whenever it lands; [_maybeShowGoLivePrompt] is a
+    // one-shot, so a later refresh costs nothing.
+    _goLivePromptWorker =
+        ever(controller.riderOnboardingStatusData, (_) => _maybeShowGoLivePrompt());
+    _watchMeTabEntry();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
+      // Runs after the line above, so the live/offline check reads the real
+      // status rather than the Rx's initial value.
+      _maybeShowGoLivePrompt();
     });
+  }
+
+  /// Nudge a rider who has finished setting up but is not live.
+  ///
+  /// The check is deliberately shallow: has the profile been submitted (or
+  /// approved), and are they offline? If so, offer the button. It does NOT try
+  /// to work out WHY they are offline — deposit unpaid, permissions missing,
+  /// documents still in review are all already diagnosed by [handleGoLiveTap],
+  /// which the sheet's button routes through and which says the right thing for
+  /// each case. Two places deciding what blocks a rider is two places to get out
+  /// of step.
+  ///
+  /// Riders who have not submitted anything yet are skipped: their screen is
+  /// still an onboarding form, and a "go live" nudge on top of it is noise about
+  /// a button they do not have.
+  ///
+  /// Re-checked every time the rider ARRIVES on the Me section — not once per
+  /// launch. This screen lives inside a keep-alive tab, so `initState` runs on
+  /// the first mount and never again: without the Me-tab worker in
+  /// [_watchMeTabEntry], a rider who bounced to Discover and back would never
+  /// be asked again, however long they then sat there offline.
+  ///
+  /// [_promptCooldown] is what keeps that from nagging. Dismissing it buys
+  /// quiet for a while; arriving again later asks again, because the thing it
+  /// is asking about — you are offline and earning nothing — has not changed.
+  /// Acting on it needs no cooldown: the "already live" guard below stays
+  /// silent for as long as they remain online.
+  static const Duration _promptCooldown = Duration(minutes: 15);
+  static DateTime? _promptShownAt;
+  Worker? _goLivePromptWorker;
+  Worker? _meTabWorker;
+
+  /// Re-runs the prompt check whenever the bottom nav lands on the Me tab.
+  ///
+  /// This screen is kept alive between tab switches, so arriving back on Me
+  /// rebuilds nothing and fires no lifecycle callback — the bottom bar's index
+  /// is the only signal that the rider is looking at this screen again.
+  ///
+  /// No-op when the dashboard was reached by its own route instead of the tab
+  /// (deep link, CallKit hand-off): there is no bottom bar to watch, and the
+  /// post-frame check in initState has already covered that entry.
+  void _watchMeTabEntry() {
+    if (!Get.isRegistered<BottomBarController>()) return;
+    final bottomBar = Get.find<BottomBarController>();
+    _meTabWorker = ever<int>(bottomBar.currentIndex, (index) {
+      if (index != BottomBarController.meTabIndex || !mounted) return;
+      // After the frame that swaps the tab in, so the dialog never goes up
+      // against a half-built screen.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _maybeShowGoLivePrompt();
+      });
+    });
+  }
+
+  void _maybeShowGoLivePrompt() {
+    if (!mounted) return;
+    final shownAt = _promptShownAt;
+    if (shownAt != null &&
+        DateTime.now().difference(shownAt) < _promptCooldown) {
+      return;
+    }
+    // Profile submitted (in review) or approved. `pending` means the documents
+    // are in and being looked at; anything before that has no onboarding record
+    // at all and the screen is still a form.
+    final state = controller.riderVerificationState;
+    final submittedOrApproved = state == RiderVerificationState.completed ||
+        state == RiderVerificationState.pending;
+    if (!submittedOrApproved) return;
+
+    // Already working. Nothing to nudge.
+    if (_viewCtrl.shopStatusOpenClose.value) return;
+
+    // Never stack on top of something already open — the permission screen, a
+    // deep-linked order, another sheet or dialog.
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) return;
+
+    _promptShownAt = DateTime.now();
+    // Routed through the SAME handleGoLiveTap the pill uses, so the sheet's
+    // button is not a second way to go live with its own rules — it runs the
+    // verification check, the deposit gate, the permission gate and the
+    // scheduler opt-in identically, and flips the one `shopStatusOpenClose`
+    // observable the pill and the offline banner both watch. That is what keeps
+    // them in sync: there is only ever one piece of state, and only ever one
+    // place that decides what blocks a rider.
+    showRiderGoLiveSheet(onGoLive: handleGoLiveTap);
   }
 
   /// Fires twice per swipe (start + settle) — only act on the settle.
@@ -189,6 +286,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // once there is nothing left to change.
     if (state == AppLifecycleState.resumed) {
       controller.ridersOnboardingStatusRepoApi();
+      // Coming back to the app is an arrival too. Direct rather than relying on
+      // the status worker — that call is cache-first and may not change the
+      // observable at all, in which case nothing would fire.
+      _maybeShowGoLivePrompt();
     }
   }
 
@@ -198,6 +299,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _prefWorker?.dispose();
+    _goLivePromptWorker?.dispose();
+    _meTabWorker?.dispose();
     _pickupController.dispose();
     _dropController.dispose();
     // _pickupAddressDetailController.dispose();
@@ -2163,8 +2266,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 Future<void> handleGoLiveTap() async {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
 
-  // Already online → allow toggling offline without re-checking.
+  // Already online → going OFF.
   if (_viewCtrl.shopStatusOpenClose.value) {
+    // ...unless a ride is still running. A rider who drops offline mid-trip
+    // leaves a customer in a car with no live order behind it: dispatch stops
+    // tracking them, and the ride has no other rider to fall back to. The
+    // toggle is refused outright rather than warned about, because there is no
+    // version of this that ends well for the customer.
+    //
+    // `onGoingOrders` is the orders stream's own accepted-and-unfinished
+    // bucket, so it clears itself the moment the ride completes or cancels —
+    // nothing here has to be reset by hand.
+    final hasOngoingRide =
+        Get.isRegistered<DeliverPartnerOrdersController>() &&
+            Get.find<DeliverPartnerOrdersController>().onGoingOrders.isNotEmpty;
+    if (hasOngoingRide) {
+      showRiderRideInProgressDialog();
+      return;
+    }
     _viewCtrl.toggleShopStatus();
     // If they manually go offline inside the auto window, don't let the
     // scheduler re-open them for the rest of today.
@@ -2187,17 +2306,19 @@ Future<void> handleGoLiveTap() async {
   // going online. This gate applies only to bike riders / cab drivers (the
   // professions that pay a deposit); other roles skip it.
   //
-  // FIRST RIDE FREE: the deposit is WAIVED until the rider completes their
-  // first ride (backend `freeRideUsed == false`). Once that free ride is used,
-  // the deposit is enforced on every subsequent go-live. Absent flag → not
-  // free → deposit enforced (safe default).
+  // The deposit is the ONLY gate. A first-ride-free waiver used to sit here and
+  // let an unpaid rider go live until they finished one ride; it is removed, so
+  // an unpaid rider is blocked from the start and there is one rule to explain.
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
-  final depositBlocked = isRiderRole &&
-      !riderCtrl.isSecurityDepositPaid &&
-      !riderCtrl.isFirstRideFree;
+  final depositBlocked = isRiderRole && !riderCtrl.isSecurityDepositPaid;
 
   if (depositBlocked) {
+    // Straight to the payment page — no dialog on this path. Tapping Go Live is
+    // already the rider asking to work, so the deposit prompt would just be a
+    // gate in front of a gate. The DIALOG version of this lives on arrival at
+    // the Me section (see _maybeShowGoLivePrompt), where nothing has been
+    // tapped and the rider does need telling.
     commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the payment process to go live.');

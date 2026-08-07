@@ -48,7 +48,12 @@ class RiderStatisticsView extends StatelessWidget {
               _StatsMessage(
                 icon: Icons.wifi_off_rounded,
                 title: 'Statistics unavailable',
-                body: 'We couldn\'t load your numbers just now.',
+                // Surface the server's own `message` when there is one (guide
+                // §8) — a 400 for a bad period or a 403 for a caller who isn't
+                // an onboarded rider both say something more useful than our
+                // generic line, and a rider reading "not an onboarded rider"
+                // knows to finish onboarding instead of retrying forever.
+                body: _errorBody(controller.statsResponse.value.message),
                 onRetry: controller.reload,
               )
             else if (data == null || data.isEmpty)
@@ -60,9 +65,18 @@ class RiderStatisticsView extends StatelessWidget {
                 onRetry: controller.reload,
               )
             else ...[
-              _EarningsCard(earnings: data.earnings),
+              // Every section below gates on `data.meta`, not on the value. A
+              // zero means "you earned nothing"; an entry in `_meta.unavailable`
+              // means "there is no ledger for this at all", and only the second
+              // one should remove a card. See
+              // docs/backend/RIDER_STATISTICS_FLUTTER_GUIDE.md §2.
+              _EarningsCard(earnings: data.earnings, meta: data.meta),
               SizedBox(height: SizeConfig.size12),
-              _WorkSummaryCard(trips: data.trips, earnings: data.earnings),
+              _WorkSummaryCard(
+                trips: data.trips,
+                earnings: data.earnings,
+                meta: data.meta,
+              ),
               SizedBox(height: SizeConfig.size12),
               if (data.trend.length >= 2) ...[
                 _EarningsTrendCard(trend: data.trend),
@@ -72,8 +86,13 @@ class RiderStatisticsView extends StatelessWidget {
                 performance: data.performance,
                 trips: data.trips,
               ),
-              SizedBox(height: SizeConfig.size12),
-              if (data.payouts.hasAny) _PayoutCard(payouts: data.payouts),
+              // Payouts needs BOTH: the backend has to actually source it, and
+              // there has to be something to show. `hasAny` alone would hide it
+              // for a rider who is simply square with us.
+              if (data.meta.has('payouts.pending') && data.payouts.hasAny) ...[
+                SizedBox(height: SizeConfig.size12),
+                _PayoutCard(payouts: data.payouts),
+              ],
             ],
           ],
         );
@@ -89,6 +108,22 @@ class RiderStatisticsView extends StatelessWidget {
 final NumberFormat _rupees = NumberFormat.decimalPattern('en_IN');
 
 String _money(double value) => '₹${_rupees.format(value.round())}';
+
+/// The server's error text, or our own line when there isn't one worth showing.
+///
+/// Dio's own strings ("DioException [connection timeout]", stack-trace text
+/// from a thrown object) are not error messages a rider can act on, so anything
+/// that looks like plumbing falls back to the generic line.
+String _errorBody(String? message) {
+  const fallback = "We couldn't load your numbers just now.";
+  final text = message?.trim() ?? '';
+  if (text.isEmpty) return fallback;
+  final looksInternal = text.startsWith('DioException') ||
+      text.startsWith('Exception') ||
+      text.contains('#0 ') ||
+      text.length > 160;
+  return looksInternal ? fallback : text;
+}
 
 String _hoursMinutes(int minutes) {
   if (minutes <= 0) return '0m';
@@ -194,11 +229,32 @@ class _SampleDataBanner extends StatelessWidget {
 /// deduction line makes sure the number is never a surprise at payout.
 class _EarningsCard extends StatelessWidget {
   final RiderEarningsStats earnings;
+  final RiderStatsMeta meta;
 
-  const _EarningsCard({required this.earnings});
+  const _EarningsCard({required this.earnings, required this.meta});
 
   @override
   Widget build(BuildContext context) {
+    // Only the lines the backend actually fills. Today that is trip fare alone;
+    // incentives, tips and deductions have no ledger behind them yet.
+    final chips = <_BreakdownChip>[
+      _BreakdownChip(label: 'Trip fare', value: _money(earnings.tripFare)),
+      if (meta.has('earnings.incentives'))
+        _BreakdownChip(label: 'Incentives', value: _money(earnings.incentives)),
+      if (meta.has('earnings.tips'))
+        _BreakdownChip(label: 'Tips', value: _money(earnings.tips)),
+    ];
+
+    // With incentives and tips gone, `total == tripFare` — so a lone "Trip
+    // fare" chip would just restate the hero number one line below itself. Drop
+    // the whole row in that case; it comes back the moment there is a second
+    // component to break out.
+    final showBreakdown =
+        chips.length > 1 || earnings.tripFare != earnings.total;
+
+    final showDeductions =
+        meta.has('earnings.deductions') && earnings.deductions > 0;
+
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size16),
       child: Column(
@@ -220,32 +276,18 @@ class _EarningsCard extends StatelessWidget {
               color: AppColors.mainTextColor,
             ),
           ),
-          SizedBox(height: SizeConfig.size12),
-          Row(
-            children: [
-              Expanded(
-                child: _BreakdownChip(
-                  label: 'Trip fare',
-                  value: _money(earnings.tripFare),
-                ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Expanded(
-                child: _BreakdownChip(
-                  label: 'Incentives',
-                  value: _money(earnings.incentives),
-                ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Expanded(
-                child: _BreakdownChip(
-                  label: 'Tips',
-                  value: _money(earnings.tips),
-                ),
-              ),
-            ],
-          ),
-          if (earnings.deductions > 0) ...[
+          if (showBreakdown) ...[
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              children: [
+                for (var i = 0; i < chips.length; i++) ...[
+                  if (i > 0) SizedBox(width: SizeConfig.size8),
+                  Expanded(child: chips[i]),
+                ],
+              ],
+            ),
+          ],
+          if (showDeductions) ...[
             SizedBox(height: SizeConfig.size12),
             Row(
               children: [
@@ -326,62 +368,84 @@ class _BreakdownChip extends StatelessWidget {
 class _WorkSummaryCard extends StatelessWidget {
   final RiderTripStats trips;
   final RiderEarningsStats earnings;
+  final RiderStatsMeta meta;
 
-  const _WorkSummaryCard({required this.trips, required this.earnings});
+  const _WorkSummaryCard({
+    required this.trips,
+    required this.earnings,
+    required this.meta,
+  });
 
   @override
   Widget build(BuildContext context) {
     final perTrip =
         trips.completed > 0 ? earnings.total / trips.completed : null;
 
+    final tiles = <_StatTile>[
+      _StatTile(
+        icon: Icons.check_circle_outline_rounded,
+        value: '${trips.completed}',
+        label: 'Rides done',
+      ),
+      _StatTile(
+        icon: Icons.route_outlined,
+        value: '${trips.distanceKm.toStringAsFixed(1)} km',
+        // The backend measures this straight-line pickup→drop, not along the
+        // road, so it reads low against the odometer. Saying "approx" costs a
+        // word and stops a rider deciding our numbers are wrong.
+        label: 'Distance (approx)',
+      ),
+      // No go-live session log yet, so there is nothing behind this number.
+      // Showing "0h" would read as a rider who never went online.
+      if (meta.has('trips.onlineMinutes'))
+        _StatTile(
+          icon: Icons.access_time_rounded,
+          value: _hoursMinutes(trips.onlineMinutes),
+          label: 'Online',
+        ),
+      _StatTile(
+        icon: Icons.payments_outlined,
+        value: perTrip == null ? '—' : _money(perTrip),
+        label: 'Avg / ride',
+      ),
+    ];
+
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size12),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _StatTile(
-                  icon: Icons.check_circle_outline_rounded,
-                  value: '${trips.completed}',
-                  label: 'Rides done',
+      // Three tiles fit one row; four want a 2×2. Laid out from the list rather
+      // than hardcoded so the grid reflows on its own when `onlineMinutes`
+      // starts arriving, instead of leaving a hole where the tile used to be.
+      child: tiles.length <= 3
+          ? _TileRow(tiles: tiles)
+          : Column(
+              children: [
+                _TileRow(tiles: tiles.sublist(0, 2)),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                  child: Container(height: 1, color: AppColors.greyE5),
                 ),
-              ),
-              _TileDivider(),
-              Expanded(
-                child: _StatTile(
-                  icon: Icons.route_outlined,
-                  value: '${trips.distanceKm.toStringAsFixed(1)} km',
-                  label: 'Distance',
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-            child: Container(height: 1, color: AppColors.greyE5),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: _StatTile(
-                  icon: Icons.access_time_rounded,
-                  value: _hoursMinutes(trips.onlineMinutes),
-                  label: 'Online',
-                ),
-              ),
-              _TileDivider(),
-              Expanded(
-                child: _StatTile(
-                  icon: Icons.payments_outlined,
-                  value: perTrip == null ? '—' : _money(perTrip),
-                  label: 'Avg / ride',
-                ),
-              ),
-            ],
-          ),
+                _TileRow(tiles: tiles.sublist(2)),
+              ],
+            ),
+    );
+  }
+}
+
+/// Evenly-spaced tiles with hairline seams between them.
+class _TileRow extends StatelessWidget {
+  final List<_StatTile> tiles;
+
+  const _TileRow({required this.tiles});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var i = 0; i < tiles.length; i++) ...[
+          if (i > 0) _TileDivider(),
+          Expanded(child: tiles[i]),
         ],
-      ),
+      ],
     );
   }
 }

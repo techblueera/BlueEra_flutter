@@ -49,7 +49,6 @@ class RiderOnboardingStatusData {
     this.vehicleImageUrls = const [],
     this.securityDepositPaid,
     this.securityDepositPaymentStatus,
-    this.freeRideUsed,
   });
 
   RiderOnboardingStatusData.fromJson(dynamic json) {
@@ -135,12 +134,9 @@ class RiderOnboardingStatusData {
       securityDepositPaid = deposit['paid'] as bool?;
       securityDepositPaymentStatus = deposit['paymentStatus'] as String?;
     }
-    // First ride free: the deposit gate is WAIVED until the rider completes
-    // their first ride. Backend sends `freeRideUsed:false` while the free ride
-    // is still available and flips it to true afterwards. Absent (old backend)
-    // → null → treated as "not free" so the deposit stays enforced (safe
-    // default — see the `isFirstRideFree` getter).
-    freeRideUsed = json['freeRideUsed'] as bool?;
+    // `freeRideUsed` was parsed here for the first-ride-free waiver. That
+    // concept is gone — the deposit is the only gate — so the field is ignored
+    // even if the backend keeps sending it.
   }
 
   // Pulls a single side ('front'/'back') out of the nested
@@ -255,9 +251,6 @@ class RiderOnboardingStatusData {
   // "unknown", "paid", "pending").
   bool? securityDepositPaid;
   String? securityDepositPaymentStatus;
-  // First-ride-free flag. `false` → the free first ride is still available (skip
-  // the deposit gate); `true`/null → not available (enforce the deposit).
-  bool? freeRideUsed;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -296,7 +289,6 @@ class RiderOnboardingStatusData {
       'paid': securityDepositPaid,
       'paymentStatus': securityDepositPaymentStatus,
     };
-    map['freeRideUsed'] = freeRideUsed;
     return map;
   }
 

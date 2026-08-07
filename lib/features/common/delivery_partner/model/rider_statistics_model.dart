@@ -18,6 +18,10 @@ class RiderStatisticsModel {
 
   final RiderPayoutStats payouts;
 
+  /// Which fields the backend cannot source yet. Drives card visibility — see
+  /// [RiderStatsMeta].
+  final RiderStatsMeta meta;
+
   const RiderStatisticsModel({
     this.period = 'today',
     this.earnings = const RiderEarningsStats(),
@@ -25,6 +29,7 @@ class RiderStatisticsModel {
     this.performance = const RiderPerformanceStats(),
     this.trend = const [],
     this.payouts = const RiderPayoutStats(),
+    this.meta = const RiderStatsMeta(),
   });
 
   factory RiderStatisticsModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +46,7 @@ class RiderStatisticsModel {
               .toList()
           : const [],
       payouts: RiderPayoutStats.fromJson(_map(json['payouts'])),
+      meta: RiderStatsMeta.fromJson(_map(json['_meta'])),
     );
   }
 
@@ -51,6 +57,44 @@ class RiderStatisticsModel {
   /// state over a grid of zeros.
   bool get isEmpty =>
       earnings.total == 0 && trips.completed == 0 && trips.onlineMinutes == 0;
+}
+
+/// `data._meta` — the backend telling us which numbers it cannot source yet.
+///
+/// `be_rider_service` returns the FULL contract shape whether or not it can fill
+/// it, so a zero on its own is ambiguous: it means either "this rider earned
+/// nothing in tips" or "there is no tips ledger at all". `unavailable` is what
+/// separates the two, and the view gates on it rather than on the value.
+///
+/// The payoff is that nothing here needs shipping again. The day the settlement
+/// service starts feeding real payouts, the backend drops those paths from the
+/// list and the cards light up on their own. See
+/// docs/backend/RIDER_STATISTICS_FLUTTER_GUIDE.md §2 and §10.
+///
+/// Paths are dotted and exact: `earnings.tips`, `trips.onlineMinutes`,
+/// `payouts.pending`, …
+class RiderStatsMeta {
+  final List<String> unavailable;
+
+  const RiderStatsMeta({this.unavailable = const []});
+
+  factory RiderStatsMeta.fromJson(Map<String, dynamic> json) {
+    final raw = json['unavailable'];
+    return RiderStatsMeta(
+      unavailable: raw is List
+          ? raw.map((e) => e.toString()).toList(growable: false)
+          : const [],
+    );
+  }
+
+  /// True when the backend really provides [path].
+  ///
+  /// Defaults to TRUE for an unknown path, and an absent `_meta` therefore
+  /// means "everything is real". That is the right default: a backend that has
+  /// stopped flagging gaps is a backend that has filled them, and the failure
+  /// mode is showing an honest zero rather than silently hiding a card the
+  /// rider is owed.
+  bool has(String path) => !unavailable.contains(path);
 }
 
 /// What the rider made, and where it came from. [total] is authoritative: it is

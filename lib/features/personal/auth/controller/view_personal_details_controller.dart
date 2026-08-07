@@ -442,8 +442,9 @@ class ViewPersonalDetailsController extends GetxController
   bool get canGoLive => personalProfileDetails.value.canGoLive;
 
   /// First service free: the deposit gate is waived until the provider uses
-  /// their first free go-live (`freeServiceUsed == false`). Mirrors the rider
-  /// `isFirstRideFree`. Proxies the individual-profile flag. See
+  /// their first free go-live (`freeServiceUsed == false`). Proxies the
+  /// individual-profile flag. Self-work only — the rider equivalent has been
+  /// removed and their deposit is now checked with no exceptions. See
   /// docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool get isFirstServiceFree =>
       personalProfileDetails.value.isFirstServiceFree;

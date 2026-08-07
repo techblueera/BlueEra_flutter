@@ -453,17 +453,12 @@ class DeliveryPartnerController extends GetxController {
   /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
   /// can go online only once this is true. Reads the `securityDeposit.paid`
   /// flag from the latest onboarding-status response (null → treated as unpaid).
+  /// NOTE: there used to be a first-ride-free waiver here (`isFirstRideFree`,
+  /// off the backend's `freeRideUsed`) that let an unpaid rider go live until
+  /// they finished one ride. It has been removed — the deposit is now the only
+  /// gate, checked the same way everywhere.
   bool get isSecurityDepositPaid =>
       riderOnboardingStatusData.value?.securityDepositPaid == true;
-
-  /// The rider's FIRST ride is free — the security-deposit gate is waived until
-  /// they complete it. Backend sends `freeRideUsed:false` while the free ride is
-  /// still available and flips it to true afterwards. Absent (`null`, old
-  /// backend) → treated as NOT free, so the deposit stays enforced — a safe
-  /// default that never hands out free go-live to everyone by accident.
-  /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.
-  bool get isFirstRideFree =>
-      riderOnboardingStatusData.value?.freeRideUsed == false;
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();

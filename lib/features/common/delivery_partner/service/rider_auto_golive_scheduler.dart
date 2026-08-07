@@ -255,19 +255,17 @@ class RiderAutoGoLiveScheduler {
       final riderCtrl = Get.find<DeliveryPartnerController>();
 
       // ── Evaluate the SAME go-live gates as the manual tap (handleGoLiveTap):
-      //    verification (onboarding) + security deposit (with first-ride-free
-      //    waiver). These decide eligibility both for auto-OPENing and for
-      //    keeping an auto-opened session alive.
+      //    verification (onboarding) + security deposit. These decide
+      //    eligibility both for auto-OPENing and for keeping an auto-opened
+      //    session alive.
       final verified =
           riderCtrl.riderVerificationState == RiderVerificationState.completed;
       final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
           userProfessionGlobal == CAR_TAXI_DRIVER;
-      // Deposit is required only for rider roles; the FIRST-RIDE-FREE waiver
-      // (isFirstRideFree) lets an unpaid rider go live until their first ride is
-      // used. Absent flag → not free → deposit enforced (safe default).
-      final depositBlocked = isRiderRole &&
-          !riderCtrl.isSecurityDepositPaid &&
-          !riderCtrl.isFirstRideFree;
+      // Deposit is required only for rider roles, and it is now the ONLY gate —
+      // the first-ride-free waiver that used to sit alongside it is gone.
+      final depositBlocked =
+          isRiderRole && !riderCtrl.isSecurityDepositPaid;
       final eligible = verified && !depositBlocked;
 
       final inWindow = _inWindow(DateTime.now());

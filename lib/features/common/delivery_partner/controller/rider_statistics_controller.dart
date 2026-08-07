@@ -31,15 +31,18 @@ extension RiderStatsPeriodX on RiderStatsPeriod {
 /// Pull-to-refresh and [reload] force a refetch.
 class RiderStatisticsController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
-  // SAMPLE DATA — REMOVE WHEN THE ENDPOINT SHIPS
+  // SAMPLE DATA — OFF. The endpoint is live.
   //
-  // `rider-service/riders/statistics` does not exist yet (the contract is in
-  // docs/backend/RIDER_STATISTICS_API_GUIDE.md). While this is true the tab
-  // renders representative numbers so the layout can be reviewed, and the view
-  // shows a "SAMPLE DATA" badge so nobody mistakes them for real earnings.
+  // `rider-service/riders/statistics` is implemented and serving
+  // (docs/backend/RIDER_STATISTICS_FLUTTER_GUIDE.md). The sample generator is
+  // kept for working on the layout without a rider account or a network — flip
+  // this to true and the tab renders invented numbers behind a loud "SAMPLE
+  // DATA" banner. Never ship it true.
   //
-  // Flip to false the day the endpoint lands — nothing else changes.
-  static const bool useSampleData = true;
+  // The samples carry the same `_meta.unavailable` list the live backend sends
+  // today, so what you preview is what a rider actually sees — a preview that
+  // showed payouts and hours-online would be a preview of a screen nobody has.
+  static const bool useSampleData = false;
   // ─────────────────────────────────────────────────────────────────────────
 
   final Rx<RiderStatsPeriod> period = RiderStatsPeriod.today.obs;
@@ -114,6 +117,18 @@ class RiderStatisticsController extends GetxController {
 
   // ── sample data ──────────────────────────────────────────────────────────
 
+  /// What `be_rider_service` currently reports it cannot source. Mirrored into
+  /// the samples so the offline preview matches the live screen exactly.
+  static const RiderStatsMeta _sampleMeta = RiderStatsMeta(unavailable: [
+    'earnings.incentives',
+    'earnings.tips',
+    'earnings.deductions',
+    'trips.onlineMinutes',
+    'payouts.pending',
+    'payouts.lastAmount',
+    'payouts.lastPaidAt',
+  ]);
+
   RiderStatisticsModel _sampleFor(RiderStatsPeriod period) {
     switch (period) {
       case RiderStatsPeriod.today:
@@ -142,6 +157,7 @@ class RiderStatisticsController extends GetxController {
           ),
           trend: _sampleTrend(1),
           payouts: const RiderPayoutStats(pending: 742, lastAmount: 3120),
+          meta: _sampleMeta,
         );
       case RiderStatsPeriod.week:
         return RiderStatisticsModel(
@@ -169,6 +185,7 @@ class RiderStatisticsController extends GetxController {
           ),
           trend: _sampleTrend(7),
           payouts: const RiderPayoutStats(pending: 1565, lastAmount: 3120),
+          meta: _sampleMeta,
         );
       case RiderStatsPeriod.month:
         return RiderStatisticsModel(
@@ -196,6 +213,7 @@ class RiderStatisticsController extends GetxController {
           ),
           trend: _sampleTrend(7),
           payouts: const RiderPayoutStats(pending: 1565, lastAmount: 3120),
+          meta: _sampleMeta,
         );
     }
   }
