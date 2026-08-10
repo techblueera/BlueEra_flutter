@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:BlueEra/core/services/ads/ad_debug.dart';
+import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// Google AdMob interstitial manager (call-end interstitial).
@@ -29,13 +30,12 @@ class AdMobInterstitialManager {
     if (!AdConfig.adsEnabled) return;
     if (!_initialized) {
       _initialized = true;
-      try {
-        await MobileAds.instance.initialize();
-        // Register any test devices so Ad Inspector can launch on them.
-        // AdDebug.applyTestDevices();
-      } catch (e) {
-        print('[ADMOB_INTERSTITIAL] init failed: $e');
-      }
+      // Shared with the native slots and the launch warm-up — whoever gets
+      // here first starts the SDK, the rest await the same future instead of
+      // paying for a second start-up. See [AdsBootstrap].
+      await AdsBootstrap.ensureInitialized();
+      // Register any test devices so Ad Inspector can launch on them.
+      // AdDebug.applyTestDevices();
     }
     _load();
   }

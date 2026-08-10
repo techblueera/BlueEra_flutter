@@ -94,6 +94,10 @@ class _DiscoverSheetTileState extends State<DiscoverSheetTile> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      // The sheet deliberately STAYS OPEN behind the destination, so the user
+      // comes back to the folder they were picking from. Keeping it tappable
+      // across that round trip is [DiscoverFolderSheet]'s job — see the
+      // remount-on-return wrapper there.
       onTap: widget.onTap,
       // Press feedback lives on the tile itself because there is no card and no
       // ink surface to ripple — without it a tap on a picker has no answer

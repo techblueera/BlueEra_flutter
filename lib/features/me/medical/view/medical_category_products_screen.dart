@@ -205,7 +205,7 @@ class _MedicalCategoryProductsScreenState
       // The API's category nodes carry no image, so every row falls back to the
       // section placeholder rather than showing a broken tile.
       getIcon: (_) => '',
-      placeholderAssetPath: 'assets/category/medical/health_pharmacy.png',
+      placeholderAssetPath: 'assets/category/medical/medical_store.png',
       getLabel: (item) => item.name?.replaceAll('_', ' ') ?? '',
       isSelected: (item) => _selectedCategory?.sId == item.sId,
       onTap: (item, index) {

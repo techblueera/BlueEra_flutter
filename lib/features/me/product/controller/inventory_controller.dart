@@ -1134,5 +1134,50 @@ class InventoryController extends GetxController {
       return false;
     }
   }
+
+  /// Flips the manual out-of-stock flag on one variant's inventory record via
+  /// `PATCH /inventory/stock/toggle-out-of-stock`, then mirrors it into the
+  /// in-memory lists so the sheet and the cards behind it update without a
+  /// refetch. Returns `true` on success.
+  ///
+  /// Quantity is untouched — this is the merchant's manual "don't sell this
+  /// right now" switch (damaged goods, supplier gap), not a stock adjustment.
+  ///
+  /// Returns the resulting `isOutOfStock`, or `null` when the write failed.
+  /// This endpoint SETS rather than flips, so on success the value is exactly
+  /// what was asked for — but the nullable-value contract is what the sheet
+  /// expects, since automotive's flip endpoint can only report its result.
+  Future<bool?> toggleVariantOutOfStock({
+    required String inventoryId,
+    required bool isOutOfStock,
+  }) async {
+    if (inventoryId.isEmpty) return null;
+    try {
+      final res = await ProductRepo().toggleOutOfStockRepo(
+        inventoryIds: [inventoryId],
+        isOutOfStock: isOutOfStock,
+      );
+      if (!res.isSuccess) return null;
+
+      // Both lists render variants (the category grid reads
+      // [productsByCategoryList], [allProducts] backs the rails) and they hold
+      // separate objects for the same variant — mirror into both, same as
+      // [deleteInventoryVariant].
+      for (final list in [allProducts, productsByCategoryList]) {
+        for (final p in list) {
+          for (final v
+              in p.product.sellerClassification?.variants ?? const []) {
+            if (v.inventoryId == inventoryId || v.id == inventoryId) {
+              v.stock = !isOutOfStock;
+            }
+          }
+        }
+        list.refresh();
+      }
+      return isOutOfStock;
+    } catch (_) {
+      return null;
+    }
+  }
 }
  

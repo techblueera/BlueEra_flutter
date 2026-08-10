@@ -71,6 +71,28 @@ class ProductRepo extends BaseService {
     );
   }
 
+  /// Bulk-flip the manual out-of-stock flag on one or more inventory records.
+  /// `PATCH product-service/api/inventory/stock/toggle-out-of-stock`.
+  ///
+  /// This writes `isOutOfStock` only — it does NOT change batch quantity, so
+  /// marking an item back in stock while `totalStock <= 0` leaves it out of
+  /// stock as far as customers are concerned.
+  Future<ResponseModel> toggleOutOfStockRepo({
+    required List<String> inventoryIds,
+    required bool isOutOfStock,
+  }) async {
+    return ApiBaseHelper().patchHTTP(
+      productToggleOutOfStock,
+      params: {
+        'inventoryIds': inventoryIds,
+        'isOutOfStock': isOutOfStock,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// Place a product order. `POST product-service/api/orders`.
   Future<ResponseModel> placeProductOrderRepo({
     required Map<String, dynamic> params,

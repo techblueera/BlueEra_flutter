@@ -77,6 +77,27 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Bulk-flip the manual out-of-stock flag on one or more kitchen-inventory
+  /// records. `PATCH food-service/api/kitchen-inventory/stock/toggle-out-of-stock`.
+  ///
+  /// This writes `isOutOfStock` only — it does NOT change batch quantity.
+  Future<ResponseModel> toggleOutOfStockRepo({
+    required List<String> inventoryIds,
+    required bool isOutOfStock,
+  }) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      foodToggleOutOfStock,
+      params: {
+        'inventoryIds': inventoryIds,
+        'isOutOfStock': isOutOfStock,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Delete a single kitchen-inventory entry (a product variant) by its id.
   /// `DELETE food-service/api/kitchen-inventory/{inventoryId}`.
   Future<ResponseModel> deleteKitchenInventoryRepo({

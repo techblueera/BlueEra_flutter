@@ -182,7 +182,26 @@ class Product {
   String? brand;
   List<ProductImage>? images;
 
-  Product({this.sId, this.name, this.description, this.brand, this.images});
+  /// MEDICAL-SERVICE ONLY: whether this medicine is prescription-only, which
+  /// the pharmacy card marks with the red **Rx** chip.
+  ///
+  /// This model is shared because `medical-service/inventory/business-products`
+  /// returns grocery's exact response shape — but medical's rows carry a few
+  /// extra product fields on top. Grocery's response has no such key, so it
+  /// parses to null there and nothing renders.
+  ///
+  /// `== true` rather than a cast: absent means "not prescription-only", and a
+  /// hard cast would throw on every grocery row.
+  bool? isPrescriptionRequired;
+
+  Product({
+    this.sId,
+    this.name,
+    this.description,
+    this.brand,
+    this.images,
+    this.isPrescriptionRequired,
+  });
 
   Product.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -193,6 +212,7 @@ class Product {
       images = <ProductImage>[];
       json['images'].forEach((v) => images!.add(ProductImage.fromJson(v)));
     }
+    isPrescriptionRequired = json['is_prescription_required'] == true;
   }
 }
 

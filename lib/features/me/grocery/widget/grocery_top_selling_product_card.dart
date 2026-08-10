@@ -6,9 +6,11 @@ import 'package:BlueEra/features/me/grocery/model/grocery_business_products_mode
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/fallback_network_image.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/widgets/reserved_text_lines.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -44,17 +46,6 @@ class GroceryTopSellingProductCard extends StatelessWidget {
   final double imageHeight;
   final VoidCallback? onShare;
 
-  /// How the card turns a variant's `pricing[]` into the displayed strings.
-  ///
-  /// Defaults to grocery's resolver. Other modules render this same card over
-  /// their own service's data (medical's Top Selling rail does), and their
-  /// pricing rules are not grocery's — medical, for one, has one `pricing` row
-  /// per city and must show the one matching the shop's pincode. Without this
-  /// hook the card silently formatted every module's prices with grocery's
-  /// rules *and* force-registered a GroceryController inside an unrelated
-  /// merchant's screen.
-  final PriceResult Function(List<Pricing>? pricing)? priceResolver;
-
   const GroceryTopSellingProductCard({
     super.key,
     required this.product,
@@ -62,8 +53,18 @@ class GroceryTopSellingProductCard extends StatelessWidget {
     this.imageOverlay,
     this.imageHeight = 130,
     this.onShare,
-    this.priceResolver,
   });
+
+  /// Whether the product reads as in stock — true when ANY variant is
+  /// sellable. One available pack still means a customer can buy it, so only a
+  /// wholly-flagged product reads as out.
+  ///
+  /// Reads `variants[].inventory.isOutOfStock`, the only place the flag lives —
+  /// the row's own top level carries no such field, and its representative
+  /// `productVariant` has no `inventory` object at all.
+  bool get _inStock =>
+      variants.isEmpty ||
+      variants.any((v) => v.inventory?.isOutOfStock != true);
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +82,10 @@ class GroceryTopSellingProductCard extends StatelessWidget {
     // plain price. Trade-off: the card tracks the FIRST variant only, so an
     // edit to any other variant won't move it.
     final pricingSource = _firstPrice(firstVariant);
-    final price = priceResolver != null
-        ? priceResolver!(pricingSource)
-        : (Get.isRegistered<GroceryController>()
-                ? Get.find<GroceryController>()
-                : Get.put(GroceryController()))
-            .getPriceDetails(pricingSource);
+    final price = (Get.isRegistered<GroceryController>()
+            ? Get.find<GroceryController>()
+            : Get.put(GroceryController()))
+        .getPriceDetails(pricingSource);
     // Variant image first, product image as fallback (handles missing OR
     // broken variant images).
     final variantImageUrl = (firstVariant?.images?.isNotEmpty ?? false)
@@ -150,6 +149,14 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                     right: SizeConfig.size6,
                     child: imageOverlay!,
                   ),
+                // Stock state on the photo, where the eye lands first when
+                // scanning a rail. Bottom-LEFT: the top corners already carry
+                // share / cart controls.
+                Positioned(
+                  left: SizeConfig.size6,
+                  bottom: SizeConfig.size6,
+                  child: StockStatusPill(inStock: _inStock, onImage: true),
+                ),
               ],
             ),
           ),
@@ -160,13 +167,20 @@ class GroceryTopSellingProductCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  "${product.product?.name ?? ''}",
+                // Always two lines' worth of space, so a one-line name leaves
+                // blank at the bottom instead of pulling the price up and
+                // making neighbouring cards disagree.
+                ReservedTextLines(
                   fontSize: SizeConfig.small,
-                  maxLines: 1,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                  child: CustomText(
+                    "${product.product?.name ?? ''}",
+                    fontSize: SizeConfig.small,
+                    maxLines: 2,
+                    height: 1.3,
+                    color: AppColors.mainTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -223,47 +237,16 @@ class GroceryTopSellingProductCard extends StatelessWidget {
   }
 }
 
-/// Network image that walks an ordered list of candidate [urls] — the first
-/// non-empty one is tried, and on load-error it falls through to the next, then
-/// to a local placeholder. Used so a missing/broken variant image falls back to
-/// the product image (and, if that's broken too, any sibling variant image)
-/// instead of just rendering a placeholder.
-class GroceryFallbackImage extends StatelessWidget {
-  final List<String?> urls;
-  final BoxFit fit;
-
+/// Grocery's name for [FallbackNetworkImage].
+///
+/// The implementation moved to `widgets/fallback_network_image.dart` when
+/// medical grew its own card — a pharmacy screen importing a `Grocery*` widget
+/// to draw a picture was the kind of cross-module borrowing this split is
+/// undoing. Kept as an alias so grocery's existing call sites need no edit.
+class GroceryFallbackImage extends FallbackNetworkImage {
   const GroceryFallbackImage({
     super.key,
-    required this.urls,
-    this.fit = BoxFit.cover,
+    required super.urls,
+    super.fit,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    // Keep non-empty, de-duped urls in order.
-    final seen = <String>{};
-    final candidates = <String>[];
-    for (final u in urls) {
-      final t = (u ?? '').trim();
-      if (t.isNotEmpty && seen.add(t)) candidates.add(t);
-    }
-    return _build(candidates, 0);
-  }
-
-  Widget _build(List<String> candidates, int index) {
-    if (index >= candidates.length) return _placeholder();
-    return CachedNetworkImage(
-      imageUrl: candidates[index],
-      fit: fit,
-      placeholder: (_, __) => Container(color: Colors.grey.shade200),
-      errorWidget: (_, __, ___) => _build(candidates, index + 1),
-    );
-  }
-
-  // Placeholder fills the box (cover) regardless of [fit], so the fallback
-  // image doesn't get letterboxed with left/right padding.
-  Widget _placeholder() => LocalAssets(
-        imagePath: AppIconAssets.place_holder_image,
-        boxFix: BoxFit.cover,
-      );
 }

@@ -68,6 +68,14 @@ mixin ProductServiceApi {
   String updateProductInventory(String id) =>
       'product-service/api/inventory/$id';
 
+  /// Bulk mark inventory records in / out of stock — the manual `isOutOfStock`
+  /// flag, independent of batch quantity.
+  /// `PATCH product-service/api/inventory/stock/toggle-out-of-stock` with
+  /// `{ "inventoryIds": [...], "isOutOfStock": bool }`.
+  /// See docs/backend/STOCK_MANAGEMENT_FRONTEND_INTEGRATION.md.
+  final String productToggleOutOfStock =
+      'product-service/api/inventory/stock/toggle-out-of-stock';
+
   /// Place a product order. `POST product-service/api/orders`.
   final String placeProductOrder = 'product-service/api/orders';
 

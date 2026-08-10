@@ -8,6 +8,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:BlueEra/widgets/swipe_to_delete_row.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,9 @@ import 'package:flutter/material.dart';
 /// When [isOwner] is true (the admin product card), each variant row gains a
 /// per-variant **edit** action (opens the price editor) and is **swipe-to-
 /// delete** — that's where catalog edits live now, instead of blunt card-level
-/// buttons that could only ever target the first variant.
+/// buttons that could only ever target the first variant. Pass
+/// [onToggleStock] and the row's stock pill also becomes the in-stock /
+/// out-of-stock switch.
 ///
 /// Intentionally its OWN layout — it does not reuse `ProductPreviewScreen`.
 class ProductInventoryBottomSheet extends StatefulWidget {
@@ -47,6 +50,20 @@ class ProductInventoryBottomSheet extends StatefulWidget {
   /// the delete hits their own service + purges their own bound lists.
   final Future<bool> Function(String inventoryId)? onDeleteVariant;
 
+  /// Marks a variant in / out of stock by its inventory id. **Opt-in**: the
+  /// stock pill stays read-only until a caller supplies this, so a service that
+  /// hasn't been wired doesn't silently PATCH its inventory ids against
+  /// product-service.
+  ///
+  /// Returns the **authoritative** `isOutOfStock` the server settled on, or
+  /// `null` when the write failed. Not a success bool: automotive's endpoint
+  /// *flips* rather than *sets*, so the resulting value is the server's to
+  /// report — assuming `!previous` puts a lie on screen whenever two devices
+  /// touch the same row. Set-semantics services just echo what they were asked
+  /// to write.
+  final Future<bool?> Function(String inventoryId, bool isOutOfStock)?
+      onToggleStock;
+
   const ProductInventoryBottomSheet({
     super.key,
     required this.product,
@@ -54,6 +71,7 @@ class ProductInventoryBottomSheet extends StatefulWidget {
     this.onUpdatePrice,
     this.onChanged,
     this.onDeleteVariant,
+    this.onToggleStock,
   });
 
   /// Opens the sheet as a draggable modal. Call from a card tap.
@@ -64,6 +82,7 @@ class ProductInventoryBottomSheet extends StatefulWidget {
     PriceUpdateCallback? onUpdatePrice,
     VoidCallback? onChanged,
     Future<bool> Function(String inventoryId)? onDeleteVariant,
+    Future<bool?> Function(String inventoryId, bool isOutOfStock)? onToggleStock,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -75,6 +94,7 @@ class ProductInventoryBottomSheet extends StatefulWidget {
         onUpdatePrice: onUpdatePrice,
         onChanged: onChanged,
         onDeleteVariant: onDeleteVariant,
+        onToggleStock: onToggleStock,
       ),
     );
   }
@@ -139,6 +159,48 @@ class _ProductInventoryBottomSheetState
       product: widget.product,
       onUpdate: widget.onUpdatePrice ??
           getOrPut(() => InventoryController()).updateProductVariantPrice,
+    );
+  }
+
+  /// Inventory id of the variant whose stock toggle is mid-flight, so only
+  /// that row's pill shows a spinner.
+  String? _togglingStockId;
+
+  /// Flips one variant's manual out-of-stock flag: optimistic, then reconciled
+  /// against what the server actually settled on.
+  ///
+  /// The reconcile is the point. Automotive's endpoint *flips* rather than
+  /// *sets*, so [markOutOfStock] is only this device's expectation — if another
+  /// device moved the same row first, the server's answer differs and the
+  /// optimistic guess would sit on screen as a lie until the next refetch. A
+  /// failure (or an id the server didn't recognise) rolls back to [previous].
+  Future<void> _toggleStock(Variant v, bool markOutOfStock) async {
+    final inventoryId = v.inventoryId.isNotEmpty ? v.inventoryId : v.id;
+    if (inventoryId.isEmpty) {
+      commonSnackBar(message: "This variant's stock can't be changed.");
+      return;
+    }
+
+    final previous = v.stock;
+    setState(() {
+      _togglingStockId = inventoryId;
+      v.stock = !markOutOfStock; // optimistic
+    });
+
+    final actual = await widget.onToggleStock!(inventoryId, markOutOfStock);
+    if (!mounted) return;
+    setState(() {
+      _togglingStockId = null;
+      // `actual` is the server's value, not ours. Null = the write didn't land.
+      v.stock = actual == null ? previous : !actual;
+    });
+
+    if (actual == null) {
+      commonSnackBar(message: "Couldn't update stock. Try again.");
+      return;
+    }
+    commonSnackBar(
+      message: actual ? 'Marked out of stock.' : 'Marked in stock.',
     );
   }
 
@@ -628,6 +690,22 @@ class _ProductInventoryBottomSheetState
                     ],
                   ],
                 ),
+                // Owner: the pill doubles as the in-stock / out-of-stock
+                // switch. It sits under the price rather than in the trailing
+                // slot so it can share the row with the edit button.
+                if (owner && widget.onToggleStock != null) ...[
+                  SizedBox(height: SizeConfig.size6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: StockStatusPill(
+                      inStock: v.stock,
+                      busy: _togglingStockId ==
+                          (v.inventoryId.isNotEmpty ? v.inventoryId : v.id),
+                      onToggle: (markOutOfStock) =>
+                          _toggleStock(v, markOutOfStock),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -666,34 +744,9 @@ class _ProductInventoryBottomSheetState
     );
   }
 
-  Widget _stockPill(bool inStock) {
-    final color = inStock ? AppColors.green7F : AppColors.redB4;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.30)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          CustomText(
-            inStock ? 'In stock' : 'Out of stock',
-            fontSize: SizeConfig.small11,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
-        ],
-      ),
-    );
-  }
+  /// Read-only pill (summary header + customer variant rows). The owner rows
+  /// build their own interactive [StockStatusPill] instead.
+  Widget _stockPill(bool inStock) => StockStatusPill(inStock: inStock);
 
   Widget _sectionTitle(String text) {
     return CustomText(

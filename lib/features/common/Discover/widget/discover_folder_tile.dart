@@ -487,6 +487,89 @@ class DiscoverFolderIcon extends StatelessWidget {
   }
 }
 
+/// Rebuilds its subtree from scratch once a route that was pushed OVER this
+/// one has gone away again.
+///
+/// Why the folder sheet needs it: the sheet deliberately stays open behind the
+/// screen a category opens, so the user comes back to the picker they were
+/// using. But the grid came back DEAD — still painted, no longer taking taps —
+/// and only dismissing and reopening the sheet fixed it. Dismiss-and-reopen is
+/// simply "build this content again", which is what this does without throwing
+/// the sheet away: state stranded in the picker's elements by the round trip is
+/// discarded and the grid is live again.
+///
+/// [ModalRoute.secondaryAnimation] is the signal — it runs forward when
+/// something covers this route and back to `dismissed` when that something is
+/// gone. Every Discover route lives on the one root navigator (there is no
+/// nested Navigator under the bottom bar), so the sheet really does see the
+/// pushes that cover it.
+///
+/// Scoped to the CONTENT, not the whole sheet: it sits inside the
+/// [SingleChildScrollView], so the scroll position and the sheet's own drag
+/// extent survive untouched and the folder does not visibly flinch. Section
+/// state inside is reset, which costs nothing here — in sheet mode the sections
+/// render an uncapped, stateless picker grid (their "Show more" toggles are
+/// deliberately not built).
+class _RemountOnUncover extends StatefulWidget {
+  const _RemountOnUncover({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_RemountOnUncover> createState() => _RemountOnUncoverState();
+}
+
+class _RemountOnUncoverState extends State<_RemountOnUncover> {
+  Animation<double>? _secondary;
+
+  /// Bumped on every uncover; used as the subtree key, so a change forces a
+  /// full rebuild rather than an update-in-place.
+  int _generation = 0;
+
+  /// Only remount if something actually covered us. Without this, the
+  /// `dismissed` status the animation already sits at would count as a return
+  /// trip and remount the grid the moment the sheet opened.
+  bool _wasCovered = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final secondary = ModalRoute.of(context)?.secondaryAnimation;
+    if (identical(secondary, _secondary)) return;
+    _secondary?.removeStatusListener(_onSecondaryStatus);
+    _secondary = secondary;
+    _secondary?.addStatusListener(_onSecondaryStatus);
+  }
+
+  void _onSecondaryStatus(AnimationStatus status) {
+    switch (status) {
+      case AnimationStatus.forward:
+      case AnimationStatus.completed:
+        _wasCovered = true;
+      case AnimationStatus.dismissed:
+        if (!_wasCovered) return;
+        _wasCovered = false;
+        if (mounted) setState(() => _generation++);
+      case AnimationStatus.reverse:
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    _secondary?.removeStatusListener(_onSecondaryStatus);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: ValueKey<int>(_generation),
+      child: widget.child,
+    );
+  }
+}
+
 /// Sheet a folder opens into — the category picker.
 ///
 /// It mounts the section's own widget (so every tap routes exactly as it did on
@@ -554,10 +637,15 @@ class DiscoverFolderSheet {
                       ),
                       // Folder scope OFF (don't render another folder tile),
                       // sheet scope ON (render as the picker grid).
-                      child: DiscoverFolderScope(
-                        enabled: false,
-                        child: DiscoverSheetScope(
-                          child: Builder(builder: builder),
+                      //
+                      // Wrapped so the grid comes back ALIVE after the user
+                      // opens a category and returns — see [_RemountOnUncover].
+                      child: _RemountOnUncover(
+                        child: DiscoverFolderScope(
+                          enabled: false,
+                          child: DiscoverSheetScope(
+                            child: Builder(builder: builder),
+                          ),
                         ),
                       ),
                     ),

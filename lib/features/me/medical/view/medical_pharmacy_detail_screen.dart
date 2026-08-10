@@ -66,7 +66,7 @@ class _MedicalPharmacyDetailScreenState
   /// Category nodes carry no image, so any category outside [_staticCategories]
   /// falls back to this.
   static const String _kCategoryFallbackIcon =
-      'assets/category/medical/health_pharmacy.png';
+      'assets/category/medical/medical_store.png';
 
   @override
   void initState() {

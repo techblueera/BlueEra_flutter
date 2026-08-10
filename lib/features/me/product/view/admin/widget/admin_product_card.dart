@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
@@ -8,6 +10,7 @@ import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_ey
 import 'package:BlueEra/features/me/product/view/admin/widget/product_share_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -34,26 +37,56 @@ class AdminProductCard extends StatelessWidget {
     this.onUpdatePrice,
   });
 
-  // Grid-card name always reserves two lines so cards line up even when a
-  // name fits on a single line — the spare line falls to the bottom as blank
-  // space. Line-height factor kept explicit so the reserved box and the text
-  // agree.
-  static const double _gridNameLineHeight = 1.3;
-  static double get _gridNameBlockHeight =>
-      SizeConfig.medium * _gridNameLineHeight * 2;
+  // The name always reserves two lines — in BOTH the grid and the list
+  // variant — so cards line up even when a name fits on a single line; the
+  // spare line falls to the bottom as blank space. Line-height factor kept
+  // explicit so the reserved box and the text agree.
+  static const double _nameLineHeight = 1.3;
+
+  /// Unscaled two-line height. The baseline [gridCardHeight] is built from;
+  /// widgets should prefer [_nameBlockHeightOf], which tracks the text scale.
+  static double get _nameBlockHeight => SizeConfig.medium * _nameLineHeight * 2;
+
+  /// Two-line height at the device's CURRENT text scale.
+  ///
+  /// `fontSize * factor * 2` is only two lines when the text renders at
+  /// `fontSize`. Nothing in this app clamps the system font setting, so on a
+  /// phone with enlarged text the real lines are taller than the reserved box —
+  /// and a `Text` whose box is shorter than its content clips, which is what
+  /// ate the second line.
+  static double _nameBlockHeightOf(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(SizeConfig.medium) *
+      _nameLineHeight *
+      2;
 
   /// Total height of the grid-style card (`isGridShow: true`), derived from
   /// its content so the home strip and the view-all grid can size their cells
   /// identically without hardcoding a magic number.
+  ///
+  /// Scaled by the system text setting for the same reason the name block is:
+  /// the rail gives the card a TIGHT height, so if the name grows with the
+  /// user's font size and this doesn't, the card overflows its own rail.
+  /// Read from the platform dispatcher rather than a [MediaQuery] because the
+  /// rails ask for this before they have a card context — equivalent here,
+  /// since nothing in the app overrides the inherited text scaler.
   static double get gridCardHeight {
     final imageHeight = SizeConfig.size150 - 10;
     const priceRowHeight = 26.0; // FittedBox price row + small buffer
+    final textScale =
+        WidgetsBinding.instance.platformDispatcher.textScaleFactor;
     return imageHeight +
         SizeConfig.size10 * 2 + // vertical padding around details
-        _gridNameBlockHeight +
+        _nameBlockHeight * textScale +
         SizeConfig.size5 + // gap before price
         priceRowHeight;
   }
+
+  /// Whether the product reads as in stock — true when ANY variant is
+  /// sellable. One available size still means a customer can buy it, so only a
+  /// wholly-flagged product reads as out. An empty variant list says nothing
+  /// either way, so it is not marked as out.
+  static bool _inStock(List<Variant> variants) =>
+      variants.isEmpty || variants.any((v) => v.stock);
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +180,15 @@ class AdminProductCard extends StatelessWidget {
                       productName: details?.name,
                     ),
                   ),
+                  // Stock state on the photo, where the eye lands first when
+                  // scanning a rail. Bottom-LEFT: the top corners already carry
+                  // the preview and share buttons.
+                  Positioned(
+                    left: 6,
+                    bottom: 6,
+                    child: StockStatusPill(
+                        inStock: _inStock(variants), onImage: true),
+                  ),
                 ],
               ),
             ),
@@ -161,19 +203,30 @@ class AdminProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Product Name — fixed two-line block so short and long
-                  // names occupy the same height (extra space stays at the
-                  // bottom of the card).
-                  SizedBox(
-                    height: _gridNameBlockHeight,
-                    width: double.infinity,
+                  // Product Name — reserves two lines so short and long names
+                  // occupy the same height (extra space stays at the bottom of
+                  // the card).
+                  //
+                  // minHeight, NOT a tight height. A tight box is only ever
+                  // exactly two lines if the arithmetic matches the rendered
+                  // text to the pixel, and it doesn't: the system text scale is
+                  // unclamped here, and font metrics round. Whenever the real
+                  // two lines came out even slightly taller than the box, the
+                  // Text clipped and the second line vanished. A floor reserves
+                  // the same space for short names and simply grows instead of
+                  // cutting when the text needs more.
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: _nameBlockHeightOf(context),
+                      minWidth: double.infinity,
+                    ),
                     child: CustomText(
                       details?.name,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       maxLines: 2,
-                      height: _gridNameLineHeight,
+                      height: _nameLineHeight,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -187,6 +240,7 @@ class AdminProductCard extends StatelessWidget {
                       mrp: '\u20B9${variants[0].mrp}',
                       discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                     ),
+
 
                   // // Category and Variants count
                   // Row(
@@ -289,6 +343,12 @@ class AdminProductCard extends StatelessWidget {
                     productName: details?.name,
                   ),
                 ),
+                Positioned(
+                  left: 6,
+                  bottom: 6,
+                  child: StockStatusPill(
+                      inStock: _inStock(variants), onImage: true),
+                ),
               ],
             ),
             const SizedBox(width: 10),
@@ -300,14 +360,28 @@ class AdminProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Title
-                    CustomText(
+                    /// Title — reserves two lines, same contract as the grid
+                    /// variant above (see the note there on why this is a
+                    /// minHeight rather than a tight box). `maxLines: 2` alone
+                    /// only CAPS the name; a one-line name still collapsed the
+                    /// block and pulled the price row and attributes up with
+                    /// it, so two cards side by side disagreed on where their
+                    /// price sat.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: _nameBlockHeightOf(context),
+                        minWidth: double.infinity,
+                      ),
+                      child: CustomText(
                         details?.name,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
+                        maxLines: 2,
+                        height: _nameLineHeight,
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 2),
+                      ),
+                    ),
                     SizedBox(height: SizeConfig.size8),
 
                     /// Price Row
@@ -332,9 +406,10 @@ class AdminProductCard extends StatelessWidget {
     );
   }
 
-  /// Opens the product-details sheet in owner mode. Per-variant edit and
-  /// swipe-to-delete live there now — the card no longer carries blunt
-  /// edit/delete buttons that could only ever target the first variant.
+  /// Opens the product-details sheet in owner mode. Per-variant edit,
+  /// in/out-of-stock and swipe-to-delete live there now — the card no longer
+  /// carries blunt edit/delete buttons that could only ever target the first
+  /// variant.
   void _openDetails(BuildContext context) {
     ProductInventoryBottomSheet.show(
       context,
@@ -342,6 +417,14 @@ class AdminProductCard extends StatelessWidget {
       isOwner: true,
       onUpdatePrice: onUpdatePrice,
       onChanged: deleteProductApi,
+      // Product-service only. The sheet leaves the pill read-only when this
+      // isn't supplied, which is what keeps automotive / manufacturer (who
+      // reuse the sheet with their own inventory ids) from PATCHing here.
+      onToggleStock: (inventoryId, isOutOfStock) =>
+          getOrPut(() => InventoryController()).toggleVariantOutOfStock(
+        inventoryId: inventoryId,
+        isOutOfStock: isOutOfStock,
+      ),
     );
   }
 }

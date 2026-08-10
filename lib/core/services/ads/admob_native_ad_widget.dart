@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
+import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -42,6 +43,15 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
   bool _loaded = false;
   bool _failed = false;
 
+  /// The push/pop animation of the route this slot sits on, while we're waiting
+  /// for it to finish. Null once we've stopped listening.
+  Animation<double>? _routeAnimation;
+
+  /// Set the moment a request is started, so neither a second
+  /// [didChangeDependencies] nor a late animation callback can fire a duplicate
+  /// load (which would burn an impression).
+  bool _requested = false;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -52,10 +62,59 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
       _failed = true;
       return;
     }
-    _load();
   }
 
-  void _load() {
+  /// Requests the ad only once the route carrying this slot has finished
+  /// animating in.
+  ///
+  /// Loading straight from [initState] put the request inside the push
+  /// transition. An ad request is not free on the platform side — it binds the
+  /// Play Services ads service, and the AdWidget it produces is a platform
+  /// view — so it competed with the animation for the main thread and the
+  /// screen visibly stalled on open (`Choreographer: Skipped N frames` landing
+  /// right after the request in logcat).
+  ///
+  /// Waiting costs the ad the length of one transition and buys a clean push.
+  /// Slots that are not on a route, or are already settled on one (built during
+  /// a scroll rather than a navigation), load immediately as before.
+  ///
+  /// [didChangeDependencies] rather than [initState]: `ModalRoute.of` registers
+  /// an inherited-widget dependency, which is not allowed during initState.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_failed || _requested) return;
+
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      _load();
+      return;
+    }
+    if (identical(animation, _routeAnimation)) return;
+    _detachRouteAnimation();
+    _routeAnimation = animation..addStatusListener(_onRouteAnimationStatus);
+  }
+
+  void _onRouteAnimationStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    _detachRouteAnimation();
+    if (mounted && !_requested) _load();
+  }
+
+  void _detachRouteAnimation() {
+    _routeAnimation?.removeStatusListener(_onRouteAnimationStatus);
+    _routeAnimation = null;
+  }
+
+  Future<void> _load() async {
+    _requested = true;
+    // Normally already finished (warmed at launch — see [AdsBootstrap]), in
+    // which case this is a single microtask. It only actually waits when this
+    // slot is the first ad of the session, and then it waits INSTEAD of doing
+    // the SDK start-up inline.
+    await AdsBootstrap.ensureInitialized();
+    if (!mounted) return;
+
     final unit = AdConfig.admobNativeUnit;
     print('[ADMOB_NATIVE] loading unit=$unit');
     _ad = NativeAd(
@@ -95,6 +154,7 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
 
   @override
   void dispose() {
+    _detachRouteAnimation();
     _ad?.dispose();
     super.dispose();
   }

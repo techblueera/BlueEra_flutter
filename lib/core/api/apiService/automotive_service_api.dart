@@ -82,6 +82,20 @@ mixin AutomotiveServiceApi {
   String automotiveUpdateProductInventory(String id) =>
       'automotive-service/api/inventory/$id';
 
+  /// Invert the manual out-of-stock flag on one or more inventory records.
+  /// `PATCH automotive-service/api/inventory/stock/flip-out-of-stock` with
+  /// `{ "inventoryId": "..." }` or `{ "inventoryIds": [...] }` — no value is
+  /// sent; each id flips to the opposite of whatever it currently is, and the
+  /// response reports the resulting value per item.
+  ///
+  /// NOTE: grocery-service and product-service expose this IDENTICAL sub-path —
+  /// the three differ only by service prefix, and pointing one at another marks
+  /// the wrong catalogue's items sold out with no error at all (the request
+  /// succeeds and the ids land in `notFound`).
+  /// See docs/backend/AUTOMOTIVE_OUT_OF_STOCK_FLIP_FLUTTER_GUIDE.md.
+  final String automotiveFlipOutOfStock =
+      'automotive-service/api/inventory/stock/flip-out-of-stock';
+
   /// Place a product order. `POST automotive-service/api/orders`.
   final String automotivePlaceProductOrder = 'automotive-service/api/orders';
 

@@ -31,6 +31,28 @@ class GroceryRepo extends BaseService {
     );
   }
 
+  /// Bulk-flip the manual out-of-stock flag on one or more inventory records.
+  /// `PATCH grocery-service/api/inventory/stock/toggle-out-of-stock`.
+  ///
+  /// This writes `isOutOfStock` only — it does NOT change batch quantity, so
+  /// marking an item back in stock while `totalStock <= 0` leaves it out of
+  /// stock as far as customers are concerned.
+  Future<ResponseModel> toggleOutOfStockRepo({
+    required List<String> inventoryIds,
+    required bool isOutOfStock,
+  }) async {
+    return ApiBaseHelper().patchHTTP(
+      groceryToggleOutOfStock,
+      params: {
+        'inventoryIds': inventoryIds,
+        'isOutOfStock': isOutOfStock,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   Future<ResponseModel> searchGroceryCategoryRepo(
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(

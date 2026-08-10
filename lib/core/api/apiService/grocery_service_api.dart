@@ -50,6 +50,14 @@ mixin GroceryServiceApi {
   /// product service's `updateProductInventory`).
   String updateGroceryInventory(String id) =>
       'grocery-service/api/inventory/$id';
+
+  /// Bulk mark inventory records in / out of stock — the manual `isOutOfStock`
+  /// flag, independent of batch quantity.
+  /// `PATCH grocery-service/api/inventory/stock/toggle-out-of-stock` with
+  /// `{ "inventoryIds": [...], "isOutOfStock": bool }`.
+  /// See docs/backend/STOCK_MANAGEMENT_FRONTEND_INTEGRATION.md.
+  final String groceryToggleOutOfStock =
+      'grocery-service/api/inventory/stock/toggle-out-of-stock';
   final String groceryCategoryWithInventory =
       'grocery-service/api/categories/with-inventory';
   final String publicGroceryCategoryWithInventory =

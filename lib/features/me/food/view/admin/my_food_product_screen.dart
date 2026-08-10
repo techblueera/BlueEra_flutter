@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -253,6 +254,16 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
                         FoodDietaryAndTagRow(
                           dietaryType: product.dietaryType,
                           cookingMethods: product.cookingMethod,
+                        ),
+                        // Stock state at a glance, without opening the variant
+                        // sheet where the switch lives. Both states, so the
+                        // absence of a badge never has to be interpreted.
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: StockStatusPill(
+                            inStock: !isFoodProductOutOfStock(product),
+                          ),
                         ),
                       ],
                     ),

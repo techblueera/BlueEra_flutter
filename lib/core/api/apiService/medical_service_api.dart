@@ -60,6 +60,17 @@ mixin MedicalServiceApi {
   String deleteMedicalInventory(String inventoryId) =>
       'medical-service/inventory/$inventoryId';
 
+  /// Bulk mark inventory records in / out of stock — the manual `isOutOfStock`
+  /// flag, independent of batch quantity.
+  /// `PATCH medical-service/inventory/stock/toggle-out-of-stock` with
+  /// `{ "inventoryIds": [...], "isOutOfStock": bool }`.
+  ///
+  /// Note there is no `/api/` segment: medical hangs its routes straight off
+  /// the service, unlike grocery/product (`<svc>/api/inventory/...`).
+  /// See docs/backend/MEDICAL_STOCK_MANAGEMENT_FLUTTER_GUIDE.md.
+  final String medicalToggleOutOfStock =
+      'medical-service/inventory/stock/toggle-out-of-stock';
+
   /// Medical - Variant Update/Delete
   String updateMedicalVariant(String variantId) =>
       'medical-service/products/variants/$variantId';

@@ -265,6 +265,7 @@ class FoodVariants {
     this.inventoryId,
     this.updatedAt,
     this.v,
+    this.isOutOfStock,
   });
 
   FoodVariants.fromJson(dynamic json) {
@@ -280,6 +281,7 @@ class FoodVariants {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     inventoryId = json['inventoryId'];
+    isOutOfStock = json['isOutOfStock'];
     v = json['__v'];
   }
   String? id;
@@ -295,6 +297,10 @@ class FoodVariants {
   String? updatedAt;
   int? v;
 
+  /// Manual out-of-stock flag on the kitchen-inventory record. Null when the
+  /// endpoint hasn't sent it (treated as in stock).
+  bool? isOutOfStock;
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;
@@ -308,6 +314,7 @@ class FoodVariants {
     map['isDefault'] = isDefault;
     map['createdAt'] = createdAt;
     map['updatedAt'] = updatedAt;
+    map['isOutOfStock'] = isOutOfStock;
     map['__v'] = v;
     return map;
   }
@@ -325,6 +332,7 @@ class FoodVariants {
     String? updatedAt,
     int? v,
     String? inventoryId,
+    bool? isOutOfStock,
   }) {
     return FoodVariants(
       id: id ?? this.id,
@@ -339,6 +347,7 @@ class FoodVariants {
       updatedAt: updatedAt ?? this.updatedAt,
       v: v ?? this.v,
       inventoryId: inventoryId ?? this.inventoryId,
+      isOutOfStock: isOutOfStock ?? this.isOutOfStock,
     );
   }
 }

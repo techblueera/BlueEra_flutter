@@ -1,10 +1,6 @@
-import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart'
-    as grocery show PriceResult;
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
-import 'package:BlueEra/features/me/medical/model/medical_product_model.dart'
-    as medical show Pricing;
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,41 +35,6 @@ Future<void> showMedicalVariantsSheet({
     productImageUrl: productImageUrl,
     variants: variants,
     inventoryService: medicalVariantInventoryService(),
-  );
-}
-
-/// Formats a medical variant's prices for the shared top-selling card.
-///
-/// The card is grocery's and defaults to grocery's resolver, which is
-/// pincode-blind — it min/maxes every city in `pricing[]`. Medical's rule is
-/// different: one row per city, and only the row matching the shop's pincode
-/// is this shop's price. Routing through [MedicalController.getPriceDetails]
-/// keeps the Top Selling rail consistent with the product-selection and
-/// add-variant screens, which already resolve it that way.
-///
-/// The two modules declare their own `Pricing` and `PriceResult` classes —
-/// structurally identical, but distinct types — so this maps across the
-/// boundary in both directions. Only the four fields the resolver reads are
-/// carried over; the rest are display-irrelevant.
-grocery.PriceResult medicalTopSellingPrice(List<Pricing>? pricing) {
-  final controller = Get.isRegistered<MedicalController>()
-      ? Get.find<MedicalController>()
-      : Get.put(MedicalController());
-
-  final medicalPricing = pricing
-      ?.map((p) => medical.Pricing(
-            pincode: p.pincode,
-            cityName: p.cityName,
-            mrp: p.mrp,
-            sellingPrice: p.sellingPrice,
-          ))
-      .toList();
-
-  final result = controller.getPriceDetails(medicalPricing);
-  return grocery.PriceResult(
-    sellingRange: result.sellingRange,
-    mrpRange: result.mrpRange,
-    discountRange: result.discountRange,
   );
 }
 
@@ -121,6 +82,13 @@ VariantInventoryService medicalVariantInventoryService() {
     ),
     delete: ({required inventoryId}) =>
         MedicalRepo().deleteMedicalInventoryRepo(inventoryId: inventoryId),
+    // Same set-semantics contract as grocery, on medical-service. This is what
+    // turns the sheet's stock pill from read-only into the in/out switch.
+    toggleOutOfStock: ({required inventoryIds, required isOutOfStock}) =>
+        MedicalRepo().toggleOutOfStockRepo(
+      inventoryIds: inventoryIds,
+      isOutOfStock: isOutOfStock,
+    ),
     refreshOwner: () {
       if (Get.isRegistered<MedicalController>()) {
         final controller = Get.find<MedicalController>();

@@ -11,6 +11,8 @@ import 'package:BlueEra/features/me/food/view/admin/discount_food_products_scree
 import 'package:BlueEra/features/me/food/view/admin/food_category_menu_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_sheet.dart';
+import 'package:BlueEra/widgets/reserved_text_lines.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
@@ -140,6 +142,11 @@ class FoodProductsTab extends StatelessWidget {
             )
           else
             ProductsRail(
+              // Sized to the tallest card: the stock pill made the dish card
+              // taller than the 240 the loader reserves, and a rail's height
+              // is TIGHT — the cards would have been clipped. Capped preview
+              // list, so building them all up front is fine.
+              sizeToContent: true,
               height: _popularDishRailHeight,
               itemCount: items.length,
               spacing: SizeConfig.size12,
@@ -235,6 +242,17 @@ class FoodProductsTab extends StatelessWidget {
                     size: 8,
                   ),
                 ),
+                // Stock state on the photo, where the eye lands first when
+                // scanning the rail. Bottom-LEFT: the top corners already carry
+                // the discount ribbon and the veg/non-veg mark.
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: StockStatusPill(
+                    inStock: !isFoodProductOutOfStock(item),
+                    onImage: true,
+                  ),
+                ),
               ],
             ),
             Padding(
@@ -242,12 +260,19 @@ class FoodProductsTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    item.name ?? '',
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
+                  // Always two lines' worth of space, so a short dish name
+                  // leaves blank at the bottom instead of pulling the rating
+                  // and price up and misaligning neighbouring cards.
+                  ReservedTextLines(
                     fontSize: 13,
-                    overflow: TextOverflow.ellipsis,
+                    child: CustomText(
+                      item.name ?? '',
+                      fontWeight: FontWeight.w600,
+                      maxLines: 2,
+                      height: 1.3,
+                      fontSize: 13,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(

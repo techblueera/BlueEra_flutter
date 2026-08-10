@@ -258,12 +258,18 @@ class ProductsSectionHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Two lines: several section titles are long enough to clip on
+                // a narrow phone once the trailing action has taken its width
+                // ("High Discount Products", "Manage via categories"), and a
+                // truncated section heading is the one label on the tab that
+                // has to stay readable. Wraps only when it needs to — a
+                // one-line title still occupies one line, so nothing shifts.
                 CustomText(
                   title,
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (subtitle != null) ...[

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/rx_badge.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -217,24 +218,9 @@ class MedicalProductCard extends StatelessWidget {
     return Row(children: children);
   }
 
-  /// Small red "Rx" chip in a matching outlined box — same visual weight
-  /// as grocery's veg-dot so the row reads consistently across services.
-  Widget _rxDot() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.red, width: 1),
-        borderRadius: BorderRadius.circular(2),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-      child: CustomText(
-        'Rx',
-        fontSize: 9,
-        fontWeight: FontWeight.w900,
-        color: AppColors.red,
-        letterSpacing: 0.2,
-      ),
-    );
-  }
+  /// Small red "Rx" chip. Extracted to [RxBadge] so the merchant's Top Selling
+  /// card marks prescription-only medicines with the identical mark.
+  Widget _rxDot() => const RxBadge();
 
   Widget _priceRow(MedicalCardVariant v) {
     final selling = (v.sellingPrice ?? 0).toDouble();

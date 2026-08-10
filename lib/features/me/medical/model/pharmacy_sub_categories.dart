@@ -20,15 +20,15 @@ class PharmacySubCategories {
   /// Anything unmapped (i.e. a sub-category added server-side later) falls back
   /// to [fallbackIcon] so it still renders.
   static const Map<String, String> _icons = {
-    'generic medicine store': 'assets/category/medical/health_surgical.png',
-    'medical store': 'assets/category/medical/health_pharmacy.png',
-    'online pharmacy': 'assets/category/medical/otc.png',
-    'surgical store': 'assets/category/medical/health_surgical.png',
-    'medical equipment shop': 'assets/category/medical/health_labs.png',
+    'generic medicine store': 'assets/category/medical/generic_medicine_store.png',
+    'medical store': 'assets/category/medical/medical_store.png',
+    'online pharmacy': 'assets/category/medical/online_pharmacy.png',
+    'surgical store': 'assets/category/medical/surgical_store.png',
+    'medical equipment shop': 'assets/category/medical/medical_equipment_shop.png',
   };
 
   static const String fallbackIcon =
-      'assets/category/medical/health_pharmacy.png';
+      'assets/category/medical/all_pharmacy.png';
 
   /// The PHARMACY entry of [AuthController]'s Healthcare bucket, or null before
   /// the onboarding categories load / if the backend stops sending it.

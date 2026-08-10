@@ -97,6 +97,15 @@ class GetProductData {
         // variant `_id`.
         'inventory_id': inventory['_id'] ?? inventory['inventoryId'] ?? '',
         'attributes': variant['attributes'] ?? const <String, dynamic>{},
+        // Read off `variants[].inventory.isOutOfStock` — the only place the
+        // flag lives. `!= true` rather than a cast: it was added after some
+        // inventory documents were written, so it can be absent, and absent
+        // means false (in stock).
+        //
+        // `inventory.totalStock` is deliberately NOT folded in. Quantity isn't
+        // maintained in these catalogues — rows come back with `totalStock: 0`
+        // while `isOutOfStock` is false — so treating zero as sold out marked
+        // every product out of stock. The manual flag is the only input.
         'stock': inventory['isOutOfStock'] != true,
         'sellingPrice': firstPricing['sellingPrice'] ?? 0,
         'mrp': firstPricing['mrp'] ?? 0,
@@ -516,7 +525,13 @@ class Owner {
 
 class Variant {
   final Map<String, dynamic> attributes; // dynamic attributes
-  final bool stock;
+
+  /// In-stock flag — the inverse of the API's `isOutOfStock`, resolved in
+  /// [GetProductData.fromCategoryProduct]. Mutable for the same reason as the
+  /// price fields: the owner's out-of-stock toggle flips it in place after the
+  /// PATCH succeeds, instead of forcing a full refetch.
+  bool stock;
+
   // Mutable so a successful price edit can be reflected in-memory without a
   // full (and possibly stale) product refetch.
   num sellingPrice;

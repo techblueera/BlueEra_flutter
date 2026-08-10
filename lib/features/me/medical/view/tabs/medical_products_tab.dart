@@ -6,12 +6,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 // The medical business-products endpoint ships grocery's exact response shape
 // (docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md), so the Top Selling rail
-// reuses grocery's grouping helper and card. The variants sheet is reused too,
-// but through the MEDICAL entry point — it binds the sheet's edit/delete to
-// medical-service instead of grocery-service.
+// reuses grocery's MODEL and grouping helper — but renders medical's own card
+// ([MedicalTopSellingProductCard]), because the two modules price a variant
+// differently. The variants sheet is still shared, through the MEDICAL entry
+// point, which binds its edit/delete/stock actions to medical-service.
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_top_selling_product_card.dart';
 import 'package:BlueEra/features/me/medical/widget/medical_variants_sheet.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -155,12 +156,9 @@ class MedicalProductsTab extends StatelessWidget {
             productImageUrl: group.product.productImageUrlOnly,
             variants: group.variants,
           ),
-          child: GroceryTopSellingProductCard(
+          child: MedicalTopSellingProductCard(
             product: group.product,
             variants: group.variants,
-            // Medical's pincode-aware pricing, not grocery's min/max over
-            // every city — see medicalTopSellingPrice.
-            priceResolver: medicalTopSellingPrice,
           ),
         ),
       ),

@@ -8,9 +8,21 @@ import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dar
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:BlueEra/widgets/swipe_to_delete_row.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Whether a whole dish reads as out of stock — true only when EVERY variant
+/// is flagged. One sellable size still means a customer can order it, so a
+/// partially-flagged dish is not marked.
+///
+/// Lives here beside the sheet that owns the in/out switch, so the card badge
+/// and the sheet can never disagree on what "out of stock" means.
+bool isFoodProductOutOfStock(CategoryFoodProductData product) {
+  final variants = product.variants ?? const <FoodVariants>[];
+  return variants.isNotEmpty && variants.every((v) => v.isOutOfStock == true);
+}
 
 Future<void> showFoodProductVariantSheet(
   BuildContext context, {
@@ -128,6 +140,48 @@ class _VariantListState extends State<_VariantList> {
   // reflects the new count on return.
   late final List<FoodVariants> _variants =
       List<FoodVariants>.from(widget.product.variants ?? const []);
+
+  /// Inventory id of the variant whose stock toggle is mid-flight, so only
+  /// that row's pill spins.
+  String? _togglingStockId;
+
+  /// Flips one variant's manual out-of-stock flag via
+  /// `PATCH kitchen-inventory/stock/toggle-out-of-stock`. Goes straight to the
+  /// repo, same as delete above — the food sheet has no controller of its own.
+  Future<void> _toggleStock(FoodVariants item, bool markOutOfStock) async {
+    final inventoryId = item.inventoryId ?? '';
+    if (inventoryId.isEmpty) {
+      commonSnackBar(message: "This variant's stock can't be changed.");
+      return;
+    }
+
+    setState(() => _togglingStockId = inventoryId);
+    final res = await FoodRepo().toggleOutOfStockRepo(
+      inventoryIds: [inventoryId],
+      isOutOfStock: markOutOfStock,
+    );
+    if (!mounted) return;
+
+    if (!res.isSuccess) {
+      setState(() => _togglingStockId = null);
+      commonSnackBar(message: res.message ?? "Couldn't update stock.");
+      return;
+    }
+
+    // Mutate the shared product's variant too, so the screen behind the sheet
+    // shows the new state on return — mirrors [_onDeleted].
+    item.isOutOfStock = markOutOfStock;
+    for (final v in widget.product.variants ?? const <FoodVariants>[]) {
+      if (v.inventoryId == inventoryId) v.isOutOfStock = markOutOfStock;
+    }
+    if (Get.isRegistered<RestaurantController>()) {
+      Get.find<RestaurantController>().foodDataNeedsRefresh = true;
+    }
+    setState(() => _togglingStockId = null);
+    commonSnackBar(
+      message: markOutOfStock ? 'Marked out of stock.' : 'Marked in stock.',
+    );
+  }
 
   /// Confirms, then calls `DELETE kitchen-inventory/{inventoryId}`. Returns
   /// `true` only when the variant was actually deleted (so the row dismisses).
@@ -324,6 +378,19 @@ class _VariantListState extends State<_VariantList> {
                               decoration: TextDecoration.lineThrough,
                             ),
                         ],
+                      ),
+                      const SizedBox(height: 8),
+                      // The pill doubles as the in-stock / out-of-stock switch.
+                      // Sits under the price so the swipe-to-delete gesture on
+                      // the row still has the full width to work with.
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: StockStatusPill(
+                          inStock: item.isOutOfStock != true,
+                          busy: _togglingStockId == (item.inventoryId ?? ''),
+                          onToggle: (markOutOfStock) =>
+                              _toggleStock(item, markOutOfStock),
+                        ),
                       ),
                     ],
                   ),

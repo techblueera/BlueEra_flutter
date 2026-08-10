@@ -73,6 +73,37 @@ class AutomotiveProductRepo extends BaseService {
     );
   }
 
+  /// Invert the manual out-of-stock flag on one or more inventory records.
+  /// `PATCH automotive-service/api/inventory/stock/flip-out-of-stock`.
+  ///
+  /// No value is sent — the server flips each id independently and reports the
+  /// resulting value per item, which is why the caller must read the new state
+  /// off the response rather than assuming `!previous`. Two devices flipping
+  /// the same row would otherwise disagree with the server until a refetch.
+  ///
+  /// Pass ONE of [inventoryId] / [inventoryIds]; `inventoryIds` wins if both
+  /// are given. Duplicate ids collapse server-side (an id sent twice flips
+  /// once, not back to where it started).
+  ///
+  /// This writes the flag only — batch quantity is untouched, so flipping a
+  /// zero-quantity item back to "in stock" does not make it sellable.
+  Future<ResponseModel> flipOutOfStockRepo({
+    String? inventoryId,
+    List<String>? inventoryIds,
+  }) async {
+    assert(inventoryId != null || (inventoryIds?.isNotEmpty ?? false),
+        'Supply inventoryId or a non-empty inventoryIds');
+    return ApiBaseHelper().patchHTTP(
+      automotiveFlipOutOfStock,
+      params: (inventoryIds != null && inventoryIds.isNotEmpty)
+          ? {'inventoryIds': inventoryIds}
+          : {'inventoryId': inventoryId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// Place a product order. `POST product-service/api/orders`.
   Future<ResponseModel> placeProductOrderRepo({
     required Map<String, dynamic> params,

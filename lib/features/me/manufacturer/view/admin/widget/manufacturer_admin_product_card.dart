@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -29,20 +30,41 @@ class ManufacturerAdminProductCard extends StatelessWidget {
   });
 
   static const double _gridNameLineHeight = 1.3;
+
+  /// Unscaled two-line height — the baseline [gridCardHeight] is built from.
   static double get _gridNameBlockHeight =>
       SizeConfig.medium * _gridNameLineHeight * 2;
 
+  /// Two-line height at the device's CURRENT text scale. `fontSize * factor *
+  /// 2` is only two lines when the text renders at `fontSize`, and nothing in
+  /// this app clamps the system font setting. Mirrors [AdminProductCard].
+  static double _gridNameBlockHeightOf(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(SizeConfig.medium) *
+      _gridNameLineHeight *
+      2;
+
   /// Total height of the grid-style card (`isGridShow: true`), derived from its
   /// content so a horizontal strip and a view-all grid can size cells the same.
+  ///
+  /// Text-scaled: the rail gives the card a TIGHT height, so if the name grows
+  /// with the user's font size and this doesn't, the card overflows its rail.
   static double get gridCardHeight {
     final imageHeight = SizeConfig.size150 - 10;
     const priceRowHeight = 26.0;
+    final textScale =
+        WidgetsBinding.instance.platformDispatcher.textScaleFactor;
     return imageHeight +
         SizeConfig.size10 * 2 +
-        _gridNameBlockHeight +
+        _gridNameBlockHeight * textScale +
         SizeConfig.size5 +
         priceRowHeight;
   }
+
+  /// Whether the product reads as in stock — true when ANY variant is
+  /// sellable. One available variant still means a customer can buy it, so
+  /// only a wholly-flagged product reads as out.
+  static bool _inStock(List<Variant> variants) =>
+      variants.isEmpty || variants.any((v) => v.stock);
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +147,14 @@ class ManufacturerAdminProductCard extends StatelessWidget {
                       onTap: () => _openDetails(context),
                     ),
                   ),
+                  // Stock state on the photo, where the eye lands first when
+                  // scanning a rail.
+                  Positioned(
+                    left: 6,
+                    bottom: 6,
+                    child: StockStatusPill(
+                        inStock: _inStock(variants), onImage: true),
+                  ),
                 ],
               ),
             ),
@@ -138,14 +168,26 @@ class ManufacturerAdminProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ManufacturerProduct Name
-                  CustomText(
-                    details?.name,
-                    fontWeight: FontWeight.w600,
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.mainTextColor,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  // ManufacturerProduct Name — reserves two lines so short and
+                  // long names occupy the same height (extra space stays at
+                  // the bottom of the card). [gridCardHeight] already budgeted
+                  // for two lines; the name itself never reserved them, so a
+                  // one-line name left the grid cells disagreeing on where
+                  // their price sat.
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: _gridNameBlockHeightOf(context),
+                      minWidth: double.infinity,
+                    ),
+                    child: CustomText(
+                      details?.name,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      maxLines: 2,
+                      height: _gridNameLineHeight,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
 
                   SizedBox(height: SizeConfig.size5),
@@ -157,6 +199,7 @@ class ManufacturerAdminProductCard extends StatelessWidget {
                       mrp: '\u20B9${variants[0].mrp}',
                       discount: "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
                     ),
+
 
                   // // Category and Variants count
                   // Row(
@@ -251,6 +294,12 @@ class ManufacturerAdminProductCard extends StatelessWidget {
                     onTap: () => _openDetails(context),
                   ),
                 ),
+                Positioned(
+                  left: 6,
+                  bottom: 6,
+                  child: StockStatusPill(
+                      inStock: _inStock(variants), onImage: true),
+                ),
               ],
             ),
             const SizedBox(width: 10),
@@ -262,14 +311,25 @@ class ManufacturerAdminProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Title
-                    CustomText(
+                    /// Title — reserves two lines, same contract as the grid
+                    /// variant above. `maxLines: 2` alone only CAPS the name; a
+                    /// one-line name still collapsed the block and pulled the
+                    /// price row and attributes up with it.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: _gridNameBlockHeightOf(context),
+                        minWidth: double.infinity,
+                      ),
+                      child: CustomText(
                         details?.name,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
+                        maxLines: 2,
+                        height: _gridNameLineHeight,
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 2),
+                      ),
+                    ),
                     SizedBox(height: SizeConfig.size8),
 
                     /// Price Row
@@ -294,9 +354,9 @@ class ManufacturerAdminProductCard extends StatelessWidget {
     );
   }
 
-  /// Opens the product-details sheet in owner mode. Per-variant edit and
-  /// swipe-to-delete live there now — routed to the manufacturer inventory
-  /// service for both the price update and the delete.
+  /// Opens the product-details sheet in owner mode. Per-variant edit,
+  /// in/out-of-stock and swipe-to-delete live there now — all three routed to
+  /// the manufacturer inventory service.
   void _openDetails(BuildContext context) {
     ProductInventoryBottomSheet.show(
       context,
@@ -306,6 +366,15 @@ class ManufacturerAdminProductCard extends StatelessWidget {
           .updateProductVariantPrice,
       onDeleteVariant: (id) => getOrPut(() => ManufacturerInventoryController())
           .deleteInventoryVariant(inventoryId: id),
+      // Manufacturer sits on product-service too, so the same
+      // `/inventory/stock/toggle-out-of-stock` path applies — but it's routed
+      // through the manufacturer controller so ITS lists get the update.
+      onToggleStock: (inventoryId, isOutOfStock) =>
+          getOrPut(() => ManufacturerInventoryController())
+              .toggleVariantOutOfStock(
+        inventoryId: inventoryId,
+        isOutOfStock: isOutOfStock,
+      ),
       onChanged: deleteProductApi,
     );
   }

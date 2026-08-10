@@ -31,8 +31,10 @@ class GroceryProductsTab extends StatelessWidget {
 
   const GroceryProductsTab({super.key, required this.businessId});
 
-  /// Height of the top-selling rail — tall enough for
-  /// [GroceryTopSellingProductCard] at [_topSellingCardWidth].
+  /// Skeleton height for the top-selling rail — an UPPER BOUND for
+  /// [GroceryTopSellingProductCard] at [_topSellingCardWidth], not its exact
+  /// height. Only the loading shimmer uses it as a real height; the loaded rail
+  /// passes `sizeToContent: true` and takes the height of its tallest card.
   static const double _topSellingRailHeight = 232;
   static const double _topSellingCardWidth = 152;
 
@@ -123,6 +125,15 @@ class GroceryProductsTab extends StatelessWidget {
             )
           else
             ProductsRail(
+              // Sized to the tallest card, not to the 232 the loader uses.
+              // That constant is an upper bound, and the cards are top-aligned,
+              // so whatever it over-reserves showed up as a band of dead space
+              // between this rail and "Manage via categories" — the gap is not
+              // the section spacing, it is the bottom of this rail. Capped
+              // preview list, so building every card up front is fine (the
+              // documented use for this flag). Same fix medical already
+              // carries for the same card.
+              sizeToContent: true,
               height: _topSellingRailHeight,
               itemCount: previewGroups.length,
               spacing: 12,

@@ -28,6 +28,7 @@ import 'package:BlueEra/features/me/automotive_products/model/automotive_product
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_model.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_snap_search_response.dart';
+import 'package:BlueEra/features/me/automotive_products/model/flip_out_of_stock_response.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/repo/automotive_product_repo.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_variant_dialog.dart';
@@ -1132,6 +1133,63 @@ class AutomotiveInventoryController extends GetxController {
       return true;
     } catch (_) {
       return false;
+    }
+  }
+
+  /// Inverts one variant's manual out-of-stock flag via
+  /// `PATCH automotive-service/api/inventory/stock/flip-out-of-stock`, mirrors
+  /// the result into the in-memory lists, and returns the **server's** new
+  /// `isOutOfStock` — or `null` when the write didn't land.
+  ///
+  /// The value comes off the response rather than from `!current` on purpose:
+  /// this endpoint flips, so if another device moved the same row first the
+  /// server's answer is the only correct one. See
+  /// docs/backend/AUTOMOTIVE_OUT_OF_STOCK_FLIP_FLUTTER_GUIDE.md §5.
+  ///
+  /// Quantity is untouched — this is the merchant's manual "don't sell this
+  /// right now" switch, not a stock adjustment.
+  Future<bool?> flipVariantOutOfStock({required String inventoryId}) async {
+    if (inventoryId.isEmpty) return null;
+    try {
+      final res = await AutomotiveProductRepo()
+          .flipOutOfStockRepo(inventoryId: inventoryId);
+      if (!res.isSuccess) return null;
+
+      final body = res.response?.data;
+      if (body is! Map) return null;
+      final flip =
+          FlipOutOfStockResponse.fromJson(Map<String, dynamic>.from(body));
+
+      // `notFound` arrives with a 200, so a successful status is NOT enough:
+      // the row is gone or belongs to another business. Treated as a failure so
+      // the caller rolls back instead of painting a value nothing was written
+      // to. (An id that lands here against a live row is the classic
+      // wrong-service-host symptom.)
+      if (flip.notFound.contains(inventoryId)) return null;
+
+      final isOutOfStock = flip.byId[inventoryId];
+      if (isOutOfStock == null) return null;
+
+      // Both lists render variants (the category grid reads
+      // [productsByCategoryList], [allProducts] backs the rails) and they hold
+      // separate objects for the same variant — mirror into both, same as
+      // [deleteInventoryVariant].
+      for (final list in [allProducts, productsByCategoryList]) {
+        for (final p in list) {
+          // Untyped `const []` to match [updateProductVariantPrice] — the
+          // import above hides `Variant` to dodge a name clash with the
+          // automotive catalog model, and inference supplies it here anyway.
+          for (final v in p.product.sellerClassification?.variants ?? const []) {
+            if (v.inventoryId == inventoryId || v.id == inventoryId) {
+              v.stock = !isOutOfStock;
+            }
+          }
+        }
+        list.refresh();
+      }
+      return isOutOfStock;
+    } catch (_) {
+      return null;
     }
   }
 }

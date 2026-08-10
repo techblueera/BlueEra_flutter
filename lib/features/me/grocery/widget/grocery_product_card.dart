@@ -16,6 +16,8 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/dashed_border_container.dart';
+import 'package:BlueEra/widgets/reserved_text_lines.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/images.dart';
@@ -54,6 +56,17 @@ class GroceryProductCard extends StatelessWidget {
       }
     }
     return variants;
+  }
+
+  /// Whether the product reads as in stock — true when ANY variant is
+  /// sellable. One available pack still means a customer can buy it, so only a
+  /// wholly-flagged product reads as out.
+  ///
+  /// Reads `variants[].inventory.isOutOfStock`, the only place the flag lives.
+  bool get _inStock {
+    final variants = groceryProducts.variants ?? const <ProductVariants>[];
+    return variants.isEmpty ||
+        variants.any((v) => v.inventory?.isOutOfStock != true);
   }
 
   /// First variant that carries its OWN image url — used as the card's image
@@ -122,9 +135,19 @@ class GroceryProductCard extends StatelessWidget {
                     height: SizeConfig.size140,
                     width: double.infinity,
                     child: GroceryFallbackImage(
-                      // contain so the full product packshot is visible (cover
-                      // would crop the package/bottle).
-                      fit: BoxFit.contain,
+                      // Fills the box edge to edge. This used to be `contain`,
+                      // to keep the whole packshot visible — but `contain`
+                      // letterboxes anything that isn't the box's aspect ratio,
+                      // so a tall bottle sat in a band of empty white and the
+                      // card read as half-loaded. It also disagreed with the
+                      // two things right next to it: the top-selling card
+                      // (which takes the `cover` default) and this widget's own
+                      // placeholder, which covers regardless of `fit` — so a
+                      // MISSING image filled the box while a real one didn't.
+                      //
+                      // Trade-off accepted: `cover` crops whatever overflows,
+                      // so label text hard against a packshot's edge can be cut.
+                      fit: BoxFit.cover,
                       urls: [productImageUrl, variantImageUrl],
                     ),
                   ),
@@ -155,6 +178,14 @@ class GroceryProductCard extends StatelessWidget {
                   ),
                 ),
 
+                // Stock state on the photo, where the eye lands first when
+                // scanning the grid. Bottom-LEFT: bottom-right already carries
+                // the "+N Variants" badge.
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: StockStatusPill(inStock: _inStock, onImage: true),
+                ),
               ],
             ),
 
@@ -167,14 +198,20 @@ class GroceryProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name
-                  CustomText(
-                    groceryProducts.name ?? '',
+                  // Name — always two lines' worth of space, so a one-line name
+                  // leaves blank at the bottom instead of pulling everything
+                  // below it up and misaligning neighbouring grid cells.
+                  ReservedTextLines(
                     fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: CustomText(
+                      groceryProducts.name ?? '',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                      maxLines: 2,
+                      height: 1.3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size6),
 

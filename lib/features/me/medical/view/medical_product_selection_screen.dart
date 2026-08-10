@@ -142,7 +142,7 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
   Widget leftCategoryList() {
     return CommonGenericLeftSideCategoryList<MedicalNestedCategoryModel>(
       items: widget.arrLevel3Category,
-      placeholderAssetPath: 'assets/category/medical/health_pharmacy.png',
+      placeholderAssetPath: 'assets/category/medical/medical_store.png',
       getIcon: (item) => item.image ?? '',
       getLabel: (item) => item.name ?? '',
       isSelected: (item) =>

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/controller/app_background_controller.dart';
 import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -1202,6 +1203,17 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Bring the Mobile Ads SDK up once, AFTER the first frame.
+    //
+    // Left to itself the SDK starts on the first ad request of the session,
+    // which is whenever a screen carrying a native slot is pushed — so the
+    // Play Services dynamite load it does on the main thread landed in the
+    // middle of a route transition and stalled it. Doing it here spends that
+    // cost while the user is looking at an already-painted screen. Deliberately
+    // not awaited: nothing on screen depends on it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AdsBootstrap.ensureInitialized();
+    });
   }
 
   final appController = Get.find<AppMaintenanceController>();

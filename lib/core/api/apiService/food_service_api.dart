@@ -36,6 +36,18 @@ mixin FoodServiceApi {
 
   // Delete a single kitchen-inventory entry (a product variant) by its id.
   String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';
+
+  /// Bulk mark inventory records in / out of stock — the manual `isOutOfStock`
+  /// flag, independent of batch quantity.
+  /// `PATCH food-service/api/kitchen-inventory/stock/toggle-out-of-stock` with
+  /// `{ "inventoryIds": [...], "isOutOfStock": bool }`.
+  ///
+  /// Note the `kitchen-inventory` segment: the stock-management doc writes the
+  /// path as `/api/inventory/stock/...`, but food keeps its inventory under its
+  /// own collection (same divergence as [foodBusinessProductStats]).
+  /// See docs/backend/STOCK_MANAGEMENT_FRONTEND_INTEGRATION.md.
+  final String foodToggleOutOfStock =
+      'food-service/api/kitchen-inventory/stock/toggle-out-of-stock';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
   final String home = 'food-service/api/home/';
   String discountFoodProducts(String businessId) => 'food-service/api/home/$businessId/discountProducts';

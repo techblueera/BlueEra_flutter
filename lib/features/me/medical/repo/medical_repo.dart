@@ -215,6 +215,27 @@ class MedicalRepo extends BaseService {
     return response;
   }
 
+  /// Bulk-flip the manual out-of-stock flag on one or more inventory records.
+  /// `PATCH medical-service/inventory/stock/toggle-out-of-stock`.
+  ///
+  /// Writes `isOutOfStock` only — batch quantity is untouched.
+  Future<ResponseModel> toggleOutOfStockRepo({
+    required List<String> inventoryIds,
+    required bool isOutOfStock,
+  }) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      medicalToggleOutOfStock,
+      params: {
+        'inventoryIds': inventoryIds,
+        'isOutOfStock': isOutOfStock,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   // ─────────────────────────────────────────────
   // CATEGORIES
   // ─────────────────────────────────────────────

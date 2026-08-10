@@ -16,6 +16,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_c
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -75,12 +76,21 @@ class VariantInventoryService {
 
   final Future<ResponseModel> Function({required String inventoryId}) delete;
 
+  /// Marks inventory records in / out of stock. **Optional** — a service that
+  /// leaves it null simply doesn't get the stock toggle, which is how the
+  /// medical binding opts out until its own endpoint is confirmed.
+  final Future<ResponseModel> Function({
+    required List<String> inventoryIds,
+    required bool isOutOfStock,
+  })? toggleOutOfStock;
+
   final VoidCallback refreshOwner;
 
   const VariantInventoryService({
     required this.update,
     required this.delete,
     required this.refreshOwner,
+    this.toggleOutOfStock,
   });
 
   /// `grocery-service/api/inventory/{id}` — the default, so every existing
@@ -94,6 +104,11 @@ class VariantInventoryService {
       ),
       delete: ({required inventoryId}) =>
           GroceryRepo().deleteInventoryVariantRepo(inventoryId: inventoryId),
+      toggleOutOfStock: ({required inventoryIds, required isOutOfStock}) =>
+          GroceryRepo().toggleOutOfStockRepo(
+        inventoryIds: inventoryIds,
+        isOutOfStock: isOutOfStock,
+      ),
       refreshOwner: () {
         if (Get.isRegistered<GroceryController>()) {
           Get.find<GroceryController>().groceryBusinessProductsList.refresh();
@@ -280,6 +295,55 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
     if (mounted) setState(() {});
     Get.back(); // close the edit sheet — the variants list stays open
     commonSnackBar(message: 'Variant updated');
+  }
+
+  /// Inventory id of the variant whose stock toggle is mid-flight, so only
+  /// that row's pill spins.
+  String? _togglingStockId;
+
+  /// Whether a variant reads as in stock — read off `variants[].inventory
+  /// .isOutOfStock`, the only place the flag lives (the row's own top level
+  /// carries no such field, and its representative `productVariant` has no
+  /// `inventory` object at all).
+  ///
+  /// `totalStock` is deliberately NOT part of this. Quantity isn't maintained
+  /// in this catalogue — rows come back with `totalStock: 0` while
+  /// `isOutOfStock` is false — so folding it in marked every product sold out.
+  bool _isInStock(ProductVariants variant) =>
+      variant.inventory?.isOutOfStock != true;
+
+  /// Flips the manual out-of-stock flag on one variant. Only the flag moves —
+  /// quantity is untouched.
+  Future<void> _toggleStock(
+      ProductVariants variant, bool markOutOfStock) async {
+    final inventoryId = variant.inventory?.inventoryId ?? '';
+    if (inventoryId.isEmpty) {
+      commonSnackBar(message: "This variant's stock can't be changed.");
+      return;
+    }
+
+    setState(() => _togglingStockId = inventoryId);
+    final res = await _service.toggleOutOfStock!(
+      inventoryIds: [inventoryId],
+      isOutOfStock: markOutOfStock,
+    );
+    if (!mounted) return;
+
+    if (!res.isSuccess) {
+      setState(() => _togglingStockId = null);
+      commonSnackBar(message: res.message ?? "Couldn't update stock.");
+      return;
+    }
+
+    variant.inventory?.isOutOfStock = markOutOfStock;
+    setState(() => _togglingStockId = null);
+    // Same object the controller's list holds, but mutating an element doesn't
+    // notify an RxList — nudge the rail behind the sheet.
+    _service.refreshOwner();
+
+    commonSnackBar(
+      message: markOutOfStock ? 'Marked out of stock.' : 'Marked in stock.',
+    );
   }
 
   /// Food-style: confirm, then `DELETE grocery-service/api/inventory/{inventoryId}`
@@ -513,6 +577,22 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
                   mrp: '${AppConstants.rupeeSymbol}${price?.mrp ?? ''}',
                   discount: '',
                 ),
+                // Admin: the pill doubles as the in-stock / out-of-stock
+                // switch. It sits under the price rather than in the trailing
+                // slot so it can share the row with the edit button.
+                if (!_isCustomer && _service.toggleOutOfStock != null) ...[
+                  SizedBox(height: SizeConfig.size6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: StockStatusPill(
+                      inStock: _isInStock(variant),
+                      busy: _togglingStockId ==
+                          (variant.inventory?.inventoryId ?? ''),
+                      onToggle: (markOutOfStock) =>
+                          _toggleStock(variant, markOutOfStock),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
