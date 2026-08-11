@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -12,9 +13,9 @@ import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/business_service_list.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,12 +39,22 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _serviceController.getBusinessServices({
-        ApiKeys.all: false,
-        ApiKeys.type: AppConstants.service,
-        ApiKeys.providerType: ProviderType.business.title,
-        ApiKeys.subType: 'homeService',
-      });
+      _fetchServices();
+    });
+  }
+
+  /// Re-fetches the business services list. Called on first mount AND
+  /// after any navigation that can add / edit / delete a service
+  /// returns, because the create flow ends with `Get.close(2)` back to
+  /// this tab without touching [ServiceController.serviceDataList] — so
+  /// without this refetch the new service never appears until the whole
+  /// screen is rebuilt from scratch.
+  void _fetchServices() {
+    _serviceController.getBusinessServices({
+      ApiKeys.all: false,
+      ApiKeys.type: AppConstants.service,
+      ApiKeys.providerType: ProviderType.business.title,
+      ApiKeys.subType: 'homeService',
     });
   }
 
@@ -64,7 +75,7 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
     Get.to(() => ServiceUploadScreen(
           providerType: ProviderType.business,
           enableBankingHints: true,
-        ));
+        ))?.then((_) => _fetchServices());
   }
 
   @override
@@ -80,13 +91,22 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
           // at the screen you are already on would be noise.
           OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
-          CommonCardWidget(
-            cardMargin: 0,
-            padding: 10,
-            child: Obx(() {
-              final services = _serviceController.serviceDataList.toList();
-              final hasServices = services.isNotEmpty;
-              return Column(
+          Obx(() {
+            final services = _serviceController.serviceDataList.toList();
+            final hasServices = services.isNotEmpty;
+            // Gate: same validation pattern the school overview uses (see
+            // [_QuickInfoRequiredBanner] in school_overview_tab_v2.dart) —
+            // when the section has no data yet, replace the whole card
+            // with a full-width banner that pushes into the add flow, so
+            // the "profile incomplete" message reads at first glance
+            // instead of being tucked under a title row.
+            if (!hasServices) {
+              return _ServiceRequiredBanner(onTap: _onAddServiceTap);
+            }
+            return CommonCardWidget(
+              cardMargin: 0,
+              padding: 10,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -103,9 +123,9 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                             // Financial-Services businesses.
                             enableBankingHints: true,
                           ),
-                        ),
+                        )?.then((_) => _fetchServices()),
                         child: CustomText(
-                          hasServices ? 'Manage' : AppStrings.viewAll.tr,
+                          'Manage',
                           color: AppColors.primaryColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -113,21 +133,102 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  if (hasServices)
-                    _ServicesList(services: services.take(5).toList())
-                  else
-                    EmptySectionPlaceholder(
-                      imageAsset: 'assets/images/other_service_add.png',
-                      ctaLabel: 'Add Service',
-                      ctaIcon: Icons.add_business_outlined,
-                      onTap: _onAddServiceTap,
-                    ),
+                  _ServicesList(services: services.take(5).toList()),
                 ],
-              );
-            }),
-          ),
+              ),
+            );
+          }),
           SizedBox(height: kBottomNavigationBarHeight + 10),
         ],
+      ),
+    );
+  }
+}
+
+/// Profile-completion gate. Mirrors [_QuickInfoRequiredBanner] in
+/// `school_overview_tab_v2.dart`: a full-width bordered card with a
+/// centered icon, heading, message and primary CTA. Surfaces when the
+/// user is registered as one of the service-eligible business types
+/// (Consultant / Beautician / IT Digital Services / etc.) but hasn't
+/// added a single service yet — without at least one service the
+/// public profile has nothing for customers to discover.
+class _ServiceRequiredBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ServiceRequiredBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.size16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.emptyIcon,
+              height: 60,
+              width: 60,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            CustomText(
+              'Add your services to complete your profile',
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
+            SizedBox(height: SizeConfig.size8),
+            CustomText(
+              // Category examples match the eight service-eligible business
+              // types listed in `business_enquiry_sheet.dart` — kept short
+              // so the two most recognisable ones anchor the message and
+              // the "etc." covers the rest.
+              'Add at least one service so customers can '
+              'discover your business — the rest of your profile can only '
+              'go live once a service has been added.',
+              fontSize: 13,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+              maxLines: 6,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size16,
+                  vertical: SizeConfig.size10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add_business_outlined,
+                        color: Colors.white, size: 16),
+                    const SizedBox(width: 6),
+                    CustomText(
+                      'Add Service',
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

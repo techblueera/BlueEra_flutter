@@ -23,11 +23,17 @@ class ServiceUploadScreen extends StatefulWidget {
   final String? channelId;
 
   /// Opt-in flag that swaps the name / short-description hints to
-  /// banking-flavoured copy when the current business is Banking. Off by
-  /// default so every existing caller (Others tab, Automotive tab, channel
-  /// screen, deep-link routes, [RentalServiceUploadScreen], etc.) keeps
-  /// the generic hint it always had — only the caller that explicitly
-  /// passes `enableBankingHints: true` gets the swap.
+  /// category-specific copy (Banking, IT, Consulting, Beauty, Home
+  /// Services, Vehicle Service, etc.) when the current business's
+  /// [businessCategoryGlobal] matches one of the service-eligible
+  /// categories catalogued in `business_enquiry_sheet.dart`. Off by
+  /// default so every existing caller (channel screen, deep-link routes,
+  /// [RentalServiceUploadScreen], etc.) keeps the generic hint it
+  /// always had — only the caller that explicitly passes
+  /// `enableBankingHints: true` gets the category-aware copy. Kept
+  /// as `enableBankingHints` to avoid churning the four opt-in call
+  /// sites (Others tab, Automotive tab, business-service-list); the
+  /// semantics now cover every category, not just Banking.
   final bool enableBankingHints;
 
   ServiceUploadScreen({
@@ -52,31 +58,134 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   bool get _isIndividual => accountTypeGlobal == AppConstants.individual;
 
-  /// True when the current business account is Banking AND the caller has
-  /// opted in via [ServiceUploadScreen.enableBankingHints]. The opt-in is
-  /// what protects the other flows that share this screen (Others,
-  /// Automotive, channel-screen, deep-link routes, etc.) — without it,
-  /// every caller keeps the generic default hint no matter what the user's
-  /// category global happens to say. Case-insensitive because
-  /// [businessCategoryGlobal] can carry either the slug (`BANKING_SECTOR`)
-  /// or a legacy display-string ("Banking").
-  bool get _isBanking {
-    if (!widget.enableBankingHints) return false;
-    if (_isIndividual) return false;
-    final cat = businessCategoryGlobal.trim().toUpperCase();
-    return cat == 'BANKING SECTOR' ||
-        cat == 'LOANS SECTOR' ||
-        cat == 'INSURANCE SECTOR' ||
-        cat == 'FINANCIAL SERVICES' ||
-        cat == 'BANKING';
+  /// Normalises [businessCategoryGlobal] so both the slug form
+  /// (`IT_DIGITAL_SERVICES`) and legacy display strings ("IT Digital
+  /// Services") match the same switch key. Uppercased + spaces →
+  /// underscores gets both formats onto the canonical slug shape.
+  String get _categoryKey =>
+      businessCategoryGlobal.trim().toUpperCase().replaceAll(' ', '_');
+
+  /// Category-specific hints for the service-name and short-description
+  /// fields. Returns `null` when the caller hasn't opted in via
+  /// [ServiceUploadScreen.enableBankingHints] (the opt-in gate is what
+  /// protects unrelated callers of this screen), or when the current
+  /// category isn't one we have bespoke copy for — the fields then fall
+  /// back to the generic hints from `AppStrings`.
+  ///
+  /// Slug list mirrors the eight Find-Services + four Finance + three
+  /// Automotive categories catalogued in
+  /// `business_enquiry_sheet.dart` (see the doc header at line 79) so
+  /// every business type the "Others / Automotive / Finance" flows can
+  /// register as gets a first-run example that reads like a real listing
+  /// instead of the generic "Enter service name" placeholder.
+  ({String nameHint, String descHint})? get _categoryHints {
+    if (!widget.enableBankingHints) return null;
+    if (_isIndividual) return null;
+    switch (_categoryKey) {
+      // ── Finance ──
+      case 'BANKING_SECTOR':
+      case 'BANKING':
+        return (
+          nameHint: 'e.g., Savings Account Opening',
+          descHint:
+              'e.g., Zero-balance savings account with debit card, net banking & instant UPI',
+        );
+      case 'LOANS_SECTOR':
+        return (
+          nameHint: 'e.g., Personal Loan',
+          descHint:
+              'e.g., Quick disbursal, minimal documentation, flexible EMI options',
+        );
+      case 'INSURANCE_SECTOR':
+        return (
+          nameHint: 'e.g., Term Life Insurance',
+          descHint:
+              'e.g., Comprehensive coverage with flexible premium options and quick claim settlement',
+        );
+      case 'FINANCIAL_SERVICES':
+        return (
+          nameHint: 'e.g., Financial Planning',
+          descHint:
+              'e.g., Expert advice on investments, tax planning & wealth management',
+        );
+      // ── Find Services ──
+      case 'CONSULTING_BUSINESS_SERVICES':
+        return (
+          nameHint: 'e.g., Business Strategy Consultation',
+          descHint:
+              'e.g., Expert guidance on growth, operations & market expansion — 1-hour session with follow-up notes',
+        );
+      case 'BEAUTY_FITNESS_PERSONAL_CARE':
+        return (
+          nameHint: 'e.g., Bridal Makeup',
+          descHint:
+              'e.g., Professional makeup with skincare prep, hairstyling & pre-shoot trial session',
+        );
+      case 'REPAIR_ESSENTIAL_SERVICES':
+        return (
+          nameHint: 'e.g., AC Repair & Service',
+          descHint:
+              'e.g., Trained technicians, genuine spare parts & 30-day service warranty',
+        );
+      case 'HOME_SERVICES_CONTRACTORS':
+        return (
+          nameHint: 'e.g., Home Painting',
+          descHint:
+              'e.g., Interior & exterior painting with premium paints, surface prep and post-work clean-up',
+        );
+      case 'IT_DIGITAL_SERVICES':
+        return (
+          nameHint: 'e.g., Website Development',
+          descHint:
+              'e.g., Custom-designed responsive websites with SEO setup & 3 months of free support',
+        );
+      case 'MEDIA_NEWS_CREATIVE':
+        return (
+          nameHint: 'e.g., Wedding Photography',
+          descHint:
+              'e.g., Full-day coverage with drone shots, candid photos & edited album delivered in 2 weeks',
+        );
+      case 'TRAVEL_HOSPITALITY':
+        return (
+          nameHint: 'e.g., Weekend Getaway Package',
+          descHint:
+              'e.g., 3-day trip with stay, meals, sightseeing & local transport included',
+        );
+      case 'REAL_ESTATE_PROPERTY':
+        return (
+          nameHint: 'e.g., Property Listing',
+          descHint:
+              'e.g., Verified property with photos, virtual tour & documentation support',
+        );
+      // ── Automotive ──
+      case 'VEHICLE_SERVICE':
+        return (
+          nameHint: 'e.g., Car Service & Repair',
+          descHint:
+              'e.g., Complete service with genuine parts, warranty & doorstep pickup and drop',
+        );
+      case 'VEHICLE_SUPPORT':
+        return (
+          nameHint: 'e.g., 24x7 Roadside Assistance',
+          descHint:
+              'e.g., On-call breakdown support, towing & on-site minor repair across the city',
+        );
+      case 'TRANSPORT_LOGISTICS_PARKING':
+        return (
+          nameHint: 'e.g., Intercity Cargo Transport',
+          descHint:
+              'e.g., GPS-tracked shipments, insured cargo & timely doorstep delivery',
+        );
+      default:
+        return null;
+    }
   }
 
   String get _serviceNameHint =>
-      _isBanking ? 'e.g., Savings Account Opening' : AppStrings.hintServiceName;
+      _categoryHints?.nameHint ?? AppStrings.hintServiceName;
 
-  String get _shortDescriptionHint => _isBanking
-      ? 'e.g., Zero-balance savings account with debit card, net banking & instant UPI'
-      : AppStrings.hintShortDescription;
+  String get _shortDescriptionHint =>
+      _categoryHints?.descHint ?? AppStrings.hintShortDescription;
 
   @override
   void initState() {

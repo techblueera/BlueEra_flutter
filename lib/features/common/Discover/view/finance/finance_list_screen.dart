@@ -8,9 +8,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/features/business/widgets/rating_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
@@ -19,44 +16,15 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-/// Tinted surface set for a finance card. Mirrors the palette used by the
-/// hotel `PropertyCard` (and `ServiceBusinessCard` / lab discover) so all
-/// discover directories share the same visual family — the outer card is
-/// the lighter wash, the inner "Account Types" tile uses white per design.
-class _CardPalette {
-  final Color cardBg;
-  final Color cardBorder;
-  final Color tileBorder;
-  final Color dividerLine;
-  final Color bodyDashedDivider;
-
-  const _CardPalette({
-    required this.cardBg,
-    required this.cardBorder,
-    required this.tileBorder,
-    required this.dividerLine,
-    required this.bodyDashedDivider,
-  });
-}
-
-const List<_CardPalette> _cardPalettes = <_CardPalette>[
-  _CardPalette(
-    cardBg: Color(0xFFEDFCFE),
-    cardBorder: Color(0xFFCFEEF2),
-    tileBorder: Color(0xFFBFE9EE),
-    dividerLine: Color(0xFFBFE9EE),
-    bodyDashedDivider: Color(0xFFBBE3E8),
-  ),
-  _CardPalette(
-    cardBg: Color(0xFFFBF2FF),
-    cardBorder: Color(0xFFEDD3F7),
-    tileBorder: Color(0xFFE5C6F5),
-    dividerLine: Color(0xFFE5C6F5),
-    bodyDashedDivider: Color(0xFFE3D4E9),
-  ),
-];
+/// Card surface for the finance tile — matches the two-up school listing
+/// (`AllEducationServiceScreen.selfProfessionCard`) and the service tile
+/// (`ServiceBusinessCard`). Plain white with a hairline border so cover
+/// imagery reads cleanly when two tiles sit side by side.
+const Color _kCardBorder = Color(0xFFE9EBF0);
+const Color _kCardDivider = Color(0xFFEDEFF3);
 
 class FinanceListScreen extends StatefulWidget {
   final String categorySlugId;
@@ -111,6 +79,9 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
           ),
         );
       }
+      // 2-column masonry so tiles of different heights pack tightly.
+      // Native ads still render full-width between chunks via
+      // [buildNativeAdGridSlivers] — same pattern as the school listing.
       return RefreshIndicator(
         color: AppColors.primaryColor,
         onRefresh: () async {
@@ -118,36 +89,43 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
         },
         child: NotificationListener<ScrollNotification>(
           onNotification: _onScrollNotification,
-          child: Builder(
-            builder: (context) {
-              final rows = buildNativeAdRows(controller.profiles.length);
-              return ListView.builder(
-                itemCount:
-                    rows.length + (controller.isLoadingMore.value ? 1 : 0),
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  if (index == rows.length) {
-                    return Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                      child: const Center(
-                          child: CircularProgressIndicator(
-                              color: AppColors.primaryColor)),
-                    );
-                  }
-                  final row = rows[index];
-                  if (row.isAd) {
-                    return NativeAdSlot(
-                      adOrdinal: row.adOrdinal,
-                      keyPrefix: 'finance_native_ad',
-                    );
-                  }
-                  final item = controller.profiles[row.contentIndex];
-                  return _FinanceCard(item: item, index: row.contentIndex);
-                },
-              );
-            },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size6)),
+              ...buildNativeAdGridSlivers(
+                itemCount: controller.profiles.length,
+                keyPrefix: 'finance_native_ad',
+                adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                gridSliverBuilder: (start, end) => SliverPadding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size12,
+                    vertical: SizeConfig.size6,
+                  ),
+                  sliver: SliverMasonryGrid.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: SizeConfig.size10,
+                    crossAxisSpacing: SizeConfig.size10,
+                    childCount: end - start,
+                    itemBuilder: (context, i) => _FinanceCard(
+                      item: controller.profiles[start + i],
+                      index: start + i,
+                    ),
+                  ),
+                ),
+              ),
+              if (controller.isLoadingMore.value)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primaryColor),
+                    ),
+                  ),
+                ),
+              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
+            ],
           ),
         ),
       );
@@ -155,168 +133,67 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
   }
 }
 
+/// Compact 2-up finance tile: hero (share icon + Open pill) → business
+/// name → ★ rating + RBI Registered → location row → hairline → Min
+/// Balance + Savings P.A. footer. Missing values collapse gracefully.
 class _FinanceCard extends StatelessWidget {
   final FinanceBusinessItem item;
 
-  /// Card position in the list — drives the palette rotation.
+  /// Card position — kept for API compatibility with the previous
+  /// palette-driven implementation, unused now that the tile is a flat
+  /// white surface.
   final int index;
 
   const _FinanceCard({required this.item, required this.index});
 
-  _CardPalette get _palette =>
-      _cardPalettes[index.abs() % _cardPalettes.length];
-
-  @override
-  Widget build(BuildContext context) {
-    final String address = _resolveAddress(item);
-    final String category = item.category ?? item.type ?? '';
-
-    // Hero shows the cover banner, never the logo. Falls back to gallery
-    // images only when the business hasn't uploaded a cover yet.
-    final List<String> coverImages = <String>[];
-    if ((item.coverUrl ?? '').isNotEmpty) {
-      coverImages.add(item.coverUrl!);
-    }
-    if (coverImages.isEmpty && item.gallery != null) {
+  // ─── DERIVED VALUES ──────────────────────────────────────────────
+  String get _heroImage {
+    final logoUrl = item.logoUrl?.trim() ?? '';
+    if (logoUrl.isNotEmpty) return logoUrl;
+    final cover = item.coverUrl?.trim() ?? '';
+    if (cover.isNotEmpty) return cover;
+    if (item.gallery != null) {
       for (final g in item.gallery!) {
-        if (g.imageUrls != null) {
-          coverImages.addAll(g.imageUrls!.where((u) => u.trim().isNotEmpty));
+        final urls = g.imageUrls;
+        if (urls == null) continue;
+        for (final u in urls) {
+          if (u.trim().isNotEmpty) return u.trim();
         }
       }
     }
-
-    final double? ratingValue = item.rating;
-    final String rating = (ratingValue != null && ratingValue > 0)
-        ? ratingValue.toStringAsFixed(1)
-        : '';
-
-    final String distance = _distanceFromUser(item);
-    final ({String label, Color color}) openBadge = _todayOpenBadge(item);
-    final String registryLabel =
-        item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
-    final Color registryColor =
-        item.rbiRegistered == true ? AppColors.greenShade : AppColors.grey83;
-
-    final List<String> serviceTags = <String>[
-      ...?item.accountType?.where((s) => s.trim().isNotEmpty),
-    ];
-    final bool showTagsRow =
-        serviceTags.isNotEmpty || category.trim().isNotEmpty;
-
-    final palette = _palette;
-
-    return Padding(
-      padding: EdgeInsets.only(
-          right: SizeConfig.size8,
-          bottom: SizeConfig.size10,
-          left: SizeConfig.size8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        // Routed through openVisitProfile so the type→screen mapping stays in
-        // one place. The lightweight list item goes with it and seeds
-        // `selectedDetail`, so the detail screen renders at once and upgrades
-        // itself to the full record.
-        onTap: () => openVisitProfile(
-          accountType: AppConstants.business,
-          typeOfBusiness: BusinessType.Finance.name,
-          businessId: item.businessProfileId ?? item.id,
-          userId: item.userId,
-          financeData: item,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: palette.cardBg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: palette.cardBorder, width: 1),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14001120),
-                blurRadius: 18,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _hero(images: coverImages),
-              _buildBody(
-                palette: palette,
-                address: address,
-                distance: distance,
-                rating: rating,
-                registryLabel: registryLabel,
-                registryColor: registryColor,
-                openLabel: openBadge.label,
-                openColor: openBadge.color,
-                showTagsRow: showTagsRow,
-                serviceTags: serviceTags,
-                category: category,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return item.logoUrl?.trim() ?? '';
   }
 
-  Widget _buildBody({
-    required _CardPalette palette,
-    required String address,
-    required String distance,
-    required String rating,
-    required String registryLabel,
-    required Color registryColor,
-    required String openLabel,
-    required Color openColor,
-    required bool showTagsRow,
-    required List<String> serviceTags,
-    required String category,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-              SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
-          child: _buildHeaderRow(
-            address: address,
-            distance: distance,
-            rating: rating,
-            registryLabel: registryLabel,
-            registryColor: registryColor,
-            openLabel: openLabel,
-            openColor: openColor,
-          ),
-        ),
-        if (showTagsRow) ...[
-          SizedBox(height: SizeConfig.size12),
-          _DashedDivider(color: palette.bodyDashedDivider),
-          SizedBox(height: SizeConfig.size12),
-          Padding(
-            padding:
-                EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
-            child: _buildTagsWrap(
-              serviceTags: serviceTags,
-              category: category,
-            ),
-          ),
-        ],
-        SizedBox(height: SizeConfig.size14),
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-              SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
-          child: _buildFooterRow(),
-        ),
-      ],
-    );
+  String get _displayName {
+    final n = item.profileName?.trim() ?? '';
+    return n.isNotEmpty ? n : 'Unknown';
   }
 
-  String _resolveAddress(FinanceBusinessItem item) {
-    // Mirror the header (visit_business_common_header.dart:318): pipe the
-    // resolved address through `getLocalityAddress` so both surfaces show
-    // the same "<locality>, <city>" truncation instead of the full string.
+  String get _ratingText {
+    final r = item.rating;
+    return (r != null && r > 0) ? r.toStringAsFixed(1) : '';
+  }
+
+  bool get _hasRbiFlag => item.rbiRegistered == true;
+
+  String get _distanceText {
+    // Match the header (visit_business_common_header.dart:297): show
+    // `X.X km away` when we have coords, empty otherwise. Coords come
+    // from the GeoJSON `[lng, lat]` array on the finance model.
+    final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ??
+        item.location?.coordinates;
+    if (coords == null || coords.length < 2) return '';
+    final lng = coords[0];
+    final lat = coords[1];
+    if (lat == 0.0 || lng == 0.0) return '';
+    final km = calculateDistance(lat, lng);
+    if (km == null) return '';
+    if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m away';
+    if (km < 10) return '${km.toStringAsFixed(1)}km away';
+    return '${km.toStringAsFixed(0)}km away';
+  }
+
+  String get _addressText {
     final candidates = <String?>[
       item.location?.address,
       item.location?.name,
@@ -328,39 +205,398 @@ class _FinanceCard extends StatelessWidget {
     return '';
   }
 
-  Future<void> _openRateDialog() async {
-    final businessId = (item.businessId ?? '').trim();
-    if (businessId.isEmpty) return;
-    final ctx = Get.context;
-    if (ctx == null) return;
-    final submitted = await showDialog<bool>(
-      context: ctx,
-      builder: (_) => RatingFeedbackDialog(
-        businessId: businessId,
-        reviewFor: AppConstants.business,
-      ),
-    );
-    if (submitted == true) {
-      final controller = Get.find<FinanceDiscoverController>();
-      controller.fetchInitial(controller.selectedCategory.value);
+  /// Today's "Open | HH:MM - HH:MM" label with fallback to the legacy
+  /// `businessHours` block. Returns null when the source only produces
+  /// "Open | N/A" — the hero pill collapses in that case.
+  String? get _openLabel {
+    final today = item.timings?.forWeekday(DateTime.now().weekday);
+    if (today != null && today.hasHours) {
+      return 'Open | ${today.openTime} - ${today.closeTime}';
     }
+    final bh = item.businessHours;
+    if (bh?.hasHours == true) {
+      return 'Open | ${bh!.openTime} - ${bh.closeTime}';
+    }
+    return null;
   }
 
-  Future<void> _shareFinance(FinanceBusinessItem item) async {
-    final name = (item.profileName?.trim().isNotEmpty ?? false)
-        ? item.profileName!.trim()
-        : 'this finance service';
-    final address = _resolveAddress(item);
-    final website = item.effectiveWebsite ?? '';
+  /// "₹500" style thousands separator for the min-balance cell.
+  String? get _minBalanceText {
+    final mb = item.financeDetails?.minBalance;
+    if (mb == null || mb <= 0) return null;
+    return '₹${_fmt(mb)}';
+  }
 
-    final lines = <String>['Check out $name on BlueEra'];
-    if (address.isNotEmpty) lines.add(address);
-    if (item.rbiRegistered == true) lines.add('RBI Registered');
-    final types =
-        item.accountType?.where((s) => s.trim().isNotEmpty).toList() ??
-            const [];
-    if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
-    if (website.isNotEmpty) lines.add(website);
+  /// "3.0%" for the savings-rate cell — one decimal keeps the visual
+  /// weight of the two footer values matched.
+  String? get _savingsRateText {
+    final s = item.financeDetails?.savingRatePA;
+    if (s == null || s <= 0) return null;
+    return '${s.toStringAsFixed(1)}%';
+  }
+
+  String _fmt(num n) {
+    final s = n.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final fromEnd = s.length - i;
+      buf.write(s[i]);
+      if (fromEnd > 1 && (fromEnd - 1) % 3 == 0) buf.write(',');
+    }
+    return buf.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showFooter = _minBalanceText != null || _savingsRateText != null;
+
+    return InkWell(
+      onTap: _openStore,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _kCardBorder, width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0F001120),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCoverSection(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size10,
+                SizeConfig.size10,
+                SizeConfig.size10,
+                SizeConfig.size10,
+              ),
+              child: _buildInfoBlock(),
+            ),
+            if (showFooter) ...[
+              Container(height: 1, color: _kCardDivider),
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: _buildFinanceRow(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── HERO ─────────────────────────────────────────────────────────
+  /// Hero uses an [AspectRatio] so the cover scales with tile width —
+  /// same pattern as the school and service tiles.
+  Widget _buildCoverSection() {
+    final heroImage = _heroImage;
+    final openLabel = _openLabel;
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      child: AspectRatio(
+        aspectRatio: 1.2,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            heroImage.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => Get.to(() => ImageViewScreen(
+                          subTitle: item.type ?? 'Finance',
+                          appBarTitle: AppStrings.imageViewer,
+                          imageUrls: [heroImage],
+                          initialIndex: 0,
+                        )),
+                    child: CachedNetworkImage(
+                      imageUrl: heroImage,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 600,
+                      placeholder: (_, __) =>
+                          Container(color: AppColors.greyE5),
+                      errorWidget: (_, __, ___) => Container(
+                        color: AppColors.greyE5,
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
+                    color: AppColors.liteWhite,
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.cover,
+                    ),
+                  ),
+            Positioned(
+              top: SizeConfig.size6,
+              right: SizeConfig.size6,
+              child: GestureDetector(
+                onTap: _shareFinance,
+                child: _circleIcon(AppIconAssets.share_bold),
+              ),
+            ),
+            if (openLabel != null)
+              Positioned(
+                bottom: SizeConfig.size6,
+                right: SizeConfig.size6,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size6,
+                    vertical: SizeConfig.size3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF2FFF2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.greenShade, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time,
+                          size: SizeConfig.size12, color: AppColors.greenShade),
+                      SizedBox(width: SizeConfig.size3),
+                      Flexible(
+                        child: CustomText(
+                          openLabel,
+                          fontSize: SizeConfig.extraSmall,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.greenShade,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _circleIcon(String icon) {
+    return Container(
+      width: SizeConfig.size26,
+      height: SizeConfig.size26,
+      decoration: const BoxDecoration(
+        color: AppColors.black25,
+        shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size6),
+        child: LocalAssets(
+          imagePath: icon,
+          imgColor: AppColors.white,
+        ),
+      ),
+    );
+  }
+
+  // ─── INFO BLOCK ──────────────────────────────────────────────────
+  Widget _buildInfoBlock() {
+    final rating = _ratingText;
+    final distance = _distanceText;
+    final address = _addressText;
+    final showLocation = distance.isNotEmpty || address.isNotEmpty;
+    final showMeta = rating.isNotEmpty || _hasRbiFlag;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CustomText(
+          _displayName,
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w800,
+          color: AppColors.black22,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        if (showMeta) ...[
+          SizedBox(height: SizeConfig.size4),
+          _buildMetaRow(rating),
+        ],
+        if (showLocation) ...[
+          SizedBox(height: SizeConfig.size4),
+          _buildLocationRow(distance, address),
+        ],
+      ],
+    );
+  }
+
+  /// ★ 4.8  [verified] RBI Registered — RBI status is rendered in the
+  /// brand green next to the rating per the design (img_1.png).
+  Widget _buildMetaRow(String rating) {
+    return Row(
+      children: [
+        if (rating.isNotEmpty) ...[
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size12,
+            height: SizeConfig.size12,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            rating,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
+          ),
+          SizedBox(width: SizeConfig.size8),
+        ],
+        if (_hasRbiFlag)
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.verified_outlined,
+                  size: SizeConfig.size12,
+                  color: AppColors.greenShade,
+                ),
+                SizedBox(width: SizeConfig.size3),
+                Flexible(
+                  child: CustomText(
+                    'RBI Registered',
+                    fontSize: SizeConfig.extraSmall,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.greenShade,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Inline pin + distance + " | " + address — matches the service /
+  /// school tile so all discover directories share the same location
+  /// styling.
+  Widget _buildLocationRow(String distanceText, String address) {
+    return Row(
+      children: [
+        LocalAssets(
+          imagePath: AppIconAssets.location_outline,
+          imgColor: AppColors.primaryColor,
+          height: SizeConfig.size10,
+          width: SizeConfig.size10,
+        ),
+        SizedBox(width: SizeConfig.size4),
+        Flexible(
+          child: RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                if (distanceText.isNotEmpty)
+                  TextSpan(
+                    text: distanceText,
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                if (distanceText.isNotEmpty && address.isNotEmpty)
+                  TextSpan(
+                    text: '  |  ',
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall,
+                    ),
+                  ),
+                if (address.isNotEmpty)
+                  TextSpan(
+                    text: address,
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Two-cell footer: Min Balance | Savings P.A. Cells collapse
+  /// independently — a listing that only carries a savings rate will
+  /// spread that cell across the row instead of leaving a blank column.
+  Widget _buildFinanceRow() {
+    final min = _minBalanceText;
+    final savings = _savingsRateText;
+    final cells = <Widget>[
+      if (min != null) _statCell(label: 'Min Balance', value: min),
+      if (savings != null) _statCell(label: 'Savings P.A.', value: savings),
+    ];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        for (int i = 0; i < cells.length; i++) ...[
+          Expanded(child: cells[i]),
+          if (i < cells.length - 1) SizedBox(width: SizeConfig.size8),
+        ],
+      ],
+    );
+  }
+
+  Widget _statCell({required String label, required String value}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CustomText(
+          label,
+          fontSize: SizeConfig.extraSmall,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey7E,
+        ),
+        SizedBox(height: SizeConfig.size2),
+        CustomText(
+          value,
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primaryColor,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  /// Routed through openVisitProfile so the type→screen mapping stays in
+  /// one place. The lightweight list item goes with it and seeds
+  /// `selectedDetail`, so the detail screen renders at once and upgrades
+  /// itself to the full record.
+  void _openStore() {
+    openVisitProfile(
+      accountType: AppConstants.business,
+      typeOfBusiness: BusinessType.Finance.name,
+      businessId: item.businessProfileId ?? item.id,
+      userId: item.userId,
+      financeData: item,
+    );
+  }
+
+  Future<void> _shareFinance() async {
     final shareLink = financialDeepLink(
       businessId: item.userId,
     );
@@ -371,481 +607,4 @@ class _FinanceCard extends StatelessWidget {
       subject: item.profileName,
     );
   }
-
-  /// Opens a chat with the finance business owner — same behaviour as the
-  /// hospital list card: guest gate, chat-click tracking against the business
-  /// id, then opens the discover chat lane.
-  void _openChat() {
-    final userId = item.userId ?? '';
-    if (userId.trim().isEmpty) return;
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final bId = item.id?.trim();
-    if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(
-        userId: bId,
-        source: ChatClickSource.searchResult,
-      );
-    }
-    final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: userId,
-      name: item.profileName,
-      profile: item.logoUrl,
-      route: AppConstants.route_discover,
-    );
-  }
-
-  String _distanceFromUser(FinanceBusinessItem item) {
-    // Match the header (visit_business_common_header.dart:297): always show
-    // `X.XX KM`, no unit-tiered rewrite, no "Away" suffix. Coords come from
-    // the GeoJSON `[lng, lat]` array on the finance model (the header pulls
-    // from named lat/lon fields on BusinessProfileDetails). Empty string
-    // signals "no distance" so the header row hides that slice entirely.
-    final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ??
-        item.location?.coordinates;
-    if (coords == null || coords.length < 2) return '';
-    final lng = coords[0];
-    final lat = coords[1];
-    if (lat == 0.0 || lng == 0.0) return '';
-    final km = calculateDistance(lat, lng);
-    if (km == null) return '';
-    return '${km.toStringAsFixed(2)} KM';
-  }
-
-  Widget _hero({required List<String> images}) {
-    final Widget imageWidget = images.isNotEmpty
-        ? GestureDetector(
-            onTap: () => Get.to(() => ImageViewScreen(
-                  subTitle: item.type ?? 'Finance',
-                  appBarTitle: AppStrings.imageViewer,
-                  imageUrls: images,
-                  initialIndex: 0,
-                )),
-            child: CachedNetworkImage(
-              imageUrl: images.first,
-              height: 175,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              memCacheWidth: 800,
-              placeholder: (_, __) => LocalAssets(
-                imagePath: AppIconAssets.place_holder_image,
-                boxFix: BoxFit.cover,
-              ),
-              errorWidget: (_, __, ___) => LocalAssets(
-                imagePath: AppIconAssets.place_holder_image,
-                boxFix: BoxFit.cover,
-              ),
-            ),
-          )
-        : Container(
-            height: 175,
-            width: double.infinity,
-            color: AppColors.liteWhite,
-            child: LocalAssets(
-              imagePath: AppIconAssets.place_holder_image,
-              boxFix: BoxFit.cover,
-            ),
-          );
-
-    return SizedBox(
-      height: 175,
-      width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          imageWidget,
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Column(
-              children: [
-                _circleIconBtn(AppIconAssets.share_bold,
-                    onTap: () => _shareFinance(item)),
-                // Rate CTA is only shown when the listing carries the
-                // be_user_service `businesses._id` (see
-                // lib/docs/rating-ui-integration.md §1) — without it the
-                // POST to /business/{businessId}/ratings would 404.
-                if ((item.businessId ?? '').trim().isNotEmpty) ...[
-                  SizedBox(height: SizeConfig.size8),
-                  _circleIconBtn(AppIconAssets.star_rounded,
-                      onTap: _openRateDialog),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
-    return Material(
-      color: Colors.black.withValues(alpha: 0.38),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: EdgeInsets.all(SizeConfig.size8),
-          child: LocalAssets(
-            imagePath: icon,
-            imgColor: AppColors.white,
-            height: SizeConfig.size14,
-            width: SizeConfig.size14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderRow({
-    required String address,
-    required String distance,
-    required String rating,
-    required String registryLabel,
-    required Color registryColor,
-    required String openLabel,
-    required Color openColor,
-  }) {
-    bool isMeaningful(String s) => s.isNotEmpty && s != 'N/A';
-    final bool showDistance = isMeaningful(distance);
-    final bool showAddress = isMeaningful(address);
-    final bool hasLocation = showDistance || showAddress;
-    final bool hasRating = rating.isNotEmpty;
-    // Time pill hides when the source only produces "Open | N/A" — the
-    // finance model returns that string for listings that never set hours,
-    // and rendering it inline looks broken next to real values.
-    final bool hasTime = !openLabel.trim().endsWith('N/A');
-    final bool hasPillsRow = hasRating || hasTime;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Logo / name open the owning business profile; the rest of the
-        // card still opens the finance listing detail.
-        ClipOval(
-          child: Container(
-            width: 50,
-            height: 50,
-            color: AppColors.liteWhite,
-            child: (item.logoUrl?.isNotEmpty ?? false)
-                ? CachedNetworkImage(
-                    imageUrl: item.logoUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image),
-                    errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image),
-                  )
-                : LocalAssets(imagePath: AppIconAssets.place_holder_image),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                (item.profileName?.isNotEmpty ?? false)
-                    ? item.profileName
-                    : 'Unknown',
-                fontSize: SizeConfig.size16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black22,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (hasPillsRow) ...[
-                SizedBox(height: SizeConfig.size6),
-                // Rating + RBI + time pill on the same row. `Wrap` handles
-                // the long-time-pill overflow case so the row spills to a
-                // second line instead of clipping.
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (hasRating) _ratingPill(rating),
-                    _pill(
-                      icon: Icons.verified_outlined,
-                      label: registryLabel,
-                      color: registryColor,
-                    ),
-                    if (hasTime)
-                      _pill(
-                        icon: Icons.access_time,
-                        label: openLabel,
-                        color: openColor,
-                      ),
-                  ],
-                ),
-              ],
-              if (hasLocation) ...[
-                SizedBox(height: SizeConfig.size6),
-                Row(
-                  children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.location_outline,
-                      imgColor: AppColors.primaryColor,
-                      height: SizeConfig.size10,
-                      width: SizeConfig.size10,
-                    ),
-                    SizedBox(width: SizeConfig.size4),
-                    Flexible(
-                      child: RichText(
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        text: TextSpan(
-                          children: [
-                            if (showDistance)
-                              TextSpan(
-                                text: distance,
-                                style: TextStyle(
-                                  color: AppColors.primaryColor,
-                                  fontSize: SizeConfig.size8,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            if (showDistance && showAddress)
-                              TextSpan(
-                                text: '  |  ',
-                                style: TextStyle(
-                                  color: AppColors.secondaryTextColor,
-                                  fontSize: SizeConfig.size8,
-                                ),
-                              ),
-                            if (showAddress)
-                              TextSpan(
-                                text: address,
-                                style: TextStyle(
-                                  color: AppColors.secondaryTextColor,
-                                  fontSize: SizeConfig.size8,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Bordered rating pill — matches the hotel / lab / service-business
-  /// cards. Caller gates on rating being non-empty.
-  Widget _ratingPill(String rating) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xffDDE2EE)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.fill_star,
-            width: SizeConfig.size10,
-            height: SizeConfig.size10,
-            imgColor: AppColors.yellow,
-          ),
-          SizedBox(width: SizeConfig.size3),
-          CustomText(
-            rating,
-            fontSize: SizeConfig.size10,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Compact icon+label pill used for both the RBI-status chip and the
-  /// today's-hours chip on the rating row.
-  Widget _pill({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: SizeConfig.size8, color: color),
-          SizedBox(width: SizeConfig.size3),
-          CustomText(
-            label,
-            fontSize: SizeConfig.size8,
-            fontWeight: FontWeight.w500,
-            color: color,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Derives an "Open | HH:MM - HH:MM" / "Closed today" / N/A pill from
-  /// the per-day `timings` payload, with a fallback to the legacy
-  /// `businessHours` object when `timings` is absent.
-  ({String label, Color color}) _todayOpenBadge(FinanceBusinessItem item) {
-    final today = item.timings?.forWeekday(DateTime.now().weekday);
-    if (today != null) {
-      if (today.hasHours) {
-        return (
-          label: 'Open | ${today.openTime} - ${today.closeTime}',
-          color: AppColors.greenShade,
-        );
-      }
-      return (label: 'Closed today', color: AppColors.grey83);
-    }
-    final bh = item.businessHours;
-    if (bh?.hasHours == true) {
-      return (
-        label: 'Open | ${bh!.openTime} - ${bh.closeTime}',
-        color: AppColors.greenShade,
-      );
-    }
-    return (label: 'Open | N/A', color: AppColors.grey83);
-  }
-
-  // ── Account Types — bare Wrap of white chips ─────────────────
-  /// No outer tile container per design — just the chips sitting directly
-  /// on the card's tint. Each chip's fill is white so the account-type
-  /// pills read clearly against the pastel card background.
-  Widget _buildTagsWrap({
-    required List<String> serviceTags,
-    required String category,
-  }) {
-    final tags = serviceTags.isNotEmpty
-        ? serviceTags
-        : (category.isNotEmpty
-            ? [category.replaceAll('_', ' ').capitalize ?? category]
-            : <String>[]);
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: tags.map(_tagChip).toList(growable: false),
-    );
-  }
-
-  Widget _tagChip(String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDE2EE), width: 0.5),
-      ),
-      child: CustomText(
-        label,
-        fontSize: SizeConfig.size10,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grey7E,
-      ),
-    );
-  }
-
-  /// Full-width Inquiry button — kept as the original: height 44, primary
-  /// fill, "Inquiry" (14 w600) + arrow_forward (18). The outer grey band
-  /// has been dropped so the row inherits the card's tint, but the button
-  /// itself is unchanged.
-  Widget _buildFooterRow() {
-    return Material(
-      color: AppColors.primaryColor,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => openVisitProfile(
-          accountType: AppConstants.business,
-          typeOfBusiness: BusinessType.Finance.name,
-          businessId: item.businessProfileId ?? item.id,
-          userId: item.userId,
-          financeData: item,
-        ),
-        child: SizedBox(
-          height: 44,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomText(
-                AppStrings.inquiry.tr,
-                fontSize: SizeConfig.size14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-              ),
-              SizedBox(width: SizeConfig.size6),
-              Icon(Icons.arrow_forward,
-                  size: SizeConfig.size18, color: AppColors.white),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Full-width dashed horizontal rule between the header block and the
-/// Account Types tile — matches the hotel `PropertyCard` treatment.
-class _DashedDivider extends StatelessWidget {
-  final Color color;
-
-  const _DashedDivider({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1,
-      width: double.infinity,
-      child: CustomPaint(painter: _DashedLinePainter(color: color)),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  static const double _dashWidth = 4;
-  static const double _dashSpace = 4;
-  static const double _thickness = 1;
-
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = _thickness
-      ..strokeCap = StrokeCap.round;
-    final y = size.height / 2;
-    double x = 0;
-    while (x < size.width) {
-      final endX = (x + _dashWidth).clamp(0.0, size.width);
-      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
-      x += _dashWidth + _dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
 }

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
@@ -185,42 +186,40 @@ class _AutomotiveOtherServicesScreenState
         children: [
           SizedBox(height: SizeConfig.paddingXSL),
           Expanded(
-            child: ListView.builder(
+            child: MasonryGridView.count(
               padding: EdgeInsets.only(
                 left: SizeConfig.size12,
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL,
               ),
-              itemCount: controller.profiles.length +
-                  (controller.isLoadingMore.value ? 1 : 0),
+              crossAxisCount: 2,
+              mainAxisSpacing: dynamicSize(12),
+              crossAxisSpacing: dynamicSize(12),
+              itemCount: controller.profiles.length,
               itemBuilder: (context, index) {
-                if (index >= controller.profiles.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
                 final item = controller.profiles[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: dynamicSize(12)),
-                  child: ServiceBusinessCard(
-                    item: item,
-                    index: index,
-                    // Businesses in this section rarely upload a cover
-                    // photo, so an empty grey box looked broken. Fall back
-                    // to a vehicle-themed banner image instead — same set
-                    // the top carousel uses, keyed by the selected tab so
-                    // Vehicle Service / Support / Transport each get a
-                    // themed placeholder.
-                    fallbackHeroImageUrl: _bannerImages[
-                        _selectedIndex.value % _bannerImages.length],
-                  ),
+                return ServiceBusinessCard(
+                  item: item,
+                  index: index,
+                  // Businesses in this section rarely upload a cover
+                  // photo, so an empty grey box looked broken. Fall back
+                  // to a vehicle-themed banner image instead — same set
+                  // the top carousel uses, keyed by the selected tab so
+                  // Vehicle Service / Support / Transport each get a
+                  // themed placeholder.
+                  fallbackHeroImageUrl: _bannerImages[
+                      _selectedIndex.value % _bannerImages.length],
                 );
               },
             ),
           ),
+          if (controller.isLoadingMore.value)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
         ],
       );
     });
