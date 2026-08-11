@@ -28,7 +28,7 @@ import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.d
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
 // import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
-import 'package:BlueEra/features/common/help_support/widget/help_bubble.dart';
+import 'package:BlueEra/features/common/help_support/widget/help_support_avatar_button.dart';
 import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -454,11 +454,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
             ),
 
-            /// Floating "Need help?" bubble — Discover-only by design (see
-            /// lib/docs/HELP_WIDGET_FLUTTER_GUIDE.md). Last in the Stack so it
-            /// floats above the feed, and it collapses to nothing when the
-            /// support questions haven't loaded.
-            const HelpBubble(),
+            // The floating "Need help?" bubble used to sit here. Support moved
+            // to the header ([HelpSupportAvatarButton] in _locationRow) — two
+            // entry points to the same conversation on one screen is one too
+            // many, and the bubble sat over the feed's bottom-right corner.
+            // [HelpBubble] itself is unchanged if it ever needs remounting.
           ],
         ),
       ),
@@ -753,38 +753,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         // The header's refresh button is gone — refreshing every rail from up
         // here was a blunt instrument. Each rail now owns its own refresh (see
         // NearestStoresSection); pull-to-refresh still reloads them all.
-        _circleIconButton(
-          boxShadow: _kTopViewShadow,
-          child: const Icon(Icons.favorite_border,
-              color: AppColors.primaryColor, size: 15),
-          onTap: () {
-            Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute());
-          },
-        ),
+        //
+        // Customer care replaced the heart that used to sit here. The heart
+        // routed to YourCartScreen despite being drawn as a wishlist, and help
+        // is the thing a stuck user looks for at the top of the page — see
+        // [HelpSupportAvatarButton]. It hides itself when support has nothing
+        // to offer, so the row simply loses its trailing chip in that case.
+        const HelpSupportAvatarButton(),
       ],
     );
   }
 
-  Widget _circleIconButton({
-    required Widget child,
-    required VoidCallback onTap,
-    List<BoxShadow>? boxShadow,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(28),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.86),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
-          boxShadow: boxShadow,
-        ),
-        child: child,
-      ),
-    );
-  }
 
   // Icon chip footprint: EdgeInsets.all(9)*2 + 30px icon.
   static const double _kTabChipSize = 48.0;

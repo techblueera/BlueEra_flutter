@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/help_support/controller/help_support_controller.dart';
-import 'package:BlueEra/features/common/help_support/model/help_question.dart';
+import 'package:BlueEra/features/common/help_support/widget/help_questions_panel.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -42,9 +42,6 @@ class _HelpBubbleState extends State<HelpBubble>
   final HelpSupportController _controller =
       getOrPut(() => HelpSupportController());
 
-  final TextEditingController _textCtrl = TextEditingController();
-  final FocusNode _textFocus = FocusNode();
-
   bool _expanded = false;
 
   /// Drives the hint chip in and out every few seconds. A permanently visible
@@ -72,8 +69,6 @@ class _HelpBubbleState extends State<HelpBubble>
   void dispose() {
     _hintTimer?.cancel();
     _glow.dispose();
-    _textCtrl.dispose();
-    _textFocus.dispose();
     super.dispose();
   }
 
@@ -93,25 +88,10 @@ class _HelpBubbleState extends State<HelpBubble>
   }
 
   void _collapse() {
-    _textFocus.unfocus();
+    // Drops the keyboard too: the panel's composer lives inside the subtree
+    // this tears down, so its focus node goes with it.
+    FocusScope.of(context).unfocus();
     setState(() => _expanded = false);
-  }
-
-  Future<void> _send(String text, {String? questionId}) async {
-    final opened = await _controller.sendInquiry(text, questionId: questionId);
-    if (!mounted || !opened) return;
-    // Only clear on success — a failed send keeps what the user typed.
-    _textCtrl.clear();
-    _collapse();
-  }
-
-  void _onQuestionTap(HelpQuestion q) {
-    if (q.isOther) {
-      // "Other inquiry" isn't a question, it's a prompt to write one.
-      _textFocus.requestFocus();
-      return;
-    }
-    _send(q.label(_controller.languageCode), questionId: q.id);
   }
 
   @override
@@ -229,153 +209,10 @@ class _HelpBubbleState extends State<HelpBubble>
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    _isHindi
-                        ? 'Hum aapki kaise madad karein?'
-                        : 'How can we help you?',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 2,
-                  ),
-                ),
-                InkWell(
-                  onTap: _collapse,
-                  customBorder: const CircleBorder(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.close_rounded,
-                        size: 18, color: AppColors.secondaryTextColor),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size8),
-            // The list is short and server-capped (4 tailored + "Other"), so it
-            // is laid out inline; bounded anyway so an unexpectedly long reply
-            // scrolls inside the panel instead of overflowing the screen.
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 240),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final q in _controller.questions) _questionRow(q),
-                  ],
-                ),
-              ),
-            ),
-            Divider(height: SizeConfig.size20, color: Color(0xFFE0E0E0)),
-            _composer(),
-          ],
-        ),
+        // Body shared with the header's customer-care button, so the two
+        // entry points can't drift into two different support experiences.
+        child: HelpQuestionsPanel(onClose: _collapse),
       ),
-    );
-  }
-
-  Widget _questionRow(HelpQuestion q) {
-    return InkWell(
-      onTap: () => _onQuestionTap(q),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size8,
-          horizontal: SizeConfig.size4,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor,
-                ),
-              ),
-            ),
-            SizedBox(width: SizeConfig.size8),
-            Expanded(
-              child: CustomText(
-                q.label(_controller.languageCode),
-                fontSize: SizeConfig.small,
-                fontWeight: q.isOther ? FontWeight.w600 : FontWeight.w500,
-                color: q.isOther
-                    ? AppColors.primaryColor
-                    : AppColors.mainTextColor,
-                maxLines: 3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _composer() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _textCtrl,
-            focusNode: _textFocus,
-            minLines: 1,
-            maxLines: 3,
-            textInputAction: TextInputAction.send,
-            onSubmitted: (v) => _send(v),
-            style: TextStyle(fontSize: SizeConfig.small),
-            decoration: InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              hintText: _isHindi
-                  ? 'Apna sawaal likhein…'
-                  : 'Type your question…',
-              hintStyle: TextStyle(
-                fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size8),
-        Obx(() {
-          if (_controller.isSending.value) {
-            return const SizedBox(
-              width: 34,
-              height: 34,
-              child: Padding(
-                padding: EdgeInsets.all(7),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          }
-          return InkWell(
-            onTap: () => _send(_textCtrl.text),
-            customBorder: const CircleBorder(),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryColor,
-              ),
-              child: const Icon(Icons.send_rounded,
-                  color: Colors.white, size: 17),
-            ),
-          );
-        }),
-      ],
     );
   }
 }
