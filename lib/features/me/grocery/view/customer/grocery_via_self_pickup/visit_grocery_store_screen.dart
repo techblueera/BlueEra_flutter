@@ -301,7 +301,10 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
           ),
 
           SizedBox(
-            height: 265,
+            // Derived from the card's own content rather than a hardcoded
+            // number: the old 265 was 2.5px SHORT of what the card actually
+            // measures, so every tile overflowed its rail.
+            height: GroceryProductCard.railCardHeight,
             child: Builder(builder: (context) {
               // One card per product. Uses the SAME GroceryProductCard +
               // variants sheet as the products screen (visit_grocery_products),
@@ -322,23 +325,23 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                   final group = previewGroups[index];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: SizedBox(
-                        width: SizeConfig.size150,
-                        // Outer border so the white card stands out against the
-                        // section's white background.
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.greyE5),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: GroceryProductCard(
-                            groceryProducts: _toGroceryProductData(group),
-                            flowType: GroceryCardFlowType.selfPickup,
-                            bId: widget.visitBusinessId,
-                          ),
+                    // No Align: the card fills the rail height, so the few
+                    // pixels of slack in the estimate above land INSIDE the
+                    // white card instead of showing as a band under it.
+                    child: SizedBox(
+                      width: SizeConfig.size150,
+                      // Outer border so the white card stands out against the
+                      // section's white background.
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.greyE5),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: GroceryProductCard(
+                          groceryProducts: _toGroceryProductData(group),
+                          flowType: GroceryCardFlowType.selfPickup,
+                          bId: widget.visitBusinessId,
                         ),
                       ),
                     ),

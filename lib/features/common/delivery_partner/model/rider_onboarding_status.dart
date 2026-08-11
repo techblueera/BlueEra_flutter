@@ -60,7 +60,22 @@ class RiderOnboardingStatusData {
     vehicleInformation = json['vehicleInformation'];
     isOnboardingComplete = json['isOnboardingComplete'];
     verificationStatus = json['verificationStatus'];
-    aadhar = json['aadhar'];
+    // Two different things can mean "we know who this rider is":
+    //   `aadhar`         — the onboarding STEP flag, set by the
+    //                      personal-identification PUT.
+    //   `aadharVerified` — the user-level OKYC result, carried on this same
+    //                      response.
+    // They can disagree. Someone who verified through `/user/aadhaar/*`
+    // without that PUT — a Gig Work signup, say — has the second and not the
+    // first, and only `aadhar` was ever read here, so the rider flow asked
+    // them for the same Aadhaar again. Either flag now satisfies the step.
+    //
+    // Null is preserved when BOTH keys are absent, so a response shape that
+    // omits them still reads as "unknown" rather than a hard false.
+    final aadhaarStepFlag = json['aadhar'];
+    aadhar = (aadhaarStepFlag == true || json['aadharVerified'] == true)
+        ? true
+        : (aadhaarStepFlag as bool?);
     pan = json['pan'];
     rc = json['rc'];
     dl = json['dl'];

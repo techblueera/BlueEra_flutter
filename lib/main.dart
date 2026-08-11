@@ -1083,7 +1083,14 @@ Future<void> _initDeferred(
   _setupOverlayListener();
 
   /// Language & version checks
-  Get.put(LanguageListController());
+  ///
+  /// `permanent` because this runs in the async startup path, i.e. AFTER
+  /// `runApp` — nothing owns the instance, so GetX's route-scoped disposal was
+  /// free to collect it and leave the auth screens calling `Get.find` on
+  /// nothing ("LanguageListController not found"). Those screens self-register
+  /// with `getOrPut` now as well; this keeps the one instance alive so they
+  /// share it rather than each building their own.
+  getOrPut(() => LanguageListController(), permanent: true);
   await checkAppVersionAndResetIfNeeded();
 
   /// Re-apply the saved language ONLY if it actually differs from the one

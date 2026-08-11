@@ -16,7 +16,7 @@ import 'package:BlueEra/features/me/school/controller/school_about_us_controller
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_jobs_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_overview_tab_v2.dart';
-import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -47,7 +47,9 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
         AppStrings.academics.tr,
         AppStrings.overview.tr,
         AppStrings.jobs.tr,
-        AppStrings.posts.tr,
+        // Post tab removed for business accounts. Restore the label together
+        // with the `SchoolPostsTabV2` view below.
+        // AppStrings.posts.tr,
         AppStrings.stats.tr,
       ];
 
@@ -285,7 +287,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
                 // fetch, so it needs full tab height (Expanded inside a
                 // Column) rather than nesting inside a SingleChildScrollView.
                 const SchoolJobsTabV2(),
-                _tabScroll(const SchoolPostsTabV2()),
+                // _tabScroll(const SchoolPostsTabV2()),
                 _tabScroll(const SchoolStatsTabV2()),
               ],
             ),

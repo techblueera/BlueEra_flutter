@@ -32,11 +32,20 @@ class CommonImageUploadTile extends StatelessWidget {
   });
 
   /// Shared crop ratio for all KYC document cards (Aadhaar, PAN, Driving
-  /// Licence, RC). Matches the standard ID-card (CR80 ≈ 85.6 × 54 mm)
-  /// ratio so the whole card fits the crop frame and stays readable —
-  /// keeping every document upload consistent.
+  /// Licence, RC), so every document upload frames the same way.
+  ///
+  /// These are the card's REAL dimensions: ID-1 / CR80, 85.6 × 54 mm, the
+  /// size every Indian government card is issued at — Aadhaar PVC, PAN, the
+  /// smart-card DL and RC all share it. Expressed in tenths of a millimetre
+  /// because [CropAspectRatio] takes integers.
+  ///
+  /// It used to be a rounded 8:5 (1.600 against the card's true 1.585). Close,
+  /// but the crop window was fractionally wider than the card, so a rider who
+  /// filled the frame edge to edge shaved a sliver off the top or bottom —
+  /// which on the front is the number strip and on the back the QR. At the
+  /// true ratio the card fits the window exactly.
   static const CropAspectRatio documentCropAspectRatio =
-      CropAspectRatio(width: 8, height: 5);
+      CropAspectRatio(width: 856, height: 540);
 
   @override
   Widget build(BuildContext context) {

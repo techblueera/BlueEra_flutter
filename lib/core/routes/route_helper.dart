@@ -1722,6 +1722,13 @@ class RouteHelper {
         final selfEmploymentTagId =
             args[ApiKeys.argSelfEmploymentTagId] as String?;
 
+        // Present only on the gig-work path, which verifies Aadhaar first and
+        // forwards what the card said. Absent everywhere else.
+        final prefillName = args[ApiKeys.argPrefillName] as String?;
+        final prefillGender = args[ApiKeys.argPrefillGender] as GenderType?;
+        final prefillDateOfBirth =
+            args[ApiKeys.argPrefillDateOfBirth] as DateTime?;
+
         return MaterialPageRoute(
             builder: (_) => PersonalAccountNewScreen(
                   accountType: accountType,
@@ -1731,6 +1738,9 @@ class RouteHelper {
                   professionSubCategory: professionSubCategory,
                   selfEmployment: selfEmployment,
                   selfEmploymentTagId: selfEmploymentTagId,
+                  prefillName: prefillName,
+                  prefillGender: prefillGender,
+                  prefillDateOfBirth: prefillDateOfBirth,
                 ),
             settings: RouteSettings(
                 name: RouteHelper.getPersonalAccountNewScreenRoute()));

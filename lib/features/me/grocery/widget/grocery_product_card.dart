@@ -12,6 +12,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_c
     show GroceryFallbackImage;
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/widgets/card_image_action_chip.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -35,6 +36,31 @@ class GroceryProductCard extends StatelessWidget {
     required this.flowType,
     this.bId,
   }) : super(key: key);
+
+  /// Exact content height of the card, so a fixed-height horizontal rail (the
+  /// store-details top-selling section) can size itself to the card instead of
+  /// hardcoding a number that drifts every time the card changes — which is
+  /// what left the rail 2.5px short of its own cards.
+  ///
+  /// Scaled by the system text setting for the same reason
+  /// [ReservedTextLines] is: the rail hands the card a TIGHT height, so a name
+  /// block that grows with the user's font size while this doesn't overflows.
+  /// Read off the platform dispatcher because the rail asks for this before it
+  /// has a card context (same trade-off as `AdminProductCard.gridCardHeight`).
+  static double get railCardHeight {
+    const priceRowHeight = 26.0; // FittedBox price row + small buffer
+    const vegQuantityRowHeight = 20.0; // veg dot / quantity badge
+    final textScale =
+        WidgetsBinding.instance.platformDispatcher.textScaleFactor;
+    return SizeConfig.size140 + // image
+        SizeConfig.size6 * 2 + // details padding (top + bottom)
+        ReservedTextLines.unscaledHeight(fontSize: SizeConfig.small) *
+            textScale + // 2-line name block
+        SizeConfig.size6 + // gap before the veg/quantity row
+        vegQuantityRowHeight * textScale +
+        SizeConfig.size6 + // gap before price
+        priceRowHeight;
+  }
 
   GroceryController get _groceryController => getOrPut(() => GroceryController());
   ViewBusinessDetailsController get _viewBusinessDetailsController =>
@@ -186,6 +212,18 @@ class GroceryProductCard extends StatelessWidget {
                   bottom: 8,
                   child: StockStatusPill(inStock: _inStock, onImage: true),
                 ),
+
+                // Add-to-cart chip over the image, top-right — same place the
+                // top-selling card puts its cart control, so every grocery
+                // tile carries the affordance in the same corner. (It used to
+                // sit as a full-width button under the price, which pushed the
+                // card taller and disagreed with the rest of the surfaces.)
+                if (flowType != GroceryCardFlowType.myStore)
+                  Positioned(
+                    top: SizeConfig.size6,
+                    right: SizeConfig.size6,
+                    child: _buildImageAddChip(),
+                  ),
               ],
             ),
 
@@ -256,14 +294,6 @@ class GroceryProductCard extends StatelessWidget {
                     mrp: '${price.mrpRange}',
                     discount: '${price.discountRange}',
                   ),
-                  SizedBox(height: SizeConfig.size8),
-
-                  // Action button
-                  if (flowType == GroceryCardFlowType.myStore)
-                    // _buildEditButton(onTap: () {})
-                    SizedBox()
-                  else
-                    _buildCardAddButton(),
                 ],
               ),
             ),
@@ -273,7 +303,11 @@ class GroceryProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCardAddButton() {
+  /// The ADD / ADDED pill that rides on the product image (top-right) — the
+  /// same chip the "All Top Selling" grid shows in that corner
+  /// ([GroceryQtyStepper]), so the rail and its View-All screen present one
+  /// control. Tapping it opens the same variants sheet the card body opens.
+  Widget _buildImageAddChip() {
     return Obx(() {
       final bool isAdded;
       if (flowType == GroceryCardFlowType.selfPickup) {
@@ -289,53 +323,13 @@ class GroceryProductCard extends StatelessWidget {
             ) ??
             false;
       }
-
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        width: double.infinity,
-        height: SizeConfig.size30,
-        decoration: BoxDecoration(
-          color: isAdded
-              ? AppColors.green00.withValues(alpha: 0.08)
-              : AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isAdded ? AppColors.green00 : AppColors.primaryColor,
-            width: 1,
-          ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => _showVariantsBottomSheet(Get.context!, _variants),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) =>
-                    ScaleTransition(scale: animation, child: child),
-                child: Icon(
-                  isAdded ? Icons.check : Icons.add,
-                  key: ValueKey(isAdded),
-                  size: 12,
-                  color: isAdded ? AppColors.green00 : AppColors.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 3),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: CustomText(
-                  isAdded ? AppStrings.groceryViewAddedCaps.tr : AppStrings.groceryViewAddCaps.tr,
-                  key: ValueKey(isAdded),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isAdded ? AppColors.green00 : AppColors.primaryColor,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return CardImageActionChip(
+        active: isAdded,
+        icon: isAdded ? Icons.check : Icons.add,
+        label: isAdded
+            ? AppStrings.groceryViewAddedCaps.tr
+            : AppStrings.groceryViewAddCaps.tr,
+        onTap: () => _showVariantsBottomSheet(Get.context!, _variants),
       );
     });
   }

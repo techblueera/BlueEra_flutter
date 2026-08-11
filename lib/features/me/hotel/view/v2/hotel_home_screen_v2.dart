@@ -15,7 +15,7 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_amenities_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_overview_tab_v2.dart';
-import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
@@ -46,7 +46,9 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
         AppStrings.roomLabel.tr,
         AppStrings.overview.tr,
         AppStrings.amenities.tr,
-        AppStrings.posts.tr,
+        // Post tab removed for business accounts. Restore the label together
+        // with the `HotelPostsTabV2` view below.
+        // AppStrings.posts.tr,
         AppStrings.stats.tr,
       ];
 
@@ -127,7 +129,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
                 _tabScroll(HotelRoomsTabV2(controller: _hotelController)),
                 _tabScroll(HotelOverviewTabV2(controller: _hotelController)),
                 _tabScroll(HotelAmenitiesTabV2(controller: _hotelController)),
-                _tabScroll(const HotelPostsTabV2()),
+                // _tabScroll(const HotelPostsTabV2()),
                 _tabScroll(const HotelStatsTabV2()),
               ],
             ),

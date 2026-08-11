@@ -301,7 +301,11 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                       textFieldHint: AppStrings.egDL0120110012345.tr,
                                       textFieldValidation: ValidationMethod
                                           .validateDrivingLicense,
-                                      maxLength: 15,
+                                      // 16, matching the validator's upper
+                                      // bound and the rider onboarding field —
+                                      // at 15 this one rejected a valid
+                                      // 16-character licence by truncating it.
+                                      maxLength: 16,
                                       keyboardType: TextInputType.text,
                                       isCapitalize: true,
                                     ),

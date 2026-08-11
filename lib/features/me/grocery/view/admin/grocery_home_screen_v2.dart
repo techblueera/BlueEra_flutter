@@ -12,13 +12,13 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+// import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_overview_tab.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_post_tab.dart';
+// import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_post_tab.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_products_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
@@ -55,10 +55,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
+  // Post tab removed for business accounts — the merchant's own feed is no
+  // longer surfaced here. Restore the label, the `GroceryPostTab` view and the
+  // matching `case` in both switches below together, or the indices desync.
   List<String> get _tabs => [
         AppStrings.productsTab.tr,
         AppStrings.overviewTab.tr,
-        AppStrings.postTabLabel.tr,
+        // AppStrings.postTabLabel.tr,
         AppStrings.staticsTab.tr,
       ];
 
@@ -146,10 +149,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           );
         });
         break;
+      // Post was case 2; Statics moved up with it removed.
       case 2:
-        // Post â€” FeedScreen owns its own controller fetch on mount.
-        break;
-      case 3:
         // Statics â€” ProfileStatisticsScreen self-fetches on first build.
         // It's kept alive (AutomaticKeepAliveClientMixin), so its initState
         // won't re-run on later taps; trigger a refresh here so the analytics
@@ -193,12 +194,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
       case 1:
         await _businessController.viewBusinessProfile();
         break;
+      // Post was case 2; Statistics moved up with it removed.
       case 2:
-        if (Get.isRegistered<FeedController>()) {
-          await Get.find<FeedController>().getFeed(refresh: true);
-        }
-        break;
-      case 3:
         // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;
@@ -229,7 +226,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
               tabViews: [
                 _tabScroll(GroceryProductsTab(businessId: widget.businessId)),
                 _tabScroll(const GroceryOverviewTab()),
-                _tabScroll(const GroceryPostTab()),
+                // _tabScroll(const GroceryPostTab()),
                 ProfileStatisticsScreen(userId: widget.businessId),
               ],
             ),

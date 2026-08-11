@@ -57,7 +57,10 @@ class VehicleDocumentsScreen extends StatelessWidget {
                       textFieldHint: AppStrings.egUP32AB12.tr,
                       textFieldValidation:
                       ValidationMethod.validateRC,
-                      maxLength: 10,
+                      // Shares [ValidationMethod.validateRC], so it shares the
+                      // cap: 13 to allow the printed separators, with the
+                      // 11-char limit applied to the normalised value.
+                      maxLength: ValidationMethod.rcMaxLengthFormatted,
                       keyboardType: TextInputType.text,
                       isCapitalize: true,
                     ),

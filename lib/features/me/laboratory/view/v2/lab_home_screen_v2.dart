@@ -15,7 +15,7 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_overview_tab_v2.dart';
-import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_tests_tab_v2.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
@@ -45,7 +45,9 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
         AppStrings.tests.tr,
         AppStrings.overview.tr,
         AppStrings.facilities.tr,
-        AppStrings.posts.tr,
+        // Post tab removed for business accounts. Restore the label together
+        // with the `LabPostsTabV2` view below.
+        // AppStrings.posts.tr,
         AppStrings.stats.tr,
       ];
 
@@ -126,7 +128,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
                 _tabScroll(LabTestsTabV2(controller: _labController)),
                 _tabScroll(LabOverviewTabV2(controller: _labController)),
                 _tabScroll(LabFacilitiesTabV2(controller: _labController)),
-                _tabScroll(const LabPostsTabV2()),
+                // _tabScroll(const LabPostsTabV2()),
                 _tabScroll(const LabStatsTabV2()),
               ],
             ),

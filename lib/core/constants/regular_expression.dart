@@ -316,13 +316,43 @@ class ValidationMethod {
     return null;
   }
 
+  /// Longest an RC number can be once separators are stripped.
+  ///
+  /// 11 covers every series in circulation: standard state
+  /// (`SS DD LL NNNN` → UP32AB1234, 10), Delhi/UT with its extra code letter
+  /// (`DL DD L LL NNNN` → DL01CAA1234, 11), BH (`YY BH NNNN LL` →
+  /// 22BH1234AB, 10) and vintage (`SS DD VA NNNN` → MH01VA0001, 10).
+  static const int rcMaxLengthUnformatted = 11;
+
+  /// Field cap when the number may be typed the way it is printed, with
+  /// spaces or hyphens — `RJ-19-CA-1234` is 13 characters. Pass this as the
+  /// form field's `maxLength`; [validateRC] strips the separators before
+  /// checking the value against [rcMaxLengthUnformatted].
+  static const int rcMaxLengthFormatted = 13;
+
+  /// Standard / Delhi-UT / vintage: state code, RTO code, series, 4-digit
+  /// number. Vintage is not special-cased — its `VA` series is just a series.
+  static final RegExp _rcStandard =
+      RegExp(r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$');
+
+  /// Bharat (BH) series, which inverts the layout: year, `BH`, number, then
+  /// the code letters — 22BH1234AB.
+  static final RegExp _rcBharat = RegExp(r'^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$');
+
+  /// Vehicle registration (RC) number.
+  ///
+  /// Accepts the number as printed — `RJ-19-CA-1234`, `DL 01 C AA 1234` — by
+  /// normalising separators away before matching, so what a rider can type is
+  /// what validates. The trailing group is a full 4 digits: the old pattern
+  /// allowed `[0-9]{1,4}`, which passed half-typed plates like `UP32AB1`.
   static String? validateRC(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'RC number is required';
     }
 
-    bool isValid = RegExp(r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$')
-        .hasMatch(value.toUpperCase());
+    final plate = VehicleNumber.normalize(value);
+    final bool isValid = plate.length <= rcMaxLengthUnformatted &&
+        (_rcStandard.hasMatch(plate) || _rcBharat.hasMatch(plate));
     if (!isValid) {
       return 'Please enter a valid vehicle registration number (e.g. UP32AB1234)';
     }
@@ -330,13 +360,24 @@ class ValidationMethod {
     return null;
   }
 
+  /// Indian driving licence number: a 2-letter state code, a 2-character RTO
+  /// code, then the year-and-serial digits — **10 to 16 characters in total**.
+  ///
+  /// The common printed form is 15/16 (`SS RR YYYY NNNNNNN`, e.g.
+  /// DL0420110148936); the shorter end covers the legacy numbers still in
+  /// circulation in some states.
+  ///
+  /// The tail used to be `\d{10,16}`, which with the 4-character prefix meant
+  /// a total of 14–20 — it both rejected every licence under 14 characters and
+  /// accepted lengths past 16 that no input field allows anyway. The two
+  /// fields using this validator cap at 16, so the range now matches them.
   static String? validateDrivingLicense(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Driving license number is required';
     }
 
     bool isValid =
-        RegExp(r'^[A-Z]{2}[A-Z0-9]{2}\d{10,16}$').hasMatch(value.toUpperCase());
+        RegExp(r'^[A-Z]{2}[A-Z0-9]{2}\d{6,12}$').hasMatch(value.toUpperCase());
     if (!isValid) {
       return 'Please enter a valid driving license number (e.g. DL0420110148936)';
     }
@@ -684,7 +725,7 @@ class VehicleNumber {
   const VehicleNumber._();
 
   /// Hard cap on the field, matching the `maxLength` the forms pass.
-  static const int maxLength = 15;
+  static const int maxLength = 10;
 
   /// Two leading letters, then anything — run against the normalised value.
   ///

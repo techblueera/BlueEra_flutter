@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/auth/views/screens/Individual/gig_work_aadhaar_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -109,7 +110,7 @@ class CreateAccountTypeV2Screen extends StatefulWidget {
 class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
   final authController = getOrPut(() => AuthController());
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
 
   @override
   void initState() {
@@ -303,7 +304,7 @@ class _AccountCategoryScreen extends StatefulWidget {
 class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
   final authController = getOrPut(() => AuthController());
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
 
   /// `CategoryData` (business) or `ProfessionTypeData` (individual).
   final Rxn<Object> selectedItem = Rxn<Object>();
@@ -729,6 +730,31 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
       log('${ApiKeys.argProfessionTagId}    : ${item.tagId}');
       log('${ApiKeys.argProfession}    : ${item.name}');
 
+      final profileType = item.individualProfileType;
+      final professionTagId = item.tagId;
+      final profession = item.name;
+
+      // Gig work goes through Aadhaar FIRST — it puts someone in a customer's
+      // vehicle or at their door, so the identity is established before the
+      // profile exists rather than as a document uploaded later. That screen
+      // owns the hop to the profile form and carries the verified name and
+      // date of birth into it. Every other profession still goes straight
+      // through, and rider onboarding is unaffected.
+      if (widget.earnType == _EarnType.gigWork &&
+          profileType != null &&
+          professionTagId != null &&
+          profession != null) {
+        Get.to(
+          () => GigWorkAadhaarScreen(
+            accountType: AppConstants.individual,
+            profileType: profileType,
+            profession: profession,
+            professionTagId: professionTagId,
+          ),
+        );
+        return;
+      }
+
       Get.toNamed(
         RouteHelper.getPersonalAccountNewScreenRoute(),
         arguments: {
@@ -780,7 +806,7 @@ class _BusinessSubCategoryBottomSheet extends StatefulWidget {
 class _BusinessSubCategoryBottomSheetState
     extends State<_BusinessSubCategoryBottomSheet> {
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
   SubCategories? _selectedSubCat;
 
   @override

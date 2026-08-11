@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -42,7 +43,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   @override
   void initState() {
     _getPhoneNumber();
-    langController = Get.find<LanguageListController>();
+    langController = getOrPut(() => LanguageListController());
     _authController.mobileNumberEditController.addListener(_onMobileChanged);
     // AuthController is permanent, so a stale LOADING from a previous send
     // could otherwise mount this screen with the overlay already showing.

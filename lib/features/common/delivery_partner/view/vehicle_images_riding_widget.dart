@@ -17,14 +17,26 @@ import 'package:get/get.dart';
 /// new design merges them into one "Side" slot which writes into
 /// [DeliveryPartnerController.vehicleRightSideImages] (the left list
 /// is no longer touched by this surface).
+/// [isRequired] slots gate the Next button; the rest can be skipped.
+///
+/// Only the number plate and the front shot are mandatory — between them they
+/// identify the vehicle, which is all this step has to establish. Side and
+/// back are still offered (a fuller set is better for verification) but no
+/// longer block a rider from finishing onboarding.
+/// [DeliveryPartnerController.ridersOnboardingVehicleImagesApi] enforces the
+/// same two.
+/// Declaration order IS the grid order: number plate first — it is the one
+/// photo the whole step hangs on — then front, with the two optional angles
+/// on the row below.
 enum _VehicleSlot {
-  front('Front'),
-  back('Back'),
-  side('Side'),
-  numberPlate('Number Plate');
+  numberPlate('Number Plate', isRequired: true),
+  front('Front', isRequired: true),
+  side('Side', isRequired: false),
+  back('Back', isRequired: false);
 
-  const _VehicleSlot(this.label);
+  const _VehicleSlot(this.label, {required this.isRequired});
   final String label;
+  final bool isRequired;
 }
 
 class VehicleImagesRidingWidget extends StatefulWidget {
@@ -84,30 +96,41 @@ class _VehicleImagesRidingWidgetState
           // reactivity — every list we read inside the closure is an
           // RxList<File>, so add/remove triggers a clean rebuild.
           child: Obx(() {
-            final filledCount = _VehicleSlot.values
+            // Progress is counted over the REQUIRED slots only, since those
+            // are what the button waits for — a chip climbing toward 4 while
+            // the button unlocks at 2 would just be misleading.
+            const requiredSlots = [
+              _VehicleSlot.numberPlate,
+              _VehicleSlot.front,
+            ];
+            final filledCount = requiredSlots
                 .where((s) => _imagesFor(s).isNotEmpty)
                 .length;
+            final loading = controller.isRiderVehicleImagesLoading.value;
+            // Dimmed AND untappable until both required photos are in. The
+            // chip and the empty tiles already say WHICH one is missing,
+            // which beats the snackbar a tap used to produce.
+            final canSubmit = filledCount == requiredSlots.length;
             return AbsorbPointer(
-              absorbing:
-                  controller.isRiderVehicleImagesLoading.value,
+              absorbing: loading,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildIntro(filledCount),
+                  _buildIntro(filledCount, requiredSlots.length),
                   SizedBox(height: SizeConfig.size16),
                   _buildGrid(),
                   SizedBox(height: SizeConfig.size20),
                   CustomBtn(
-                    title: controller
-                            .isRiderVehicleImagesLoading.value
-                        ? null
-                        : AppStrings.nextButton,
-                    onTap: () => controller
-                        .ridersOnboardingVehicleImagesApi(),
+                    title: loading ? null : AppStrings.nextButton,
+                    onTap: (canSubmit && !loading)
+                        ? () => controller
+                            .ridersOnboardingVehicleImagesApi()
+                        : null,
                     radius: 12.0,
-                    bgColor: AppColors.primaryColor,
-                    isLoading:
-                        controller.isRiderVehicleImagesLoading.value,
+                    bgColor: (canSubmit && !loading)
+                        ? AppColors.primaryColor
+                        : AppColors.primaryColor.withValues(alpha: 0.5),
+                    isLoading: loading,
                   ),
                   SizedBox(height: SizeConfig.size12),
                 ],
@@ -123,8 +146,8 @@ class _VehicleImagesRidingWidgetState
   // Eyebrow rule + headline on the left; animated count chip on the
   // right that flips from primary-outline to primary-filled when the
   // grid hits 4 / 4.
-  Widget _buildIntro(int filledCount) {
-    final allDone = filledCount == 4;
+  Widget _buildIntro(int filledCount, int requiredCount) {
+    final allDone = filledCount == requiredCount;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -153,7 +176,7 @@ class _VehicleImagesRidingWidgetState
               ),
               const SizedBox(height: 6),
               CustomText(
-                'Capture the four required angles',
+                'Number plate and front are required',
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -205,7 +228,7 @@ class _VehicleImagesRidingWidgetState
                     const SizedBox(width: 4),
                   ],
                   CustomText(
-                    '${v.toInt()} / 4',
+                    '${v.toInt()} / $requiredCount',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w800,
                     color: allDone
@@ -226,11 +249,15 @@ class _VehicleImagesRidingWidgetState
   Widget _buildGrid() {
     return Column(
       children: [
+        // Required pair on the top row, optional pair below — the order the
+        // rider should work through them.
         Row(
           children: [
-            Expanded(child: _buildSlotTile(_VehicleSlot.front)),
+            Expanded(
+              child: _buildSlotTile(_VehicleSlot.numberPlate),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildSlotTile(_VehicleSlot.back)),
+            Expanded(child: _buildSlotTile(_VehicleSlot.front)),
           ],
         ),
         const SizedBox(height: 12),
@@ -238,9 +265,7 @@ class _VehicleImagesRidingWidgetState
           children: [
             Expanded(child: _buildSlotTile(_VehicleSlot.side)),
             const SizedBox(width: 12),
-            Expanded(
-              child: _buildSlotTile(_VehicleSlot.numberPlate),
-            ),
+            Expanded(child: _buildSlotTile(_VehicleSlot.back)),
           ],
         ),
       ],
@@ -308,8 +333,11 @@ class _VehicleImagesRidingWidgetState
                     letterSpacing: 0.4,
                   ),
                   const SizedBox(height: 2),
+                  // The hint doubles as the required/optional marker — the
+                  // rider needs to know which two they can skip before they
+                  // start tapping, not after.
                   CustomText(
-                    'Tap to upload',
+                    slot.isRequired ? 'Tap to upload' : 'Optional',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.secondaryTextColor,

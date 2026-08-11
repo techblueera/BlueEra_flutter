@@ -43,7 +43,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     with TickerProviderStateMixin {
   final authController = getOrPut(() => AuthController());
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
 
   /// Currently selected pill — `CategoryData` for business or
   /// `ProfessionTypeData` for individual.
@@ -776,7 +776,7 @@ class BusinessSubCategoryBottomSheet extends StatefulWidget {
 class _BusinessSubCategoryBottomSheetState
     extends State<BusinessSubCategoryBottomSheet> {
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
   SubCategories? _selectedSubCat;
 
   @override

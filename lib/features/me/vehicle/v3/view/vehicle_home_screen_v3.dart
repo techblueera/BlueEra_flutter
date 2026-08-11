@@ -11,14 +11,14 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+// import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_listings_tab_v3.dart';
 import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_overview_tab_v3.dart';
-import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_post_tab_v3.dart';
+// import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_post_tab_v3.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
@@ -63,10 +63,13 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
+  // Post tab removed for business accounts — the merchant's own feed is no
+  // longer surfaced here. Restore the label, the `VehiclePostTabV3` view and
+  // the matching `case` in both switches below together, or indices desync.
   List<String> get _tabs => [
         AppStrings.vehiclesTab.tr,
         AppStrings.overviewTab.tr,
-        AppStrings.postTabLabel.tr,
+        // AppStrings.postTabLabel.tr,
         AppStrings.staticsTab.tr,
       ];
 
@@ -132,10 +135,8 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
         // landed on. The sheet self-skips once any photo exists.
         _maybePromptLivePhotos();
         break;
+      // Post was case 2; Statistics moved up with it removed.
       case 2:
-        // Post — FeedScreen owns its own fetch on mount.
-        break;
-      case 3:
         // Statistics keeps itself alive, so its initState won't re-run on a
         // later tap; refresh here instead. On the first tap the controller
         // isn't registered yet (the screen fires its own init this frame), so
@@ -190,12 +191,8 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
       case 1:
         await _businessController.viewBusinessProfile();
         break;
+      // Post was case 2; Statistics moved up with it removed.
       case 2:
-        if (Get.isRegistered<FeedController>()) {
-          await Get.find<FeedController>().getFeed(refresh: true);
-        }
-        break;
-      case 3:
         break;
     }
   }
@@ -215,7 +212,7 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
           tabViews: [
             _tabScroll(VehicleListingsTabV3(businessId: widget.businessId)),
             _tabScroll(const VehicleOverviewTabV3()),
-            _tabScroll(const VehiclePostTabV3()),
+            // _tabScroll(const VehiclePostTabV3()),
             ProfileStatisticsScreen(userId: widget.businessId),
           ],
         ),

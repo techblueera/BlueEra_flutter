@@ -1209,6 +1209,62 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
+  /// Records a verified Aadhaar against the RIDER onboarding step, with none
+  /// of the navigation [_submitRiderAadhaarStep] performs.
+  ///
+  /// Why this exists: `rider_service_screen` reads `onboarding/status`, and its
+  /// `aadhar` flag flips only on THIS `PUT`. Verifying through
+  /// `/user/aadhaar/*` alone does not touch it — that endpoint records the
+  /// identity against the user, not against the rider onboarding record. Gig
+  /// Work verifies Aadhaar during signup, long before the rider flow is
+  /// opened, so without this bridge the same worker is asked for the same
+  /// Aadhaar a second time.
+  ///
+  /// Split out rather than reusing [_submitRiderAadhaarStep] because that one
+  /// ends in [checkStatusManageRoute], which either pops or calls
+  /// `Get.offNamedUntil(bottomNav, (route) => false)` — from mid-signup that
+  /// would wipe the navigation stack out from under the user.
+  ///
+  /// Best-effort by design: answers `false` rather than throwing or raising a
+  /// snackbar. The caller is part-way through creating an account and a failure
+  /// here must not block that; the worst case is the rider flow asking for
+  /// Aadhaar again, which is exactly today's behaviour.
+  ///
+  /// Pass [front]/[back] for the photo path so the backend receives the same
+  /// manual-review record [submitAadhaarImages] sends. Omit them for the OKYC
+  /// path, where the bare number means "UIDAI-verified".
+  Future<bool> recordAadhaarForRiderOnboarding({
+    required String aadhaarNumber,
+    File? front,
+    File? back,
+  }) async {
+    try {
+      String? frontUrl;
+      String? backUrl;
+      if (front != null && back != null) {
+        frontUrl = await _uploadToS3(front);
+        backUrl = await _uploadToS3(back);
+      }
+      final params = <String, dynamic>{
+        ApiKeys.aadharNo: aadhaarNumber,
+        // Only when BOTH uploaded: a half-uploaded card would reach the
+        // reviewer as an incomplete record, and the number alone is the
+        // better fallback.
+        if ((frontUrl ?? '').isNotEmpty && (backUrl ?? '').isNotEmpty)
+          ApiKeys.aadharImages: {
+            ApiKeys.front: frontUrl,
+            ApiKeys.back: backUrl,
+          },
+      };
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingPersonalIdentificationRepo(params: params);
+      return response.isSuccess;
+    } catch (e, s) {
+      debugPrint('❌ recordAadhaarForRiderOnboarding error: $e\n$s');
+      return false;
+    }
+  }
+
   /// Writes the verified Aadhaar number to the rider onboarding step and
   /// resolves the sheet/route the same way the other document steps do.
   Future<void> _submitRiderAadhaarStep(String aadharNumber) async {
@@ -1291,8 +1347,11 @@ class DeliveryPartnerController extends GetxController {
       isRiderDrivingVerificationLoading.value = true;
 
       // ---------- 2️⃣ PREPARE PAYLOAD ----------
+      // Normalised, not raw: the field lets the rider type the number as it is
+      // printed on the RC (`RJ-19-CA-1234`), and Parivahan wants the plate
+      // without separators.
       final params = {
-        ApiKeys.rcNo: rcController.text,
+        ApiKeys.rcNo: VehicleNumber.normalize(rcController.text),
       };
 
       // ---------- 3️⃣ CALL API ----------
@@ -1363,7 +1422,8 @@ class DeliveryPartnerController extends GetxController {
 
         // ---------- 5️⃣ PREPARE PAYLOAD ----------
         final params = {
-          ApiKeys.rcNo: rcController.text,
+          // Separator-free, same reason as the RC-only submit above.
+          ApiKeys.rcNo: VehicleNumber.normalize(rcController.text),
           ApiKeys.dlNo: drivingLicenseController.text,
           ApiKeys.rcImages: {
             ApiKeys.front: rcFrontImageUrl,
@@ -1407,30 +1467,37 @@ class DeliveryPartnerController extends GetxController {
   /// ridersOnboardingVehicleImagesApi (Step 5)
   Future<void> ridersOnboardingVehicleImagesApi() async {
     // ---------- 1️⃣ VALIDATION ----------
+    // Only the number plate and the front shot are mandatory — between them
+    // they identify the vehicle, which is all this step has to establish.
+    // Side and back are still uploaded when present (a fuller set is better
+    // for verification) but no longer block onboarding, and the UI marks them
+    // Optional to match. See `_VehicleSlot` in vehicle_images_riding_widget.
     if (vehicleNumberPlateImages.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage.tr);
       return;
     }
-
-    if (vehicleRightSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages.tr);
-      return;
-    }
-
-    // if (vehicleLeftSideImages.isEmpty) {
-    //   commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
-    //   return;
-    // }
 
     if (vehicleFrontImages.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectFrontImage.tr);
       return;
     }
 
-    if (vehicleBackImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectBackImage.tr);
-      return;
-    }
+    // Optional now — kept as commented guards rather than deleted so the
+    // originals are one uncomment away if they become mandatory again.
+    // if (vehicleRightSideImages.isEmpty) {
+    //   commonSnackBar(message: AppStrings.pleaseSelectRightSideImages.tr);
+    //   return;
+    // }
+
+    // if (vehicleLeftSideImages.isEmpty) {
+    //   commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
+    //   return;
+    // }
+
+    // if (vehicleBackImages.isEmpty) {
+    //   commonSnackBar(message: AppStrings.pleaseSelectBackImage.tr);
+    //   return;
+    // }
 
     try {
       isRiderVehicleImagesLoading.value = true;
@@ -1483,12 +1550,18 @@ class DeliveryPartnerController extends GetxController {
       }
 
       // ---------- 8️⃣ PREPARE PAYLOAD ----------
-      final params = {
+      // Number plate and front are guaranteed by the validation above, so
+      // `.first` is safe on those two only. Back is optional now — calling
+      // `.first` on it would throw "Bad state: No element" the moment a rider
+      // skipped it, so the key is omitted instead. The side lists were always
+      // sent as lists and an empty one needs no special case.
+      final params = <String, dynamic>{
         ApiKeys.vehicleNoPlateImg: vehicleNumberPlateImageUrls.first,
         ApiKeys.vehicleRightHandSideImage: vehicleRightSideImageUrls,
         ApiKeys.vehicleLeftSideImage: vehicleLeftSideImageUrls,
         ApiKeys.vehicleFrontImage: vehicleFrontImageUrls.first,
-        ApiKeys.vehicleBackImage: vehicleBackImageUrls.first,
+        if (vehicleBackImageUrls.isNotEmpty)
+          ApiKeys.vehicleBackImage: vehicleBackImageUrls.first,
       };
 
       // ---------- 9️⃣ API CALL ----------

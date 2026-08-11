@@ -14,12 +14,12 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+// import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_post_tab.dart';
+// import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_post_tab.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_products_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -85,10 +85,14 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   void _initializeData() {
     // Tabs mirror the grocery v2 home screen exactly so the merchant
     // sees a consistent layout across me-section services.
+    // Post tab removed for business accounts — the merchant's own feed is no
+    // longer surfaced here. Restore the label, the `ManufacturerPostTab` view
+    // and the matching `case` in the refresh switch together, or indices
+    // desync.
     _tabs = [
       AppStrings.productsTab.tr,
       AppStrings.overviewTab.tr,
-      AppStrings.postTabLabel.tr,
+      // AppStrings.postTabLabel.tr,
       AppStrings.staticsTab.tr,
     ];
 
@@ -141,13 +145,8 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
         // identity card, cover banner, contact-map, QR, share banner).
         await viewBusinessDetailsController.viewBusinessProfile();
         break;
+      // Post was case 2; Statics moved up with it removed.
       case 2:
-        // Post: re-pull the merchant's own posts feed.
-        if (Get.isRegistered<FeedController>()) {
-          await Get.find<FeedController>().getFeed(refresh: true);
-        }
-        break;
-      case 3:
         // Statics: ProfileStatisticsScreen manages its own state and
         // doesn't expose an external refresh hook â€” no-op for now.
         break;
@@ -193,7 +192,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
                 _tabScroll(
                     ManufacturerProductsTab(onAddProduct: _onAddProduct)),
                 _tabScroll(const ManufacturerProductHomeScreen()),
-                _tabScroll(const ManufacturerPostTab()),
+                // _tabScroll(const ManufacturerPostTab()),
                 ProfileStatisticsScreen(userId: userId),
               ],
             ),

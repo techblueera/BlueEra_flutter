@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -43,6 +44,17 @@ class PersonalAccountNewScreen extends StatefulWidget {
   final String? selfEmployment;
   final String? selfEmploymentTagId;
 
+  /// Name, gender and date of birth read off a verified Aadhaar — GIG_WORKER
+  /// only, passed by `GigWorkAadhaarScreen`.
+  ///
+  /// Each is independent and any can be null: the verifier returns what it
+  /// could read, and a card whose number checks out can still yield no name
+  /// (a masked or blurry front). Whatever arrives is filled in AND locked; the
+  /// rest is left to the user. See [_applyAadhaarPrefill].
+  final String? prefillName;
+  final GenderType? prefillGender;
+  final DateTime? prefillDateOfBirth;
+
   PersonalAccountNewScreen(
       {super.key,
       required this.accountType,
@@ -51,7 +63,10 @@ class PersonalAccountNewScreen extends StatefulWidget {
       required this.professionTagId,
       this.professionSubCategory,
       this.selfEmployment,
-      this.selfEmploymentTagId});
+      this.selfEmploymentTagId,
+      this.prefillName,
+      this.prefillGender,
+      this.prefillDateOfBirth});
 
   @override
   State<PersonalAccountNewScreen> createState() =>
@@ -61,6 +76,16 @@ class PersonalAccountNewScreen extends StatefulWidget {
 class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
+
+  /// True from the moment Submit is accepted until the whole sequence ends.
+  ///
+  /// The button used to key its spinner off `addUserResponse` alone, which is
+  /// the LAST step. Before it run a GPS fix, a reverse geocode and a multipart
+  /// read of the profile photo — four or five seconds in which the tap looked
+  /// ignored and the user could tap again. Rx rather than [setState] so the
+  /// `finally` below can clear it without caring whether the screen has
+  /// already navigated away.
+  final RxBool _isSubmitting = false.obs;
 
   final _nameTextController = TextEditingController();
   final _emailTextController = TextEditingController();
@@ -87,7 +112,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final authController = Get.find<AuthController>();
   final locationController = Get.put(LocationController());
   final LanguageListController langController =
-      Get.find<LanguageListController>();
+      getOrPut(() => LanguageListController());
 
   String? _imagePath;
   IndividualProfileType? _selectedProfileType;
@@ -133,7 +158,72 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       authController.fetchIndividualFields(
           tagId: _selectedProfessionTagId ?? '');
     }
+    _applyAadhaarPrefill();
     // _prefillGuestData();
+  }
+
+  /// True once the field below was filled from the verified Aadhaar, and is
+  /// therefore read-only. Tracked per field: the verifier reports each
+  /// separately, so one card can yield a name and no date of birth.
+  bool _nameFromAadhaar = false;
+  bool _genderFromAadhaar = false;
+  bool _dobFromAadhaar = false;
+
+  /// Fills name and date of birth from the Aadhaar verified a step earlier,
+  /// and locks whichever arrived.
+  ///
+  /// Fill what came back, leave the rest alone. A card whose number checks out
+  /// can still yield no name or no date of birth — those stay empty and are
+  /// typed as usual. Whatever DID come back is not editable: the card is the
+  /// authority on who someone is, and letting it be retyped would undo the
+  /// verification that just happened.
+  ///
+  /// GIG_WORKER only. `GigWorkAadhaarScreen` is the sole caller that passes
+  /// these, and the profile-type check keeps it that way even if some future
+  /// route hands them over by accident.
+  void _applyAadhaarPrefill() {
+    if (_selectedProfileTypeTagId != GIG_WORKER) return;
+
+    final name = widget.prefillName?.trim();
+    if (name != null && name.isNotEmpty) {
+      _nameTextController.text = name;
+      _nameFromAadhaar = true;
+    }
+    final gender = widget.prefillGender;
+    if (gender != null) {
+      _selectedGender = gender;
+      _genderFromAadhaar = true;
+    }
+    final dob = widget.prefillDateOfBirth;
+    if (dob != null) {
+      _selectedDay = dob.day;
+      _selectedMonth = dob.month;
+      _selectedYear = dob.year;
+      _dobFromAadhaar = true;
+    }
+  }
+
+  /// Marks a field as coming from the verified card, so a read-only input
+  /// reads as "already answered" rather than broken.
+  Widget _aadhaarLockedNote() {
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.size6),
+      child: Row(
+        children: [
+          Icon(Icons.verified_user_rounded, size: 13, color: AppColors.green00),
+          SizedBox(width: SizeConfig.size4),
+          Expanded(
+            child: CustomText(
+              AppStrings.aadhaarVerified.tr,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.green00,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Pre-fills the name + profile image from the existing guest user (if any)
@@ -338,10 +428,19 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       hintText: AppConstants.name,
                       autoFillType: AutoFillType.name,
                       autovalidateMode: _autoValidate,
+                      // Read-only once it came off the verified card.
+                      readOnly: _nameFromAadhaar,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return langController.tr(AppStrings.pleaseEnterName);
-                        } else if (value.trim().length < 6) {
+                        }
+                        // The 6–30 rule polices what a user TYPES. A name off
+                        // an Aadhaar card is not typed and cannot be edited, so
+                        // applying it here would be a dead end: a genuine short
+                        // name ("Ravi") or a long full one would fail forever
+                        // on a field that can't be corrected.
+                        if (_nameFromAadhaar) return null;
+                        if (value.trim().length < 6) {
                           return langController.tr(AppStrings.nameMinLength);
                         } else if (value.trim().length > 30) {
                           return langController.tr(AppStrings.nameMaxLength);
@@ -349,6 +448,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         return null;
                       },
                     ),
+                    if (_nameFromAadhaar) _aadhaarLockedNote(),
 
                     SizedBox(
                       height: SizeConfig.size20,
@@ -379,27 +479,37 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     SizedBox(
                       height: SizeConfig.size10,
                     ),
-                    NewDatePicker(
-                      selectedDay: _selectedDay,
-                      selectedMonth: _selectedMonth,
-                      selectedYear: _selectedYear,
-                      isAgeValidation15: true,
-                      onDayChanged: (value) {
-                        setState(() {
-                          _selectedDay = value;
-                        });
-                      },
-                      onMonthChanged: (value) {
-                        setState(() {
-                          _selectedMonth = value;
-                        });
-                      },
-                      onYearChanged: (value) {
-                        setState(() {
-                          _selectedYear = value;
-                        });
-                      },
+                    // [NewDatePicker] has no disabled state of its own, so the
+                    // lock is applied from outside: AbsorbPointer swallows the
+                    // taps and the fade says why nothing opens.
+                    AbsorbPointer(
+                      absorbing: _dobFromAadhaar,
+                      child: Opacity(
+                        opacity: _dobFromAadhaar ? 0.6 : 1,
+                        child: NewDatePicker(
+                          selectedDay: _selectedDay,
+                          selectedMonth: _selectedMonth,
+                          selectedYear: _selectedYear,
+                          isAgeValidation15: true,
+                          onDayChanged: (value) {
+                            setState(() {
+                              _selectedDay = value;
+                            });
+                          },
+                          onMonthChanged: (value) {
+                            setState(() {
+                              _selectedMonth = value;
+                            });
+                          },
+                          onYearChanged: (value) {
+                            setState(() {
+                              _selectedYear = value;
+                            });
+                          },
+                        ),
+                      ),
                     ),
+                    if (_dobFromAadhaar) _aadhaarLockedNote(),
                     SizedBox(
                       height: SizeConfig.size20,
                     ),
@@ -413,25 +523,34 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       height: SizeConfig.size10,
                     ),
 
-                    CommonDropdownDialog<GenderType>(
-                      items: GenderType.values,
-                      selectedValue: _selectedGender,
-                      title: langController.tr(AppStrings.selectGender),
-                      hintText: langController.tr(AppStrings.genderHint),
-                      //appLocalizations?.selectGenderHint ?? '',
-                      displayValue: (value) => value.displayName,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      },
-                      // validator: (value) {
-                      //   if (value == null) {
-                      //     return 'Please select your gender';
-                      //   }
-                      //   return null;
-                      // },
+                    // Locked from outside for the same reason the date picker
+                    // is — the dropdown has no disabled state of its own.
+                    AbsorbPointer(
+                      absorbing: _genderFromAadhaar,
+                      child: Opacity(
+                        opacity: _genderFromAadhaar ? 0.6 : 1,
+                        child: CommonDropdownDialog<GenderType>(
+                          items: GenderType.values,
+                          selectedValue: _selectedGender,
+                          title: langController.tr(AppStrings.selectGender),
+                          hintText: langController.tr(AppStrings.genderHint),
+                          //appLocalizations?.selectGenderHint ?? '',
+                          displayValue: (value) => value.displayName,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
+                          // validator: (value) {
+                          //   if (value == null) {
+                          //     return 'Please select your gender';
+                          //   }
+                          //   return null;
+                          // },
+                        ),
+                      ),
                     ),
+                    if (_genderFromAadhaar) _aadhaarLockedNote(),
 
                     // SizedBox(
                     //   height: SizeConfig.size20,
@@ -1113,9 +1232,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                 top: SizeConfig.size10),
             child: SafeArea(
               child: Obx(() {
-                final loading = authController
-                        .addUserResponse.value.status ==
-                    Status.LOADING;
+                // Both: the local flag covers the location + image work that
+                // runs before the request, the response status covers the
+                // request itself.
+                final loading = _isSubmitting.value ||
+                    authController.addUserResponse.value.status ==
+                        Status.LOADING;
                 return SizedBox(
                   width: double.infinity,
                   height: SizeConfig.size44,
@@ -1169,6 +1291,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   }
 
   Future<void> _onSubmitPressed() async {
+    // Belt and braces with the disabled button: a second tap that slips in
+    // before the first rebuild would otherwise start the whole sequence twice.
+    if (_isSubmitting.value) return;
+
     if (_imagePath?.isEmpty ?? true) {
       _selectImage(context);
       return;
@@ -1223,137 +1349,148 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         }
       }
 
-      final locationData = await locationController.checkPermissionAndSetData(
-        preferNativeGeocoding: true,
-      );
-      if (locationData != null) {
-        final imageFile = (UserSession().imagePath != null)
-            ? File(UserSession().imagePath!)
-            : null;
-        dio.MultipartFile? imageByPart;
-        if (imageFile?.path.isNotEmpty ?? false) {
-          String fileName = imageFile?.path.split('/').last ?? "";
-          imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
-              filename: fileName);
-        }
-        String? designation;
-        if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
-            _selectedProfileTypeTagId == GIG_WORKER)) {
-          designation = formatRole(_selectedProfessionTagId ?? '');
-        } else if (_selectedProfileTypeTagId == PROFESSIONAL) {
-          designation = _selectedProfessionalObj?.name;
-          log('designation -- $designation');
-        } else {
-          if (_selectedProfessionTagId == STUDENT) {
-            designation = formatRole(STUDENT);
-          } else if (_selectedProfessionTagId == FARMER) {
-            designation = formatRole(FARMER);
-          } else if (_selectedProfessionTagId == HOMEMAKER) {
-            designation = _ExpertiseTextController.text.trim();
-          } else if (_selectedProfessionTagId == SENIOR_CITIZEN) {
-            designation = _SeniorTextController.text.trim();
-          } else if (_selectedProfessionTagId == ARTIST) {
-            if (_selectedArtistObj != OTHER) {
-              designation = _selectedArtistObj?.name;
-              log('designation -- $designation');
-            } else {
-              designation = _artTypeController.text.trim();
-            }
-            // ApiKeys.art: jsonEncode({
-            //   ApiKeys.artName: _selectedArtistObj?.tagId,
-            //   ApiKeys.artType: _artTypeController.text
-            // }),
-          } else if (_selectedProfessionTagId == CONTENT_CREATOR) {
-            designation = _selectedContentCreatorSpecification?.name;
-            log('designation -- ${_selectedContentCreatorSpecification?.name}');
-          } else if (_selectedProfessionTagId == OTHERS) {
-            designation = _otherProfessionTextController.text.trim();
-          } else {
-            designation = _designationTextController.text.trim();
+      // Everything above here is synchronous validation that can bail out.
+      // From this point the work is real and slow — GPS fix, reverse geocode,
+      // multipart read, then the request — so the spinner starts NOW rather
+      // than when the request finally goes out.
+      _isSubmitting.value = true;
+      try {
+        final locationData = await locationController.checkPermissionAndSetData(
+          preferNativeGeocoding: true,
+        );
+        if (locationData != null) {
+          final imageFile = (UserSession().imagePath != null)
+              ? File(UserSession().imagePath!)
+              : null;
+          dio.MultipartFile? imageByPart;
+          if (imageFile?.path.isNotEmpty ?? false) {
+            String fileName = imageFile?.path.split('/').last ?? "";
+            imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
+                filename: fileName);
           }
+          String? designation;
+          if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
+              _selectedProfileTypeTagId == GIG_WORKER)) {
+            designation = formatRole(_selectedProfessionTagId ?? '');
+          } else if (_selectedProfileTypeTagId == PROFESSIONAL) {
+            designation = _selectedProfessionalObj?.name;
+            log('designation -- $designation');
+          } else {
+            if (_selectedProfessionTagId == STUDENT) {
+              designation = formatRole(STUDENT);
+            } else if (_selectedProfessionTagId == FARMER) {
+              designation = formatRole(FARMER);
+            } else if (_selectedProfessionTagId == HOMEMAKER) {
+              designation = _ExpertiseTextController.text.trim();
+            } else if (_selectedProfessionTagId == SENIOR_CITIZEN) {
+              designation = _SeniorTextController.text.trim();
+            } else if (_selectedProfessionTagId == ARTIST) {
+              if (_selectedArtistObj != OTHER) {
+                designation = _selectedArtistObj?.name;
+                log('designation -- $designation');
+              } else {
+                designation = _artTypeController.text.trim();
+              }
+              // ApiKeys.art: jsonEncode({
+              //   ApiKeys.artName: _selectedArtistObj?.tagId,
+              //   ApiKeys.artType: _artTypeController.text
+              // }),
+            } else if (_selectedProfessionTagId == CONTENT_CREATOR) {
+              designation = _selectedContentCreatorSpecification?.name;
+              log('designation -- ${_selectedContentCreatorSpecification?.name}');
+            } else if (_selectedProfessionTagId == OTHERS) {
+              designation = _otherProfessionTextController.text.trim();
+            } else {
+              designation = _designationTextController.text.trim();
+            }
+          }
+
+          Map<String, dynamic> requestData = {
+            ApiKeys.profile_image: imageByPart,
+            ApiKeys.name: _nameTextController.text.trim(),
+            ApiKeys.email: _emailTextController.text.trim(),
+            ApiKeys.date_of_birth_Obj: jsonEncode({
+              ApiKeys.date: _selectedDay,
+              ApiKeys.month: _selectedMonth,
+              ApiKeys.year: _selectedYear,
+            }),
+            ApiKeys.gender: _selectedGender?.name,
+
+            ///CONDITION....
+            ApiKeys.profileType: _selectedProfileTypeTagId,
+            ApiKeys.profession: _selectedProfessionTagId,
+            ApiKeys.designation: designation,
+            if (_selectedProfessionTagId == PRIVATE_JOB) ApiKeys.sector: _sectorTextController.text.trim(),
+            if (_selectedProfileTypeTagId == SELF_EMPLOYED) ApiKeys.specilization: specializationController.text.trim(),
+            // if (_selectedProfessionTagId == SKILLED_WORKER)
+            //   ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
+            if (_selectedProfessionTagId == CONTENT_CREATOR) ApiKeys.specilization: _selectedContentCreatorField?.name,
+            if (_selectedProfessionTagId == GOVERNMENT_JOB)  ApiKeys.department: _governmentNameController.text.trim(),
+
+            ///USER NAME
+            if ((_selectedProfessionTagId == CONTENT_CREATOR) ||
+                (_selectedProfessionTagId == POLITICIAN) ||
+                (_selectedProfessionTagId == REG_UNION) ||
+                (_selectedProfessionTagId == NGO) ||
+                (_selectedProfessionTagId == INDUSTRIALIST) ||
+                (_selectedProfessionTagId == ARTIST) ||
+                (_selectedProfessionTagId == MEDIA) ||
+                (_selectedProfessionTagId == GOVTPSU) ||
+                (_selectedProfessionTagId == DIRECTOR))
+              ApiKeys.username: userNameController.text.trim(),
+
+            if (_selectedProfessionTagId == POLITICIAN)
+              ApiKeys.department: politicalPartyController.text.trim(),
+            if (_selectedProfessionTagId == GOVTPSU)
+              ApiKeys.department: departmentNameController.text.trim(),
+            if (_selectedProfessionTagId == GOVTPSU)
+              ApiKeys.subDivision: subDivision.text.trim(),
+            if (_selectedProfessionTagId == REG_UNION ||
+                _selectedProfessionTagId == NGO)
+              ApiKeys.department: _ngoNameTextController.text.trim(),
+
+            if (_selectedProfessionTagId == INDUSTRIALIST)
+              ApiKeys.department: _companyNameTextController.text.trim(),
+            if (_selectedProfessionTagId == DIRECTOR)
+              ApiKeys.department: _companyNameTextController.text.trim(),
+            if (_selectedProfessionTagId == STUDENT)
+              ApiKeys.schoolOrCollegeName: _CourseTextController.text.trim(),
+            if (_selectedProfessionTagId == OTHERS)
+              ApiKeys.specilization: _otherProfessionTextController.text.trim(),
+            // if (_selectedProfessionTagId == ARTIST)
+            //   ApiKeys.art: jsonEncode({
+            //     ApiKeys.artName: _selectedArtistObj?.tagId,
+            //     ApiKeys.artType: _artTypeController.text
+            //   }),
+            // if (_selectedProfessionTagId == HOMEMAKER)
+            //   ApiKeys.art: jsonEncode({
+            //     ApiKeys.artName: _ExpertiseTextController.text,
+            //   }),
+            //
+            // if (_selectedProfessionTagId == SENIOR_CITIZEN)
+            //   ApiKeys.art: jsonEncode({
+            //     ApiKeys.artName: _SeniorTextController.text,
+            //   }),
+
+            // if (position?.latitude != null && position?.longitude != null)
+            ApiKeys.user_cordinates: jsonEncode({
+              ApiKeys.lat: locationData.lat,
+              ApiKeys.lon: locationData.long,
+            }),
+            ApiKeys.pincode: locationData.pinCode,
+            ApiKeys.address: locationData.fullAddress,
+          };
+          logs("requestData PERSONAL ==== ${requestData}");
+          await authController.addIndividualUser(reqData: requestData);
+        } else {
+          commonSnackBar(message: AppStrings.enableLocationPermission.tr);
+          return;
         }
-
-        Map<String, dynamic> requestData = {
-          ApiKeys.profile_image: imageByPart,
-          ApiKeys.name: _nameTextController.text.trim(),
-          ApiKeys.email: _emailTextController.text.trim(),
-          ApiKeys.date_of_birth_Obj: jsonEncode({
-            ApiKeys.date: _selectedDay,
-            ApiKeys.month: _selectedMonth,
-            ApiKeys.year: _selectedYear,
-          }),
-          ApiKeys.gender: _selectedGender?.name,
-
-          ///CONDITION....
-          ApiKeys.profileType: _selectedProfileTypeTagId,
-          ApiKeys.profession: _selectedProfessionTagId,
-          ApiKeys.designation: designation,
-          if (_selectedProfessionTagId == PRIVATE_JOB) ApiKeys.sector: _sectorTextController.text.trim(),
-          if (_selectedProfileTypeTagId == SELF_EMPLOYED) ApiKeys.specilization: specializationController.text.trim(),
-          // if (_selectedProfessionTagId == SKILLED_WORKER)
-          //   ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
-          if (_selectedProfessionTagId == CONTENT_CREATOR) ApiKeys.specilization: _selectedContentCreatorField?.name,
-          if (_selectedProfessionTagId == GOVERNMENT_JOB)  ApiKeys.department: _governmentNameController.text.trim(),
-
-          ///USER NAME
-          if ((_selectedProfessionTagId == CONTENT_CREATOR) ||
-              (_selectedProfessionTagId == POLITICIAN) ||
-              (_selectedProfessionTagId == REG_UNION) ||
-              (_selectedProfessionTagId == NGO) ||
-              (_selectedProfessionTagId == INDUSTRIALIST) ||
-              (_selectedProfessionTagId == ARTIST) ||
-              (_selectedProfessionTagId == MEDIA) ||
-              (_selectedProfessionTagId == GOVTPSU) ||
-              (_selectedProfessionTagId == DIRECTOR))
-            ApiKeys.username: userNameController.text.trim(),
-
-          if (_selectedProfessionTagId == POLITICIAN)
-            ApiKeys.department: politicalPartyController.text.trim(),
-          if (_selectedProfessionTagId == GOVTPSU)
-            ApiKeys.department: departmentNameController.text.trim(),
-          if (_selectedProfessionTagId == GOVTPSU)
-            ApiKeys.subDivision: subDivision.text.trim(),
-          if (_selectedProfessionTagId == REG_UNION ||
-              _selectedProfessionTagId == NGO)
-            ApiKeys.department: _ngoNameTextController.text.trim(),
-
-          if (_selectedProfessionTagId == INDUSTRIALIST)
-            ApiKeys.department: _companyNameTextController.text.trim(),
-          if (_selectedProfessionTagId == DIRECTOR)
-            ApiKeys.department: _companyNameTextController.text.trim(),
-          if (_selectedProfessionTagId == STUDENT)
-            ApiKeys.schoolOrCollegeName: _CourseTextController.text.trim(),
-          if (_selectedProfessionTagId == OTHERS)
-            ApiKeys.specilization: _otherProfessionTextController.text.trim(),
-          // if (_selectedProfessionTagId == ARTIST)
-          //   ApiKeys.art: jsonEncode({
-          //     ApiKeys.artName: _selectedArtistObj?.tagId,
-          //     ApiKeys.artType: _artTypeController.text
-          //   }),
-          // if (_selectedProfessionTagId == HOMEMAKER)
-          //   ApiKeys.art: jsonEncode({
-          //     ApiKeys.artName: _ExpertiseTextController.text,
-          //   }),
-          //
-          // if (_selectedProfessionTagId == SENIOR_CITIZEN)
-          //   ApiKeys.art: jsonEncode({
-          //     ApiKeys.artName: _SeniorTextController.text,
-          //   }),
-
-          // if (position?.latitude != null && position?.longitude != null)
-          ApiKeys.user_cordinates: jsonEncode({
-            ApiKeys.lat: locationData.lat,
-            ApiKeys.lon: locationData.long,
-          }),
-          ApiKeys.pincode: locationData.pinCode,
-          ApiKeys.address: locationData.fullAddress,
-        };
-        logs("requestData PERSONAL ==== ${requestData}");
-        await authController.addIndividualUser(reqData: requestData);
-      } else {
-        commonSnackBar(
-            message: AppStrings.enableLocationPermission.tr);
-        return;
+      } finally {
+        // Runs on the success path too, where the controller has already
+        // navigated away — harmless, because this is an Rx write and not a
+        // setState on a disposed State.
+        _isSubmitting.value = false;
       }
     } else {
       setState(() {

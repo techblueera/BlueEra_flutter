@@ -104,7 +104,11 @@ class RecentOrdersSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // _header(title: title, total: orders.length, lane: lane),
-          SizedBox(height: SizeConfig.size10),
+          // No leading gap: this spacer used to separate the header above from
+          // the rows. With the header off it was pure dead space stacked on
+          // top of Discover's own gap under the search bar, so the first order
+          // card sat noticeably lower than the folder grid does when no order
+          // is in flight. Restore it with the header if that ever comes back.
           for (var i = 0; i < rows.length; i++) ...[
             _OrderCard(chat: rows[i], lane: lane),
             if (i != rows.length - 1) SizedBox(height: SizeConfig.size8),

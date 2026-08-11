@@ -578,6 +578,13 @@ class ApiKeys {
   static const argIsGstMandatory = 'argIsGstMandatory';
   static const argProfession = 'argProfession';
   static const argProfessionTagId = 'argProfessionTagId';
+
+  /// Identity read off a verified Aadhaar, handed to the personal-profile form
+  /// so the gig-work flow doesn't ask for what the card already stated.
+  /// Both optional — the card can verify without either being legible.
+  static const argPrefillName = 'argPrefillName';
+  static const argPrefillGender = 'argPrefillGender';
+  static const argPrefillDateOfBirth = 'argPrefillDateOfBirth';
   static const argProfessionSubCategory = 'argProfessionSubCategory';
   static const argSelfEmployment = 'argSelfEmployment';
   static const argSelfEmploymentTagId = 'argSelfEmploymentTagId';

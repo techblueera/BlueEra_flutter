@@ -65,6 +65,14 @@ class AadhaarKycController extends GetxController {
   final RxBool isVerified = false.obs;
   final RxnString verifiedName = RxnString();
 
+  /// The full identity UIDAI returned on verify-otp — name, gender, date of
+  /// birth, address. [verifiedName] is the display slice of it; this is kept
+  /// whole so a host can carry the rest forward (the gig-work onboarding step
+  /// pre-fills its form from the date of birth). Null until verify-otp
+  /// succeeds, and null on the status-check path, which returns only a name.
+  final Rxn<AadhaarVerifiedIdentity> verifiedIdentity =
+      Rxn<AadhaarVerifiedIdentity>();
+
   /// Masked number for display — "XXXX XXXX <last4>".
   final RxnString maskedNumber = RxnString();
   final RxnString verifiedAt = RxnString();
@@ -88,6 +96,7 @@ class AadhaarKycController extends GetxController {
     consentGiven.value = false;
     otpFailed.value = false;
     isVerified.value = false;
+    verifiedIdentity.value = null;
     verifiedName.value = null;
     maskedNumber.value = null;
     verifiedAt.value = null;
@@ -258,6 +267,7 @@ class AadhaarKycController extends GetxController {
             ? AadhaarVerifiedIdentity.fromJson(Map<String, dynamic>.from(data))
             : null;
         isVerified.value = true;
+        verifiedIdentity.value = identity;
         verifiedName.value = identity?.name;
         maskedNumber.value = _maskFromLast4(identity?.aadhaarLast4);
         verifiedAt.value = DateTime.now().toIso8601String();

@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -51,7 +52,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   @override
   void initState() {
     super.initState();
-    langController = Get.find<LanguageListController>();
+    langController = getOrPut(() => LanguageListController());
     // verifyOTP deliberately leaves `otpVerificationResponse` in LOADING on
     // the success/navigation path so the dim veil stays up until the screen
     // is torn down. The AuthController is permanent, so that stale LOADING

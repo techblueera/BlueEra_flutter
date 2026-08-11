@@ -14,7 +14,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overview_tab_v2.dart';
-import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
@@ -50,7 +50,9 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   List<String> get _tabs => [
         AppStrings.services.tr,
         AppStrings.overview.tr,
-        AppStrings.posts.tr,
+        // Post tab removed for business accounts. Restore the label together
+        // with the `OtherPostsTabV2` view below.
+        // AppStrings.posts.tr,
         AppStrings.statics.tr,
       ];
 
@@ -125,7 +127,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               tabViews: [
                 _tabScroll(const OtherServicesTabV2()),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
-                _tabScroll(const OtherPostsTabV2()),
+                // _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),
               ],
             ),

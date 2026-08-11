@@ -24,7 +24,7 @@ import 'package:BlueEra/features/me/medical/controller/medical_gallery_controlle
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/tabs/medical_overview_tab.dart';
-import 'package:BlueEra/features/me/medical/view/tabs/medical_post_tab.dart';
+// import 'package:BlueEra/features/me/medical/view/tabs/medical_post_tab.dart';
 import 'package:BlueEra/features/me/medical/view/tabs/medical_products_tab.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
@@ -83,11 +83,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   final ChatFlagController _chatFlagController =
       getOrPut(() => ChatFlagController());
 
+  // Post tab removed for business accounts — the merchant's own feed is no
+  // longer surfaced here. Restore the label, the `MedicalPostTab` view and the
+  // matching `case` in [_fetchForTab] together, or the indices desync.
   List<String> _tabs = [
     // AppStrings.orders.tr,
     AppStrings.products.tr,
     AppStrings.overview.tr,
-    AppStrings.posts.tr,
+    // AppStrings.posts.tr,
     AppStrings.stats.tr,
   ];
 
@@ -138,7 +141,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   /// the `*IfNeeded()` guards no-op while data is still loaded and fresh, so
   /// hopping between tabs (or leaving and coming back) doesn't refetch.
   ///
-  /// Tabs: 0 Products, 1 Overview, 2 Posts, 3 Stats.
+  /// Tabs: 0 Products, 1 Overview, 2 Stats. (Posts sat between Overview and
+  /// Stats until it was removed for business accounts.)
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
@@ -148,9 +152,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         _ensureProfileLoaded();
         break;
       case 2:
-        // Post — FeedScreen owns its own fetch on mount.
-        break;
-      case 3:
         // Stats — ProfileStatisticsScreen owns its own data.
         break;
     }
@@ -306,7 +307,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                               )
                             : MedicalOverviewTab(data: _data),
                       ),
-                      _tabScroll(const MedicalPostTab()),
+                      // _tabScroll(const MedicalPostTab()),
                       ProfileStatisticsScreen(userId: userId),
                     ],
                   ),

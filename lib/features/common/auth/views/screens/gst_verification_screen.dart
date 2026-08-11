@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -54,7 +55,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   @override
   initState() {
     super.initState();
-    langController = Get.find<LanguageListController>();
+    langController = getOrPut(() => LanguageListController());
     authController.selectedTypeOfBusiness = widget.businessType;
     authController.selectedCategoryName = widget.categoryName;
     authController.selectedCategorySlugId = widget.categorySlugId;

@@ -19,7 +19,7 @@ import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_about_me_tab.dart
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_booking_tab.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_overview_tab.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_statics_tab.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -69,7 +69,10 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
     AppStrings.overview.tr,
     // Tab reads "About"; the card inside it is titled "About Me".
     AppStrings.doctorAboutTab.tr,
-    AppStrings.posts.tr,
+    // Post tab removed for business accounts. Restoring it means putting back
+    // the label, the `HospitalPostsTabV2` view, and moving the Statics index
+    // in [_tabScroll] from 3 back to 4.
+    // AppStrings.posts.tr,
     AppStrings.doctorStatics.tr,
   ];
 
@@ -111,7 +114,8 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
           _businessController.viewBusinessProfile(),
           if (_tabController.index == _bookingTabIndex)
             _appointmentController.fetchAppointments(),
-          if (_tabController.index == 4)
+          // Statics: index 3 since the Post tab was removed (was 4).
+          if (_tabController.index == 3)
             _statsController.fetchStats(force: true),
         ]);
       },
@@ -144,7 +148,7 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
             _tabScroll(DoctorBookingTab(controller: _appointmentController)),
             _tabScroll(DoctorOverviewTab(controller: _profileController)),
             _tabScroll(DoctorAboutMeTab(controller: _profileController)),
-            _tabScroll(const HospitalPostsTabV2()),
+            // _tabScroll(const HospitalPostsTabV2()),
             _tabScroll(
               DoctorStaticsTab(
                 controller: _statsController,

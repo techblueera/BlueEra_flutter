@@ -24,9 +24,21 @@ class AadhaarKycView extends StatefulWidget {
     super.key,
     required this.controller,
     this.onVerifyManually,
+    this.onDone,
+    this.doneLabel,
   });
 
   final AadhaarKycController controller;
+
+  /// What the verified stage's button does. Defaults to closing the host —
+  /// right for the bottom sheets, wrong for a full-page step in a wizard,
+  /// where the button has to carry the user FORWARD rather than back to the
+  /// screen they came from.
+  final VoidCallback? onDone;
+
+  /// Label for that button. Defaults to "Done".
+  final String? doneLabel;
+
 
   /// Opens the host's manual (image-based) verification fallback, receiving
   /// whatever Aadhaar number is currently typed so it can be prefilled.
@@ -42,6 +54,10 @@ class AadhaarKycView extends StatefulWidget {
 class _AadhaarKycViewState extends State<AadhaarKycView> {
   AadhaarKycController get controller => widget.controller;
 
+  /// Held here so a rejected code can hand focus straight back to the pins —
+  /// see [_submitOtp].
+  final FocusNode _otpFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -51,8 +67,27 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
 
   @override
   void dispose() {
+    _otpFocus.dispose();
     controller.disposeFlow();
     super.dispose();
+  }
+
+  /// Verify as soon as the sixth digit lands — there is nothing left to decide
+  /// once the code is complete, so a Verify button was only ever an extra tap
+  /// between the user and the answer.
+  ///
+  /// A wrong code clears the pins and takes focus back, because auto-submit
+  /// otherwise strands them: the field stays full, so no further completion
+  /// event fires and they would have to delete six digits by hand to retry.
+  Future<void> _submitOtp() async {
+    if (controller.isOtpVerifying.value) return;
+    FocusScope.of(context).unfocus();
+    await controller.verifyOtp();
+    if (!mounted) return;
+    if (controller.stage.value == AadhaarStage.otp) {
+      controller.otpController.clear();
+      _otpFocus.requestFocus();
+    }
   }
 
   @override
@@ -146,9 +181,11 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
     );
   }
 
-  /// Escape hatch to manual (image-based) verification, offered only once OTP
-  /// verification has actually failed — so the OTP path stays the default and
-  /// the fallback appears exactly when it's useful.
+  /// Link-style escape hatch to manual (image-based) verification, for hosts
+  /// that push it as a separate screen.
+  ///
+  /// Offered only once OTP verification has actually failed, so the OTP path
+  /// stays the default and the fallback appears exactly when it's useful.
   Widget _buildManualFallback() {
     final onVerifyManually = widget.onVerifyManually;
     if (onVerifyManually == null) return const SizedBox.shrink();
@@ -199,6 +236,12 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
       ),
     );
 
+    // Focused cell is the only thing that moves while typing, so it carries
+    // the primary colour; the rest stay quiet.
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: AppColors.primaryColor, width: 1.4),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -215,14 +258,58 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
           textAlign: TextAlign.center,
         ),
         SizedBox(height: SizeConfig.paddingM),
-        Pinput(
-          controller: controller.otpController,
-          length: 6,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          defaultPinTheme: defaultPinTheme,
+        Obx(
+          () => Pinput(
+            controller: controller.otpController,
+            focusNode: _otpFocus,
+            length: 6,
+            autofocus: true,
+            // Locked while the code is in flight so a stray tap can't edit the
+            // digits being checked.
+            enabled: !controller.isOtpVerifying.value,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            defaultPinTheme: defaultPinTheme,
+            focusedPinTheme: focusedPinTheme,
+            // No Verify button: the sixth digit submits. Nothing is left to
+            // decide once the code is complete.
+            onCompleted: (_) => _submitOtp(),
+          ),
         ),
-        SizedBox(height: SizeConfig.size15),
+        SizedBox(height: SizeConfig.size12),
+
+        /// Takes the place of the old Verify button. Present only while the
+        /// request is in flight — an idle row here would just be a button that
+        /// does nothing.
+        Obx(
+          () => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: controller.isOtpVerifying.value
+                ? Row(
+                    key: const ValueKey('verifying'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 14,
+                        width: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      CustomText(
+                        AppStrings.verifyingDots.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  )
+                : const SizedBox(key: ValueKey('idle'), height: 14),
+          ),
+        ),
+        SizedBox(height: SizeConfig.size12),
 
         /// Resend (disabled during the cooldown per UIDAI's 30 s gap).
         Obx(
@@ -243,6 +330,30 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
                 )
+              // Sending — the request is in flight. Inert text with a spinner
+              // rather than a live link: the tap has already been accepted, and
+              // a second one is refused by the controller anyway.
+              else if (controller.isOtpSending.value)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 12,
+                      width: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.6,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      'Sending OTP…',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                )
               else
                 InkWell(
                   onTap: () => controller.generateOtp(),
@@ -257,19 +368,11 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
             ],
           ),
         ),
-        SizedBox(height: SizeConfig.paddingM),
-        Obx(
-          () => CustomBtn(
-            title: controller.isOtpVerifying.value ? null : 'Verify OTP',
-            onTap: controller.isOtpVerifying.value
-                ? null
-                : () => controller.verifyOtp(),
-            radius: 10.0,
-            bgColor: AppColors.primaryColor,
-            isLoading: controller.isOtpVerifying.value,
-          ),
-        ),
         SizedBox(height: SizeConfig.size10),
+        // Kept, unlike the delivery-partner sheet this mirrors: that one moved
+        // "edit number" to a back arrow in its sheet header, and neither host
+        // of this view has one — without this there is no way back to the
+        // number after a typo.
         InkWell(
           onTap: () => controller.editNumber(),
           child: CustomText(
@@ -309,8 +412,8 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
           if (masked != null && masked.isNotEmpty) _infoRow('Aadhaar', masked),
           SizedBox(height: SizeConfig.paddingM),
           CustomBtn(
-            title: 'Done',
-            onTap: () => Get.back(),
+            title: widget.doneLabel ?? 'Done',
+            onTap: widget.onDone ?? () => Get.back(),
             radius: 10.0,
             bgColor: AppColors.primaryColor,
           ),

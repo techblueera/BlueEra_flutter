@@ -6,11 +6,13 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/aadhaar_capture_frame.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -31,6 +33,10 @@ class AadharCardWidget extends StatefulWidget {
 class _AadharCardWidgetState extends State<AadharCardWidget> {
   final controller = Get.find<DeliveryPartnerController>();
 
+  /// Held here so a rejected code can hand focus straight back to the pins —
+  /// see [_submitOtp].
+  final FocusNode _otpFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -40,8 +46,28 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
 
   @override
   void dispose() {
+    _otpFocus.dispose();
     controller.disposeAadhaarFlow();
     super.dispose();
+  }
+
+  /// Verify as soon as the sixth digit lands — there is nothing left to decide
+  /// once the code is complete, so a Verify button was only ever an extra tap
+  /// between the rider and the answer.
+  ///
+  /// A wrong code clears the pins and takes focus back, because auto-submit
+  /// otherwise strands them: the field stays full, so no further completion
+  /// event fires and they have to delete six digits by hand before they can
+  /// try again.
+  Future<void> _submitOtp() async {
+    if (controller.isAadhaarOtpVerifying.value) return;
+    FocusScope.of(context).unfocus();
+    await controller.verifyAadhaarOtp();
+    if (!mounted) return;
+    if (controller.aadhaarStage.value == AadhaarStage.otp) {
+      controller.aadhaarOtpController.clear();
+      _otpFocus.requestFocus();
+    }
   }
 
   @override
@@ -201,22 +227,38 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           maxLines: 2,
         ),
         SizedBox(height: SizeConfig.paddingS),
-        CommonImageUploadTile(
-          title: AppStrings.uploadAadhaarFront.tr,
-          imageFile: controller.aadharFrontImage,
-          context: context,
-          onImageSelected: () => _pickAadhaarImage(
-              controller.aadharFrontImage, AppStrings.aadharFront.tr),
-        ),
-        SizedBox(height: SizeConfig.paddingS),
-        CommonImageUploadTile(
-          // Both sides are mandatory now — the label no longer says
-          // "(Optional)", and [submitAadhaarImages] rejects a missing back.
-          title: AppStrings.uploadAadhaarBack.tr,
-          imageFile: controller.aadharBackImage,
-          context: context,
-          onImageSelected: () => _pickAadhaarImage(
-              controller.aadharBackImage, AppStrings.aadharBack.tr),
+
+        // Both sides side by side, each shaped like the face it wants — the
+        // pair reads as one card turned over, and which slot is still empty is
+        // obvious without reading either label. Both are mandatory;
+        // [submitAadhaarImages] rejects a missing back.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: AadhaarCaptureFrame(
+                side: AadhaarSide.front,
+                imageFile: controller.aadharFrontImage,
+                label: AppStrings.aadharFront.tr,
+                onPick: () => _pickAadhaarImage(
+                    controller.aadharFrontImage, AppStrings.aadharFront.tr),
+                onView: () => _viewAadhaarImage(
+                    controller.aadharFrontImage, AppStrings.aadharFront.tr),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: AadhaarCaptureFrame(
+                side: AadhaarSide.back,
+                imageFile: controller.aadharBackImage,
+                label: AppStrings.aadharBack.tr,
+                onPick: () => _pickAadhaarImage(
+                    controller.aadharBackImage, AppStrings.aadharBack.tr),
+                onView: () => _viewAadhaarImage(
+                    controller.aadharBackImage, AppStrings.aadharBack.tr),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: SizeConfig.paddingM),
         // Greyed out until BOTH images are picked, so the requirement is
@@ -239,6 +281,20 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           ),
         ),
         ],
+      ),
+    );
+  }
+
+  /// Opens the picked side full screen, so the rider can check the photo is
+  /// readable before submitting it.
+  void _viewAadhaarImage(Rxn<File> target, String title) {
+    final file = target.value;
+    if (file == null) return;
+    Get.to(
+      () => ImageViewScreen(
+        appBarTitle: title,
+        imageUrls: [file.path],
+        initialIndex: 0,
       ),
     );
   }
@@ -272,6 +328,12 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
       ),
     );
 
+    // Focused cell is the only thing that moves while typing, so it carries
+    // the primary colour; the rest stay quiet.
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: AppColors.primaryColor, width: 1.4),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -288,14 +350,57 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           textAlign: TextAlign.center,
         ),
         SizedBox(height: SizeConfig.paddingM),
-        Pinput(
-          controller: controller.aadhaarOtpController,
-          length: 6,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          defaultPinTheme: defaultPinTheme,
+        Obx(
+          () => Pinput(
+            controller: controller.aadhaarOtpController,
+            focusNode: _otpFocus,
+            length: 6,
+            autofocus: true,
+            // Locked while the code is in flight so a stray tap can't edit the
+            // digits being checked.
+            enabled: !controller.isAadhaarOtpVerifying.value,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            defaultPinTheme: defaultPinTheme,
+            focusedPinTheme: focusedPinTheme,
+            // The whole point: no Verify button, the sixth digit submits.
+            onCompleted: (_) => _submitOtp(),
+          ),
         ),
-        SizedBox(height: SizeConfig.size15),
+        SizedBox(height: SizeConfig.size12),
+
+        /// Takes the place of the old Verify button. Present only while the
+        /// request is in flight — an idle row here would just be a button that
+        /// does nothing.
+        Obx(
+          () => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: controller.isAadhaarOtpVerifying.value
+                ? Row(
+                    key: const ValueKey('verifying'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 14,
+                        width: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      CustomText(
+                        AppStrings.verifyingDots.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  )
+                : const SizedBox(key: ValueKey('idle'), height: 14),
+          ),
+        ),
+        SizedBox(height: SizeConfig.size12),
 
         /// Resend (disabled during the cooldown per UIDAI's 30 s gap).
         Obx(
@@ -357,33 +462,16 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
             ],
           ),
         ),
-        SizedBox(height: SizeConfig.paddingM),
-        Obx(
-          () => CustomBtn(
-            title: controller.isAadhaarOtpVerifying.value
-                ? null
-                : AppStrings.verifyOtp.tr,
-            onTap: controller.isAadhaarOtpVerifying.value
-                ? null
-                : () => controller.verifyAadhaarOtp(),
-            radius: 10.0,
-            bgColor: AppColors.primaryColor,
-            isLoading: controller.isAadhaarOtpVerifying.value,
-          ),
-        ),
-        SizedBox(height: SizeConfig.size10),
-        InkWell(
-          onTap: () => controller.editAadhaarNumber(),
-          child: CustomText(
-            '✎ ${AppStrings.editAadhaarNumber.tr}',
-            fontSize: SizeConfig.small,
-            color: AppColors.primaryColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        // The "✎ Edit Aadhaar number" link used to sit here. It moved to the
+        // sheet header as a back arrow — the conventional place to step back
+        // a stage, and one control for the job instead of two.
+
         SizedBox(height: SizeConfig.paddingM),
         // Fallback — OTP delivery fails for some Aadhaar-linked numbers, so
         // offer the "verify by image" option right here on the OTP screen.
+        // Stays visible while the code is being typed: the rider may still be
+        // deciding between the two paths, and hiding it mid-entry was the
+        // more disorienting of the two options.
         _buildOtpFallbackNote(),
         SizedBox(height: SizeConfig.paddingM),
         _buildOrDivider(),

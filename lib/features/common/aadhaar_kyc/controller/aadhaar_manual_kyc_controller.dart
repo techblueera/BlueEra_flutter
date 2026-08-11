@@ -70,6 +70,12 @@ class AadhaarManualKycController extends GetxController {
   /// Masked number for the verified stage — "XXXX XXXX <last4>".
   final RxnString maskedNumber = RxnString();
 
+  /// What the verifier read off the card (name, date of birth, address), set
+  /// just before [onManualVerified] runs so a host can carry it forward — the
+  /// gig-work onboarding step pre-fills its form from this. Null until a
+  /// successful check, and still null after one if the card was unreadable.
+  final Rxn<AiExtractedIdentity> extractedIdentity = Rxn<AiExtractedIdentity>();
+
   /// Disposes the text controller — call from the screen's dispose.
   void disposeFlow() {
     aadharController.dispose();
@@ -79,7 +85,28 @@ class AadhaarManualKycController extends GetxController {
   /// result to [onManualVerified].
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
+    await _run();
+  }
 
+  /// Same check, driven from a host that owns the number and the consent
+  /// itself — the photo section sitting on the OTP screen, where this
+  /// controller's own [formKey] was never mounted and `currentState` is null.
+  ///
+  /// The number is validated as a string here for the same reason: there is no
+  /// field of ours to ask.
+  Future<void> submitWithNumber(String aadhaarNumber) async {
+    final aadhaar = aadhaarNumber.replaceAll(RegExp(r'\s+'), '');
+    if (aadhaar.length != 12) {
+      commonSnackBar(message: 'Please enter a valid 12-digit Aadhaar number.');
+      return;
+    }
+    aadharController.text = aadhaar;
+    await _run();
+  }
+
+  /// Consent is checked HERE, not in [submit], so both entry points enforce
+  /// it — it is a compliance requirement, not a property of one form.
+  Future<void> _run() async {
     if (!consentGiven.value) {
       commonSnackBar(
           message: 'Please tick the consent checkbox to verify your Aadhaar.');
@@ -114,6 +141,11 @@ class AadhaarManualKycController extends GetxController {
         commonSnackBar(message: result.failureMessage!);
         return;
       }
+
+      // Published BEFORE the bridge so `onManualVerified` can read it — that
+      // callback is where a host records the document, and for the onboarding
+      // step it is also where the extracted name/DOB get carried forward.
+      extractedIdentity.value = result.extracted;
 
       // Bridge into the host before revealing the verified stage, so the button
       // keeps its spinner until the document is actually recorded. A throw here

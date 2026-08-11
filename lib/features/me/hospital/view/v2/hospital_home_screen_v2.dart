@@ -16,7 +16,7 @@ import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_cont
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_v2.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
+// import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
@@ -40,7 +40,10 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   late final HospitalServiceAiController _hospitalController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   // Registered up-front so the Bookings tab's Obx has a live controller
-  // to observe even if the user opens the tab before it hydrates.
+  // to observe even if the user opens the tab before it hydrates. Kept even
+  // though this screen no longer calls it directly (see the parked refresh in
+  // [_tabScroll]) — the registration is the point.
+  // ignore: unused_field
   final _appointmentController = getOrPut(() => HospitalAppointmentController());
   late final TabController _tabController;
 
@@ -48,7 +51,9 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
     AppStrings.hospitalDepartments.tr,
     AppStrings.overview.tr,
     AppStrings.facilities.tr,
-    AppStrings.posts.tr,
+    // Post tab removed for business accounts. Restore the label together with
+    // the `HospitalPostsTabV2` view below.
+    // AppStrings.posts.tr,
     AppStrings.hospitalStats.tr,
   ];
 
@@ -102,7 +107,14 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
       onRefresh: () async {
         await Future.wait([
           _hospitalController.getHospitalFullDetailsController(),
-          if (_tabController.index == 3) _appointmentController.fetchOwnerAppointments(),
+          // Index 3 was the Post tab, which is now removed — so this owner-
+          // appointments refresh had nowhere left to fire from. It looks like
+          // a stale index even before that (Post is not an appointments tab;
+          // the list is Departments/Overview/Facilities/Post/Stats), so it is
+          // parked here rather than silently re-pointed at Stats, which is
+          // what index 3 means now. Point it at the right tab if this refresh
+          // is still wanted.
+          // if (_tabController.index == 3) _appointmentController.fetchOwnerAppointments(),
         ]);
       },
       child: SingleChildScrollView(
@@ -130,7 +142,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
                 _tabScroll(HospitalDepartmentsTabV2(controller: _hospitalController)),
                 _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(HospitalFacilitiesTabV2(controller: _hospitalController)),
-                _tabScroll(const HospitalPostsTabV2()),
+                // _tabScroll(const HospitalPostsTabV2()),
                 _tabScroll(const HospitalStatsTabV2()),
               ],
             ),

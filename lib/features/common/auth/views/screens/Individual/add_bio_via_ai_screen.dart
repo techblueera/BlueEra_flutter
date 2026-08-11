@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -64,7 +65,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
 
   @override
   void initState() {
-    langController = Get.find<LanguageListController>();
+    langController = getOrPut(() => LanguageListController());
 
     // Apply a deeplink-captured referral code if one is waiting in
     // prefs (silent path — no dialog), otherwise fall through to the

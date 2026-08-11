@@ -14,12 +14,12 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+// import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/view/admin/tabs/food_overview_tab.dart';
-import 'package:BlueEra/features/me/food/view/admin/tabs/food_post_tab.dart';
+// import 'package:BlueEra/features/me/food/view/admin/tabs/food_post_tab.dart';
 import 'package:BlueEra/features/me/food/view/admin/tabs/food_products_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
@@ -49,10 +49,13 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
+  // Post tab removed for business accounts — the merchant's own feed is no
+  // longer surfaced here. Restore the label, the `FoodPostTab` view and the
+  // matching `case` in both switches below together, or the indices desync.
   List<String> get _tabs => [
         AppStrings.productsTab.tr,
         AppStrings.overviewTab.tr,
-        AppStrings.postTabLabel.tr,
+        // AppStrings.postTabLabel.tr,
         AppStrings.statisticsTab.tr,
       ];
 
@@ -135,10 +138,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // is registered as a permanent singleton elsewhere on launch.
         // No food-specific API is needed for this tab.
         break;
+      // Post was case 2; Statistics moved up with it removed.
       case 2:
-        // Post â€” FeedScreen owns its own controller fetch on mount.
-        break;
-      case 3:
         // Statistics â€” ProfileStatisticsScreen owns its own data.
         break;
     }
@@ -182,7 +183,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
               tabViews: [
                 _tabScroll(const FoodProductsTab()),
                 _tabScroll(const FoodOverviewTab()),
-                _tabScroll(const FoodPostTab()),
+                // _tabScroll(const FoodPostTab()),
                 ProfileStatisticsScreen(
                   userId: businessId.isNotEmpty ? businessId : userId,
                 ),
@@ -208,12 +209,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       case 1:
         await _businessController.viewBusinessProfile();
         break;
+      // Post was case 2; Statistics moved up with it removed.
       case 2:
-        if (Get.isRegistered<FeedController>()) {
-          await Get.find<FeedController>().getFeed(refresh: true);
-        }
-        break;
-      case 3:
         // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;

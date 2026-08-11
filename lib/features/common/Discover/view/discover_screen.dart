@@ -636,20 +636,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// wide or very short viewport (tablet, landscape), or with a portrait card,
   /// the exact-aspect height would push the search bar off the fold. Only that
   /// case letterboxes, and only by the overflow.
-  /// Height of the guest sign-up card that stands in for the banner.
+  /// Guests are sized exactly like everyone else — see [_headerBannerHeight].
   ///
-  /// Deliberately NOT the artwork aspect. A guest has no marketing card, so
-  /// there is no artwork to size the box to — reserving a 3:2 block for a
-  /// one-line CTA left a tall empty panel with the text floating in the middle
-  /// of it, which read as a broken image rather than a prompt.
-  ///
-  /// A banner-shaped strip: tall enough for the badge, two lines of copy and
-  /// the button, short enough that the category grid starts near the fold
-  /// where a guest can actually see there is an app under the prompt.
-  static const double _kGuestPromptHeight = 128;
-
+  /// There used to be a fixed 128px `_kGuestPromptHeight` here, from when a
+  /// guest got a drawn sign-up CARD instead of a banner: a one-line CTA needed
+  /// a short strip, not a 3:2 block. That card is gone (see the note by
+  /// [_DiscoverHeaderBannerHost]) — a guest now gets the same carousel of
+  /// ARTWORK as everyone else — but the height override outlived it. The
+  /// slides render with `BoxFit.contain`, so pinning a 3:2 image into a 128px
+  /// box shrank it to about half the screen width and filled the rest of the
+  /// strip with the panel behind it: the banner appeared to float in a grey
+  /// band, which is the guest-only glitch this removes.
   double _headerBannerHeight(BuildContext context) {
-    if (isGuestUser()) return _kGuestPromptHeight;
     final size = MediaQuery.of(context).size;
     final exact = (size.width - 24) / (_bannerAspect ?? _kHeaderBannerAspect);
     return exact > size.height * 0.32 ? size.height * 0.32 : exact;

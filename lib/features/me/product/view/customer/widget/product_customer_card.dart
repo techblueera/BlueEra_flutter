@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/widgets/card_image_action_chip.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/dashed_border_container.dart';
@@ -45,15 +46,20 @@ class ProductCustomerCard extends StatelessWidget {
   /// Exact content height of the card, so a fixed-height horizontal rail
   /// (the store-details top-selling section) can size itself to the card
   /// without leaving a gap below or clipping it.
+  ///
+  /// Scaled by the system text setting: the rail hands the card a TIGHT
+  /// height, so a name block that grows with the user's font size while this
+  /// doesn't overflows the rail (the same 2.5px overflow the grocery rail hit).
   static double get railCardHeight {
     const priceRowHeight = 26.0;
+    final textScale =
+        WidgetsBinding.instance.platformDispatcher.textScaleFactor;
+    // The add control lives ON the image now, so it adds no height here.
     return SizeConfig.size140 + // image
         SizeConfig.size6 * 2 + // details padding (top + bottom)
-        _nameBlockHeight + // 2-line name block
+        _nameBlockHeight * textScale + // 2-line name block
         SizeConfig.size6 + // gap before price
-        priceRowHeight +
-        SizeConfig.size8 + // gap before add button
-        SizeConfig.size30; // add button
+        priceRowHeight;
   }
 
   List<Variant> get _variants => product.product.sellerClassification?.variants ?? const [];
@@ -108,9 +114,12 @@ class ProductCustomerCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Share moved to the top-LEFT so the top-right corner is free
+                // for the add-to-cart chip — same corner assignment as the
+                // grocery top-selling card.
                 Positioned(
                   top: 6,
-                  right: 6,
+                  left: 6,
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -129,6 +138,15 @@ class ProductCustomerCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                ),
+
+                // Add-to-cart chip on the image (top-right) rather than a
+                // full-width button under the price — keeps the card compact
+                // and matches the grocery cards.
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: _buildAddChip(),
                 ),
               ],
             ),
@@ -159,8 +177,6 @@ class ProductCustomerCard extends StatelessWidget {
                       mrp: '₹${first.mrp.toStringAsFixed(0)}',
                       discount: '$discount% OFF',
                     ),
-                  SizedBox(height: SizeConfig.size8),
-                  _buildAddButton(),
                 ],
               ),
             ),
@@ -188,42 +204,18 @@ class ProductCustomerCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton() {
+  /// Compact ADD / ADDED pill on the image (top-right); opens the same
+  /// variants sheet the card body opens.
+  Widget _buildAddChip() {
     return Obx(() {
-      // Subscribe to the cart list so the button flips on every add/remove.
+      // Subscribe to the cart list so the chip flips on every add/remove.
       final _ = cartController.selectedProductVariants.length;
       final added = _variants.any((v) => cartController.isVariantInCart(v.id));
-      return Container(
-        width: double.infinity,
-        height: SizeConfig.size30,
-        decoration: BoxDecoration(
-          color: added
-              ? AppColors.green00.withValues(alpha: 0.08)
-              : AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: added ? AppColors.green00 : AppColors.primaryColor,
-            width: 1,
-          ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => _openVariantsSheet(Get.context!),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(added ? Icons.check : Icons.add,
-                  size: 12, color: added ? AppColors.green00 : AppColors.primaryColor),
-              const SizedBox(width: 3),
-              CustomText(
-                added ? 'ADDED' : 'ADD',
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: added ? AppColors.green00 : AppColors.primaryColor,
-              ),
-            ],
-          ),
-        ),
+      return CardImageActionChip(
+        active: added,
+        icon: added ? Icons.check : Icons.add,
+        label: added ? 'ADDED' : 'ADD',
+        onTap: () => _openVariantsSheet(Get.context!),
       );
     });
   }
