@@ -1,4 +1,5 @@
-﻿import 'dart:ui';
+﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
@@ -270,15 +271,19 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// Absent flag → not free → deposit enforced (safe default). Mirrors the
   /// self-employed gate. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool _ensureCanGoLive() {
-    if (_viewCtrl.canGoLive || _viewCtrl.isFirstServiceFree) return true;
+    if (AccountPlanEntitlement.to.hasActivePlan.value ||
+        _viewCtrl.canGoLive ||
+        _viewCtrl.isFirstServiceFree) return true;
     commonSnackBar(
       message:
-          'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+          'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
     );
     // Refresh on return so a freshly-paid deposit + updated freeServiceUsed
     // are picked up.
-    Get.to(() => const ContributionScreenV2())
-        ?.then((_) => _viewCtrl.viewPersonalProfile(forceRefresh: true));
+    Get.to(() => const ContributionScreenV2())?.then((_) {
+      _viewCtrl.viewPersonalProfile(forceRefresh: true);
+      AccountPlanEntitlement.to.refresh();
+    });
     return false;
   }
 

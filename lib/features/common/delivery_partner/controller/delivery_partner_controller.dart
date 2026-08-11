@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -445,6 +446,11 @@ class DeliveryPartnerController extends GetxController {
   /// the stale pre-payment `paid:false` and bounced an already-paid rider
   /// back to the payment page forever.
   Future<bool> ensureSecurityDepositPaid() async {
+    // An active ACCOUNT PLAN is the gate going forward — the contribution
+    // screen sells plans now, not deposits. The deposit check stays as a
+    // fallback so a rider who already paid one is not knocked offline by the
+    // migration; there is no longer any way for them to buy it back.
+    if (await AccountPlanEntitlement.to.ensureAllowed()) return true;
     if (isSecurityDepositPaid) return true;
     await ridersOnboardingStatusRepoApi(forceRefresh: true);
     return isSecurityDepositPaid;

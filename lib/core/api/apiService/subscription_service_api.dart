@@ -44,6 +44,26 @@ mixin SubscriptionServiceApi {
   final String securityDepositGst =
       'subscription-service/security-deposit/gst';
 
+  /// Account Plans — the dynamic paid plans that replace a flat deposit with
+  /// what the account actually buys: visibility radius, gig call types,
+  /// service area, lead/booking tier. One catalog endpoint serves all 138
+  /// account types; the app renders whatever `plans[]` come back and never
+  /// hard-codes a price.
+  /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
+  final String accountPlanPlans = 'subscription-service/account-plan/plans';
+  final String accountPlanMyPlans =
+      'subscription-service/account-plan/my-plans';
+  final String accountPlanInitiate =
+      'subscription-service/account-plan/initiate';
+  final String accountPlanVerifyPayment =
+      'subscription-service/account-plan/verify-payment';
+  final String accountPlanInvoices =
+      'subscription-service/account-plan/invoices';
+
+  /// `GET /account-plan/{id}/invoice` — one purchase's GST invoice.
+  String accountPlanInvoiceById(String id) =>
+      'subscription-service/account-plan/$id/invoice';
+
   /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
   /// the platform pays the user a one-time joining bonus once genuine
   /// onboarding is proven. No Razorpay / payment — it's a wallet payout.

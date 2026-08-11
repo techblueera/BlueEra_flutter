@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -2311,7 +2312,9 @@ Future<void> handleGoLiveTap() async {
   // an unpaid rider is blocked from the start and there is one rule to explain.
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
-  final depositBlocked = isRiderRole && !riderCtrl.isSecurityDepositPaid;
+  final depositBlocked = isRiderRole &&
+      !AccountPlanEntitlement.to.hasActivePlan.value &&
+      !riderCtrl.isSecurityDepositPaid;
 
   if (depositBlocked) {
     // Straight to the payment page — no dialog on this path. Tapping Go Live is
@@ -2328,6 +2331,7 @@ Future<void> handleGoLiveTap() async {
     // the one return that can actually change onboarding status.
     await Get.to(() => const ContributionScreenV2());
     await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
+    await AccountPlanEntitlement.to.refresh();
     return;
   }
 

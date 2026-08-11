@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -129,11 +130,20 @@ class ViewBusinessDetailsController extends GetxController
   bool get isFreeQuotaAvailable =>
       businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
 
-  /// The single go-live truth: the deposit is satisfied OR the free quota
-  /// covers it. Every consumer of the gate must use THIS, not bare
-  /// [canGoLive] — the pill's live state, the sheet gate and the today-override
-  /// all read it, and if they disagree the pill lies about being live.
-  bool get isGoLiveAllowed => canGoLive || isFreeQuotaAvailable;
+  /// The single go-live truth: an ACCOUNT PLAN is held, OR the legacy deposit
+  /// is satisfied, OR the free quota covers it. Every consumer of the gate
+  /// must use THIS, not bare [canGoLive] — the pill's live state, the sheet
+  /// gate and the today-override all read it, and if they disagree the pill
+  /// lies about being live.
+  ///
+  /// The plan is the gate going forward (the contribution screen sells plans
+  /// now, not deposits). The deposit term stays as an OR so a merchant who
+  /// already paid one is not knocked offline by the migration — there is no
+  /// longer any way for them to buy it back.
+  bool get isGoLiveAllowed =>
+      AccountPlanEntitlement.to.hasActivePlan.value ||
+      canGoLive ||
+      isFreeQuotaAvailable;
 
   /// Joining-bonus object embedded in the `business/:id` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
@@ -988,13 +998,15 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     if (isGoLiveAllowed) return true;
     commonSnackBar(
       message:
-          'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+          'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
     );
-    // Refresh on return so a freshly-paid deposit (reconciled server-side by
+    // Refresh on return so a freshly-bought PLAN (reconciled server-side by
     // the Razorpay webhook, with no in-app trigger) and the updated
-    // `freeOrdersUsed` are picked up.
-    Get.to(() => const ContributionScreenV2())
-        ?.then((_) => viewBusinessProfile(silent: true));
+    // `freeOrdersUsed` are both picked up.
+    Get.to(() => const ContributionScreenV2())?.then((_) {
+      viewBusinessProfile(silent: true);
+      AccountPlanEntitlement.to.refresh();
+    });
     return false;
   }
 

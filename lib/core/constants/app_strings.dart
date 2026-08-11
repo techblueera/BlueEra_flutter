@@ -6529,6 +6529,28 @@ class AppStrings {
 
   static const String myCode = "myCode";
 
+  /// ACCOUNT PLANS — dynamic paid plans (radius / gig calls / service area /
+  /// lead / booking). lib/features/account_plan/...
+  /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
+  static const String chooseYourPlan = "chooseYourPlan";
+  static const String accountPlanEntrySubtitle = "accountPlanEntrySubtitle";
+  static const String chooseVisibilityRadius = "chooseVisibilityRadius";
+  static const String chooseYourCallPlan = "chooseYourCallPlan";
+  static const String chooseServiceArea = "chooseServiceArea";
+  static const String chooseYourListing = "chooseYourListing";
+  static const String buyNow = "buyNow";
+  static const String planFree = "planFree";
+  static const String planAlreadyFree = "planAlreadyFree";
+  static const String planAlreadyActive = "planAlreadyActive";
+  static const String planActive = "planActive";
+  static const String planActivated = "planActivated";
+  static const String paymentVerifyPending = "paymentVerifyPending";
+  static const String couldNotStartPayment = "couldNotStartPayment";
+  static const String inclGstPrefix = "inclGstPrefix";
+  static const String kmVisibility = "kmVisibility";
+  static const String allIndia = "allIndia";
+  static const String noPlansForAccount = "noPlansForAccount";
+
   /// CONTRIBUTION / RECHARGE FEATURE
   /// (lib/features/contribution/...)
   static const String contributionTitle = "contributionTitle";
