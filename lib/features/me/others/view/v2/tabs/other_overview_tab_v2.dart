@@ -60,6 +60,69 @@ class OtherOverviewTabV2 extends StatelessWidget {
           (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
           (double.tryParse(coordinates[1].toString()) ?? 0.0) != 0.0;
 
+      // Gate: mirrors the school Quick-Info gate (see
+      // [_QuickInfoRequiredBanner] in school_overview_tab_v2.dart:530).
+      //   • Finance businesses must fill Banking Information (RBI status +
+      //     account types). Both fields must be empty for the banner to
+      //     trigger, so saving either one flips it off.
+      //   • Every business type on this overview (Finance + Find Services
+      //     + Automotive, etc.) must configure Business Timings — at
+      //     least one weekday flagged open with a valid open/close time.
+      //     Customers can't discover a listing that never appears "open".
+      // Both `updateBankingInfo` and the TimingScreen edit flow refetch
+      // the full profile on success
+      // (business_profile_full_controller.dart:138), so the Obx rebuilds
+      // and the relevant banner disappears automatically.
+      final isFinance = businessTypeGlobal.toUpperCase() ==
+          BusinessType.Finance.name.toUpperCase();
+      final needsBankingInfo = isFinance &&
+          data?.rbiRegistered == null &&
+          (data?.accountType?.isEmpty ?? true);
+      final needsTimings = !_hasAnyConfiguredTiming(data?.timings);
+
+      if (needsBankingInfo || needsTimings) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size16, top: SizeConfig.size10),
+              child: BusinessJoinedProfileCard(
+                  businessController: businessController),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            if (needsBankingInfo)
+              Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.size12, left: SizeConfig.size25),
+                child: _BankingRequiredBanner(
+                  onTap: () => _openBankingEditSheet(
+                    context: context,
+                    initialRbi: data?.rbiRegistered,
+                    initialAccountTypes: data?.accountType ?? const [],
+                    onSave: (rbi, types) => controller.updateBankingInfo(
+                      rbiRegistered: rbi,
+                      accountType: types,
+                    ),
+                  ),
+                ),
+              ),
+            if (needsBankingInfo && needsTimings)
+              SizedBox(height: SizeConfig.size10),
+            if (needsTimings)
+              Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.size12, left: SizeConfig.size25),
+                child: _TimingsRequiredBanner(
+                  onTap: () => Get.to(() => TimingScreen())
+                      ?.then((_) => controller.getBusinessProfileFull()),
+                ),
+              ),
+            SizedBox(height: SizeConfig.size16),
+          ],
+        );
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -135,10 +198,21 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
+          // ── Timings ──
+          Padding(
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
+            child: _TimingCard(
+              timings: data?.timings,
+              onEditTap: () => Get.to(() => TimingScreen())
+                  ?.then((_) => controller.getBusinessProfileFull()),
+            ),
+          ),
+
           Padding(
               padding: EdgeInsets.only(
-                  left: SizeConfig.size30, right: SizeConfig.size12),
+                  left: SizeConfig.size25, right: SizeConfig.size12),
               child: CommonBusinessLivePhoto(controller: businessController)),
           SizedBox(height: SizeConfig.size10),
 
@@ -193,17 +267,6 @@ class OtherOverviewTabV2 extends StatelessWidget {
           if (businessTypeGlobal.toUpperCase() ==
               BusinessType.Finance.name.toUpperCase())
             SizedBox(height: SizeConfig.size10),
-
-          // ── Timings ──
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: _TimingCard(
-              timings: data?.timings,
-              onEditTap: () => Get.to(() => TimingScreen())
-                  ?.then((_) => controller.getBusinessProfileFull()),
-            ),
-          ),
 
           // SizedBox(height: SizeConfig.size10),
 
@@ -1144,22 +1207,222 @@ class _BankingCard extends StatelessWidget {
     );
   }
 
-  Future<void> _openEditSheet(BuildContext context) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  Future<void> _openEditSheet(BuildContext context) => _openBankingEditSheet(
+        context: context,
+        initialRbi: initialRbi,
+        initialAccountTypes: initialAccountTypes,
+        onSave: onSave,
+      );
+}
+
+/// Shared entry point for the banking-info edit sheet. Called from both
+/// [_BankingCard]'s Edit/Add pill and the [_BankingRequiredBanner]'s
+/// gate CTA so the two surfaces stay in lockstep.
+Future<void> _openBankingEditSheet({
+  required BuildContext context,
+  required bool? initialRbi,
+  required List<String> initialAccountTypes,
+  required Future<bool> Function(bool rbi, List<String> types) onSave,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return _BankingEditSheet(
+        options: _BankingCard._accountTypeOptions,
+        initialRbi: initialRbi ?? false,
+        initialAccountTypes: initialAccountTypes,
+        onSave: onSave,
+      );
+    },
+  );
+}
+
+/// "Business is meaningfully open" check for the timings gate. A single
+/// weekday flagged open with valid open/close times is enough — the user
+/// doesn't have to fill all seven days, they just have to prove they've
+/// engaged with the timings form. Matches the school gate rule where any
+/// non-empty required field flips the banner off.
+bool _hasAnyConfiguredTiming(Timings? t) {
+  if (t == null) return false;
+  final days = <DayTiming?>[
+    t.monday,
+    t.tuesday,
+    t.wednesday,
+    t.thursday,
+    t.friday,
+    t.saturday,
+    t.sunday,
+  ];
+  return days.any((d) =>
+      d != null &&
+      d.isOpen == true &&
+      (d.openTime?.isNotEmpty ?? false) &&
+      (d.closeTime?.isNotEmpty ?? false));
+}
+
+/// Profile-completion gate for Finance businesses. Mirrors
+/// `_QuickInfoRequiredBanner` in `school_overview_tab_v2.dart`: full-width
+/// bordered card with a centered icon, heading, message and primary CTA
+/// button. Surfaces above the rest of the overview when the business is
+/// Finance-typed but hasn't saved RBI status or account types yet, and
+/// disappears the moment either field is saved (the parent's Obx
+/// re-runs after `updateBankingInfo` refetches the profile).
+class _BankingRequiredBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _BankingRequiredBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      builder: (ctx) {
-        return _BankingEditSheet(
-          options: _accountTypeOptions,
-          initialRbi: initialRbi ?? false,
-          initialAccountTypes: initialAccountTypes,
-          onSave: onSave,
-        );
-      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.emptyIcon,
+            height: 60,
+            width: 60,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomText(
+            'Complete your Banking Information',
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
+          SizedBox(height: SizeConfig.size8),
+          CustomText(
+            'Please fill in your RBI Registration status and Account '
+            'Types — this information is required before the rest of '
+            'your profile can be displayed.',
+            fontSize: 13,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+            maxLines: 5,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16,
+                vertical: SizeConfig.size10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.account_balance_outlined,
+                      color: Colors.white, size: 16),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    'Fill Banking Info',
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Profile-completion gate for Business Timings. Same shape as
+/// [_BankingRequiredBanner] — surfaces above the rest of the overview
+/// when the business hasn't configured a single open day, and
+/// disappears once TimingScreen saves (parent refetches the profile on
+/// return, the Obx re-runs, the gate re-evaluates).
+class _TimingsRequiredBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _TimingsRequiredBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.emptyIcon,
+            height: 60,
+            width: 60,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomText(
+            'Set your Business Timings',
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
+          SizedBox(height: SizeConfig.size8),
+          CustomText(
+            'Please set the days and hours your business is open — this '
+            'is required before the rest of your profile can be '
+            'displayed so customers know when they can reach you.',
+            fontSize: 13,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+            maxLines: 5,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16,
+                vertical: SizeConfig.size10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.schedule_outlined,
+                      color: Colors.white, size: 16),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    'Set Timings',
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

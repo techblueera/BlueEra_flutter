@@ -104,11 +104,18 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
   }
 
   void _goToAddService() {
+    // Refetch on return — the AI + confirm flow ends with `Get.close(2)`
+    // back to this screen without touching [serviceController.serviceDataList],
+    // so without this the newly-created service never shows up in the grid.
+    // Fires for cancels too, which is cheap and keeps a single code path.
     Get.to(() => ServiceUploadScreen(
           providerType: widget.providerType,
           channelId: widget.channelId,
           enableBankingHints: widget.enableBankingHints,
-        ));
+        ))?.then((_) {
+      if (!mounted) return;
+      serviceController.getBusinessServices(queryParams);
+    });
   }
 
   @override

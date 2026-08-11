@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
@@ -186,37 +187,35 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
         children: [
           SizedBox(height: SizeConfig.paddingXSL),
           Expanded(
-            child: ListView.builder(
+            child: MasonryGridView.count(
               padding: EdgeInsets.only(
                 left: SizeConfig.size12,
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL,
               ),
-              // Trailing row is a plain spinner while `fetchMore` is in
-              // flight. The global ProgressDialog / ShimmerListView overlay
-              // is suppressed for this endpoint (see
-              // [OtherServiceBusinessSearchController._fetch]'s
-              // `showProgress: false`), so this is the only loader that
-              // renders during pagination.
-              itemCount: controller.profiles.length +
-                  (controller.isLoadingMore.value ? 1 : 0),
+              crossAxisCount: 2,
+              mainAxisSpacing: dynamicSize(12),
+              crossAxisSpacing: dynamicSize(12),
+              itemCount: controller.profiles.length,
               itemBuilder: (context, index) {
-                if (index >= controller.profiles.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
                 final item = controller.profiles[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: dynamicSize(12)),
-                  child: ServiceBusinessCard(item: item, index: index),
-                );
+                return ServiceBusinessCard(item: item, index: index);
               },
             ),
           ),
+          // The global ProgressDialog / ShimmerListView overlay is
+          // suppressed for this endpoint (see
+          // [OtherServiceBusinessSearchController._fetch]'s
+          // `showProgress: false`), so this footer is the only loader
+          // that renders during pagination. Kept outside the grid so it
+          // doesn't take up a single tile's worth of space in one column.
+          if (controller.isLoadingMore.value)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
         ],
       );
     });

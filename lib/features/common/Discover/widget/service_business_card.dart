@@ -1,11 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/business/widgets/rating_widget.dart';
+import 'package:BlueEra/features/common/Discover/controller/other_service_business_search_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
@@ -13,74 +16,26 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/common_methods.dart';
-import '../../../business/widgets/rating_widget.dart';
-import '../controller/other_service_business_search_controller.dart';
+/// Card surface for the service tile. Matches the two-up school listing
+/// (`AllEducationServiceScreen.selfProfessionCard`) — plain white with a
+/// hairline border so cover imagery reads cleanly when two tiles sit
+/// side by side.
+const Color _kCardBorder = Color(0xFFE9EBF0);
+const Color _kCardDivider = Color(0xFFEDEFF3);
 
-/// Tinted surface set for a service card. Mirrors the palette rotation used
-/// by [SelfProfessionDiscoverScreenV2] so both discover directories share the
-/// same visual family — the whole card body picks up the tint (lighter wash)
-/// while the inner "Expertise" tile uses the fuller hue.
-class _CardPalette {
-  final Color cardBg;
-  final Color cardBorder;
-  final Color tileBg;
-  final Color tileBorder;
-  final Color dividerLine;
-  final Color bodyDashedDivider;
-
-  const _CardPalette({
-    required this.cardBg,
-    required this.cardBorder,
-    required this.tileBg,
-    required this.tileBorder,
-    required this.dividerLine,
-    required this.bodyDashedDivider,
-  });
-}
-
-/// Two-palette rotation — cards alternate as the user scrolls. The `tileBg`
-/// values are the hexes the design spec supplies (`#DBFAFD`, `#F7E6FF`);
-/// `cardBg` is the ~50%-to-white washout of the same hue so the outer surface
-/// is visibly the "lighter version" of the inner Expertise tile.
-/// `bodyDashedDivider` is the hue used for the dashed rule between the header
-/// block and the Expertise tile — a different shade per palette so the divider
-/// visibly belongs to its card (`#BBE3E8` for the teal card, `#E3D4E9` for
-/// the lavender card).
-const List<_CardPalette> _cardPalettes = <_CardPalette>[
-  _CardPalette(
-    cardBg: Color(0xFFEDFCFE),
-    cardBorder: Color(0xFFCFEEF2),
-    tileBg: Color(0xFFDBFAFD),
-    tileBorder: Color(0xFFBFE9EE),
-    dividerLine: Color(0xFFBFE9EE),
-    bodyDashedDivider: Color(0xFFBBE3E8),
-  ),
-  _CardPalette(
-    cardBg: Color(0xFFFBF2FF),
-    cardBorder: Color(0xFFEDD3F7),
-    tileBg: Color(0xFFF7E6FF),
-    tileBorder: Color(0xFFE5C6F5),
-    dividerLine: Color(0xFFE5C6F5),
-    bodyDashedDivider: Color(0xFFE3D4E9),
-  ),
-];
-
-/// Service-style business card used by the "Services Near Me" screen.
-///
-/// Bound to [OtherServiceBusinessItem] returned by
-/// `other-service/business-profile/search`. Visual structure mirrors the
-/// electrician spec-card (see `SelfProfessionDiscoverScreenV2._buildSpecCard`)
-/// so both directories feel uniform: hero (share / rate stack) → body row
-/// (avatar, name, ★ rating, Open pill) → "Expertise" tile with a two-column
-/// checklist derived from `services[].title` → Price Range + Book Now row.
-/// Missing values collapse gracefully. Palette rotates on [index] so
-/// alternating cards read as a set rather than a wall of identical tiles.
+/// Service-style business card used by the "Services Near Me" and
+/// Automotive Other Services directories. Bound to
+/// [OtherServiceBusinessItem] returned by
+/// `other-service/business-profile/search`. Compact 2-up tile: hero
+/// (category label overlay + share/rate stack + Open pill) → business
+/// name → ★ rating + sub-category → location row → hairline → Price
+/// Range. Missing values collapse gracefully.
 class ServiceBusinessCard extends StatelessWidget {
   final OtherServiceBusinessItem item;
 
-  /// Card position in the list — drives the palette rotation.
+  /// Card position in the list — retained for API compatibility with the
+  /// existing callers; the tile itself is a flat white surface so no
+  /// palette rotation is needed.
   final int index;
 
   /// Category-themed placeholder shown on the hero when the business has
@@ -96,13 +51,12 @@ class ServiceBusinessCard extends StatelessWidget {
     this.fallbackHeroImageUrl,
   });
 
-  _CardPalette get _palette =>
-      _cardPalettes[index.abs() % _cardPalettes.length];
-
   // ─── DERIVED VALUES ──────────────────────────────────────────────
   OtherBusinessProfile? get _profile => item.profile;
 
   String get _heroImage {
+    final logoUrl = _profile?.logoUrl?.trim() ?? '';
+    if (logoUrl.isNotEmpty) return logoUrl;
     final cover = _profile?.coverUrl?.trim() ?? '';
     if (cover.isNotEmpty) return cover;
     final fromGallery = item.gallery
@@ -116,29 +70,26 @@ class ServiceBusinessCard extends StatelessWidget {
     return fallbackHeroImageUrl?.trim() ?? '';
   }
 
-  String get _avatarUrl {
-    final cover = _profile?.logoUrl?.trim() ?? '';
-    if (cover.isNotEmpty) return cover;
-    return item.management
-        .map((m) => m.imageUrl ?? '')
-        .firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
-  }
-
   String get _ratingText {
     final r = _profile?.rating ?? 0;
     return r > 0 ? r.toStringAsFixed(1) : '';
   }
 
-  /// Returns "Open | HH:MM - HH:MM" for today if open, else "Closed".
-  ({String label, bool isOpen}) get _todayStatus {
+  /// Sub-category shown next to the rating — falls back to the top-level
+  /// category so the slot still carries a meaningful label when the
+  /// listing hasn't set a sub-category yet.
+  String get _subCategoryText {
+    final sub = _profile?.subCategoryDetailsName?.trim() ?? '';
+    if (sub.isNotEmpty) return sub;
+    return _profile?.categoryDetailsName?.trim() ?? '';
+  }
+
+  /// Category label rendered as an overlay at the top-left of the hero.
+  String get _categoryLabel => _profile?.categoryDetailsName?.trim() ?? '';
+
+  bool get _isOpenToday {
     final today = item.timings?.forWeekday(DateTime.now().weekday);
-    if (today != null && today.hasHours) {
-      return (
-        label: 'Open | ${today.openTime} - ${today.closeTime}',
-        isOpen: true
-      );
-    }
-    return (label: 'Closed', isOpen: false);
+    return today != null && today.hasHours;
   }
 
   /// "₹1,499-2,000" / "₹1,499+" / "Up to ₹2,000" / "" (empty when nothing set).
@@ -147,7 +98,7 @@ class ServiceBusinessCard extends StatelessWidget {
     if (pr == null || !pr.hasAnyValue) return '';
     final min = pr.min;
     final max = pr.max;
-    if (min != null && max != null) return '₹${_fmt(min)}-${_fmt(max)}';
+    if (min != null && max != null) return '₹${_fmt(min)} - ${_fmt(max)}';
     if (min != null) return '₹${_fmt(min)}+';
     if (max != null) return 'Up to ₹${_fmt(max)}';
     return '';
@@ -158,12 +109,6 @@ class ServiceBusinessCard extends StatelessWidget {
     if (b.isNotEmpty) return b;
     return _profile?.profileName?.trim() ?? '';
   }
-
-  List<String> get _serviceTitles => item.services
-      .where((s) => s.isDeleted != true)
-      .map((s) => s.title?.trim() ?? '')
-      .where((t) => t.isNotEmpty)
-      .toList();
 
   String _fmt(num n) {
     final s = n.toInt().toString();
@@ -178,29 +123,44 @@ class ServiceBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _palette;
     return InkWell(
       onTap: _openStore,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: palette.cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: palette.cardBorder, width: 1),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _kCardBorder, width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x14001120),
-              blurRadius: 18,
-              offset: Offset(0, 6),
+              color: Color(0x0F001120),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHero(context),
-            _buildBody(),
+            _buildCoverSection(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size10,
+                SizeConfig.size10,
+                SizeConfig.size10,
+                SizeConfig.size10,
+              ),
+              child: _buildInfoBlock(),
+            ),
+            if (_priceRangeText.isNotEmpty) ...[
+              Container(height: 1, color: _kCardDivider),
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: _buildPriceRow(),
+              ),
+            ],
           ],
         ),
       ),
@@ -208,200 +168,214 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   // ─── HERO ─────────────────────────────────────────────────────────
-  Widget _buildHero(BuildContext context) {
+  /// Uses an [AspectRatio] so the cover scales with tile width across
+  /// phone (2-col) and tablet (3/4-col) breakpoints — same pattern as
+  /// the school tile's `_buildCoverSection`.
+  Widget _buildCoverSection() {
     final heroImage = _heroImage;
-
-    return SizedBox(
-      height: 175,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: heroImage.isNotEmpty
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      child: AspectRatio(
+        aspectRatio: 1.2,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            heroImage.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: heroImage,
                     fit: BoxFit.cover,
-                    memCacheWidth: 800,
-                    placeholder: (_, __) =>
-                        Container(color: const Color(0xFFEDEFF4)),
+                    memCacheWidth: 600,
+                    placeholder: (_, __) => Container(color: AppColors.greyE5),
                     errorWidget: (_, __, ___) => Container(
-                      color: const Color(0xFFEDEFF4),
+                      color: AppColors.greyE5,
                       child: const Icon(Icons.image_outlined,
-                          size: 40, color: Colors.grey),
+                          size: 32, color: Colors.grey),
                     ),
                   )
                 : Container(
-                    color: const Color(0xFFEDEFF4),
+                    color: AppColors.greyE5,
                     child: const Icon(Icons.image_outlined,
-                        size: 40, color: Colors.grey),
+                        size: 32, color: Colors.grey),
                   ),
-          ),
+            // Top gradient wash so the white category label stays legible
+            // over busy cover imagery.
+            Positioned(
+              top: SizeConfig.size6,
+              right: SizeConfig.size6,
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: _shareBusiness,
+                    child: _circleIcon(AppIconAssets.share_bold),
+                  ),
+                  SizedBox(height: SizeConfig.size6),
+                  GestureDetector(
+                    onTap: _onRateTap,
+                    child: _circleIcon(AppIconAssets.star_rounded),
+                  ),
+                ],
+              ),
+            ),
+            if (_isOpenToday)
+              Positioned(
+                bottom: SizeConfig.size6,
+                right: SizeConfig.size6,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size6,
+                    vertical: SizeConfig.size3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF2FFF2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.greenShade, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time,
+                          size: SizeConfig.size12, color: AppColors.greenShade),
+                      SizedBox(width: SizeConfig.size3),
+                      CustomText(
+                        'Open',
+                        fontSize: SizeConfig.extraSmall,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.greenShade,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          // ── Action icons (top-right) ──
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Column(
-              children: [
-                _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
-                SizedBox(height: SizeConfig.size8),
-                _circleIconBtn(AppIconAssets.star_rounded, onTap: _onRateTap),
-              ],
+  Widget _circleIcon(String icon) {
+    return Container(
+      width: SizeConfig.size26,
+      height: SizeConfig.size26,
+      decoration: const BoxDecoration(
+        color: AppColors.black25,
+        shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size6),
+        child: LocalAssets(
+          imagePath: icon,
+          imgColor: AppColors.white,
+        ),
+      ),
+    );
+  }
+
+  // ─── INFO BLOCK ──────────────────────────────────────────────────
+  Widget _buildInfoBlock() {
+    final name = _displayName;
+    final rating = _ratingText;
+    final subCategory = _subCategoryText;
+    final loc = _profile?.businessLocation;
+    final hasCoords = loc?.isValid ?? false;
+    final km = hasCoords ? calculateDistance(loc!.lat!, loc.lng!) : null;
+    final distance = _formatDistance(km);
+    final address = _resolveAddress();
+    final showLocation = distance.isNotEmpty || address.isNotEmpty;
+    final showMeta = rating.isNotEmpty || subCategory.isNotEmpty;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: hasCoords ? () => _showMapBottomSheet(Get.context!) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (name.isNotEmpty)
+            CustomText(
+              name,
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black22,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          if (showMeta) ...[
+            SizedBox(height: SizeConfig.size4),
+            _buildMetaRow(rating, subCategory),
+          ],
+          if (showLocation) ...[
+            SizedBox(height: SizeConfig.size4),
+            _buildLocationRow(distance, address),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatDistance(double? km) {
+    if (km == null) return '';
+    if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m away';
+    if (km < 10) return '${km.toStringAsFixed(1)}km away';
+    return '${km.toStringAsFixed(0)}km away';
+  }
+
+  /// ★ 4.8 | HR & Placement Agency — sub-category sits inline with the
+  /// rating per the design (img.png). Both halves ellipsize together so
+  /// a long sub-category still leaves the rating visible.
+  Widget _buildMetaRow(String rating, String subCategory) {
+    final separator = TextSpan(
+      text: '  |  ',
+      style: TextStyle(
+        color: AppColors.greyE5,
+        fontSize: SizeConfig.extraSmall,
+      ),
+    );
+
+    return Row(
+      children: [
+        if (rating.isNotEmpty) ...[
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size12,
+            height: SizeConfig.size12,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            rating,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
+          ),
+        ],
+        if (subCategory.isNotEmpty)
+          Flexible(
+            child: RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  if (rating.isNotEmpty) separator,
+                  TextSpan(
+                    text: subCategory,
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
-    return Material(
-      color: Colors.black.withValues(alpha: 0.38),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: EdgeInsets.all(SizeConfig.size8),
-          child: LocalAssets(
-            imagePath: icon,
-            imgColor: AppColors.white,
-            height: SizeConfig.size14,
-            width: SizeConfig.size14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── BODY ────────────────────────────────────────────────────────
-  Widget _buildBody() {
-    final titles = _serviceTitles;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12, SizeConfig.size14, 0),
-          child: _buildHeaderRow(),
-        ),
-        if (titles.isNotEmpty) ...[
-          SizedBox(height: SizeConfig.size12),
-          _DashedDivider(color: _palette.bodyDashedDivider),
-          SizedBox(height: SizeConfig.size12),
-          Padding(
-            padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, 0),
-            child: _buildExpertiseBox(titles),
-          ),
-        ],
-        SizedBox(height: SizeConfig.size14),
-        Padding(
-          padding: EdgeInsets.fromLTRB(SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size10),
-          child: _buildFooterRow(),
-        ),
       ],
     );
   }
 
-  Widget _buildHeaderRow() {
-    final status = _todayStatus;
-    final rating = _ratingText;
-    final name = _displayName;
-    final loc = _profile?.businessLocation;
-    final hasCoords = loc?.isValid ?? false;
-    final km = hasCoords ? calculateDistance(loc!.lat!, loc.lng!) : null;
-    final distanceText = km != null ? '${km.toStringAsFixed(0)}KM Away' : '';
-    final address = _resolveAddress();
-    final showLocationRow = distanceText.isNotEmpty || address.isNotEmpty;
-
-    return GestureDetector(
-      onTap: hasCoords ? () => _showMapBottomSheet(Get.context!) : null,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Avatar tap opens this listing's [OthersServiceDetailScreen]
-          // (same target as "Book Now"). `HitTestBehavior.opaque` stops
-          // the tap from falling through to the outer map-sheet gesture.
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _openStore,
-            // Figma spec: 50×50 avatar (matches _schoolLogo in
-            // all_education_service_screen.dart). White border removed
-            // because `CachedAvatarWidget` draws a 1.5px inset border
-            // per side and clips the inner image to `borderRadius-1`,
-            // which was shrinking the visible content to ~47×47.
-            child: CachedAvatarWidget(
-              imageUrl: _avatarUrl,
-              size: 50,
-              borderRadius: 25,
-              showProfileOnFullScreen: false,
-            ),
-          ),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (name.isNotEmpty)
-                  CustomText(
-                    name,
-                    fontSize: SizeConfig.size16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black22,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                SizedBox(height: SizeConfig.size6),
-                Row(
-                  children: [
-                    if (rating.isNotEmpty) ...[
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Color(0xffDDE2EE)),
-                        ),
-                        child: Row(
-                          children: [
-                            LocalAssets(
-                              imagePath: AppIconAssets.fill_star,
-                              width: SizeConfig.size10,
-                              height: SizeConfig.size10,
-                              imgColor: AppColors.yellow,
-                            ),
-                            SizedBox(width: SizeConfig.size3),
-                            CustomText(
-                              rating,
-                              fontSize: SizeConfig.size10,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                    ],
-                    Flexible(child: _buildOpenPill(status)),
-                  ],
-                ),
-                if (showLocationRow) ...[
-                  SizedBox(height: SizeConfig.size6),
-                  _buildLocationRow(distanceText, address),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Inline distance + " | " + address, styled the same as the pre-redesign
-  /// header (pin + primary-coloured distance + secondary-coloured address).
-  /// The whole header row already dispatches the map bottom-sheet on tap,
-  /// so this widget stays a passive display.
+  /// Inline distance + " | " + address, styled the same as the school
+  /// tile's location row so both discover directories share the pin +
+  /// primary-coloured distance + secondary-coloured address treatment.
   Widget _buildLocationRow(String distanceText, String address) {
     return Row(
       children: [
@@ -423,7 +397,7 @@ class ServiceBusinessCard extends StatelessWidget {
                     text: distanceText,
                     style: TextStyle(
                       color: AppColors.primaryColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -432,7 +406,7 @@ class ServiceBusinessCard extends StatelessWidget {
                     text: '  |  ',
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                     ),
                   ),
                 if (address.isNotEmpty)
@@ -440,7 +414,7 @@ class ServiceBusinessCard extends StatelessWidget {
                     text: address,
                     style: TextStyle(
                       color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.size8,
+                      fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -452,146 +426,42 @@ class ServiceBusinessCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOpenPill(({String label, bool isOpen}) status) {
-    final fg = status.isOpen ? AppColors.green00 : AppColors.grey83;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xffDDE2EE)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.clock_new,
-            imgColor: fg,
-            height: 10,
-            width: 10,
-          ),
-          SizedBox(width: SizeConfig.size5),
-          Flexible(
-            child: CustomText(
-              status.label,
-              fontSize: SizeConfig.size10,
-              fontWeight: FontWeight.w500,
-              color: fg,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── EXPERTISE BOX ─────────────────────────────────────────────
-  /// "Expertise" checklist — mirrors the electrician spec card. Titles
-  /// come from `services[].title`; when there are more than 6 we render
-  /// the first 5 and place "+N more services" in the 6th cell so the
-  /// grid stays neatly aligned. Fill / border / divider hues come from
-  /// the card's palette so the tile visibly belongs to its parent card.
-  Widget _buildExpertiseBox(List<String> titles) {
-    const int maxVisible = 6;
-    final showMore = titles.length > maxVisible;
-    final visible = showMore
-        ? titles.sublist(0, maxVisible - 1)
-        : titles.sublist(0, titles.length);
-    final extra = showMore ? titles.length - visible.length : 0;
-    final palette = _palette;
-
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: palette.tileBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: palette.tileBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            'Expertise',
-            fontSize: SizeConfig.size13,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black22,
-          ),
-          SizedBox(height: SizeConfig.size8),
-          _DashedDivider(color: _palette.bodyDashedDivider),
-          SizedBox(height: SizeConfig.size10),
-          _servicesGrid(visible, extra),
-        ],
-      ),
-    );
-  }
-
-  Widget _servicesGrid(List<String> items, int extra) {
-    final cells = <Widget>[
-      ...items.map(_serviceCheckItem),
-      if (extra > 0) _moreServicesLink(extra),
-    ];
-    final rows = <Widget>[];
-    for (var i = 0; i < cells.length; i += 2) {
-      rows.add(Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: cells[i]),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child:
-                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
-          ),
-        ],
-      ));
-      if (i + 2 < cells.length) rows.add(SizedBox(height: SizeConfig.size8));
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: rows,
-    );
-  }
-
-  Widget _serviceCheckItem(String text) {
+  /// Footer line below the hairline — label above value, keeps the same
+  /// visual weight as the school tile's students row so both cards feel
+  /// like siblings.
+  Widget _buildPriceRow() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        LocalAssets(
-          imagePath: AppIconAssets.expertiesIcon,
-          height: SizeConfig.size15,
-          width: SizeConfig.size15,
-        ),
-        SizedBox(width: SizeConfig.size6),
         Expanded(
-          child: CustomText(
-            text,
-            fontSize: SizeConfig.size12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.secondaryTextColor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                'Price Range',
+                fontSize: SizeConfig.extraSmall,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey7E,
+              ),
+              SizedBox(height: SizeConfig.size2),
+              CustomText(
+                _priceRangeText,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _moreServicesLink(int extra) {
-    return InkWell(
-      onTap: _openStore,
-      child: CustomText(
-        '+$extra more services',
-        fontSize: SizeConfig.size12,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFFE53935),
-      ),
-    );
-  }
-
   String _resolveAddress() {
-    final locationAddress = _profile?.location?.address?.trim() ?? '';
-    if (locationAddress.isNotEmpty) return locationAddress;
-    return '';
+    return _profile?.location?.address?.trim() ?? '';
   }
 
   void _showMapBottomSheet(BuildContext context) {
@@ -605,39 +475,6 @@ class ServiceBusinessCard extends StatelessWidget {
       destinationLng: loc.lng!,
       livePhotos: const <String>[],
       visitCallback: _openStore,
-    );
-  }
-
-  // ─── FOOTER ROW (inline; shares the card's tinted background) ────
-  Widget _buildFooterRow() {
-    final priceText = _priceRangeText;
-    return Row(
-      children: [
-        if (priceText.isNotEmpty)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  'Price Range',
-                  fontSize: SizeConfig.size12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.grey7E,
-                ),
-                SizedBox(height: SizeConfig.size2),
-                CustomText(
-                  priceText,
-                  fontSize: SizeConfig.size16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryColor,
-                ),
-              ],
-            ),
-          )
-        else
-          const Spacer(),
-        _BookNowBtn(onTap: _openStore),
-      ],
     );
   }
 
@@ -685,88 +522,6 @@ class ServiceBusinessCard extends StatelessWidget {
       text:
           "Check out ${_profile?.businessName ?? 'this profile'} on BlueEra:\n$shareLink",
       subject: _profile?.businessName,
-    );
-  }
-}
-
-/// Full-width dashed horizontal rule. Used inside the card body to separate
-/// the header block from the "Expertise" tile — a hairline felt too heavy
-/// against the tinted card background.
-class _DashedDivider extends StatelessWidget {
-  final Color color;
-
-  const _DashedDivider({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1,
-      width: double.infinity,
-      child: CustomPaint(painter: _DashedLinePainter(color: color)),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  static const double _dashWidth = 4;
-  static const double _dashSpace = 4;
-  static const double _thickness = 1;
-
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = _thickness
-      ..strokeCap = StrokeCap.round;
-    final y = size.height / 2;
-    double x = 0;
-    while (x < size.width) {
-      final endX = (x + _dashWidth).clamp(0.0, size.width);
-      canvas.drawLine(Offset(x, y), Offset(endX, y), paint);
-      x += _dashWidth + _dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
-}
-
-class _BookNowBtn extends StatelessWidget {
-  final VoidCallback onTap;
-  const _BookNowBtn({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        // height: 44,
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(
-              "Inquiry Now",
-              fontSize: SizeConfig.size14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
-            ),
-            SizedBox(width: SizeConfig.size8),
-            Icon(Icons.arrow_forward_rounded,
-                size: SizeConfig.size16, color: AppColors.white),
-          ],
-        ),
-      ),
     );
   }
 }

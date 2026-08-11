@@ -262,6 +262,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     //   3. `galleryPhotos` — last resort so a school with no explicit
     //      cover still shows something.
     final List<String> coverImages = <String>[];
+    if ((service.logo ?? '').trim().isNotEmpty) {
+      coverImages.add(service.logo!.trim());
+    }
     if ((service.coverPicture ?? '').trim().isNotEmpty) {
       coverImages.add(service.coverPicture!.trim());
     }
