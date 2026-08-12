@@ -104,15 +104,22 @@ class SecurityDepositController extends GetxController {
   String get tagId =>
       isBusinessUser() ? businessCategoryGlobal : userProfessionGlobal;
 
+  /// Videos only.
+  ///
+  /// The single place that constructs this controller is `ContributionScreen`,
+  /// and it reads exactly one thing: [videos], from `/security-deposit/videos`.
+  /// The deposit catalog, the held-deposit status and the GST rate used to be
+  /// fetched here too, which cost three unread requests on every open of that
+  /// screen once it moved to Account Plans.
+  ///
+  /// The deposit half of this controller is intact and still correct — whoever
+  /// rewires the go-live gate onto `/account-plan/my-plans` (or brings a deposit
+  /// screen back) should call [fetchCurrent], [fetchPlans] and [fetchGstConfig]
+  /// from that host, together, since the catalog prices itself off the rate.
   @override
   void onInit() {
     super.onInit();
-    fetchCurrent();
-    fetchPlans();
     fetchVideos();
-    // Alongside the plan fetch: the catalog prices itself off the rate, so it
-    // has to be in flight from the same moment the plans are.
-    fetchGstConfig();
   }
 
   /// Loads the current GST rate for display. Non-fatal on every failure path —

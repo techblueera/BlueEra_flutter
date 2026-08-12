@@ -61,14 +61,11 @@ mixin UserServiceApi {
   final String verifyMobileUpdateOtp =
       'user-service/user/verify-mobile-update-otp';
 
-  // ── Aadhaar OKYC (OTP) identity verification ────────────────────────
-  // Generic per-user Aadhaar KYC via UIDAI OKYC OTP (Sandbox.co.in). The
-  // verified result is stored against the user account, independent of any
-  // business / rider flow. See
-  // docs/backend/aadhaar-verification-ui-integration.md.
-  final String aadhaarStatus = 'user-service/user/aadhaar/status';
-  final String aadhaarGenerateOtp = 'user-service/user/aadhaar/generate-otp';
-  final String aadhaarVerifyOtp = 'user-service/user/aadhaar/verify-otp';
+  // The Aadhaar OKYC (OTP) endpoints — `/user/aadhaar/{status,generate-otp,
+  // verify-otp}` — were removed with the OTP flow. Aadhaar is verified by card
+  // photo now: `aiDocumentVerify` (ai_service_api.dart) checks the images, and
+  // the result is recorded against whichever record the host owns — the rider
+  // onboarding step, or the document-service tile.
   final String userVerifyGst = "user-service/user/verify-gst";
   final String user_project = "user-service/user/project/";
   final String user_experience = "user-service/user/experience/";

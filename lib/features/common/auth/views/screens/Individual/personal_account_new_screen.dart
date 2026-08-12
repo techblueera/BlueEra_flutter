@@ -17,6 +17,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_locked_field.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -204,27 +205,9 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   }
 
   /// Marks a field as coming from the verified card, so a read-only input
-  /// reads as "already answered" rather than broken.
-  Widget _aadhaarLockedNote() {
-    return Padding(
-      padding: EdgeInsets.only(top: SizeConfig.size6),
-      child: Row(
-        children: [
-          Icon(Icons.verified_user_rounded, size: 13, color: AppColors.green00),
-          SizedBox(width: SizeConfig.size4),
-          Expanded(
-            child: CustomText(
-              AppStrings.aadhaarVerified.tr,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.green00,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  /// reads as "already answered" rather than broken. Shared with the profile
+  /// EDIT surfaces, which lock the same three fields for the same reason.
+  Widget _aadhaarLockedNote() => const AadhaarLockedNote();
 
   /// Pre-fills the name + profile image from the existing guest user (if any)
   /// so a guest upgrading to a full account doesn't re-enter what they already

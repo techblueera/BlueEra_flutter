@@ -17,7 +17,7 @@ import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../chat/auth/service/location_update_service.dart';
-import '../../../../contribution/view/contribution_screen_v2.dart';
+import '../../../../contribution/view/contribution_screen.dart';
 import '../widget/changes_languages_screen.dart';
 
 class AccountSettingScreen extends StatefulWidget {
@@ -145,7 +145,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                 AppIconAssets.app_setting_manage_subscription,
                 AppStrings.contribute,
                     () {
-                      Get.to(() => const ContributionScreenV2());
+                      Get.to(() => const ContributionScreen());
                   // accountController.setIndex("6");
                   // accountController.setTitle("Manage Subscription");
                 },

@@ -23,6 +23,13 @@ import 'package:get/get_utils/src/extensions/internacionalization.dart';
 /// sit on `ReferEarnPill`, which is now static so the two don't compete. The
 /// blink pauses while [isUpdating] (a pulsing spinner reads as a glitch) and
 /// can be turned off per-placement with [blink].
+///
+/// **The clock.** Schedule-driven placements (every business dashboard + the
+/// professional/consultant one) pass [onScheduleTap], which renders a small
+/// clock button immediately to the LEFT of the pill. That button — not the
+/// pill — is where visiting hours are set and edited, so the pill itself is
+/// left free to be a plain on/off switch. Placements whose go-live is a direct
+/// online/offline flip (rider, self-employed) omit it and are unchanged.
 class GoLivePill extends StatefulWidget {
   const GoLivePill({
     super.key,
@@ -32,6 +39,7 @@ class GoLivePill extends StatefulWidget {
     this.label,
     this.showShadow = true,
     this.blink = true,
+    this.onScheduleTap,
   });
 
   /// Whether the shop is currently live (toggle ON). The screen owns this.
@@ -39,6 +47,10 @@ class GoLivePill extends StatefulWidget {
 
   /// Tap handler — flips the live state. Disabled while [isUpdating].
   final VoidCallback onTap;
+
+  /// Opens the visiting-hours control. When non-null a clock button is drawn
+  /// just left of the pill; null (the default) draws the pill alone.
+  final VoidCallback? onScheduleTap;
 
   /// Shows a spinner in place of the toggle while a status update is pending.
   final bool isUpdating;
@@ -108,7 +120,7 @@ class _GoLivePillState extends State<GoLivePill>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final pill = GestureDetector(
       onTap: widget.isUpdating ? null : widget.onTap,
       child: AnimatedBuilder(
         animation: _pulse,
@@ -117,6 +129,63 @@ class _GoLivePillState extends State<GoLivePill>
           final t = (widget.blink && !widget.isUpdating) ? _pulse.value : 0.0;
           return _buildPill(t);
         },
+      ),
+    );
+
+    if (widget.onScheduleTap == null) return pill;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _scheduleButton(),
+        SizedBox(width: SizeConfig.size6),
+        pill,
+      ],
+    );
+  }
+
+  /// Clock button that opens the visiting-hours control. Deliberately static —
+  /// it sits beside a blinking pill, and two competing animations in one corner
+  /// of the header read as noise.
+  Widget _scheduleButton() {
+    return GestureDetector(
+      onTap: widget.isUpdating ? null : widget.onScheduleTap,
+      behavior: HitTestBehavior.opaque,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            if (widget.showShadow)
+              const BoxShadow(
+                color: Color(0x1A000000),
+                blurRadius: 3,
+                offset: Offset(0, -1),
+              ),
+          ],
+        ),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            // Sized to match the notification / menu circle buttons beside it
+            // (36 box, 20 icon) — a smaller circle in the same row reads as a
+            // different class of control rather than a sibling.
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(color: _restBorder, width: 1),
+              ),
+              child: Icon(
+                Icons.schedule_rounded,
+                size: 20,
+                color: AppColors.secondaryTextColor,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

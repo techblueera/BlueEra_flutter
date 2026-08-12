@@ -77,10 +77,16 @@ class AuthRepo extends BaseService {
   }
 
   /// Get Verify GST REPO...
+  ///
+  /// [showProgress] is false by default: both callers — the signup screen and
+  /// the account-plan GST sheet — put their own Submit button into a loading
+  /// state for the duration, and a blocking overlay stacked on top of that
+  /// reads as the app having frozen rather than as the button working.
   Future<ResponseModel> getUserVerifyGstRepo(
-      {required String? gstNumber}) async {
+      {required String? gstNumber, bool showProgress = false}) async {
     final response = await ApiBaseHelper().getHTTP(
         "${userVerifyGst}?${ApiKeys.gst_no}=$gstNumber",
+        showProgress: showProgress,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

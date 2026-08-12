@@ -128,48 +128,10 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
-  // ── Aadhaar OKYC (OTP) verification (be_user_service) ──────────────
-  // Generic per-user Aadhaar identity verification. See
-  // docs/backend/aadhaar-verification-ui-integration.md.
-
-  /// GET current Aadhaar verification status for the logged-in user.
-  Future<ResponseModel> aadhaarStatusRepo() async {
-    var response = await ApiBaseHelper().getHTTP(
-      aadhaarStatus,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  /// POST — send an OTP to the Aadhaar-linked mobile.
-  /// [params] = { aadhaar_number, consent: "Y", reason? }.
-  Future<ResponseModel> aadhaarGenerateOtpRepo(
-      {required Map<String, dynamic> params}) async {
-    var response = await ApiBaseHelper().postHTTP(
-      aadhaarGenerateOtp,
-      params: params,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  /// POST — verify the 6-digit OTP against the reference_id from generate-otp.
-  /// [params] = { reference_id, otp }.
-  Future<ResponseModel> aadhaarVerifyOtpRepo(
-      {required Map<String, dynamic> params}) async {
-    var response = await ApiBaseHelper().postHTTP(
-      aadhaarVerifyOtp,
-      params: params,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
+  // The Aadhaar OKYC wrappers (status / generate-otp / verify-otp) went with
+  // the OTP flow. Aadhaar is verified by card photo and recorded through
+  // `ridersOnboardingPersonalIdentificationRepo`, like every other rider
+  // document.
 
   /// initRiderServiceUploadRepo
   Future<ResponseModel> initRiderServiceFileUploadRepo({required String fileType}) async {

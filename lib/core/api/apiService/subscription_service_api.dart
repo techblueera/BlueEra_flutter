@@ -2,15 +2,9 @@
 ///
 /// Mixed into [BaseService] alongside the other per-service API mixins.
 mixin SubscriptionServiceApi {
-  /// Recharge / Contribution (subscription-service/recharge/...)
-  /// See lib/docs/RECHARGE_FLUTTER_GUIDE.md.
-  final String rechargePlans = 'subscription-service/recharge/plans';
-  final String rechargeInitiateOrder =
-      'subscription-service/recharge/initiate-order';
-  final String rechargeVerifyPayment =
-      'subscription-service/recharge/verify-payment';
+  /// Legacy recharge — status read only. The catalog / purchase endpoints went
+  /// with the old contribution flow; buying happens on `accountPlan*` below.
   final String rechargeCurrent = 'subscription-service/recharge/current';
-  final String rechargeCancel = 'subscription-service/recharge/cancel';
 
   /// Security Deposit — the v2 "contribution" flow.
   /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.
@@ -43,6 +37,26 @@ mixin SubscriptionServiceApi {
   /// See docs/backend/SECURITY_DEPOSIT_GST_INVOICE_FLUTTER_GUIDE.md.
   final String securityDepositGst =
       'subscription-service/security-deposit/gst';
+
+  /// Account Plans — the dynamic paid plans that replace a flat deposit with
+  /// what the account actually buys: visibility radius, gig call types,
+  /// service area, lead/booking tier. One catalog endpoint serves all 138
+  /// account types; the app renders whatever `plans[]` come back and never
+  /// hard-codes a price.
+  /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
+  final String accountPlanPlans = 'subscription-service/account-plan/plans';
+  final String accountPlanMyPlans =
+      'subscription-service/account-plan/my-plans';
+  final String accountPlanInitiate =
+      'subscription-service/account-plan/initiate';
+  final String accountPlanVerifyPayment =
+      'subscription-service/account-plan/verify-payment';
+  final String accountPlanInvoices =
+      'subscription-service/account-plan/invoices';
+
+  /// `GET /account-plan/{id}/invoice` — one purchase's GST invoice.
+  String accountPlanInvoiceById(String id) =>
+      'subscription-service/account-plan/$id/invoice';
 
   /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
   /// the platform pays the user a one-time joining bonus once genuine

@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -33,7 +34,7 @@ import 'package:BlueEra/features/common/delivery_partner/service/rider_auto_goli
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
@@ -2311,7 +2312,9 @@ Future<void> handleGoLiveTap() async {
   // an unpaid rider is blocked from the start and there is one rule to explain.
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
-  final depositBlocked = isRiderRole && !riderCtrl.isSecurityDepositPaid;
+  final depositBlocked = isRiderRole &&
+      !AccountPlanEntitlement.to.hasActivePlan.value &&
+      !riderCtrl.isSecurityDepositPaid;
 
   if (depositBlocked) {
     // Straight to the payment page — no dialog on this path. Tapping Go Live is
@@ -2326,8 +2329,9 @@ Future<void> handleGoLiveTap() async {
     // up (it's reconciled server-side by a Razorpay webhook with no in-app
     // trigger). This replaces the old RouteAware.didPopNext refresh — it targets
     // the one return that can actually change onboarding status.
-    await Get.to(() => const ContributionScreenV2());
+    await Get.to(() => const ContributionScreen());
     await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
+    await AccountPlanEntitlement.to.refresh();
     return;
   }
 

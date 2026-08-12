@@ -22,7 +22,7 @@ enum AadhaarManualStage {
 /// the AI document verifier, which confirms the images really are an Aadhaar
 /// card and that the number on them matches what was typed.
 ///
-/// Host-agnostic, like [AadhaarKycController]: it performs the AI check and
+/// Host-agnostic: it performs the AI check and
 /// hands the validated result to [onManualVerified] for the host to record.
 /// Construct it where the screen is opened and pass it to
 /// AadhaarManualKycScreen, which owns its lifecycle.

@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -25,7 +26,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -170,12 +171,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // deposit always allows go-live. The backend also enforces this server-side
     // (402 on the go-live PUT). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     //
-    // FIRST SERVICE FREE: the deposit is WAIVED until the provider uses their
-    // first free go-live (backend `freeServiceUsed == false`). Once used, the
-    // deposit is enforced on every subsequent go-live. Absent flag → not free →
-    // deposit enforced (safe default). Mirrors the rider first-ride-free waiver.
-    // See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
-    final depositBlocked = !_viewCtrl.canGoLive && !_viewCtrl.isFirstServiceFree;
+    // No waivers: the first-service-free exemption is gone, so an active plan
+    // or a satisfied deposit is the whole rule — as it already is for riders
+    // and businesses.
+    final depositBlocked = !AccountPlanEntitlement.to.hasActivePlan.value &&
+        !_viewCtrl.canGoLive;
     if (depositBlocked) {
       // Tell the provider why go-live is blocked, then route them to the
       // security-deposit flow to complete payment — go-live stays blocked
@@ -184,10 +184,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       // trigger) and the updated `freeServiceUsed` are picked up.
       commonSnackBar(
         message:
-            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+            'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
       );
-      await Get.to(() => const ContributionScreenV2());
+      await Get.to(() => const ContributionScreen());
       await _viewCtrl.viewPersonalProfile(forceRefresh: true);
+      await AccountPlanEntitlement.to.refresh();
       return;
     }
 

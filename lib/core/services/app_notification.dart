@@ -29,7 +29,7 @@ import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -3450,7 +3450,7 @@ class AppNotificationHandler {
       case 'subscription_cancelled':
       case 'subscription_expired':
       case 'recharge_activated':
-        Get.to(() => const ContributionScreenV2());
+        Get.to(() => const ContributionScreen());
         break;
 
       default:

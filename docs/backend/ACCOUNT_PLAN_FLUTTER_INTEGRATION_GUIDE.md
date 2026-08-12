@@ -4,10 +4,13 @@ This guide is written **against the real BlueEra Flutter app** (`C:\BlueEra\Blue
 conventions: **GetX + Dio (`ApiBaseHelper`) + `razorpay_flutter` (`RazorpayService`) + `flutter_secure_storage` + `AppStrings.*.tr` i18n**.
 It mirrors the existing **Security Deposit** flow (`lib/features/contribution/`), which is the closest working precedent.
 
-> **The screen is fully dynamic.** The app never hard-codes any of the 138 account types. It asks the backend
-> "what can *this* user buy?" and renders whatever `plans[]` come back. One screen serves shops (radius),
-> drivers (job-type), skilled workers (service area), professionals (listing), health/hotel/education (booking),
-> and social profiles (free) — driven entirely by the `archetype` + card fields in the response.
+> **The screen is 100% dynamic — one screen for all 138 account types.** The app never hard-codes a category or
+> profession. It sends the user's token (→ `account_type`) + their `tag_id`, and renders whatever the backend
+> returns: the header (from `archetype`), each plan card, its **`features`** bullets, its **`terms_and_conditions`**,
+> the price + GST, and the entitlement chips (radius / job-types / tier). Everything — labels, features, T&C, prices —
+> is **DB-driven and editable backend-side without an app release**. The same screen serves shops (radius), drivers
+> (job-type), skilled workers (service area), professionals (listing), health/hotel/education (booking), and social
+> profiles (free). Add a new category tomorrow → it just works, no app change.
 
 ---
 
@@ -47,7 +50,7 @@ auto-delivered GST tax invoice). Nothing in the payment/invoice path is pending.
 ### 2.1 `GET subscription-service/account-plan/plans` — dynamic price cards ✅ LIVE
 Query (all optional): `tag_id`, `has_gst=true|false`, `account_type`.
 - **INDIVIDUAL**: `tag_id` optional (backend falls back to the profile's profession). Sending it is faster/safer.
-- **BUSINESS**: **send `tag_id`** (the business category tag) **and `has_gst`** (selects the radius GST vs no-GST track).
+- **BUSINESS**: **send `tag_id`** (the business category tag). `has_gst` is accepted but no longer filters the catalog — **every business now sees the full radius ladder (1/3/6/10/25 km)**. The 1 km & 3 km tiers are `gst_track: "NON_GST"` (buyable without GST); the larger tiers are `gst_track: "GST"` and require a valid GSTIN **at payment** (see 2.3). Show a small "GST" badge on `gst_track === "GST"` cards.
 
 **200 response**
 ```json
@@ -72,7 +75,8 @@ Query (all optional): `tag_id`, `has_gst=true|false`, `account_type`.
         "archetype": "A1_RADIUS_SHOP",
         "vehicle_class": null,
         "gst_track": "NON_GST",
-        "billing": "one_time",
+        "billing": "lifetime",
+        "popular": false,
         "validity_days": null,
         "attributes": { "radius_km": 1, "job_types": null, "tier": null },
         "price_base": 15000,
@@ -81,15 +85,35 @@ Query (all optional): `tag_id`, `has_gst=true|false`, `account_type`.
         "price_total": 17700,
         "hsn_sac_code": "998599",
         "price_base_inr": 150,
+        "gst_amount_inr": 27,
         "price_total_inr": 177,
-        "is_free": false
+        "is_free": false,
+        "features": ["Reach nearby customers", "Business listing", "Local discovery"],
+        "terms_and_conditions": [
+          "Plan activates immediately after successful payment.",
+          "Price shown is inclusive of 18% GST; a GST tax invoice is emailed to you.",
+          "Fees are non-refundable.",
+          "Benefits apply only while the plan is active on your account.",
+          "Available without GST registration (capped local radius)."
+        ]
       }
     ]
   }
 }
 ```
-All money fields are **paise**; `*_inr` are the rupee convenience values. `price_total` is base + GST — **this is what
-gets charged** (the app never re-computes it).
+All money fields are **paise**; `*_inr` are the rupee convenience values.
+
+**Card price display — show price + GST, not the total.** On the card, show the base price with the GST called out
+separately, e.g. **“₹150 + ₹27 GST (18%)”** using `price_base_inr` + `gst_amount_inr` (+ `gst_percent`). Do **not**
+headline `price_total_inr` on the card. The **total (`price_total` / `price_total_inr` = base + GST) is only shown at
+payment time and is what actually gets charged** — computed entirely by the backend; the app never re-computes it.
+
+**`popular`** — when `true`, render a **“Popular” ribbon/badge** on that card (one recommended pick per group, e.g. the
+3 km radius plan). Purely cosmetic; it does not change pricing or the purchase flow.
+
+**`features`** (the bullet points the card shows) and
+**`terms_and_conditions`** are **stored in the DB per plan and returned here** — the app renders them verbatim and
+never hard-codes them, so they differ by plan/archetype and can be edited backend-side without an app update.
 
 Archetype → what the card carries:
 | archetype | key attribute | example labels |
@@ -107,11 +131,20 @@ Optional `?status=active` / `?archetype=`. Returns `{ success, count, data: [ Us
 ### 2.3 `POST subscription-service/account-plan/initiate` — start a purchase ✅ LIVE
 Body:
 ```json
-{ "option_code": "RAD_GST_6KM", "tag_id": "GENERAL_STORE", "has_gst": true, "buyer_state": "Punjab" }
+{ "option_code": "RAD_GST_6KM", "tag_id": "GENERAL_STORE", "buyer_gstin": "03ABCDE1234F1Z5", "buyer_state": "Punjab" }
 ```
 - `option_code` (required) — the card the user tapped.
-- `tag_id` / `has_gst` — same as the catalog call (re-priced server-side; never trust a client price).
+- `tag_id` — re-priced server-side; never trust a client price.
+- `buyer_gstin` — **required when the tapped card has `gst_track: "GST"`** (every radius tier except 1 km / 3 km, and all
+  A6 wide-reach). NON_GST tiers don't need it. Validate the 15-char GSTIN client-side too for a nicer UX.
 - `buyer_state` — optional, improves the CGST/SGST-vs-IGST split on the invoice (falls back to IGST).
+
+**Payment-time GST validation (400).** If the option is `gst_track: "GST"` and `buyer_gstin` is missing/invalid, no order
+is created and the response is:
+```json
+{ "success": false, "message": "GST required for this plan. Please add your GST number (GSTIN) to continue. The 1 km and 3 km plans are available without GST.", "data": { "requires_gst": true, "gst_track": "GST", "option_code": "RAD_GST_6KM" } }
+```
+Show `message` and focus a GSTIN input; on a valid GSTIN, retry `initiate`.
 
 **200 response** (mirrors `InitiateSecurityDepositResponse`):
 ```json
@@ -204,8 +237,10 @@ class PlanCard {
   final int? radiusKm, validityDays;
   final List<String>? jobTypes;
   final int priceBase, gstPercent, gstAmount, priceTotal;
-  final num priceBaseInr, priceTotalInr;
-  final bool isFree;
+  final num priceBaseInr, gstAmountInr, priceTotalInr;
+  final bool isFree, popular;
+  final List<String> features;             // DB-driven bullets — render verbatim
+  final List<String> termsAndConditions;   // DB-driven T&C — render verbatim
   PlanCard.fromJson(Map<String, dynamic> j)
       : optionCode = j['option_code'] ?? '',
         label = j['label'] ?? '',
@@ -213,7 +248,7 @@ class PlanCard {
         archetype = j['archetype'] ?? '',
         vehicleClass = j['vehicle_class'],
         gstTrack = j['gst_track'] ?? 'NA',
-        billing = j['billing'] ?? 'one_time',
+        billing = j['billing'] ?? 'lifetime',   // v1: always "lifetime" (one-time, never expires)
         validityDays = (j['validity_days'] == null) ? null : _asInt(j['validity_days']),
         radiusKm = (j['attributes']?['radius_km'] == null) ? null : _asInt(j['attributes']['radius_km']),
         jobTypes = (j['attributes']?['job_types'] as List?)?.map((e) => e.toString()).toList(),
@@ -223,8 +258,13 @@ class PlanCard {
         gstAmount = _asInt(j['gst_amount']),
         priceTotal = _asInt(j['price_total']),
         priceBaseInr = (j['price_base_inr'] as num?) ?? 0,
+        gstAmountInr = (j['gst_amount_inr'] as num?) ?? 0,
         priceTotalInr = (j['price_total_inr'] as num?) ?? 0,
-        isFree = j['is_free'] == true;
+        isFree = j['is_free'] == true,
+        popular = j['popular'] == true,   // show a "Popular" ribbon when true
+        features = ((j['features'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        termsAndConditions =
+            ((j['terms_and_conditions'] as List?) ?? const []).map((e) => e.toString()).toList();
 }
 
 class InitiatePlanResponse {
@@ -465,10 +505,22 @@ class _PlanCardTile extends StatelessWidget {
           SizedBox(height: SizeConfig.size4),
           CustomText(card.sublabel!, fontSize: SizeConfig.size12, color: AppColors.secondaryTextColor),
         ],
-        // dynamic entitlement chips
-        SizedBox(height: SizeConfig.size8),
-        Wrap(spacing: 6, runSpacing: 6, children: _chips(card).map(_pill).toList()),
-        SizedBox(height: SizeConfig.size12),
+        // entitlement summary chips (radius km / job types / tier)
+        if (_chips(card).isNotEmpty) ...[
+          SizedBox(height: SizeConfig.size8),
+          Wrap(spacing: 6, runSpacing: 6, children: _chips(card).map(_pill).toList()),
+        ],
+        // DB-driven feature bullets — rendered VERBATIM from the API (never hardcoded)
+        SizedBox(height: SizeConfig.size10),
+        ...card.features.map((f) => Padding(
+              padding: EdgeInsets.only(bottom: SizeConfig.size6),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.check_circle, size: 16, color: AppColors.primaryColor),
+                SizedBox(width: 6),
+                Expanded(child: CustomText(f, fontSize: SizeConfig.size13, color: AppColors.mainTextColor)),
+              ]),
+            )),
+        SizedBox(height: SizeConfig.size10),
         if (card.isFree)
           _FreeTag()
         else
@@ -477,6 +529,16 @@ class _PlanCardTile extends StatelessWidget {
             bgColor: AppColors.primaryColor,
             isLoading: isBusy,
             onTap: isBusy ? () {} : onBuy,
+          ),
+        // *T&C link — opens the terms sheet (also DB-driven, per plan)
+        if (card.termsAndConditions.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => _showTermsSheet(context, card),
+              child: CustomText('*${AppStrings.termsAndConditions.tr}',
+                  fontSize: SizeConfig.size11, color: AppColors.primaryColor),
+            ),
           ),
       ]),
     );
@@ -514,6 +576,31 @@ class _PriceTag extends StatelessWidget {
 `_pill`, `_FreeTag`, `_RetryView`, `_archetypeHeadline` are trivial local helpers (mirror the existing perk-pill /
 retry widgets in `contribution_plans_view.dart`). `_archetypeHeadline` maps `A1_..→'chooseVisibilityRadius'`,
 `A2_..→'chooseYourCallPlan'`, `A4_../A5_..→'chooseYourListing'`, etc. — all `AppStrings` keys.
+
+### 7.2 T&C sheet (renders the plan's `terms_and_conditions` verbatim)
+```dart
+void _showTermsSheet(BuildContext context, PlanCard card) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    builder: (_) => Padding(
+      padding: EdgeInsets.all(SizeConfig.size20),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        CustomText(AppStrings.termsAndConditions.tr, fontSize: SizeConfig.size16, fontWeight: FontWeight.w700),
+        SizedBox(height: SizeConfig.size12),
+        ...card.termsAndConditions.map((t) => Padding(
+              padding: EdgeInsets.only(bottom: SizeConfig.size8),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomText('•  ', color: AppColors.secondaryTextColor),
+                Expanded(child: CustomText(t, fontSize: SizeConfig.size13, color: AppColors.secondaryTextColor)),
+              ]),
+            )),
+      ]),
+    ),
+  );
+}
+```
 
 ---
 
@@ -556,7 +643,8 @@ visible string above is `AppStrings.key.tr`:
 chooseYourPlan, chooseVisibilityRadius, chooseYourCallPlan, chooseServiceArea, chooseYourListing,
 buyNow, processingEllipsis, free, planAlreadyFree, planActivated, paymentVerifyPending,
 couldNotStartPayment, inclGstPrefix ("incl."), gstSuffix ("% GST"), kmVisibility ("km reach"),
-allIndia ("All India"), noHiddenCharges, noAutoPay
+allIndia ("All India"), noHiddenCharges, noAutoPay, termsAndConditions ("Terms & Conditions"),
+lifetime ("Lifetime")  // billing badge — the API `billing` value is always "lifetime" in v1
 ```
 `CustomBtn` already `.tr`s its title, so you may pass the raw key as the button title if you prefer.
 
@@ -570,8 +658,8 @@ allIndia ("All India"), noHiddenCharges, noAutoPay
    (`badResponse` is returned, not thrown).
 3. `getOrPut(() => AccountPlanController())`, `Obx` + `Status`, `commonSnackBar`, dispose Razorpay in `onClose()`.
 4. **Free plans (A0 `is_free`)** never open Razorpay — the backend activates them without an order.
-5. **Business** must pass `tag_id` + `has_gst`; **individual** may omit `tag_id` (profile fallback). `has_gst` flips the
-   radius track (no-GST shops see only 1–3 km).
+5. **Business** passes `tag_id` (individual may omit it — profile fallback). All radius tiers are shown to everyone;
+   GST is validated at **payment** for `gst_track === "GST"` tiers, not by hiding plans.
 6. **Re-purchase / resume**: `initiate` is idempotent per unpaid order (mirrors deposit resume) — safe to retry.
 7. Show a **per-card** spinner via `purchasingCode` so only the tapped card shows loading.
 

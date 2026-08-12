@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_locked_field.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -60,6 +61,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
   final personalCreateProfileController =
       Get.find<PersonalCreateProfileController>();
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
+
+  /// Name, gender and date of birth are frozen once the Aadhaar is verified —
+  /// the card established them. Read inside the form's `Obx`, and the record it
+  /// depends on is loaded in [initState], so the lock is in place by the time
+  /// the fields are interactive.
+  bool get _identityLocked => viewProfileController.isAadhaarVerified;
   bool isProfileCreateStatus = false;
   final authController = Get.find<AuthController>();
   AutovalidateMode _autoValidate = AutovalidateMode.always;
@@ -87,6 +94,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    // Name / gender / DOB lock on a verified Aadhaar, and that record lives on
+    // the rider onboarding response rather than the personal profile — load it
+    // so the fields are correct from the first frame the user can touch them.
+    // Cache-first and coalesced, so this is usually free.
+    viewProfileController.ensureAadhaarStatusLoaded();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       isProfileCreateStatus =
           viewProfileController.personalProfileDetails.value.isProfileCreated ??
@@ -264,11 +276,20 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    // Leaving without saving must put the profile photo back: picking one
+    // writes straight into the shared controller, so an un-saved pick would
+    // otherwise follow the user out to every other screen reading it.
+    //
+    // `canPop: false` + an explicit `Get.back()` rather than letting the pop
+    // through, so the restore is guaranteed to run before the route goes —
+    // matching the app bar's own back handler above. Same contract the
+    // WillPopScope this replaced had (it returned false and popped itself).
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         Get.back();
         personalCreateProfileController.imagePath?.value = tempImgPath ?? "";
-        return false;
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
@@ -329,26 +350,44 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                   fontSize: SizeConfig.medium),
                               SizedBox(height: SizeConfig.size24),
 
-                              CommonTextField(
-                                title: AppStrings.fullName,
-                                hintText: AppStrings.enterFullName,
-                                inputLength: 30,
-                                textEditController: nameController,
-                                validationType: ValidationTypeEnum.name,
-                                autovalidateMode: _autoValidate,
-                                onChange: (val) {
-                                  filedValidation();
-                                },
-                                validator: (String? value) {
-                                  if (value == null || value.isEmpty) {
-                                    return AppStrings.pleaseEnterName.tr;
-                                  } else if (value.trim().length < 6) {
-                                    return AppStrings.nameMinLength.tr;
-                                  } else if (value.trim().length > 30) {
-                                    return AppStrings.nameMaxLength.tr;
-                                  }
-                                  return null;
-                                },
+                              // Name / gender / date of birth are frozen once
+                              // the Aadhaar is verified: the card established
+                              // them, so editing them here would undo the
+                              // verification. Everything else on this screen
+                              // (photo, email, location, bio, profession)
+                              // stays editable.
+                              AadhaarLockedField(
+                                locked: _identityLocked,
+                                child: CommonTextField(
+                                  title: AppStrings.fullName,
+                                  hintText: AppStrings.enterFullName,
+                                  inputLength: 30,
+                                  textEditController: nameController,
+                                  validationType: ValidationTypeEnum.name,
+                                  autovalidateMode: _autoValidate,
+                                  readOnly: _identityLocked,
+                                  onChange: (val) {
+                                    filedValidation();
+                                  },
+                                  validator: (String? value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppStrings.pleaseEnterName.tr;
+                                    }
+                                    // The 6–30 rule polices what a user TYPES.
+                                    // A name off an Aadhaar card is neither
+                                    // typed nor editable, so enforcing it on a
+                                    // locked field would be a dead end — a
+                                    // genuine short name would fail forever
+                                    // with no way to correct it.
+                                    if (_identityLocked) return null;
+                                    if (value.trim().length < 6) {
+                                      return AppStrings.nameMinLength.tr;
+                                    } else if (value.trim().length > 30) {
+                                      return AppStrings.nameMaxLength.tr;
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
 
                               SizedBox(height: SizeConfig.size18),
@@ -362,19 +401,22 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                 ),
                               ),
                               SizedBox(height: SizeConfig.paddingXSL),
-                              CommonDropdown<GenderType>(
-                                items: GenderType.values,
-                                selectedValue: personalCreateProfileController
-                                    .selectedGender.value,
-                                hintText: AppStrings.selectGender,
-                                displayValue: (value) => value.displayName,
-                                onChanged: (value) {
-                                  personalCreateProfileController
-                                      .selectedGender.value = value;
-                                },
-                                validator: (value) {
-                                  return null;
-                                },
+                              AadhaarLockedField(
+                                locked: _identityLocked,
+                                child: CommonDropdown<GenderType>(
+                                  items: GenderType.values,
+                                  selectedValue: personalCreateProfileController
+                                      .selectedGender.value,
+                                  hintText: AppStrings.selectGender,
+                                  displayValue: (value) => value.displayName,
+                                  onChanged: (value) {
+                                    personalCreateProfileController
+                                        .selectedGender.value = value;
+                                  },
+                                  validator: (value) {
+                                    return null;
+                                  },
+                                ),
                               ),
                               SizedBox(height: SizeConfig.size18),
                               Row(
@@ -387,26 +429,29 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                 ],
                               ),
                               SizedBox(height: SizeConfig.paddingXSL),
-                              NewDatePicker(
-                                isAgeValidation15: true,
-                                selectedDay: personalCreateProfileController
-                                    .selectedDay?.value,
-                                selectedMonth: personalCreateProfileController
-                                    .selectedMonth?.value,
-                                selectedYear: personalCreateProfileController
-                                    .selectedYear?.value,
-                                onDayChanged: (value) {
-                                  personalCreateProfileController
-                                      .selectedDay?.value = value ?? 0;
-                                },
-                                onMonthChanged: (value) {
-                                  personalCreateProfileController
-                                      .selectedMonth?.value = value ?? 0;
-                                },
-                                onYearChanged: (value) {
-                                  personalCreateProfileController
-                                      .selectedYear?.value = value ?? 0;
-                                },
+                              AadhaarLockedField(
+                                locked: _identityLocked,
+                                child: NewDatePicker(
+                                  isAgeValidation15: true,
+                                  selectedDay: personalCreateProfileController
+                                      .selectedDay?.value,
+                                  selectedMonth: personalCreateProfileController
+                                      .selectedMonth?.value,
+                                  selectedYear: personalCreateProfileController
+                                      .selectedYear?.value,
+                                  onDayChanged: (value) {
+                                    personalCreateProfileController
+                                        .selectedDay?.value = value ?? 0;
+                                  },
+                                  onMonthChanged: (value) {
+                                    personalCreateProfileController
+                                        .selectedMonth?.value = value ?? 0;
+                                  },
+                                  onYearChanged: (value) {
+                                    personalCreateProfileController
+                                        .selectedYear?.value = value ?? 0;
+                                  },
+                                ),
                               ),
                               SizedBox(height: SizeConfig.size18),
 
@@ -1119,8 +1164,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                                                 ?.value ??
                                                             "",
                                                   ),
-                                                if (nameController
-                                                    .text.isNotEmpty)
+                                                // Identity fields are omitted
+                                                // entirely for an Aadhaar-
+                                                // verified account. The locked
+                                                // inputs are the affordance;
+                                                // this is the guarantee, and it
+                                                // also keeps a save of the
+                                                // OTHER fields from being
+                                                // rejected wholesale by a
+                                                // backend that refuses them.
+                                                if (!_identityLocked &&
+                                                    nameController
+                                                        .text.isNotEmpty)
                                                   ApiKeys.name: nameController
                                                       .text
                                                       .trim(),
@@ -1172,27 +1227,31 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                                   ApiKeys.sector:
                                                       sectorTextController.text,
 
-                                                ApiKeys.gender:
-                                                    personalCreateProfileController
-                                                        .selectedGender
-                                                        .value
-                                                        ?.name
-                                                        .toLowerCase(),
+                                                if (!_identityLocked)
+                                                  ApiKeys.gender:
+                                                      personalCreateProfileController
+                                                          .selectedGender
+                                                          .value
+                                                          ?.name
+                                                          .toLowerCase(),
                                                 if (addBio.text.isNotEmpty)
                                                   ApiKeys.bio: addBio.text,
 
-                                                ApiKeys.date_of_birth_Obj:
-                                                    jsonEncode({
-                                                  ApiKeys.date:
-                                                      personalCreateProfileController
-                                                          .selectedDay?.value,
-                                                  ApiKeys.month:
-                                                      personalCreateProfileController
-                                                          .selectedMonth?.value,
-                                                  ApiKeys.year:
-                                                      personalCreateProfileController
-                                                          .selectedYear?.value,
-                                                }),
+                                                if (!_identityLocked)
+                                                  ApiKeys.date_of_birth_Obj:
+                                                      jsonEncode({
+                                                    ApiKeys.date:
+                                                        personalCreateProfileController
+                                                            .selectedDay?.value,
+                                                    ApiKeys.month:
+                                                        personalCreateProfileController
+                                                            .selectedMonth
+                                                            ?.value,
+                                                    ApiKeys.year:
+                                                        personalCreateProfileController
+                                                            .selectedYear
+                                                            ?.value,
+                                                  }),
 
                                                 ///SKILL WORKER..
                                                 if (selectedProfession ==

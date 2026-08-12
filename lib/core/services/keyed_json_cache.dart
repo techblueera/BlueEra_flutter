@@ -90,12 +90,3 @@ const KeyedJsonCache securityDepositVideosCache =
 /// renders the first 5 user groups) keyed by user id, served instantly on open
 /// while the live symbol feed refreshes. Stored as `{'data': {...}}`.
 const KeyedJsonCache symbolFeedCache = KeyedJsonCache('symbol_feed_cache_box');
-
-/// Caches the recharge-plans catalog (`GET /recharge/plans?entity_type=…`)
-/// keyed by `${userId}_${entityType}`. The catalog rarely changes, so it's
-/// fetched once after login and then refreshed at most once every 24h — see
-/// [ContributionController.fetchPlans]. Stored as
-/// `{'ts': <epochMillis>, 'mode': <str>, 'data': [<plan json>, …]}`, where `ts`
-/// drives the 24h freshness window.
-const KeyedJsonCache rechargePlansCache =
-    KeyedJsonCache('recharge_plans_box');

@@ -18,7 +18,6 @@ class PersonalProfileDetailsModel {
     this.isRiderServiceUser,
     this.isEarnServiceUser,
     this.securityDeposit,
-    this.freeServiceUsed,
     this.earnProfileType = const <String>[],
   });
 
@@ -38,16 +37,11 @@ class PersonalProfileDetailsModel {
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
         : null;
-    // First service free: the security-deposit gate is WAIVED until the
-    // provider completes their first paid service/booking. Backend sends
-    // `freeServiceUsed:false` while the free go-live is still available and
-    // flips it to true afterwards. `freeRideUsed` is still accepted as an alias
-    // because some payloads use that name — note the RIDER waiver it was named
-    // after has been removed, so this is a self-work-only concept now. Absent
-    // (old backend) → null → treated as "not free" so the deposit stays
-    // enforced (safe default). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
-    freeServiceUsed =
-        json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
+    // `freeServiceUsed` / `freeRideUsed` are deliberately NOT read. They drove
+    // the first-service-free waiver, which let a self-work provider go live
+    // once without paying. Nothing is free now — payment is the only go-live
+    // rule, here as on the rider and business sides — so the client ignores the
+    // flags even when the backend keeps sending them.
     // Referral promo clip — a TOP-LEVEL sibling of `user` / `securityDeposit`,
     // NOT part of `marketing_card` (that object is poster-only). The backend
     // key really is spelled `referal_video`, with one 'r'; `referral_video` is
@@ -71,10 +65,6 @@ class PersonalProfileDetailsModel {
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
   SecurityDepositStatus? securityDeposit;
-  // First-service-free flag. `false` → the free first go-live is still
-  // available (skip the deposit gate); `true`/null → not available (enforce the
-  // deposit). See [isFirstServiceFree].
-  bool? freeServiceUsed;
   List<String> earnProfileType;
 
   /// Referral promo clip URL (`referal_video`), or null when the profile has
@@ -91,15 +81,6 @@ class PersonalProfileDetailsModel {
   /// ONLY when the backend explicitly reports `required && !paid`.
   bool get canGoLive => securityDeposit?.canGoLive ?? true;
 
-  /// The provider's FIRST service go-live is free — the security-deposit gate is
-  /// waived until they use it. `freeServiceUsed == false` → still free. Absent
-  /// (`null`, old backend) → treated as NOT free, so the deposit stays enforced
-  /// — a safe default that never hands out free go-live by accident.
-  ///
-  /// Self-work only. The rider side had an equivalent waiver and no longer
-  /// does: a rider's deposit is now checked with no exceptions.
-  bool get isFirstServiceFree => freeServiceUsed == false;
-
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['status'] = status;
@@ -110,10 +91,10 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
-    // securityDeposit + freeServiceUsed are read-only, server-computed go-live
-    // signals — not serialized back. On a cache replay they're absent, which is
-    // safe: canGoLive fail-opens (true) so go-live isn't blocked from cache, and
-    // the fresh read re-populates both.
+    // securityDeposit is a read-only, server-computed go-live signal — not
+    // serialized back. On a cache replay it's absent, which is safe: canGoLive
+    // fail-opens (true) so go-live isn't blocked from cache, and the fresh read
+    // re-populates it.
     map['earnProfileTypes'] = earnProfileType;
     return map;
   }
@@ -195,6 +176,9 @@ class User {
     pincode = json['pincode'];
     address = json['address'];
     createdAt = json['created_at'];
+    // No Aadhaar flag is read here: `user/get` does not carry one. The KYC
+    // result lives on the rider onboarding record instead — see
+    // `ViewPersonalDetailsController.isAadhaarVerified`.
     // Backend nests the share poster INSIDE the user object (not top-level).
     marketingCard = MarketingCard.fromRaw(json['marketing_card']);
   }

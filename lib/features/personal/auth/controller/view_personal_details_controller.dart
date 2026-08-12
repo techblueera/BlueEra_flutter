@@ -441,13 +441,50 @@ class ViewPersonalDetailsController extends GetxController
   /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool get canGoLive => personalProfileDetails.value.canGoLive;
 
-  /// First service free: the deposit gate is waived until the provider uses
-  /// their first free go-live (`freeServiceUsed == false`). Proxies the
-  /// individual-profile flag. Self-work only — the rider equivalent has been
-  /// removed and their deposit is now checked with no exceptions. See
-  /// docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
-  bool get isFirstServiceFree =>
-      personalProfileDetails.value.isFirstServiceFree;
+  // The first-service-free waiver used to sit here (`isFirstServiceFree`). It
+  // is gone: payment is now the only go-live rule for individuals, riders and
+  // businesses alike, so [canGoLive] is the whole gate.
+
+  /// True when this account's identity has been established by a verified
+  /// Aadhaar. Name, date of birth and gender are then READ-ONLY everywhere they
+  /// can otherwise be edited — the card is the authority on who someone is, and
+  /// letting those be retyped afterwards would undo the verification.
+  ///
+  /// **The rider onboarding record is the ONLY source.** `user/get` carries no
+  /// Aadhaar flag, so there is nothing to read on the personal profile itself.
+  /// `RiderOnboardingStatusData.aadhar` is the right key even for an account
+  /// that never rode: it is already the OR of the onboarding step flag and the
+  /// user-level `aadharVerified` the same response carries, which is where a
+  /// Gig Work signup's KYC lands (see `rider_onboarding_status.dart`).
+  ///
+  /// Reads the registered controller only — no side effects, no rider API fired
+  /// from a getter. Await [ensureAadhaarStatusLoaded] first on any screen that
+  /// needs this answer to be right.
+  ///
+  /// Fail-open: unknown reads as not verified, leaving the fields editable. The
+  /// backend still refuses the write, so the cost of being wrong here is a
+  /// rejected save — not a user permanently unable to correct their own name.
+  bool get isAadhaarVerified {
+    if (!Get.isRegistered<DeliveryPartnerController>()) return false;
+    return Get.find<DeliveryPartnerController>()
+            .riderOnboardingStatusData
+            .value
+            ?.aadhar ==
+        true;
+  }
+
+  /// Loads the onboarding record behind [isAadhaarVerified] when it isn't in
+  /// memory yet. Await this before showing a form that locks identity fields,
+  /// or the form paints them editable and only locks on a later rebuild.
+  ///
+  /// Cheap: `ridersOnboardingStatusRepoApi` is cache-first and coalesces
+  /// concurrent callers onto a single request, so a screen that already fetched
+  /// it costs nothing and two opening at once still make one call.
+  Future<void> ensureAadhaarStatusLoaded() async {
+    final rider = getOrPut(() => DeliveryPartnerController());
+    if (rider.riderOnboardingStatusData.value != null) return;
+    await rider.ridersOnboardingStatusRepoApi();
+  }
 
   // ── Schedule-driven availability (auto open/close) ──────────────────
   // Individual analogue of the business availability flow — same UI (shared
@@ -527,6 +564,35 @@ class ViewPersonalDetailsController extends GetxController
     if (!(gate != null ? gate() : canGoLive)) return;
     if (!hasSchedule) await loadHours();
     await showShopAvailabilitySheet(this);
+  }
+
+  /// Individual analogue of the business `openScheduleControl` — the header
+  /// CLOCK button. Visiting HOURS only (the pill beside it owns the live
+  /// switch) and no deposit gate: this is where hours are set and edited, not
+  /// where the provider goes live.
+  Future<void> openScheduleControl() async {
+    if (!hasSchedule) await loadHours();
+    await showShopAvailabilitySheet(this, timingsOnly: true);
+  }
+
+  /// Individual analogue of the business [toggleLiveNow] — the Go-Live PILL as
+  /// a plain on/off switch. No weekly hours yet → the sheet's "Set visiting
+  /// hours" prompt; otherwise flip today's override straight from the pill.
+  Future<void> toggleLiveNow({bool Function()? gate}) async {
+    if (!(gate != null ? gate() : canGoLive)) return;
+    if (isAvailabilityUpdating.value) return;
+
+    if (!hasSchedule) await loadHours();
+    if (!hasSchedule) {
+      await showShopAvailabilitySheet(this);
+      return;
+    }
+
+    if (shopStatus.value.isOpenNow) {
+      await setClosedToday();
+    } else {
+      await setOpenToday();
+    }
   }
 
   @override

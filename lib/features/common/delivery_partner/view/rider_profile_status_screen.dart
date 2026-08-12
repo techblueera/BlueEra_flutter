@@ -1409,25 +1409,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.aadharCard.tr,
-              // Content-fitted: this sheet has three stages of very different
-              // length (number entry, OTP + photo fallback, verified) and a
-              // fixed 80% left the short ones floating in empty space.
+              // Content-fitted: the entry stage (number + consent + both card
+              // photos) and the verified stage are very different lengths, and
+              // a fixed 80% left the short one floating in empty space.
               fitContent: true,
-              // Back steps to the number form; the ✕ beside it still closes
-              // the sheet outright. Only on the OTP stage — nothing to step
-              // back to from the other two.
-              leading: Obx(() {
-                if (controller.aadhaarStage.value != AadhaarStage.otp) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size8),
-                  child: InkWell(
-                    onTap: () => controller.editAadhaarNumber(),
-                    child: const Icon(Icons.arrow_back_rounded),
-                  ),
-                );
-              }),
+              // No back arrow: the OTP stage it stepped back from is gone, and
+              // the ✕ already closes the sheet.
               child: const AadharCardWidget(),
             ),
             isScrollControlled: true,

@@ -253,9 +253,17 @@ class AuthController extends GetxController {
               // every business login straight onto the Me tab. The
               // business-profile fetch still runs from the home screen's
               // post-frame init regardless of which tab is showing.
+              //
+              // `landOnDiscover` is passed for the same reason it is on the
+              // individual branch below — signing in always opens Discover. A
+              // business already resolves to Discover on its own; stating it
+              // here means that stays true if the default ever changes.
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
+                arguments: {
+                  'landOnDiscover': true,
+                },
               );
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
@@ -299,18 +307,24 @@ class AuthController extends GetxController {
               Get.put(ViewPersonalDetailsController(), permanent: true);
 
               navigatedAway = true;
-              // No `initialIndex` — same reason as the business branch. On a
-              // FRESH login `userProfileTypeGlobal` isn't known yet (the
-              // profile fetch is deliberately deferred to the home shell), so
-              // the shell lands on Discover and then snaps gig workers /
-              // riders onto Me once that fetch resolves the type
-              // (_maybeCorrectLandingTabForMeProfile). Every other individual
-              // type stays on Discover.
+              // No `initialIndex` — same reason as the business branch: the
+              // home shell resolves the landing tab itself.
+              //
+              // `landOnDiscover` makes LOGIN the one entry point where riders
+              // and gig workers also land on Discover instead of their Me
+              // dashboard. It has to be a flag rather than an `initialIndex`
+              // because on a fresh login `userProfileTypeGlobal` isn't known
+              // yet — the profile fetch is deliberately deferred to the home
+              // shell — so it is the deferred correction
+              // (_maybeCorrectLandingTabForMeProfile) that would otherwise
+              // snap them to Me a moment after Discover paints. Splash (app
+              // open) and signup pass nothing and keep the Me-first behaviour.
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
                 arguments: {
                   'runRiderGoLiveGate': true,
+                  'landOnDiscover': true,
                 },
               );
             }
