@@ -390,7 +390,8 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
         ),
       ];
     }
-    // businessShop → every business bucket except manufacturing.
+    // businessShop / businessStore → every business bucket except
+    // manufacturing (and except finance on the Non-GST row, below).
     return [
       _Section(
         title: langController.tr('Grocery & Stationary Stores'),
@@ -424,10 +425,15 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
         title: langController.tr('Education & Training Sectors'),
         items: authController.businessOnboardingEducationTrainingCategories,
       ),
-      _Section(
-        title: langController.tr('Financial Sectors'),
-        items: authController.businessOnboardingFinancialSectorsCategories,
-      ),
+      // Banking / finance is a GST-registered vertical, so the whole Financial
+      // Sectors bucket is offered on Business/Shop (GST) only — the Non-GST
+      // small-shop row must not be able to onboard as a finance business.
+      // Manufacturing never reaches here (it returns its own section above).
+      if (widget.earnType != _EarnType.businessStore)
+        _Section(
+          title: langController.tr('Financial Sectors'),
+          items: authController.businessOnboardingFinancialSectorsCategories,
+        ),
     ];
   }
 

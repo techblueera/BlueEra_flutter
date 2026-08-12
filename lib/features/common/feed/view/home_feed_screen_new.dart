@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_business_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_product_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_suggestions_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_video_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/widget/symbol_story_row.dart';
@@ -180,6 +181,15 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
       case 'product':
         return FeedProductCard(post: item);
+
+      // Merged home feed only ("who to follow"). No trackPostView — a
+      // suggestion block is not content. A block that arrived without its
+      // payload (e.g. rehydrated from an older cache) renders as nothing
+      // rather than an empty card.
+      case 'user_suggestions':
+        final block = item.suggestions;
+        if (block == null) return const SizedBox.shrink();
+        return FeedSuggestionsCard(block: block);
 
       default:
         return const SizedBox.shrink();

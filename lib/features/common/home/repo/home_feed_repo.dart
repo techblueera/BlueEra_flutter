@@ -15,6 +15,24 @@ class HomeFeedRepo extends BaseService {
     return response;
   }
 
+  /// Merged home feed — posts + reels + follow-suggestion blocks in a single
+  /// ordered, cursor-paged list (docs/HOME_FEED_INTEGRATION_GUIDE.md §1).
+  ///
+  /// Same envelope as [homeFeedRepo], so the caller parses it with the very
+  /// same [HomeFeedResponse]. Do NOT send `lat`/`long` here — this endpoint
+  /// returns no `business`/`product` items, so geolocation is meaningless.
+  Future<ResponseModel> mergedHomeFeedRepo(
+      {Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      homeFeedMerged,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///REPOST MESSAGE/POLL POST.....
   Future<ResponseModel> postRepostRepo({required String postID}) async {
     final response = await ApiBaseHelper().postHTTP(

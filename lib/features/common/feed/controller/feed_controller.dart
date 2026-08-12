@@ -1097,6 +1097,20 @@ class FeedController extends GetxController {
   // RxList<ShortFeedItem> latestShortsPosts = <ShortFeedItem>[].obs;
   late ShortsController? shortsController;
 
+  /// Which feed endpoint the Social tab reads.
+  ///
+  /// `true`  → `userfeed-service/feed/home` — posts + reels + "who to follow"
+  ///           blocks, seeded-random reel order (guide §1).
+  /// `false` → the original `userfeed-service/feed`.
+  ///
+  /// This is the one-line rollback the integration guide calls for (§9). The
+  /// old endpoint stays live and unchanged, and the parsing/render additions
+  /// are inert against it — `/feed` never emits `user_suggestions`.
+  ///
+  /// NOTE: `/feed/home` returns no `business` / `product` items, so the
+  /// business and place cards only appear while this is `false`.
+  static const bool _useMergedHomeFeed = true;
+
   Future<void> getFeed({bool refresh = false}) async {
     if (Get.isRegistered<ShortsController>()) {
       shortsController = Get.find<ShortsController>();
@@ -1133,32 +1147,54 @@ class FeedController extends GetxController {
       // rather than append to it (which would duplicate posts).
       final bool isFirstPage = timestamp.isEmpty;
 
-      ResponseModel responseModel =
-          await HomeFeedRepo().homeFeedRepo(queryParam: {
+      final Map<String, dynamic> queryParam = {
         ApiKeys.limit: limit,
+        // Pull-to-refresh drops the cursor (above) AND sends refresh=true, which
+        // is what mints a new reel shuffle seed on the merged feed — carrying
+        // the old cursor would silently keep the old order (guide §6.3).
         ApiKeys.refresh: refresh.toString(),
         if (cursor.value.isNotEmpty) ApiKeys.cursor: timestamp,
         // `business` items are gated on geolocation — no lat/long, no business
         // cards in the feed at all (guide §6.1). Both must be sent together and
         // kept on every page of the same scroll (guide §5.3). Note the endpoint
         // spells it `long`, not `lon`/`lng`.
-        if (LocationService.hasUsableLocation) ...{
+        //
+        // The merged feed returns no business/product items at all, so it takes
+        // no location (merged guide §1) — don't send it there.
+        if (!_useMergedHomeFeed && LocationService.hasUsableLocation) ...{
           ApiKeys.lat: LocationService.lat,
           ApiKeys.long: LocationService.lng,
         },
-      });
+      };
+
+      ResponseModel responseModel = _useMergedHomeFeed
+          ? await HomeFeedRepo().mergedHomeFeedRepo(queryParam: queryParam)
+          : await HomeFeedRepo().homeFeedRepo(queryParam: queryParam);
       if (responseModel.isSuccess) {
         final homeFeedResponse = HomeFeedResponse.fromJson(responseModel.response?.data);
 
         if (homeFeedResponse.feed.isNotEmpty) {
+          // De-duplicate by `_id` (guide §6.4): posts, reels and suggestion
+          // blocks all carry stable unique ids, and a refresh racing an
+          // in-flight page-2 (or a stale cursor the server restarts from page
+          // 1) can otherwise repeat items already on screen.
+          final List<Post> newItems;
           if (isFirstPage) {
+            newItems = _dedupeById(homeFeedResponse.feed, const {});
             // Replace cache-hydrated (stale) content with the live first page.
-            allPosts.assignAll(homeFeedResponse.feed);
+            allPosts.assignAll(newItems);
             shortsController?.latestShortsPosts.clear();
           } else {
-            allPosts.addAll(homeFeedResponse.feed);
+            newItems = _dedupeById(
+              homeFeedResponse.feed,
+              allPosts.map((p) => p.id).toSet(),
+            );
+            allPosts.addAll(newItems);
           }
-          for (final data in homeFeedResponse.feed) {
+          // Prefetch reels for the full-screen player from what was actually
+          // appended. Suggestion blocks carry no `video_url` and would throw in
+          // getVideoData — the `short_video` check already excludes them.
+          for (final data in newItems) {
             if (data.type == "short_video") {
               shortsController?.latestShortsPosts.add(getVideoData(data));
             }
@@ -1195,6 +1231,14 @@ class FeedController extends GetxController {
     } finally {
       isLoadingHome.value = false;
     }
+  }
+
+  /// Drops any item whose `_id` is already in [seenIds] or repeats earlier in
+  /// [items]. Items with no id are kept as-is — there is nothing to compare
+  /// them on, and silently swallowing them would lose content.
+  List<Post> _dedupeById(List<Post> items, Set<String> seenIds) {
+    final seen = Set<String>.from(seenIds);
+    return items.where((p) => p.id.isEmpty || seen.add(p.id)).toList();
   }
 
   /// Whether the Social feed has another page to load.
@@ -1261,7 +1305,15 @@ class FeedController extends GetxController {
     try {
       await socialFeedCache.save(userId, {
         'cachedAt': DateTime.now().millisecondsSinceEpoch,
-        'feed': feed.take(10).map((p) => p.toJson()).toList(),
+        // Suggestion blocks are ranked live per request and go stale the moment
+        // the viewer follows someone, so they're never cached — caching one
+        // would also burn a slot of the 10-post budget on a block that can only
+        // rehydrate empty.
+        'feed': feed
+            .where((p) => !p.isSuggestions)
+            .take(10)
+            .map((p) => p.toJson())
+            .toList(),
       });
     } catch (e) {
       logs("feed cache save error: $e");
