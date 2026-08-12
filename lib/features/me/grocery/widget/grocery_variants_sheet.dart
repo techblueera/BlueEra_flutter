@@ -109,9 +109,15 @@ class VariantInventoryService {
         inventoryIds: inventoryIds,
         isOutOfStock: isOutOfStock,
       ),
+      // Called after every accepted write in this sheet — price edit, delete,
+      // stock toggle. The sheet has already patched its own copy of the
+      // variant; this is what repairs everything it cannot reach: the owner's
+      // lists (a deleted variant used to linger in `groceryBusinessProductsList`
+      // until something forced a real fetch), the freshness guard, and the
+      // saved snapshot on disk. See [GroceryController.markInventoryChanged].
       refreshOwner: () {
         if (Get.isRegistered<GroceryController>()) {
-          Get.find<GroceryController>().groceryBusinessProductsList.refresh();
+          Get.find<GroceryController>().markInventoryChanged();
         }
       },
     );

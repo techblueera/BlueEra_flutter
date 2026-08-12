@@ -12,7 +12,7 @@ import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -247,40 +247,44 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         // Open now (schedule-driven) AND the personal deposit is paid — the
         // deposit is the first wall, so an unpaid provider is never shown live.
         value: _viewCtrl.isShopOpenNow.value && _viewCtrl.canGoLive,
+        isUpdating: _viewCtrl.isAvailabilityUpdating.value,
         onTap: _handleGoLiveTap,
+        onScheduleTap: _viewCtrl.openScheduleControl,
         label: AppStrings.proConsultGoLive.tr,
       ),
     );
   }
 
-  /// Opens the schedule-based availability control (status sheet → weekly hours
-  /// / today override), reusing the business flow. Gated on the PROFESSIONAL's
-  /// PERSONAL profile deposit — professionals are individuals, so the deposit
-  /// lives on the personal profile (`ViewPersonalDetailsController.canGoLive`),
-  /// not a business one. See docs/backend/PROFESSIONAL_GO_LIVE_BACKEND_GUIDE.md.
+  /// Flips the schedule-driven live state straight from the pill (today's
+  /// open/closed override); with no weekly hours saved it shows the "Set
+  /// visiting hours" prompt instead, since there is nothing to switch on yet.
+  /// Hours are set and edited from the clock button beside the pill.
+  ///
+  /// Gated on the PROFESSIONAL's PERSONAL profile deposit — professionals are
+  /// individuals, so the deposit lives on the personal profile
+  /// (`ViewPersonalDetailsController.canGoLive`), not a business one. See
+  /// docs/backend/PROFESSIONAL_GO_LIVE_BACKEND_GUIDE.md.
   Future<void> _handleGoLiveTap() async {
-    await _viewCtrl.openAvailabilityControl(gate: _ensureCanGoLive);
+    await _viewCtrl.toggleLiveNow(gate: _ensureCanGoLive);
   }
 
   /// Personal-profile deposit gate. Returns true when the professional may go
-  /// live; otherwise shows why and routes to the deposit flow. Fail-open —
-  /// blocks only when the backend reports `required && !paid`.
+  /// live; otherwise shows why and routes to the plan flow. Fail-open — blocks
+  /// only when the backend reports `required && !paid` and no plan is held.
   ///
-  /// FIRST SERVICE FREE: professionals are individuals, so the deposit is
-  /// waived until the free first go-live is used (`freeServiceUsed == false`).
-  /// Absent flag → not free → deposit enforced (safe default). Mirrors the
-  /// self-employed gate. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
+  /// No waivers: the first-service-free exemption that used to OR into this has
+  /// been removed, so payment is the whole rule. Mirrors the self-employed and
+  /// business gates.
   bool _ensureCanGoLive() {
     if (AccountPlanEntitlement.to.hasActivePlan.value ||
-        _viewCtrl.canGoLive ||
-        _viewCtrl.isFirstServiceFree) return true;
+        _viewCtrl.canGoLive) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
     );
     // Refresh on return so a freshly-paid deposit + updated freeServiceUsed
     // are picked up.
-    Get.to(() => const ContributionScreenV2())?.then((_) {
+    Get.to(() => const ContributionScreen())?.then((_) {
       _viewCtrl.viewPersonalProfile(forceRefresh: true);
       AccountPlanEntitlement.to.refresh();
     });

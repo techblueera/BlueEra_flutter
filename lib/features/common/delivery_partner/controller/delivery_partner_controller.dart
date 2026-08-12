@@ -19,7 +19,6 @@ import 'package:BlueEra/core/services/ai_document_verification_service.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
-import 'package:BlueEra/features/common/aadhaar_kyc/model/aadhaar_verification_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
@@ -44,13 +43,13 @@ enum RiderProfileStep {
   panInfo
 }
 
-/// The visible stage of the Aadhaar OKYC (OTP) verification bottom-sheet.
+/// The visible stage of the Aadhaar verification bottom-sheet.
+///
+/// The OTP stage is gone: the sheet asks for the number and both card photos
+/// together and submits them in one step, the way Gig Work onboarding does.
 enum AadhaarStage {
-  /// Enter 12-digit Aadhaar + tick consent → generate OTP.
+  /// Enter 12-digit Aadhaar + consent + both card photos → submit.
   entry,
-
-  /// Enter the 6-digit OTP received on the Aadhaar-linked mobile → verify.
-  otp,
 
   /// Identity verified — show name + masked number.
   verified,
@@ -830,313 +829,128 @@ class DeliveryPartnerController extends GetxController {
   }
 
   // ══════════════════════════════════════════════════════════════════
-  // Aadhaar OKYC (OTP) identity verification
-  // Flow: checkAadhaarStatus() → generateAadhaarOtp() → verifyAadhaarOtp().
-  // On a successful verify the entered Aadhaar number is also written to the
-  // rider onboarding step so the delivery-partner "aadhar" gate is satisfied.
-  // See docs/backend/aadhaar-verification-ui-integration.md.
+  // Aadhaar identity verification — number + card photos, one step
+  // Flow: initAadhaarFlow() → submitAadhaarImages().
+  //
+  // The UIDAI OKYC (OTP) path is gone, along with `/user/aadhaar/*`. It ran two
+  // stages deep, OTP delivery to the Aadhaar-linked mobile failed often enough
+  // that the photo upload had to live on the OTP screen as a fallback, and every
+  // rider who needed that fallback reached it only after being walked through a
+  // dead end. One step now, matching the Gig Work onboarding screen, which has
+  // always been photo-only (`AadhaarManualKycController`).
+  //
+  // The verified state is read from the RIDER ONBOARDING record rather than a
+  // user-level OKYC status: this sheet exists to complete the rider's `aadhar`
+  // step, that flag is what the rest of the flow gates on, and nothing writes
+  // the old user-level status any more.
   // ══════════════════════════════════════════════════════════════════
   final Rx<AadhaarStage> aadhaarStage = AadhaarStage.entry.obs;
   final RxBool isAadhaarStatusLoading = false.obs;
-  final RxBool isAadhaarOtpSending = false.obs;
-  final RxBool isAadhaarOtpVerifying = false.obs;
 
-  /// True while the "verify by image" path (alternative to OTP) is uploading
-  /// the Aadhaar front/back images and submitting them.
+  /// True while the photo path is running the AI document check, uploading the
+  /// Aadhaar front/back images and submitting them.
   final RxBool isAadhaarImageSubmitting = false.obs;
 
   /// Mandatory consent — must be explicitly ticked (never pre-ticked) before
-  /// an OTP can be generated.
+  /// the card photos may be submitted.
   final RxBool aadhaarConsentGiven = false.obs;
 
-  /// reference_id returned by generate-otp; sent back with the OTP on verify.
-  String aadhaarReferenceId = '';
-  final aadhaarOtpController = TextEditingController();
-
-  /// Verified identity, populated from status / verify-otp responses.
   final RxBool aadhaarIsVerified = false.obs;
-  final RxnString aadhaarVerifiedName = RxnString();
 
   /// Masked number for display — "XXXX XXXX <last4>".
   final RxnString aadhaarMaskedNumber = RxnString();
   final RxnString aadhaarVerifiedAt = RxnString();
 
-  /// Resend cooldown (seconds remaining). Resend is disabled while > 0.
-  final RxInt aadhaarResendSeconds = 0.obs;
-  Timer? _aadhaarResendTimer;
+  String _maskAadhaar(String? number) {
+    final digits = (number ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 4) return '';
+    return 'XXXX XXXX ${digits.substring(digits.length - 4)}';
+  }
 
-  static const int _aadhaarResendCooldown = 45; // 30–60 s window per guide.
-
-  String _formatMaskedFromLast4(String? last4) =>
-      (last4 == null || last4.isEmpty) ? '' : 'XXXX XXXX $last4';
-
-  /// Resets the OKYC flow to a clean state and fetches the current status.
-  /// Call whenever the bottom sheet opens.
+  /// Resets the flow to a clean state and resolves the stage from the rider's
+  /// onboarding record. Call whenever the bottom sheet opens.
   Future<void> initAadhaarFlow() async {
-    _aadhaarResendTimer?.cancel();
-    aadhaarResendSeconds.value = 0;
-    aadhaarOtpController.clear();
-    aadhaarReferenceId = '';
     aadhaarConsentGiven.value = false;
-    // Clear any Aadhaar images picked in a previous open of the "by image" path.
+    // Clear any Aadhaar images picked in a previous open of the sheet.
     aadharFrontImage.value = null;
     aadharBackImage.value = null;
     aadhaarIsVerified.value = false;
-    aadhaarVerifiedName.value = null;
     aadhaarMaskedNumber.value = null;
     aadhaarVerifiedAt.value = null;
     aadhaarStage.value = AadhaarStage.entry;
-    await checkAadhaarStatus();
+
+    // Only fetch when the record isn't loaded yet — every host of this sheet
+    // reads the onboarding status to render the step list in the first place,
+    // so normally this is already in hand and the sheet opens without a spinner.
+    if (riderOnboardingStatusData.value == null) {
+      try {
+        isAadhaarStatusLoading.value = true;
+        await ridersOnboardingStatusRepoApi();
+      } finally {
+        isAadhaarStatusLoading.value = false;
+      }
+    }
+    _applyAadhaarStageFromRiderStatus();
   }
 
-  /// Both Aadhaar sides picked — the photo path's submit needs both. Read
-  /// inside an `Obx`: the two sources are observable, so the button restyles as
-  /// soon as the second image lands.
+  /// Verified when the rider's `aadhar` step is already complete.
+  void _applyAadhaarStageFromRiderStatus() {
+    final data = riderOnboardingStatusData.value;
+    if (data?.aadhar != true) {
+      aadhaarStage.value = AadhaarStage.entry;
+      return;
+    }
+    aadhaarIsVerified.value = true;
+    // The saved number is the only identity the photo path produces — there is
+    // no OKYC name to show.
+    aadhaarMaskedNumber.value = _maskAadhaar(data?.aadharNo);
+    aadhaarStage.value = AadhaarStage.verified;
+  }
+
+  /// Both Aadhaar sides picked — the submit needs both. Read inside an `Obx`:
+  /// the two sources are observable, so the button restyles as soon as the
+  /// second image lands.
   bool get hasBothAadhaarImages =>
       aadharFrontImage.value != null && aadharBackImage.value != null;
 
-  /// Cancels the resend timer — call from the sheet's dispose.
+  /// Drops the picked card photos — call from the sheet's dispose so two full
+  /// -resolution images aren't held for the rest of the session.
   void disposeAadhaarFlow() {
-    _aadhaarResendTimer?.cancel();
+    aadharFrontImage.value = null;
+    aadharBackImage.value = null;
   }
 
-  void _startAadhaarResendCooldown() {
-    _aadhaarResendTimer?.cancel();
-    aadhaarResendSeconds.value = _aadhaarResendCooldown;
-    _aadhaarResendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (aadhaarResendSeconds.value <= 1) {
-        aadhaarResendSeconds.value = 0;
-        t.cancel();
-      } else {
-        aadhaarResendSeconds.value--;
-      }
-    });
-  }
-
-  /// GET /user/aadhaar/status — decides whether to show the verified state or
-  /// the entry form. An in-progress OTP attempt is treated as not verified.
-  Future<void> checkAadhaarStatus() async {
-    try {
-      isAadhaarStatusLoading.value = true;
-      final response = await DeliveryPartnerRepo().aadhaarStatusRepo();
-      final data = response.data;
-      if (response.isSuccess && data is Map) {
-        final status =
-            AadhaarStatusData.fromJson(Map<String, dynamic>.from(data));
-        if (status.isVerified) {
-          aadhaarIsVerified.value = true;
-          aadhaarVerifiedName.value = status.name;
-          aadhaarMaskedNumber.value = _formatMaskedFromLast4(status.aadhaarLast4);
-          aadhaarVerifiedAt.value = status.verifiedAt;
-          aadhaarStage.value = AadhaarStage.verified;
-        } else {
-          aadhaarStage.value = AadhaarStage.entry;
-        }
-      }
-    } catch (e) {
-      // Non-fatal: fall back to the entry form so the user can still verify.
-      debugPrint('❌ checkAadhaarStatus error: $e');
-    } finally {
-      isAadhaarStatusLoading.value = false;
-    }
-  }
-
-  /// POST /user/aadhaar/generate-otp — sends an OTP to the Aadhaar-linked
-  /// mobile. Requires a valid 12-digit number and the consent checkbox ticked.
-  Future<void> generateAadhaarOtp() async {
-    // A second tap while the first send is still in flight would fire a
-    // duplicate request and let the provider's rate limiter answer for us.
-    if (isAadhaarOtpSending.value) return;
-
-    // Text validation (12-digit Aadhaar).
-    //
-    // Through the Form when it is mounted — the entry stage — so the error
-    // renders under the field. On RESEND the caller is the OTP stage, where
-    // that Form is gone from the tree and `currentState` is null: validating
-    // through the key there returned false and made Resend a dead tap. Fall
-    // back to validating the stored number directly, which is the same rule
-    // (`ValidationMethod.validateAadhaar`) reported in a snackbar instead.
-    final formState = aadharFormKey.currentState;
-    if (formState != null) {
-      if (!formState.validate()) return;
-    } else {
-      final error = ValidationMethod.validateAadhaar(aadharController.text);
-      if (error != null) {
-        commonSnackBar(message: error);
-        return;
-      }
-    }
-
-    if (!aadhaarConsentGiven.value) {
-      commonSnackBar(
-          message:
-              'Please tick the consent checkbox to verify your Aadhaar.');
-      return;
-    }
-
-    final aadhaar = aadharController.text.replaceAll(RegExp(r'\s+'), '');
-
-    try {
-      isAadhaarOtpSending.value = true;
-      final response = await DeliveryPartnerRepo().aadhaarGenerateOtpRepo(
-        params: {
-          ApiKeys.aadhaarNumber: aadhaar,
-          ApiKeys.consent: 'Y',
-          ApiKeys.reason: 'For KYC',
-        },
-      );
-
-      final body = response.response?.data;
-      final isBusinessOk = body is Map && body['success'] == true;
-
-      if (response.isSuccess && isBusinessOk) {
-        final data = body['data'];
-        aadhaarReferenceId =
-            (data is Map ? data['reference_id']?.toString() : null) ?? '';
-        aadhaarOtpController.clear();
-        aadhaarStage.value = AadhaarStage.otp;
-        _startAadhaarResendCooldown();
-        commonSnackBar(
-            message: (body['message']?.toString().isNotEmpty ?? false)
-                ? body['message'].toString()
-                : 'OTP sent to your Aadhaar-linked mobile number');
-      } else {
-        // 200-with-success:false (e.g. "Invalid Aadhaar Card", "Please retry
-        // after 30 seconds") or a real error status.
-        //
-        // Go to the OTP screen ANYWAY. Two reasons:
-        //   1. The provider's most common refusal — "Please retry after 30
-        //      seconds" — is a rate limit, which means an OTP was just sent.
-        //      Holding the rider on the number form strands someone who is
-        //      holding a working code.
-        //   2. That screen is also where the Aadhaar PHOTO path lives (front +
-        //      back upload, under the "if the OTP isn't coming through" note),
-        //      so a rider whose OTP never arrives still has a way to finish
-        //      verification instead of a dead end.
-        //
-        // Nothing is faked: aadhaarReferenceId keeps whatever an earlier
-        // successful send returned and is not invented here.
-        aadhaarOtpController.clear();
-        aadhaarStage.value = AadhaarStage.otp;
-        // Respects the provider's own back-off — Resend unlocks after the
-        // cooldown instead of letting the rider hammer a rate-limited endpoint.
-        _startAadhaarResendCooldown();
-        final msg = (body is Map ? body['message']?.toString() : null) ??
-            response.message ??
-            AppStrings.somethingWentWrong;
-        commonSnackBar(message: msg);
-      }
-    } catch (e, s) {
-      debugPrint('❌ generateAadhaarOtp error: $e\n$s');
-      // A thrown request tells us nothing about whether the provider sent an
-      // OTP, so let the rider try a code — or the photo path — either way.
-      aadhaarOtpController.clear();
-      aadhaarStage.value = AadhaarStage.otp;
-      _startAadhaarResendCooldown();
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isAadhaarOtpSending.value = false;
-    }
-  }
-
-  /// POST /user/aadhaar/verify-otp — verifies the 6-digit OTP. On success the
-  /// entered number is written to the rider onboarding step and the sheet is
-  /// closed (via [checkStatusManageRoute]).
-  Future<void> verifyAadhaarOtp() async {
-    if (aadhaarReferenceId.isEmpty) {
-      // Reachable by design now: a failed generate-otp still lands the rider
-      // here. Keep them on this screen — Resend and the Aadhaar photo upload
-      // are both on it, and throwing someone back to the number form after
-      // they have typed a code is the worse half of the trade.
-      commonSnackBar(
-          message: 'No OTP request is active. Tap Resend, or verify with your '
-              'Aadhaar photos below.');
-      return;
-    }
-    if (aadhaarOtpController.text.trim().length != 6) {
-      commonSnackBar(message: 'Please enter the 6-digit OTP.');
-      return;
-    }
-
-    try {
-      isAadhaarOtpVerifying.value = true;
-      final response = await DeliveryPartnerRepo().aadhaarVerifyOtpRepo(
-        params: {
-          ApiKeys.referenceId: aadhaarReferenceId,
-          ApiKeys.otp: aadhaarOtpController.text.trim(),
-        },
-      );
-
-      final body = response.response?.data;
-      final verified = body is Map &&
-          body['success'] == true &&
-          body['is_verified'] == true;
-
-      if (response.isSuccess && verified) {
-        _aadhaarResendTimer?.cancel();
-        final data = body['data'];
-        final identity = data is Map
-            ? AadhaarVerifiedIdentity.fromJson(Map<String, dynamic>.from(data))
-            : null;
-        aadhaarIsVerified.value = true;
-        aadhaarVerifiedName.value = identity?.name;
-        aadhaarMaskedNumber.value =
-            _formatMaskedFromLast4(identity?.aadhaarLast4);
-        aadhaarVerifiedAt.value = DateTime.now().toIso8601String();
-        aadhaarStage.value = AadhaarStage.verified;
-        commonSnackBar(
-            message: (body['message']?.toString().isNotEmpty ?? false)
-                ? body['message'].toString()
-                : 'Aadhaar verified successfully');
-
-        // Bridge the verified identity into the rider onboarding step so the
-        // delivery-partner "aadhar" gate is completed.
-        await _submitRiderAadhaarStep(
-            aadharController.text.replaceAll(RegExp(r'\s+'), ''));
-      } else {
-        // "Invalid OTP" / "OTP expired" / "No pending OTP request found" etc.
-        final msg = (body is Map ? body['message']?.toString() : null) ??
-            response.message ??
-            AppStrings.somethingWentWrong;
-        commonSnackBar(message: msg);
-      }
-    } catch (e, s) {
-      debugPrint('❌ verifyAadhaarOtp error: $e\n$s');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isAadhaarOtpVerifying.value = false;
-    }
-  }
-
-  /// Go back from the OTP stage to the Aadhaar entry stage (edit number).
-  void editAadhaarNumber() {
-    _aadhaarResendTimer?.cancel();
-    aadhaarResendSeconds.value = 0;
-    aadhaarOtpController.clear();
-    aadhaarStage.value = AadhaarStage.entry;
-  }
-
-  /// Alternative to the OTP flow: submit the Aadhaar number together with the
-  /// card images (the "verify by image" option). Mirrors the old image-based
-  /// identification payload — uploads the images to S3 and POSTs
-  /// `{ aadharNo, aadharImages: { front, back }, verify_via: manually }` to the
-  /// same personal-identification endpoint the number-only path uses. Shown
-  /// when OTP isn't working for the rider.
+  /// The rider's Aadhaar step, start to finish: the 12-digit number plus both
+  /// card photos, submitted together.
   ///
-  /// BOTH sides are required. `verify_via` is what tells the backend these two
-  /// paths apart on one endpoint: this one submits an unverified number backed
-  /// by photos for review, while the OTP path submits a UIDAI-verified one (see
-  /// [_submitRiderAadhaarStep]).
+  /// Uploads the images to S3 and PUTs `{ aadharNo, aadharImages: {front, back} }`
+  /// to the personal-identification endpoint, where the record goes to manual
+  /// review — nothing here claims UIDAI verification, because the OKYC path this
+  /// used to sit beside is gone.
   ///
-  /// On success the sheet closes and the onboarding status refreshes so the
-  /// "aadhar" step reflects the submission.
+  /// BOTH sides are required: the front carries the number and photo, the back
+  /// the address and QR the verifier checks it against.
+  ///
+  /// On success the sheet shows the verified state and the onboarding status
+  /// refreshes so the "aadhar" step reflects the submission.
   Future<void> submitAadhaarImages() async {
-    // This runs from the OTP screen, where the entry-stage Form is no longer
-    // mounted (so aadharFormKey.currentState is null). Validate the already-
-    // entered number directly instead of via the form key.
+    // Through the Form when it's mounted, so the error renders under the field
+    // rather than as a snackbar; the direct check is the fallback for a host
+    // that doesn't wrap this in a Form.
+    final formState = aadharFormKey.currentState;
+    if (formState != null && !formState.validate()) return;
+
     final aadhaar = aadharController.text.replaceAll(RegExp(r'\s+'), '');
     if (aadhaar.length != 12) {
       commonSnackBar(message: 'Please enter a valid 12-digit Aadhaar number.');
+      return;
+    }
+    // Consent used to gate the OTP send. It gates this instead now — handing
+    // Aadhaar photographs to a verifier is precisely when the declaration needs
+    // to have been made.
+    if (!aadhaarConsentGiven.value) {
+      commonSnackBar(
+          message: 'Please tick the consent checkbox to verify your Aadhaar.');
       return;
     }
     final front = aadharFrontImage.value;
@@ -1195,7 +1009,7 @@ class DeliveryPartnerController extends GetxController {
         // than closing the sheet. The image submission carries no OKYC name, so
         // we surface the masked number from the entered Aadhaar for the row.
         aadhaarIsVerified.value = true;
-        aadhaarMaskedNumber.value = _formatMaskedFromLast4(aadhaar.substring(8));
+        aadhaarMaskedNumber.value = _maskAadhaar(aadhaar);
         aadhaarVerifiedAt.value = DateTime.now().toIso8601String();
         aadhaarStage.value = AadhaarStage.verified;
         commonSnackBar(
@@ -1215,8 +1029,8 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
-  /// Records a verified Aadhaar against the RIDER onboarding step, with none
-  /// of the navigation [_submitRiderAadhaarStep] performs.
+  /// Records an Aadhaar against the RIDER onboarding step from OUTSIDE the
+  /// rider flow — today, the Gig Work onboarding screen.
   ///
   /// Why this exists: `rider_service_screen` reads `onboarding/status`, and its
   /// `aadhar` flag flips only on THIS `PUT`. Verifying through
@@ -1226,19 +1040,17 @@ class DeliveryPartnerController extends GetxController {
   /// opened, so without this bridge the same worker is asked for the same
   /// Aadhaar a second time.
   ///
-  /// Split out rather than reusing [_submitRiderAadhaarStep] because that one
-  /// ends in [checkStatusManageRoute], which either pops or calls
-  /// `Get.offNamedUntil(bottomNav, (route) => false)` — from mid-signup that
-  /// would wipe the navigation stack out from under the user.
+  /// Deliberately performs no navigation: the caller is mid-signup, and the
+  /// route juggling [submitAadhaarImages] does from the sheet would wipe the
+  /// navigation stack out from under them.
   ///
   /// Best-effort by design: answers `false` rather than throwing or raising a
   /// snackbar. The caller is part-way through creating an account and a failure
   /// here must not block that; the worst case is the rider flow asking for
   /// Aadhaar again, which is exactly today's behaviour.
   ///
-  /// Pass [front]/[back] for the photo path so the backend receives the same
-  /// manual-review record [submitAadhaarImages] sends. Omit them for the OKYC
-  /// path, where the bare number means "UIDAI-verified".
+  /// Pass [front]/[back] so the backend receives the same manual-review record
+  /// [submitAadhaarImages] sends.
   Future<bool> recordAadhaarForRiderOnboarding({
     required String aadhaarNumber,
     File? front,
@@ -1268,38 +1080,6 @@ class DeliveryPartnerController extends GetxController {
     } catch (e, s) {
       debugPrint('❌ recordAadhaarForRiderOnboarding error: $e\n$s');
       return false;
-    }
-  }
-
-  /// Writes the verified Aadhaar number to the rider onboarding step and
-  /// resolves the sheet/route the same way the other document steps do.
-  Future<void> _submitRiderAadhaarStep(String aadharNumber) async {
-    try {
-      isRiderPersonalIdentificationLoading.value = true;
-      final response = await DeliveryPartnerRepo()
-          .ridersOnboardingPersonalIdentificationRepo(params: {
-        ApiKeys.aadharNo: aadharNumber,
-        // OKYC-verified: the number came back from UIDAI's OTP check, so the
-        // backend can trust it without a human looking at a card photo. The
-        // photo path posts the same endpoint with [ApiKeys.verifyViaManual].
-      });
-      if (response.isSuccess) {
-        ridersOnboardingPersonalIdentificationResponse.value =
-            ApiResponse.complete(response);
-      } else {
-        ridersOnboardingPersonalIdentificationResponse.value =
-            ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-      checkStatusManageRoute();
-    } catch (e, s) {
-      debugPrint('❌ _submitRiderAadhaarStep error: $e\n$s');
-      ridersOnboardingPersonalIdentificationResponse.value =
-          ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isRiderPersonalIdentificationLoading.value = false;
     }
   }
 

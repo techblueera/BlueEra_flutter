@@ -15,6 +15,7 @@ import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
+import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
@@ -111,6 +112,11 @@ class LogoutHelper {
     try {
       await BusinessProfileCache.clear();
       await PersonalProfileCache.clear();
+      // The grocery admin snapshot (top-selling, category inventory, catalog
+      // tree). `deleteFromDisk()` below takes it too — this is here for the
+      // same reason the profile caches are: the store owns account data, so the
+      // place that drops account data names it explicitly.
+      await GroceryLocalStore.clearAll();
     } catch (_) {}
     try {
       await Hive.deleteFromDisk();

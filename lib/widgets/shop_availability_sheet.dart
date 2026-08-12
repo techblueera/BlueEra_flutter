@@ -19,20 +19,34 @@ import 'package:get/get.dart';
 ///
 /// There is deliberately no per-day *time* editing here — times are only set in
 /// the weekly editor; the override is a plain open/closed switch for today.
+///
+/// [timingsOnly] is what the header CLOCK button opens: hours and nothing else.
+/// The status line and the open/closed switch are dropped there because the
+/// Go-Live pill sitting right next to the clock already IS that switch —
+/// showing a second one inside a sheet titled after the schedule just asks
+/// "which of these two do I press to open my shop?".
 Future<void> showShopAvailabilitySheet(
-  ShopAvailabilityHost controller,
-) {
+  ShopAvailabilityHost controller, {
+  bool timingsOnly = false,
+}) {
   return Get.bottomSheet(
-    _ShopAvailabilitySheet(controller: controller),
+    _ShopAvailabilitySheet(controller: controller, timingsOnly: timingsOnly),
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
   );
 }
 
 class _ShopAvailabilitySheet extends StatelessWidget {
-  const _ShopAvailabilitySheet({required this.controller});
+  const _ShopAvailabilitySheet({
+    required this.controller,
+    this.timingsOnly = false,
+  });
 
   final ShopAvailabilityHost controller;
+
+  /// Hours only — no live status, no today open/closed switch. See
+  /// [showShopAvailabilitySheet].
+  final bool timingsOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +102,7 @@ class _ShopAvailabilitySheet extends StatelessWidget {
             final hasHours =
                 controller.weeklySchedule.any((s) => (s.isOpen ?? false));
             if (!hasHours) return _emptyState();
+            if (timingsOnly) return _timingsOnlyView();
 
             final status = controller.shopStatus.value;
             final busy = controller.isAvailabilityUpdating.value;
@@ -223,6 +238,80 @@ class _ShopAvailabilitySheet extends StatelessWidget {
           }),
         ],
       ),
+    );
+  }
+
+  // Hours and nothing else — what the header clock opens. Same week list and
+  // same editor entry point as the full sheet, minus the live status and the
+  // today switch, which the Go-Live pill next to the clock already owns.
+  Widget _timingsOnlyView() {
+    final status = controller.shopStatus.value;
+    final busy = controller.isAvailabilityUpdating.value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.schedule_rounded,
+              size: 18,
+              color: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            CustomText(
+              AppStrings.weeklyHoursTitle.tr,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size6),
+        CustomText(
+          AppStrings.autoOpenCloseNote.tr,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.secondaryTextColor,
+        ),
+        SizedBox(height: SizeConfig.size12),
+        Container(height: 1, color: AppColors.greyE5),
+        SizedBox(height: SizeConfig.size8),
+        _weeklyHours(controller.weeklySchedule),
+
+        // Today's override is set from the pill, but nothing else can CLEAR it
+        // before tomorrow — so the one escape hatch stays here. Hidden unless
+        // an override is actually in force.
+        if (status.hasOverrideToday) ...[
+          SizedBox(height: SizeConfig.size12),
+          CustomText(
+            AppStrings.revertsToScheduleTomorrow.tr,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          GestureDetector(
+            onTap: busy ? null : controller.revertTodayOverride,
+            child: CustomText(
+              AppStrings.revertToScheduleNow.tr,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ],
+        SizedBox(height: SizeConfig.size20),
+        CustomBtn(
+          title: AppStrings.editWeeklyHours.tr,
+          radius: 10,
+          bgColor: AppColors.primaryColor,
+          onTap: () {
+            Get.back();
+            controller.openWeeklyEditor();
+          },
+        ),
+      ],
     );
   }
 

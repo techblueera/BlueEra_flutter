@@ -6551,6 +6551,18 @@ class AppStrings {
   static const String allIndia = "allIndia";
   static const String noPlansForAccount = "noPlansForAccount";
 
+  // One Time Contribution Plans surface (assets/subscription_*.png)
+  static const String oneTimeContributionPlans = "oneTimeContributionPlans";
+  static const String selectContributionPlan = "selectContributionPlan";
+  static const String contributionPlanSubtitle = "contributionPlanSubtitle";
+  static const String selectAPlanToContinue = "selectAPlanToContinue";
+  static const String radiusLabel = "radiusLabel";
+  static const String gstRequired = "gstRequired";
+  static const String oneTimeLabel = "oneTimeLabel";
+  static const String perJobLabel = "perJobLabel";
+  static const String combinationLabel = "combinationLabel";
+  static const String fullCombinationLabel = "fullCombinationLabel";
+
   /// CONTRIBUTION / RECHARGE FEATURE
   /// (lib/features/contribution/...)
   static const String contributionTitle = "contributionTitle";
@@ -6564,6 +6576,16 @@ class AppStrings {
   static const String noAutoPay = "noAutoPay";
   static const String tcStar = "tcStar";
   static const String gstSuffix = "gstSuffix";
+
+  /// Bare "GST" — used where the percentage is already stated nearby, e.g. the
+  /// pay bar's "₹150 + ₹27 GST" breakdown.
+  static const String gstShort = "gstShort";
+
+  /// Why the GST sheet opened, shown under the plan's name.
+  static const String gstRequiredForPlan = "gstRequiredForPlan";
+
+  /// The GST condition on a card, once the buyer has a number.
+  static const String gstOnFile = "gstOnFile";
   static const String bonusLabel = "bonusLabel";
   static const String perksLowercase = "perksLowercase";
   static const String basicTier = "basicTier";

@@ -34,7 +34,7 @@ import 'package:BlueEra/features/common/delivery_partner/service/rider_auto_goli
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
@@ -2329,7 +2329,7 @@ Future<void> handleGoLiveTap() async {
     // up (it's reconciled server-side by a Razorpay webhook with no in-app
     // trigger). This replaces the old RouteAware.didPopNext refresh — it targets
     // the one return that can actually change onboarding status.
-    await Get.to(() => const ContributionScreenV2());
+    await Get.to(() => const ContributionScreen());
     await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
     await AccountPlanEntitlement.to.refresh();
     return;

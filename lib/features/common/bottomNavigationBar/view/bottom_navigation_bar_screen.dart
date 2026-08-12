@@ -86,12 +86,29 @@ class BottomNavigationBarScreen extends StatefulWidget {
   /// settles. Kept login-only so it doesn't re-prompt on every app-open.
   final bool runRiderGoLiveGate;
 
+  /// Land on Discover regardless of account type — set ONLY by the post-OTP
+  /// login navigation.
+  ///
+  /// Riders and gig workers normally open straight onto their Me dashboard, on
+  /// app start and after signup alike. Signing in is the one moment that isn't
+  /// about their own dashboard: they have just come from outside the app, and
+  /// Discover is what shows them what happened while they were gone. They are
+  /// still one tab away from Me.
+  ///
+  /// Suppresses BOTH halves of the rider/gig routing — the initState decision
+  /// in [_resolveLandingIndex] and the deferred snap in
+  /// [_maybeCorrectLandingTabForMeProfile] — because on a fresh login the
+  /// profile type isn't known yet and it is the deferred one that would
+  /// actually move the tab.
+  final bool landOnDiscover;
+
   const BottomNavigationBarScreen(
       {super.key,
       this.initialIndex = 1,
       this.sharedMedia,
       this.deferHeavyInit = false,
-      this.runRiderGoLiveGate = false});
+      this.runRiderGoLiveGate = false,
+      this.landOnDiscover = false});
 
   @override
   State<BottomNavigationBarScreen> createState() =>
@@ -536,11 +553,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // passes a non-null initialIndex.
       return widget.initialIndex ?? 1;
     }
-    // Riders (bike rider / car-taxi driver) and gig workers always land on
-    // the Me tab (index 0) on login — regardless of whether their profile
-    // has been created yet — so their dashboard / onboarding is front and
-    // centre. Every other individual type uses the requested initial tab
-    // (Discover by default).
+    // Signing in is the exception: everyone lands on Discover, riders and gig
+    // workers included. See [BottomNavigationBarScreen.landOnDiscover].
+    if (widget.landOnDiscover) return widget.initialIndex ?? 1;
+    // Otherwise riders (bike rider / car-taxi driver) and gig workers always
+    // land on the Me tab (index 0) — regardless of whether their profile has
+    // been created yet — so their dashboard / onboarding is front and centre.
+    // Every other individual type uses the requested initial tab (Discover by
+    // default).
     final isRider = isRiderProfession(userProfessionGlobal);
     final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
     return (isRider || isGigWorker) ? 0 : (widget.initialIndex ?? 1);
@@ -619,6 +639,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (!mounted) return;
     if (_userPickedTab) return;
     if (widget.initialIndex != null) return;
+    // A login mount is MEANT to sit on Discover — this correction is the only
+    // thing that would move it, since the profile type lands after navigation.
+    if (widget.landOnDiscover) return;
     if (bottomBarController.currentIndex.value != 1) return;
     if (_resolveLandingIndex() != 0) return;
     logs("LANDING_TAB: profile resolved to "

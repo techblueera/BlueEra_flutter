@@ -237,13 +237,15 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
   }
 
   /// Same Go-Live behaviour as every other business dashboard: the pill shows
-  /// the schedule-driven open/close state and tapping opens the shared
-  /// availability control (weekly hours on first run, status sheet after).
+  /// the schedule-driven open/close state and toggles it directly, while the
+  /// clock button beside it sets and edits the visiting hours.
   Widget _goLivePill() {
     return Obx(
       () => GoLivePill(
         value: _businessController.isLive.value,
-        onTap: _businessController.openAvailabilityControl,
+        isUpdating: _businessController.isAvailabilityUpdating.value,
+        onTap: _businessController.toggleLiveNow,
+        onScheduleTap: _businessController.openScheduleControl,
       ),
     );
   }

@@ -154,24 +154,32 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   Future<void> _initializeController(String path) async {
     _disposeController();
-    // if (!mounted) return; // ← ADD THIS
 
-    if (_isNetworkUrl) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
-    } else {
-      _controller = VideoPlayerController.asset(path);
-    }
-
+    final controller = _isNetworkUrl
+        ? VideoPlayerController.networkUrl(Uri.parse(path))
+        : VideoPlayerController.asset(path);
+    _controller = controller;
 
     try {
-      await _controller!.initialize();
-      _controller!.setLooping(true);
+      await controller.initialize();
+
+      // Initialising a network video takes long enough for the screen to be
+      // left, or the URL list to change, before it finishes. Either way this
+      // controller is no longer the live one — set it up and it would play to
+      // nobody and never be released. Held locally rather than read back off
+      // `_controller`, which may already point at its replacement.
+      if (!mounted || !identical(_controller, controller)) {
+        controller.dispose();
+        return;
+      }
+
+      controller.setLooping(true);
       // Apply the current mute state before playback starts.
-      await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-      _controller!.addListener(_onControllerTick);
+      await controller.setVolume(_isMuted ? 0.0 : 1.0);
+      controller.addListener(_onControllerTick);
 
       if (widget.isAutoPlay) {
-        _controller!.play();
+        controller.play();
       }
 
       if (mounted) setState(() {});
@@ -202,9 +210,22 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   }
 
   void _disposeController() {
-    _controller?.pause();
-    _controller?.dispose();
+    final controller = _controller;
     _controller = null;
+    if (controller == null) return;
+
+    // Detach the listener BEFORE touching the controller.
+    //
+    // `pause()` notifies its listeners synchronously, so with the listener
+    // still attached this reaches [_onControllerTick] → setState. From
+    // [dispose] that throws: `State.mounted` is still true at that point (the
+    // element isn't unmounted until after dispose returns) while the element's
+    // lifecycle is already `defunct`, so the `mounted` guard lets the call
+    // straight through into the framework's assert. Removing the listener
+    // first is the fix — there is nothing useful to rebuild anyway.
+    controller.removeListener(_onControllerTick);
+    controller.pause();
+    controller.dispose();
   }
 
   void _togglePlayPause() {

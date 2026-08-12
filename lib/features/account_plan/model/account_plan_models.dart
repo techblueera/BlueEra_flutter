@@ -104,8 +104,26 @@ class PlanCard {
   final int priceTotal;
 
   final num priceBaseInr;
+  final num gstAmountInr;
   final num priceTotalInr;
   final bool isFree;
+
+  /// The backend's one recommended pick per group (e.g. the 3 km radius plan).
+  ///
+  /// Earns a "POPULAR" badge + amber card treatment, and is the card the pay
+  /// bar starts on (`_syncSelection`). It changes nothing about pricing or the
+  /// purchase path — the guide calls it cosmetic, and defaulting the selection
+  /// is a default, not a decision: the user can still pick any other card.
+  /// See the guide, §2.1.
+  final bool popular;
+
+  /// The bullet points the card shows. Stored per plan in the DB and returned
+  /// by the catalog — rendered VERBATIM, never hardcoded, so copy can change
+  /// backend-side without an app release.
+  final List<String> features;
+
+  /// Per-plan terms, same contract as [features]. Shown behind the `*T&C` link.
+  final List<String> termsAndConditions;
 
   const PlanCard({
     required this.optionCode,
@@ -124,9 +142,17 @@ class PlanCard {
     required this.gstAmount,
     required this.priceTotal,
     required this.priceBaseInr,
+    required this.gstAmountInr,
     required this.priceTotalInr,
     required this.isFree,
+    required this.popular,
+    required this.features,
+    required this.termsAndConditions,
   });
+
+  static List<String> _asStrList(dynamic v) => (v is List)
+      ? v.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList()
+      : const <String>[];
 
   factory PlanCard.fromJson(Map<String, dynamic> j) {
     final attrs = j['attributes'];
@@ -153,13 +179,27 @@ class PlanCard {
       gstAmount: _asInt(j['gst_amount']),
       priceTotal: _asInt(j['price_total']),
       priceBaseInr: _asNum(j['price_base_inr']),
+      gstAmountInr: _asNum(j['gst_amount_inr']),
       priceTotalInr: _asNum(j['price_total_inr']),
       isFree: j['is_free'] == true,
+      popular: j['popular'] == true,
+      features: _asStrList(j['features']),
+      termsAndConditions: _asStrList(j['terms_and_conditions']),
     );
   }
 
   /// The catalog encodes "everywhere" as a radius of -1.
   bool get isAllIndia => radiusKm == -1;
+
+  /// Whether this plan is only sold to a GST-registered account. The catalog
+  /// splits shop radius into a GST and a no-GST track; the card says so out
+  /// loud because it is the one condition a buyer can fail after paying
+  /// attention only to the price.
+  bool get requiresGst => gstTrack.toUpperCase() == 'GST';
+
+  /// Nothing to charge for — a free entitlement, or a card the backend priced
+  /// at zero. Either way checkout must not open.
+  bool get isPurchasable => !isFree && priceTotal > 0;
 }
 
 /// `POST /account-plan/initiate` → `data`.

@@ -2,15 +2,9 @@
 ///
 /// Mixed into [BaseService] alongside the other per-service API mixins.
 mixin SubscriptionServiceApi {
-  /// Recharge / Contribution (subscription-service/recharge/...)
-  /// See lib/docs/RECHARGE_FLUTTER_GUIDE.md.
-  final String rechargePlans = 'subscription-service/recharge/plans';
-  final String rechargeInitiateOrder =
-      'subscription-service/recharge/initiate-order';
-  final String rechargeVerifyPayment =
-      'subscription-service/recharge/verify-payment';
+  /// Legacy recharge — status read only. The catalog / purchase endpoints went
+  /// with the old contribution flow; buying happens on `accountPlan*` below.
   final String rechargeCurrent = 'subscription-service/recharge/current';
-  final String rechargeCancel = 'subscription-service/recharge/cancel';
 
   /// Security Deposit — the v2 "contribution" flow.
   /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -10,28 +8,94 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 import '../controller/account_plan_controller.dart';
 import '../model/account_plan_models.dart';
 
+/// Palette for the One-Time Contribution Plans surface.
+///
+/// The screen is a light-blue sheet carrying white plan cards; only the price
+/// pill is saturated, which is what makes the price the first thing read on
+/// each card. Colours are literal rather than [AppColors] tokens because this
+/// surface is drawn to a specific comp — see assets/subscription_1.png and
+/// assets/subscription_2.png.
+abstract class AccountPlanPalette {
+  /// The sheet the cards sit on.
+  static const Color canvas = Color(0xFFD9EDF8);
+
+  static const Color cardSurface = Color(0xFFFFFFFF);
+  static const Color cardBorder = Color(0xFFE4EDF3);
+  static const Color divider = Color(0xFFD5E2EA);
+
+  static const Color heading = Color(0xFF12161C);
+  static const Color muted = Color(0xFF6C7B87);
+  static const Color featureText = Color(0xFF4F5A64);
+
+  /// Feature ticks. Green everywhere in the app means "you get this".
+  static const Color tick = Color(0xFF23A455);
+
+  /// The one condition that can disqualify a buyer, so it is the one warm
+  /// colour on an otherwise cool card.
+  static const Color gstWarning = Color(0xFF9B1C1C);
+
+  static const Color link = Color(0xFF2F86E0);
+
+  /// The backend's `popular` pick. Amber, and deliberately not green or blue:
+  /// on these cards green already means "you own this" and blue means "you have
+  /// selected this", so a recommendation borrowing either would be read as a
+  /// state the user is already in.
+  static const Color popular = Color(0xFFE59128);
+  static const Color popularLight = Color(0xFFF8C45A);
+
+  /// Barely-there warm wash behind a recommended card, so it separates from its
+  /// neighbours on the blue sheet before the badge is even read.
+  static const Color popularSurface = Color(0xFFFFFCF5);
+
+  /// Price-pill gradients, one per card position. Assigned by catalog index so
+  /// a card keeps its colour across rebuilds, and so five near-identical gig
+  /// plans stay tellable apart when scrolling back to compare them.
+  static const List<List<Color>> pricePills = [
+    [Color(0xFF56BFD6), Color(0xFF2B93AF)], // teal
+    [Color(0xFFF8C45A), Color(0xFFE59128)], // amber
+    [Color(0xFF57C063), Color(0xFF23924B)], // green
+    [Color(0xFF6A46A0), Color(0xFF35205C)], // deep violet
+    [Color(0xFFC93BA0), Color(0xFF8E2372)], // magenta
+  ];
+
+  static List<Color> pricePillFor(int index) =>
+      pricePills[index % pricePills.length];
+}
+
 /// The Account Plan catalog, as a plain (non-scrolling) column.
 ///
 /// Renders whatever `plans[]` the backend returns and draws each card from its
-/// archetype plus the attributes on it, so adding a 139th account type on the
-/// backend needs no change here.
+/// own fields, so adding a 139th account type on the backend needs no change
+/// here: the label, the sublabel, the **`features`** bullets and the
+/// **`terms_and_conditions`** all come from the API and are rendered verbatim.
 ///
 /// **No inner scroll**: the host owns the scroll view, which is what lets the
 /// contribution screen stack the explainer video above this and have the two
 /// move as one. Loading/error states get a bounded height for the same reason.
 ///
+/// **No Buy button per card.** A card is *selected*; the host's pinned
+/// [AccountPlanPayBar] buys whatever is selected — see the comp.
+///
 /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
 class AccountPlanCatalogView extends StatelessWidget {
-  const AccountPlanCatalogView({super.key, required this.controller});
+  const AccountPlanCatalogView({
+    super.key,
+    required this.controller,
+    this.showHeader = true,
+  });
 
   final AccountPlanController controller;
 
-  /// Headline per archetype — the question the cards below answer.
+  /// The "Select a Contribution Plan" title block. Off when the host already
+  /// says the same thing directly above.
+  final bool showHeader;
+
+  /// Headline per archetype — kept for hosts that want the question the cards
+  /// answer ("Choose your visibility radius") rather than the generic title.
   static String headlineKeyFor(String archetype) {
     switch (archetype) {
       case PlanArchetype.radiusShop:
@@ -49,68 +113,44 @@ class AccountPlanCatalogView extends StatelessWidget {
     }
   }
 
-  /// Every job type any plan in this catalog offers, first-seen order.
-  ///
-  /// This is what turns five separate cards into one comparison: each card
-  /// draws the whole set and lights only its own. Derived rather than
-  /// hardcoded, so a vehicle class with two job types and one with four both
-  /// render correctly.
-  static List<String> jobTypeUniverseOf(PlanCatalog catalog) {
-    final seen = <String>[];
-    for (final plan in catalog.plans) {
-      for (final job in plan.jobTypes ?? const <String>[]) {
-        if (job.isNotEmpty && !seen.contains(job)) seen.add(job);
-      }
-    }
-    return seen;
-  }
-
-  /// Largest finite radius on offer, for scaling the reach bar. All-India
-  /// (`-1`) is excluded — it is the top of the ladder, not a length.
-  static int maxRadiusOf(PlanCatalog catalog) {
-    var max = 0;
-    for (final plan in catalog.plans) {
-      final r = plan.radiusKm;
-      if (r != null && r > max) max = r;
-    }
-    return max;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      switch (controller.plansStatus.value) {
-        case Status.INITIAL:
-        case Status.LOADING:
-          return SizedBox(
-            height: 320,
-            child: Center(child: staggeredDotsWaveLoading()),
-          );
-        case Status.ERROR:
-          return SizedBox(
-            height: 320,
-            child: AccountPlanErrorState(
-              message: controller.plansError.value,
-              onRetry: controller.fetchPlans,
-            ),
-          );
-        case Status.COMPLETE:
-          break;
-      }
-
       final catalog = controller.catalog.value;
-      if (catalog == null || catalog.plans.isEmpty) {
-        return SizedBox(
-          height: 320,
-          child: AccountPlanErrorState(
-            message: AppStrings.noPlansForAccount.tr,
-            onRetry: controller.fetchPlans,
-          ),
-        );
-      }
+      final hasCatalog = catalog != null && catalog.plans.isNotEmpty;
 
-      final universe = jobTypeUniverseOf(catalog);
-      final maxRadius = maxRadiusOf(catalog);
+      // Loading and error states only take over the surface when there is
+      // nothing to show yet. A pull-to-refresh over a catalog that already
+      // loaded keeps the cards on screen — the RefreshIndicator is already
+      // saying "working", and blanking a working screen (or worse, replacing it
+      // with a Retry after a flaky refresh) loses the user's place mid-compare.
+      if (!hasCatalog) {
+        switch (controller.plansStatus.value) {
+          case Status.INITIAL:
+          case Status.LOADING:
+            return SizedBox(
+              height: 320,
+              child: Center(child: staggeredDotsWaveLoading()),
+            );
+          case Status.ERROR:
+            return SizedBox(
+              height: 320,
+              child: AccountPlanErrorState(
+                message: controller.plansError.value,
+                onRetry: controller.fetchPlans,
+              ),
+            );
+          case Status.COMPLETE:
+            // Answered, and the answer is that this account has nothing to buy.
+            return SizedBox(
+              height: 320,
+              child: AccountPlanErrorState(
+                message: AppStrings.noPlansForAccount.tr,
+                onRetry: controller.fetchPlans,
+              ),
+            );
+        }
+      }
 
       return Padding(
         padding: EdgeInsets.fromLTRB(
@@ -122,30 +162,21 @@ class AccountPlanCatalogView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText(
-              headlineKeyFor(catalog.archetype).tr,
-              fontSize: SizeConfig.size18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-            ),
-            SizedBox(height: SizeConfig.size12),
+            if (showHeader) ...[
+              const _CatalogHeader(),
+              SizedBox(height: SizeConfig.size14),
+            ],
             for (final (index, plan) in catalog.plans.indexed)
               _PlanCardTile(
                 card: plan,
                 index: index,
-                jobTypeUniverse: universe,
-                maxRadiusKm: maxRadius,
+                hasGstin: controller.hasBuyerGstin,
                 isOwned: controller.ownsPlan(plan),
+                isSelected: controller.isSelected(plan),
                 isBusy: controller.isProcessing.value &&
                     controller.purchasingCode.value == plan.optionCode,
-                // Any purchase in flight dims and locks the others, so a
-                // second checkout can't open on top of the first.
-                isLocked: controller.isProcessing.value &&
-                    controller.purchasingCode.value != plan.optionCode,
-                onBuy: () => controller.buyPlan(plan),
+                onTap: () => controller.select(plan),
               ),
-            SizedBox(height: SizeConfig.size8),
-            const _Footnote(),
           ],
         ),
       );
@@ -153,551 +184,262 @@ class AccountPlanCatalogView extends StatelessWidget {
   }
 }
 
-/// One plan, drawn from its own fields.
+/// "Select a Contribution Plan" + the one-line reason to.
+class _CatalogHeader extends StatelessWidget {
+  const _CatalogHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          AppStrings.selectContributionPlan.tr,
+          fontSize: SizeConfig.size22,
+          fontWeight: FontWeight.w800,
+          color: AppColors.mainTextColor,
+          height: 1.2,
+          maxLines: 2,
+        ),
+        SizedBox(height: SizeConfig.size6),
+        CustomText(
+          AppStrings.contributionPlanSubtitle.tr,
+          fontSize: SizeConfig.size14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.secondaryTextColor,
+          height: 1.35,
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+}
+
+/// One plan card: headline + price pill, the promise line, then the DB-driven
+/// feature bullets, the GST condition, and the per-plan T&C link.
 ///
-/// ## The signature: an entitlement meter, derived from the catalog
-///
-/// The five gig cards a bike rider gets back differ in exactly one thing —
-/// which calls will ring on the phone — and the API expresses that as slugs
-/// (`passenger`, `food_grocery`, `parcel`). Printed as chips those read as
-/// lowercase noise and leave the rider comparing five lists by eye.
-///
-/// So each card shows the WHOLE set the catalog offers, with its own subset
-/// lit. The cards then stack into a comparison table: "Passenger + Parcel"
-/// visibly lights two of three.
-///
-/// Radius plans get the same idea in their own idiom — a bar filled against
-/// the widest plan on offer, so 1 km / 3 km / All India read as an ordered
-/// ladder instead of three similar numbers. A tier plan has neither and falls
-/// back to a plain pill.
-class _PlanCardTile extends StatefulWidget {
+/// Everything visible here except the pill's colour comes off the API. The card
+/// knows nothing about radii, job types or tiers by name — it reads whichever
+/// of those the plan happens to carry and formats it.
+class _PlanCardTile extends StatelessWidget {
   const _PlanCardTile({
     required this.card,
     required this.index,
-    required this.jobTypeUniverse,
-    required this.maxRadiusKm,
+    required this.hasGstin,
     required this.isOwned,
+    required this.isSelected,
     required this.isBusy,
-    required this.isLocked,
-    required this.onBuy,
+    required this.onTap,
   });
 
   final PlanCard card;
 
-  /// Position in the catalog — picks the card's splash palette and offsets its
-  /// animation phase so neighbours never pulse in lockstep.
+  /// Position in the catalog — picks the price pill's gradient.
   final int index;
 
-  /// Every job type any plan in this catalog offers, in catalog order.
-  final List<String> jobTypeUniverse;
-
-  /// Largest finite radius in this catalog, for scaling the reach bar.
-  final int maxRadiusKm;
+  /// Whether the buyer already has a GSTIN on hand. Decides whether this card's
+  /// GST condition reads as a warning or as a satisfied requirement.
+  final bool hasGstin;
 
   final bool isOwned;
+  final bool isSelected;
   final bool isBusy;
-  final bool isLocked;
-  final VoidCallback onBuy;
+  final VoidCallback onTap;
 
-  @override
-  State<_PlanCardTile> createState() => _PlanCardTileState();
-}
+  /// Whether this card can be picked up by the pay bar at all.
+  bool get _selectable => card.isPurchasable && !isOwned;
 
-class _PlanCardTileState extends State<_PlanCardTile>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _splash;
-
-  /// Whether this card is on screen. A catalog is five cards today, but the
-  /// endpoint serves 138 account types and nothing caps the list — an
-  /// off-screen card repainting a gradient every frame is pure cost, so each
-  /// one only runs its ticker while it is actually visible.
-  bool _visible = false;
-
-  /// The OS "remove animations" setting. The gradient still paints; it just
-  /// holds still.
-  bool _reduceMotion = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Slow on purpose: the splash is ambient identity, not an effect. Anything
-    // quick enough to notice would compete with the entitlement meter, which
-    // is the thing the card is actually for.
-    // Slow enough to stay ambient, quick enough to actually read as motion —
-    // the first pass at 14s was indistinguishable from a still image.
-    _splash = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 7),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    _syncTicker();
-  }
-
-  /// Single place that decides whether the controller runs, so visibility and
-  /// the reduced-motion setting can't fight over it.
+  /// Whether to paint the recommendation at all.
   ///
-  /// `repeat()` resumes from the controller's current value, so a card
-  /// scrolled away and back picks its wash up where it left off rather than
-  /// snapping to the start.
-  void _syncTicker() {
-    final shouldRun = _visible && !_reduceMotion;
-    if (shouldRun && !_splash.isAnimating) {
-      _splash.repeat();
-    } else if (!shouldRun && _splash.isAnimating) {
-      _splash.stop();
+  /// Suppressed once the plan is owned — a plan you already hold is not a
+  /// suggestion, and the green "Active" treatment is the more useful thing to
+  /// say about it. The selected case needs no check here: the decoration below
+  /// tests `isSelected` first, so blue simply wins.
+  bool get _showPopular => card.popular && !isOwned;
+
+  /// The big headline, split into a number and its unit.
+  ///
+  /// A radius plan's label arrives as "1 km" and the comp sets it as **1KM**
+  /// with a lighter "Radius" beside it. Anything that isn't that shape — "All
+  /// India", "Passenger + Parcel", "Pro" — is printed as it came, because the
+  /// catalog serves 138 account types and only some of them measure anything.
+  ({String title, String? unit}) get _headline {
+    final match = RegExp(r'^\s*(\d+)\s*km\s*$', caseSensitive: false)
+        .firstMatch(card.label);
+    if (match != null) {
+      return (title: '${match.group(1)}KM', unit: AppStrings.radiusLabel.tr);
     }
+    return (title: card.label, unit: null);
   }
 
-  void _onVisibilityChanged(VisibilityInfo info) {
-    // Any sliver of the card counts as visible — the wash is ambient, and a
-    // threshold would make it pop in mid-scroll.
-    final visible = info.visibleFraction > 0;
-    if (visible == _visible) return;
-    _visible = visible;
-    // Fires from a post-frame callback, and on dispose with a fraction of 0.
-    if (!mounted) return;
-    _syncTicker();
+  /// The bold promise under the title.
+  ///
+  /// Prefers the API's `sublabel`; gig plans send an empty one, so the first
+  /// feature is promoted instead (it reads as the promise — "Receive Passenger
+  /// Ride Jobs") and then dropped from the bullets below so it isn't said
+  /// twice.
+  String? get _promise {
+    final sublabel = card.sublabel;
+    if (sublabel != null && sublabel.isNotEmpty) return sublabel;
+    return card.features.isNotEmpty ? card.features.first : null;
   }
 
-  @override
-  void dispose() {
-    _splash.dispose();
-    super.dispose();
+  List<String> get _bullets {
+    final promoted = (card.sublabel == null || card.sublabel!.isEmpty) &&
+        card.features.isNotEmpty;
+    return promoted ? card.features.skip(1).toList() : card.features;
   }
-
-  PlanCard get card => widget.card;
 
   @override
   Widget build(BuildContext context) {
-    final palette = _SplashPalette.forIndex(widget.index);
-    // The card's own deep tone, so the type and controls belong to the same
-    // colour as the wash behind them. Owned cards switch to green — it means
-    // the same thing here as everywhere else in the app.
-    final accent = widget.isOwned ? AppColors.green00 : palette.accent;
-    return VisibilityDetector(
-      // Namespaced and keyed on the option code, not the index: a refetch can
-      // reorder the catalog, and VisibilityDetector's registry is global.
-      key: ValueKey('account_plan_card_${card.optionCode}'),
-      onVisibilityChanged: _onVisibilityChanged,
-      child: Opacity(
-        opacity: widget.isLocked ? 0.5 : 1,
-        child: Container(
-          margin: EdgeInsets.only(bottom: SizeConfig.size12),
-          decoration: BoxDecoration(
-            // The ground the splash moves across. Painted on the container so
-            // the card still has its colour wherever the blobs have drifted
-            // away.
-            gradient: palette.baseGradient,
-            borderRadius: BorderRadius.circular(SizeConfig.size14),
-            border: Border.all(
-              color: accent.withValues(alpha: widget.isOwned ? 0.85 : 0.18),
-              width: widget.isOwned ? 1.4 : 1,
-            ),
-            boxShadow: [
-              // Tinted with the card's own accent rather than neutral grey, so
-              // the colour reads as belonging to the card instead of a shadow
-              // dropped under it.
-              BoxShadow(
-                color: accent.withValues(alpha: 0.10),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
+    final headline = _headline;
+    final promise = _promise;
+    final bullets = _bullets;
+    // The trailing rows: every feature, then the GST condition if the plan
+    // carries one. The last of them also holds the T&C link, which is how the
+    // comp keeps that link tucked against the card's bottom-right corner
+    // instead of on a line of its own.
+    final rowCount = bullets.length + (card.requiresGst ? 1 : 0);
+    // A plan with no terms gets no link — and then no empty slot reserved for
+    // one either.
+    final terms = card.termsAndConditions.isEmpty ? null : _TermsLink(card: card);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size14),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _selectable ? onTap : null,
+          borderRadius: BorderRadius.circular(SizeConfig.size16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: EdgeInsets.all(SizeConfig.size16),
+            // Four looks, in strict precedence: SELECTED (blue) beats OWNED
+            // (green) beats POPULAR (amber) beats plain. Selection has to win —
+            // it is the state the pay bar acts on, and a recommendation that
+            // out-shouted the user's own choice would make the CTA ambiguous.
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFFF4FAFF)
+                  : (_showPopular
+                      ? AccountPlanPalette.popularSurface
+                      : AccountPlanPalette.cardSurface),
+              borderRadius: BorderRadius.circular(SizeConfig.size16),
+              border: Border.all(
+                color: isSelected
+                    ? AppColors.primaryColor
+                    : (isOwned
+                        ? AppColors.green00.withValues(alpha: 0.55)
+                        : (_showPopular
+                            ? AccountPlanPalette.popular
+                                .withValues(alpha: 0.65)
+                            : AccountPlanPalette.cardBorder)),
+                width: isSelected ? 1.6 : (_showPopular ? 1.4 : 1),
               ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            children: [
-              // Ambient gradient wash, unique per card. Sits UNDER the content
-              // and is ignored by hit-testing, so it can never eat a tap.
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _splash,
-                    builder: (_, __) => CustomPaint(
-                      painter: _SplashPainter(
-                        t: _splash.value,
-                        phase: widget.index * 0.37,
-                        palette: palette,
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? AppColors.primaryColor.withValues(alpha: 0.16)
+                      : (_showPopular
+                          ? AccountPlanPalette.popular.withValues(alpha: 0.18)
+                          : const Color(0x14102A43)),
+                  blurRadius: isSelected ? 16 : (_showPopular ? 14 : 10),
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // The backend's recommended pick. Sits above the headline
+                // rather than over the card's corner because the corner is
+                // already the price pill's, and a ribbon crossing it would
+                // obscure the one number the card exists to show.
+                if (_showPopular) ...[
+                  const _PopularBadge(),
+                  SizedBox(height: SizeConfig.size10),
+                ],
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: _Headline(
+                        title: headline.title,
+                        unit: headline.unit,
+                        vehicleClass: card.vehicleClass,
                       ),
                     ),
-                  ),
+                    SizedBox(width: SizeConfig.size8),
+                    _PricePill(
+                      card: card,
+                      gradient: AccountPlanPalette.pricePillFor(index),
+                      isBusy: isBusy,
+                    ),
+                  ],
                 ),
-              ),
-              _content(accent),
-            ],
+                if (isOwned) ...[
+                  SizedBox(height: SizeConfig.size10),
+                  const _ActiveBadge(),
+                ],
+                if (promise != null) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  _PromiseLine(text: promise, isSelected: isSelected),
+                ],
+                if (rowCount > 0) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  const _DashedDivider(),
+                  SizedBox(height: SizeConfig.size12),
+                  for (final (i, feature) in bullets.indexed)
+                    _FeatureRow(
+                      text: feature,
+                      // Only the very last row carries the link.
+                      trailing: (i == rowCount - 1) ? terms : null,
+                    ),
+                  if (card.requiresGst)
+                    _GstRequiredRow(satisfied: hasGstin, trailing: terms),
+                ] else if (terms != null) ...[
+                  // Nothing to list — the link still needs somewhere to live.
+                  SizedBox(height: SizeConfig.size10),
+                  Align(alignment: Alignment.centerRight, child: terms),
+                ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
-  Widget _content(Color accent) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size14,
-                SizeConfig.size14,
-                SizeConfig.size14,
-                SizeConfig.size12,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Vehicle class as an eyebrow — the one bit of context the
-                  // label leaves out ("Passenger" on a BIKE vs a CAR). Absent
-                  // on shop plans, where the row simply doesn't render.
-                  if ((card.vehicleClass ?? '').isNotEmpty) ...[
-                    CustomText(
-                      card.vehicleClass!.toUpperCase(),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: accent.withValues(alpha: 0.75),
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-                  ],
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          card.label,
-                          fontSize: SizeConfig.size16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                          height: 1.2,
-                          maxLines: 2,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      _PriceTag(card: card, accent: accent),
-                    ],
-                  ),
-                  // Only rendered when the API actually sends one — it comes
-                  // back as "" for every gig plan.
-                  if ((card.sublabel ?? '').isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size4),
-                    CustomText(
-                      card.sublabel!,
-                      fontSize: SizeConfig.size12,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 2,
-                    ),
-                  ],
-                  SizedBox(height: SizeConfig.size12),
-                  _entitlement(accent),
-                ],
-              ),
-            ),
-            _ActionBar(
-              card: card,
-              accent: accent,
-              isOwned: widget.isOwned,
-              isBusy: widget.isBusy,
-              isLocked: widget.isLocked,
-              onBuy: widget.onBuy,
-            ),
-      ],
-    );
-  }
-
-  /// The one loud element, picked by what the card actually carries.
-  Widget _entitlement(Color accent) {
-    if (widget.jobTypeUniverse.isNotEmpty) {
-      return _JobTypeStrip(
-        all: widget.jobTypeUniverse,
-        included: card.jobTypes ?? const [],
-        accent: accent,
-      );
-    }
-    if (card.radiusKm != null) {
-      return _ReachBar(
-        radiusKm: card.radiusKm!,
-        maxRadiusKm: widget.maxRadiusKm,
-        isAllIndia: card.isAllIndia,
-        accent: accent,
-        // Reuses the card's controller rather than starting its own, so the
-        // sheen is already paused when the card scrolls off screen and there
-        // is still exactly one ticker per card.
-        sweep: _splash,
-      );
-    }
-    final chips = <String>[
-      if (card.tier != null) card.tier!,
-      if (card.validityDays != null) '${card.validityDays} days',
-    ];
-    if (chips.isEmpty) return const SizedBox.shrink();
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [for (final c in chips) _Pill(text: c, accent: accent)],
-    );
-  }
 }
 
-/// The colours one card is built from: a near-white base, three pastel blobs
-/// that drift across it, and one deep accent for the type and controls.
+/// "POPULAR" — the backend's `popular: true` pick, one per group.
 ///
-/// ## Getting a visible splash onto a LIGHT card
-///
-/// Two earlier passes bracketed this. Pale tints at 8% alpha on white were
-/// invisible — nothing to see. Vivid blobs on a dark base were visible but
-/// turned five cards into black slabs in an otherwise light app.
-///
-/// What works on a light surface is the mesh-gradient approach: keep the blobs
-/// **high-luminance** (pastels, not mid-tones) and then run them at a real
-/// alpha. A pastel at 55% over white still lands around #CFD6FD — clearly a
-/// colour, and dark text over it keeps full contrast. Saturation is what would
-/// have cost legibility, not opacity, so opacity is where the visibility comes
-/// from.
-///
-/// Five gig plans also arrive looking almost identical — same shape, same
-/// chips, only the price and the lit set differ. A distinct wash per card
-/// makes each recognisable when scrolling back to compare. Assigned by catalog
-/// position, so a card keeps its colour across rebuilds.
-class _SplashPalette {
-  const _SplashPalette({
-    required this.tint,
-    required this.accent,
-    required this.a,
-    required this.b,
-    required this.c,
-  });
-
-  /// The faintest wash of the card's colour, under the blobs, so the card is
-  /// never pure white even where nothing has drifted.
-  final Color tint;
-
-  /// Deep enough to carry text and controls over the wash. Chips, the eyebrow
-  /// and the Buy button all take this, which is what ties a card's identity
-  /// together rather than leaving the colour purely decorative.
-  final Color accent;
-
-  /// The three drifting blobs — pastel by design, see the class doc.
-  final Color a;
-  final Color b;
-  final Color c;
-
-  /// Full-strength brand tones — the 500/600 step, not tints.
-  ///
-  /// Depth comes from the COLOUR, and the painter then pulls its alpha back to
-  /// compensate, rather than the reverse. That is what keeps the card "deeper
-  /// but not dark": at the painter's alpha these land around #A9ABF7, so the
-  /// wash reads as a real colour while `mainTextColor` stays well clear of the
-  /// contrast floor. This is the end of the scale — anything stronger and the
-  /// small print starts to suffer, at which point the answer is a different
-  /// treatment, not more saturation.
-  static const List<_SplashPalette> _wheel = [
-    // Indigo / blue / violet
-    _SplashPalette(
-      tint: Color(0xFFE8ECFF),
-      accent: Color(0xFF4338CA),
-      a: Color(0xFF6366F1),
-      b: Color(0xFF3B82F6),
-      c: Color(0xFF8B5CF6),
-    ),
-    // Emerald / teal / green
-    _SplashPalette(
-      tint: Color(0xFFE3FBF1),
-      accent: Color(0xFF0F766E),
-      a: Color(0xFF10B981),
-      b: Color(0xFF14B8A6),
-      c: Color(0xFF34D399),
-    ),
-    // Orange / amber / red
-    _SplashPalette(
-      tint: Color(0xFFFFEEDD),
-      accent: Color(0xFFC2410C),
-      a: Color(0xFFF97316),
-      b: Color(0xFFF59E0B),
-      c: Color(0xFFEF4444),
-    ),
-    // Pink / purple / rose
-    _SplashPalette(
-      tint: Color(0xFFFFE8F2),
-      accent: Color(0xFFBE185D),
-      a: Color(0xFFEC4899),
-      b: Color(0xFFA855F7),
-      c: Color(0xFFF43F5E),
-    ),
-    // Sky / blue / indigo
-    _SplashPalette(
-      tint: Color(0xFFE2F3FF),
-      accent: Color(0xFF0369A1),
-      a: Color(0xFF0EA5E9),
-      b: Color(0xFF60A5FA),
-      c: Color(0xFF6366F1),
-    ),
-  ];
-
-  static _SplashPalette forIndex(int i) => _wheel[i % _wheel.length];
-
-  /// White at the top-left fading into the card's tint — the wash the blobs
-  /// then move across.
-  LinearGradient get baseGradient => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [const Color(0xFFFFFFFF), tint],
-      );
-}
-
-/// Three pastel radial blobs drifting and breathing across the card's base.
-///
-/// [t] is the loop progress (0→1) and [phase] the per-card offset that keeps
-/// neighbours out of sync. The travel is a large fraction of the card, not a
-/// nudge — a small drift reads as a rendering artefact rather than movement.
-class _SplashPainter extends CustomPainter {
-  const _SplashPainter({
-    required this.t,
-    required this.phase,
-    required this.palette,
-  });
-
-  final double t;
-  final double phase;
-  final _SplashPalette palette;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    // One full turn per loop, offset per card.
-    final angle = (t + phase) * 2 * math.pi;
-
-    void blob(Color color, double cx, double cy, double r, double drift) {
-      final dx = math.cos(angle + drift) * w * 0.22;
-      final dy = math.sin(angle * 0.8 + drift) * h * 0.45;
-      // Breathe by ±14% so the wash never sits still.
-      final radius = r * (1 + 0.14 * math.sin(angle + drift));
-      final center = Offset(w * cx + dx, h * cy + dy);
-      final paint = Paint()
-        ..shader = RadialGradient(
-          // Fades through a mid stop so the edge dissolves into the base
-          // instead of ending on a visible rim.
-          //
-          // Alpha is the counterweight to saturation: the palette moved to
-          // full-strength brand tones, so this pulled back from 0.62 to keep
-          // the card deeper WITHOUT going dark. Raise both together and the
-          // text goes with it.
-          colors: [
-            color.withValues(alpha: 0.52),
-            color.withValues(alpha: 0.18),
-            color.withValues(alpha: 0),
-          ],
-          stops: const [0, 0.55, 1],
-        ).createShader(Rect.fromCircle(center: center, radius: radius));
-      canvas.drawCircle(center, radius, paint);
-    }
-
-    blob(palette.a, 0.10, 0.10, w * 0.55, 0);
-    blob(palette.b, 0.92, 0.28, w * 0.48, 2.1);
-    blob(palette.c, 0.52, 1.05, w * 0.60, 4.2);
-  }
-
-  @override
-  bool shouldRepaint(_SplashPainter old) =>
-      old.t != t || old.phase != phase || old.palette != palette;
-}
-
-/// Human name and glyph for a job-type slug.
-///
-/// An unknown slug still renders — title-cased with a neutral tag icon — so a
-/// job type added on the backend appears without an app release.
-class _JobType {
-  const _JobType(this.icon, this.label);
-
-  final IconData icon;
-  final String label;
-
-  static _JobType of(String slug) {
-    switch (slug) {
-      case 'passenger':
-        return const _JobType(Icons.person_rounded, 'Passenger');
-      case 'food_grocery':
-        return const _JobType(Icons.shopping_bag_rounded, 'Food & Grocery');
-      case 'parcel':
-        return const _JobType(Icons.inventory_2_rounded, 'Parcel');
-      default:
-        return _JobType(Icons.local_offer_rounded, _titleCase(slug));
-    }
-  }
-
-  static String _titleCase(String slug) => slug
-      .split(RegExp(r'[_\s]+'))
-      .where((w) => w.isNotEmpty)
-      .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-      .join(' ');
-}
-
-/// The whole set of call types on offer, with this plan's own lit.
-class _JobTypeStrip extends StatelessWidget {
-  const _JobTypeStrip({
-    required this.all,
-    required this.included,
-    required this.accent,
-  });
-
-  final List<String> all;
-  final List<String> included;
-  final Color accent;
+/// Cosmetic only: it changes no price and no purchase path (see the guide,
+/// §2.1). Amber so it reads as a recommendation rather than as a state — green
+/// on this card already means "owned" and blue means "selected".
+class _PopularBadge extends StatelessWidget {
+  const _PopularBadge();
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        for (final slug in all)
-          _JobChip(
-            type: _JobType.of(slug),
-            on: included.contains(slug),
-            accent: accent,
-          ),
-      ],
-    );
-  }
-}
-
-class _JobChip extends StatelessWidget {
-  const _JobChip({required this.type, required this.on, required this.accent});
-
-  final _JobType type;
-  final bool on;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    // The lit/unlit contrast IS the information, so BOTH states have to be
-    // legible — an unlit chip that disappears tells the reader nothing about
-    // what this plan leaves out.
-    //
-    // Lit is solid accent with white type. Unlit is the same hue held back:
-    // solid white fill so it lifts off the coloured wash, an accent border at
-    // a third strength, and accent-toned text. Grey was the first attempt and
-    // it sank into the background.
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size6,
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size4,
       ),
       decoration: BoxDecoration(
-        color: on ? accent : Colors.white,
-        borderRadius: BorderRadius.circular(SizeConfig.size8),
-        border: Border.all(
-          color: on ? accent : accent.withValues(alpha: 0.35),
-          width: on ? 1 : 1.2,
+        gradient: const LinearGradient(
+          colors: [
+            AccountPlanPalette.popularLight,
+            AccountPlanPalette.popular,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
+        borderRadius: BorderRadius.circular(SizeConfig.size20),
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: on ? 0.28 : 0.10),
-            blurRadius: on ? 6 : 4,
+            color: AccountPlanPalette.popular.withValues(alpha: 0.30),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -705,17 +447,14 @@ class _JobChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            type.icon,
-            size: 13,
-            color: on ? Colors.white : accent.withValues(alpha: 0.55),
-          ),
+          const Icon(Icons.star_rounded, size: 13, color: Colors.white),
           SizedBox(width: SizeConfig.size4),
           CustomText(
-            type.label,
-            fontSize: 11,
-            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-            color: on ? Colors.white : accent.withValues(alpha: 0.70),
+            AppStrings.popularTier.tr,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            color: Colors.white,
           ),
         ],
       ),
@@ -723,256 +462,87 @@ class _JobChip extends StatelessWidget {
   }
 }
 
-/// Reach, drawn to scale against the widest plan in the catalog, so the
-/// options read as an ordered ladder rather than three similar numbers.
-class _ReachBar extends StatelessWidget {
-  const _ReachBar({
-    required this.radiusKm,
-    required this.maxRadiusKm,
-    required this.isAllIndia,
-    required this.accent,
-    required this.sweep,
+/// "1KM Radius" — the number carries the weight, the unit sits back.
+class _Headline extends StatelessWidget {
+  const _Headline({
+    required this.title,
+    required this.unit,
+    required this.vehicleClass,
   });
 
-  final int radiusKm;
-  final int maxRadiusKm;
-  final bool isAllIndia;
-  final Color accent;
+  final String title;
+  final String? unit;
 
-  /// Drives the sheen travelling along the filled part. Supplied by the card
-  /// so the bar adds no ticker of its own.
-  final Animation<double> sweep;
-
-  /// A lighter band travelling left-to-right along the filled portion.
-  ///
-  /// The band is built from the accent itself rather than white, so the bar
-  /// brightens as it passes instead of looking washed out. Stops run from
-  /// off-the-left to off-the-right so the highlight enters and exits cleanly
-  /// rather than popping at the ends.
-  LinearGradient _sheen() {
-    final head = -0.4 + sweep.value * 1.8;
-    final light = Color.lerp(accent, Colors.white, 0.45)!;
-    return LinearGradient(
-      colors: [accent, light, accent],
-      stops: [
-        (head - 0.22).clamp(0.0, 1.0),
-        head.clamp(0.0, 1.0),
-        (head + 0.22).clamp(0.0, 1.0),
-      ],
-    );
-  }
+  /// The one bit of context a gig label leaves out ("Passenger" on a BIKE vs a
+  /// CAR). Absent on shop plans, where the eyebrow simply doesn't render.
+  final String? vehicleClass;
 
   @override
   Widget build(BuildContext context) {
-    // All-India is the top of the ladder by definition; everything else is a
-    // fraction of the widest finite radius. The floor keeps the smallest plan
-    // visible instead of a hairline.
-    final double fraction = isAllIndia
-        ? 1.0
-        : (maxRadiusKm <= 0 ? 1.0 : (radiusKm / maxRadiusKm).clamp(0.12, 1.0));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.my_location_rounded, size: 13, color: accent),
-            SizedBox(width: SizeConfig.size4),
-            CustomText(
-              isAllIndia
-                  ? AppStrings.allIndia.tr
-                  : '$radiusKm ${AppStrings.kmVisibility.tr}',
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: accent,
-            ),
-          ],
-        ),
-        SizedBox(height: SizeConfig.size6),
-        // Two motions, doing different jobs. The FILL draws itself in once, so
-        // the ladder is read as a comparison rather than arriving pre-filled.
-        // The SHEEN then keeps sliding along it — a still bar on a card whose
-        // background is moving looks like it failed to load.
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: fraction),
-          duration: const Duration(milliseconds: 900),
-          curve: Curves.easeOutCubic,
-          builder: (context, filled, _) => ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: SizedBox(
-              height: 6,
-              child: Stack(
-                children: [
-                  // The UNFILLED remainder. Grey vanished against the coloured
-                  // wash behind the card, so the track is a deep tint of the
-                  // accent instead — the empty part of the ladder has to be as
-                  // readable as the full part, or there is nothing to compare
-                  // the fill against.
-                  Positioned.fill(
-                    child: ColoredBox(
-                      color: accent.withValues(alpha: 0.22),
-                    ),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: filled,
-                    child: AnimatedBuilder(
-                      animation: sweep,
-                      builder: (context, __) => DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: _sheen(),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        if ((vehicleClass ?? '').isNotEmpty) ...[
+          CustomText(
+            vehicleClass!.toUpperCase(),
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            color: AccountPlanPalette.muted,
           ),
+          SizedBox(height: SizeConfig.size4),
+        ],
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            CustomText(
+              title,
+              fontSize: SizeConfig.size26,
+              fontWeight: FontWeight.w800,
+              color: AccountPlanPalette.heading,
+              height: 1.1,
+              maxLines: 2,
+              // A label long enough to not fit beside the price pill clips
+              // cleanly instead of painting into it.
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (unit != null) ...[
+              SizedBox(width: SizeConfig.size6),
+              Padding(
+                padding: EdgeInsets.only(top: SizeConfig.size4),
+                child: CustomText(
+                  unit!,
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w500,
+                  color: AccountPlanPalette.muted,
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
   }
 }
 
-/// Footer strip: the state of this plan, or the way to buy it.
+/// The price, as a gradient capsule — "₹ 500" and what the payment buys — with
+/// the GST called out beneath it.
 ///
-/// Tinted and divided off the body so the price and the action never compete
-/// for the same corner of the card.
-class _ActionBar extends StatelessWidget {
-  const _ActionBar({
+/// The capsule headlines the BASE price, not the total, and the line under it
+/// adds "+ ₹90 (18% GST)". That split is the guide's rule (§2.1): the card
+/// shows price + GST so the tax is never a surprise, and the total is stated
+/// once, at payment time, in [_PayBarSummary] — which is also the only figure
+/// that gets charged, and the backend owns it.
+class _PricePill extends StatelessWidget {
+  const _PricePill({
     required this.card,
-    required this.accent,
-    required this.isOwned,
+    required this.gradient,
     required this.isBusy,
-    required this.isLocked,
-    required this.onBuy,
   });
 
   final PlanCard card;
-  final Color accent;
-  final bool isOwned;
+  final List<Color> gradient;
   final bool isBusy;
-  final bool isLocked;
-  final VoidCallback onBuy;
-
-  @override
-  Widget build(BuildContext context) {
-    final settled = isOwned || card.isFree;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size14,
-        vertical: SizeConfig.size10,
-      ),
-      decoration: BoxDecoration(
-        // A white veil, not a tint: it lifts the footer clear of whichever
-        // blob happens to be under it, so the CTA never sits on a moving
-        // colour.
-        color: Colors.white.withValues(alpha: settled ? 0.45 : 0.62),
-        border: Border(
-          top: BorderSide(color: accent.withValues(alpha: 0.14)),
-        ),
-      ),
-      child: Row(
-        children: [
-          if (settled) ...[
-            Icon(
-              isOwned ? Icons.check_circle_rounded : Icons.verified_rounded,
-              size: 16,
-              color: accent,
-            ),
-            SizedBox(width: SizeConfig.size6),
-            CustomText(
-              isOwned ? AppStrings.planActive.tr : AppStrings.planFree.tr,
-              fontSize: SizeConfig.size12,
-              fontWeight: FontWeight.w700,
-              color: accent,
-            ),
-          ] else ...[
-            Expanded(
-              child: CustomText(
-                '${AppStrings.inclGstPrefix.tr} ${card.gstPercent}${AppStrings.gstSuffix.tr}',
-                fontSize: 10,
-                color: AppColors.secondaryTextColor,
-              ),
-            ),
-            _BuyButton(
-              accent: accent,
-              isBusy: isBusy,
-              onTap: (isBusy || isLocked) ? null : onBuy,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _BuyButton extends StatelessWidget {
-  const _BuyButton({
-    required this.accent,
-    required this.isBusy,
-    required this.onTap,
-  });
-
-  final Color accent;
-  final bool isBusy;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(SizeConfig.size20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16,
-            vertical: SizeConfig.size8,
-          ),
-          decoration: BoxDecoration(
-            // Solid accent: the only saturated block on the card, so the one
-            // action is unmistakable against a wash of pastels.
-            color: onTap == null ? accent.withValues(alpha: 0.45) : accent,
-            borderRadius: BorderRadius.circular(SizeConfig.size20),
-            boxShadow: onTap == null
-                ? null
-                : [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.32),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-          ),
-          child: isBusy
-              ? const SizedBox(
-                  height: 14,
-                  width: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.8,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
-                  ),
-                )
-              : CustomText(
-                  AppStrings.buyNow.tr,
-                  fontSize: SizeConfig.size12,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PriceTag extends StatelessWidget {
-  const _PriceTag({required this.card, required this.accent});
-
-  final PlanCard card;
-  final Color accent;
 
   /// Paise → rupees, dropping a trailing `.00` so whole prices read cleanly.
   String _rupees(int paise) {
@@ -982,78 +552,650 @@ class _PriceTag extends StatelessWidget {
         : v.toStringAsFixed(2);
   }
 
+  /// What the payment covers, read off the plan itself.
+  ///
+  /// Gig plans buy call types, so the caption counts them — one is a single job
+  /// stream, two is a pairing, three or more is the lot. Everything else is a
+  /// one-time purchase, which is what `billing: "lifetime"` means to a buyer.
+  String get _caption {
+    final jobs = card.jobTypes ?? const <String>[];
+    if (jobs.isEmpty) return AppStrings.oneTimeLabel.tr;
+    if (jobs.length == 1) return AppStrings.perJobLabel.tr;
+    if (jobs.length == 2) return AppStrings.combinationLabel.tr;
+    return AppStrings.fullCombinationLabel.tr;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (card.isFree) {
-      return CustomText(
-        AppStrings.planFree.tr,
-        fontSize: SizeConfig.size16,
-        fontWeight: FontWeight.w800,
-        color: accent,
+    if (!card.isPurchasable) {
+      return Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size14,
+          vertical: SizeConfig.size8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.green00.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(SizeConfig.size20),
+          border: Border.all(color: AppColors.green00.withValues(alpha: 0.35)),
+        ),
+        child: CustomText(
+          AppStrings.planFree.tr,
+          fontSize: SizeConfig.size14,
+          fontWeight: FontWeight.w800,
+          color: AppColors.green00,
+        ),
       );
     }
-    // The GST line lives in the action bar, not here — the price should be one
-    // clean number next to the label.
-    return CustomText(
-      '${AppConstants.rupeeSymbol}${_rupees(card.priceTotal)}',
-      fontSize: SizeConfig.size18,
-      fontWeight: FontWeight.w800,
-      color: AppColors.mainTextColor,
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14,
+            vertical: SizeConfig.size8,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradient,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(SizeConfig.size20),
+            boxShadow: [
+              BoxShadow(
+                color: gradient.last.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isBusy) ...[
+                const SizedBox(
+                  height: 13,
+                  width: 13,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.8,
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size8),
+              ],
+              CustomText(
+                '${AppConstants.rupeeSymbol} ${_rupees(card.priceBase)}',
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(
+                _caption,
+                fontSize: SizeConfig.size11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.92),
+              ),
+            ],
+          ),
+        ),
+        // "+ ₹27 (18% GST)". Skipped when the backend priced the tax at zero,
+        // rather than printing a "+ ₹0" that only raises a question.
+        if (card.gstAmount > 0) ...[
+          SizedBox(height: SizeConfig.size4),
+          CustomText(
+            '+ ${AppConstants.rupeeSymbol}${_rupees(card.gstAmount)}'
+            ' (${card.gstPercent}${AppStrings.gstSuffix.tr})',
+            fontSize: SizeConfig.size11,
+            fontWeight: FontWeight.w600,
+            color: AccountPlanPalette.muted,
+          ),
+        ],
+      ],
     );
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.text, required this.accent});
+/// The bold line under the title — the plan's promise in one sentence.
+class _PromiseLine extends StatelessWidget {
+  const _PromiseLine({required this.text, required this.isSelected});
 
   final String text;
-  final Color accent;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          isSelected
+              ? Icons.check_circle_rounded
+              : Icons.check_circle_outline_rounded,
+          size: SizeConfig.size18,
+          color: isSelected
+              ? AppColors.primaryColor
+              : AccountPlanPalette.heading,
+        ),
+        SizedBox(width: SizeConfig.size8),
+        Expanded(
+          child: CustomText(
+            text,
+            fontSize: SizeConfig.size14,
+            fontWeight: FontWeight.w700,
+            color: AccountPlanPalette.heading,
+            height: 1.3,
+            maxLines: 3,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One DB-driven feature bullet, optionally carrying the T&C link on its right.
+class _FeatureRow extends StatelessWidget {
+  const _FeatureRow({required this.text, this.trailing});
+
+  final String text;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            size: SizeConfig.size16,
+            color: AccountPlanPalette.tick,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: CustomText(
+              text,
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w500,
+              color: AccountPlanPalette.featureText,
+              height: 1.35,
+              maxLines: 3,
+            ),
+          ),
+          if (trailing != null) ...[
+            SizedBox(width: SizeConfig.size8),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The GST condition, in the same bullet rhythm but warm — it is the one line
+/// that can disqualify a buyer who read everything else and was satisfied.
+///
+/// Once the buyer HAS a GSTIN the condition is met, so the row drops to the
+/// same green tick as any other feature. Leaving it red would warn an account
+/// about a requirement it already satisfies, and the buyer would reasonably
+/// read that as "I can't buy this".
+class _GstRequiredRow extends StatelessWidget {
+  const _GstRequiredRow({required this.satisfied, this.trailing});
+
+  final bool satisfied;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            satisfied ? Icons.check_circle_rounded : Icons.help_rounded,
+            size: SizeConfig.size16,
+            color: satisfied
+                ? AccountPlanPalette.tick
+                : AccountPlanPalette.gstWarning,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: CustomText(
+              satisfied
+                  ? AppStrings.gstOnFile.tr
+                  : AppStrings.gstRequired.tr,
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w700,
+              color: satisfied
+                  ? AccountPlanPalette.featureText
+                  : AccountPlanPalette.gstWarning,
+              maxLines: 2,
+            ),
+          ),
+          if (trailing != null) ...[
+            SizedBox(width: SizeConfig.size8),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Green "Active" stamp for a plan the user already holds.
+class _ActiveBadge extends StatelessWidget {
+  const _ActiveBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
+        horizontal: SizeConfig.size10,
         vertical: SizeConfig.size4,
       ),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
+        color: AppColors.green00.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(SizeConfig.size20),
+        border: Border.all(color: AppColors.green00.withValues(alpha: 0.35)),
       ),
-      child: CustomText(
-        text,
-        fontSize: SizeConfig.size10,
-        fontWeight: FontWeight.w600,
-        color: accent,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_rounded,
+              size: SizeConfig.size14, color: AppColors.green00),
+          SizedBox(width: SizeConfig.size4),
+          CustomText(
+            AppStrings.planActive.tr,
+            fontSize: SizeConfig.size11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.green00,
+          ),
+        ],
       ),
     );
   }
 }
 
-/// The two promises the contribution screen already makes, repeated here
-/// because this is also a payment screen.
-class _Footnote extends StatelessWidget {
-  const _Footnote();
+/// `*T&C` — opens the plan's own terms. Rendered only when the API sent some,
+/// so a plan without terms doesn't advertise an empty sheet.
+class _TermsLink extends StatelessWidget {
+  const _TermsLink({required this.card});
+
+  final PlanCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    if (card.termsAndConditions.isEmpty) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () => showAccountPlanTermsSheet(context, card),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        // Widens the tap target without moving the text off the comp's
+        // bottom-right corner.
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
+        child: CustomText(
+          AppStrings.tcStar.tr,
+          fontSize: SizeConfig.size11,
+          fontWeight: FontWeight.w600,
+          color: AccountPlanPalette.link,
+        ),
+      ),
+    );
+  }
+}
+
+/// The plan's `terms_and_conditions`, rendered verbatim.
+void showAccountPlanTermsSheet(BuildContext context, PlanCard card) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size20,
+            SizeConfig.size16,
+            SizeConfig.size20,
+            SizeConfig.size24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AccountPlanPalette.divider,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size16),
+              CustomText(
+                AppStrings.termsConditions.tr,
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+              SizedBox(height: SizeConfig.size4),
+              CustomText(
+                card.label,
+                fontSize: SizeConfig.size13,
+                fontWeight: FontWeight.w600,
+                color: AccountPlanPalette.muted,
+                maxLines: 2,
+              ),
+              SizedBox(height: SizeConfig.size16),
+              for (final term in card.termsAndConditions)
+                Padding(
+                  padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.size6),
+                        child: Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            color: AccountPlanPalette.muted,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: CustomText(
+                          term,
+                          fontSize: SizeConfig.size13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                          height: 1.4,
+                          maxLines: 8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// The pinned "Kindly Contribute Us" bar.
+///
+/// One CTA for the whole list: it buys whatever card is selected, which is why
+/// selection lives on the controller rather than in the list's state. Disabled
+/// while a checkout is open, and while there is nothing left to buy (every plan
+/// already owned).
+class AccountPlanPayBar extends StatelessWidget {
+  const AccountPlanPayBar({super.key, required this.controller});
+
+  final AccountPlanController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final busy = controller.isProcessing.value;
+      final card = controller.selectedCard;
+      final enabled = !busy && card != null;
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A102A43),
+              blurRadius: 14,
+              offset: Offset(0, -3),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size16,
+              SizeConfig.size12,
+              SizeConfig.size16,
+              SizeConfig.size12,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // What this button is about to charge. The catalog can be
+                // scrolled far away from the selected card, so without this the
+                // user would be paying for a plan that is off screen. Display
+                // only — the charged amount comes from `initiate`.
+                if (card != null)
+                  _PayBarSummary(card: card)
+                else
+                  // Nothing selected yet: fall back to the two promises the
+                  // contribution flow has always made.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        AppStrings.noHiddenCharges.tr,
+                        fontSize: SizeConfig.size10,
+                        color: AccountPlanPalette.muted,
+                      ),
+                      SizedBox(width: SizeConfig.size4),
+                      CustomText(
+                        AppStrings.noAutoPay.tr,
+                        fontSize: SizeConfig.size10,
+                        color: AccountPlanPalette.muted,
+                      ),
+                    ],
+                  ),
+                SizedBox(height: SizeConfig.size8),
+                CustomBtn(
+                  title: busy
+                      ? AppStrings.processingEllipsis.tr
+                      : AppStrings.kindlyContributeUs.tr,
+                  bgColor:
+                      enabled ? AppColors.primaryColor : AppColors.grey9B,
+                  radius: SizeConfig.size12,
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w700,
+                  isLoading: busy,
+                  onTap: enabled ? controller.buySelected : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// "1KM Radius · ₹177" with the base + GST breakdown, above the pay button.
+///
+/// **This is payment time**, so this is the one place the TOTAL is headlined —
+/// the cards deliberately show base + GST instead (see [_PricePill]). The
+/// breakdown line underneath reconciles the two, so the number on the button
+/// can't read as a price that grew between the card and the checkout.
+///
+/// Display only: `initiate` re-prices server-side and that is what gets charged.
+class _PayBarSummary extends StatelessWidget {
+  const _PayBarSummary({required this.card});
+
+  final PlanCard card;
+
+  String _rupees(int paise) {
+    final v = paise / 100;
+    return v == v.truncateToDouble()
+        ? v.toInt().toString()
+        : v.toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          AppStrings.noHiddenCharges.tr,
-          fontSize: SizeConfig.size10,
-          color: AppColors.secondaryTextColor,
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(top: SizeConfig.size2),
+            child: CustomText(
+              card.label,
+              fontSize: SizeConfig.size12,
+              fontWeight: FontWeight.w700,
+              color: AccountPlanPalette.heading,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ),
-        SizedBox(width: SizeConfig.size4),
-        CustomText(
-          AppStrings.noAutoPay.tr,
-          fontSize: SizeConfig.size10,
-          color: AppColors.secondaryTextColor,
+        SizedBox(width: SizeConfig.size8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  '${AppConstants.rupeeSymbol}${_rupees(card.priceTotal)}',
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w800,
+                  color: AccountPlanPalette.heading,
+                ),
+                SizedBox(width: SizeConfig.size4),
+                CustomText(
+                  '${AppStrings.inclGstPrefix.tr} '
+                  '${card.gstPercent}${AppStrings.gstSuffix.tr}',
+                  fontSize: SizeConfig.size10,
+                  fontWeight: FontWeight.w500,
+                  color: AccountPlanPalette.muted,
+                ),
+              ],
+            ),
+            if (card.gstAmount > 0) ...[
+              SizedBox(height: SizeConfig.size2),
+              CustomText(
+                '${AppConstants.rupeeSymbol}${_rupees(card.priceBase)}'
+                ' + ${AppConstants.rupeeSymbol}${_rupees(card.gstAmount)}'
+                ' ${AppStrings.gstShort.tr}',
+                fontSize: SizeConfig.size10,
+                fontWeight: FontWeight.w500,
+                color: AccountPlanPalette.muted,
+              ),
+            ],
+          ],
         ),
       ],
     );
   }
+}
+
+/// Dashed rule between a card's promise and its feature list.
+class _DashedDivider extends StatelessWidget {
+  const _DashedDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const dashWidth = 4.0;
+        const dashSpace = 4.0;
+        final dashCount =
+            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        return Row(
+          children: List.generate(
+            dashCount,
+            (_) => Container(
+              width: dashWidth,
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: dashSpace / 2),
+              color: AccountPlanPalette.divider,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The light-blue sheet the cards sit on, with the comp's faint wave texture.
+///
+/// Purely decorative and ignored by hit-testing, so it can never eat a tap on
+/// the content stacked over it.
+class AccountPlanBackdrop extends StatelessWidget {
+  const AccountPlanBackdrop({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: AccountPlanPalette.canvas,
+      child: Stack(
+        // Expand, not loose: the child is a scroll view, and under loose
+        // constraints it would shrink to its content — collapsing the
+        // pull-to-refresh area to a 320px band while the catalog is loading or
+        // errored, and leaving a short catalog unable to scroll at all.
+        fit: StackFit.expand,
+        children: [
+          IgnorePointer(child: CustomPaint(painter: _WavePainter())),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+/// Long, shallow arcs sweeping across the sheet — the texture in the comp. Kept
+/// at a whisper of alpha: it should register as paper grain, not as lines.
+class _WavePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = Colors.white.withValues(alpha: 0.55);
+
+    const spacing = 46.0;
+    final amplitude = size.width * 0.06;
+    for (var y = -spacing; y < size.height + spacing; y += spacing) {
+      final path = Path()..moveTo(-10, y);
+      // Two half-waves across the width; the phase shifts per row so the arcs
+      // never line up into a visible grid.
+      final phase = (y / spacing) % 2 == 0 ? 1.0 : -1.0;
+      path.quadraticBezierTo(
+        size.width * 0.25,
+        y - amplitude * phase,
+        size.width * 0.5,
+        y,
+      );
+      path.quadraticBezierTo(
+        size.width * 0.75,
+        y + amplitude * phase,
+        size.width + 10,
+        y,
+      );
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WavePainter oldDelegate) => false;
 }
 
 /// Message + Retry, shared by the catalog and its host screen.
@@ -1084,6 +1226,7 @@ class AccountPlanErrorState extends StatelessWidget {
               title: AppStrings.retry.tr,
               bgColor: AppColors.primaryColor,
               radius: SizeConfig.size10,
+              width: SizeConfig.size120,
               onTap: onRetry,
             ),
           ],

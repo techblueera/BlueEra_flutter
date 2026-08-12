@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ import 'account_plan_catalog_view.dart';
 /// Standalone host for the Account Plan catalog.
 ///
 /// The catalog itself lives in [AccountPlanCatalogView]; this only supplies the
-/// scaffold, the scroll and pull-to-refresh. `ContributionScreenV2` hosts the
+/// scaffold, the scroll and pull-to-refresh. `ContributionScreen` hosts the
 /// same view with an explainer video above it, which is where the flow is
 /// normally entered — this screen exists for direct navigation.
 ///
@@ -62,22 +63,26 @@ class _AccountPlanScreenState extends State<AccountPlanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5FB),
+      backgroundColor: AccountPlanPalette.canvas,
       appBar: CommonBackAppBar(
         isLeading: true,
         appBarColor: AppColors.white,
-        title: AppStrings.chooseYourPlan.tr,
+        title: AppStrings.oneTimeContributionPlans.tr,
       ),
+      // One pinned CTA for the whole catalog — it buys the selected card.
+      bottomNavigationBar: AccountPlanPayBar(controller: _ctrl),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _ctrl.fetchPlans,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                AccountPlanCatalogView(controller: _ctrl),
-                SizedBox(height: SizeConfig.size24),
-              ],
+        child: AccountPlanBackdrop(
+          child: RefreshIndicator(
+            onRefresh: _ctrl.fetchPlans,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  AccountPlanCatalogView(controller: _ctrl),
+                  SizedBox(height: SizeConfig.size12),
+                ],
+              ),
             ),
           ),
         ),
@@ -86,11 +91,11 @@ class _AccountPlanScreenState extends State<AccountPlanScreen> {
   }
 }
 
-/// Fills the Razorpay prefill (name / email / phone) from the signed-in
-/// profile, the same way the deposit flow does.
+/// Fills the Razorpay prefill (name / email / phone) and the invoice's buyer
+/// state from the signed-in profile, the same way the deposit flow does.
 ///
-/// Best-effort and shared by both hosts: checkout still opens without it, the
-/// user just types their own details.
+/// Best-effort and shared by both hosts: checkout still opens without any of
+/// it, the user just types their own details.
 void hydrateAccountPlanBuyer(AccountPlanController ctrl) {
   try {
     final user = Get.find<ViewPersonalDetailsController>()
@@ -102,5 +107,14 @@ void hydrateAccountPlanBuyer(AccountPlanController ctrl) {
     ctrl.buyerPhone = user?.contactNo ?? userMobileGlobal;
   } catch (_) {
     ctrl.buyerPhone = userMobileGlobal;
+  }
+
+  // `buyer_state` is optional on /initiate, but without it the GST invoice
+  // falls back to IGST for everyone — so an intra-state buyer gets the wrong
+  // CGST/SGST split on a real tax document. The resolved location is the only
+  // state the app actually holds. An explicit value from the caller wins.
+  if ((ctrl.buyerState ?? '').isEmpty) {
+    final state = LocationService.userCurrentAddress.value.state.trim();
+    if (state.isNotEmpty) ctrl.buyerState = state;
   }
 }

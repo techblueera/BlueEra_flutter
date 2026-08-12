@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -8,15 +9,16 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
@@ -543,7 +545,10 @@ class GroceryController extends GetxController {
       }
 
       addGroceryProductVariantResponse.value = ApiResponse.complete(response);
-      groceryDataNeedsRefresh = true;
+      // Products just entered the store's inventory: drop the freshness guard,
+      // refetch, and rewrite the saved snapshot. Without this the tab would
+      // serve the pre-publish cache and the new items would be invisible.
+      markInventoryChanged();
 
       final bool hasNoMissingProducts = (productSnapSearchData.value?.missingProducts ?? []).isEmpty;
       final bool shouldGoToHome = !isSnapSearch || hasNoMissingProducts;
@@ -692,23 +697,46 @@ class GroceryController extends GetxController {
   /// Fetch the store's grocery data (categories + top-selling) only when it
   /// isn't already loaded & fresh for this [userId]. Use on screen (re)entry;
   /// call [fetchAllGroceryData] for explicit refreshes.
+  ///
+  /// Three layers, cheapest first:
+  /// 1. [_allGroceryCache] — same store, fetched < 5 min ago, still in memory.
+  /// 2. [GroceryLocalStore] — the saved snapshot. **If there is one, that is the
+  ///    answer and no request is made.**
+  /// 3. The network — only when nothing is saved.
+  ///
+  /// The snapshot is not a head start on a request; it replaces the request.
+  /// What keeps it honest is that every write the merchant makes (publish, price
+  /// edit, delete, stock toggle) runs [markInventoryChanged], which refetches
+  /// and rewrites it — so the only way to be looking at stale stock is for it to
+  /// have changed somewhere other than this device, and pull-to-refresh on the
+  /// tab is the escape hatch for that.
   Future<void> fetchAllGroceryDataIfNeeded(String userId,
       {required bool otherStore}) async {
     final signature = 'grocery|$userId|$otherStore';
     final hasData = groceryCategoryList.isNotEmpty ||
         groceryBusinessProductsList.isNotEmpty;
     if (_allGroceryCache.isFresh(signature, hasData: hasData)) return;
+
+    if (await _hydrateGroceryDataFromCache(userId, otherStore)) {
+      // Stamped so a tab switch doesn't go back to disk either.
+      _allGroceryCache.mark(signature);
+      return;
+    }
     await fetchAllGroceryData(userId, otherStore: otherStore);
   }
 
-  Future<void> fetchAllGroceryData(String userId, {required bool otherStore}) async {
+  Future<void> fetchAllGroceryData(
+    String userId, {
+    required bool otherStore,
+    bool silent = false,
+  }) async {
     try {
-      myGroceryLoading.value = true;
+      if (!silent) myGroceryLoading.value = true;
 
       // 1. Run both repo calls in parallel
       await Future.wait([
-        fetchGroceryCategoryWithInventory(userId, otherStore),
-        fetchGroceryBusinessProductsRepo(userId, otherStore),
+        fetchGroceryCategoryWithInventory(userId, otherStore, silent: silent),
+        fetchGroceryBusinessProductsRepo(userId, otherStore, silent: silent),
       ]);
 
       // Stamp the freshness cache once the category list actually loaded so a
@@ -718,14 +746,124 @@ class GroceryController extends GetxController {
       }
     } catch (e) {
     } finally {
-      myGroceryLoading.value = false;
+      if (!silent) myGroceryLoading.value = false;
     }
   }
 
-  Future<void> fetchGroceryCategoryWithInventory(String userId, bool otherStore) async {
+  /// Paints the Products tab from the last saved snapshot.
+  ///
+  /// Returns true only when something was actually restored — false sends the
+  /// caller to the network. Deliberately tolerant: a snapshot that fails to
+  /// parse (a model changed shape since it was written) counts as a miss, so a
+  /// bad cache degrades into a normal fetch rather than an error the user sees.
+  ///
+  /// Both lists must restore for this to report success. Restoring one and
+  /// declaring victory would leave the other permanently empty, since a `true`
+  /// return means no request is made.
+  Future<bool> _hydrateGroceryDataFromCache(
+      String userId, bool otherStore) async {
+    // Owner scope only. A visitor browsing someone else's store has no way to
+    // invalidate a snapshot — they can't add, edit or restock anything — so a
+    // cache-first read with no revalidation would freeze that store's shelf on
+    // their device indefinitely. Their fetches stay live (in-memory guard only),
+    // exactly as before.
+    if (otherStore || userId.isEmpty) return false;
+
+    List<GroceryCategoryWithInventoryModel>? categories;
+    List<BusinessProductData>? topSelling;
+    try {
+      final entry =
+          await GroceryLocalStore.readCategories(userId, otherStore: otherStore);
+      if (entry != null && !entry.isEmpty) {
+        categories = entry.items
+            .whereType<Map>()
+            .map((e) => GroceryCategoryWithInventoryModel.fromJson(
+                Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    } catch (e) {
+      log('grocery: category cache hydrate failed — $e');
+    }
+    try {
+      final entry =
+          await GroceryLocalStore.readTopSelling(userId, otherStore: otherStore);
+      if (entry != null && !entry.isEmpty) {
+        topSelling = entry.items
+            .whereType<Map>()
+            .map((e) => BusinessProductData.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    } catch (e) {
+      log('grocery: top-selling cache hydrate failed — $e');
+    }
+
+    // Half a snapshot is not a snapshot: publish nothing unless both sides
+    // restored, or the missing list would stay empty with no request coming.
+    if (categories == null ||
+        categories.isEmpty ||
+        topSelling == null ||
+        topSelling.isEmpty) {
+      return false;
+    }
+
+    groceryCategoryList.value = categories;
+    fetchMyGroceryCategoryResponse.value = ApiResponse.complete();
+
+    groceryBusinessProductsList.value = topSelling;
+    // The snapshot only ever holds page 1, so paging restarts from there.
+    _businessProductsPage = 1;
+    _businessProductsHasMore = true;
+    fetchGroceryBusinessProductsResponse.value = ApiResponse.complete();
+    return true;
+  }
+
+  /// Called after any inventory write (publish / edit price / delete / stock
+  /// toggle) that the merchant just made.
+  ///
+  /// The sheets already patch their own models in place, so the screen is
+  /// correct the moment the call returns. What this fixes is everything the
+  /// patch cannot reach: the 5-minute freshness guard that would otherwise
+  /// short-circuit the next tab entry, the sibling lists that still hold the
+  /// old row (a deleted variant lingered in `groceryBusinessProductsList` until
+  /// something forced a real fetch), and the disk snapshot, which must never
+  /// outlive the change that invalidated it.
+  ///
+  /// The server is the source of truth for the rewrite: rather than editing the
+  /// cached JSON — which would mean re-implementing every mutation against a
+  /// second data shape — the snapshot is **deleted** and then rebuilt from a
+  /// refetch.
+  ///
+  /// Deleting first, rather than overwriting when the refetch lands, is what
+  /// makes the race safe. The merchant can leave the add-product flow and be
+  /// back on the tab before the refetch resolves; with the old snapshot still on
+  /// disk, that re-entry would hydrate the pre-mutation list and stamp it fresh,
+  /// hiding the change until the guard expired. With it gone the worst case is
+  /// one extra request, and stale is not reachable.
+  void markInventoryChanged({String? storeId}) {
+    groceryDataNeedsRefresh = true;
+    _allGroceryCache.invalidate();
+    groceryBusinessProductsList.refresh();
+    groceryCategoryList.refresh();
+
+    final id = (storeId == null || storeId.isEmpty) ? userId : storeId;
+    if (id.isEmpty) return;
+    // Fire-and-forget: the caller is a sheet closing on a completed write, and
+    // nothing on screen is waiting for this.
+    unawaited(GroceryLocalStore.clearStore(id).then(
+      (_) => fetchAllGroceryData(id, otherStore: false, silent: true),
+    ));
+  }
+
+  /// [silent] keeps the currently rendered list on screen while the call runs —
+  /// used when the tab was hydrated from disk, or refreshed after a write, so
+  /// the content never flashes back to a skeleton it has already moved past.
+  Future<void> fetchGroceryCategoryWithInventory(String userId, bool otherStore,
+      {bool silent = false}) async {
     try {
 
-      fetchMyGroceryCategoryResponse.value = ApiResponse.initial('Initial');
+      if (!silent) {
+        fetchMyGroceryCategoryResponse.value = ApiResponse.initial('Initial');
+      }
 
       var params = {
         ApiKeys.businessId: userId
@@ -751,12 +889,26 @@ class GroceryController extends GetxController {
             .map((e) => GroceryCategoryWithInventoryModel.fromJson(e))
             .toList();
 
+        // Persist the raw payload, not the parsed models: the next open rebuilds
+        // them with this same `fromJson`, so there is one parser to keep right.
+        // Owner scope only — see [_hydrateGroceryDataFromCache].
+        if (!otherStore) {
+          unawaited(GroceryLocalStore.writeCategories(
+            userId,
+            otherStore: otherStore,
+            items: listData,
+          ));
+        }
+
         log("Loaded ${groceryCategoryList.length}");
-      } else {
+      } else if (!silent) {
+        // A failed SILENT refresh must not replace what the user is reading
+        // with an error — the hydrated list stays, and the guard was already
+        // left un-stamped so the next entry retries.
         fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+      if (!silent) fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
       log("ERROR===== $e");
      }
   }
@@ -765,6 +917,7 @@ class GroceryController extends GetxController {
     String userId,
     bool otherStore, {
     bool isLoadMore = false,
+    bool silent = false,
   }) async {
     try {
       if (isLoadMore) {
@@ -778,10 +931,16 @@ class GroceryController extends GetxController {
         }
         isBusinessProductsLoadingMore.value = true;
       } else {
-        fetchGroceryBusinessProductsResponse.value = ApiResponse.initial('Initial');
+        // Paging always restarts, but a silent refresh keeps the rendered rows
+        // until the replacements arrive — clearing here is what would make the
+        // list blink on every hydrate and after every write.
         _businessProductsPage = 1;
         _businessProductsHasMore = true;
-        groceryBusinessProductsList.clear();
+        if (!silent) {
+          fetchGroceryBusinessProductsResponse.value =
+              ApiResponse.initial('Initial');
+          groceryBusinessProductsList.clear();
+        }
       }
 
       Map<String, dynamic> params = {
@@ -809,6 +968,19 @@ class GroceryController extends GetxController {
           groceryBusinessProductsList.addAll(newItems);
         } else {
           groceryBusinessProductsList.value = newItems;
+          // Page 1 only — that is exactly what the tab renders, and it keeps
+          // the snapshot small however deep the user paged. Owner scope only —
+          // see [_hydrateGroceryDataFromCache].
+          if (!otherStore) {
+            final rawItems = responseModel.response?.data is Map
+                ? (responseModel.response?.data['data'] as List?) ?? const []
+                : const [];
+            unawaited(GroceryLocalStore.writeTopSelling(
+              userId,
+              otherStore: otherStore,
+              items: rawItems,
+            ));
+          }
         }
 
         if (newItems.isNotEmpty) {
@@ -823,11 +995,13 @@ class GroceryController extends GetxController {
         fetchGroceryBusinessProductsResponse.value =
             ApiResponse.complete(responseModel);
         log("Loaded ${groceryBusinessProductsList.length}");
-      } else {
+      } else if (!silent) {
         fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+      if (!silent) {
+        fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+      }
       log("Stack Trace===== $s");
     } finally {
       if (isLoadMore) {
@@ -1052,13 +1226,17 @@ class GroceryController extends GetxController {
 
       // 1) Cache-first (super-category list only).
       if (isSuper) {
-        final cachedRaw = HiveServices().getGrocerySuperCategoriesRaw();
-        if (cachedRaw != null && cachedRaw.isNotEmpty) {
+        final entry = await GroceryLocalStore.readCatalogCategories();
+        if (entry != null && !entry.isEmpty) {
           final cached =
-              await compute(_parseGroceryNestedCategories, cachedRaw);
+              await compute(_parseGroceryNestedCategories, entry.items);
           if (cached.isNotEmpty) {
             grocerySuperCategoryList.assignAll(cached);
             fetchNestedGroceryCategoryResponse.value = ApiResponse.complete();
+            // Served from disk, no request. Unlike the store's own stock, this
+            // tree can only change on the backend — nothing the merchant does
+            // invalidates it — so a long TTL is its refresh trigger.
+            if (!entry.isOlderThan(GroceryLocalStore.catalogTtl)) return;
           }
         }
       }
@@ -1082,7 +1260,7 @@ class GroceryController extends GetxController {
             ApiResponse.complete(responseModel);
 
         if (isSuper && rawList.isNotEmpty) {
-          await HiveServices().saveGrocerySuperCategoriesRaw(rawList);
+          await GroceryLocalStore.writeCatalogCategories(rawList);
         }
       } else if (grocerySuperCategoryList.isEmpty) {
         // Only surface an error when there's no cached data on screen.

@@ -358,16 +358,13 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
-  /// (open-timer) form directly — same as the grocery v2 home. The form
-  /// persists the hours and goes live via the backend, popping back `true`
-  /// on success. Turning OFF just flips the local toggle.
+  /// Drive the Go-Live toggle — a plain on/off switch. With weekly hours saved
+  /// it flips today's open/closed state straight from the pill; with no hours
+  /// yet it shows the "Set visiting hours" prompt. Hours are set and edited
+  /// from the clock button beside the pill. The security-deposit gate lives in
+  /// toggleLiveNow().
   Future<void> handleGoLiveTap() async {
-    // The pill reflects the schedule-driven auto open/close state; tapping
-    // opens the shop-status control — first run routes to the weekly hours
-    // editor, thereafter the status sheet (with the today-only override). The
-    // security-deposit gate is enforced inside openAvailabilityControl().
-    await viewBusinessDetailsController.openAvailabilityControl();
+    await viewBusinessDetailsController.toggleLiveNow();
   }
 
   /// Go-live toggle pill. Off-state: white track + grey thumb.
@@ -377,7 +374,10 @@ class _ProductScreenState extends State<ProductScreen>
     return Obx(
       () => GoLivePill(
         value: viewBusinessDetailsController.isLive.value,
+        isUpdating:
+            viewBusinessDetailsController.isAvailabilityUpdating.value,
         onTap: handleGoLiveTap,
+        onScheduleTap: viewBusinessDetailsController.openScheduleControl,
         showShadow: false,
       ),
     );

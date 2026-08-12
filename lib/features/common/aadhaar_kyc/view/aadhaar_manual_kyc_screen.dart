@@ -14,16 +14,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-/// Manual Aadhaar verification — the fallback when OKYC (OTP) can't complete.
+/// Aadhaar verification — the only path there is.
 ///
 /// The user enters their Aadhaar number and uploads the front and back of the
 /// card; the AI document verifier confirms the images are an Aadhaar card and
-/// that the number on them matches. Reached from [AadhaarKycView] via its
-/// `onVerifyManually` callback.
+/// that the number on them matches. It used to be the fallback for when OKYC
+/// (OTP) couldn't complete; the OTP flow and its `/user/aadhaar/*` endpoints
+/// were removed, so this is the whole of Aadhaar verification now.
 ///
-/// Pass an [AadhaarManualKycController] whose `onManualVerified` records the
-/// result in the host flow. See
-/// docs/backend/aadhaar-verification-ui-integration.md.
+/// Reached from the My Documents → Aadhaar tile. Pass an
+/// [AadhaarManualKycController] whose `onManualVerified` records the result in
+/// the host flow.
 class AadhaarManualKycScreen extends StatefulWidget {
   const AadhaarManualKycScreen({super.key, required this.controller});
 

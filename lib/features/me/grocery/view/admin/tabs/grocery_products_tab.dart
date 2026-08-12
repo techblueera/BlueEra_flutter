@@ -70,6 +70,12 @@ class GroceryProductsTab extends StatelessWidget {
 
   /// Bulk-upload entry point. On the way back, reload the tab if the merchant
   /// actually published something.
+  ///
+  /// `IfNeeded`, not a forced fetch: publishing already ran
+  /// [GroceryController.markInventoryChanged], which dropped the saved snapshot
+  /// and started the refetch. Forcing a second full fetch here would duplicate
+  /// that request; the guarded call either finds that work already done or does
+  /// it once.
   Future<void> _onAddMoreProducts(GroceryController controller) async {
     await Get.toNamed(
       RouteHelper.getGrocerySuperCategoryScreenRoute(),
@@ -77,7 +83,8 @@ class GroceryProductsTab extends StatelessWidget {
     );
     if (controller.groceryDataNeedsRefresh) {
       controller.groceryDataNeedsRefresh = false;
-      controller.fetchAllGroceryData(businessId, otherStore: false);
+      await controller.fetchAllGroceryDataIfNeeded(businessId,
+          otherStore: false);
     }
   }
 

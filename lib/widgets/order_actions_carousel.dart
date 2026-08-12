@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -263,7 +263,7 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
         subtitle = AppStrings.toGetOrderVisibility.tr;
       }
       return _ActionCard(
-        onTap: () => Get.to(() => const ContributionScreenV2()),
+        onTap: () => Get.to(() => const ContributionScreen()),
         background: const [Color(0xFFF3ECFF), Color(0xFFE2D0FB)],
         border: const Color(0xFF844CD5),
         accent: const [Color(0xFF6D3BD0), Color(0xFF4B2A8E)],

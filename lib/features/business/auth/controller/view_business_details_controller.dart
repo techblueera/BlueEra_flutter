@@ -5,7 +5,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/business/auth/model/shop_open_status.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/shop_availability_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/shop_availability_host.dart';
@@ -122,28 +122,22 @@ class ViewBusinessDetailsController extends GetxController
   // bool get canGoLive =>
   //     businessProfileDetails.value?.data?.canGoLive ?? false;
 
-  /// Free intro quota (first N orders / enquiries) — waives the deposit while
-  /// it lasts. Fail-closed: only an explicit `freeOrdersUsed == false` waives,
-  /// so an absent flag enforces the deposit. Mirrors the individual
-  /// `isFirstServiceFree` waiver. (The rider had one too; it was removed —
-  /// their deposit is now checked with no exceptions.)
-  bool get isFreeQuotaAvailable =>
-      businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
-
   /// The single go-live truth: an ACCOUNT PLAN is held, OR the legacy deposit
-  /// is satisfied, OR the free quota covers it. Every consumer of the gate
-  /// must use THIS, not bare [canGoLive] — the pill's live state, the sheet
-  /// gate and the today-override all read it, and if they disagree the pill
-  /// lies about being live.
+  /// is satisfied. Every consumer of the gate must use THIS, not bare
+  /// [canGoLive] — the pill's live state, the sheet gate and the today-override
+  /// all read it, and if they disagree the pill lies about being live.
   ///
   /// The plan is the gate going forward (the contribution screen sells plans
   /// now, not deposits). The deposit term stays as an OR so a merchant who
   /// already paid one is not knocked offline by the migration — there is no
   /// longer any way for them to buy it back.
+  ///
+  /// There used to be a third term: a free intro quota (`freeOrdersUsed`) that
+  /// waived the gate for the first N orders / enquiries. Nothing is given away
+  /// for free now, so the whole concept is gone from the client — the backend
+  /// may still send the flag; we no longer read it.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value ||
-      canGoLive ||
-      isFreeQuotaAvailable;
+      AccountPlanEntitlement.to.hasActivePlan.value || canGoLive;
 
   /// Joining-bonus object embedded in the `business/:id` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
@@ -944,13 +938,12 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       now: DateTime.now(),
     );
     shopStatus.value = status;
-    // Security deposit is the FIRST wall: an unpaid business is never shown as
-    // live, even inside its scheduled hours (e.g. the deposit was set up, hours
+    // Payment is the FIRST wall: an unpaid business is never shown as live,
+    // even inside its scheduled hours (e.g. the deposit was set up, hours
     // saved, then the deposit later became unpaid/refunded). `canGoLive`
-    // fail-opens when the backend doesn't report a deposit requirement, and the
-    // free intro quota waives it — so this must use the same [isGoLiveAllowed]
-    // the sheet gate uses, or a quota-covered business would pass the gate and
-    // still render as not-live.
+    // fail-opens when the backend doesn't report a deposit requirement — so
+    // this must use the same [isGoLiveAllowed] the pill's gate uses, or the two
+    // would disagree and the pill would lie about being live.
     isLive.value = status.isOpenNow && isGoLiveAllowed;
   }
 
@@ -982,18 +975,16 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     }
   }
 
-  /// Security-deposit gate. Returns true when the merchant may open the shop;
-  /// otherwise shows the reason and routes to the deposit flow, returning
-  /// false. Fail-open — blocks only when the backend reports required && !paid.
+  /// Plan / security-deposit gate. Returns true when the merchant may open the
+  /// shop; otherwise shows the reason and routes to the plan flow, returning
+  /// false. Fail-open — blocks only when the backend reports required && !paid
+  /// and no plan is held.
   ///
-  /// FREE INTRO QUOTA: the deposit is WAIVED while the business still has free
-  /// orders / enquiries left (`freeOrdersUsed == false`); once spent, it's
-  /// enforced on every subsequent go-live. Absent flag → not free → deposit
-  /// enforced (safe default). Mirrors the self-employed first-service-free and
-  /// rider first-ride-free waivers. This is the ONLY deposit gate the 13
-  /// business home screens go through (they all delegate to
-  /// [openAvailabilityControl]), so the waiver lands everywhere at once.
-  /// See docs/backend/BUSINESS_GO_LIVE_FREE_QUOTA_GUIDE.md.
+  /// There are no waivers left: the free intro quota that used to let a
+  /// business go live for its first N orders / enquiries has been removed from
+  /// the client. This is the ONLY gate the ~15 business home screens go through
+  /// (they all delegate to [toggleLiveNow] / [openAvailabilityControl]), so
+  /// that removal lands everywhere at once.
   bool ensureCanGoLive() {
     if (isGoLiveAllowed) return true;
     commonSnackBar(
@@ -1003,7 +994,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     // Refresh on return so a freshly-bought PLAN (reconciled server-side by
     // the Razorpay webhook, with no in-app trigger) and the updated
     // `freeOrdersUsed` are both picked up.
-    Get.to(() => const ContributionScreenV2())?.then((_) {
+    Get.to(() => const ContributionScreen())?.then((_) {
       viewBusinessProfile(silent: true);
       AccountPlanEntitlement.to.refresh();
     });
@@ -1029,6 +1020,49 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     //    "Set visiting hours" prompt; once hours exist it shows the live status
     //    + the today-only override + edit-hours.
     await showShopAvailabilitySheet(this);
+  }
+
+  /// Entry point for the header CLOCK button — visiting HOURS only (no live
+  /// status, no today open/closed switch; the pill beside the clock is that
+  /// switch), and no deposit gate, because this is where hours are *set and
+  /// edited*, not where the shop goes live. A merchant who hasn't paid yet can
+  /// still lay out their week; the gate then bites on [toggleLiveNow] (and
+  /// again server-side on the today-override call), so nothing actually opens
+  /// without it.
+  Future<void> openScheduleControl() async {
+    if (!hasSchedule) await loadHours();
+    await showShopAvailabilitySheet(this, timingsOnly: true);
+  }
+
+  /// Entry point for the Go-Live PILL — a plain on/off switch once hours exist.
+  ///
+  /// The pill used to open the status sheet on every tap, which meant going
+  /// live was "tap pill → read sheet → find the today switch → flip it". Hours
+  /// now live behind the header clock ([openScheduleControl]), so the pill can
+  /// do the one thing its toggle promises:
+  ///   • no weekly hours yet → the sheet's "Set visiting hours" prompt (there is
+  ///     nothing to switch on until a schedule exists), else
+  ///   • flip today's override — open now, or closed for the rest of today.
+  ///
+  /// Deposit-gated up front; [gate] overrides the check for callers whose
+  /// deposit lives elsewhere (see [openAvailabilityControl]).
+  Future<void> toggleLiveNow({bool Function()? gate}) async {
+    if (!(gate != null ? gate() : ensureCanGoLive())) return;
+    if (isAvailabilityUpdating.value) return;
+
+    // Hydrate before deciding — an un-loaded schedule looks identical to an
+    // empty one, and would send an established merchant to the hours editor.
+    if (!hasSchedule) await loadHours();
+    if (!hasSchedule) {
+      await showShopAvailabilitySheet(this);
+      return;
+    }
+
+    if (shopStatus.value.isOpenNow) {
+      await setClosedToday();
+    } else {
+      await setOpenToday();
+    }
   }
 
   /// Open the weekly hours editor and re-hydrate on save. Used by both the

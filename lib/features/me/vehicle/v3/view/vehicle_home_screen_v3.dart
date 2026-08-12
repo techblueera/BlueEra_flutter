@@ -350,16 +350,19 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
     return Obx(
       () => GoLivePill(
         value: _businessController.isLive.value,
+        isUpdating: _businessController.isAvailabilityUpdating.value,
         onTap: _handleGoLiveTap,
+        onScheduleTap: _businessController.openScheduleControl,
       ),
     );
   }
 
-  /// The pill reflects the schedule-driven auto open/close state; tapping
-  /// opens the shop-status control — first run routes to the weekly hours
-  /// editor, thereafter the status sheet. The security-deposit gate is
-  /// enforced inside openAvailabilityControl().
+  /// The pill is a plain on/off switch over the schedule-driven state: with
+  /// weekly hours saved it flips today's open/closed state, with none it shows
+  /// the "Set visiting hours" prompt. Hours are set and edited from the clock
+  /// button beside the pill. The security-deposit gate is enforced inside
+  /// toggleLiveNow().
   Future<void> _handleGoLiveTap() async {
-    await _businessController.openAvailabilityControl();
+    await _businessController.toggleLiveNow();
   }
 }

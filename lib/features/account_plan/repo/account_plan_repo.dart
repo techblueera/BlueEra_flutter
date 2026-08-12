@@ -49,11 +49,16 @@ class AccountPlanRepo extends BaseService {
   /// The price is re-computed server-side from [optionCode]; nothing the
   /// client believes about the amount is sent or trusted. [buyerState]
   /// improves the CGST/SGST-vs-IGST split on the invoice.
+  ///
+  /// [buyerGstin] is **required for a `gst_track: "GST"` option** (every radius
+  /// tier above 3 km, and all wide-reach). Without it the backend creates no
+  /// order and answers 400 with `data.requires_gst: true` — see the guide §2.3.
   Future<ResponseModel> initiate({
     required String optionCode,
     String? tagId,
     bool? hasGst,
     String? buyerState,
+    String? buyerGstin,
   }) {
     return ApiBaseHelper().postHTTP(
       accountPlanInitiate,
@@ -63,6 +68,8 @@ class AccountPlanRepo extends BaseService {
         if (hasGst != null) 'has_gst': hasGst,
         if (buyerState != null && buyerState.isNotEmpty)
           'buyer_state': buyerState,
+        if (buyerGstin != null && buyerGstin.isNotEmpty)
+          'buyer_gstin': buyerGstin,
       },
       showProgress: false,
     );

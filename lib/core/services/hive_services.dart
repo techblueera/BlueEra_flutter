@@ -163,10 +163,9 @@ class HiveServices{
   List<dynamic>? getFoodSuperCategoriesRaw() =>
       _getRawList(_savedFoodNestedCategoryBox, 'foodSuper');
 
-  Future<void> saveGrocerySuperCategoriesRaw(List<dynamic> raw) =>
-      _putRawList(_savedGroceryNestedCategoryBox, 'grocerySuper', raw);
-  List<dynamic>? getGrocerySuperCategoriesRaw() =>
-      _getRawList(_savedGroceryNestedCategoryBox, 'grocerySuper');
+  // Grocery's category tree moved to `GroceryLocalStore` (one store for every
+  // grocery cache, with a savedAt stamp), so there is no `saveGrocerySuper…`
+  // here any more.
 
   Future<void> saveProductSuperCategoriesRaw(List<dynamic> raw) =>
       _putRawList(_savedProductNestedCategoryBox, 'productSuperRaw', raw);

@@ -7,9 +7,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_kyc_controller.dart';
 import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_manual_kyc_controller.dart';
-import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_kyc_view.dart';
 import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_manual_kyc_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/cancel_cheque_document_widget.dart';
@@ -216,37 +214,20 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               document: DocumentKeys.aadhar,
                               status: controller.getStatus(DocumentKeys.aadhar),
                               onTap: () {
-                                // Aadhaar now verifies via OKYC (OTP) instead
-                                // of an image upload. On a successful verify we
-                                // record it in the document-service so the tile
-                                // reflects completion.
-                                final kycController = AadhaarKycController(
-                                  onVerified: controller.recordAadhaarVerified,
-                                );
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: AppStrings.aadharCard.tr,
-                                    child: AadhaarKycView(
-                                      controller: kycController,
-                                      // OTP failed — fall back to verifying the
-                                      // card images with the AI verifier.
-                                      onVerifyManually: (enteredNumber) {
-                                        final manualController =
-                                            AadhaarManualKycController(
-                                          initialAadhaarNumber: enteredNumber,
-                                          onManualVerified: controller
-                                              .recordAadhaarManualVerified,
-                                        );
-                                        // Close the OKYC sheet before pushing
-                                        // the manual screen over it.
-                                        Get.back();
-                                        Get.to(() => AadhaarManualKycScreen(
-                                            controller: manualController));
-                                      },
+                                // Aadhaar verifies by card photo: the AI
+                                // verifier checks the images are an Aadhaar and
+                                // carry the number typed above, then we record
+                                // it in the document-service so the tile
+                                // reflects completion. The OKYC (OTP) sheet that
+                                // used to wrap this — with the photo path as its
+                                // fallback — was removed; this is the only path.
+                                Get.to(
+                                  () => AadhaarManualKycScreen(
+                                    controller: AadhaarManualKycController(
+                                      onManualVerified:
+                                          controller.recordAadhaarManualVerified,
                                     ),
                                   ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
                                 );
                               },
                             ),

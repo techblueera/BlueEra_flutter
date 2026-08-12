@@ -339,44 +339,13 @@ class MyDocumentsController extends GetxController {
     }
   }
 
-  /// Bridges a successful Aadhaar OKYC (OTP) verification into the
-  /// document-service so the Aadhaar tile reflects "verified/submitted".
-  ///
-  /// The OKYC flow (be_user_service) verifies identity via OTP and carries no
-  /// document images, so this records the Aadhaar document with the number
-  /// only (no `files`). Wired as the `onVerified` callback of
-  /// [AadhaarKycController]; the verified stage is shown after this settles.
-  /// See docs/backend/aadhaar-verification-ui-integration.md.
-  Future<void> recordAadhaarVerified(String aadhaarNumber) async {
-    try {
-      final params = {
-        ApiKeys.documentType: DocumentKeys.aadhar,
-        ApiKeys.value: jsonEncode({DocumentKeys.aadhar: aadhaarNumber}),
-      };
-      final response = await MyDocumentRepo().addDocument(params: params);
-      if (response.isSuccess) {
-        genericDocumentUploadResponse.value = ApiResponse.complete(response);
-      } else {
-        genericDocumentUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e, s) {
-      debugPrint('❌ recordAadhaarVerified error: $e\n$s');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      // Refresh so the Aadhaar tile picks up its new status.
-      await fetchAllDocumentStatusApi();
-    }
-  }
-
   /// Bridges a successful *manual* Aadhaar verification into the
   /// document-service, wired as the `onManualVerified` callback of
   /// [AadhaarManualKycController].
   ///
-  /// Unlike the OKYC path, this one carries card images that the AI verifier
-  /// has already matched against [aadhaarNumber], so it records them alongside
-  /// the number exactly like any other document upload.
+  /// The card images have already been matched against [aadhaarNumber] by the
+  /// AI verifier, so they are recorded alongside the number exactly like any
+  /// other document upload.
   ///
   /// Throws on failure — the manual screen keeps the user on the form rather
   /// than showing a success state for something that wasn't saved.

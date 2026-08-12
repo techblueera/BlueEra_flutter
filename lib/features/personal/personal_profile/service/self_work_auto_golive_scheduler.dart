@@ -181,16 +181,15 @@ class SelfWorkAutoGoLiveScheduler {
       final viewCtrl = Get.find<ViewPersonalDetailsController>();
 
       // ── Evaluate the SAME go-live gate as the manual tap (_handleGoLiveTap):
-      //    the security deposit must be paid (canGoLive) OR the first-service-
-      //    free waiver still applies (isFirstServiceFree).
-      final eligible = viewCtrl.canGoLive || viewCtrl.isFirstServiceFree;
+      //    the security deposit must be paid (canGoLive). The first-service-
+      //    free waiver that used to OR into this is gone.
+      final eligible = viewCtrl.canGoLive;
 
       final inWindow = _inWindow(DateTime.now());
       final isOpen = viewCtrl.shopStatusOpenClose.value;
       final manualOffToday = _manualOffCache == _todayKey();
       log('[SelfWorkAutoGoLive] tick@${_nowLabel()}: eligible=$eligible '
-          '(canGoLive=${viewCtrl.canGoLive} '
-          'firstServiceFree=${viewCtrl.isFirstServiceFree}) inWindow=$inWindow '
+          '(canGoLive=${viewCtrl.canGoLive}) inWindow=$inWindow '
           'isOpen=$isOpen autoOpened=$_autoOpenedThisSession '
           'manualOffToday=$manualOffToday');
 
@@ -230,8 +229,8 @@ class SelfWorkAutoGoLiveScheduler {
         return;
       }
       if (!eligible) {
-        log('[SelfWorkAutoGoLive] not eligible (canGoLive=${viewCtrl.canGoLive} '
-            'firstServiceFree=${viewCtrl.isFirstServiceFree}) → skip open');
+        log('[SelfWorkAutoGoLive] not eligible '
+            '(canGoLive=${viewCtrl.canGoLive}) → skip open');
         return;
       }
       if (!inWindow) return; // outside 08:00–22:00 — nothing to open

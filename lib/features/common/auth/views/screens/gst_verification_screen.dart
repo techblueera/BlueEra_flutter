@@ -148,6 +148,9 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         maxLength: 15,
                         isValidate: false,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
+                        // GSTINs are capitals — open the keyboard shifted so
+                        // the user isn't fighting it for every letter.
+                        isCapitalize: true,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(15),
                           FilteringTextInputFormatter.allow(
@@ -191,6 +194,10 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         title: isLoading
                             ? AppStrings.verifyingDots.tr
                             : AppStrings.submit.tr,
+                        // The verify call no longer raises a blocking overlay
+                        // (see AuthRepo.getUserVerifyGstRepo), so the button
+                        // carries the loader itself.
+                        isLoading: isLoading,
                         isValidate: authController.hasGstNumber.value
                             ? authController.isValidate.value
                             : true,

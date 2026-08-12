@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_locked_field.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -58,6 +59,9 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   bool _ready = false;
   bool _saving = false;
 
+  /// Aadhaar-verified accounts can't retype the name the card established.
+  bool get _identityLocked => _viewCtrl.isAadhaarVerified;
+
   @override
   void initState() {
     super.initState();
@@ -67,9 +71,16 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
 
     // Hydrate from in-memory controller state on the next frame so the
     // sheet animation isn't blocked by widget construction.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       _hydrate();
+      // The Aadhaar lock is read off the rider onboarding record, which this
+      // sheet's hosts don't all load. Resolved BEFORE the form is revealed —
+      // the sheet is already showing its loader, and painting the name field
+      // editable and then locking it a moment later is worse than waiting.
+      // Cache-first, so normally this returns without a network call.
+      await _viewCtrl.ensureAadhaarStatusLoaded();
+      if (!mounted) return;
       setState(() => _ready = true);
     });
   }
@@ -98,7 +109,12 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
     final params = <String, dynamic>{};
 
     final newName = _nameController.text.trim();
-    if (newName.isNotEmpty && newName != (user?.name ?? '')) {
+    // Never send the name for a verified account, even if something managed to
+    // change the field — the read-only input is the affordance, this is the
+    // guarantee.
+    if (!_identityLocked &&
+        newName.isNotEmpty &&
+        newName != (user?.name ?? '')) {
       params[ApiKeys.name] = newName;
     }
     final newEmail = _emailController.text.trim();
@@ -197,10 +213,18 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _label(AppStrings.fullName),
-                CommonTextField(
-                  textEditController: _nameController,
-                  hintText: AppStrings.enterFullName,
-                  isValidate: false,
+                // Locked once the Aadhaar is verified — the card is the
+                // authority on the holder's name, and letting it be retyped
+                // here would undo that. The backend refuses the write anyway;
+                // this stops the user finding that out after typing.
+                AadhaarLockedField(
+                  locked: _identityLocked,
+                  child: CommonTextField(
+                    textEditController: _nameController,
+                    hintText: AppStrings.enterFullName,
+                    isValidate: false,
+                    readOnly: _identityLocked,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _label(AppStrings.email),
