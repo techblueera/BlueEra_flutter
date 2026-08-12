@@ -106,6 +106,16 @@ class Post {
   /// Product payload — present only when [type] is `product`; null otherwise.
   final FeedProduct? product;
 
+  /// "Who to follow" payload — present only on merged-home-feed items whose
+  /// `type == "user_suggestions"`; null on every real post/reel/video.
+  /// See docs/HOME_FEED_INTEGRATION_GUIDE.md §3.2.
+  final FeedSuggestions? suggestions;
+
+  /// True when this item is a follow-suggestion block rather than content.
+  /// Nothing about it is a post — no author, no media, no engagement — so
+  /// callers must branch on this BEFORE reading any post field.
+  bool get isSuggestions => feedType == 'user_suggestions';
+
   /// The `/feed` `type` discriminator, normalised to lower case.
   /// See docs/backend/FRONTEND_FEED_INTEGRATION.md §3.
   String get feedType => type?.toLowerCase().trim() ?? '';
@@ -161,6 +171,7 @@ class Post {
     this.live,
     this.business,
     this.product,
+    this.suggestions,
   });
 
   /// `location` is polymorphic across feed item types: a plain string on posts
@@ -178,6 +189,19 @@ class Post {
   }
 
   factory Post.fromJson(Map<String, dynamic> json) {
+    // Merged home feed: a "who to follow" block carries no post fields at top
+    // level (no user, no media, no counts). Wrap it in a marker Post that only
+    // carries the block; the UI branches on [isSuggestions]. Same pattern as
+    // the item_type:"reel" branch below.
+    // See docs/HOME_FEED_INTEGRATION_GUIDE.md §3.2.
+    if (json['type'] == 'user_suggestions') {
+      return Post(
+        id: json['_id']?.toString() ?? '',
+        type: 'user_suggestions',
+        suggestions: FeedSuggestions.fromJson(json),
+      );
+    }
+
     // Mixed post/reel feed: a reel item is tagged item_type:"reel" and nests
     // its payload under `reel` (it has no post fields at top level). Wrap it in
     // a marker Post that only carries the reel; the UI branches on [isReel].
@@ -350,6 +374,7 @@ class Post {
     bool? live,
     FeedBusiness? business,
     FeedProduct? product,
+    FeedSuggestions? suggestions,
   }) {
     return Post(
       id: id ?? this.id,
@@ -395,7 +420,117 @@ class Post {
       live: live ?? this.live,
       business: business ?? this.business,
       product: product ?? this.product,
+      suggestions: suggestions ?? this.suggestions,
     );
+  }
+}
+
+/// A "who to follow" block injected into the merged home feed
+/// (`type: "user_suggestions"`). Carried on a marker [Post] — see
+/// docs/HOME_FEED_INTEGRATION_GUIDE.md §3.2.
+class FeedSuggestions {
+  final String title;
+  final List<SuggestedUser> users;
+
+  const FeedSuggestions({
+    this.title = 'Suggested for you',
+    this.users = const [],
+  });
+
+  factory FeedSuggestions.fromJson(Map<String, dynamic> json) {
+    return FeedSuggestions(
+      title: (json['title']?.toString().trim().isNotEmpty ?? false)
+          ? json['title'].toString()
+          : 'Suggested for you',
+      users: (json['users'] as List?)
+              ?.whereType<Map>()
+              .map((e) => SuggestedUser.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [],
+    );
+  }
+}
+
+/// One profile inside a [FeedSuggestions] block. Also the shape returned by
+/// `user-service/followers/suggestions` (guide §5).
+class SuggestedUser {
+  final String id;
+  final String name;
+  final String username;
+  final String? profileImage;
+  final String? designation;
+  final String? city;
+
+  /// `INDIVIDUAL` / `BUSINESS` — decides which visit screen a tap opens.
+  final String? accountType;
+
+  /// Business sub-category; null on individuals. Feeds the visit-profile
+  /// taxonomy so a suggested lab/restaurant opens its own screen.
+  final String? businessCategory;
+  final bool verified;
+  final int followersCount;
+  final int mutualFollowersCount;
+  final String reason;
+
+  /// Local-only. The server always sends false (it never suggests someone the
+  /// viewer already follows); flipped optimistically on tap.
+  bool isFollowing;
+
+  SuggestedUser({
+    required this.id,
+    required this.name,
+    required this.username,
+    this.profileImage,
+    this.designation,
+    this.city,
+    this.accountType,
+    this.businessCategory,
+    this.verified = false,
+    this.followersCount = 0,
+    this.mutualFollowersCount = 0,
+    this.reason = 'popular',
+    this.isFollowing = false,
+  });
+
+  factory SuggestedUser.fromJson(Map<String, dynamic> json) => SuggestedUser(
+        id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+        // `name` arrives already resolved (business accounts get
+        // `business_name`), so never re-derive it from `account_type`.
+        name: (json['name']?.toString().trim().isNotEmpty ?? false)
+            ? json['name'].toString()
+            : 'BlueEra User',
+        username: json['username']?.toString() ?? '',
+        profileImage: (json['profile_image']?.toString().isNotEmpty ?? false)
+            ? json['profile_image'].toString()
+            : null,
+        designation: json['designation']?.toString(),
+        city: json['city']?.toString(),
+        accountType: json['account_type']?.toString(),
+        businessCategory: json['business_category']?.toString(),
+        verified: json['verified'] as bool? ?? false,
+        followersCount: (json['followers_count'] as num?)?.toInt() ?? 0,
+        mutualFollowersCount:
+            (json['mutual_followers_count'] as num?)?.toInt() ?? 0,
+        reason: json['reason']?.toString() ?? 'popular',
+        isFollowing: json['is_following'] as bool? ?? false,
+      );
+
+  /// Subtitle line under the name, driven by `reason` (guide §3.2).
+  String get subtitle {
+    switch (reason) {
+      case 'mutual':
+        return mutualFollowersCount > 0
+            ? 'Followed by $mutualFollowersCount others you follow'
+            : 'Suggested for you';
+      case 'city':
+        return (city?.isNotEmpty ?? false) ? 'From $city' : 'Suggested for you';
+      case 'profession':
+        return (designation?.trim().isNotEmpty ?? false)
+            ? designation!
+            : 'Suggested for you';
+      default:
+        return 'Popular on BlueEra';
+    }
   }
 }
 

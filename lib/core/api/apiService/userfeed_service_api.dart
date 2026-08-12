@@ -7,6 +7,15 @@ mixin UserfeedServiceApi {
   final String getQueryById = "userfeed-service/support/search";
   final String userFeedReport = "userfeed-service/report/add-reports";
   final String homeFeed = 'userfeed-service/feed';
+
+  /// Merged home feed: posts + reels + "who to follow" blocks in one
+  /// cursor-paged list. Superset of [homeFeed] — same envelope and the same
+  /// item-type vocabulary, plus the new `user_suggestions` item.
+  /// See docs/HOME_FEED_INTEGRATION_GUIDE.md.
+  ///
+  /// [homeFeed] stays live and unchanged — rollback is a one-line swap in
+  /// `FeedController._useMergedHomeFeed`.
+  final String homeFeedMerged = 'userfeed-service/feed/home';
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
   final String userFeedPost = 'userfeed-service/feed/posts';
 }
