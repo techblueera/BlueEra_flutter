@@ -38,13 +38,15 @@ class HospitalHomeScreenV2 extends StatefulWidget {
 class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   late final HospitalServiceAiController _hospitalController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   // Registered up-front so the Bookings tab's Obx has a live controller
   // to observe even if the user opens the tab before it hydrates. Kept even
   // though this screen no longer calls it directly (see the parked refresh in
   // [_tabScroll]) — the registration is the point.
   // ignore: unused_field
-  final _appointmentController = getOrPut(() => HospitalAppointmentController());
+  final _appointmentController =
+      getOrPut(() => HospitalAppointmentController());
   late final TabController _tabController;
 
   static final _tabs = [
@@ -60,14 +62,16 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors `_chatViewController` in `professionals_main.dart`.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches.
   // Mirrors `connect_main_page.dart`'s top-level `chatFlagController`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -128,7 +132,6 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -139,9 +142,12 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(HospitalDepartmentsTabV2(controller: _hospitalController)),
-                _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
-                _tabScroll(HospitalFacilitiesTabV2(controller: _hospitalController)),
+                _tabScroll(
+                    HospitalDepartmentsTabV2(controller: _hospitalController)),
+                _tabScroll(
+                    HospitalOverviewTabV2(controller: _hospitalController)),
+                _tabScroll(
+                    HospitalFacilitiesTabV2(controller: _hospitalController)),
                 // _tabScroll(const HospitalPostsTabV2()),
                 _tabScroll(const HospitalStatsTabV2()),
               ],
@@ -218,7 +224,10 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );

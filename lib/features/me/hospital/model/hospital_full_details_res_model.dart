@@ -59,6 +59,7 @@ class HospitalFullData {
     this.departmentCount,
     this.facilityNames,
     this.facilityCount,
+    this.subCategoryName,
   });
 
   HospitalFullData.fromJson(dynamic json) {
@@ -128,11 +129,26 @@ class HospitalFullData {
         : null;
     if (json['facilities'] is List) {
       facilityNames = (json['facilities'] as List)
-          .map((e) => e is Map
-              ? (e['name']?.toString() ?? '')
-              : (e?.toString() ?? ''))
+          .map((e) =>
+              e is Map ? (e['name']?.toString() ?? '') : (e?.toString() ?? ''))
           .where((s) => s.trim().isNotEmpty)
           .toList();
+    }
+    // Sub-category label displayed on the listing card. Two accepted shapes:
+    //   { "sub_category_details": { "name": "..." } }
+    //   { "subCategoryName": "..." }
+    // Falls back to `category_details.name` when the sub-category is unset
+    // so a hospital with only a top-level category still gets a label.
+    final subDetails = json['sub_category_details'];
+    if (subDetails is Map && subDetails['name'] != null) {
+      subCategoryName = subDetails['name']?.toString();
+    } else if (json['subCategoryName'] != null) {
+      subCategoryName = json['subCategoryName']?.toString();
+    } else {
+      final catDetails = json['category_details'];
+      if (catDetails is Map && catDetails['name'] != null) {
+        subCategoryName = catDetails['name']?.toString();
+      }
     }
   }
   Location? location;
@@ -157,6 +173,7 @@ class HospitalFullData {
   int? departmentCount;
   List<String>? facilityNames;
   int? facilityCount;
+  String? subCategoryName;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -204,6 +221,9 @@ class HospitalFullData {
     map['department_count'] = departmentCount;
     map['facilities'] = facilityNames;
     map['facility_count'] = facilityCount;
+    if (subCategoryName != null) {
+      map['sub_category_details'] = {'name': subCategoryName};
+    }
     return map;
   }
 }

@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -11,19 +9,19 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
+import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Card surface mirrors [ServiceBusinessCard] so hospital tiles read as
+/// siblings of the Services-Near-Me directory when placed 2-up.
+const Color _kCardBorder = Color(0xFFE9EBF0);
+const Color _kCardDivider = Color(0xFFEDEFF3);
 
 class HospitalListScreen extends StatefulWidget {
   const HospitalListScreen({super.key, required this.serviceType});
@@ -45,10 +43,8 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
-    // Paginate via scroll notifications instead of an explicit controller so
-    // the inner ListView uses the NestedScrollView's PrimaryScrollController
-    // when embedded (e.g. HealthCareListingScreen) — that keeps the banner /
-    // sticky-category header and the list scrolling as one smooth motion.
+    // Paginate via scroll notifications so the outer NestedScrollView drives
+    // scrolling as a single motion (see HealthCareListingScreen).
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
         if (n is ScrollUpdateNotification &&
@@ -61,15 +57,27 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
         color: Colors.transparent,
         child: Obx(() {
           if (controller.isLoading.value && controller.profiles.isEmpty) {
-            // One Shimmer drives all skeleton cards. Per-card shimmers flooded
-            // BLASTBufferQueue with redraws (visible as the "Already acquired
-            // max frames" spam in logcat).
             return buildLoadingShimmer(
               child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10,
+                  vertical: SizeConfig.size8,
+                ),
                 itemCount: 3,
                 physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (_, __) => const _HospitalCardSkeletonBody(),
+                itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: _HospitalCardSkeletonBody()),
+                        SizedBox(width: 10),
+                        Expanded(child: _HospitalCardSkeletonBody()),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             );
           }
@@ -100,26 +108,73 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
             child: Builder(
               builder: (context) {
                 final rows = buildNativeAdRows(controller.profiles.length);
+                // Two content tiles per row; ad rows stay full-width so
+                // NativeAdSlot renders unchanged.
+                final grid = _pairForGrid(rows);
                 return ListView.builder(
-                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size10,
+                    vertical: SizeConfig.size8,
+                  ),
                   itemCount:
-                      rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                      grid.length + (controller.isLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == rows.length) {
-                      // Load-more footer: wrap a single body in one shimmer.
-                      return buildLoadingShimmer(
-                        child: const _HospitalCardSkeletonBody(),
+                    if (index == grid.length) {
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 6),
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(child: _HospitalCardSkeletonBody()),
+                              SizedBox(width: 10),
+                              Expanded(child: _HospitalCardSkeletonBody()),
+                            ],
+                          ),
+                        ),
                       );
                     }
-                    final row = rows[index];
-                    if (row.isAd) {
-                      return NativeAdSlot(
-                        adOrdinal: row.adOrdinal,
-                        keyPrefix: 'hospital_native_ad',
+                    final lr = grid[index];
+                    if (lr.isAd) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: NativeAdSlot(
+                          adOrdinal: lr.adOrdinal!,
+                          keyPrefix: 'hospital_native_ad',
+                        ),
                       );
                     }
-                    final item = controller.profiles[row.contentIndex];
-                    return _HospitalCard(item: item);
+                    final left = controller.profiles[lr.leftIndex!];
+                    final right = lr.rightIndex != null
+                        ? controller.profiles[lr.rightIndex!]
+                        : null;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      // IntrinsicHeight so mismatched name/address lengths
+                      // don't leave one tile shorter than the other.
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _HospitalCard(
+                                item: left,
+                                serviceType: widget.serviceType,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: right != null
+                                  ? _HospitalCard(
+                                      item: right,
+                                      serviceType: widget.serviceType,
+                                    )
+                                  : const SizedBox(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 );
               },
@@ -129,12 +184,53 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
       ),
     );
   }
+
+  List<_GridLayoutRow> _pairForGrid(List<NativeAdRow> rows) {
+    final result = <_GridLayoutRow>[];
+    var i = 0;
+    while (i < rows.length) {
+      final r = rows[i];
+      if (r.isAd) {
+        result.add(_GridLayoutRow.ad(r.adOrdinal));
+        i++;
+        continue;
+      }
+      if (i + 1 < rows.length && !rows[i + 1].isAd) {
+        result
+            .add(_GridLayoutRow.pair(r.contentIndex, rows[i + 1].contentIndex));
+        i += 2;
+      } else {
+        result.add(_GridLayoutRow.pair(r.contentIndex, null));
+        i++;
+      }
+    }
+    return result;
+  }
 }
 
+class _GridLayoutRow {
+  final int? leftIndex;
+  final int? rightIndex;
+  final int? adOrdinal;
+  final bool isAd;
+  _GridLayoutRow.pair(this.leftIndex, this.rightIndex)
+      : adOrdinal = null,
+        isAd = false;
+  _GridLayoutRow.ad(this.adOrdinal)
+      : leftIndex = null,
+        rightIndex = null,
+        isAd = true;
+}
+
+/// Compact hospital tile. Palette, metrics and sub-widget shapes are aligned
+/// with [ServiceBusinessCard] so both directories feel like siblings:
+///   hero (AspectRatio 1.2 + share stack + Open pill) → name → ★ rating +
+///   specialty → distance | address → hairline → departments / facilities.
 class _HospitalCard extends StatelessWidget {
   final HospitalFullData item;
+  final String serviceType;
 
-  const _HospitalCard({required this.item});
+  const _HospitalCard({required this.item, required this.serviceType});
 
   bool _isEmpty(String? s) => s == null || s.trim().isEmpty;
 
@@ -172,8 +268,7 @@ class _HospitalCard extends StatelessWidget {
 
   List<String> _buildFacilities() {
     // The `business/filter` listing supplies facility names directly. Prefer
-    // those; fall back to deriving them from the emergency-care / other-
-    // facility booleans (populated only on the full-details path).
+    // those; fall back to the boolean flags on the full-details path.
     final apiNames = item.facilityNames;
     if (apiNames != null && apiNames.isNotEmpty) {
       return apiNames.where((s) => s.trim().isNotEmpty).toList();
@@ -208,24 +303,24 @@ class _HospitalCard extends StatelessWidget {
     return 0.0;
   }
 
-  /// "x.x km away" / "xxx m away" — null when either endpoint is unknown so
-  /// the location row falls back to just the address.
-  String? _distanceLabel() {
+  /// "x.xkm away" / "xxxm away" — empty when either endpoint is unknown so
+  /// the location line collapses to just the address.
+  String _distanceLabel() {
     final dLat = _destLat();
     final dLng = _destLng();
-    if (dLat == 0.0 && dLng == 0.0) return null;
+    if (dLat == 0.0 && dLng == 0.0) return '';
     final uLat = LocationService.lat;
     final uLng = LocationService.lng;
-    if (uLat == 0.0 && uLng == 0.0) return null;
+    if (uLat == 0.0 && uLng == 0.0) return '';
     final km = calculateDistanceKm(uLat, uLng, dLat, dLng);
-    if (km.isNaN || km.isInfinite) return null;
-    if (km < 1) return '${(km * 1000).round()} m away';
-    return '${km.toStringAsFixed(km < 10 ? 1 : 0)} km away';
+    if (km.isNaN || km.isInfinite) return '';
+    if (km < 1) return '${(km * 1000).round()}m away';
+    return '${km.toStringAsFixed(km < 10 ? 1 : 0)}km away';
   }
 
-  /// Routed through [openVisitProfile] so the type→screen mapping stays in one
-  /// place. The fetched list item goes with it, so the hospital screen seeds
-  /// its controller with the real record rather than an id-only stub.
+  /// Routed through [openVisitProfile] so the type→screen mapping stays in
+  /// one place. The fetched list item seeds the detail controller with a
+  /// real record rather than an id-only stub.
   void _openDetail() {
     openVisitProfile(
       accountType: AppConstants.business,
@@ -237,754 +332,438 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  void _openChat() {
-    final userId = item.userId ?? '';
-    if (userId.trim().isEmpty) return;
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final bId = item.id?.trim();
-    if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(
-        userId: bId,
-        source: ChatClickSource.searchResult,
-      );
-    }
-    final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: userId,
-      name: item.name,
-      profile: item.logoUrl,
-      route: AppConstants.route_discover,
-    );
-  }
-
   void _share() {
     final name = item.name ?? 'Hospital';
-
-    final shareLink = hospitalDeepLink(
-      hospitalId: item.userId,
-    );
+    final shareLink = hospitalDeepLink(hospitalId: item.userId);
     ShareService.instance.openShareSheet(
       text: 'Check out ${item.name} on BlueEra\n$shareLink',
       subject: name,
     );
   }
 
-  void _openMapBottomSheet(BuildContext context) {
-    RouteMapBottomSheet.show(
-        context: context,
-        destinationName: item.name ?? 'Hospital',
-        destinationAddress: item.location?.name ?? '',
-        destinationLat: _destLat(),
-        destinationLng: _destLng(),
-        visitCallback: _openDetail);
-  }
-
-  void _openImageViewer(BuildContext context) {
-    final gallery = _collectGalleryPhotos();
-    final images = gallery.isNotEmpty
-        ? gallery
-        : [if (_coverImage() != null) _coverImage()!];
-    if (images.isEmpty) return;
-    navigatePushTo(
-      context,
-      ImageViewScreen(
-        subTitle: item.name ?? 'Hospital',
-        appBarTitle: AppStrings.imageViewer,
-        imageUrls: images,
-        initialIndex: 0,
-      ),
-    );
+  /// Per-hospital sub-category from the listing payload
+  /// (`sub_category_details.name`, mapped onto [HospitalFullData.subCategoryName]
+  /// by the business/filter adapter). Falls back to a tab-derived default so
+  /// a hospital without a sub-category still shows a meaningful label.
+  String _specialtyLabel() {
+    final sub = item.subCategoryName?.trim() ?? '';
+    if (sub.isNotEmpty) return sub;
+    switch (serviceType.toUpperCase()) {
+      case 'HOSPITALS':
+      case 'HOSPITAL':
+      case 'HOSPITAL_SECTOR':
+        return 'Multi Speciality Hospital';
+      case 'WELLNESS':
+        return 'Wellness Center';
+      default:
+        return '';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: _openDetail,
-        child: CommonCardWidget(
-          cardMargin: 0,
-          padding: 0,
-          borderRadius: 16,
-          shadowColor: AppColors.shadowColor.withValues(alpha: 0.10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Cover banner with floating action buttons.
-              _coverHeader(context),
-              SizedBox(
-                height: 10,
-              ),
-              // Body content pulled up so the logo straddles the cover edge.
-              // The translate leaves ~28px of breathing room at the card
-              // bottom, which doubles as the bottom padding.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
-                child: _coverBody(context),
-              )
-            ],
-          ),
+    return InkWell(
+      onTap: _openDetail,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _kCardBorder, width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0F001120),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCoverSection(),
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size10,
+                  left: SizeConfig.size10,
+                  top: SizeConfig.size10,
+                  bottom: SizeConfig.size4),
+              child: _buildInfoBlock(),
+            ),
+            // Footer collapses when the hospital reports neither departments
+            // nor facilities, so the card doesn't leave an empty pill row.
+            // if (_hasFooter)
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size8),
+              child: _buildDepartmentsFacilities(),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ─── Cover banner ───────────────────────────────────────────────────────
-
-  Widget _coverHeader(BuildContext context) {
+  // ─── HERO ─────────────────────────────────────────────────────────
+  Widget _buildCoverSection() {
     final cover = _coverImage();
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-          child: SizedBox(
-            height: 200,
-            width: double.infinity,
-            child: cover == null
-                ? Container(
-                    color: AppColors.liteWhite,
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    ),
-                  )
-                : CachedNetworkImage(
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      child: AspectRatio(
+        aspectRatio: 1.2,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            (cover != null && cover.isNotEmpty)
+                ? CachedNetworkImage(
                     imageUrl: cover,
                     fit: BoxFit.cover,
-                    memCacheWidth: 800,
-                    placeholder: (_, __) => Container(
-                      color: AppColors.liteWhite,
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
-                    ),
+                    memCacheWidth: 600,
+                    placeholder: (_, __) => Container(color: AppColors.greyE5),
                     errorWidget: (_, __, ___) => Container(
-                      color: AppColors.liteWhite,
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
+                      color: AppColors.greyE5,
+                      child: const Icon(Icons.image_outlined,
+                          size: 32, color: Colors.grey),
                     ),
+                  )
+                : Container(
+                    color: AppColors.greyE5,
+                    child: const Icon(Icons.image_outlined,
+                        size: 32, color: Colors.grey),
                   ),
-          ),
-        ),
-        // Tap the banner to open the full-screen gallery.
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+            Positioned(
+              top: SizeConfig.size6,
+              right: SizeConfig.size6,
+              child: GestureDetector(
+                onTap: _share,
+                child: _circleIcon(AppIconAssets.share_bold),
               ),
-              onTap: () => _openImageViewer(context),
             ),
-          ),
-        ),
-        // Floating share control. Rating badge + rate CTA are intentionally
-        // omitted on the listing card — the hospital `business/filter`
-        // payload does not include the be_user_service `businesses._id`
-        // (see lib/docs/rating-ui-integration.md §1) and rating without
-        // it 404s. Rate/reviews live on the detail screen instead, where
-        // VisitBusinessHero resolves the correct id from the profile fetch.
-        Positioned(
-          top: 10,
-          right: 10,
-          child: _circleAction(AppIconAssets.share_bold, _share),
-        ),
-      ],
-    );
-  }
-
-  Widget _circleAction(String icon, VoidCallback onTap) {
-    return Material(
-      color: AppColors.black25,
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black25,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: LocalAssets(
-            imagePath: icon,
-            height: 20,
-            width: 20,
-            imgColor: AppColors.white,
-          ),
+            // Always-on per product spec (no hospital hours payload today).
+            // Same shape/palette as [ServiceBusinessCard]'s Open pill.
+            Positioned(
+              bottom: SizeConfig.size6,
+              right: SizeConfig.size6,
+              child: _openPill(),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ─── Body ───────────────────────────────────────────────────────────────
+  Widget _circleIcon(String icon) {
+    return Container(
+      width: SizeConfig.size26,
+      height: SizeConfig.size26,
+      decoration: const BoxDecoration(
+        color: AppColors.black25,
+        shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size6),
+        child: LocalAssets(
+          imagePath: icon,
+          imgColor: AppColors.white,
+        ),
+      ),
+    );
+  }
 
-  Widget _coverBody(BuildContext context) {
-    final deptNames = _departmentNames();
-    final facilities = _buildFacilities();
-    // Prefer the server's explicit counts; fall back to the rendered list
-    // length so the badge stays correct on the full-details path.
-    final deptCount = item.departmentCount ?? deptNames.length;
-    final facilityCount = item.facilityCount ?? facilities.length;
+  Widget _openPill() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size6,
+        vertical: SizeConfig.size3,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xffF2FFF2),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.green00, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time,
+              size: SizeConfig.size12, color: AppColors.green00),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            'Open Now',
+            fontSize: SizeConfig.extraSmall,
+            fontWeight: FontWeight.w600,
+            color: AppColors.green00,
+            maxLines: 1,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── INFO BLOCK ──────────────────────────────────────────────────
+  Widget _buildInfoBlock() {
+    final name = _valueOr(item.name, fallback: "Unknown Hospital");
+    // Hospital listing payload doesn't carry a rating yet
+    // (see rating-ui-integration.md §1). Slot stays wired for when it does.
+    const rating = '';
+    final subCategory = _specialtyLabel();
     final distance = _distanceLabel();
-    final address = item.location?.name;
+    final address =
+        _isEmpty(item.location?.name) ? '' : item.location!.name!.trim();
+    final showLocation = distance.isNotEmpty || address.isNotEmpty;
+    final showMeta = rating.isNotEmpty || subCategory.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Logo (straddling the cover) + name + location.
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Logo / name open the hospital's business profile; the
-            // rest of the card keeps opening the hospital detail page.
-            DiscoverProfileTap(
-              accountType: AppConstants.business,
-              businessId: item.id,
-              userId: item.userId,
-              child: _logo(),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DiscoverProfileTap(
-                      accountType: AppConstants.business,
-                      businessId: item.id,
-                      userId: item.userId,
-                      child: CustomText(
-                        _valueOr(item.name, fallback: "Unknown Hospital"),
-                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.black22,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _openMapBottomSheet(context),
-                      child: Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.location_outline,
-                            imgColor: AppColors.primaryColor,
-                          ),
-                          const SizedBox(width: 3),
-                          // Distance highlighted in the primary color, kept
-                          // separate from the (secondary) address.
-                          if (distance != null) ...[
-                            CustomText(
-                              distance,
-                              fontSize: SizeConfig.small,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w400,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (!_isEmpty(address))
-                              CustomText(
-                                '  |  ',
-                                fontSize: SizeConfig.small,
-                                color: Color(0xff66727E),
-                                fontWeight: FontWeight.w500,
-                              ),
-                          ],
-                          Expanded(
-                            child: CustomText(
-                              _isEmpty(address)
-                                  ? (distance == null
-                                      ? 'Address not available'
-                                      : '')
-                                  : address!.trim(),
-                              fontSize: SizeConfig.small,
-                              color: Color(0xff66727E),
-                              fontWeight: FontWeight.w500,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        CustomText(
+          name,
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w800,
+          color: AppColors.black22,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 14),
-        // Departments summary.
-        Container(
-          padding: EdgeInsets.all(0),
-          decoration: BoxDecoration(
-            border: Border.all(
-              width: 0.5,
-              color: AppColors.greyE6,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _serviceRow(
-                  icon: "assets/svg/department.svg",
-                  title: 'Departments',
-                  items: deptNames,
-                  count: deptCount,
-                  emptyLabel: 'No departments listed',
-                  // color: AppColors.primaryColor.withValues(alpha: 0.10)
-                ),
-              ),
-              Divider(
-                height: 0.5,
-                thickness: 0.5,
-                color: AppColors.greyE6,
-              ),
-              // Facilities summary.
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _serviceRow(
-                  icon: "assets/svg/hands_brain.svg",
-                  title: 'Facilities',
-                  items: facilities,
-                  count: facilityCount,
-                  emptyLabel: 'No facilities listed',
-                  // color: AppColors.green0B.withValues(alpha: 0.10)),
-                ),
-              )
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-        // Chat + Book Now actions.
-        Row(
-          children: [
-            Expanded(flex: 1, child: _chatButton(context)),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 2,
-              child: _bookNowButton(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-      ],
-    );
-  }
-
-  Widget _logo() {
-    final hasLogo = !_isEmpty(item.logoUrl);
-    return Container(
-      width: 55,
-      height: 55,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-      ),
-      child: ClipOval(
-        child: hasLogo
-            ? CachedNetworkImage(
-                imageUrl: item.logoUrl!,
-                fit: BoxFit.cover,
-                memCacheWidth: 200,
-                placeholder: (_, __) => Container(color: AppColors.liteWhite),
-                errorWidget: (_, __, ___) => LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                ),
-              )
-            : Container(
-                color: AppColors.liteWhite,
-                child: LocalAssets(imagePath: AppIconAssets.place_holder_image),
-              ),
-      ),
-    );
-  }
-
-  /// One summary row: a rounded icon tile on the left, then `Title • N` with a
-  /// single-line, comma-joined preview of the [items] beneath it, and an
-  /// `N More` link on the right. Summary always renders on first frame — the
-  /// `More` badge is opt-in and its visibility is decided by a lightweight
-  /// `LayoutBuilder` overflow check that runs *after* the summary is already
-  // /// laid out, so a stale first-frame measurement can never hide the items.
-  // Widget _serviceRow({
-  //   required String icon,
-  //   required String title,
-  //   required List<String> items,
-  //   required int count,
-  //   required String emptyLabel,
-  //   required Color color,
-  // }) {
-  //   final accent = AppColors.primaryColor;
-  //   final facilityAccent = const Color(0xff00B87A1A);
-  //   // Anchor on the larger of the server count / names length so the badge
-  //   // never under-reports. Guards against server sending count=0 while items
-  //   // are present (which would otherwise hide the badge entirely).
-  //   final total = count > items.length ? count : items.length;
-  //   final summary = items.isEmpty ? emptyLabel : items.join(', ');
-  //   final serverHasMore = count > items.length;
-  //   const preview = 4;
-  //   // Fall-back count for the "More" link when the summary overflows: server
-  //   // extras + everything past the preview cap. Never negative.
-  //   final previewHidden =
-  //       (items.length > preview ? items.length - preview : 0) +
-  //           (serverHasMore ? count - items.length : 0);
-  //
-  //   final summaryText = CustomText(
-  //     summary,
-  //     fontSize: SizeConfig.extraSmall,
-  //     color: items.isEmpty ? AppColors.grey9B : const Color(0xff66727E),
-  //     fontWeight: FontWeight.w600,
-  //     maxLines: 1,
-  //     overflow: TextOverflow.ellipsis,
-  //   );
-  //
-  //   return Row(
-  //     crossAxisAlignment: CrossAxisAlignment.center,
-  //     children: [
-  //       Container(
-  //         width: 38,
-  //         height: 38,
-  //         alignment: Alignment.center,
-  //         decoration: BoxDecoration(
-  //           color: color,
-  //           borderRadius: BorderRadius.circular(10),
-  //         ),
-  //         child: LocalAssets(
-  //           imagePath: icon,
-  //           height: 20,
-  //         ),
-  //       ),
-  //       const SizedBox(width: 10),
-  //       Expanded(
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Row(
-  //               children: [
-  //                 CustomText(
-  //                   title,
-  //                   fontSize: 14,
-  //                   fontWeight: FontWeight.w600,
-  //                   color: AppColors.black22,
-  //                 ),
-  //                 if (total > 0) ...[
-  //                   const SizedBox(width: 5),
-  //                   CustomText(
-  //                     '• $total',
-  //                     fontSize: SizeConfig.small,
-  //                     fontWeight: FontWeight.w600,
-  //                     color: AppColors.black22,
-  //                   ),
-  //                 ],
-  //               ],
-  //             ),
-  //             const SizedBox(height: 3),
-  //             // Summary sits in Expanded so the row always paints even before
-  //             // LayoutBuilder resolves. LayoutBuilder only decides whether the
-  //             // "More" badge slot on the right is populated — items are never
-  //             // hidden waiting on a measurement.
-  //             LayoutBuilder(
-  //               builder: (context, constraints) {
-  //                 if (constraints.maxWidth <= 0 ||
-  //                     !constraints.maxWidth.isFinite) {
-  //                   return summaryText;
-  //                 }
-  //
-  //                 final summaryStyle = TextStyle(
-  //                   fontSize: 12,
-  //                   fontWeight: FontWeight.w600,
-  //                   color: items.isEmpty
-  //                       ? AppColors.grey9B
-  //                       : const Color(0xff66727E),
-  //                 );
-  //                 final fullPainter = TextPainter(
-  //                   text: TextSpan(text: summary, style: summaryStyle),
-  //                   maxLines: 1,
-  //                   textDirection: TextDirection.ltr,
-  //                 )..layout(maxWidth: constraints.maxWidth);
-  //                 final overflows = fullPainter.didExceedMaxLines;
-  //
-  //                 if (!overflows && !serverHasMore) return summaryText;
-  //                 if (previewHidden <= 0 && !overflows) return summaryText;
-  //
-  //                 final badgeCount =
-  //                     previewHidden > 0 ? previewHidden : items.length;
-  //                 return Row(
-  //                   children: [
-  //                     Expanded(child: summaryText),
-  //                     const SizedBox(width: 8),
-  //                     GestureDetector(
-  //                       behavior: HitTestBehavior.opaque,
-  //                       onTap: _openDetail,
-  //                       child: CustomText(
-  //                         '$badgeCount More',
-  //                         fontSize: SizeConfig.small,
-  //                         fontWeight: FontWeight.w600,
-  //                         color: accent,
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 );
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  Widget _serviceRow({
-    required String icon,
-    required String title,
-    required List<String> items,
-    required int count,
-    required String emptyLabel,
-  }) {
-    final accent = AppColors.primaryColor;
-    const preview = 4;
-    final shown = items.length < preview ? items.length : preview;
-    // Anchor on the larger of the server count / names length so the link
-    // never under-reports the remaining items.
-    final total = count > items.length ? count : items.length;
-    final hidden = total - shown;
-    final summary = items.isEmpty ? emptyLabel : items.join(', ');
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: LocalAssets(imagePath: icon),
-          // child: Icon(icon, size: 20, color: accent),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CustomText(
-                    title,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                  const SizedBox(width: 5),
-                  CustomText(
-                    '• $count',
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              CustomText(
-                summary,
-                fontSize: SizeConfig.small,
-                color: items.isEmpty
-                    ? AppColors.grey9B
-                    : AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        if (hidden > 0) ...[
-          const SizedBox(width: 8),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _openDetail,
-            child: CustomText(
-              '$hidden More',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: accent,
-            ),
-          ),
+        if (showMeta) ...[
+          SizedBox(height: SizeConfig.size4),
+          _buildMetaRow(rating, subCategory),
+        ],
+        if (showLocation) ...[
+          SizedBox(height: SizeConfig.size4),
+          _buildLocationRow(distance, address),
         ],
       ],
     );
   }
 
-  Widget _chatButton(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          _openMapBottomSheet(context);
-        },
-        child: Container(
-          height: 40,
-          decoration: BoxDecoration(
-              color: Color(0xffF2F9FF),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Color(0xffCFE8FF))),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LocalAssets(
-                  imagePath: AppIconAssets.directionIcon,
-                  imgColor: AppColors.primaryColor),
-              const SizedBox(width: 6),
-              CustomText(
-                AppStrings.directions,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor,
-              ),
-            ],
-          ),
-        ),
+  /// ★ 4.8 | Multi Speciality Hospital — mirrors
+  /// [ServiceBusinessCard._buildMetaRow]. Rating half is empty today so the
+  /// specialty renders on its own; the separator only appears when both
+  /// halves are present.
+  Widget _buildMetaRow(String rating, String subCategory) {
+    final separator = TextSpan(
+      text: '  |  ',
+      style: TextStyle(
+        color: AppColors.grey7E,
+        fontSize: SizeConfig.extraSmall,
       ),
+    );
+
+    return Row(
+      children: [
+        if (rating.isNotEmpty) ...[
+          LocalAssets(
+            imagePath: AppIconAssets.fill_star,
+            width: SizeConfig.size12,
+            height: SizeConfig.size12,
+            imgColor: AppColors.yellow,
+          ),
+          SizedBox(width: SizeConfig.size3),
+          CustomText(
+            rating,
+            fontSize: SizeConfig.extraSmall8,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grey7E,
+          ),
+        ],
+        if (subCategory.isNotEmpty)
+          Flexible(
+            child: RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  if (rating.isNotEmpty) separator,
+                  TextSpan(
+                    text: subCategory,
+                    style: TextStyle(
+                      color: AppColors.grey7E,
+                      fontSize: SizeConfig.extraSmall8,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _bookNowButton() {
-    final accent = AppColors.primaryColor;
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: _openDetail,
-        child: Container(
-          height: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: accent,
-            borderRadius: BorderRadius.circular(10),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: accent.withValues(alpha: 0.30),
-            //     blurRadius: 8,
-            //     offset: const Offset(0, 3),
-            //   ),
-            // ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomText(
-                AppStrings.inquiry,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded,
-                  size: 18, color: Colors.white),
-            ],
+  /// pin + distance (primary) | address (secondary). Same treatment as
+  /// [ServiceBusinessCard._buildLocationRow] so both directories share the
+  /// same location line style.
+  Widget _buildLocationRow(String distanceText, String address) {
+    return Row(
+      children: [
+        LocalAssets(
+          imagePath: AppIconAssets.location_outline,
+          imgColor: AppColors.primaryColor,
+          height: SizeConfig.size10,
+          width: SizeConfig.size10,
+        ),
+        SizedBox(width: SizeConfig.size4),
+        Flexible(
+          child: RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                if (distanceText.isNotEmpty)
+                  TextSpan(
+                    text: distanceText,
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.extraSmall8,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                if (distanceText.isNotEmpty && address.isNotEmpty)
+                  TextSpan(
+                    text: '  |  ',
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall8,
+                    ),
+                  ),
+                if (address.isNotEmpty)
+                  TextSpan(
+                    text: address,
+                    style: TextStyle(
+                      color: AppColors.grey7E,
+                      fontSize: SizeConfig.extraSmall8,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
+      ],
+    );
+  }
+
+  // ─── FOOTER (departments / facilities) ────────────────────────────
+  int get _deptCount => item.departmentCount ?? _departmentNames().length;
+  int get _facilityCount => item.facilityCount ?? _buildFacilities().length;
+  bool get _hasFooter => _deptCount > 0 || _facilityCount > 0;
+
+  /// Sits below a hairline in the same footer slot [ServiceBusinessCard]
+  /// uses for its Price Range block, styled at the same weight so the two
+  /// cards share visual rhythm when placed side by side.
+  Widget _buildDepartmentsFacilities() {
+    final showDept = _deptCount > 0;
+    final showFacilities = _facilityCount > 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showDept)
+          _footerRow('assets/svg/department.svg', _deptCount, 'Departments'),
+        if (showDept && showFacilities) SizedBox(height: SizeConfig.size6),
+        if (showFacilities)
+          _footerRow(
+              'assets/svg/hands_brain.svg', _facilityCount, 'Facilities'),
+      ],
+    );
+  }
+
+  /// Pill styled to match `img_1.png`: light grey background, dark icon +
+  /// count in bold with a bullet separator before the label.
+  Widget _footerRow(String icon, int count, String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size8,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xffF6F7F9),
+        borderRadius: BorderRadius.circular(SizeConfig.size10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          LocalAssets(
+            imagePath: icon,
+            height: SizeConfig.size16,
+            width: SizeConfig.size16,
+            imgColor: AppColors.black22,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: SizeConfig.small,
+                  color: AppColors.black22,
+                  fontWeight: FontWeight.w600,
+                ),
+                children: [
+                  TextSpan(text: '$count'),
+                  const TextSpan(text: '  •  '),
+                  TextSpan(text: label),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Placeholders only — wrap in a single [buildLoadingShimmer] at the list
-/// level so all cards share one animation controller. Rendering N shimmers
-/// at once saturates Android's BLASTBufferQueue ("Already acquired max
-/// frames") on mid-range devices.
+/// Placeholder tile. Wrap the list-level widget in a single
+/// [buildLoadingShimmer] so all tiles share one animation controller —
+/// per-tile shimmers saturate Android's BLASTBufferQueue on mid-range devices.
 class _HospitalCardSkeletonBody extends StatelessWidget {
   const _HospitalCardSkeletonBody();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-      child: CommonCardWidget(
-        cardMargin: 0,
-        padding: 0,
-        borderRadius: 16,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover banner.
-            shimmerContainer(height: 150, radius: 16),
-            Transform.translate(
-              offset: const Offset(0, -28),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        shimmerContainer(width: 62, height: 62, radius: 31),
-                        SizedBox(width: SizeConfig.size12),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 32),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                shimmerContainer(height: SizeConfig.size16),
-                                SizedBox(height: SizeConfig.size8),
-                                shimmerContainer(
-                                    height: SizeConfig.size12, width: 180),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size14),
-                    shimmerContainer(height: SizeConfig.size12, width: 240),
-                    SizedBox(height: SizeConfig.size6),
-                    shimmerContainer(height: SizeConfig.size12),
-                    SizedBox(height: SizeConfig.size12),
-                    shimmerContainer(height: SizeConfig.size12, width: 240),
-                    SizedBox(height: SizeConfig.size6),
-                    shimmerContainer(height: SizeConfig.size12),
-                    SizedBox(height: SizeConfig.size16),
-                    Row(
-                      children: [
-                        Expanded(
-                            flex: 1,
-                            child: shimmerContainer(height: 46, radius: 12)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            flex: 2,
-                            child: shimmerContainer(height: 46, radius: 12)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _kCardBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 1.2,
+            child: shimmerContainer(width: double.infinity, radius: 0),
+          ),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(height: 12, width: double.infinity),
+                SizedBox(height: SizeConfig.size4),
+                shimmerContainer(height: 10, width: 120),
+                SizedBox(height: SizeConfig.size4),
+                shimmerContainer(height: 10, width: double.infinity),
+              ],
             ),
-          ],
-        ),
+          ),
+          Container(height: 1, color: _kCardDivider),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(height: 10, width: 100),
+                SizedBox(height: SizeConfig.size6),
+                shimmerContainer(height: 10, width: 100),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

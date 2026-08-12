@@ -101,6 +101,11 @@ extension BusinessFilterDataHospitalMappers on BusinessFilterData {
       departmentCount: departmentCount ?? deptList.length,
       facilityNames: facilities,
       facilityCount: facilityCount ?? (facilities?.length ?? 0),
+      // Sub-category label shown on the listing tile — prefer the more
+      // specific sub-category, fall back to the top-level category so a
+      // hospital with only a category set still gets a label.
+      subCategoryName:
+          subCategoryDetails?.name ?? categoryDetails?.name,
       location: Location(
         name: address,
         type: 'Point',
