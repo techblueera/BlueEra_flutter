@@ -18,13 +18,16 @@ class HospitalDepartmentsTabV2 extends StatelessWidget {
   /// are treated as mandatory profile data. Whenever the hospital record
   /// carries no departments the section prepends a nudge banner above the
   /// existing add form.
+  ///
+  /// A named-but-empty department (chip only, no doctors and no beds) does
+  /// NOT count as data — otherwise the banner disappears the moment the
+  /// user picks a department name, leaving the OPD/IPD sections showing
+  /// "No Data found" with no top-level nudge to finish the job. Matches
+  /// the overview-tab detector.
   bool _hasDepartments(HospitalFullData? data) {
     if (data == null) return false;
-    if ((data.departmentCount ?? 0) > 0) return true;
-    final named = (data.departments ?? [])
-        .where((d) => (d.name ?? '').trim().isNotEmpty)
-        .length;
-    return named > 0;
+    return (data.departments ?? [])
+        .any((d) => ((d.opd ?? []).isNotEmpty) || ((d.ipd ?? []).isNotEmpty));
   }
 
   @override
@@ -41,10 +44,12 @@ class HospitalDepartmentsTabV2 extends StatelessWidget {
 
           Obx(() {
             final data = controller.hospitalDataResModel?.value.data;
-            if (_hasDepartments(data)) SizedBox(height: SizeConfig.size10);
             if (_hasDepartments(data)) return const SizedBox.shrink();
             return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size12),
+              padding: EdgeInsets.only(
+                top: SizeConfig.size10,
+                bottom: SizeConfig.size12,
+              ),
               child: const HospitalRequiredBanner(
                 heading: 'Departments are required',
                 message:

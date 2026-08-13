@@ -19,6 +19,7 @@ import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_mo
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/testimonials/lab_testimonials_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_availability_view.dart';
+import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_category_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -42,6 +43,12 @@ class LabOverviewTabV2 extends StatelessWidget {
 
   const LabOverviewTabV2({super.key, required this.controller});
 
+  /// Mirrors the hospital-overview essentials gate: tests are the one
+  /// mandatory surface for a lab profile. A lab counts as "has tests"
+  /// only when the fetched details include at least one entry — the
+  /// required-card + Add Tests CTA fires otherwise.
+  bool _hasTests(LabDetailsData? d) => (d?.tests ?? []).isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     final businessController =
@@ -58,6 +65,8 @@ class LabOverviewTabV2 extends StatelessWidget {
           loc.coordinates![0] != 0.0 &&
           loc.coordinates![1] != 0.0;
 
+      final hasTests = _hasTests(d);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -72,138 +81,249 @@ class LabOverviewTabV2 extends StatelessWidget {
                 businessController: businessController),
           ),
           SizedBox(height: SizeConfig.size12),
-          // LabBannerWidget(controller: controller),
-          // SizedBox(height: SizeConfig.size12),
 
-          // ── Description ──
-          // Padding(
-          //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-          //   child: _DescriptionCard(
-          //     description: profile?.description,
-          //     onEdit: () =>
-          //         Get.to(() => const LabDescriptionScreen())?.then((_) => controller.fetchFullDetails()),
-          //   ),
-          // ),
-
-          // SizedBox(height: SizeConfig.size12),
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: CategorySelector(),
-          ),
-
-          SizedBox(height: SizeConfig.size12),
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: EmptyHealthCampWidget(),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          // ── Gallery ──
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: _GallerySection(
-              galleries: galleries,
-              // Section headers below mirror the `_SectionHeader` +
-              // `_ChipCta` pattern used on the Tests tab so both surfaces
-              // read as one language.
-              onEdit: () => Get.to(() => LabServicePhotosPhotoScreen())
-                  ?.then((_) => controller.fetchFullDetails()),
-            ),
-          ),
-
-          SizedBox(height: SizeConfig.size12),
-
-          // ── Weekly hours ── same shape as SchoolAvailabilityCard; reads
-          // from the shared business availability endpoint.
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: LabAvailabilityCard(businessController: businessController),
-          ),
-
-          SizedBox(height: SizeConfig.size12),
-
-          // ── Testimonials ── carousel of quote cards (design mirrors
-          // assets/img_2.png). Each card carries an Edit pill that opens
-          // the form sheet for that testimonial; the section header's
-          // Edit button opens the full owner-side manager screen.
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: const _TestimonialsSection(),
-          ),
-
-          // SizedBox(height: SizeConfig.size12),
-
-          // ── Contact ── mirrors hotel v2: feed the shared card from the
-          // business controller (its `data` is `BusinessProfileDetails`, which
-          // is what the widget expects) — the lab-model `profile` here is a
-          // different type and would fail to compile.
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: Obx(() {
-              final details =
-                  businessController.businessProfileDetails.value?.data;
-              return BusinessContactMapCard(businessProfileDetails: details);
-            }),
-          ),
-
-          SizedBox(height: SizeConfig.size12),
-
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: WebsiteOverviewCard(
-              websiteUrl: businessController
-                  .businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController
-                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
-            ),
-          ),
-
-          // SizedBox(height: SizeConfig.size12),
-
-          if (hasCoords) SizedBox(height: SizeConfig.size12),
-          if (hasCoords)
+          // ── Tests required-card (mirrors hospital's overview gate) ──
+          // When the lab has no tests the required-card takes over: it
+          // both nudges the user to add tests and — via the gate below —
+          // hides every other section so the overview stays focused on
+          // the one mandatory next step. On return we refetch so the
+          // gate flips as soon as the first test is saved.
+          if (!hasTests)
             Padding(
               padding: EdgeInsets.only(
                   right: SizeConfig.size12, left: SizeConfig.size25),
-              child: BusinessLocationWidget(
-                locationText: loc.name,
-                latitude: double.parse(loc.coordinates![1].toString()),
-                longitude: double.parse(loc.coordinates![0].toString()),
-                businessName: profile?.name ?? '',
-                padding: 0,
-                isTitleShow: true,
+              child: _RequiredSectionCard(
+                heading: 'Tests are required',
+                message:
+                    'Please add at least one test. This section is mandatory to complete your lab profile.',
+                ctaLabel: 'Add Tests',
+                onTap: () => Get.to(
+                        () => LabCategoryScreen(controller: controller))
+                    ?.then((_) => controller.fetchFullDetails()),
               ),
             ),
 
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: const ProfileShareBanner(),
-          ),
-          // SizedBox(height: SizeConfig.size10),
+          // Gate — every remaining section only renders once the lab has
+          // at least one test. Header + required-card above are always
+          // visible so the user always has a path to fill the gap.
+          if (hasTests) ...[
+            // LabBannerWidget(controller: controller),
+            // SizedBox(height: SizeConfig.size12),
 
-          // ── QR Code (mirrors the hospital/food QR card) ──
-          Obx(() {
-            final details =
-                businessController.businessProfileDetails.value?.data;
-            if (details == null) return const SizedBox.shrink();
-            return Padding(
+            // ── Description ──
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            //   child: _DescriptionCard(
+            //     description: profile?.description,
+            //     onEdit: () =>
+            //         Get.to(() => const LabDescriptionScreen())?.then((_) => controller.fetchFullDetails()),
+            //   ),
+            // ),
+
+            // SizedBox(height: SizeConfig.size12),
+            Padding(
               padding: EdgeInsets.only(
                   right: SizeConfig.size12, left: SizeConfig.size25),
-              child: BusinessQrCodeWidget(data: details),
-            );
-          }),
+              child: CategorySelector(),
+            ),
+
+            SizedBox(height: SizeConfig.size12),
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: EmptyHealthCampWidget(),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            // ── Gallery ──
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: _GallerySection(
+                galleries: galleries,
+                // Section headers below mirror the `_SectionHeader` +
+                // `_ChipCta` pattern used on the Tests tab so both surfaces
+                // read as one language.
+                onEdit: () => Get.to(() => LabServicePhotosPhotoScreen())
+                    ?.then((_) => controller.fetchFullDetails()),
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.size12),
+
+            // ── Weekly hours ── same shape as SchoolAvailabilityCard; reads
+            // from the shared business availability endpoint.
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child:
+                  LabAvailabilityCard(businessController: businessController),
+            ),
+
+            SizedBox(height: SizeConfig.size12),
+
+            // ── Testimonials ── carousel of quote cards (design mirrors
+            // assets/img_2.png). Each card carries an Edit pill that opens
+            // the form sheet for that testimonial; the section header's
+            // Edit button opens the full owner-side manager screen.
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: const _TestimonialsSection(),
+            ),
+
+            // SizedBox(height: SizeConfig.size12),
+
+            // ── Contact ── mirrors hotel v2: feed the shared card from the
+            // business controller (its `data` is `BusinessProfileDetails`, which
+            // is what the widget expects) — the lab-model `profile` here is a
+            // different type and would fail to compile.
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: Obx(() {
+                final details =
+                    businessController.businessProfileDetails.value?.data;
+                return BusinessContactMapCard(businessProfileDetails: details);
+              }),
+            ),
+
+            SizedBox(height: SizeConfig.size12),
+
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: WebsiteOverviewCard(
+                websiteUrl: businessController
+                    .businessProfileDetails.value?.data?.websiteUrl,
+                onSave: (url) => businessController
+                    .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              ),
+            ),
+
+            // SizedBox(height: SizeConfig.size12),
+
+            if (hasCoords) SizedBox(height: SizeConfig.size12),
+            if (hasCoords)
+              Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.size12, left: SizeConfig.size25),
+                child: BusinessLocationWidget(
+                  locationText: loc.name,
+                  latitude: double.parse(loc.coordinates![1].toString()),
+                  longitude: double.parse(loc.coordinates![0].toString()),
+                  businessName: profile?.name ?? '',
+                  padding: 0,
+                  isTitleShow: true,
+                ),
+              ),
+
+            Padding(
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
+              child: const ProfileShareBanner(),
+            ),
+            // SizedBox(height: SizeConfig.size10),
+
+            // ── QR Code (mirrors the hospital/food QR card) ──
+            Obx(() {
+              final details =
+                  businessController.businessProfileDetails.value?.data;
+              if (details == null) return const SizedBox.shrink();
+              return Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.size12, left: SizeConfig.size25),
+                child: BusinessQrCodeWidget(data: details),
+              );
+            }),
+          ],
 
           SizedBox(height: kBottomNavigationBarHeight + 10),
         ],
       );
     });
+  }
+}
+
+/// Required-section card used in the lab overview when the mandatory
+/// tests surface is empty. Mirrors the hospital-overview version — white
+/// card with empty-state illustration, centered heading + message, and
+/// a primary "Add Tests" pill that jumps straight to [LabCategoryScreen].
+class _RequiredSectionCard extends StatelessWidget {
+  final String heading;
+  final String message;
+  final String ctaLabel;
+  final VoidCallback onTap;
+
+  const _RequiredSectionCard({
+    required this.heading,
+    required this.message,
+    required this.ctaLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.emptyIcon,
+            height: 60,
+            width: 60,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomText(
+            heading,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size8),
+          CustomText(
+            message,
+            fontSize: 13,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+            maxLines: 5,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16,
+                vertical: SizeConfig.size10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add, color: Colors.white, size: 16),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    ctaLabel,
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
