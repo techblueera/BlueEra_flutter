@@ -91,15 +91,15 @@ class LabOverviewTabV2 extends StatelessWidget {
           if (!hasTests)
             Padding(
               padding: EdgeInsets.only(
-                  right: SizeConfig.size12, left: SizeConfig.size25),
+                  right: SizeConfig.size12, left: SizeConfig.size30),
               child: _RequiredSectionCard(
                 heading: 'Tests are required',
                 message:
                     'Please add at least one test. This section is mandatory to complete your lab profile.',
                 ctaLabel: 'Add Tests',
-                onTap: () => Get.to(
-                        () => LabCategoryScreen(controller: controller))
-                    ?.then((_) => controller.fetchFullDetails()),
+                onTap: () =>
+                    Get.to(() => LabCategoryScreen(controller: controller))
+                        ?.then((_) => controller.fetchFullDetails()),
               ),
             ),
 
