@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
@@ -37,6 +38,7 @@ import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_screen.dart';
@@ -571,6 +573,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // deep-link background host (deferHeavyInit), skip it until the user first
     // navigates a tab — it then runs from _ensureHeavyInit().
     final boot = !widget.deferHeavyInit;
+    // Deposit → account-plan migration offer. Not account-type specific: both
+    // businesses and individuals hold security deposits, so this sits outside
+    // the branch below. The helper asks the backend whether this user is even
+    // a deposit holder and shows nothing otherwise.
+    if (boot) showDepositMigrationIfNeeded(context);
     if (isBusiness()) {
       // Landing tab is already resolved — see _resolveLandingIndex (initState)
       // and _commitLandingTab (this same post-frame callback, just above).
@@ -591,6 +598,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         businessCtrl.viewBusinessProfile().whenComplete(
             () => businessCtrl.isBusinessProfileReady.value = true);
       }
+      // A merchant with an empty catalogue opens straight onto Quick Upload.
+      // Waits for the profile itself and checks every reason not to show, so it
+      // is safe to call unconditionally here; skipped entirely on a deep-link
+      // background host, which is not really an app open.
+      if (boot) _maybeShowAddProductsKickstart();
     } else {
       // Individual own-profile fetch — the personal profile carries
       // securityDeposit (Go-Live gate), joining_bounce, etc. Fetch directly
@@ -620,6 +632,23 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
       }
     }
+  }
+
+  /// App-open Quick Upload page for a catalogue business (grocery / food /
+  /// product) that has published nothing — see
+  /// [showAddProductsKickstartIfNeeded], which owns every gate: account type,
+  /// business type, whether the catalogue is actually empty, and whether
+  /// anything else is already on screen.
+  ///
+  /// Fired from here rather than from the Me screens because business accounts
+  /// land on Discover, so the merchant home may never mount on a launch — and
+  /// an empty shop is exactly the case where they have no reason to open it.
+  ///
+  /// Deliberately NOT awaited: it waits on the profile fetch and a catalogue
+  /// lookup, and nothing else in the boot sequence depends on the result.
+  void _maybeShowAddProductsKickstart() {
+    if (!mounted) return;
+    showAddProductsKickstartIfNeeded(context);
   }
 
   /// Re-runs the landing-tab decision once the personal-profile fetch has

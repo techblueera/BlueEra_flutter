@@ -18,10 +18,13 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_category_menu_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/tabs/food_overview_tab.dart';
 // import 'package:BlueEra/features/me/food/view/admin/tabs/food_post_tab.dart';
 import 'package:BlueEra/features/me/food/view/admin/tabs/food_products_tab.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -82,8 +85,6 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     // default). Switching tabs later will fire other tabs' APIs lazily
     // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
-    // Mirrors grocery: prompt the live-photos upload sheet on first
-    // paint when the business has no live photos yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       // Skip when the user isn't on the Me tab â€” the screen can mount
@@ -94,13 +95,14 @@ class _FoodMainScreenState extends State<FoodMainScreen>
           Get.find<BottomBarController>().currentIndex.value != 0) {
         return;
       }
-      showBusinessLivePhotoBottomSheetIfNeeded(
-        context: context,
-        controller: _businessController,
-      );
-      // The once-a-day "add your dishes" nudge. Defers to the live-photo sheet
-      // above â€” it skips while the business has no photos and takes the next
-      // visit instead, so the two never stack.
+      // The once-a-day "add your dishes" nudge. This tab (Products) is the one
+      // it is about, so it belongs on the landing.
+      //
+      // No livePhotoGate any more: that existed to stop this stacking on top of
+      // the live-photo sheet, which used to pop on this same landing. Live
+      // photos now belong to Overview (see [_maybePromptLivePhotos]), so the
+      // two can no longer collide and deferring this one would only delay it
+      // for a business that has no photos yet.
       showAddProductPromptIfNeeded(
         context: context,
         spec: const AddProductPromptSpec(
@@ -108,10 +110,54 @@ class _FoodMainScreenState extends State<FoodMainScreen>
           ctaKey: AppStrings.addFood,
           icon: Icons.restaurant_menu_rounded,
         ),
-        onAddProduct: () => _tabController.animateTo(0),
-        livePhotoGate: _businessController,
+        onAddProduct: _openAddFood,
       );
     });
+  }
+
+  /// One-shot per mount. The sheet helper only guards on "photos already exist"
+  /// and "a sheet is already open", so without this it would re-pop on every
+  /// swipe back to Overview until a photo is added.
+  bool _livePhotoPromptShown = false;
+
+  /// Live photos are part of the public profile the OVERVIEW tab edits and are
+  /// shown there, so the upload sheet appears when the merchant opens Overview
+  /// — not over the Products tab they land on, which is about stock.
+  void _maybePromptLivePhotos() {
+    if (_livePhotoPromptShown) return;
+    _livePhotoPromptShown = true;
+    // After the frame: the tab body is still building when the dispatcher runs,
+    // and the helper reads ModalRoute to decide whether something is already on
+    // top of this screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showBusinessLivePhotoBottomSheetIfNeeded(
+        context: context,
+        controller: _businessController,
+      );
+    });
+  }
+
+  /// Opens the add-dish flow — the SAME destination as the Products tab's "Add
+  /// Food" masthead, so every "add dishes" affordance on this screen lands on
+  /// one screen instead of dropping the merchant on a tab to find it again.
+  ///
+  /// Snaps to Products first: the gate can fire from Overview, and returning
+  /// from a publish onto the tab that shows the new dish is the point.
+  Future<void> _openAddFood() async {
+    _tabController.animateTo(0);
+    await Get.to(() => const FoodCategoryMenuScreen());
+    if (!mounted) return;
+    // Publishing sets this flag; the tab dispatcher's fetch is freshness-guarded
+    // and would leave the new dish invisible until the TTL lapsed, so force both
+    // rails (a dish published with an offer belongs in Offer Dish immediately).
+    if (_foodController.foodDataNeedsRefresh) {
+      _foodController.foodDataNeedsRefresh = false;
+      final id = businessId;
+      if (id.isEmpty) return;
+      _foodController.fetchHomeData(businessId: id);
+      _foodController.fetchDiscountFoodProducts(businessId: id);
+    }
   }
 
   /// Per-tab API dispatcher. Each tab owns a different data set, so we
@@ -137,6 +183,10 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // sections all read from [ViewBusinessDetailsController], which
         // is registered as a permanent singleton elsewhere on launch.
         // No food-specific API is needed for this tab.
+        //
+        // It IS where the live-photo nudge belongs: the photos are part of the
+        // profile this tab shows and edits.
+        _maybePromptLivePhotos();
         break;
       // Post was case 2; Statistics moved up with it removed.
       case 2:
@@ -346,7 +396,37 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   /// yet it shows the "Set visiting hours" prompt. Hours are set and edited
   /// from the clock button beside the pill. The security-deposit gate lives in
   /// toggleLiveNow().
+  ///
+  /// An EMPTY menu is checked first, ahead of that payment gate — see
+  /// [ensureCatalogueBeforeGoLive]. Only when going live; going offline is
+  /// never blocked.
   Future<void> handleGoLiveTap() async {
+    if (!_businessController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleFood,
+          ctaKey: AppStrings.addFood,
+          icon: Icons.restaurant_menu_rounded,
+        ),
+        ensureLoaded: () async {
+          final id = businessId;
+          if (id.isEmpty) return;
+          await _foodController.fetchHomeAndDiscountIfNeeded(businessId: id);
+        },
+        hasItems: () =>
+            _foodController.foodMenuNestedCategory.isNotEmpty ||
+            _foodController.allFoodItems.isNotEmpty ||
+            _foodController.restaurantSpecials.isNotEmpty,
+        // The home fetch is what fills the menu; until it has completed the
+        // menu being empty means "not loaded", not "no dishes".
+        isLoaded: () =>
+            _foodController.foodHomeDataResponse.value.status ==
+            Status.COMPLETE,
+        onAddItems: _openAddFood,
+      );
+      if (!ok) return;
+    }
     await _businessController.toggleLiveNow();
   }
 

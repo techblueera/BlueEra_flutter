@@ -20,7 +20,9 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_overview_tab.dart';
 // import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_post_tab.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/tabs/grocery_products_tab.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -374,7 +376,33 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   /// yet it shows the "Set visiting hours" prompt, since there is nothing to
   /// switch on until a schedule exists. Hours are set and edited from the clock
   /// button beside the pill. The security-deposit gate lives in toggleLiveNow().
+  ///
+  /// An EMPTY catalogue is checked first, ahead of that payment gate — see
+  /// [ensureCatalogueBeforeGoLive]. Only when going live; going offline is
+  /// never blocked.
   Future<void> handleGoLiveTap() async {
+    if (!_businessController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleGrocery,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.local_grocery_store_outlined,
+        ),
+        ensureLoaded: () => _groceryController.fetchAllGroceryDataIfNeeded(
+          widget.businessId,
+          otherStore: false,
+        ),
+        hasItems: () =>
+            _groceryController.groceryCategoryList.isNotEmpty ||
+            _groceryController.groceryBusinessProductsList.isNotEmpty,
+        isLoaded: () =>
+            _groceryController.fetchMyGroceryCategoryResponse.value.status ==
+            Status.COMPLETE,
+        onAddItems: () => _tabController.animateTo(0),
+      );
+      if (!ok) return;
+    }
     await _businessController.toggleLiveNow();
   }
 

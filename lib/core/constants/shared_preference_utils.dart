@@ -373,10 +373,63 @@ class SharedPreferenceUtils {
   /// removal, plain global-string resets, base URL preserve, FCM token
   /// refresh. Safe to call while screens are still mounted because none of
   /// these touch Rx variables — no Obx rebuilds, no widget re-creations.
+  /// Same two halves as [LogoutHelper.clearAllLocalData], for the preference
+  /// stores: [clearAccountPreferenceData] is what a logout wipes,
+  /// [readSharedPreferenceData] / [restoreSharedPreferenceData] is what it
+  /// keeps because it is the same for every account on the device.
   static Future<void> clearPreferenceDataOnly() async {
+    final shared = await readSharedPreferenceData();
     try {
-      final workManagerBaseUrl =
-          await SharedPreferenceUtils.getBaseUrlSecureValue();
+      await clearAccountPreferenceData();
+      await restoreSharedPreferenceData(shared);
+      await AppNotificationHandler.refreshFcmToken();
+    } on Exception {
+      // Even a failed wipe must leave the app pointed at an API host, or the
+      // login screen it lands on cannot make a request.
+      await restoreSharedPreferenceData(shared);
+    }
+  }
+
+  /// The SHARED half — read BEFORE the wipe.
+  ///
+  /// The API base URL is device configuration, not account data: it is chosen
+  /// by the build/environment and the WorkManager isolate reads it back out of
+  /// secure storage. Wiping it would leave the next sign-in with nowhere to
+  /// send the request.
+  ///
+  /// SharedPreferences itself is deliberately NOT wiped wholesale, which is
+  /// what lets per-account one-time flags (the joining-bonus card's
+  /// `joining_bonus_shown_*`) survive a sign-out — see
+  /// `_BottomNavigationBarScreenState._joiningBonusShownPrefix`. Only the keys
+  /// named in [clearAccountPreferenceData] are removed.
+  static Future<Map<String, String>> readSharedPreferenceData() async {
+    final shared = <String, String>{};
+    try {
+      final url = await SharedPreferenceUtils.getBaseUrlSecureValue();
+      if (url != null && url.isNotEmpty) shared[_sharedBaseUrlKey] = url;
+    } catch (_) {}
+    return shared;
+  }
+
+  /// Writes the shared half back after the wipe. Falls back to the compiled-in
+  /// [baseUrl] when nothing was captured.
+  static Future<void> restoreSharedPreferenceData(
+      Map<String, String> shared) async {
+    final url = shared[_sharedBaseUrlKey];
+    await SharedPreferenceUtils.setBaseUrlSecureValue(
+        (url != null && url.isNotEmpty) ? url : baseUrl);
+  }
+
+  static const String _sharedBaseUrlKey = 'baseUrl';
+
+  /// The ACCOUNT half — everything that identifies, or was fetched for, the
+  /// user signing out: the whole secure store, the profile caches, this
+  /// session's prefs keys, the device-token binding, and the in-memory globals.
+  ///
+  /// Call [clearPreferenceDataOnly] rather than this directly: on its own it
+  /// also drops the base URL, which is the shared half's whole job to keep.
+  static Future<void> clearAccountPreferenceData() async {
+    {
       await _secureStorage.deleteAll();
 
       // Wipe the per-profile Hive caches on every logout path (not just
@@ -454,10 +507,6 @@ class SharedPreferenceUtils {
       hospitalIDGlobal = '';
       otherServiceIDGlobal = '';
       productBusinessProfileIDGlobal = '';
-      await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
-      await AppNotificationHandler.refreshFcmToken();
-    } on Exception {
-      await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
     }
   }
 

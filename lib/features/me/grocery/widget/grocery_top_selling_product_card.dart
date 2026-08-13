@@ -9,7 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/fallback_network_image.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
-import 'package:BlueEra/widgets/reserved_text_lines.dart';
+import 'package:BlueEra/widgets/card_name_slack.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -96,17 +96,24 @@ class GroceryTopSellingProductCard extends StatelessWidget {
         : null;
     final quantity = firstVariant?.quantity ?? '';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    // Measures the name against this card's own width so the line it doesn't
+    // use can be spent at the BOTTOM of the card instead of as a gap under the
+    // title. `SizeConfig.size8 * 2` is the details block's horizontal padding.
+    return CardNameSlack(
+      text: product.product?.name ?? '',
+      fontSize: SizeConfig.small,
+      horizontalPadding: SizeConfig.size8 * 2,
+      builder: (context, nameSlack) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Stack(
@@ -167,20 +174,17 @@ class GroceryTopSellingProductCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Always two lines' worth of space, so a one-line name leaves
-                // blank at the bottom instead of pulling the price up and
-                // making neighbouring cards disagree.
-                ReservedTextLines(
+                // Natural height — one line or two. The card still matches its
+                // neighbours because the unused line is added at the END of the
+                // card (see the SizedBox after the price row).
+                CustomText(
+                  "${product.product?.name ?? ''}",
                   fontSize: SizeConfig.small,
-                  child: CustomText(
-                    "${product.product?.name ?? ''}",
-                    fontSize: SizeConfig.small,
-                    maxLines: 2,
-                    height: 1.3,
-                    color: AppColors.mainTextColor,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  maxLines: 2,
+                  height: 1.3,
+                  color: AppColors.mainTextColor,
+                  overflow: TextOverflow.ellipsis,
+                  fontWeight: FontWeight.w600,
                 ),
                 SizedBox(height: SizeConfig.size6),
                 Row(
@@ -228,10 +232,15 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                   mrp: "${price.mrpRange}",
                   discount: "${price.discountRange}",
                 ),
+                // The name line this card didn't need, spent here so every
+                // card in the rail is the same height with the blank at the
+                // bottom rather than under the title.
+                if (nameSlack > 0) SizedBox(height: nameSlack),
               ],
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

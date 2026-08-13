@@ -58,6 +58,44 @@ mixin SubscriptionServiceApi {
   String accountPlanInvoiceById(String id) =>
       'subscription-service/account-plan/$id/invoice';
 
+  /// Deposit → account-plan MIGRATION. An existing security-deposit holder is
+  /// offered the matching account plan for free; the deposit itself stays
+  /// refundable and is auto-refunded on its original date.
+  /// See docs/backend/DEPOSIT_MIGRATION_FLUTTER_GUIDE.md.
+  ///
+  /// `GET /migration/eligibility` — drives the popup (never show it unless this
+  /// answers `eligible: true`).
+  final String accountPlanMigrationEligibility =
+      'subscription-service/account-plan/migration/eligibility';
+
+  /// `POST /migration/migrate` — `{ tnc_accepted: true }`. Idempotent: a second
+  /// call answers `already: true`, which counts as success.
+  final String accountPlanMigrate =
+      'subscription-service/account-plan/migration/migrate';
+
+  /// UPGRADE WITH CREDIT — for a user who already holds a plan. What they have
+  /// already paid (their current plan, or the deposit they migrated from) is
+  /// credited against the higher tier, so they pay only the difference.
+  ///
+  /// `GET /migration/upgrade-options` — the active plan, the credit, and one
+  /// `price_breakdown` per higher tier. The breakdown is the ONLY source for
+  /// the numbers shown at confirmation; the app never computes a total.
+  final String accountPlanUpgradeOptions =
+      'subscription-service/account-plan/migration/upgrade-options';
+
+  /// `POST /migration/upgrade` — `{ option_code, buyer_state, tnc_accepted? }`.
+  /// Answers either an order for the DIFFERENCE, `upgraded: true` when the
+  /// credit covers it outright, or `requires_tnc: true` when the credit comes
+  /// from a refundable deposit and has to be spent knowingly.
+  final String accountPlanUpgrade =
+      'subscription-service/account-plan/migration/upgrade';
+
+  /// `POST /migration/upgrade/verify` — the upgrade's own verify. Separate from
+  /// [accountPlanVerifyPayment]: that one settles a fresh plan purchase, this
+  /// one settles an order that was priced against a credit.
+  final String accountPlanUpgradeVerify =
+      'subscription-service/account-plan/migration/upgrade/verify';
+
   /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
   /// the platform pays the user a one-time joining bonus once genuine
   /// onboarding is proven. No Razorpay / payment — it's a wallet payout.

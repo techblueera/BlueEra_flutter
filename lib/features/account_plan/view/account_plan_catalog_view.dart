@@ -51,6 +51,24 @@ abstract class AccountPlanPalette {
   /// neighbours on the blue sheet before the badge is even read.
   static const Color popularSurface = Color(0xFFFFFCF5);
 
+  /// The active plan's panel — pine → green, and the ONLY filled card on a
+  /// sheet of white ones.
+  ///
+  /// The sheet's whole visual system is white cards with ink type and one
+  /// saturated pill; a card the user already owns is the one thing here that
+  /// isn't for sale, so it is inverted rather than decorated. That single
+  /// contrast does the work a badge was doing, and it is spent once — every
+  /// other card is left exactly as it was.
+  ///
+  /// Green because green already means "you have this" on these cards (the
+  /// feature ticks, the old Active stamp); the pine end just gives the sweep
+  /// somewhere dark to travel from.
+  static const List<Color> activePanel = [
+    Color(0xFF0B4C3C),
+    Color(0xFF14876B),
+    Color(0xFF23A455),
+  ];
+
   /// Price-pill gradients, one per card position. Assigned by catalog index so
   /// a card keeps its colour across rebuilds, and so five near-identical gig
   /// plans stay tellable apart when scrolling back to compare them.
@@ -113,6 +131,16 @@ class AccountPlanCatalogView extends StatelessWidget {
     }
   }
 
+  /// The catalog with owned plans hoisted to the front, each still carrying the
+  /// index it had in the API's order.
+  List<(int, PlanCard)> _ordered(List<PlanCard> plans) {
+    final entries = plans.indexed.toList();
+    return [
+      ...entries.where((e) => controller.ownsPlan(e.$2)),
+      ...entries.where((e) => !controller.ownsPlan(e.$2)),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -166,17 +194,30 @@ class AccountPlanCatalogView extends StatelessWidget {
               const _CatalogHeader(),
               SizedBox(height: SizeConfig.size14),
             ],
-            for (final (index, plan) in catalog.plans.indexed)
-              _PlanCardTile(
-                card: plan,
-                index: index,
-                hasGstin: controller.hasBuyerGstin,
-                isOwned: controller.ownsPlan(plan),
-                isSelected: controller.isSelected(plan),
-                isBusy: controller.isProcessing.value &&
-                    controller.purchasingCode.value == plan.optionCode,
-                onTap: () => controller.select(plan),
-              ),
+            // Owned plans lead. What the merchant already has is the one thing
+            // on this screen they don't have to decide about, and burying it
+            // mid-catalog made them read every card to find it. The rest keep
+            // the backend's order.
+            //
+            // The ORIGINAL catalog index travels with each plan: it picks the
+            // price pill's colour, and a pill that changed colour because a
+            // plan moved up the list would break the one thing those colours
+            // are for — telling five near-identical plans apart while scrolling
+            // back to compare them.
+            for (final (index, plan) in _ordered(catalog.plans))
+              if (controller.ownsPlan(plan))
+                _ActivePlanCard(card: plan)
+              else
+                _PlanCardTile(
+                  card: plan,
+                  index: index,
+                  hasGstin: controller.hasBuyerGstin,
+                  isOwned: false,
+                  isSelected: controller.isSelected(plan),
+                  isBusy: controller.isProcessing.value &&
+                      controller.purchasingCode.value == plan.optionCode,
+                  onTap: () => controller.select(plan),
+                ),
           ],
         ),
       );
@@ -213,6 +254,24 @@ class _CatalogHeader extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The big headline, split into a number and its unit.
+///
+/// A radius plan's label arrives as "1 km" and the comp sets it as **1KM** with
+/// a lighter "Radius" beside it. Anything that isn't that shape — "All India",
+/// "Passenger + Parcel", "Pro" — is printed as it came, because the catalog
+/// serves 138 account types and only some of them measure anything.
+///
+/// Shared by the buyable card and the active panel so one plan reads the same
+/// way whichever of the two is drawing it.
+({String title, String? unit}) _headlineOf(PlanCard card) {
+  final match =
+      RegExp(r'^\s*(\d+)\s*km\s*$', caseSensitive: false).firstMatch(card.label);
+  if (match != null) {
+    return (title: '${match.group(1)}KM', unit: AppStrings.radiusLabel.tr);
+  }
+  return (title: card.label, unit: null);
 }
 
 /// One plan card: headline + price pill, the promise line, then the DB-driven
@@ -257,20 +316,7 @@ class _PlanCardTile extends StatelessWidget {
   /// tests `isSelected` first, so blue simply wins.
   bool get _showPopular => card.popular && !isOwned;
 
-  /// The big headline, split into a number and its unit.
-  ///
-  /// A radius plan's label arrives as "1 km" and the comp sets it as **1KM**
-  /// with a lighter "Radius" beside it. Anything that isn't that shape — "All
-  /// India", "Passenger + Parcel", "Pro" — is printed as it came, because the
-  /// catalog serves 138 account types and only some of them measure anything.
-  ({String title, String? unit}) get _headline {
-    final match = RegExp(r'^\s*(\d+)\s*km\s*$', caseSensitive: false)
-        .firstMatch(card.label);
-    if (match != null) {
-      return (title: '${match.group(1)}KM', unit: AppStrings.radiusLabel.tr);
-    }
-    return (title: card.label, unit: null);
-  }
+  ({String title, String? unit}) get _headline => _headlineOf(card);
 
   /// The bold promise under the title.
   ///
@@ -786,7 +832,343 @@ class _GstRequiredRow extends StatelessWidget {
   }
 }
 
+/// THE ACTIVE PLAN — the plan the user already holds, drawn as a filled
+/// gradient panel at the top of the catalog.
+///
+/// ## Why it looks nothing like its neighbours
+///
+/// It used to be an ordinary white card wearing a small green stamp, sitting
+/// wherever the backend happened to order it. That asked the merchant to read
+/// every card to find out what they already had. This card is the one thing on
+/// the sheet that is NOT for sale, so it stops pretending to be a choice: it is
+/// the only filled surface among white ones, and it leads the list. Nothing
+/// else on the screen changed — the contrast is the whole point and it is spent
+/// once.
+///
+/// ## The motion
+///
+/// A light sweep crosses the panel about every four seconds, and the dot beside
+/// "Active" breathes with it. Both say the same thing — this plan is running
+/// right now — and the pulse is the vocabulary the app already uses for live
+/// state on the rider bar. One orchestrated moment, no hover tricks, nothing
+/// that competes with the pay bar below.
+///
+/// Motion is dropped entirely when the platform asks for reduced motion; the
+/// panel then stands on its gradient alone, which was designed to work still.
+class _ActivePlanCard extends StatefulWidget {
+  const _ActivePlanCard({required this.card});
+
+  final PlanCard card;
+
+  @override
+  State<_ActivePlanCard> createState() => _ActivePlanCardState();
+}
+
+class _ActivePlanCardState extends State<_ActivePlanCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  );
+
+  /// Whether the ticker is currently allowed to run. Read from MediaQuery, so
+  /// it is re-evaluated when the platform setting changes mid-session.
+  bool _animating = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final allowed = !MediaQuery.disableAnimationsOf(context);
+    if (allowed == _animating) return;
+    _animating = allowed;
+    if (allowed) {
+      _controller.repeat();
+    } else {
+      _controller
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final card = widget.card;
+    final headline = _headlineOf(card);
+    final promise = card.sublabel?.isNotEmpty == true
+        ? card.sublabel!
+        : (card.features.isNotEmpty ? card.features.first : null);
+    final bullets = (card.sublabel == null || card.sublabel!.isEmpty)
+        ? card.features.skip(1).toList()
+        : card.features;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size14),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(SizeConfig.size18),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: AccountPlanPalette.activePanel,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AccountPlanPalette.activePanel.last
+                  .withValues(alpha: 0.32),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            // The sweep rides behind the content, so type never dims.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => CustomPaint(
+                    painter: _SweepPainter(progress: _controller.value),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _ActiveEyebrow(pulse: _controller),
+                  SizedBox(height: SizeConfig.size12),
+                  // The plan itself, set as large as the buyable cards set
+                  // their price — on this card the plan IS the headline,
+                  // because there is no longer a price to lead with.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Flexible(
+                        child: CustomText(
+                          headline.title,
+                          fontSize: SizeConfig.size30,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.05,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (headline.unit != null) ...[
+                        SizedBox(width: SizeConfig.size8),
+                        CustomText(
+                          headline.unit!,
+                          fontSize: SizeConfig.size14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.78),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (promise != null) ...[
+                    SizedBox(height: SizeConfig.size6),
+                    CustomText(
+                      promise,
+                      fontSize: SizeConfig.size13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      height: 1.35,
+                      maxLines: 3,
+                    ),
+                  ],
+                  if (bullets.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size14),
+                    Container(
+                      height: 1,
+                      color: Colors.white.withValues(alpha: 0.18),
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                    for (final feature in bullets)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: SizeConfig.size8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(top: SizeConfig.size2),
+                              child: Icon(
+                                Icons.check_rounded,
+                                size: SizeConfig.size16,
+                                color: Colors.white.withValues(alpha: 0.92),
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            Expanded(
+                              child: CustomText(
+                                feature,
+                                fontSize: SizeConfig.size13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.90),
+                                height: 1.35,
+                                maxLines: 3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  // Validity, when the plan carries one. No price line: a
+                  // migrated plan was activated free, and stamping an amount
+                  // on a card the user may never have paid would be a claim
+                  // this screen cannot make.
+                  if (card.validityDays != null) ...[
+                    SizedBox(height: SizeConfig.size4),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size10,
+                        vertical: SizeConfig.size4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(SizeConfig.size20),
+                      ),
+                      child: CustomText(
+                        AppStrings.planValidDaysFmt
+                            .trParams({'days': '${card.validityDays}'}),
+                        fontSize: SizeConfig.size11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Your plan · Active", with the breathing dot.
+class _ActiveEyebrow extends StatelessWidget {
+  const _ActiveEyebrow({required this.pulse});
+
+  final Animation<double> pulse;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        AnimatedBuilder(
+          animation: pulse,
+          builder: (context, _) {
+            // Two beats per sweep, so the dot and the light agree.
+            final t = (1 - ((pulse.value * 2) % 1 - 0.5).abs() * 2);
+            final glow = 0.35 + t * 0.55;
+            return Container(
+              width: SizeConfig.size8,
+              height: SizeConfig.size8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: glow),
+                    blurRadius: 6 + t * 4,
+                    spreadRadius: t * 1.5,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(width: SizeConfig.size8),
+        CustomText(
+          AppStrings.yourPlanLabel.tr,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w700,
+          color: Colors.white.withValues(alpha: 0.82),
+          letterSpacing: 0.6,
+        ),
+        SizedBox(width: SizeConfig.size8),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: SizeConfig.size2,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(SizeConfig.size20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+          ),
+          child: CustomText(
+            AppStrings.planActive.tr,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The light that crosses the panel: a wide, soft diagonal band, drawn once per
+/// frame at [progress] through its travel.
+///
+/// A gradient band rather than an opacity flash — a flashing card reads as an
+/// alert, and this plan is not asking for anything. It runs off both edges so
+/// there is no visible start or end to the pass.
+class _SweepPainter extends CustomPainter {
+  const _SweepPainter({required this.progress});
+
+  /// 0 → 1 across one full pass.
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Travels from off the left edge to off the right, over 1.6 widths, so the
+    // band is fully gone before it reappears.
+    final dx = (progress * 2.6 - 0.8) * size.width;
+    final rect = Rect.fromLTWH(dx, -size.height, size.width * 0.55,
+        size.height * 3);
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          Color(0x00FFFFFF),
+          Color(0x24FFFFFF),
+          Color(0x00FFFFFF),
+        ],
+        stops: [0.0, 0.5, 1.0],
+      ).createShader(rect);
+    canvas.save();
+    // Tilted so the light reads as falling across the card rather than wiping
+    // it, which is what separates a sheen from a loading shimmer.
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(-0.32);
+    canvas.translate(-size.width / 2, -size.height / 2);
+    canvas.drawRect(rect, paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_SweepPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
 /// Green "Active" stamp for a plan the user already holds.
+// ignore: unused_element
 class _ActiveBadge extends StatelessWidget {
   const _ActiveBadge();
 

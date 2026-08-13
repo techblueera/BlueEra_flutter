@@ -21,7 +21,9 @@ import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_invento
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
 // import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_post_tab.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_products_tab.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -362,7 +364,30 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   /// yet it shows the "Set visiting hours" prompt. Hours are set and edited
   /// from the clock button beside the pill. The security-deposit gate lives in
   /// toggleLiveNow().
+  ///
+  /// An EMPTY catalogue is checked first, ahead of that payment gate — see
+  /// [ensureCatalogueBeforeGoLive]. Only when going live; going offline is
+  /// never blocked.
   Future<void> handleGoLiveTap() async {
+    if (!viewBusinessDetailsController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleManufacturer,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.precision_manufacturing_outlined,
+        ),
+        ensureLoaded: () => inventoryController.fetchAllProductDataIfNeeded(),
+        hasItems: () =>
+            inventoryController.allProducts.isNotEmpty ||
+            inventoryController.productNestedCategoryList.isNotEmpty,
+        isLoaded: () =>
+            inventoryController.fetchProductCategoryResponse.value.status ==
+            Status.COMPLETE,
+        onAddItems: _onAddProduct,
+      );
+      if (!ok) return;
+    }
     await viewBusinessDetailsController.toggleLiveNow();
   }
 

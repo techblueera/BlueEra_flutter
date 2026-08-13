@@ -975,16 +975,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     }
   }
 
-  /// Plan / security-deposit gate. Returns true when the merchant may open the
-  /// shop; otherwise shows the reason and routes to the plan flow, returning
-  /// false. Fail-open — blocks only when the backend reports required && !paid
-  /// and no plan is held.
-  ///
-  /// There are no waivers left: the free intro quota that used to let a
-  /// business go live for its first N orders / enquiries has been removed from
-  /// the client. This is the ONLY gate the ~15 business home screens go through
-  /// (they all delegate to [toggleLiveNow] / [openAvailabilityControl]), so
-  /// that removal lands everywhere at once.
+
   bool ensureCanGoLive() {
     if (isGoLiveAllowed) return true;
     commonSnackBar(
@@ -1044,20 +1035,49 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   ///     nothing to switch on until a schedule exists), else
   ///   • flip today's override — open now, or closed for the rest of today.
   ///
-  /// Deposit-gated up front; [gate] overrides the check for callers whose
-  /// deposit lives elsewhere (see [openAvailabilityControl]).
+  /// The order of the checks is deliberate — cheapest and most fixable first:
+  ///
+  ///   1. (on the catalogue screens) anything to sell — see
+  ///      `ensureCatalogueBeforeGoLive`, which runs before this is called;
+  ///   2. visiting HOURS — no schedule yet opens the weekly editor;
+  ///   3. PAYMENT — the plan / security-deposit gate;
+  ///   4. flip today's open/closed state.
+  ///
+  /// Hours come BEFORE payment because setting them is free, is the merchant's
+  /// own work, and is required either way: sending someone to a payment screen
+  /// first, taking their money and only then telling them the shop has no
+  /// opening hours is the wrong way round.
+  ///
+  /// Saving hours does NOT go live. It is a separate step and it ends here —
+  /// the merchant taps the pill again when they actually want to open, and from
+  /// then on the clock button beside the pill ([openScheduleControl]) is where
+  /// hours are edited. Rolling the two together would put a shop online the
+  /// moment its opening times were written down, which is not what typing them
+  /// in means.
+  ///
+  /// [gate] overrides the deposit check for callers whose deposit lives
+  /// elsewhere (see [openAvailabilityControl]).
   Future<void> toggleLiveNow({bool Function()? gate}) async {
-    if (!(gate != null ? gate() : ensureCanGoLive())) return;
     if (isAvailabilityUpdating.value) return;
 
-    // Hydrate before deciding — an un-loaded schedule looks identical to an
-    // empty one, and would send an established merchant to the hours editor.
+    // 2. Hydrate before deciding — an un-loaded schedule looks identical to an
+    //    empty one, and would send an established merchant to the hours editor.
     if (!hasSchedule) await loadHours();
     if (!hasSchedule) {
-      await showShopAvailabilitySheet(this);
+      await openWeeklyEditor();
+      // Say why the shop did not just open: the pill was tapped, a screen
+      // appeared, hours were saved, and nothing went live. Without this the
+      // silence reads as a failure.
+      if (hasSchedule) {
+        commonSnackBar(message: AppStrings.goLiveHoursSavedHint.tr);
+      }
       return;
     }
 
+    // 3. Payment — only now, with something to sell and hours to sell it in.
+    if (!(gate != null ? gate() : ensureCanGoLive())) return;
+
+    // 4. Flip today.
     if (shopStatus.value.isOpenNow) {
       await setClosedToday();
     } else {

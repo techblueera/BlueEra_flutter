@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_listings_tab_v3
 import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_overview_tab_v3.dart';
 // import 'package:BlueEra/features/me/vehicle/v3/view/tabs/vehicle_post_tab_v3.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -362,7 +364,30 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
   /// the "Set visiting hours" prompt. Hours are set and edited from the clock
   /// button beside the pill. The security-deposit gate is enforced inside
   /// toggleLiveNow().
+  ///
+  /// An EMPTY showroom is checked first, ahead of that payment gate — see
+  /// [ensureCatalogueBeforeGoLive]. Only when going live; going offline is
+  /// never blocked.
   Future<void> _handleGoLiveTap() async {
+    if (!_businessController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleVehicle,
+          ctaKey: AppStrings.addVehicleLabel,
+          icon: Icons.directions_car_filled_outlined,
+        ),
+        ensureLoaded: () =>
+            _vehicleController.loadDashboardIfNeeded(widget.businessId),
+        hasItems: () =>
+            _vehicleController.myListings.isNotEmpty ||
+            _vehicleController.myStockedCategories.isNotEmpty,
+        isLoaded: () =>
+            _vehicleController.listingsStatus.value == Status.COMPLETE,
+        onAddItems: () => _tabController.animateTo(0),
+      );
+      if (!ok) return;
+    }
     await _businessController.toggleLiveNow();
   }
 }

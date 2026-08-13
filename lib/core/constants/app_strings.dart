@@ -6544,6 +6544,34 @@ class AppStrings {
   static const String planAlreadyActive = "planAlreadyActive";
   static const String planActive = "planActive";
   static const String planActivated = "planActivated";
+
+  /// ACTIVE PLAN panel at the top of the contribution catalog — the eyebrow
+  /// that names whose plan this is, and the validity chip.
+  static const String yourPlanLabel = "yourPlanLabel";
+  static const String planValidDaysFmt = "planValidDaysFmt";
+
+  /// UPGRADE CONFIRMATION — the centred dialog shown before an upgrade's
+  /// payment sheet opens. Every amount is the server's; these are only the
+  /// labels around it. See DEPOSIT_MIGRATION_FLUTTER_GUIDE.md §5b.
+  static const String upgradeConfirmTitle = "upgradeConfirmTitle";
+  static const String upgradeConfirmSubtitleFmt = "upgradeConfirmSubtitleFmt";
+  static const String upgradePlanPriceLabel = "upgradePlanPriceLabel";
+  static const String upgradeCreditPlanLabel = "upgradeCreditPlanLabel";
+  static const String upgradeCreditDepositLabel = "upgradeCreditDepositLabel";
+  static const String upgradeGstLabelFmt = "upgradeGstLabelFmt";
+  static const String upgradePayNowLabel = "upgradePayNowLabel";
+  static const String upgradeChargeNote = "upgradeChargeNote";
+  static const String upgradePayFmt = "upgradePayFmt";
+
+  /// The deposit-credit terms — shown only when upgrading spends the
+  /// refundable security deposit.
+  static const String upgradeTncTitle = "upgradeTncTitle";
+  static const String upgradeTncDepositSpentFmt =
+      "upgradeTncDepositSpentFmt";
+  static const String upgradeTncNoRefund = "upgradeTncNoRefund";
+  static const String upgradeTncPaidDifferenceFmt =
+      "upgradeTncPaidDifferenceFmt";
+  static const String upgradeTncAccept = "upgradeTncAccept";
   static const String paymentVerifyPending = "paymentVerifyPending";
   static const String couldNotStartPayment = "couldNotStartPayment";
   static const String inclGstPrefix = "inclGstPrefix";
@@ -6810,6 +6838,53 @@ class AppStrings {
   static const String addPromptTitleVehicle = "addPromptTitleVehicle";
   static const String addPromptSubtitle = "addPromptSubtitle";
   static const String addPromptNotNow = "addPromptNotNow";
+
+  /// DEPOSIT → ACCOUNT-PLAN MIGRATION — the app-open offer sheet and its T&C
+  /// sheet. Every line that names money is a format string: the amount, the
+  /// plan and the refund date all come from the eligibility response, never
+  /// from the app. See docs/backend/DEPOSIT_MIGRATION_FLUTTER_GUIDE.md.
+  static const String depositMigrationTitle = "depositMigrationTitle";
+  static const String depositMigrationOfferFmt = "depositMigrationOfferFmt";
+  static const String depositMigrationBenefitFree =
+      "depositMigrationBenefitFree";
+  static const String depositMigrationBenefitRefundFmt =
+      "depositMigrationBenefitRefundFmt";
+  static const String depositMigrationBenefitRefundNoDateFmt =
+      "depositMigrationBenefitRefundNoDateFmt";
+  static const String depositMigrationCta = "depositMigrationCta";
+  static const String depositMigrationTncTitle = "depositMigrationTncTitle";
+  static const String depositMigrationTncPlanFmt =
+      "depositMigrationTncPlanFmt";
+  static const String depositMigrationTncRefundFmt =
+      "depositMigrationTncRefundFmt";
+  static const String depositMigrationTncRefundNoDateFmt =
+      "depositMigrationTncRefundNoDateFmt";
+  static const String depositMigrationTncLifetime =
+      "depositMigrationTncLifetime";
+  static const String depositMigrationTncNoCharge =
+      "depositMigrationTncNoCharge";
+  static const String depositMigrationTncAccept = "depositMigrationTncAccept";
+  static const String depositMigrationAccept = "depositMigrationAccept";
+  static const String depositMigrationTncVersion =
+      "depositMigrationTncVersion";
+  static const String depositMigrationSuccess = "depositMigrationSuccess";
+
+  /// GO-LIVE — confirmation after the pill's first tap saved visiting hours.
+  /// Setting hours is its own step and does not open the shop; this says so.
+  static const String goLiveHoursSavedHint = "goLiveHoursSavedHint";
+
+  /// ADD-PRODUCTS KICKSTART — the banner on the app-open Quick Upload page a
+  /// merchant with an empty catalogue lands on. Shared across grocery / food /
+  /// product: the rails below it already name what the shop sells.
+  static const String kickstartTitle = "kickstartTitle";
+  static const String kickstartSubtitle = "kickstartSubtitle";
+
+  /// GO-LIVE EMPTY-CATALOGUE gate — body copy on the sheet that blocks the
+  /// Go-Live pill while the merchant has published nothing. The headline and
+  /// the CTA are the field-specific `addPromptTitle*` / add strings above, so
+  /// this is the only line the gate adds.
+  static const String goLiveEmptyCatalogueSubtitle =
+      "goLiveEmptyCatalogueSubtitle";
 
   /// BOTTOM NAVIGATION screen — guest-to-profile prompt dialog, the
   /// Me-tab unknown-profile/business fallbacks, and the rider "I'm

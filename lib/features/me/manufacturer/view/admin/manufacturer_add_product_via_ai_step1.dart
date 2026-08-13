@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -17,8 +18,21 @@ import 'package:get/get.dart';
 class ManufacturerAddProductViaAiStep1 extends StatefulWidget {
   final String id;
   final ProviderType providerType;
+
+  /// True when this screen was opened by the app-open kickstart rather than by
+  /// the merchant tapping "Add Product" — see [showAddProductsKickstartIfNeeded].
+  /// It swaps the back arrow for a ✕ (nothing was navigated away from, so there
+  /// is nothing to go back to) and explains, above the form, why it appeared.
+  ///
+  /// Manufacturing has no Quick Upload rails — its add flow IS this form — so
+  /// this is the screen the kickstart opens for it.
+  final bool isKickstart;
+
   ManufacturerAddProductViaAiStep1(
-      {super.key, required this.id, required this.providerType});
+      {super.key,
+      required this.id,
+      required this.providerType,
+      this.isKickstart = false});
 
   @override
   State<ManufacturerAddProductViaAiStep1> createState() =>
@@ -53,6 +67,8 @@ class _ManufacturerAddProductViaAiStep1State
       backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: AppStrings.addProductViaAI,
+        isLeading: !widget.isKickstart,
+        leadingWidget: widget.isKickstart ? const KickstartCloseButton() : null,
       ),
       body: Form(
         key: controller.formKey,
@@ -69,6 +85,11 @@ class _ManufacturerAddProductViaAiStep1State
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Why this page opened, when it opened itself.
+                  if (widget.isKickstart) ...[
+                    const KickstartIntroBanner(),
+                    SizedBox(height: SizeConfig.size4),
+                  ],
                   _buildHeader(),
                   SizedBox(height: SizeConfig.size16),
                   _buildMainCard(),

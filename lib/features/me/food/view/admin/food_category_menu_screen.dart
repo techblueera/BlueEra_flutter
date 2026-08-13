@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/food/controller/food_service_controller.dart
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_select_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
@@ -32,7 +33,13 @@ import 'package:get/get.dart';
 /// selected variants accumulate in the controller and the floating cart routes
 /// to Review & Publish.
 class FoodCategoryMenuScreen extends StatefulWidget {
-  const FoodCategoryMenuScreen({super.key});
+  /// True when this screen was opened by the app-open kickstart rather than by
+  /// the merchant tapping "Add Food" — see [showAddProductsKickstartIfNeeded].
+  /// It swaps the back arrow for a ✕ (nothing was navigated away from, so there
+  /// is nothing to go back to) and explains, above the rails, why it appeared.
+  final bool isKickstart;
+
+  const FoodCategoryMenuScreen({super.key, this.isKickstart = false});
 
   @override
   State<FoodCategoryMenuScreen> createState() => _FoodCategoryMenuScreenState();
@@ -56,6 +63,8 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: '${AppStrings.add.tr} ${AppStrings.foodFoodItemsLabel.tr}',
+        isLeading: !widget.isKickstart,
+        leadingWidget: widget.isKickstart ? const KickstartCloseButton() : null,
         // "Create Manually" now lives as a top-right action instead of a
         // full-width button in the footer.
         buildCustomActionWidget: () => Padding(
@@ -106,6 +115,9 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
       final sections = foodServiceController.foodRootCategoryList;
       return CustomScrollView(
         slivers: [
+          // Why this page opened, when it opened itself.
+          if (widget.isKickstart)
+            const SliverToBoxAdapter(child: KickstartIntroBanner()),
           // Snap-search bulk card.
           SliverToBoxAdapter(
             child: Padding(

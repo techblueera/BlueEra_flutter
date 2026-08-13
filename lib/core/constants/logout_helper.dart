@@ -106,9 +106,55 @@ class LogoutHelper {
     deleteIfRegistered<ViewBusinessDetailsController>();
   }
 
-  /// Wipes Hive (all boxes), per-feature caches, and the app docs dir.
+  /// Logout's local-storage step, in two halves.
+  ///
+  /// Everything the app keeps on disk is one of two things, and which one it is
+  /// is a property of the DATA, not of the call site that happens to write it:
+  ///
+  /// * **[clearAccountLocalData]** — belongs to the account signing out
+  ///   (profiles, chats, feeds, orders, its own store's catalog). Wiped.
+  /// * **[readSharedLocalData] / [restoreSharedLocalData]** — identical for
+  ///   every account, because it is the platform's own reference data. Kept.
+  ///
+  /// This orchestrates the pair: lift the shared half out, wipe, put it back.
+  /// The wipe itself stays wholesale — `Hive.deleteFromDisk()` also catches
+  /// boxes that no registry knows about, and narrowing it to an allow-list is
+  /// how a future feature's box quietly starts leaking between accounts.
+  ///
   /// Public so the API 401 handler can reuse it. Non-reactive.
   static Future<void> clearAllLocalData() async {
+    final shared = readSharedLocalData();
+    await clearAccountLocalData();
+    await restoreSharedLocalData(shared);
+  }
+
+  /// The SHARED half — read it BEFORE the wipe, while the boxes are open.
+  ///
+  /// Today this is the onboarding catalog: the business categories and the
+  /// profession types. They are the same list for every user in the country,
+  /// and they are also the two lists the account-type screen cannot draw
+  /// without — so dropping them costs the next user two API calls and a
+  /// shimmer, and costs anyone who signs out without a connection the ability
+  /// to sign in at all.
+  ///
+  /// Add to this only data that is genuinely account-agnostic. Anything keyed
+  /// to a user, a business, or a device's session belongs in the other half.
+  static Map<String, dynamic> readSharedLocalData() =>
+      HiveServices.readSharedCatalogSnapshot();
+
+  /// Writes the shared half back once the boxes have been reopened.
+  static Future<void> restoreSharedLocalData(
+          Map<String, dynamic> snapshot) async =>
+      HiveServices.restoreSharedCatalogSnapshot(snapshot);
+
+  /// The ACCOUNT half — wipes Hive, the per-feature caches, the chat history
+  /// and the app docs dir, then reopens the boxes the app needs to keep
+  /// running in this same process.
+  ///
+  /// Call [clearAllLocalData] rather than this directly: on its own this also
+  /// takes the shared half with it, which is exactly what the pairing exists
+  /// to prevent.
+  static Future<void> clearAccountLocalData() async {
     try {
       await BusinessProfileCache.clear();
       await PersonalProfileCache.clear();

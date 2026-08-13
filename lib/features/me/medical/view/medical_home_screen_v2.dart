@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -28,6 +29,7 @@ import 'package:BlueEra/features/me/medical/view/tabs/medical_overview_tab.dart'
 import 'package:BlueEra/features/me/medical/view/tabs/medical_products_tab.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -574,7 +576,35 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   /// it flips today's open/closed state straight from the pill; with no hours
   /// yet it shows the "Set visiting hours" prompt. Hours are set and edited
   /// from the clock button beside the pill.
+  ///
+  /// An EMPTY catalogue is checked first, ahead of the payment gate inside
+  /// toggleLiveNow() — see [ensureCatalogueBeforeGoLive]. Only when going live;
+  /// going offline is never blocked.
   Future<void> handleGoLiveTap() async {
+    if (!_businessController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleMedical,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.medication_outlined,
+        ),
+        // Same store id [_ensureProductsLoaded] uses — the business document's
+        // `_id`, not the owner's user id (which returns an empty list).
+        ensureLoaded: () =>
+            _medicalController.fetchMedicalProductsTabDataIfNeeded(
+          businessId: businessId,
+        ),
+        hasItems: () =>
+            _medicalController.myMedicalCategoryList.isNotEmpty ||
+            _medicalController.medicalBusinessProductsList.isNotEmpty,
+        isLoaded: () =>
+            _medicalController.fetchMyMedicalCategoryResponse.value.status ==
+            Status.COMPLETE,
+        onAddItems: () => _tabController.animateTo(0),
+      );
+      if (!ok) return;
+    }
     await _businessController.toggleLiveNow();
   }
 

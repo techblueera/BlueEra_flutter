@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_by_root_category_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/create_own_product_via_ai_widget.dart';
@@ -31,10 +32,17 @@ class ProductSuperCategoryScreen extends StatefulWidget {
   final String? ownerID;
   final ProviderType? providerType;
 
+  /// True when this screen was opened by the app-open kickstart rather than by
+  /// the merchant tapping "Add Product" — see [showAddProductsKickstartIfNeeded].
+  /// It swaps the back arrow for a ✕ (nothing was navigated away from, so there
+  /// is nothing to go back to) and explains, above the rails, why it appeared.
+  final bool isKickstart;
+
   const ProductSuperCategoryScreen({
     super.key,
     this.ownerID,
     this.providerType,
+    this.isKickstart = false,
   });
 
   @override
@@ -72,6 +80,8 @@ class _ProductSuperCategoryScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
+        isLeading: !widget.isKickstart,
+        leadingWidget: widget.isKickstart ? const KickstartCloseButton() : null,
         buildCustomActionWidget: () => CreateOwnProductViaAiWidget(
           providerType: ProviderType.business,
         ),
@@ -107,6 +117,9 @@ class _ProductSuperCategoryScreenState
       final sections = controller.productRootCategoryList;
       return CustomScrollView(
         slivers: [
+          // Why this page opened, when it opened itself.
+          if (widget.isKickstart)
+            const SliverToBoxAdapter(child: KickstartIntroBanner()),
           // ── Snap-search suggestion ─────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
