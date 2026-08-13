@@ -61,7 +61,15 @@ class FinanceDiscoverController extends GetxController {
   }
 
   Future<void> fetchMore() async {
-    if (!hasMore.value || isLoadingMore.value) return;
+    // Guard against `isLoading` too: the previous version only checked
+    // `isLoadingMore`, so an on-layout ScrollNotification (or fast scroll
+    // right after the initial fetch resolved) could sneak a page-2 request
+    // in parallel with the still-running page-1 request. That resulted in
+    // two overlapping fetches whose responses were merged into `profiles`,
+    // and if the backend returned the same businesses with fresh `_id`s
+    // the dedup below couldn't catch them — each card would then appear
+    // twice on screen. Blocking on either loader is enough to serialize.
+    if (!hasMore.value || isLoadingMore.value || isLoading.value) return;
     _page += 1;
     await _fetch(_page, isLoadMore: true);
   }
@@ -91,10 +99,31 @@ class FinanceDiscoverController extends GetxController {
         if (items.isEmpty) {
           hasMore.value = false;
         } else {
-          final existingIds = profiles.map((p) => p.id).toSet();
-          final newItems = items
-              .where((i) => i.id == null || !existingIds.contains(i.id))
-              .toList();
+          // Dedup by ANY stable key — id, userId, or businessId. The
+          // previous version only used `id`, and worse, treated a
+          // null-id item as automatically new (`i.id == null` always
+          // passed the filter). Backends that echo the same businesses
+          // on later pages with fresh `_id`s or with `_id` missing were
+          // therefore double-added — one row per response — and each
+          // card rendered twice. Non-empty owner/business ids give us a
+          // safety net when `id` disagrees or drops.
+          final existingIds =
+              profiles.map((p) => p.id).whereType<String>().toSet();
+          final existingUserIds =
+              profiles.map((p) => p.userId).whereType<String>().toSet();
+          final existingBusinessIds =
+              profiles.map((p) => p.businessId).whereType<String>().toSet();
+          final newItems = items.where((i) {
+            final id = i.id?.trim() ?? '';
+            final uid = i.userId?.trim() ?? '';
+            final bid = i.businessId?.trim() ?? '';
+            if (id.isNotEmpty && existingIds.contains(id)) return false;
+            if (uid.isNotEmpty && existingUserIds.contains(uid)) return false;
+            if (bid.isNotEmpty && existingBusinessIds.contains(bid)) {
+              return false;
+            }
+            return true;
+          }).toList();
           if (newItems.isEmpty) {
             hasMore.value = false;
           } else {
