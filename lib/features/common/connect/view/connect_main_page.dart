@@ -489,7 +489,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   /// Action row for the Inquiry (business) tab — basket + rider shortcuts and
-  /// the flag affordance that previously lived in `OrderMainChatScreen`'s
+  /// the flag affordance that previously lived in `SocialMainScreen`'s
   /// header. Shown only on the Inquiry tab.
   Widget _buildInquiryTabActions() {
     return Padding(
@@ -899,7 +899,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   /// Multi-select AppBar shown when the user long-presses a chat row in the
-  /// Chat tab — mirrors the one in `OrderMainChatScreen` so the gesture feels
+  /// Chat tab — mirrors the one in `SocialMainScreen` so the gesture feels
   /// identical across the chat surfaces. Personal-tab only, so pin/archive
   /// always pass `isBusiness: false`.
   Widget _buildSelectionSliverAppBar() {
@@ -956,7 +956,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           chatViewController.exitChatListSelectionMode();
         }),
         _selectionActionIcon(Icons.volume_off_outlined, () {
-          // Mute action — placeholder, matches OrderMainChatScreen.
+          // Mute action — placeholder, matches SocialMainScreen.
         }),
         _selectionActionIcon(Icons.archive_outlined, () {
           final ids = chatViewController.selectedConversationIds.toList();
@@ -1102,7 +1102,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     _emitChatListForTab(index);
   }
 
-  /// Slide-in profile drawer (lifted from OrderMainChatScreen). Opened by
+  /// Slide-in profile drawer (lifted from SocialMainScreen). Opened by
   /// tapping the symbol avatar in the AppBar leading slot.
   void _openProfileDrawer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -1535,7 +1535,7 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 /// Bottom sheet to apply a flag to multiple selected conversations.
-/// Mirrors the same widget in `OrderMainChatScreen` — kept local so the two
+/// Mirrors the same widget in `SocialMainScreen` — kept local so the two
 /// screens stay independent.
 class _MultiFlagBottomSheet extends StatefulWidget {
   final List<String> conversationIds;

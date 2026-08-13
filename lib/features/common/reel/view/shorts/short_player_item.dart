@@ -1135,13 +1135,22 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
   void _onLikeDislikePressed() async {
     final videoId = widget.videoItem.video?.id ?? '0';
+    // A reel ingested from a post keeps its engagement on the post — route the
+    // write there, or it lands in a counter nothing reads back (guide §4).
+    final originPostId = widget.videoItem.engagementPostId;
     if (fullScreenShortController.isLiked.isTrue) {
-      await fullScreenShortController.shortVideoUnLike(videoId: videoId);
+      await fullScreenShortController.shortVideoUnLike(
+        videoId: videoId,
+        originPostId: originPostId,
+      );
       widget.videoItem.interactions?.isLiked = false;
       widget.videoItem.video?.stats?.likes =
           (widget.videoItem.video?.stats?.likes ?? 1) - 1;
     } else {
-      await fullScreenShortController.shortVideoLike(videoId: videoId);
+      await fullScreenShortController.shortVideoLike(
+        videoId: videoId,
+        originPostId: originPostId,
+      );
       widget.videoItem.interactions?.isLiked = true;
       widget.videoItem.video?.stats?.likes =
           (widget.videoItem.video?.stats?.likes ?? 0) + 1;
@@ -1163,15 +1172,23 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   void _onCommentPressed() {
+    // An ingested reel's comments live on the post, so the sheet must read and
+    // write through the post endpoints — that is what makes a comment left in
+    // Bites show up on the post in My Post, and vice versa (guide §4.4).
+    final originPostId = widget.videoItem.engagementPostId;
+    final isFromPost = originPostId?.isNotEmpty ?? false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CommentBottomSheet(
-        id: fullScreenShortController.videoItem?.video?.id ?? '0',
+        id: isFromPost
+            ? originPostId!
+            : (fullScreenShortController.videoItem?.video?.id ?? '0'),
         totalComments:
             fullScreenShortController.videoItem?.video?.stats?.comments ?? 0,
-        commentType: CommentType.video,
+        commentType: isFromPost ? CommentType.post : CommentType.video,
         onNewCommentCount: (int newCommentCount) {
           fullScreenShortController.comments.value = newCommentCount;
           widget.videoItem.video?.stats?.comments =

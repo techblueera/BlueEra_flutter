@@ -14,7 +14,8 @@ import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
-import 'package:BlueEra/widgets/channel_profile_header.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,106 @@ void openMeOverview() {
     );
   }
 }
+/// The byline: avatar, then the display name and `@handle` sharing one line,
+/// with the designation chip on the line beneath.
+///
+/// This replaced [ChannelProfileHeader] on feed cards. The two had diverged —
+/// that widget stacks the handle under the name and ends with a
+/// designation-plus-timestamp row, whereas the card now shows the timestamp in
+/// its stats strip instead. [ChannelProfileHeader] is untouched and still used
+/// by the post-preview and video-player screens.
+class _AuthorIdentity extends StatelessWidget {
+  const _AuthorIdentity({
+    required this.imageUrl,
+    required this.title,
+    required this.userName,
+    required this.designation,
+  });
+
+  final String imageUrl;
+  final String title;
+  final String userName;
+  final String designation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CachedAvatarWidget(
+          imageUrl: imageUrl,
+          size: SizeConfig.size48,
+          borderRadius: SizeConfig.size48 / 2,
+          borderColor: AppColors.shadowColor,
+          showProfileOnFullScreen: false,
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  // Both names are Flexible so a long display name yields to
+                  // the handle rather than pushing it off the row entirely.
+                  Flexible(
+                    child: CustomText(
+                      title,
+                      fontSize: SizeConfig.medium15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (userName.isNotEmpty) ...[
+                    SizedBox(width: SizeConfig.size6),
+                    Flexible(
+                      child: CustomText(
+                        '@$userName',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              if (designation.trim().isNotEmpty) ...[
+                SizedBox(height: SizeConfig.size6),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size12,
+                    vertical: SizeConfig.size4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.greyE5),
+                  ),
+                  child: CustomText(
+                    designation,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
   final String authorId;
@@ -111,19 +212,17 @@ class PostAuthorHeader extends StatelessWidget {
                 // for.
                 openFeedProfile(post?.user?.copyWith(id: authorId));
               },
-              child: ChannelProfileHeader(
-                  imageUrl: post?.user?.profileImage ?? '',
-                  title: post?.post_via == "channel"
-                      ? (channelName ??
-                          post?.channel?.name ??
-                          post?.channelName ??
-                          '$name')
-                      : '$name',
-                  userName: '${post?.user?.username}',
-                  subtitle: designation != "null" ? designation : 'OTHERS',
-                  avatarSize: SizeConfig.size42,
-                  borderColor: AppColors.shadowColor,
-                  postedAgo: postedAgo),
+              child: _AuthorIdentity(
+                imageUrl: post?.user?.profileImage ?? '',
+                title: post?.post_via == "channel"
+                    ? (channelName ??
+                        post?.channel?.name ??
+                        post?.channelName ??
+                        name)
+                    : name,
+                userName: post?.user?.username ?? '',
+                designation: designation != "null" ? designation : 'OTHERS',
+              ),
             ),
           ),
           if (isRepost == false) ...[

@@ -78,6 +78,14 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
     });
   }
 
+  /// Left inset for every row of the poll block.
+  ///
+  /// This used to indent to 32 on the main feed so the question cleared the
+  /// avatar of the author header sitting above it. The byline moved below the
+  /// options, so the indent no longer has anything to clear and the block now
+  /// aligns with the rest of the card.
+  double get _horizontalInset => SizeConfig.size15;
+
   @override
   Widget build(BuildContext context) {
     final totalVotes =
@@ -88,35 +96,24 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
       children: [
         Padding(
           padding: EdgeInsets.only(
-              left: widget.postFilteredType == PostType.otherChannelPosts
-                  ? SizeConfig.size15
-                  : SizeConfig.size32,
-              right: SizeConfig.size15),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CustomText(
-                  widget.question,
-                  color: AppColors.mainTextColor,
-                  // fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (widget.postFilteredType != PostType.otherChannelPosts) ...[
-                SizedBox(width: SizeConfig.size8),
-                CustomText(
-                  '${totalVotes} votes',
-                  fontSize: SizeConfig.medium,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-              ]
-            ],
+              left: _horizontalInset, right: SizeConfig.size15),
+          // Long questions truncate with an inline "Read more" rather than
+          // pushing the options off the card. The running vote total that used
+          // to sit beside the question is gone — the design carries per-option
+          // percentages only, and the two competed on the same line.
+          child: ExpandableText(
+            text: widget.question,
+            trimLines: 2,
+            expandMode: ExpandMode.expandable,
+            style: TextStyle(
+              color: AppColors.secondaryTextColor,
+              fontSize: SizeConfig.medium15,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
           ),
         ),
-        SizedBox(height: SizeConfig.size5),
+        SizedBox(height: SizeConfig.size12),
 
         // Poll options with progress bars
         ...List.generate(localOptions.length, (index) {
@@ -128,108 +125,24 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
           return Padding(
             padding: EdgeInsets.only(
-                left: widget.postFilteredType == PostType.otherChannelPosts
-                    ? SizeConfig.size15
-                    : SizeConfig.size32,
+                left: _horizontalInset,
                 right: SizeConfig.size15,
                 bottom: SizeConfig.size8),
-            child: InkWell(
-              // onTap: hasVoted ? null : () => _handleVote(index),
+            child: _PollOptionRow(
+              label: option.text,
+              percentage: percentage,
+              // Only the viewer's own pick is filled, per the design; the rest
+              // report their share as a number alone.
+              showFill: hasVoted && isSelected,
+              isSelected: isSelected,
+              showPercentage: hasVoted,
               onTap: () {
                 if (isGuestUser()) {
                   createProfileScreen();
-                } else {
-                  hasVoted ? null : _handleVote(index);
+                } else if (!hasVoted) {
+                  _handleVote(index);
                 }
               },
-              child: Container(
-                height: SizeConfig.size35,
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                        color: AppColors.secondaryTextColor, width: 0.5)),
-                child: Stack(
-                  children: [
-                    // Progress bar background (white)
-                    Container(
-                      height: SizeConfig.size45,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-
-                    // Progress bar fill (light grey based on percentage)
-                    if (hasVoted)
-                      FractionallySizedBox(
-                        widthFactor: percentage / 100,
-                        child: Container(
-                          height: SizeConfig.size45,
-                          decoration: BoxDecoration(
-                            color: percentage > 50
-                                ? Colors
-                                    .grey[200]! // Lighter for high percentages
-                                : percentage > 25
-                                    ? Colors.grey[
-                                        300]! // Medium for medium percentages
-                                    : Colors.grey[400]!,
-                            // Darker for low percentages
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                      ),
-                    // Content container
-                    Container(
-                      height: SizeConfig.size35,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primaryColor
-                              : AppColors.secondaryTextColor,
-                          width: 0.5,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              option.text,
-                              fontSize: SizeConfig.medium,
-                              color: isSelected
-                                  ? AppColors.primaryColor
-                                  : Colors.black87,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          // Percentage
-
-                          if (hasVoted) ...[
-                            if (selectedIndex == index) ...[
-                              Icon(Icons.check_circle_outline,
-                                  color: AppColors.primaryColor),
-                              SizedBox(width: SizeConfig.size8),
-                            ],
-                            CustomText(
-                              '$percentage%',
-                              fontSize: SizeConfig.medium,
-                              color: isSelected
-                                  ? AppColors.primaryColor
-                                  : Colors.black87,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ]
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           );
         }),
@@ -248,9 +161,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
         ],
         Padding(
           padding: EdgeInsets.only(
-            left: widget.postFilteredType == PostType.otherChannelPosts
-                ? SizeConfig.size15
-                : SizeConfig.size32,
+            left: _horizontalInset,
             right: SizeConfig.size15,
             top: SizeConfig.size5,
           ),
@@ -269,6 +180,156 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
               : SizedBox.shrink(),
         ),
       ],
+    );
+  }
+}
+
+/// One poll answer.
+///
+/// After the viewer votes, their own pick shows a blue pill sized to that
+/// option's share, floating inside the row's border rather than filling it edge
+/// to edge. The row content is painted twice — once in the resting colours, then
+/// again all-white and clipped to exactly the pill's right edge. That keeps both
+/// the label and the percentage legible wherever the pill happens to end: a
+/// single white copy would vanish on a 10% share, and a single dark copy would
+/// go muddy against the blue.
+class _PollOptionRow extends StatelessWidget {
+  const _PollOptionRow({
+    required this.label,
+    required this.percentage,
+    required this.showFill,
+    required this.isSelected,
+    required this.showPercentage,
+    required this.onTap,
+  });
+
+  final String label;
+  final int percentage;
+  final bool showFill;
+  final bool isSelected;
+  final bool showPercentage;
+  final VoidCallback onTap;
+
+  static const double _radius = 12;
+
+  /// Gap between the row's border and the pill inside it.
+  static const double _fillInset = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final height = SizeConfig.size40;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(_radius),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final track = width - (_fillInset * 2);
+          final fillWidth = track * (percentage.clamp(0, 100) / 100);
+          // Where the white copy stops: the pill's own right edge.
+          final clipWidth = _fillInset + fillWidth;
+
+          return SizedBox(
+            height: height,
+            child: Stack(
+              children: [
+                // Base: white pill, blue-rimmed once it is the viewer's pick.
+                Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(_radius),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : AppColors.greyE5,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                ),
+                if (showFill)
+                  Padding(
+                    padding: const EdgeInsets.all(_fillInset),
+                    child: Container(
+                      width: fillWidth,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius:
+                            BorderRadius.circular(_radius - _fillInset),
+                      ),
+                    ),
+                  ),
+                // Resting colours — what shows past the pill's end.
+                SizedBox(
+                  width: width,
+                  height: height,
+                  child: _content(
+                    labelColor: AppColors.secondaryTextColor,
+                    percentColor: AppColors.mainTextColor,
+                  ),
+                ),
+                // The same content in white, clipped to the pill. OverflowBox
+                // lets the inner row lay out at the FULL width so every glyph
+                // lands exactly over its counterpart underneath.
+                if (showFill)
+                  ClipRect(
+                    child: SizedBox(
+                      width: clipWidth,
+                      height: height,
+                      child: OverflowBox(
+                        alignment: Alignment.centerLeft,
+                        minWidth: width,
+                        maxWidth: width,
+                        child: SizedBox(
+                          width: width,
+                          height: height,
+                          child: _content(
+                            labelColor: AppColors.white,
+                            percentColor: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _content({
+    required Color labelColor,
+    required Color percentColor,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.medium15,
+              color: labelColor,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (showPercentage) ...[
+            SizedBox(width: SizeConfig.size8),
+            CustomText(
+              '$percentage%',
+              fontSize: SizeConfig.medium15,
+              color: percentColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

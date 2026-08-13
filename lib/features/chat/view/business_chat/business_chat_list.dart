@@ -11,7 +11,6 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
-import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../auth/controller/chat_flag_controller.dart';
 import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';

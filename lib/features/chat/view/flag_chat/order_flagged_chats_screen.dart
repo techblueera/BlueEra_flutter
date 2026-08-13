@@ -10,7 +10,7 @@ import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 
 /// Full-screen list of flagged chats opened from the flag icon in the
-/// `OrderMainChatScreen` app bar. Aggregates flagged conversations from
+/// `SocialMainScreen` app bar. Aggregates flagged conversations from
 /// both the Inquiry (business) and Orders chat lists.
 class OrderFlaggedChatsScreen extends StatelessWidget {
   const OrderFlaggedChatsScreen({super.key});

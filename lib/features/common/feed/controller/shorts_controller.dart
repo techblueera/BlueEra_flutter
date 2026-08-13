@@ -720,7 +720,10 @@ class ShortsController extends GetxController{
         } else {
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
         }
-        params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
+        // `post_via` intentionally not sent — it defaults to "all" server-side.
+        // Sending "user" restricted the query to videos with no channelId, which
+        // is why reels posted through a channel vanished from profiles when
+        // community was removed. See SOCIAL_SECTION_INTEGRATION_GUIDE.md §6.
 
         log('channel id -- $channelId');
         // if(channelId.isEmpty){

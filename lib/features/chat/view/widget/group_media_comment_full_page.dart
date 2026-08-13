@@ -22,7 +22,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/getMediaMsgCommentsModel.dart';
 
-import '../order_main_chat_screen.dart';
+import '../social_main_screen.dart';
 import 'chat_cached_image.dart';
 import 'component_widgets.dart';
 import 'media_message_full_view.dart';
@@ -152,7 +152,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
             text: "${widget.message.forwards_count=='null'?'0':widget.message.forwards_count??'0'}",
             onTap: () {
               chatThemeController.selectedMessageIds.add(widget.message.id??'');
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderMainChatScreen(isForwardUI:true)));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>SocialMainScreen(isForwardUI:true)));
             },
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/translator_function.dart';
@@ -19,6 +20,7 @@ import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_stats_strip.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
@@ -76,6 +78,9 @@ class MessagePostWidget extends StatefulWidget {
 }
 
 class _MessagePostWidgetState extends State<MessagePostWidget> {
+  /// Symmetric gap between the card edge and the media that now leads it.
+  double get _kMediaInset => SizeConfig.size12;
+
   late Post _post;
   late String subTitle;
   late String natureOfPost;
@@ -142,7 +147,75 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
               horizontalPadding: widget.horizontalPadding,
               bottomPadding: widget.bottomPadding,
               childWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Media leads the card, above the author row — the media is
+                  // what the reader is scanning for, and the byline reads as a
+                  // caption beneath it.
+                  if (_post.media?.isNotEmpty ?? false) ...[
+                    if ((_post.media_types?.firstOrNull
+                                ?.startsWith("video/") ??
+                            false) ||
+                        isVideoUrl(_post.media?.firstOrNull)) ...[
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            _kMediaInset,
+                            _kMediaInset,
+                            _kMediaInset,
+                            0),
+                        child: PostFeedAutoPlayVideoCard(
+                          videoItem: videoData!,
+                          globalMuteNotifier: ValueNotifier(false),
+                          videoType: VideoType.videoFeed,
+                          onTapOption: () {
+                            openBlockSelectionDialog(
+                                context: context,
+                                reportType: 'VIDEO_POST',
+                                userId: videoData?.video?.userId ?? '',
+                                contentId: videoData?.video?.id ?? '',
+                                userBlockVoidCallback: () async {
+                                  await Get.find<VideoController>()
+                                      .userBlocked(
+                                    videoType: VideoType.videoFeed,
+                                    otherUserId:
+                                        videoData?.video?.userId ?? '',
+                                  );
+                                },
+                                reportCallback: (params) {
+                                  Get.find<VideoController>()
+                                      .videoPostReport(
+                                          videoId:
+                                              videoData?.video?.id ?? '',
+                                          videoType: VideoType.videoFeed,
+                                          params: params);
+                                });
+                          },
+                        ),
+                      ),
+                    ],
+                    if ((_post.media_types?.firstOrNull
+                                ?.startsWith("image/") ??
+                            false) ||
+                        isImageUrl(_post.media?.firstOrNull))
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            _kMediaInset,
+                            _kMediaInset,
+                            _kMediaInset,
+                            0),
+                        child: SocialImageGrid(
+                          imageUrls: _post.media ?? [],
+                          subTitle: _post.subTitle ?? "",
+                          postData: _post,
+                          // Only the home/search feed opens the full-screen
+                          // reels-style image feed; reposts & other screens
+                          // keep the plain viewer so their flows don't change.
+                          openImageFeedOnTap:
+                              widget.postType == PostType.all &&
+                                  widget.isRepost != true,
+                        ),
+                      ),
+                  ],
                   widget.authorSection(),
                   Padding(
                     padding: EdgeInsets.only(
@@ -243,31 +316,23 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 right: SizeConfig.size15,
                                 bottom: SizeConfig.size10,
                                 top: SizeConfig.size5),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              decoration: BoxDecoration(
-                                // The light blue background color from the image
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(
-                                    10), // Rounded "pill" shape
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  LocalAssets(
-                                    imagePath: AppIconAssets.link,
-                                    imgColor: AppColors.primaryColor,
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Flexible(
-                                      child: ClickableLinkText(
-                                          url: _post.referenceLink!,)),
-                                ],
-                              ),
+                            // Bare icon + link, no pill. The design reads the
+                            // reference as a line of the post body rather than
+                            // as a chip.
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LocalAssets(
+                                  imagePath: AppIconAssets.link,
+                                  imgColor: AppColors.primaryColor,
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Flexible(
+                                    child: ClickableLinkText(
+                                        url: _post.referenceLink!,)),
+                              ],
                             ),
                           ),
                         if (_post.taggedUsers?.isNotEmpty ?? false) ...[
@@ -320,67 +385,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               ],
                             ),
                           )
-                        ],
-                        if (_post.media?.isNotEmpty ?? false) ...[
-                          if ((_post.media_types?.firstOrNull
-                                      ?.startsWith("video/") ??
-                                  false) ||
-                              isVideoUrl(_post.media?.firstOrNull)) ...[
-                            Padding(
-                              padding: EdgeInsets.only(
-                                  left: SizeConfig.size5,
-                                  right: SizeConfig.size5,
-                                  top: SizeConfig.size10),
-                              child: PostFeedAutoPlayVideoCard(
-                                videoItem: videoData!,
-                                globalMuteNotifier: ValueNotifier(false),
-                                videoType: VideoType.videoFeed,
-                                onTapOption: () {
-                                  openBlockSelectionDialog(
-                                      context: context,
-                                      reportType: 'VIDEO_POST',
-                                      userId: videoData?.video?.userId ?? '',
-                                      contentId: videoData?.video?.id ?? '',
-                                      userBlockVoidCallback: () async {
-                                        await Get.find<VideoController>()
-                                            .userBlocked(
-                                          videoType: VideoType.videoFeed,
-                                          otherUserId:
-                                              videoData?.video?.userId ?? '',
-                                        );
-                                      },
-                                      reportCallback: (params) {
-                                        Get.find<VideoController>()
-                                            .videoPostReport(
-                                                videoId:
-                                                    videoData?.video?.id ?? '',
-                                                videoType: VideoType.videoFeed,
-                                                params: params);
-                                      });
-                                },
-                              ),
-                            ),
-                          ],
-                          if ((_post.media_types?.firstOrNull
-                                      ?.startsWith("image/") ??
-                                  false) ||
-                              isImageUrl(_post.media?.firstOrNull))
-                            Padding(
-                              padding: EdgeInsets.only(
-                                  left: SizeConfig.size15,
-                                  right: SizeConfig.size15),
-                              child: SocialImageGrid(
-                                imageUrls: _post.media ?? [],
-                                subTitle: _post.subTitle ?? "",
-                                postData: _post,
-                                // Only the home/search feed opens the full-screen
-                                // reels-style image feed; reposts & other screens
-                                // keep the plain viewer so their flows don't change.
-                                openImageFeedOnTap:
-                                    widget.postType == PostType.all &&
-                                        widget.isRepost != true,
-                              ),
-                            ),
                         ],
                         if (!(widget.isShowOnlyDetails ?? true)) ...[
                           if (widget.post?.is_reposted ?? false) ...[
@@ -650,121 +654,82 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           ],
                         ],
                         if (widget.isRepost == false) ...[
-                          SizedBox(
-                            height: SizeConfig.size5,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size12,
-                                vertical: SizeConfig.size6),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Views
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.eye_new,
-                                  count: formatNumberLikePost(_post.viewsCount ?? 0),
-                                  onTap: () {}, // Prevent navigation to post detail when clicking views
-                                ),
-
-                                // Comment
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.comment_new,
-                                  count: formatNumberLikePost(_post.commentsCount ?? 0),
+                          SizedBox(height: SizeConfig.size8),
+                          // Engagement strip — one tinted bar rather than bare
+                          // icons floating on the card. The timestamp leads it;
+                          // it used to sit in the author header, but the header
+                          // now carries the byline alone.
+                          FeedStatsStrip(
+                            // Right-inset by 15 to cancel the body column's own
+                            // left-15, so the bar is symmetric inside the card.
+                            padding: EdgeInsets.only(right: SizeConfig.size15),
+                            items: [
+                              FeedStatItem(
+                                iconPath: AppIconAssets.clock_new,
+                                label: timeAgo(
+                                    _post.createdAt?.toIso8601String()),
+                              ),
+                              FeedStatItem(
+                                iconPath: AppIconAssets.eye_new,
+                                label: formatNumberLikePost(_post.viewsCount ?? 0),
+                              ),
+                              FeedStatItem(
+                                iconPath: AppIconAssets.comment_new,
+                                label:
+                                    formatNumberLikePost(_post.commentsCount ?? 0),
+                                onTap: () {
+                                  if (isGuestUser()) {
+                                    createProfileScreen();
+                                  } else {
+                                    widget.commentView();
+                                  }
+                                },
+                              ),
+                              FeedStatItem(
+                                iconPath: AppIconAssets.like_new,
+                                label: formatNumberLikePost(_post.likesCount ?? 0),
+                                iconColor: (widget.post?.isLiked ?? false)
+                                    ? AppColors.primaryColor
+                                    : null,
+                                onTap: () {
+                                  if (isGuestUser()) {
+                                    createProfileScreen();
+                                  } else {
+                                    widget.likeFeed();
+                                  }
+                                },
+                              ),
+                              // Only a message post can be reposted.
+                              if (widget.post?.type?.toLowerCase() ==
+                                  "message_post")
+                                FeedStatItem(
+                                  iconPath: AppIconAssets.repost_new,
+                                  label:
+                                      formatNumberLikePost(_post.repostCount ?? 0),
                                   onTap: () {
                                     if (isGuestUser()) {
                                       createProfileScreen();
-                                    } else {
-                                      widget.commentView();
+                                      return;
                                     }
+                                    _showRepostDialog();
                                   },
                                 ),
-                                // Like
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.like_new,
-                                  count: formatNumberLikePost(_post.likesCount ?? 0),
-                                  iconColor: (widget.post?.isLiked ?? false)
-                                      ? AppColors.primaryColor
-                                      : AppColors.secondaryTextColor,
-                                  onTap: () {
-                                    if (isGuestUser()) {
-                                      createProfileScreen();
-                                    } else {
-                                      widget.likeFeed();
-                                    }
-                                  },
-                                ),
-                                // Repost
-                                if (widget.post?.type?.toLowerCase() == "message_post")
-                                  _feedActionButton(
-                                    iconPath: AppIconAssets.repost_new,
-                                    count: formatNumberLikePost(_post.repostCount ?? 0),
-                                    onTap: () {
-                                      if (isGuestUser()) {
-                                        createProfileScreen();
-                                        return;
-                                      }
-                                      _showRepostDialog();
-                                    },
-                                  ),
-
-                                // Share
-                                _feedActionButton(
-                                  iconPath: AppIconAssets.share_bold,
-                                  count: '',
-                                  onTap: () => widget.onShareButtonPressed(),
-                                ),
-                              ],
-                            ),
+                              // Share carries no count in the design.
+                              FeedStatItem(
+                                iconPath: AppIconAssets.share_bold,
+                                label: '',
+                                onTap: () => widget.onShareButtonPressed(),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            height: SizeConfig.size5,
-                          ),
+                          SizedBox(height: SizeConfig.size5),
                           widget.buildActions(),
-                          // SizedBox(
-                          //   height: SizeConfig.size10,
-                          // ),
                         ],
                       ],
                     ),
                   ),
                 ],
               )),
-        ),
-      ),
-    );
-  }
-
-  Widget _feedActionButton({
-    required String iconPath,
-    required String count,
-    Color? iconColor,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size6, vertical: SizeConfig.size6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LocalAssets(
-              imagePath: iconPath,
-              width: SizeConfig.size20,
-              height: SizeConfig.size20,
-              imgColor: iconColor ?? AppColors.secondaryTextColor,
-            ),
-            SizedBox(width: SizeConfig.size4),
-            CustomText(
-              count,
-              color: AppColors.secondaryTextColor,
-              fontSize: SizeConfig.size12,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
         ),
       ),
     );

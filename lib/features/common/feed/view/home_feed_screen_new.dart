@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_business_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_product_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_reel_pair_row.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_suggestions_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_video_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -196,30 +197,54 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     }
   }
 
+  /// True for an item the feed should be able to pair 2-up: a reel, in either
+  /// of the two shapes the backends produce (`type: "short_video"` on the
+  /// merged feed, `item_type: "reel"` on the include-reels post feeds).
+  ///
+  /// Long videos are deliberately excluded — they are 16:9 and belong
+  /// full-width.
+  bool _isPairableReel(Post item) =>
+      item.isReel || item.feedType == 'short_video';
+
+  /// Groups the feed into render rows.
+  ///
+  /// Everything is one item per row, **except** a run of consecutive reels,
+  /// which is chunked into pairs and rendered side by side per the Feed design.
+  /// A run of one (a reel between two posts) stays a full-width
+  /// [FeedVideoCard], and an odd trailing reel keeps half width so the columns
+  /// stay aligned.
+  ///
+  /// This only ever changes *layout* — items keep the exact order the backend
+  /// sent them, which is what the feed contract requires.
   List<FeedBlock> _buildBlocks(List<Post> items) {
     final List<FeedBlock> blocks = [];
-    // final Set<String> gridTypes = {'image_post', 'short_video'};
+    final List<Post> reelRun = [];
 
-    List<Post> buffer = [];
-
-    void flushBuffer() {
-      if (buffer.isNotEmpty) {
-        // If only 1 item in buffer we still show it as a single full-width card
-        if (buffer.length == 1) {
-          blocks.add(FeedBlock(isGrid: false, items: [buffer.first]));
-        } else {
-          blocks.add(FeedBlock(isGrid: true, items: List.from(buffer)));
+    void flushReelRun() {
+      if (reelRun.isEmpty) return;
+      if (reelRun.length == 1) {
+        // A lone reel is not a pair — render it the way it has always been.
+        blocks.add(FeedBlock(isGrid: false, items: [reelRun.first]));
+      } else {
+        for (var i = 0; i < reelRun.length; i += 2) {
+          blocks.add(FeedBlock(
+            isGrid: true,
+            items: reelRun.sublist(i, (i + 2).clamp(0, reelRun.length)),
+          ));
         }
-        buffer.clear();
       }
+      reelRun.clear();
     }
 
     for (final item in items) {
-      flushBuffer();
+      if (_isPairableReel(item)) {
+        reelRun.add(item);
+        continue;
+      }
+      flushReelRun();
       blocks.add(FeedBlock(isGrid: false, items: [item]));
     }
-    // end: flush remaining buffer
-    flushBuffer();
+    flushReelRun();
     return blocks;
   }
 
@@ -302,6 +327,15 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
             final index = row.contentIndex;
             final block = blocks[index];
+
+            // A grid block is a run of consecutive reels laid out 2-up.
+            if (block.isGrid) {
+              for (final reel in block.items) {
+                trackPostView(reel.id);
+              }
+              return FeedReelPairRow(reels: block.items);
+            }
+
             final item = block.items.first;
 
             return _buildFeedItem(item, index);
@@ -365,13 +399,26 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 }
 
 ShortFeedItem getVideoData(Post video) {
+  // A feed item carries its video two different ways depending on which
+  // endpoint produced it: merged-feed `short_video` items put everything at the
+  // top level, while `item_type: "reel"` items (post/allPosts?include_reels,
+  // post/my-posts) nest it under `reel` and leave the post fields null.
+  // Resolve both so either shape opens the player fully populated.
+  final reel = video.reel;
+  final reelStats = reel?.stats;
+
   return ShortFeedItem(
-      videoId: video.id,
-      likesCount: video.likesCount,
-      commentsCount: video.commentsCount,
+      videoId: reel?.id ?? video.id,
+      // The post that owns this reel's likes/comments/shares, when it was
+      // ingested from one. The player branches its writes on this — dropping it
+      // here would send them to video-service, where nothing reads them back
+      // (SOCIAL_SECTION_INTEGRATION_GUIDE.md §4).
+      originPostId: video.engagementPostId,
+      likesCount: reelStats?.likes ?? video.likesCount,
+      commentsCount: reelStats?.comments ?? video.commentsCount,
       repostCount: video.repostCount,
-      sharesCount: video.sharesCount,
-      viewsCount: video.viewsCount,
+      sharesCount: reelStats?.shares ?? video.sharesCount,
+      viewsCount: reelStats?.views ?? video.viewsCount,
       author: Author(
         // `Author` has one `name` field for both account kinds, so resolve the
         // business/individual split here — otherwise a business's reel opens
@@ -397,29 +444,40 @@ ShortFeedItem getVideoData(Post video) {
           watchedBefore: false),
       channel: video.channel,
       video: VideoData(
-          id: video.id,
-          userId: video.user?.id,
-          type: video.type,
-          title: video.title,
-          description: video.subTitle,
+          id: reel?.id ?? video.id,
+          userId: reel?.userId ?? video.user?.id,
+          channelId: reel?.channelId,
+          type: reel?.type ?? video.type,
+          title: reel?.title ?? video.title,
+          description: reel?.description ?? video.subTitle,
+          caption: reel?.caption,
+          originPostId: video.engagementPostId,
+          engagementSource: reel?.engagementSource,
           // `/feed` video items carry their source in `video_url` (guide §4.4);
           // fall back to `media` for post-shaped payloads that inline the file.
-          videoUrl: (video.videoUrl?.isNotEmpty ?? false)
-              ? video.videoUrl
-              : video.media?.firstOrNull,
-          coverUrl: video.thumbnail,
-          createdAt: video.createdAt.toString(),
+          videoUrl: (reel?.videoUrl?.isNotEmpty ?? false)
+              ? reel!.videoUrl
+              : (video.videoUrl?.isNotEmpty ?? false)
+                  ? video.videoUrl
+                  : video.media?.firstOrNull,
+          coverUrl: reel?.coverUrl ?? video.thumbnail,
+          createdAt: reel?.createdAt ?? video.createdAt.toString(),
           media_height: video.media_height,
           media_width: video.media_width,
-          duration: video.duration,
+          duration: reel?.duration ?? video.duration,
           stats: Stats(
-              comments: video.commentsCount,
-              likes: video.likesCount,
-              shares: video.sharesCount,
+              comments: reelStats?.comments ?? video.commentsCount,
+              likes: reelStats?.likes ?? video.likesCount,
+              shares: reelStats?.shares ?? video.sharesCount,
               repost_count: video.repostCount,
-              views: video.viewsCount)),
+              views: reelStats?.views ?? video.viewsCount)),
+      // For an ingested reel the backend already serves the POST's isLiked, so
+      // seeding from the item keeps the heart correct on open instead of always
+      // starting hollow.
       interactions: Interactions(
-          isBookmarked: false, isFollowing: false, isLiked: false));
+          isBookmarked: false,
+          isFollowing: false,
+          isLiked: video.isLiked ?? false));
 }
 
 class FeedBlock {

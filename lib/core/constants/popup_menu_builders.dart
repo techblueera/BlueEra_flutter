@@ -32,9 +32,14 @@ class PopupMenuBuilders {
       PostCreationMenu.symbol,
       PostCreationMenu.poll,
 
-      /// Reel/short upload — available to business accounts and to individual
-      /// users who already created a channel (matches the old `videos` gate).
-      if (isBusiness || channelId.isNotEmpty) PostCreationMenu.reel,
+      /// Reel/short upload is an individual-only feature: every individual can
+      /// post one, business accounts cannot.
+      ///
+      /// This used to read `isBusiness || channelId.isNotEmpty`, which had it
+      /// backwards on both counts — it offered reels to businesses, and hid
+      /// them from any individual who had not created a channel. Reels no
+      /// longer require a channel, so there is nothing left to gate on.
+      if (!isBusiness) PostCreationMenu.reel,
       if (isBusiness) PostCreationMenu.jobPost,
       // PostCreationMenu.place,
       // PostCreationMenu.travel,
@@ -57,7 +62,7 @@ class PopupMenuBuilders {
       PostCreationMenu.poll: AppStrings.poll,
       PostCreationMenu.symbol: AppStrings.symbol,
       // PostCreationMenu.photos: AppStrings.symbol,
-      PostCreationMenu.reel: 'Bite',
+      PostCreationMenu.reel: AppStrings.bites,
       PostCreationMenu.jobPost: AppStrings.jobPost,
       // PostCreationMenu.travel: AppStrings.travel,
     };

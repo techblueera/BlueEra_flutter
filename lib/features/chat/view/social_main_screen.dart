@@ -10,8 +10,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.dart';
-import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
+import 'package:BlueEra/features/common/feed/view/my_post_tab_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -34,8 +34,8 @@ import '../auth/controller/chat_pin_archive_controller.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 
-class OrderMainChatScreen extends StatefulWidget {
-  const OrderMainChatScreen({
+class SocialMainScreen extends StatefulWidget {
+  const SocialMainScreen({
     super.key,
     this.isNewGroupUI,
     this.isForwardUI = false,
@@ -45,10 +45,10 @@ class OrderMainChatScreen extends StatefulWidget {
   final bool? isNewGroupUI;
 
   @override
-  _OrderMainChatScreenState createState() => _OrderMainChatScreenState();
+  _SocialMainScreenState createState() => _SocialMainScreenState();
 }
 
-class _OrderMainChatScreenState extends State<OrderMainChatScreen>
+class _SocialMainScreenState extends State<SocialMainScreen>
     with SingleTickerProviderStateMixin {
   ChatViewController chatViewController = getOrPut(() => ChatViewController());
   ChatThemeController chatThemeController =
@@ -112,7 +112,9 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
-    // Three tabs: Social, Community, Reels — clamp any persisted index to range.
+    // Three tabs: Feed, Bites, My Post — clamp any persisted index to range.
+    // Community was removed here (SOCIAL_SECTION_INTEGRATION_GUIDE.md §1);
+    // ChannelFeedScreen itself is untouched and still reachable elsewhere.
     final rawIndex = chatViewController.selectedChatTabIndex.value;
     final pendingIndex = (rawIndex >= 0 && rawIndex < 3) ? rawIndex : 0;
     chatViewController.chatMainTabController = TabController(
@@ -140,6 +142,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
 
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
+    final tabController = chatViewController.chatMainTabController;
     return WillPopScope(
       onWillPop: () async {
         if (chatViewController.chatMainTabController?.index == 0) {
@@ -152,7 +155,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
       child: Scaffold(
         // Transparent so the app-wide background banner (AppHomeBackground)
         // shows through and the glass header below can frost it.
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         body: SafeArea(
           // Top inset is handled manually inside the glass header so the
           // frosted glass extends behind the status bar (like the Me tab)
@@ -211,54 +214,77 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                                     )
                                   : const SizedBox(width: double.infinity),
                             ),
-                            // Tab strip, INSIDE the header's glass. It used to
-                            // be a solid white bar below it, which cut a hard
-                            // white line across the frost. Sharing the one pane
-                            // makes the status bar, search row and tabs read as
-                            // a single sheet — and it re-uses the header's
-                            // existing BackdropFilter rather than adding a
-                            // second sampled layer.
-                            TabBar(
-                              onTap: (index) {
-                                // Reveal the search header again when switching
-                                // tabs.
-                                if (!_isSearchVisible) {
-                                  setState(() => _isSearchVisible = true);
-                                  _scrollAccumulator = 0;
-                                }
-                                if (widget.isNewGroupUI != null &&
-                                    widget.isNewGroupUI == true) {
-                                  if (chatViewController
-                                      .selectedChatList.isNotEmpty) {
-                                    commonSnackBar(
-                                        message: AppStrings
-                                            .cantSelectBothChatTypes.tr);
-                                    chatViewController.selectedUserIds.clear();
-                                  }
-                                }
-                              },
-                              controller:
-                                  chatViewController.chatMainTabController,
-                              labelColor: Colors.black,
-                              padding: EdgeInsets.zero,
-                              labelPadding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              // Was black54 — a touch stronger, since the label
-                              // now sits on frost rather than on solid white.
-                              unselectedLabelColor: Colors.black.withValues(
-                                alpha: 0.68,
+                            if (tabController != null)
+                              AnimatedBuilder(
+                                animation: tabController,
+                                builder: (context, _) => TabBar(
+                                  onTap: (index) {
+                                    // Reveal the search header again when
+                                    // switching tabs.
+                                    if (!_isSearchVisible) {
+                                      setState(() => _isSearchVisible = true);
+                                      _scrollAccumulator = 0;
+                                    }
+                                    if (widget.isNewGroupUI != null &&
+                                        widget.isNewGroupUI == true) {
+                                      if (chatViewController
+                                          .selectedChatList.isNotEmpty) {
+                                        commonSnackBar(
+                                            message: AppStrings
+                                                .cantSelectBothChatTypes.tr);
+                                        chatViewController.selectedUserIds
+                                            .clear();
+                                      }
+                                    }
+                                  },
+                                  controller: tabController,
+                                  padding: EdgeInsets.zero,
+                                  labelPadding: EdgeInsets.zero,
+                                  tabAlignment: TabAlignment.fill,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  // Rounded cap, and inset from the tab edges
+                                  // so the bar sits under the label rather than
+                                  // running the full third of the strip.
+                                  indicator: UnderlineTabIndicator(
+                                    borderRadius: BorderRadius.circular(3),
+                                    borderSide: BorderSide(
+                                      width: 3,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                    insets: EdgeInsets.symmetric(
+                                        horizontal: SizeConfig.size18),
+                                  ),
+                                  // Grey track the indicator rides on. It was
+                                  // transparent while the indicator was a bare
+                                  // line; with a rounded bar the track is what
+                                  // shows the other two tabs' extent.
+                                  dividerColor: AppColors.greyE5,
+                                  dividerHeight: 2,
+                                  tabs: [
+                                    _socialTab(
+                                      icon: AppIconAssets.tabFeed,
+                                      activeIcon: AppIconAssets.tabFeedActive,
+                                      label: AppStrings.feed.tr,
+                                      index: 0,
+                                      controller: tabController,
+                                    ),
+                                    _socialTab(
+                                      icon: AppIconAssets.tabBites,
+                                      activeIcon: AppIconAssets.tabBitesActive,
+                                      label: AppStrings.bites.tr,
+                                      index: 1,
+                                      controller: tabController,
+                                    ),
+                                    _socialTab(
+                                      icon: AppIconAssets.tabMyPost,
+                                      activeIcon: AppIconAssets.tabMyPostActive,
+                                      label: AppStrings.myPost.tr,
+                                      index: 2,
+                                      controller: tabController,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              indicatorColor: Colors.lightBlue,
-                              // The strip is glass now, so the indicator can't
-                              // sit on a white bar of its own — drop the
-                              // divider that would draw a hard line across it.
-                              dividerColor: Colors.transparent,
-                              tabs: [
-                                Tab(text: AppStrings.social.tr),
-                                Tab(text: AppStrings.community.tr),
-                                Tab(text: AppStrings.bites.tr),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -290,12 +316,11 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                             headerHeight: 0,
                             isInParentScroll: false,
                           ),
-                          ChannelFeedScreen(
-                            key: const ValueKey('orderMain_feed_community'),
-                            headerHeight: 0,
-                          ),
                           ReelsTabScreen(
                             key: const ValueKey('reels_tab_screen'),
+                          ),
+                          const MyPostTabScreen(
+                            key: ValueKey('orderMain_my_post'),
                           ),
                         ],
                       ),
@@ -386,6 +411,55 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     );
   }
 
+  /// One Social-section tab: glyph beside its label, both tinted by selection.
+  ///
+  /// [controller] is read (not just listened to) so the colour is correct on
+  /// the very first paint; the enclosing AnimatedBuilder handles every paint
+  /// after that.
+  /// Grey the resting tab glyphs are drawn in. The label matches it so the icon
+  /// and its text read as one unit rather than two slightly different greys.
+  static const Color _tabRestingColor = Color(0xFF66727E);
+
+  Widget _socialTab({
+    required String icon,
+    required String activeIcon,
+    required String label,
+    required int index,
+    required TabController controller,
+  }) {
+    final bool selected = controller.index == index;
+    final Color color = selected ? AppColors.primaryColor : _tabRestingColor;
+
+    return Tab(
+      height: SizeConfig.size48,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Swap the asset rather than tinting one: these glyphs carry their own
+          // colours, and an `imgColor` would flatten every path to a single
+          // shade.
+          LocalAssets(
+            imagePath: selected ? activeIcon : icon,
+            height: SizeConfig.size20,
+            width: SizeConfig.size20,
+          ),
+          SizedBox(width: SizeConfig.size6),
+          Flexible(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.medium,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: color,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
@@ -395,80 +469,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                 child: Icon(Icons.arrow_back_ios),
               )
             : const SizedBox.shrink(),
-        // Profile (symbol avatar + drawer trigger) was here.
-        // Moved to ConnectMainPage so the drawer is reachable from the
-        // app's top-level Connect tab. Keeping the original code as a
-        // reference in case we need to restore it on this screen:
-        //
-        // : Obx(() {
-        //   return Stack(
-        //     children: [
-        //       Padding(
-        //         padding: const EdgeInsets.only(right: 1.0, top: 3),
-        //         child: InkWell(
-        //           onTap: () => _openProfileDrawer(context),
-        //           borderRadius: BorderRadius.circular(20),
-        //           child: Container(
-        //             padding: const EdgeInsets.all(2.4),
-        //             decoration: addSymbolController.mySymbols.isNotEmpty
-        //                 ? const BoxDecoration(
-        //               shape: BoxShape.circle,
-        //               gradient: SweepGradient(
-        //                 startAngle: 0.0,
-        //                 endAngle: 6.28319,
-        //                 colors: [
-        //                   AppColors.symbolBorderRed,
-        //                   AppColors.symbolBorderBlue,
-        //                   AppColors.symbolBorderYellow,
-        //                   AppColors.symbolBorderGreen,
-        //                   AppColors.symbolBorderRed,
-        //                 ],
-        //               ),
-        //             )
-        //                 : null,
-        //             child: Container(
-        //               padding: const EdgeInsets.all(2),
-        //               decoration: const BoxDecoration(
-        //                 shape: BoxShape.circle,
-        //                 color: Colors.white,
-        //               ),
-        //               child: CachedAvatarWidget(
-        //                 imageUrl: Get
-        //                     .find<AuthController>()
-        //                     .imgPath
-        //                     .value,
-        //                 size: SizeConfig.size36,
-        //                 borderRadius: SizeConfig.size34 / 2,
-        //                 showProfileOnFullScreen: false,
-        //               ),
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //       Positioned(
-        //           top: 0,
-        //           right: 0,
-        //           child: InkWell(
-        //             onTap: () {
-        //               Get.to(()=>AddChatSymbolScreen());
-        //             },
-        //             child: Container(
-        //               decoration: BoxDecoration(
-        //                   borderRadius: BorderRadius.circular(4),
-        //                   color: AppColors.primaryColor),
-        //               padding: EdgeInsets.all(1.4),
-        //               child: Icon(
-        //                 Icons.add,
-        //                 color: AppColors.white,
-        //                 size: 15,
-        //               ),
-        //             ),
-        //           ))
-        //     ],
-        //   );
-        // }),
-        // Line-up: mail (left) · search (middle) · "+" (right) — each a
-        // frosted-glass chip, matching the Me-screen header items.
         InkWell(
           onTap: () => Get.to(() => const ChatRequestsScreen()),
           customBorder: const CircleBorder(),
@@ -505,7 +505,13 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             } else if (value == PostCreationMenu.message ||
                 value == PostCreationMenu.poll ||
                 value == PostCreationMenu.reel) {
-              postVia(context, value);
+              // Straight to the composer as a profile post — no channel /
+              // profile chooser. `postVia()` would still raise that dialog for
+              // an individual who happens to have a channel; the Social section
+              // is the user's own feed, so everything created here is attributed
+              // to the profile. Other entry points (the global app bar, the Me
+              // dashboards) keep the chooser.
+              postNavigations(context, value, PostVia.profile);
             } else if (value == PostCreationMenu.jobPost) {
               Get.toNamed(
                 RouteHelper.getCreateJobPostScreenRoute(),
@@ -520,13 +526,11 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             }
           },
           itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
-          child: _glassCircle(
-            child: LocalAssets(
-              imagePath: AppIconAssets.addOutlinedIcon,
-              width: 18,
-              height: 18,
-              imgColor: AppColors.primaryColor,
-            ),
+          child: LocalAssets(
+            imagePath: AppIconAssets.addOutlinedIcon,
+            width: 32,
+            height: 32,
+            // imgColor: AppColors.primaryColor,
           ),
         ),
       ],
@@ -536,7 +540,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   /// Circular frosted-glass chip for the header icons — same recipe as the
   /// "Me" screen header buttons (translucent white over the blurred banner,
   /// hairline border, faint lift).
-  Widget _glassCircle({required Widget child}) {
+  Widget _glassCircle({required Widget child, Color? borderColor}) {
     return Container(
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
@@ -559,7 +563,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.6),
-              border: Border.all(color: const Color(0xFFC9CDD5), width: 1),
+              border: Border.all(
+                color: borderColor ?? const Color(0xFFC9CDD5),
+                width: 1,
+              ),
             ),
             child: child,
           ),
@@ -599,287 +606,4 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
       ),
     );
   }
-
-// Profile drawer methods moved to ConnectMainPage. Kept here as a
-// reference in case we need to restore the in-screen drawer.
-/*
-  void _openProfileDrawer(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final authController = Get.find<AuthController>();
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Close drawer',
-      barrierColor: Colors.black.withValues(alpha: 0.4),
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: screenWidth * 0.5,
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 24),
-                    // Profile header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2.5),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: SweepGradient(
-                                colors: [
-                                  AppColors.symbolBorderRed,
-                                  AppColors.symbolBorderBlue,
-                                  AppColors.symbolBorderYellow,
-                                  AppColors.symbolBorderGreen,
-                                  AppColors.symbolBorderRed,
-                                ],
-                              ),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                              ),
-                              child: CachedAvatarWidget(
-                                imageUrl: authController.imgPath.value,
-                                size: 52,
-                                borderRadius: 26,
-                                showProfileOnFullScreen: false,
-                              ),
-                            ),
-                          ),
-                          // const SizedBox(height: 10),
-                          // CustomText(
-                          //   userNameGlobal.isNotEmpty
-                          //       ? userNameGlobal
-                          //       : 'User',
-                          //   fontSize: 16,
-                          //   fontWeight: FontWeight.w700,
-                          //   color: Colors.black,
-                          //   maxLines: 1,
-                          //   overflow: TextOverflow.ellipsis,
-                          // ),
-                          // const SizedBox(height: 2),
-                          // Row(
-                          //   children: [
-                          //     Container(
-                          //       width: 7,
-                          //       height: 7,
-                          //       decoration: const BoxDecoration(
-                          //         shape: BoxShape.circle,
-                          //         color: AppColors.green0B,
-                          //       ),
-                          //     ),
-                          //     const SizedBox(width: 5),
-                          //     CustomText(
-                          //       'Online',
-                          //       fontSize: 12,
-                          //       color: AppColors.secondaryTextColor,
-                          //     ),
-                          //   ],
-                          // ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(height: 1),
-                    const SizedBox(height: 8),
-                    // Menu items
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            _drawerMenuItem(
-                              icon: Icons.add_circle_outline_rounded,
-                              label: 'Add Symbol',
-                              iconColor: const Color(0xFF0086FF),
-                              bgColor: const Color(0xFFE8F3FF),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => AddChatSymbolScreen());
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.auto_awesome_rounded,
-                              label: 'View Symbol',
-                              iconColor: const Color(0xFFE88D1A),
-                              bgColor: const Color(0xFFFFF3E0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                final ctrl =
-                                    Get.isRegistered<AddChatSymbolController>()
-                                        ? Get.find<AddChatSymbolController>()
-                                        : Get.put(AddChatSymbolController());
-                                Get.to(() =>
-                                    SymbolViewImages(mySymbols: ctrl.mySymbols));
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.group_add_rounded,
-                              label: 'Create Group',
-                              iconColor: const Color(0xFF2BB67F),
-                              bgColor: const Color(0xFFE6F9F1),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => ContactsPage(from: "group"));
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.palette_rounded,
-                              label: 'Background',
-                              iconColor: const Color(0xFF9C27B0),
-                              bgColor: const Color(0xFFF3E5F5),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => ChatBackgroundScreen());
-                              },
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              child: Divider(height: 1),
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.account_balance_wallet_rounded,
-                              label: 'Wallet',
-                              iconColor: const Color(0xFF0086FF),
-                              bgColor: const Color(0xFFE8F3FF),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => const WalletChatScreen());
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.shield_rounded,
-                              label: 'Private Room',
-                              iconColor: const Color(0xFFD94A42),
-                              bgColor: const Color(0xFFFFEBEE),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.devices_rounded,
-                              label: 'Linked Device',
-                              iconColor: const Color(0xFF505050),
-                              bgColor: const Color(0xFFF0F0F0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.lock_rounded,
-                              label: 'Lock Chat',
-                              iconColor: const Color(0xFFE88D1A),
-                              bgColor: const Color(0xFFFFF3E0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.notifications_rounded,
-                              label: 'Notification',
-                              iconColor: const Color(0xFF2BB67F),
-                              bgColor: const Color(0xFFE6F9F1),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => NotificationSettingScreen());
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.person_add_alt_rounded,
-                              label: 'Invite Friend',
-                              iconColor: const Color(0xFF9C27B0),
-                              bgColor: const Color(0xFFF3E5F5),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(-1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
-          child: child,
-        );
-      },
-    );
-  }
-
-  Widget _drawerMenuItem({
-    required IconData icon,
-    required String label,
-    required Color iconColor,
-    required Color bgColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: CustomText(
-                label,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  */
 }

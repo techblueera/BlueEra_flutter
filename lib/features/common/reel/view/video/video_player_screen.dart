@@ -598,6 +598,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> _onLikeDislikePressed() async {
     final videoId = videoController.videoFeedItem?.video?.id ?? '0';
+    // A video ingested from a post keeps its engagement on the post (guide §4).
+    final originPostId = widget.videoItem.engagementPostId;
 
     // Update UI immediately
     if (videoController.isLiked.isTrue) {
@@ -606,14 +608,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
 
       // Call debounced unlike API
-      Get.find<VideoController>().videoUnLike(videoId: videoId);
+      Get.find<VideoController>()
+          .videoUnLike(videoId: videoId, originPostId: originPostId);
     } else {
       // Like action
       widget.videoItem.interactions?.isLiked = true;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 0) + 1;
 
       // Call debounced like API
-      Get.find<VideoController>().videoLike(videoId: videoId);
+      Get.find<VideoController>()
+          .videoLike(videoId: videoId, originPostId: originPostId);
     }
 
     // Sync controller state and propagate to lists
@@ -630,14 +634,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _onCommentPressed() {
+    // Ingested videos keep their comment thread on the owning post (guide §4.4).
+    final originPostId = widget.videoItem.engagementPostId;
+    final isFromPost = originPostId?.isNotEmpty ?? false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CommentBottomSheet(
-          id: videoController.videoFeedItem?.video?.id ?? '0',
+          id: isFromPost
+              ? originPostId!
+              : (videoController.videoFeedItem?.video?.id ?? '0'),
           totalComments: videoController.videoFeedItem?.video?.stats?.comments ?? 0,
-          commentType: CommentType.video,
+          commentType: isFromPost ? CommentType.post : CommentType.video,
           onNewCommentCount: (int newCommentCount) {
             videoController.comments.value = newCommentCount;
             widget.videoItem.video?.stats?.comments = videoController.comments.value;

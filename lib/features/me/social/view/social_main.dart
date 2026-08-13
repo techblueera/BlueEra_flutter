@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -13,8 +12,6 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
@@ -56,11 +53,16 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   @override
   void initState() {
     super.initState();
-    // Tabs: Post · Profile · Store · Statistics.
+    // Tabs: Profile · Store · Statistics.
     // The website is shown (and edited) inside the Profile tab's info
     // section, so there is no separate Website tab.
+    //
+    // A Post tab used to lead this row, embedding `FeedScreen` on
+    // `PostType.myPosts`. It is gone — the Social section's own "My Post" tab
+    // owns that feed now. The posts COUNT below is unrelated and stays: it
+    // comes from the followers/posts-count call, not from the feed.
     _tabController = TabController(
-      length: 4,
+      length: 3,
       vsync: this,
     );
     // Re-read the counts when the user settles on a new tab. Creating/deleting
@@ -69,9 +71,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
     // and is a cheap no-op otherwise.
     _tabController?.addListener(_onTabSettled);
     _viewCtrl.UserFollowersAndPostsCount(userId);
-    if (!Get.isRegistered<FeedController>()) {
-      Get.put(FeedController());
-    }
   }
 
   void _onTabSettled() {
@@ -142,7 +141,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   unselectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w400, fontSize: 14),
                   tabs: [
-                     Tab(text: AppStrings.post.tr),
                      Tab(text: AppStrings.profile.tr),
                      Tab(text: AppStrings.store.tr),
                     Tab(text: AppStrings.statistics.tr),
@@ -154,11 +152,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           body: TabBarView(
             controller: tabCtrl,
             children: [
-              FeedScreen(
-                key: const ValueKey('social_main_my_posts'),
-                postFilterType: PostType.myPosts,
-                id: userId,
-              ),
               SocialHomeScreen(),
               const SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),

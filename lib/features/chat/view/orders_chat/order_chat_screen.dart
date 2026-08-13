@@ -14,7 +14,7 @@
 // import '../../auth/controller/chat_theme_controller.dart';
 // import '../../auth/controller/chat_view_controller.dart';
 // import '../forward_screen/chat_forward_screen.dart';
-// import '../order_main_chat_screen.dart';
+// import '../social_main_screen.dart';
 // import '../widget/chat_input_box.dart';
 // import '../widget/component_widgets.dart';
 // import '../widget/message_card.dart';

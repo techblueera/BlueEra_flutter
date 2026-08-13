@@ -15,7 +15,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/social_main_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -45,7 +45,11 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
-import 'package:BlueEra/features/me/social/view/social_main.dart';
+// Two different screens are called SocialMainScreen: the app's top-level
+// Social section (chat/view/social_main_screen.dart, the Feed/Bites/My Post
+// tabs) and the "Me > Social" profile below. This file is the only place that
+// needs both, so the Me-side one is prefixed rather than renamed.
+import 'package:BlueEra/features/me/social/view/social_main.dart' as me_social;
 import 'package:BlueEra/features/me/vehicle/v3/view/vehicle_screen_v3.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
@@ -888,7 +892,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // return const ReelsTabScreen();
 
       default:
-        return const OrderMainChatScreen();
+        return const SocialMainScreen();
     }
   }
 
@@ -1112,7 +1116,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             userProfessionGlobal == ARTIST) {
           return const ContentCreatorMainScreen();
         }
-        return const SocialMainScreen();
+        return const me_social.SocialMainScreen();
 
       case PROFESSIONAL:
         return const ProfessionalsMainScreen();

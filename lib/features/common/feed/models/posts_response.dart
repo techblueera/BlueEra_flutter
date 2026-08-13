@@ -46,6 +46,14 @@ class PostResponse {
     );
   }
 }
+/// Trims a raw JSON value to a non-empty string, or null. The engagement
+/// routing fields must treat `""` exactly like a missing key — an empty
+/// `origin_post_id` means "native reel", not "post with a blank id".
+String? _nonEmptyString(dynamic raw) {
+  final value = raw?.toString().trim() ?? '';
+  return value.isEmpty ? null : value;
+}
+
 class Post {
   final String id;
   final String? message;
@@ -96,6 +104,26 @@ class Post {
   final FeedReel? reel;
 
   bool get isReel => itemType == 'reel';
+
+  /// Set on a reel/video item that was ingested from a post — see
+  /// [engagementPostId], which is what callers should read.
+  final String? originPostId;
+
+  /// The post that owns this item's likes/comments/shares, or null when
+  /// video-service owns them.
+  ///
+  /// Resolves the id wherever it arrived: on the wrapper (merged feed
+  /// `short_video` items) or nested in the reel payload (`item_type: "reel"`).
+  ///
+  /// **Engagement writes must branch on this.** Posting a like for an ingested
+  /// reel to the video endpoints is not an error the backend can catch — it
+  /// lands in a counter nothing reads back, so the like appears to work,
+  /// survives the session, and is gone on next launch.
+  /// See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  String? get engagementPostId => originPostId ?? reel?.originPostId;
+
+  /// True when a post — not video-service — owns this item's engagement.
+  bool get isEngagementOwnedByPost => (engagementPostId?.isNotEmpty ?? false);
 
   /// `live: true` on a video item marks a live stream (guide §4.4).
   final bool? live;
@@ -172,6 +200,7 @@ class Post {
     this.business,
     this.product,
     this.suggestions,
+    this.originPostId,
   });
 
   /// `location` is polymorphic across feed item types: a plain string on posts
@@ -211,6 +240,10 @@ class Post {
       return Post(
         id: reelJson['id']?.toString() ?? '',
         itemType: 'reel',
+        // The wrapper may carry the engagement owner instead of the payload;
+        // FeedReel parses its own copy, and [engagementPostId] takes whichever
+        // is present.
+        originPostId: _nonEmptyString(json['origin_post_id']),
         reel: FeedReel.fromJson(reelJson),
       );
     }
@@ -219,6 +252,8 @@ class Post {
       itemType: json['item_type'],
       channelName: json['channelName'],
       is_reposted: json['is_reposted'],
+      // Present on merged-feed `short_video` items ingested from a post.
+      originPostId: _nonEmptyString(json['origin_post_id']),
       message: json['message'] ?? json['text'],
       location: _parseLocation(json['location']),
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -287,6 +322,9 @@ class Post {
       'channelName': channelName,
       'message': message,
       'is_reposted': is_reposted,
+      // Round-tripped so a disk-cached feed still routes engagement correctly
+      // after a rehydrate.
+      'origin_post_id': originPostId,
       'location': location,
       'latitude': latitude,
       'post_via': post_via,
@@ -335,6 +373,7 @@ class Post {
     String? id,
     String? message,
     String? channelName,
+    String? originPostId,
     String? post_via,
     String? location,
     double? latitude,
@@ -382,6 +421,7 @@ class Post {
       channelName: channelName ?? this.channelName,
       post_via: post_via ?? this.post_via,
       is_reposted: is_reposted ?? this.is_reposted,
+      originPostId: originPostId ?? this.originPostId,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -771,6 +811,17 @@ class FeedReel {
   final Map<String, dynamic>? thumbnails;
   final FeedReelStats stats;
 
+  /// Set when this reel was ingested from a post. The post then owns its
+  /// likes/comments/shares and every write must target the post endpoints with
+  /// this id. Null on native reels. See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  final String? originPostId;
+
+  /// Backend convenience discriminator (`"post"`) shipped beside
+  /// [originPostId]; [hasOriginPost] is what callers branch on.
+  final String? engagementSource;
+
+  bool get hasOriginPost => (originPostId?.isNotEmpty ?? false);
+
   FeedReel({
     this.id,
     this.userId,
@@ -785,6 +836,8 @@ class FeedReel {
     this.createdAt,
     this.song,
     this.thumbnails,
+    this.originPostId,
+    this.engagementSource,
     FeedReelStats? stats,
   }) : stats = stats ?? const FeedReelStats();
 
@@ -801,6 +854,8 @@ class FeedReel {
       duration: int.tryParse(json['duration']?.toString() ?? '') ?? 0,
       type: json['type']?.toString(),
       createdAt: _parseReelTimestamp(json['created_at']),
+      originPostId: _nonEmptyString(json['origin_post_id']),
+      engagementSource: _nonEmptyString(json['engagement_source']),
       song: json['song'],
       thumbnails: (json['thumbnails'] as Map?)?.cast<String, dynamic>(),
       stats: FeedReelStats.fromJson(

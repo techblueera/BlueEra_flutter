@@ -227,14 +227,26 @@ class VideoController extends GetxController{
   // }
 
   ///VIDEO LIKE...
-  Future<void> videoLike({required String videoId}) async {
+  ///
+  /// [originPostId] must be passed when the video was ingested from a post
+  /// (`ShortFeedItem.engagementPostId`) — the post owns the counters then, and
+  /// a like sent to video-service silently goes nowhere.
+  /// See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  Future<void> videoLike({
+    required String videoId,
+    String? originPostId,
+  }) async {
     // Cancel existing timer for this specific video
     _likeApiTimers[videoId]?.cancel();
 
     // Start new debounced timer for this video
     _likeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
       try {
-        final response = await FeedRepo().likeVideo(videoId: videoId);
+        // `post/like` toggles, so it serves both directions for an ingested
+        // video; native videos keep their separate like/unlike calls.
+        final response = (originPostId?.isNotEmpty ?? false)
+            ? await FeedRepo().likePost(postId: originPostId!)
+            : await FeedRepo().likeVideo(videoId: videoId);
 
         if (response.isSuccess) {
           videoLikeResponse = ApiResponse.complete(response);
@@ -253,14 +265,21 @@ class VideoController extends GetxController{
   }
 
   ///VIDEO UnLIKE...
-  Future<void> videoUnLike({required String videoId}) async {
+  ///
+  /// See [videoLike] for why [originPostId] matters.
+  Future<void> videoUnLike({
+    required String videoId,
+    String? originPostId,
+  }) async {
     // Cancel existing timer for this specific video
     _likeApiTimers[videoId]?.cancel();
 
     // Start new debounced timer for this video
     _likeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
       try {
-        final response = await FeedRepo().unlikeVideo(videoId: videoId);
+        final response = (originPostId?.isNotEmpty ?? false)
+            ? await FeedRepo().likePost(postId: originPostId!)
+            : await FeedRepo().unlikeVideo(videoId: videoId);
 
         if (response.isSuccess) {
           videoUnlikeResponse = ApiResponse.complete(response);
@@ -522,7 +541,9 @@ class VideoController extends GetxController{
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
         }
 
-        params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
+        // `post_via` intentionally not sent — it defaults to "all" server-side,
+        // which brings channel-era videos back onto profiles. See
+        // SOCIAL_SECTION_INTEGRATION_GUIDE.md §6.
 
         // if(channelId.isEmpty){
           /// for own channel or any profile we will fetch videos by user Id

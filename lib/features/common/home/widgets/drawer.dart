@@ -601,7 +601,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         ),
       ]),
       _DrawerSection(AppStrings.workspaceSectionLabel.tr, [
-        _DrawerItem(
+      /*  _DrawerItem(
           icon: Icons.podcasts_rounded,
           color: _blue,
           title: AppStrings.channelAndCommunity.tr,
@@ -622,7 +622,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               );
             }
           },
-        ),
+        ),*/
         _DrawerItem(
           icon: Icons.description_outlined,
           color: _slate,

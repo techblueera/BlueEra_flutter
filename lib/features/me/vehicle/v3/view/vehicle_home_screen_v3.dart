@@ -212,7 +212,6 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
           tabViews: [
             _tabScroll(VehicleListingsTabV3(businessId: widget.businessId)),
             _tabScroll(const VehicleOverviewTabV3()),
-            // _tabScroll(const VehiclePostTabV3()),
             ProfileStatisticsScreen(userId: widget.businessId),
           ],
         ),

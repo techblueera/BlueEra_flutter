@@ -175,6 +175,20 @@ class ShortFeedItem {
   final int? viewsCount;
   final int? sharesCount;
 
+  /// Item-level copy of the video's `origin_post_id`. Some feeds carry it on
+  /// the wrapper rather than nested under `video`, so both are parsed and
+  /// [engagementPostId] resolves whichever arrived.
+  final String? originPostId;
+
+  /// The post id that owns this reel's likes/comments/shares, or null when the
+  /// reel is native and video-service owns them.
+  ///
+  /// **Every engagement write must branch on this** — writing to the video
+  /// endpoints for an ingested reel is not an error the backend can catch: it
+  /// lands in a counter nothing reads back, so the like appears to work and is
+  /// gone on next launch. See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  String? get engagementPostId => originPostId ?? video?.originPostId;
+
   ShortFeedItem({
     this.commentsCount,
     this.likesCount,
@@ -191,6 +205,7 @@ class ShortFeedItem {
     this.interactions,
     this.metadata,
     this.prefetch,
+    this.originPostId,
   });
 
   factory ShortFeedItem.fromJson(Map<String, dynamic> json) {
@@ -199,6 +214,7 @@ class ShortFeedItem {
       position: json['position'],
       score: json['score'],
       reason: json['reason'],
+      originPostId: _nonEmpty(json['origin_post_id']),
       video: json['video'] != null ? VideoData.fromJson(json['video']) : null,
       author: json['author'] != null ? Author.fromJson(json['author']) : null,
       channel:
@@ -226,6 +242,7 @@ class ShortFeedItem {
         'interactions': interactions?.toJson(),
         'metadata': metadata?.toJson(),
         'prefetch': prefetch?.toJson(),
+        'origin_post_id': originPostId,
       };
 
   ShortFeedItem copyWith({
@@ -244,8 +261,10 @@ class ShortFeedItem {
     int? repostCount,
     int? viewsCount,
     int? sharesCount,
+    String? originPostId,
   }) {
     return ShortFeedItem(
+      originPostId: originPostId ?? this.originPostId,
       videoId: videoId ?? this.videoId,
       position: position ?? this.position,
       score: score ?? this.score,
@@ -349,6 +368,13 @@ class Prefetch {
       );
 }
 
+/// Trims a raw JSON value to a non-empty string, or null. Used for the
+/// engagement-routing fields, where `""` must behave exactly like a missing key.
+String? _nonEmpty(dynamic raw) {
+  final value = raw?.toString().trim() ?? '';
+  return value.isEmpty ? null : value;
+}
+
 class VideoData {
   final String? id;
   final String? userId;
@@ -380,6 +406,25 @@ class VideoData {
 
   /// Creator-declared "this video was made with AI" disclosure.
   final bool? isAiGenerated;
+
+  /// Set when this video was ingested from a post — the post is then the single
+  /// source of truth for its likes, comments and shares, and **every write must
+  /// go to the post endpoints using this id**, never the video ones. Absent on
+  /// native reels (recorder uploads, legacy channel uploads).
+  ///
+  /// Reads need no special handling: the backend already serves an ingested
+  /// reel with the post's counters and `isLiked`. Only writes branch.
+  /// See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  final String? originPostId;
+
+  /// Convenience discriminator shipped alongside [originPostId]
+  /// (`"post"` when the post owns engagement). Kept for parity with the
+  /// backend contract; [hasOriginPost] is what the app branches on.
+  final String? engagementSource;
+
+  /// True when engagement for this video belongs to a post.
+  bool get hasOriginPost => (originPostId?.isNotEmpty ?? false);
+
   final Stats? stats;
   final String? createdAt;
   final String? updatedAt;
@@ -415,6 +460,8 @@ class VideoData {
     this.isBrandPromotion,
     this.brandPromotionLink,
     this.isAiGenerated,
+    this.originPostId,
+    this.engagementSource,
     this.stats,
     this.createdAt,
     this.updatedAt,
@@ -436,6 +483,10 @@ class VideoData {
       coverUrl: json['coverUrl'],
       videoUrl: json['videoUrl'],
       duration: (json['duration'] as num?)?.toInt(),
+      // Empty string and null both mean "native reel" — normalise so callers
+      // only have to check for null.
+      originPostId: _nonEmpty(json['origin_post_id']),
+      engagementSource: _nonEmpty(json['engagement_source']),
       transcodedUrls: json['transcodedUrls'] != null
           ? TranscodedUrls.fromJson(json['transcodedUrls'])
           : null,
@@ -500,6 +551,10 @@ class VideoData {
         'isBrandPromotion': isBrandPromotion,
         'brandPromotionLink': brandPromotionLink,
         'isAiGenerated': isAiGenerated,
+        // Round-tripped so a cached/serialised reel still routes its writes to
+        // the owning post after a rehydrate.
+        'origin_post_id': originPostId,
+        'engagement_source': engagementSource,
         'stats': stats?.toJson(),
         'createdAt': createdAt,
         'updatedAt': updatedAt,
@@ -536,6 +591,8 @@ class VideoData {
     bool? isBrandPromotion,
     String? brandPromotionLink,
     bool? isAiGenerated,
+    String? originPostId,
+    String? engagementSource,
     Stats? stats,
     String? createdAt,
     String? updatedAt,
@@ -572,6 +629,8 @@ class VideoData {
       isBrandPromotion: isBrandPromotion ?? this.isBrandPromotion,
       brandPromotionLink: brandPromotionLink ?? this.brandPromotionLink,
       isAiGenerated: isAiGenerated ?? this.isAiGenerated,
+      originPostId: originPostId ?? this.originPostId,
+      engagementSource: engagementSource ?? this.engagementSource,
       stats: stats ?? this.stats,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

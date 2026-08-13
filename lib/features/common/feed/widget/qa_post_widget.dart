@@ -2,13 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
-import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_stats_strip.dart';
+import 'package:BlueEra/widgets/dashed_divider.dart';
 import 'package:flutter/material.dart';
 
 class QaPostWidget extends StatefulWidget {
@@ -65,41 +65,56 @@ class _QaPostWidgetState extends State<QaPostWidget> {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                  top: SizeConfig.size8,
+                  top: SizeConfig.size15,
                   bottom: SizeConfig.size5,
                   right: SizeConfig.size10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  widget.authorSection(),
-                  SizedBox(
-                    height: SizeConfig.size5,
-                  ),
+                  // Question and options lead the card; the byline follows,
+                  // separated by a dashed rule. A poll's subject is what the
+                  // reader is deciding on, so it comes before who asked.
                   _buildPollOptions(),
-                  SizedBox(
-                    height: SizeConfig.size10,
+                  SizedBox(height: SizeConfig.size12),
+                  Padding(
+                    // Right-5 balances the outer right-10 so the rule is
+                    // inset equally on both sides of the card.
+                    padding: EdgeInsets.only(
+                        left: SizeConfig.size15, right: SizeConfig.size5),
+                    child: const DashedDivider(),
                   ),
+                  SizedBox(height: SizeConfig.size12),
+                  widget.authorSection(),
+                  SizedBox(height: SizeConfig.size10),
                   Padding(
                     padding: EdgeInsets.only(
-                        top: SizeConfig.size10,
-                        bottom: SizeConfig.size5,
-                        left:widget.postFilteredType == PostType.otherChannelPosts? SizeConfig.size15: SizeConfig.size32,
-                        right: SizeConfig.size5),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ViewFeedActionWidget(
-                            iconPath: AppIconAssets.clock_new,
-                            data: widget.postedAgo),
-                        SizedBox(width: SizeConfig.size12),
-                        ViewFeedActionWidget(
-                          iconPath: AppIconAssets.eye_new,
-                          data:
-                              formatNumberLikePost(widget.post?.viewsCount ?? 0),
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size5,
+                      bottom: SizeConfig.size5,
+                    ),
+                    // A poll takes no comments, reposts or shares, so its strip
+                    // carries only time, reach and likes — clustered left
+                    // rather than spread, which three entries cannot fill.
+                    child: FeedStatsStrip(
+                      spread: false,
+                      items: [
+                        FeedStatItem(
+                          iconPath: AppIconAssets.clock_new,
+                          label: timeAgo(
+                              widget.post?.createdAt?.toIso8601String()),
                         ),
-                        SizedBox(width: SizeConfig.size12),
-                        InkWell(
+                        FeedStatItem(
+                          iconPath: AppIconAssets.eye_new,
+                          label: formatNumberLikePost(
+                              widget.post?.viewsCount ?? 0),
+                        ),
+                        FeedStatItem(
+                          iconPath: AppIconAssets.like_new,
+                          label: formatNumberLikePost(
+                              widget.post?.likesCount ?? 0),
+                          iconColor: (widget.post?.isLiked ?? false)
+                              ? AppColors.primaryColor
+                              : null,
                           onTap: () {
                             if (isGuestUser()) {
                               createProfileScreen();
@@ -107,33 +122,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                               widget.likeFeed();
                             }
                           },
-                          child: Padding(
-                            padding:
-                            EdgeInsets.only(right: SizeConfig.size10),
-                            child: Row(
-                              children: [
-                                LocalAssets(
-                                  imagePath: AppIconAssets.like_new,
-                                  width: SizeConfig.size24,
-                                  height: SizeConfig.size24,
-                                  imgColor: (widget.post?.isLiked ?? false)
-                                      ? AppColors.primaryColor
-                                      : AppColors.secondaryTextColor,
-                                ),
-                                SizedBox(
-                                  width: SizeConfig.size5,
-                                ),
-                                CustomText(
-                                  formatNumberLikePost(widget.post?.likesCount ?? 0),
-                                  color: AppColors.secondaryTextColor,
-                                  fontSize: SizeConfig.size12,
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
-
-
                       ],
                     ),
                   ),

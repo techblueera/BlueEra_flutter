@@ -41,6 +41,20 @@ class AppIconAssets {
   static const String likeIcon = '${iconPath}like_icon.svg';
   static const String shareIcon = '${iconPath}share_icon.svg';
   static const String viewIcon = '${iconPath}view_icon.svg';
+
+  /// Social-section tab glyphs (Feed / Bites / My Post) in [SocialMainScreen].
+  ///
+  /// Each tab ships as a pair: a resting glyph in grey (#66727E) and an active
+  /// one in blue (#0085FE). The colours are baked into the files, so these must
+  /// be rendered WITHOUT `LocalAssets(imgColor:)` — passing a tint flattens the
+  /// whole glyph to one colour and throws the artwork away.
+  static const String tabFeed = '${iconPath}Feed.svg';
+  static const String tabFeedActive = '${iconPath}Feed_fill.svg';
+  static const String tabBites = '${iconPath}Bites.svg';
+  static const String tabBitesActive = '${iconPath}Bites_fill.svg';
+  static const String tabMyPost = '${iconPath}My_Post.svg';
+  static const String tabMyPostActive = '${iconPath}My_Post_fill.svg';
+
   static const String phoneSecurity = '${iconPath}phone_security.svg';
   static const String cameraWhiteIcon = '${iconPath}camera_white_icon.svg';
   static const String uploadIcon = '${iconPath}upload_icon.svg';

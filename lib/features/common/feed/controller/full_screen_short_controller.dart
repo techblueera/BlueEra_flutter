@@ -94,14 +94,27 @@ class FullScreenShortController extends GetxController{
 
 
   ///SHORT VIDEO LIKE...
-  Future<void> shortVideoLike({required String videoId}) async {
+  ///
+  /// [originPostId] must be passed whenever the reel was ingested from a post
+  /// (`ShortFeedItem.engagementPostId`). The post then owns the counters, and a
+  /// like written to video-service would land where nothing reads it back — it
+  /// looks like it worked, then vanishes on next launch.
+  /// See SOCIAL_SECTION_INTEGRATION_GUIDE.md §4.
+  Future<void> shortVideoLike({
+    required String videoId,
+    String? originPostId,
+  }) async {
     // Cancel existing timer for this specific video
     _shortLikeApiTimers[videoId]?.cancel();
 
     // Start new debounced timer for this video
     _shortLikeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
       try {
-        final response = await FeedRepo().likeVideo(videoId: videoId);
+        // `post/like` is a toggle, so an ingested reel uses it for both like
+        // and unlike; only native reels have a separate DELETE.
+        final response = (originPostId?.isNotEmpty ?? false)
+            ? await FeedRepo().likePost(postId: originPostId!)
+            : await FeedRepo().likeVideo(videoId: videoId);
 
         if (response.isSuccess) {
           shortVideoLikeResponse = ApiResponse.complete(response);
@@ -120,14 +133,21 @@ class FullScreenShortController extends GetxController{
   }
 
   ///SHORT VIDEO UnLIKE...
-  Future<void> shortVideoUnLike({required String videoId}) async {
+  ///
+  /// See [shortVideoLike] for why [originPostId] matters.
+  Future<void> shortVideoUnLike({
+    required String videoId,
+    String? originPostId,
+  }) async {
     // Cancel existing timer for this specific video
     _shortLikeApiTimers[videoId]?.cancel();
 
     // Start new debounced timer for this video
     _shortLikeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
       try {
-        final response = await FeedRepo().unlikeVideo(videoId: videoId);
+        final response = (originPostId?.isNotEmpty ?? false)
+            ? await FeedRepo().likePost(postId: originPostId!)
+            : await FeedRepo().unlikeVideo(videoId: videoId);
 
         if (response.isSuccess) {
           shortVideoUnlikeResponse = ApiResponse.complete(response);

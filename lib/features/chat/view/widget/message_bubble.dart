@@ -15,7 +15,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../order_main_chat_screen.dart';
+import '../social_main_screen.dart';
 import 'chat_video_pip_controller.dart';
 import 'component_widgets.dart';
 import 'phone_user_preview.dart';
@@ -428,7 +428,7 @@ mainAxisAlignment: MainAxisAlignment.center,
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => OrderMainChatScreen(
+                      builder: (context) => SocialMainScreen(
                         isForwardUI: true,
 
                       ),

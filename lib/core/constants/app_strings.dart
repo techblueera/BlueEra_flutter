@@ -1289,6 +1289,17 @@ class AppStrings {
   static const jobStatusInterview = "jobStatusInterview";
   static const jobStatusClosed = "jobStatusClosed";
   static const myPosts = "myPosts";
+
+  /// Social-section tab labels. [myPost] is the singular tab title from the
+  /// design and is deliberately distinct from the plural [myPosts] used for
+  /// the profile tab and empty states.
+  static const feed = "feed";
+  static const myPost = "myPost";
+
+  /// My Post grid filter chips.
+  static const shorts = "shorts";
+  static const videos = "videos";
+  static const reposts = "reposts";
   static const clearAllJobConfirmation = "clearAllJobConfirmation";
   static const clearAll = "clearAll";
   static const noJobListingFound = "noJobListingFound";
