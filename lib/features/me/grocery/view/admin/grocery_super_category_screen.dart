@@ -11,6 +11,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_floating_cart.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_product_select_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -27,7 +28,18 @@ import 'package:get/get.dart';
 /// then routes to the Add Grocery Variant flow.
 class GrocerySuperCategoryScreen extends StatefulWidget {
   final bool isAvailBulkUpload;
-  const GrocerySuperCategoryScreen({super.key, required this.isAvailBulkUpload});
+
+  /// True when this screen was opened by the app-open kickstart rather than by
+  /// the merchant tapping "Add product" — see [showAddProductsKickstartIfNeeded].
+  /// It swaps the back arrow for a ✕ (nothing was navigated away from, so there
+  /// is nothing to go back to) and explains, above the rails, why it appeared.
+  final bool isKickstart;
+
+  const GrocerySuperCategoryScreen({
+    super.key,
+    required this.isAvailBulkUpload,
+    this.isKickstart = false,
+  });
 
   @override
   State<GrocerySuperCategoryScreen> createState() =>
@@ -60,6 +72,8 @@ class _GrocerySuperCategoryScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
+        isLeading: !widget.isKickstart,
+        leadingWidget: widget.isKickstart ? const KickstartCloseButton() : null,
         buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 20.0),
           child: CustomBtn(
@@ -102,6 +116,9 @@ class _GrocerySuperCategoryScreenState
       final sections = controller.groceryRootCategoryList;
       return CustomScrollView(
         slivers: [
+          // Why this page opened, when it opened itself.
+          if (widget.isKickstart)
+            const SliverToBoxAdapter(child: KickstartIntroBanner()),
           // ── Snap-search suggestion (conditional) ─────────────────
           if (widget.isAvailBulkUpload)
             SliverToBoxAdapter(

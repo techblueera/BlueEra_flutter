@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
+import 'package:BlueEra/widgets/card_name_slack.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +114,15 @@ class ManufacturerAdminProductCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => _openDetails(context),
-      child: (isGridShow) ? Container(
+      child: (isGridShow) ? CardNameSlack(
+        // Measures the name against this card's own width so the line it
+        // doesn't use is spent at the BOTTOM of the card instead of as a gap
+        // under the title. `SizeConfig.size8 * 2` is the details padding.
+        text: details?.name ?? '',
+        fontSize: SizeConfig.medium,
+        lineHeight: _gridNameLineHeight,
+        horizontalPadding: SizeConfig.size8 * 2,
+        builder: (context, nameSlack) => Container(
         width: width,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
@@ -168,26 +177,19 @@ class ManufacturerAdminProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ManufacturerProduct Name — reserves two lines so short and
-                  // long names occupy the same height (extra space stays at
-                  // the bottom of the card). [gridCardHeight] already budgeted
-                  // for two lines; the name itself never reserved them, so a
-                  // one-line name left the grid cells disagreeing on where
-                  // their price sat.
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: _gridNameBlockHeightOf(context),
-                      minWidth: double.infinity,
-                    ),
-                    child: CustomText(
-                      details?.name,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                      height: _gridNameLineHeight,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  // ManufacturerProduct Name — natural height, one line or two.
+                  // The card still occupies the same total height as its
+                  // neighbours because the line a short name didn't use is
+                  // added at the END of the card (see the SizedBox after the
+                  // attributes), instead of sitting as a hole under the title.
+                  CustomText(
+                    details?.name,
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    height: _gridNameLineHeight,
+                    overflow: TextOverflow.ellipsis,
                   ),
 
                   SizedBox(height: SizeConfig.size5),
@@ -229,6 +231,10 @@ class ManufacturerAdminProductCard extends StatelessWidget {
                   if (showAttributes)
                     ManufacturerAttributeRows(attributeMap: uniqueAttributes),
 
+                  // The name line this card didn't need, spent here so the
+                  // cards stay the same height with the blank at the bottom.
+                  if (nameSlack > 0) SizedBox(height: nameSlack),
+
                   // const SizedBox(height: 6),
                   //
                   // // Share ManufacturerProduct
@@ -259,6 +265,7 @@ class ManufacturerAdminProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ) : Container(
         height: SizeConfig.size200,
         decoration: BoxDecoration(

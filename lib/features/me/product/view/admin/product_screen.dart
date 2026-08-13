@@ -21,7 +21,9 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/view/admin/product_home_screen.dart';
 // import 'package:BlueEra/features/me/product/view/admin/tabs/product_post_tab.dart';
 import 'package:BlueEra/features/me/product/view/admin/tabs/products_tab.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -363,7 +365,30 @@ class _ProductScreenState extends State<ProductScreen>
   /// yet it shows the "Set visiting hours" prompt. Hours are set and edited
   /// from the clock button beside the pill. The security-deposit gate lives in
   /// toggleLiveNow().
+  ///
+  /// An EMPTY catalogue is checked first, ahead of that payment gate — see
+  /// [ensureCatalogueBeforeGoLive]. Only when going live; going offline is
+  /// never blocked.
   Future<void> handleGoLiveTap() async {
+    if (!viewBusinessDetailsController.shopStatus.value.isOpenNow) {
+      final ok = await ensureCatalogueBeforeGoLive(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleProduct,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.inventory_2_outlined,
+        ),
+        ensureLoaded: () => inventoryController.fetchAllProductDataIfNeeded(),
+        hasItems: () =>
+            inventoryController.allProducts.isNotEmpty ||
+            inventoryController.productNestedCategoryList.isNotEmpty,
+        isLoaded: () =>
+            inventoryController.fetchProductCategoryResponse.value.status ==
+            Status.COMPLETE,
+        onAddItems: _onAddProduct,
+      );
+      if (!ok) return;
+    }
     await viewBusinessDetailsController.toggleLiveNow();
   }
 

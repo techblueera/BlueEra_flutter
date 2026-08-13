@@ -114,12 +114,13 @@ class _HotelAvailabilityScreenState extends State<HotelAvailabilityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonBackAppBar(title: 'Hotel Availability'),
+      // Save lives in the Scaffold's bottom slot rather than as the last child
+      // of the body Column — same place on screen, but pinned by the Scaffold
+      // and keyboard-aware.
+      bottomNavigationBar: _buildSaveBar(),
       body: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+        child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   14,
                   SizeConfig.size16,
@@ -149,10 +150,6 @@ class _HotelAvailabilityScreenState extends State<HotelAvailabilityScreen> {
                   ],
                 ),
               ),
-            ),
-            _buildSaveBar(),
-          ],
-        ),
       ),
     );
   }

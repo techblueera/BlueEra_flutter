@@ -1057,11 +1057,62 @@ class AuthController extends GetxController {
   /// next login refetches). Every other launch serves purely from cache and
   /// makes no `getAllcategories` / professions API call. Pass
   /// [forceRefresh] = true (e.g. pull-to-refresh) to fetch even when cached.
+  /// Whether the business buckets already hold the catalog.
+  ///
+  /// ANY bucket, not all of them: the ten verticals are whatever the backend
+  /// sends, and requiring every one to be populated would treat a build with
+  /// no finance category as an empty catalog and refetch it forever.
+  bool get hasBusinessCategoriesInMemory =>
+      businessOnboardingServicesCategories.isNotEmpty ||
+      businessOnboardingProductsCategories.isNotEmpty ||
+      businessOnboardingGroceriesCategories.isNotEmpty ||
+      businessOnboardingFoodsCategories.isNotEmpty ||
+      businessOnboardingManufacturingCategories.isNotEmpty ||
+      businessOnboardingAutomotiveServicesCategories.isNotEmpty ||
+      businessOnboardingHealthcareSectorsCategories.isNotEmpty ||
+      businessOnboardingHospitalityStayCategories.isNotEmpty ||
+      businessOnboardingEducationTrainingCategories.isNotEmpty ||
+      businessOnboardingFinancialSectorsCategories.isNotEmpty;
+
+  /// Same, for the profession buckets.
+  bool get hasProfessionsInMemory =>
+      individualOnboardingSocialProfileList.isNotEmpty ||
+      individualOnboardingGigWorkList.isNotEmpty ||
+      individualOnboardingSkillWorkList.isNotEmpty ||
+      individualOnboardingConsultationList.isNotEmpty;
+
   Future<void> loadCategoriesCacheFirstThenRefresh({bool forceRefresh = false}) async {
+    // Already in memory — nothing to read, nothing to rebuild.
+    //
+    // Seven call sites reach this (both account-type screens, the bottom-nav
+    // post-frame on every launch, the profile setup screen, the designation
+    // sheet, the profession dialog), and without this each one re-read both
+    // boxes, re-parsed ~140 models through a jsonEncode/jsonDecode round trip,
+    // and `assignAll`-ed fourteen RxLists — notifying every Obx watching them —
+    // to arrive at exactly the lists already on screen.
+    //
+    // The catalog is the platform's and does not change under a running app,
+    // so the buckets, once filled, ARE the answer. They also outlive a logout
+    // (this controller is never disposed, and its Hive backing is preserved by
+    // LogoutHelper.readSharedLocalData), which is why the next sign-in gets the
+    // account-type screen without a shimmer or a request.
+    //
+    // `forceRefresh` still goes all the way to the network — that is the escape
+    // hatch for a catalog that genuinely changed server-side.
+    if (!forceRefresh && hasBusinessCategoriesInMemory && hasProfessionsInMemory) {
+      isInitialCategoriesLoading.value = false;
+      return;
+    }
+
     final hive = HiveServices();
 
-    final cachedBusiness = hive.getAllCategories();
-    final cachedProfessions = hive.getAllProfessions();
+    // Only read the half that isn't already in memory. Re-reading a box to
+    // rebuild a list that is identical to the one in hand is the whole cost
+    // this method was paying.
+    final cachedBusiness =
+        hasBusinessCategoriesInMemory ? null : hive.getAllCategories();
+    final cachedProfessions =
+        hasProfessionsInMemory ? null : hive.getAllProfessions();
 
     final hasCachedBusiness = cachedBusiness != null && cachedBusiness.isNotEmpty;
     final hasCachedProfessions = cachedProfessions != null && cachedProfessions.isNotEmpty;
@@ -1075,8 +1126,9 @@ class AuthController extends GetxController {
       updateIndividualCategoriesFromApi(cachedProfessions);
     }
 
-    // If we have any cache, render immediately so no shimmer lingers.
-    if (hasCachedBusiness || hasCachedProfessions) {
+    // Anything on screen (from this cache read or from a previous one) means
+    // the shimmer has nothing left to wait for.
+    if (hasBusinessCategoriesInMemory || hasProfessionsInMemory) {
       isInitialCategoriesLoading.value = false;
     }
 
@@ -1088,10 +1140,14 @@ class AuthController extends GetxController {
     // always go through this cache-first entry point — single source of
     // truth, no path that bypasses Hive.
     final pending = <Future<void>>[];
-    if (forceRefresh || !hasCachedBusiness) {
+    // Keyed on what is now IN MEMORY, not on what this pass happened to read
+    // from disk: a bucket filled by an earlier call is just as loaded as one
+    // filled a line ago, and asking the network for it again is the request
+    // this whole method exists to avoid.
+    if (forceRefresh || !hasBusinessCategoriesInMemory) {
       pending.add(_getAllBusinessCategories());
     }
-    if (forceRefresh || !hasCachedProfessions) {
+    if (forceRefresh || !hasProfessionsInMemory) {
       pending.add(_getAllIndividualProfession());
     }
     if (pending.isNotEmpty) {

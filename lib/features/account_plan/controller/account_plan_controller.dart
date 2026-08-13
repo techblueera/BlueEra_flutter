@@ -7,8 +7,10 @@ import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../model/account_plan_models.dart';
+import '../model/deposit_migration_model.dart';
 import '../repo/account_plan_repo.dart';
 import '../view/account_plan_gst_sheet.dart';
+import '../view/upgrade_confirm_dialog.dart';
 import 'account_plan_entitlement.dart';
 
 /// Drives the Account Plan catalog and its purchase: initiate → Razorpay →
@@ -221,6 +223,16 @@ class AccountPlanController extends GetxController {
       if (gstin == null) return;
     }
 
+    // Already holding a plan makes this an UPGRADE, not a purchase: what they
+    // have already paid — their current plan, or the deposit they migrated
+    // from — is credited, and Razorpay will show only the difference. That
+    // path prices and confirms itself; only fall through to the plain purchase
+    // below when there is nothing to credit against.
+    if (hasActivePlan) {
+      final handled = await _upgradePlan(card);
+      if (handled) return;
+    }
+
     isProcessing.value = true;
     purchasingCode.value = card.optionCode;
 
@@ -292,12 +304,150 @@ class AccountPlanController extends GetxController {
     );
   }
 
-  Future<void> _onPaymentSuccess(PaymentSuccessResponse r) async {
-    final res = await _repo.verifyPayment(
-      orderId: r.orderId ?? '',
-      paymentId: r.paymentId ?? '',
-      signature: r.signature ?? '',
+  // ─── 3b. Upgrade with credit ────────────────────────────────────
+  /// True when the user holds any active plan, which is what turns a purchase
+  /// into an upgrade.
+  bool get hasActivePlan => activeOptionCodes.isNotEmpty;
+
+  /// Set for the lifetime of one upgrade checkout, so the payment that comes
+  /// back is verified against the endpoint that priced it. Verifying an upgrade
+  /// order through the plain plan verify would settle it against the wrong
+  /// ledger — the order was created for a difference, not a plan price.
+  bool _verifyingUpgrade = false;
+
+  /// Prices, confirms and starts an upgrade for [card].
+  ///
+  /// Returns true when this path has taken responsibility for the tap —
+  /// including when the user cancelled. False means "not an upgrade after all"
+  /// (no options, no breakdown, endpoint unavailable), and the caller then runs
+  /// the ordinary full-price purchase rather than leaving the merchant unable
+  /// to buy anything.
+  ///
+  /// The confirmation is not optional and not a snackbar: the catalog card says
+  /// one price and the payment sheet will say another, so the arithmetic that
+  /// reconciles them is shown, in the middle of the screen, before anything is
+  /// charged. When the credit is the refundable deposit, the same dialog
+  /// carries the terms and the pay button stays dead until they are accepted.
+  Future<bool> _upgradePlan(PlanCard card) async {
+    final options = await _repo.upgradeOptions();
+    final optionsData = _dataOf(options);
+    if (optionsData == null) return false;
+
+    final parsed = UpgradeOptions.fromJson(optionsData);
+    if (!parsed.hasActivePlan) return false;
+
+    final option = parsed.forCode(card.optionCode);
+    final breakdown = option?.breakdown;
+    // No breakdown means the backend is not offering this tier as an upgrade
+    // (same tier, a downgrade, or a different archetype). Nothing to credit,
+    // so it is an ordinary purchase.
+    if (option == null || breakdown == null) return false;
+
+    final context = Get.context;
+    if (context == null) return false;
+
+    final confirmed = await showUpgradeConfirmDialog(
+      context,
+      planLabel: card.label,
+      breakdown: breakdown,
+      requiresTnc: option.requiresTnc,
     );
+    // Cancelled at the confirmation — handled, and deliberately silent.
+    if (!confirmed) return true;
+
+    isProcessing.value = true;
+    purchasingCode.value = card.optionCode;
+
+    var res = await _repo.upgrade(
+      optionCode: card.optionCode,
+      buyerState: buyerState,
+      // Only sent when the user has just been shown the deposit terms and
+      // ticked them; the dialog would not have returned true otherwise.
+      tncAccepted: option.requiresTnc ? true : null,
+    );
+    var data = _dataOf(res);
+    if (data == null) {
+      _reset();
+      commonSnackBar(
+          message: res.message ?? AppStrings.couldNotStartPayment.tr);
+      return true;
+    }
+
+    var order = UpgradeOrder.fromJson(data);
+
+    // The backend can still ask for the terms — the credit source is decided
+    // server-side and may not have been `deposit` when the options were read.
+    // Show them with the breakdown IT sent, then re-post.
+    if (order.requiresTnc) {
+      _reset();
+      if (!context.mounted) return true;
+      final accepted = await showUpgradeConfirmDialog(
+        context,
+        planLabel: card.label,
+        breakdown: order.breakdown ?? breakdown,
+        requiresTnc: true,
+      );
+      if (!accepted) return true;
+      isProcessing.value = true;
+      purchasingCode.value = card.optionCode;
+      res = await _repo.upgrade(
+        optionCode: card.optionCode,
+        buyerState: buyerState,
+        tncAccepted: true,
+      );
+      data = _dataOf(res);
+      if (data == null) {
+        _reset();
+        commonSnackBar(
+            message: res.message ?? AppStrings.couldNotStartPayment.tr);
+        return true;
+      }
+      order = UpgradeOrder.fromJson(data);
+    }
+
+    // The credit covered the whole tier — activated outright, nothing to pay.
+    if (order.upgraded || !order.hasOrder) {
+      _reset();
+      commonSnackBar(message: AppStrings.planActivated.tr);
+      await fetchPlans();
+      return true;
+    }
+
+    _verifyingUpgrade = true;
+    _razorpay.openCheckout(
+      razorpayKeyId: order.keyId,
+      name: AppStrings.appName,
+      description: card.label,
+      // PAISE, and the DIFFERENCE only — the credit is already deducted
+      // server-side. Never the catalog price.
+      amount: order.totalAmount.toDouble(),
+      contact: buyerPhone,
+      email: buyerEmail,
+      subscriptionId: '',
+      orderId: order.orderId,
+      currency: order.currency,
+      onPaymentSuccess: _onPaymentSuccess,
+      onPaymentError: _onPaymentError,
+    );
+    return true;
+  }
+
+  Future<void> _onPaymentSuccess(PaymentSuccessResponse r) async {
+    // An upgrade order settles through the upgrade's own verify — see
+    // [_verifyingUpgrade].
+    final wasUpgrade = _verifyingUpgrade;
+    _verifyingUpgrade = false;
+    final res = wasUpgrade
+        ? await _repo.verifyUpgrade(
+            orderId: r.orderId ?? '',
+            paymentId: r.paymentId ?? '',
+            signature: r.signature ?? '',
+          )
+        : await _repo.verifyPayment(
+            orderId: r.orderId ?? '',
+            paymentId: r.paymentId ?? '',
+            signature: r.signature ?? '',
+          );
     _reset();
 
     final body = res.response?.data;
@@ -322,6 +472,7 @@ class AccountPlanController extends GetxController {
   void _reset() {
     isProcessing.value = false;
     purchasingCode.value = '';
+    _verifyingUpgrade = false;
   }
 
   // ─── GST gate ───────────────────────────────────────────────────

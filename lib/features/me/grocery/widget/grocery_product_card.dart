@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/dashed_border_container.dart';
+import 'package:BlueEra/widgets/card_name_slack.dart';
 import 'package:BlueEra/widgets/reserved_text_lines.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
@@ -135,7 +136,14 @@ class GroceryProductCard extends StatelessWidget {
     // image is missing or lives in a bucket that doesn't load.
     final variantImageUrl = _firstVariantImageUrl();
 
-    return InkWell(
+    // Measures the name against this card's own width so the line it doesn't
+    // use is spent at the BOTTOM of the card rather than as a gap under the
+    // title. `9.0 * 2` is the details block's horizontal padding.
+    return CardNameSlack(
+      text: groceryProducts.name ?? '',
+      fontSize: SizeConfig.small,
+      horizontalPadding: 9.0 * 2,
+      builder: (context, nameSlack) => InkWell(
       onTap: () => flowType == GroceryCardFlowType.myStore
           ? _showAdminVariantsSheet(Get.context!)
           : _showVariantsBottomSheet(Get.context!, _variants),
@@ -236,20 +244,17 @@ class GroceryProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name — always two lines' worth of space, so a one-line name
-                  // leaves blank at the bottom instead of pulling everything
-                  // below it up and misaligning neighbouring grid cells.
-                  ReservedTextLines(
+                  // Natural height — one line or two. Neighbouring cells still
+                  // agree because the unused line is added at the END of the
+                  // card (see the SizedBox after the price row).
+                  CustomText(
+                    groceryProducts.name ?? '',
                     fontSize: SizeConfig.small,
-                    child: CustomText(
-                      groceryProducts.name ?? '',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                      height: 1.3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    height: 1.3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: SizeConfig.size6),
 
@@ -294,12 +299,16 @@ class GroceryProductCard extends StatelessWidget {
                     mrp: '${price.mrpRange}',
                     discount: '${price.discountRange}',
                   ),
+                  // The name line this card didn't need, spent here so cells
+                  // stay the same height with the blank at the bottom.
+                  if (nameSlack > 0) SizedBox(height: nameSlack),
                 ],
               ),
             ),
           ],
         ),
       ),
+    ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -11,11 +12,11 @@ import 'package:BlueEra/features/me/food/view/admin/discount_food_products_scree
 import 'package:BlueEra/features/me/food/view/admin/food_category_menu_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_sheet.dart';
-import 'package:BlueEra/widgets/reserved_text_lines.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/card_name_slack.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
@@ -44,6 +45,16 @@ class FoodProductsTab extends StatelessWidget {
   static const double _popularDishRailHeight = 240;
   static const double _dishCardWidth = 170;
 
+  /// Padding inside the dish card's text block — also what [_nameSlack]
+  /// subtracts to measure the name at the width it is actually laid out in.
+  static const double _dishCardPadding = 6;
+
+  /// The dish name's type, in one place: the card renders with these and
+  /// [_nameSlack] measures with them. They must not drift apart.
+  static const double _nameFontSize = 13;
+  static const double _nameLineHeight = 1.3;
+  static const int _nameMaxLines = 2;
+
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => RestaurantController());
@@ -54,7 +65,9 @@ class FoodProductsTab extends StatelessWidget {
         // the add surface and carries its own add masthead, so a card pointing
         // at the screen you are already on would be noise.
         Padding(
-          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          padding: EdgeInsets.only(
+              top: 8,
+              right: productsTabTrailingInset),
           child: OrderActionsCarousel(),
         ),
         SizedBox(height: SizeConfig.size16),
@@ -66,12 +79,58 @@ class FoodProductsTab extends StatelessWidget {
           gradient: ProductsBannerGradient.food,
         ),
         SizedBox(height: SizeConfig.size20),
-        _popularDishesSection(controller),
-        SizedBox(height: SizeConfig.size20),
-        _menuSection(controller),
+        _catalogue(controller),
         SizedBox(height: SizeConfig.size16),
       ],
     );
+  }
+
+  /// The two catalogue sections — or, when the restaurant has published
+  /// nothing at all, ONE empty state in place of both.
+  ///
+  /// A brand-new restaurant used to land on a "Manage via categories" heading
+  /// over an inline empty box: a section header for a section that does not
+  /// exist yet, which reads as something failing to load rather than as a shop
+  /// with no menu. With no dishes and no categories there is nothing to manage,
+  /// so the tab says exactly that and offers the one action that changes it.
+  ///
+  /// Only when the menu fetch has RESOLVED. While it is still in flight the
+  /// lists are empty for the same reason a slow network is, and the sections
+  /// below render their own loaders instead.
+  Widget _catalogue(RestaurantController controller) {
+    return Obx(() {
+      final status = controller.foodHomeDataResponse.value.status;
+      final menuResolved = status == Status.COMPLETE || status == Status.ERROR;
+      final discountLoading = controller.isDiscountProductsLoading.value;
+      final nothingPublished = controller.discountFoodItems.isEmpty &&
+          controller.foodMenuNestedCategory.isEmpty &&
+          controller.restaurantSpecials.isEmpty;
+
+      if (menuResolved && !discountLoading && nothingPublished) {
+        return Padding(
+          padding: EdgeInsets.only(
+            right: productsTabTrailingInset,
+            top: SizeConfig.size24,
+            bottom: SizeConfig.size24,
+          ),
+          child: EmptyStateWidget(
+            message: AppStrings.foodNoProductCreate.tr,
+            actionText: AppStrings.addFood.tr,
+            actionCallback: () => _onAddFood(controller),
+            actionHighlight: true,
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _popularDishesSection(controller),
+          SizedBox(height: SizeConfig.size20),
+          _menuSection(controller, menuResolved: menuResolved),
+        ],
+      );
+    });
   }
 
   /// Opens the add-dish flow and, if the merchant published something, pulls
@@ -171,7 +230,42 @@ class FoodProductsTab extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => showFoodProductVariantSheet(context, product: item),
-      child: Container(
+      child: SizedBox(
+        width: _dishCardWidth,
+        child: CardNameSlack(
+          text: item.name ?? '',
+          fontSize: _nameFontSize,
+          lines: _nameMaxLines,
+          lineHeight: _nameLineHeight,
+          horizontalPadding: _dishCardPadding * 2,
+          builder: (context, nameSlack) => _dishCardBody(
+            context,
+            item: item,
+            nameSlack: nameSlack,
+            sellingPrice: sellingPrice,
+            mrp: mrp,
+            discountPercent: discountPercent,
+            variantCount: variantCount,
+            isMultiVariant: isMultiVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The card itself. Split out only so [CardNameSlack] can measure the name
+  /// against the card's own width before the body is built.
+  Widget _dishCardBody(
+    BuildContext context, {
+    required CategoryFoodProductData item,
+    required double nameSlack,
+    required num? sellingPrice,
+    required num? mrp,
+    required int discountPercent,
+    required int variantCount,
+    required bool isMultiVariant,
+  }) {
+    return Container(
         width: _dishCardWidth,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -201,7 +295,7 @@ class FoodProductsTab extends StatelessWidget {
                   ),
                 ),
                 if (discountPercent > 0)
-                  Positioned(
+                Positioned(
                     top: 0,
                     left: 0,
                     child: ClipRRect(
@@ -256,23 +350,21 @@ class FoodProductsTab extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(6.0),
+              padding: const EdgeInsets.all(_dishCardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Always two lines' worth of space, so a short dish name
-                  // leaves blank at the bottom instead of pulling the rating
-                  // and price up and misaligning neighbouring cards.
-                  ReservedTextLines(
-                    fontSize: 13,
-                    child: CustomText(
-                      item.name ?? '',
-                      fontWeight: FontWeight.w600,
-                      maxLines: 2,
-                      height: 1.3,
-                      fontSize: 13,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  // Natural height: one line for a short name, two for a long
+                  // one. The card still ends up as tall as its neighbours —
+                  // the line a short name didn't use is added at the BOTTOM of
+                  // the card instead (see [_nameSlack] below).
+                  CustomText(
+                    item.name ?? '',
+                    fontWeight: FontWeight.w600,
+                    maxLines: _nameMaxLines,
+                    height: _nameLineHeight,
+                    fontSize: _nameFontSize,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -336,18 +428,27 @@ class FoodProductsTab extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // The line the name didn't need, spent HERE — after the last
+                  // row — so the card matches its neighbours' height with the
+                  // blank at the bottom rather than a hole under the title.
+                  if (nameSlack > 0) SizedBox(height: nameSlack),
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
+        ));
   }
 
   // MENU CATEGORIES â€” a rail rather than a grid: categories are a lane you
   // scan across, and the block grid pushed the rest of the tab below the fold.
-  Widget _menuSection(RestaurantController controller) {
+  ///
+  /// [menuResolved] is false while the menu fetch is still in flight — an empty
+  /// list then means "not loaded", so it shows the rail skeleton rather than
+  /// telling the merchant they have no categories.
+  Widget _menuSection(
+    RestaurantController controller, {
+    required bool menuResolved,
+  }) {
     return Obx(() {
       final List<GroceryNestedCategoryModel> menus =
           List<GroceryNestedCategoryModel>.from(
@@ -361,7 +462,9 @@ class FoodProductsTab extends StatelessWidget {
             title: AppStrings.manageViaCategories.tr,
           ),
           SizedBox(height: SizeConfig.size12),
-          if (menus.isEmpty)
+          if (menus.isEmpty && !menuResolved)
+            const ProductCategoryRailSkeleton()
+          else if (menus.isEmpty)
             Padding(
               padding: EdgeInsets.only(
                 right: SizeConfig.size20,
@@ -370,6 +473,9 @@ class FoodProductsTab extends StatelessWidget {
               ),
               child: EmptyStateWidget(
                 message: AppStrings.foodNoProductCreate.tr,
+                actionText: AppStrings.addFood.tr,
+                actionCallback: () => _onAddFood(controller),
+                actionHighlight: true,
               ),
             )
           else

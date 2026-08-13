@@ -715,6 +715,34 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
       final tagId = item.tagId;
       final name = item.name;
       if (type == null || tagId == null || name == null) return;
+
+      // Small Business/Shop (NON GST) never sees the GST screen. The row is the
+      // user saying they have no GST, so asking again on the next screen is the
+      // same question twice — they go straight to the account form.
+      //
+      // The GST screen is not only about GST though: its initState is what
+      // hands the chosen category to [AuthController], which every later step
+      // (the summary card on step one, the create payload on step four) reads.
+      // Skipping the screen means doing that here, or the category is lost.
+      //
+      // The GST flags are reset for the same reason the screen's own "No I
+      // don't" / Skip paths reset them: `isHaveGstApprove` is what LOCKS the
+      // business name and address on step one to the GST-verified values, and
+      // it is a permanent controller, so a GST attempt earlier in this session
+      // would otherwise leave those fields locked to the wrong business.
+      if (widget.earnType == _EarnType.businessStore) {
+        authController
+          ..selectedTypeOfBusiness = type
+          ..selectedCategoryName = name
+          ..selectedCategorySlugId = tagId
+          ..selectedSubCategoryData = selectedSubCategory.value;
+        authController.hasGstNumber.value = false;
+        authController.isHaveGstApprove.value = false;
+        authController.isValidate.value = false;
+        Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
+        return;
+      }
+
       Navigator.pushNamed(
         context,
         RouteHelper.getGstNumberScreenRoute(),

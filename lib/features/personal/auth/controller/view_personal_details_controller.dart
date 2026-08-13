@@ -575,19 +575,42 @@ class ViewPersonalDetailsController extends GetxController
     await showShopAvailabilitySheet(this, timingsOnly: true);
   }
 
-  /// Individual analogue of the business [toggleLiveNow] — the Go-Live PILL as
-  /// a plain on/off switch. No weekly hours yet → the sheet's "Set visiting
-  /// hours" prompt; otherwise flip today's override straight from the pill.
+  /// Individual analogue of the business `toggleLiveNow` — the Go-Live PILL as
+  /// a plain on/off switch, and the same order of checks:
+  ///
+  ///   1. visiting HOURS — no schedule yet opens the weekly editor;
+  ///   2. PAYMENT — the security-deposit gate;
+  ///   3. flip today's open/closed state.
+  ///
+  /// Hours come BEFORE the deposit because setting them is free, is the
+  /// provider's own work, and is required either way: sending someone to a
+  /// payment screen first, taking their money and only then telling them they
+  /// have no working hours is the wrong way round.
+  ///
+  /// Saving hours does NOT go live. It is a separate step and it ends here —
+  /// the provider taps the pill again when they actually want to be available,
+  /// and from then on the clock button beside the pill ([openScheduleControl])
+  /// is where hours are edited.
   Future<void> toggleLiveNow({bool Function()? gate}) async {
-    if (!(gate != null ? gate() : canGoLive)) return;
     if (isAvailabilityUpdating.value) return;
 
+    // 1. Hours. Hydrate first — an un-loaded schedule looks identical to an
+    //    empty one, and would send an established provider to the editor.
     if (!hasSchedule) await loadHours();
     if (!hasSchedule) {
-      await showShopAvailabilitySheet(this);
+      await openWeeklyEditor();
+      // Say why nothing went live: the pill was tapped, a screen appeared,
+      // hours were saved, and the provider is still offline.
+      if (hasSchedule) {
+        commonSnackBar(message: AppStrings.goLiveHoursSavedHint.tr);
+      }
       return;
     }
 
+    // 2. Deposit — only now, with hours to be available in.
+    if (!(gate != null ? gate() : canGoLive)) return;
+
+    // 3. Flip today.
     if (shopStatus.value.isOpenNow) {
       await setClosedToday();
     } else {

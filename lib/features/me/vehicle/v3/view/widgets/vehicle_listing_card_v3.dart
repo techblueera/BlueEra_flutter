@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_listing_draft_v3.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_v3_models.dart';
+import 'package:BlueEra/widgets/card_name_slack.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -46,14 +47,29 @@ class VehicleListingCardV3 extends StatelessWidget {
           border: Border.all(color: AppColors.greyE5),
         ),
         clipBehavior: Clip.antiAlias,
-        child: compact ? _compactBody() : _wideBody(),
+        // Compact cards sit in a rail that sizes to its tallest card, so a
+        // one-line title would leave a short card in a tall rail. The missing
+        // line is measured here and spent at the BOTTOM of the card instead —
+        // same height as its neighbours, blank at the end rather than a gap
+        // under the title. The wide body is a list row and needs none of this.
+        child: compact
+            ? CardNameSlack(
+                text: listing.title,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w700,
+                // The title sets no TextStyle.height — measure the same way.
+                lineHeight: null,
+                horizontalPadding: SizeConfig.size8 * 2,
+                builder: (context, nameSlack) => _compactBody(nameSlack),
+              )
+            : _wideBody(),
       ),
     );
   }
 
   // ───── Layouts ────────────────────────────────────────────────────
 
-  Widget _compactBody() {
+  Widget _compactBody(double nameSlack) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -91,6 +107,8 @@ class VehicleListingCardV3 extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 color: AppColors.primaryColor,
               ),
+              // The title line this card didn't need — see [build].
+              if (nameSlack > 0) SizedBox(height: nameSlack),
             ],
           ),
         ),

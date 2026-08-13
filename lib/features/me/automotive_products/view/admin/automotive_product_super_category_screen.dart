@@ -15,6 +15,7 @@ import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automo
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_product_card.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_variant_sheet.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_floating_cart.dart';
+import 'package:BlueEra/features/me/kickstart/add_products_kickstart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -32,10 +33,17 @@ class AutomotiveProductSuperCategoryScreen extends StatefulWidget {
   final String? ownerID;
   final ProviderType? providerType;
 
+  /// True when this screen was opened by the app-open kickstart rather than by
+  /// the merchant tapping "Add Product" — see [showAddProductsKickstartIfNeeded].
+  /// It swaps the back arrow for a ✕ (nothing was navigated away from, so there
+  /// is nothing to go back to) and explains, above the rails, why it appeared.
+  final bool isKickstart;
+
   const AutomotiveProductSuperCategoryScreen({
     super.key,
     this.ownerID,
     this.providerType,
+    this.isKickstart = false,
   });
 
   @override
@@ -73,6 +81,8 @@ class _AutomotiveProductSuperCategoryScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
+        isLeading: !widget.isKickstart,
+        leadingWidget: widget.isKickstart ? const KickstartCloseButton() : null,
         buildCustomActionWidget: () => AutomotiveCreateOwnProductViaAiWidget(
           providerType: ProviderType.business,
         ),
@@ -108,6 +118,9 @@ class _AutomotiveProductSuperCategoryScreenState
       final sections = controller.rootCategoryList;
       return CustomScrollView(
         slivers: [
+          // Why this page opened, when it opened itself.
+          if (widget.isKickstart)
+            const SliverToBoxAdapter(child: KickstartIntroBanner()),
           // ── Snap-search suggestion ─────────────────────────────
           SliverToBoxAdapter(
             child: Padding(

@@ -120,12 +120,13 @@ class _LabAvailabilityScreenState extends State<LabAvailabilityScreen> {
     return Scaffold(
       // backgroundColor: AppColors.appBackgroundColor,
       appBar: const CommonBackAppBar(title: 'Lab Availability'),
+      // Save lives in the Scaffold's bottom slot rather than as the last child
+      // of the body Column — same place on screen, but pinned by the Scaffold
+      // and keyboard-aware.
+      bottomNavigationBar: _buildSaveBar(),
       body: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+        child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   14,
                   SizeConfig.size16,
@@ -155,10 +156,6 @@ class _LabAvailabilityScreenState extends State<LabAvailabilityScreen> {
                   ],
                 ),
               ),
-            ),
-            _buildSaveBar(),
-          ],
-        ),
       ),
     );
   }

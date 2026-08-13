@@ -614,6 +614,58 @@ class HiveServices{
     }
 
 
+  // ── Account-agnostic master lists ────────────────────────────────────────
+  // The onboarding business categories and profession types are the SAME for
+  // every user — they are the platform's catalog, not anybody's data. They are
+  // also the two lists the app cannot draw its onboarding screens without.
+
+  /// Raw snapshot of the master lists, to be handed back after a logout wipe.
+  ///
+  /// Logout deletes Hive wholesale ([LogoutHelper.clearAllLocalData]) because
+  /// almost everything in it belongs to the account that is leaving. These two
+  /// boxes don't: throwing them away only cost the next user two API calls and
+  /// a shimmer on the first screen they see, and cost anyone who signs out
+  /// without a connection the ability to sign in at all — the account-type
+  /// screen has nothing to list.
+  ///
+  /// Deliberately RAW (the same `List<Map>` that went in): nothing is parsed,
+  /// so a model that has changed shape since it was cached cannot make this
+  /// throw in the middle of a logout, and restoring is a straight write-back.
+  ///
+  /// Returns an empty map when the boxes aren't open or hold nothing, which
+  /// restores as a no-op.
+  static Map<String, dynamic> readSharedCatalogSnapshot() {
+    final snapshot = <String, dynamic>{};
+    void take(String boxName, String key) {
+      try {
+        if (!Hive.isBoxOpen(boxName)) return;
+        final value = Hive.box(boxName).get(key);
+        if (value != null) snapshot['$boxName|$key'] = value;
+      } catch (_) {}
+    }
+
+    take(_savedBusinessCategoryBox, 'category');
+    take(_savedProfessionTypeBox, 'profession');
+    return snapshot;
+  }
+
+  /// Writes a [readSharedCatalogSnapshot] back. Call AFTER the boxes have been
+  /// reopened; anything that fails is simply left to the next network fetch.
+  static Future<void> restoreSharedCatalogSnapshot(
+      Map<String, dynamic> snapshot) async {
+    if (snapshot.isEmpty) return;
+    for (final entry in snapshot.entries) {
+      try {
+        final parts = entry.key.split('|');
+        if (parts.length != 2) continue;
+        final box = Hive.isBoxOpen(parts[0])
+            ? Hive.box(parts[0])
+            : await Hive.openBox(parts[0]);
+        await box.put(parts[1], entry.value);
+      } catch (_) {}
+    }
+  }
+
   /// Save list of categories
   Future<void> saveCategoryList(List<CategoryData> categories) async {
     final box = Hive.box(_savedBusinessCategoryBox);

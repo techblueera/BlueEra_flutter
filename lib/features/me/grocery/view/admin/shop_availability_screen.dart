@@ -129,44 +129,42 @@ class _ShopAvailabilityScreenState
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(title: AppStrings.shopAvailability.tr),
+      // Save lives in the Scaffold's bottom slot rather than as the last child
+      // of the body Column. Same place on screen, but the Scaffold owns it: it
+      // stays pinned without the body needing an Expanded wrapper, and it moves
+      // with the keyboard instead of being pushed off by it.
+      bottomNavigationBar: _buildSaveBar(),
       body: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  14,
-                  SizeConfig.size16,
-                  14,
-                  SizeConfig.size16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      AppStrings.setYourShopTimings.tr,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size4),
-                    CustomText(
-                      AppStrings.shopTimingsSubtitle.tr,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size16),
-                    _buildModeToggle(),
-                    SizedBox(height: SizeConfig.size16),
-                    if (_isWeekly) _buildWeeklyCard() else _buildDailyCard(),
-                  ],
-                ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            14,
+            SizeConfig.size16,
+            14,
+            SizeConfig.size16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                AppStrings.setYourShopTimings.tr,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
               ),
-            ),
-            _buildSaveBar(),
-          ],
+              SizedBox(height: SizeConfig.size4),
+              CustomText(
+                AppStrings.shopTimingsSubtitle.tr,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
+              SizedBox(height: SizeConfig.size16),
+              _buildModeToggle(),
+              SizedBox(height: SizeConfig.size16),
+              if (_isWeekly) _buildWeeklyCard() else _buildDailyCard(),
+            ],
+          ),
         ),
       ),
     );

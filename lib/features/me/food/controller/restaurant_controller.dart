@@ -46,16 +46,26 @@ class RestaurantController extends GetxController {
   /// Load home + discount data only when it isn't already loaded & fresh for
   /// this [businessId]. Use on screen (re)entry; call [fetchHomeData] /
   /// [fetchDiscountFoodProducts] directly for explicit refreshes.
+  /// AWAITS both fetches. Callers that only want them fired (the tab
+  /// dispatcher) simply don't await this — but the ones that need to READ the
+  /// result afterwards (the go-live catalogue gate, the app-open kickstart)
+  /// cannot work unless awaiting this actually means the data has landed. It
+  /// used to fire both and return immediately, so those callers always saw an
+  /// unresolved response and treated an empty menu as "not loaded".
   Future<void> fetchHomeAndDiscountIfNeeded({required String businessId}) async {
     if (_homeCache.isFresh('foodHome|$businessId',
         hasData: restaurantData.value != null)) {
       return;
     }
-    fetchHomeData(businessId: businessId);
-    fetchDiscountFoodProducts(businessId: businessId);
+    await Future.wait([
+      fetchHomeData(businessId: businessId),
+      fetchDiscountFoodProducts(businessId: businessId),
+    ]);
   }
 
-  void fetchHomeData({required String businessId}) async {
+  /// Returns a Future so callers CAN await the menu; existing call sites that
+  /// fire and forget are unaffected.
+  Future<void> fetchHomeData({required String businessId}) async {
     try {
       foodHomeDataResponse.value = ApiResponse.initial('Initial');
 

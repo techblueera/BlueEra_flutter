@@ -110,4 +110,78 @@ class AccountPlanRepo extends BaseService {
     return ApiBaseHelper()
         .getHTTP(accountPlanInvoiceById(accountPlanId), showProgress: false);
   }
+
+  /// `GET /migration/eligibility` — whether this deposit holder can be moved
+  /// onto a free account plan, and which plan that would be.
+  ///
+  /// `showProgress: false`: this runs unprompted on app open. A blocking
+  /// spinner for a check the user never asked for would be worse than the
+  /// offer arriving a moment later.
+  Future<ResponseModel> migrationEligibility() {
+    return ApiBaseHelper().getHTTP(
+      accountPlanMigrationEligibility,
+      showProgress: false,
+    );
+  }
+
+  /// `GET /migration/upgrade-options` — the active plan, the credit it earns,
+  /// and a server-computed `price_breakdown` for every higher tier.
+  Future<ResponseModel> upgradeOptions() {
+    return ApiBaseHelper().getHTTP(
+      accountPlanUpgradeOptions,
+      showProgress: false,
+    );
+  }
+
+  /// `POST /migration/upgrade` — starts the upgrade for [optionCode].
+  ///
+  /// [tncAccepted] is sent only on the re-POST after the user has accepted the
+  /// deposit T&C: the first call is what TELLS us the terms are needed
+  /// (`requires_tnc: true`), so sending true up front would accept terms the
+  /// user has not been shown.
+  Future<ResponseModel> upgrade({
+    required String optionCode,
+    String? buyerState,
+    bool? tncAccepted,
+  }) {
+    return ApiBaseHelper().postHTTP(
+      accountPlanUpgrade,
+      params: <String, dynamic>{
+        'option_code': optionCode,
+        if (buyerState != null && buyerState.isNotEmpty)
+          'buyer_state': buyerState,
+        if (tncAccepted == true) 'tnc_accepted': true,
+      },
+      showProgress: false,
+    );
+  }
+
+  /// `POST /migration/upgrade/verify` — settles an upgrade order.
+  Future<ResponseModel> verifyUpgrade({
+    required String orderId,
+    required String paymentId,
+    required String signature,
+  }) {
+    return ApiBaseHelper().postHTTP(
+      accountPlanUpgradeVerify,
+      params: {
+        'razorpay_order_id': orderId,
+        'razorpay_payment_id': paymentId,
+        'razorpay_signature': signature,
+      },
+      showProgress: false,
+    );
+  }
+
+  /// `POST /migration/migrate` — accepts the T&C and activates the free plan.
+  ///
+  /// The sheet's own button carries the loader (and is disabled while the call
+  /// is in flight), so this stays out of the global progress overlay too.
+  Future<ResponseModel> migrate() {
+    return ApiBaseHelper().postHTTP(
+      accountPlanMigrate,
+      params: {'tnc_accepted': true},
+      showProgress: false,
+    );
+  }
 }
