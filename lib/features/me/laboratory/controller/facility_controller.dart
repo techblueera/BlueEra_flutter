@@ -48,6 +48,13 @@ class FacilityController extends GetxController {
           insuranceCashlessSupport.value = fac.insuranceCashlessSupport;
           homeSampleCollection.value = fac.homeSampleCollection;
           digitalReport.value = fac.digitalReport;
+          // Payment / package flags are part of the same snapshot [saveFacilities]
+          // posts back, so they have to be hydrated too — otherwise saving from
+          // any screen that didn't set them (e.g. the required-details gate)
+          // silently clears what the owner had already turned on.
+          upiPayment.value = fac.upi_online;
+          cardPayment.value = fac.credit_card_payment;
+          healthPackage.value = fac.health_checkup_pkg;
         }
       }
     } catch (e) {

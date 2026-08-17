@@ -84,11 +84,53 @@ class DoctorProfile {
   String get headline =>
       specialization.isNotEmpty ? specialization.first : '';
 
+  // ── Doctor-card completeness (docs/newdrcard.png) ───────────────────
+  //
+  // The redesigned listing card renders specialization, experience, degree,
+  // services and the consultation fee. A card missing any of them reads as
+  // broken rather than sparse, so the dashboard collects all five before it
+  // will show the profile. Name, photo and rating are NOT listed: they come
+  // from the business listing, which every doctor already has.
+
+  /// The card-critical field keys, in the order the gate form renders them.
+  static const List<String> cardRequiredKeys = [
+    'specialization',
+    'experienceYears',
+    'degree',
+    'expertise',
+    'consultationFee',
+  ];
+
+  /// Which of [cardRequiredKeys] are still empty.
+  ///
+  /// `0` counts as empty for both numbers, matching how the rest of the app
+  /// already reads them: `DoctorDiscoverSummary.experienceLabel` hides a `0`
+  /// because it reads as "no experience" rather than "not filled in", and a
+  /// `₹0` fee would advertise a free consultation.
+  List<String> get missingCardFields => [
+        if (specialization.isEmpty) 'specialization',
+        if ((experienceYears ?? 0) <= 0) 'experienceYears',
+        if (degree.isEmpty) 'degree',
+        if (expertise.isEmpty) 'expertise',
+        if ((consultationFee ?? 0) <= 0) 'consultationFee',
+      ];
+
+  /// True once the card can be rendered in full.
+  bool get hasCardEssentials => missingCardFields.isEmpty;
+
+  /// The `feeType` enum value the app writes for the card's "₹600/Visit"
+  /// line. Kept here so the About Me form, the mandatory-details gate and the
+  /// card preview all send and render the same one.
+  static const String perVisitFeeType = 'Per Visit';
+
   /// `"₹600/Visit"`. Empty when the fee is unset — a null `consultationFee`
   /// means "not set", and rendering `₹0` would advertise a free consultation.
-  String get feeLabel {
-    if (consultationFee == null) return '';
-    final fee = consultationFee!;
+  String get feeLabel => formatFee(consultationFee, feeType);
+
+  /// [feeLabel] for values that are not on a [DoctorProfile] yet — the gate
+  /// form's live preview renders straight from its own inputs.
+  static String formatFee(num? fee, String? feeType) {
+    if (fee == null) return '';
     final amount = fee % 1 == 0 ? fee.toInt().toString() : fee.toString();
     final type = (feeType ?? '').replaceFirst(RegExp(r'^Per\s+'), '').trim();
     return type.isEmpty ? '₹$amount' : '₹$amount/$type';

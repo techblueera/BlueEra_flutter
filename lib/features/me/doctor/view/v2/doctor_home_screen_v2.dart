@@ -15,11 +15,13 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/doctor/controller/doctor_appointment_controller.dart';
 import 'package:BlueEra/features/me/doctor/controller/doctor_profile_controller.dart';
 import 'package:BlueEra/features/me/doctor/controller/doctor_stats_controller.dart';
+import 'package:BlueEra/features/me/doctor/view/v2/doctor_required_details_form.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_about_me_tab.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_booking_tab.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_overview_tab.dart';
 import 'package:BlueEra/features/me/doctor/view/v2/tabs/doctor_statics_tab.dart';
 // import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -139,20 +141,122 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
       backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
-        child: HomeTabScaffold(
-          controller: _tabController,
-          tabLabels: _tabs,
-          topBar: _buildTopBar(),
-          topBarHeight: MediaQuery.of(context).padding.top + 56,
-          tabViews: [
-            _tabScroll(DoctorBookingTab(controller: _appointmentController)),
-            _tabScroll(DoctorOverviewTab(controller: _profileController)),
-            _tabScroll(DoctorAboutMeTab(controller: _profileController)),
-            // _tabScroll(const HospitalPostsTabV2()),
-            _tabScroll(
-              DoctorStaticsTab(
-                controller: _statsController,
-                onStatusTap: _openBookingFiltered,
+        // The tabs are gated on the doctor card's mandatory fields — see
+        // [_buildBody]. Reading the controller here (rather than inside each
+        // tab) is what lets the whole dashboard swap between the gate form and
+        // the tab shell.
+        child: Obx(() => _buildBody()),
+      ),
+    );
+  }
+
+  /// Three states, in priority order:
+  ///
+  ///  1. first fetch still in flight → spinner under the top bar;
+  ///  2. fetch failed outright → retry, NOT the gate. A network error is not
+  ///     "no profile", and letting the gate POST a create over an existing
+  ///     profile returns `400 "User already has a doctor profile"`;
+  ///  3. card fields missing → the mandatory-details form in place of the tabs;
+  ///  4. otherwise the normal Booking · Overview · About · Statics shell.
+  Widget _buildBody() {
+    if (!_profileController.isReady.value) {
+      return _gateShell(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 80),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (_profileController.hasLoadFailure) {
+      return _gateShell(_loadErrorBody());
+    }
+
+    if (!_profileController.isCardProfileComplete) {
+      return _gateShell(
+        DoctorRequiredDetailsForm(controller: _profileController),
+      );
+    }
+
+    return HomeTabScaffold(
+      controller: _tabController,
+      tabLabels: _tabs,
+      topBar: _buildTopBar(),
+      topBarHeight: MediaQuery.of(context).padding.top + 56,
+      tabViews: [
+        _tabScroll(DoctorBookingTab(controller: _appointmentController)),
+        _tabScroll(DoctorOverviewTab(controller: _profileController)),
+        _tabScroll(DoctorAboutMeTab(controller: _profileController)),
+        // _tabScroll(const HospitalPostsTabV2()),
+        _tabScroll(
+          DoctorStaticsTab(
+            controller: _statsController,
+            onStatusTap: _openBookingFiltered,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Keeps the dashboard's top bar above [child] while the tabs are hidden, so
+  /// the drawer, notifications and Go-Live stay reachable — without it the
+  /// gate would be a screen with no way out.
+  Widget _gateShell(Widget child) {
+    return Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).padding.top + 56,
+          child: _buildTopBar(),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                _profileController.fetchProfile(),
+                _businessController.viewBusinessProfile(),
+              ]);
+            },
+            child: child,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _loadErrorBody() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size24,
+          vertical: SizeConfig.size40,
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.cloud_off_outlined,
+                size: 40, color: AppColors.secondaryTextColor),
+            SizedBox(height: SizeConfig.size12),
+            CustomText(
+              _profileController.loadError.value,
+              fontSize: SizeConfig.medium,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+              maxLines: 4,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            OutlinedButton(
+              onPressed: _profileController.fetchProfile,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.primaryColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(SizeConfig.size8),
+                ),
+              ),
+              child: CustomText(
+                AppStrings.retry.tr,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
               ),
             ),
           ],

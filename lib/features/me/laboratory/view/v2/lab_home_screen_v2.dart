@@ -13,11 +13,13 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/features/me/laboratory/view/v2/lab_required_details_form.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_overview_tab_v2.dart';
 // import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_tests_tab_v2.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -117,20 +119,125 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
       // lets it through at the header too.
       body: SafeArea(
         top: false,
-        child: Stack(
+        // The tabs are gated on the lab card's mandatory fields — see
+        // [_buildBody]. Reading the controller here (rather than inside each
+        // tab) is what lets the whole dashboard swap between the gate form and
+        // the tab shell.
+        child: Obx(() => _buildBody()),
+      ),
+    );
+  }
+
+  /// Four states, in priority order:
+  ///
+  ///  1. first fetch still in flight → spinner under the top bar;
+  ///  2. fetch failed outright → retry, NOT the gate. A network error is not
+  ///     "profile incomplete", and letting the gate POST a create over an
+  ///     existing lab would duplicate it;
+  ///  3. card fields missing → the mandatory-details form in place of the tabs;
+  ///  4. otherwise the normal Tests · Overview · Facilities · Stats shell.
+  Widget _buildBody() {
+    if (!_labController.isReady.value) {
+      return _gateShell(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 80),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (_labController.hasLoadFailure) {
+      return _gateShell(_loadErrorBody());
+    }
+
+    // The business sub-category stands in for `labType` — see
+    // [LabFullDetailsController.isCardProfileComplete].
+    final subCategory = _businessController
+            .businessProfileDetails.value?.data?.subCategoryDetails?.name ??
+        '';
+    if (!_labController.isCardProfileComplete(labTypeFallback: subCategory)) {
+      return _gateShell(LabRequiredDetailsForm(controller: _labController));
+    }
+
+    return Stack(
+      children: [
+        HomeTabScaffold(
+          controller: _tabController,
+          tabLabels: _tabs,
+          topBar: _buildTopBar(),
+          topBarHeight: MediaQuery.of(context).padding.top + 56,
+          tabViews: [
+            _tabScroll(LabTestsTabV2(controller: _labController)),
+            _tabScroll(LabOverviewTabV2(controller: _labController)),
+            _tabScroll(LabFacilitiesTabV2(controller: _labController)),
+            // _tabScroll(const LabPostsTabV2()),
+            _tabScroll(const LabStatsTabV2()),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Keeps the dashboard's top bar above [child] while the tabs are hidden, so
+  /// the drawer, notifications and Go-Live stay reachable — without it the
+  /// gate would be a screen with no way out.
+  Widget _gateShell(Widget child) {
+    return Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).padding.top + 56,
+          child: _buildTopBar(),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                _labController.fetchFullDetails(),
+                _businessController.viewBusinessProfile(),
+              ]);
+            },
+            child: child,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _loadErrorBody() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size24,
+          vertical: SizeConfig.size40,
+        ),
+        child: Column(
           children: [
-            HomeTabScaffold(
-              controller: _tabController,
-              tabLabels: _tabs,
-              topBar: _buildTopBar(),
-              topBarHeight: MediaQuery.of(context).padding.top + 56,
-              tabViews: [
-                _tabScroll(LabTestsTabV2(controller: _labController)),
-                _tabScroll(LabOverviewTabV2(controller: _labController)),
-                _tabScroll(LabFacilitiesTabV2(controller: _labController)),
-                // _tabScroll(const LabPostsTabV2()),
-                _tabScroll(const LabStatsTabV2()),
-              ],
+            Icon(Icons.cloud_off_outlined,
+                size: 40, color: AppColors.secondaryTextColor),
+            SizedBox(height: SizeConfig.size12),
+            CustomText(
+              _labController.loadError.value,
+              fontSize: SizeConfig.medium,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+              maxLines: 4,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            OutlinedButton(
+              onPressed: _labController.fetchFullDetails,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.primaryColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(SizeConfig.size8),
+                ),
+              ),
+              child: CustomText(
+                AppStrings.retry.tr,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
             ),
           ],
         ),
