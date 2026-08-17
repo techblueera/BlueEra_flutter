@@ -40,6 +40,24 @@ class DoctorProfileController extends GetxController {
 
   List<DoctorCertificate> get certificates => profile.value?.certificates ?? const [];
 
+  /// True once every field the redesigned doctor card needs is filled in — see
+  /// [DoctorProfile.cardRequiredKeys]. The dashboard gates its tabs on this,
+  /// so it reads the observables directly and must be called inside an [Obx].
+  bool get isCardProfileComplete =>
+      hasProfile.value && (profile.value?.hasCardEssentials ?? false);
+
+  /// The card fields still to be collected. A doctor with no profile at all is
+  /// missing all of them, so the gate form starts blank rather than empty.
+  List<String> get missingCardFields => hasProfile.value
+      ? (profile.value?.missingCardFields ?? DoctorProfile.cardRequiredKeys)
+      : DoctorProfile.cardRequiredKeys;
+
+  /// True when the first fetch failed outright. The gate must NOT be shown in
+  /// this state: a network error is not "no profile", and posting a create on
+  /// top of an existing profile yields `400 "User already has a doctor
+  /// profile"`.
+  bool get hasLoadFailure => loadError.value.isNotEmpty && profile.value == null;
+
   /// `GET /doctors/me`. Safe to auto-retry, so pull-to-refresh just calls it.
   Future<void> fetchProfile() async {
     isLoading.value = true;
@@ -122,8 +140,17 @@ class DoctorProfileController extends GetxController {
 
   /// Convenience wrapper for the Overview tab's expertise editor — a partial
   /// update touching only `expertise`.
-  Future<bool> saveExpertise(List<String> expertise) =>
-      saveProfile({'expertise': expertise});
+  ///
+  /// Refuses an empty list: `expertise` is the card's Services checklist and
+  /// one of [DoctorProfile.cardRequiredKeys], so clearing it here would bounce
+  /// the doctor straight back out to the mandatory-details gate.
+  Future<bool> saveExpertise(List<String> expertise) {
+    if (expertise.isEmpty) {
+      commonSnackBar(message: AppStrings.doctorServicesRequired.tr);
+      return Future.value(false);
+    }
+    return saveProfile({'expertise': expertise});
+  }
 
   /// `DELETE /doctors/me` — removes the profile and every certificate.
   /// The caller is responsible for confirming first.

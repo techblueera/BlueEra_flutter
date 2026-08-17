@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_hours_sheet_content.dart';
 import 'package:BlueEra/features/me/doctor/controller/doctor_profile_controller.dart';
+import 'package:BlueEra/features/me/doctor/model/doctor_profile_model.dart';
 import 'package:BlueEra/features/me/doctor/widget/doctor_chip_input_field.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -113,24 +114,33 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
   }
 
   /// Mirrors the server's rules so a missed check doesn't become a 400.
+  ///
+  /// Degree, specialization, experience and fee are additionally required
+  /// here, not just range-checked: they are card fields
+  /// ([DoctorProfile.cardRequiredKeys]), and clearing one from this form would
+  /// drop the doctor back out to the mandatory-details gate mid-edit.
   String? _validate() {
     if (_degree.length > _maxEntries ||
         _specialization.length > _maxEntries ||
         _languages.length > _maxEntries) {
       return AppStrings.doctorMaxEntriesError.tr;
     }
-    final experienceText = _experienceCtrl.text.trim();
-    if (experienceText.isNotEmpty) {
-      final years = int.tryParse(experienceText);
-      if (years == null || years < 0 || years > _maxExperienceYears) {
-        return AppStrings.doctorExperienceRangeError.tr;
-      }
+    if (_specialization.isEmpty) {
+      return AppStrings.doctorSpecializationRequired.tr;
     }
-    final feeText = _feeCtrl.text.trim();
-    if (feeText.isNotEmpty) {
-      final fee = num.tryParse(feeText);
-      if (fee == null || fee < 0) return AppStrings.doctorFeeError.tr;
+    if (_degree.isEmpty) return AppStrings.doctorDegreeRequired.tr;
+
+    final years = int.tryParse(_experienceCtrl.text.trim());
+    if (years == null || years <= 0) {
+      return AppStrings.doctorExperienceRequired.tr;
     }
+    if (years > _maxExperienceYears) {
+      return AppStrings.doctorExperienceRangeError.tr;
+    }
+
+    final fee = num.tryParse(_feeCtrl.text.trim());
+    if (fee == null || fee <= 0) return AppStrings.doctorFeeRequired.tr;
+
     if (_descriptionCtrl.text.trim().length > _descriptionLimit) {
       return AppStrings.doctorDescriptionLimitError.tr;
     }
@@ -160,7 +170,7 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
       if (fee != null) 'consultationFee': fee,
       // The design renders the fee as "₹600/Visit"; the API enum for that is
       // "Per Visit".
-      if (fee != null) 'feeType': 'Per Visit',
+      if (fee != null) 'feeType': DoctorProfile.perVisitFeeType,
       if (_addressCtrl.text.trim().isNotEmpty)
         'address': _addressCtrl.text.trim(),
       if (_descriptionCtrl.text.trim().isNotEmpty)
@@ -218,15 +228,18 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // A trailing "*" marks the four fields the doctor card cannot be
+          // rendered without — the same set the mandatory-details gate
+          // collects, so they can be edited here but never emptied.
           DoctorChipInputField(
-            title: AppStrings.doctorDegree.tr,
+            title: '${AppStrings.doctorDegree.tr} *',
             hintText: AppStrings.doctorDegreeHint.tr,
             values: _degree,
             onChanged: (v) => setState(() => _degree = v),
           ),
           SizedBox(height: SizeConfig.size16),
           DoctorChipInputField(
-            title: AppStrings.doctorSpecialization.tr,
+            title: '${AppStrings.doctorSpecialization.tr} *',
             hintText: AppStrings.doctorSpecializationHint.tr,
             values: _specialization,
             onChanged: (v) => setState(() => _specialization = v),
@@ -240,7 +253,7 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
           ),
           SizedBox(height: SizeConfig.size16),
           _Field(
-            title: AppStrings.doctorExperience.tr,
+            title: '${AppStrings.doctorExperience.tr} *',
             hintText: AppStrings.doctorExperienceHint.tr,
             controller: _experienceCtrl,
             keyboardType: TextInputType.number,
@@ -257,7 +270,7 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
           ),
           SizedBox(height: SizeConfig.size16),
           _Field(
-            title: AppStrings.doctorConsultationFee.tr,
+            title: '${AppStrings.doctorConsultationFee.tr} *',
             hintText: AppStrings.doctorFeeHint.tr,
             controller: _feeCtrl,
             keyboardType: TextInputType.number,

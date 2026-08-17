@@ -4372,6 +4372,35 @@ class AppStrings {
       "doctorCompleteProfileTitle";
   static const String doctorCompleteProfileBody = "doctorCompleteProfileBody";
   static const String doctorCreateProfile = "doctorCreateProfile";
+
+  /// Mandatory-details gate + the redesigned doctor card (docs/newdrcard.png).
+  /// The dashboard collects every field the card renders before it will show
+  /// the Booking / Overview / About / Statics tabs.
+  static const String doctorRequiredDetailsTitle =
+      "doctorRequiredDetailsTitle";
+  static const String doctorRequiredDetailsNote = "doctorRequiredDetailsNote";
+  static const String doctorCardPreviewTitle = "doctorCardPreviewTitle";
+  static const String doctorSaveAndContinue = "doctorSaveAndContinue";
+  static const String doctorServices = "doctorServices";
+  static const String doctorServicesHint = "doctorServicesHint";
+  static const String doctorCardNamePlaceholder = "doctorCardNamePlaceholder";
+  static const String doctorCardSpecializationPlaceholder =
+      "doctorCardSpecializationPlaceholder";
+  static const String doctorCardExperiencePlaceholder =
+      "doctorCardExperiencePlaceholder";
+  static const String doctorCardDegreePlaceholder =
+      "doctorCardDegreePlaceholder";
+  static const String doctorCardServicesPlaceholder =
+      "doctorCardServicesPlaceholder";
+  static const String doctorCardFeePlaceholder = "doctorCardFeePlaceholder";
+  static const String doctorCardMoreServices = "doctorCardMoreServices";
+  static const String doctorDegreeRequired = "doctorDegreeRequired";
+  static const String doctorSpecializationRequired =
+      "doctorSpecializationRequired";
+  static const String doctorExperienceRequired = "doctorExperienceRequired";
+  static const String doctorServicesRequired = "doctorServicesRequired";
+  static const String doctorFeeRequired = "doctorFeeRequired";
+
   static const String doctorMaxEntriesError = "doctorMaxEntriesError";
   static const String doctorExperienceRangeError =
       "doctorExperienceRangeError";
@@ -6089,6 +6118,40 @@ class AppStrings {
   static const String labConsultationInsuranceSub = "labConsultationInsuranceSub";
   static const String labPaymentOptions = "labPaymentOptions";
   static const String labPaymentOptionsSub = "labPaymentOptionsSub";
+
+  /// Mandatory-details gate + the redesigned lab card (docs/labnew.png).
+  /// The dashboard collects every field the card renders before it will show
+  /// the Tests / Overview / Facilities / Stats tabs.
+  static const String labRequiredDetailsTitle = "labRequiredDetailsTitle";
+  static const String labRequiredDetailsNote = "labRequiredDetailsNote";
+  static const String labCardPreviewTitle = "labCardPreviewTitle";
+  static const String labSaveAndContinue = "labSaveAndContinue";
+  static const String labCoverPhoto = "labCoverPhoto";
+  static const String labCoverPhotoHint = "labCoverPhotoHint";
+  static const String labCoverPhotoRequired = "labCoverPhotoRequired";
+  static const String labTypeLabel = "labTypeLabel";
+  static const String labTypeHint = "labTypeHint";
+  static const String labTypeRequired = "labTypeRequired";
+  static const String labDescriptionLabel = "labDescriptionLabel";
+  static const String labDescriptionHint = "labDescriptionHint";
+  static const String labDescriptionRequired = "labDescriptionRequired";
+  static const String labDescriptionTooLong = "labDescriptionTooLong";
+  static const String labTestsRequiredError = "labTestsRequiredError";
+  static const String labFacilitiesRequiredError = "labFacilitiesRequiredError";
+  static const String labFacilitiesGateHint = "labFacilitiesGateHint";
+  static const String labAddTests = "labAddTests";
+  static const String labTestsAddedSuffix = "labTestsAddedSuffix";
+  static const String labNoTestsAddedYet = "labNoTestsAddedYet";
+  /// Own keys rather than the shared `tests` / `facilities` ones: those are
+  /// lower-cased in English and absent from several locales, which reads badly
+  /// inside the card ("6 • tests") and on a required-field label.
+  static const String labTestsLabel = "labTestsLabel";
+  static const String labFacilitiesLabel = "labFacilitiesLabel";
+  static const String labCardOpenNow = "labCardOpenNow";
+  static const String labCardNamePlaceholder = "labCardNamePlaceholder";
+  static const String labCardTypePlaceholder = "labCardTypePlaceholder";
+  static const String labCardAddressPlaceholder = "labCardAddressPlaceholder";
+  static const String labCardCoverPlaceholder = "labCardCoverPlaceholder";
 
   static const String labStartDate = "labStartDate";
   static const String labEndDate = "labEndDate";

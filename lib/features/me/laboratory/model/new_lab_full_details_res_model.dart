@@ -636,14 +636,15 @@ Profile profileFromJson(String str) => Profile.fromJson(json.decode(str));
 String profileToJson(Profile data) => json.encode(data.toJson());
 class Profile {
   Profile({
-      this.id, 
-      this.coverUrl, 
-      this.name, 
-      this.description, 
-      this.logoUrl, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
+      this.id,
+      this.coverUrl,
+      this.name,
+      this.description,
+      this.labType,
+      this.logoUrl,
+      this.userId,
+      this.createdAt,
+      this.updatedAt,
       this.v,});
 
   Profile.fromJson(dynamic json) {
@@ -652,6 +653,10 @@ class Profile {
     logoUrl = json['logoUrl'];
     name = json['name'];
     description = json['description'];
+    // Written by the mandatory-details gate (see LabRequiredDetailsForm) and
+    // rendered as the card's type line. `type` is accepted as an alias so a
+    // backend that names the column differently still round-trips.
+    labType = json['labType'] ?? json['type'];
     userId = json['userId'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
@@ -662,6 +667,7 @@ class Profile {
   String? logoUrl;
   String? name;
   String? description;
+  String? labType;
   String? userId;
   String? createdAt;
   String? updatedAt;
@@ -674,6 +680,7 @@ class Profile {
     map['logoUrl'] = logoUrl;
     map['name'] = name;
     map['description'] = description;
+    map['labType'] = labType;
     map['userId'] = userId;
     map['createdAt'] = createdAt;
     map['updatedAt'] = updatedAt;
