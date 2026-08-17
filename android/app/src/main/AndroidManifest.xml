@@ -15,12 +15,18 @@
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- READ_MEDIA_IMAGES / READ_MEDIA_VIDEO are deliberately NOT declared.
+         Play policy only allows them when the system pickers can't provide
+         core functionality, and they can: gallery selection goes through
+         image_picker's system picker (ACTION_GET_CONTENT) and document
+         selection through SAF (file_picker). Both hand back access to the
+         chosen items only, so neither needs a runtime permission — do not
+         re-add these. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <!-- Deprecated on API 33+ where READ_MEDIA_IMAGES/VIDEO (above) apply;
-         capping it avoids a needless Play-policy sensitive permission. -->
+    <!-- Legacy read access, capped below API 33. Used only for downloads into
+         the shared Downloads folder on pre-Android 13 devices; on 33+ the app
+         never requests it. -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -41,7 +47,8 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <!-- ACCESS_MEDIA_LOCATION removed: it only grants anything on top of
+         READ_MEDIA_IMAGES, which the app no longer declares. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <!-- Android 14+ requires a typed foreground-service permission; the rider

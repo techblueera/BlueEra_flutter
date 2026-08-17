@@ -12,14 +12,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/contactListModel.dart';
@@ -177,37 +175,15 @@ class AddChatSymbolController extends GetxController {
   }
 
   Future<void> pickMedia() async {
-    bool permissionGranted = false;
-
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-
-      // For Android 13+ (SDK 33)
-      if (androidInfo.version.sdkInt >= 33) {
-        // Use photos permission
-        var status = await Permission.photos.request();
-        permissionGranted = status.isGranted;
-      }
-      // For Android 11 (SDK 30) and below
-      else {
-        var status = await Permission.storage.request();
-        permissionGranted = status.isGranted;
-      }
-    } else {
-      // iOS logic
-      permissionGranted = true;
-    }
-
-    if (permissionGranted) {
-      final List<XFile> images = await picker.pickMultiImage();
-      if (images.isEmpty) return;
-      final files = images.map((e) => File(e.path)).toList();
-      choosePostType(SymbolPostType.image);
-      imagesList.addAll(files);
-      logs("imagesList    ${imagesList}");
-    } else {
-      print("Permission denied");
-    }
+    // No storage/photo permission request here: picking runs through the
+    // system picker (Android) / PHPicker (iOS), which grant access to the
+    // selected items only. The app declares no READ_MEDIA_* permission.
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isEmpty) return;
+    final files = images.map((e) => File(e.path)).toList();
+    choosePostType(SymbolPostType.image);
+    imagesList.addAll(files);
+    logs("imagesList    ${imagesList}");
   }
 
   Future<void> pickVideoMedia() async {

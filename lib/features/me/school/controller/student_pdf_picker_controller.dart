@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class StudentPdfPickerController extends GetxController {
   // Observables
@@ -15,11 +14,8 @@ class StudentPdfPickerController extends GetxController {
     try {
       isPicking.value = true;
 
-      // Request permissions
-      if (Platform.isAndroid) {
-        await Permission.storage.request();
-      }
-
+      // No permission request: file_picker uses the system document picker
+      // (SAF), which grants access to the chosen file only.
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],

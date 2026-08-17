@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,7 +30,6 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 class MessagePostController extends GetxController {
@@ -235,36 +233,15 @@ class MessagePostController extends GetxController {
   // 🟢 PICK MEDIA (image or video)
 
   Future<void> pickMedia() async {
-    bool permissionGranted = false;
-
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-
-      // For Android 13+ (SDK 33)
-      if (androidInfo.version.sdkInt >= 33) {
-        // Use photos permission
-        var status = await Permission.photos.request();
-        permissionGranted = status.isGranted;
-      }
-      // For Android 11 (SDK 30) and below
-      else {
-        var status = await Permission.storage.request();
-        permissionGranted = status.isGranted;
-      }
-    } else {
-      // iOS logic
-      permissionGranted = true;
-    }
-
-    if (permissionGranted) {
-      final List<XFile> images = await picker.pickMultiImage();
-      final files = images.map((e) => File(e.path)).toList();
-      selectedType.value = MediaType.image;
-      imagesList.addAll(files);
-      logs("imagesList    ${imagesList}");
-    } else {
-      print("Permission denied");
-    }
+    // No storage/photo permission request here: picking runs through the
+    // system picker (Android) / PHPicker (iOS), which grant access to the
+    // selected items only. The app declares no READ_MEDIA_* permission.
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isEmpty) return;
+    final files = images.map((e) => File(e.path)).toList();
+    selectedType.value = MediaType.image;
+    imagesList.addAll(files);
+    logs("imagesList    ${imagesList}");
   }
 
   Future<void> pickMedia_() async {

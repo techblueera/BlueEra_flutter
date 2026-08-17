@@ -11,7 +11,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ProfessionalPdfPreviewWidget extends StatelessWidget {
@@ -101,11 +100,8 @@ class ProfessionalPdfPickerController extends GetxController {
     try {
       isPicking.value = true;
 
-      // Request permissions
-      if (Platform.isAndroid) {
-        await Permission.storage.request();
-      }
-
+      // No permission request: file_picker uses the system document picker
+      // (SAF), which grants access to the chosen file only.
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
