@@ -165,32 +165,6 @@ class NearbyStoresController extends GetxController {
     stores.assignAll(parsed.stores);
     services.assignAll(parsed.services);
     riders.assignAll(parsed.riders);
-    _logResult(parsed);
-  }
-
-  /// TEST logging — dumps the parsed nearby set so you can eyeball what the
-  /// "Near You" rail receives. Remove once verified.
-  void _logResult(NearbyDiscoverResult parsed) {
-    log('[NearbyDiscover] stores=${parsed.stores.length} '
-        'services=${parsed.services.length} riders=${parsed.riders.length} '
-        'degraded=${parsed.degraded}');
-    for (final s in parsed.stores) {
-      log('[NearbyDiscover]   STORE type=${s.type} name="${s.businessName}" '
-          'category="${s.displayCategory}" dist=${s.distance}km '
-          'id=${s.id} userId=${s.userId} '
-          'products=${s.totalProductCount} categories=${s.totalCategoryCount} '
-          'rating=${s.avgRating} logo="${s.logo}"');
-    }
-    for (final w in parsed.services) {
-      log('[NearbyDiscover]   SERVICE name="${w.name}" '
-          'designation="${w.designation}" profession=${w.profession} '
-          'live=${w.live} dist=${w.distance}km userId=${w.userId}');
-    }
-    for (final w in parsed.riders) {
-      log('[NearbyDiscover]   RIDER name="${w.name}" '
-          'designation="${w.designation}" live=${w.live} '
-          'dist=${w.distance}km userId=${w.userId}');
-    }
   }
 
   /// Re-parse a persisted raw response. The JSON round-trip normalises nested

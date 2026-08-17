@@ -118,14 +118,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       // nearby-discover response: grocery/food/product stores + service workers
       // + riders, distance-sorted, each routed to its own screen by card type.
       // Self-manages its own white card and collapses when nothing is nearby.
-      // (
-      //   widget: NearestStoresSection(
-      //     onViewAll: () =>
-      //         Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
-      //   ),
-      //   tabs: {1},
-      //   folder: false
-      // ),
+      (
+        widget: NearestStoresSection(
+          onViewAll: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+        ),
+        tabs: {1},
+        folder: false
+      ),
       // Grocery and Food both list the ONBOARDING categories off the API
       // ([AuthController]), not a bundled copy. Discover used to carry its own
       // hardcoded list for each, whose ids only nearly matched the API's
@@ -392,10 +392,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             _appBackdrop(),
             RefreshIndicator(
               onRefresh: _onRefresh,
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
+              // No stretch overscroll on this page. Android 12+ stretches by
+              // transforming the scroll content into its own layer, and a
+              // BackdropFilter can only sample what is inside its enclosing
+              // layer — the page background is a sibling of this scroll view,
+              // not part of it. Every glass panel below therefore blurred an
+              // empty layer and went dark for as long as a drag was held. See
+              // [DiscoverGlassScrollBehavior].
+              child: ScrollConfiguration(
+                behavior: const DiscoverGlassScrollBehavior(),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
               /// Light-blue header: location + wishlist, quick-access tabs,
               /// search bar. Covers the status bar area. The location row and
               /// quick-access tabs collapse away on scroll while the search bar
@@ -450,7 +459,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ),
               ] else
                 const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-                ],
+                  ],
+                ),
               ),
             ),
 

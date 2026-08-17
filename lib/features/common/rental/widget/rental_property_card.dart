@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
+import 'package:BlueEra/features/common/rental/view/rental_discover_entry_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +13,16 @@ class RentalPropertyCard extends StatelessWidget {
     super.key,
     this.margin = const EdgeInsets.symmetric(horizontal: 14),
   });
+
+  /// Opens the location-first entry screen — [isSale] null from the card body
+  /// (every category), true/false from the two chips (that half of them).
+  ///
+  /// All three used to open `RentalServicesDashboardScreenV2`, which is the
+  /// user's OWN listings behind an "Add Listing" button: the seller's screen,
+  /// shown to everyone, and identical for all three taps. Browsing now starts
+  /// where property search has to start — with a place.
+  void _openEntry({bool? isSale}) =>
+      Get.to(() => RentalDiscoverEntryScreen(isSale: isSale));
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +70,7 @@ class RentalPropertyCard extends StatelessWidget {
                       label: AppStrings.forSale.tr,
                       accentColor: const Color(0xFF0086FF),
                       bgColor: const Color(0xFFEBF5FF),
-                      onTap: () => Get.to(
-                          () => const RentalServicesDashboardScreenV2()),
+                      onTap: () => _openEntry(isSale: true),
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -71,8 +80,7 @@ class RentalPropertyCard extends StatelessWidget {
                       label: AppStrings.forRent.tr,
                       accentColor: const Color(0xFF00B87A),
                       bgColor: const Color(0xFFE6FAF3),
-                      onTap: () => Get.to(
-                          () => const RentalServicesDashboardScreenV2()),
+                      onTap: () => _openEntry(isSale: false),
                     ),
                   ),
                 ],
@@ -86,8 +94,7 @@ class RentalPropertyCard extends StatelessWidget {
 
   Widget _buildHeader() {
     return InkWell(
-      onTap: () =>
-          Get.to(() => const RentalServicesDashboardScreenV2()),
+      onTap: _openEntry,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       splashColor: AppColors.primaryColor.withValues(alpha: 0.08),
       highlightColor: AppColors.primaryColor.withValues(alpha: 0.04),
@@ -128,15 +135,20 @@ class RentalPropertyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Says what the card now DOES. It used to read "Property
+                  // Listing / List your property for sale or rent" while every
+                  // tap opened the owner's own listings; the taps now open the
+                  // browse flow, so the copy had to follow them. Listing has its
+                  // own entry inside that flow.
                   CustomText(
-                    AppStrings.propertyListingTitle.tr,
+                    AppStrings.rentAndProperties.tr,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.mainTextColor,
                   ),
                   const SizedBox(height: 2),
                   CustomText(
-                    AppStrings.listPropertyHint.tr,
+                    AppStrings.findPropertyHint.tr,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,

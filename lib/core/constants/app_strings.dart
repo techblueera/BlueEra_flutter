@@ -7304,6 +7304,10 @@ class AppStrings {
   static const String rentDurationYearly = "rentDurationYearly";
   static const String rentDurationOneTime = "rentDurationOneTime";
 
+  /// Subtitle on the rental card, which now opens the browse flow
+  /// ([RentalDiscoverEntryScreen]) rather than the owner's own listings.
+  static const String findPropertyHint = "findPropertyHint";
+
   // Sale / Rent category labels (saleTypes, rentTypes)
   static const String propertyCategoryHousesApartments = "propertyCategoryHousesApartments";
   static const String propertyCategoryNewProjectsProperties = "propertyCategoryNewProjectsProperties";

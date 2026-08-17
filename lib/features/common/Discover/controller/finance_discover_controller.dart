@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class FinanceDiscoverController extends GetxController {
@@ -52,12 +53,45 @@ class FinanceDiscoverController extends GetxController {
     }
   }
 
+  /// Loads page 1 for [category].
+  ///
+  /// ## Why this does not empty the list first any more
+  ///
+  /// It used to `profiles.clear()` synchronously, before the request went out.
+  /// Anything that called it therefore blanked the list for the duration of a
+  /// round trip — and a blank list has no scroll extent, so the viewport
+  /// collapses to one screen and the scroll position is clamped to zero. When
+  /// the page landed the reader was back at the top looking at the first ten
+  /// results, however far down they had been.
+  ///
+  /// That made a pull-to-refresh destructive, and a pull-to-refresh is easy to
+  /// fire by accident: `RefreshIndicator` triggers on a leading-edge overscroll,
+  /// which is also what a scroll correction looks like when content above the
+  /// reader changes size (an ad slot resolving, a lazily-measured grid
+  /// re-estimating). Reloading the same category now keeps what is on screen and
+  /// REPLACES it when the response arrives, so a spurious refresh costs a
+  /// request and nothing else.
+  ///
+  /// A real category change still clears immediately — those are different
+  /// results, and leaving the previous category's cards up while they load would
+  /// be showing the wrong answer rather than an old one.
   Future<void> fetchInitial(String category) async {
-    profiles.clear();
+    final isSameCategory = selectedCategory.value == category;
+    assert(() {
+      // Debug-only: names whoever asked for a reload. If the list ever jumps to
+      // the top again, this line is the caller to look at.
+      if (profiles.isNotEmpty) {
+        debugPrint('[FinanceDiscover] fetchInitial($category) '
+            'sameCategory=$isSameCategory over ${profiles.length} loaded items\n'
+            '${StackTrace.current}');
+      }
+      return true;
+    }());
+    if (!isSameCategory) profiles.clear();
     _page = 1;
     hasMore.value = true;
     selectedCategory.value = category;
-    await _fetch(_page, isLoadMore: false);
+    await _fetch(_page, isLoadMore: false, replace: isSameCategory);
   }
 
   Future<void> fetchMore() async {
@@ -74,7 +108,14 @@ class FinanceDiscoverController extends GetxController {
     await _fetch(_page, isLoadMore: true);
   }
 
-  Future<void> _fetch(int page, {required bool isLoadMore}) async {
+  /// [replace] — this response is a fresh page 1 that should REPLACE whatever is
+  /// on screen in one assignment, rather than being appended to it. Only a
+  /// same-category reload sets it; see [fetchInitial].
+  Future<void> _fetch(
+    int page, {
+    required bool isLoadMore,
+    bool replace = false,
+  }) async {
     try {
       if (isLoadMore) {
         isLoadingMore.value = true;
@@ -84,7 +125,7 @@ class FinanceDiscoverController extends GetxController {
       error.value = '';
       // `showProgress: false` suppresses the global ProgressDialog /
       // ShimmerListView overlay so pagination doesn't stack a shimmer on
-      // top of the list. FinanceListScreen renders its own initial + bottom
+      // top of the list. FinanceListingScreen renders its own initial + bottom
       // pagination loaders keyed off `isLoading` / `isLoadingMore`.
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         "other-service/business-profile/search?distance=5000&limit=$_limit&page=$page&sub_type=${selectedCategory.value}",
@@ -96,6 +137,20 @@ class FinanceDiscoverController extends GetxController {
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         final items = data.map((e) => FinanceBusinessItem.fromJson(e)).toList();
+        // A same-category reload swaps the list in one assignment. Not merged
+        // with the dedup path below on purpose: this response IS the new page 1,
+        // so every item in it is wanted, and deduping it against the list it is
+        // about to replace would drop all of them.
+        if (replace) {
+          if (items.isEmpty) {
+            profiles.clear();
+            hasMore.value = false;
+          } else {
+            profiles.assignAll(items);
+            if (items.length < _limit) hasMore.value = false;
+          }
+          return;
+        }
         if (items.isEmpty) {
           hasMore.value = false;
         } else {

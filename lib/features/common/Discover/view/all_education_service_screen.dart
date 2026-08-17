@@ -24,7 +24,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 import '../../../business/widgets/rating_widget.dart';
@@ -37,6 +36,32 @@ const Color _kCardBorder = Color(0xFFE9EBF0);
 
 /// Hairline rule between the highlight cells and the students footer.
 const Color _kCardDivider = Color(0xFFEDEFF3);
+
+/// Ad cadence: one full-width slot after every 10 cards, never after the last
+/// row. Matches the grid cadence the shared inserter uses.
+const int _kAdAfterEveryCards = 10;
+
+/// Stands in for a value the listing does not carry. An em-dash reads as "not
+/// stated"; a dropped row reads as a shorter card, which is what made the grid
+/// ragged and forced masonry.
+const String _kNoValue = '—';
+
+/// One row of the listing: a run of cards, or a full-width ad slot.
+class _EducationRow {
+  const _EducationRow.cards(this.first, this.end) : adOrdinal = -1;
+  const _EducationRow.ad(this.adOrdinal)
+      : first = -1,
+        end = -1;
+
+  /// Half-open range of card indices this row draws.
+  final int first;
+  final int end;
+
+  /// -1 on a card row.
+  final int adOrdinal;
+
+  bool get isAd => adOrdinal >= 0;
+}
 
 class AllEducationServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
@@ -77,8 +102,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     controller_.fetchEducationServiceServices();
 
     scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
+      if (!scrollController.hasClients) return;
+      final position = scrollController.position;
+      // A threshold, not `pixels == maxScrollExtent`. Exact equality only holds
+      // when a fling settles precisely on the last pixel, so the next page often
+      // never loaded at all — and when it did, it loaded with nothing left to
+      // scroll into. 200px early means the row is ready before it is reached.
+      if (position.pixels >= position.maxScrollExtent - 200) {
         controller_.fetchEducationServiceServices(isLoadMore: true);
       }
     });
@@ -147,6 +177,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                               ? null
                               : _professionalConsultantCategories
                                   .firstWhere((c) => c.slugId == item.id);
+                      // A different category is a different result set, so the
+                      // viewport goes back to the top with it rather than
+                      // dropping the reader into the middle of a list they have
+                      // not seen.
+                      if (scrollController.hasClients) {
+                        scrollController.jumpTo(0);
+                      }
                       controller_.fetchEducationServiceServices();
                       setState(() {});
                     },
@@ -203,43 +240,80 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       // Column count scales with the viewport so the tile keeps a
       // readable width from a small phone up to a tablet in landscape.
       final crossAxisCount = _gridCrossAxisCount();
+      final rows = _educationRows(list.length, crossAxisCount);
 
-      // Masonry (not a fixed-ratio grid) because tiles differ in height:
-      // a listing with no highlight cells or no students count is
-      // shorter than a full one, and masonry packs those without
-      // stretching or clipping. Ads stay full-width between chunks.
-      return SliverMainAxisGroup(
-        slivers: [
-          ...buildNativeAdGridSlivers(
-            itemCount: list.length,
-            keyPrefix: 'education_service_native_ad',
-            adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-            gridSliverBuilder: (start, end) => SliverPadding(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size6,
-              ),
-              sliver: SliverMasonryGrid.count(
-                crossAxisCount: crossAxisCount,
-                mainAxisSpacing: SizeConfig.size10,
-                crossAxisSpacing: SizeConfig.size10,
-                childCount: end - start,
-                itemBuilder: (context, i) =>
-                    selfProfessionCard(list[start + i]),
-              ),
-            ),
-          ),
-          if (showMoreLoader)
-            const SliverToBoxAdapter(
-              child: Center(
+      // ## ONE sliver, and pagination only grows its itemCount
+      //
+      // This was a `SliverMainAxisGroup` holding ad-chunked
+      // `SliverMasonryGrid`s plus a conditional loader sliver, so the SLIVER
+      // LIST ITSELF grew in the middle every time a page landed.
+      // `CustomScrollView` reconciles its slivers positionally, so the ones
+      // after the insertion point were re-homed — and a re-created, lazily
+      // measured masonry grid re-estimates its own scroll extent, which moves
+      // the ground above the reader. That is the scroll jump.
+      //
+      // Now: a single `SliverList.builder` over ROWS. A row is one line of
+      // cards or one full-width ad, and the load-more spinner is an extra ITEM
+      // rather than another sliver. Growing a builder delegate's item count is
+      // the one list mutation Flutter is built around, and it cannot disturb
+      // what is already laid out above. Same structure as the finance listing
+      // and `PropertyDiscoverScreen`.
+      //
+      // Masonry is gone with it — which is why every row on the card is now
+      // unconditional (see [selfProfessionCard]): equal-height cards make a
+      // fixed row grid pack as tightly as masonry did.
+      return SliverPadding(
+        padding: EdgeInsets.only(
+          left: SizeConfig.size10,
+          right: SizeConfig.size10,
+          top: SizeConfig.size6,
+          bottom: SizeConfig.size10,
+        ),
+        sliver: SliverList.builder(
+          itemCount: rows.length + (showMoreLoader ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == rows.length) {
+              return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
+              );
+            }
+            final row = rows[index];
+            if (row.isAd) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                child: NativeAdSlot(
+                  adOrdinal: row.adOrdinal,
+                  keyPrefix: 'education_service_native_ad',
+                ),
+              );
+            }
+            return Padding(
+              padding: EdgeInsets.only(bottom: SizeConfig.size10),
+              child: Row(
+                // NOT `stretch`: a list item is laid out with an unbounded
+                // height, so stretch would hand its children infinity and throw
+                // in layout. The cards are equal height by construction, so
+                // `start` already produces a level row.
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int c = 0; c < crossAxisCount; c++) ...[
+                    if (c > 0) SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      // A short last row keeps its columns rather than
+                      // stretching the remaining cards across the width.
+                      child: row.first + c < row.end
+                          ? selfProfessionCard(list[row.first + c])
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ],
               ),
-            ),
-          SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size10)),
-        ],
+            );
+          },
+        ),
       );
     });
   }
@@ -251,6 +325,30 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
+  }
+
+  /// Groups [itemCount] cards into rows of [crossAxisCount], dropping a
+  /// full-width ad row in after every [_kAdAfterEveryCards] cards.
+  ///
+  /// Derived purely from the count, so the rows covering the first N cards are
+  /// identical before and after a page lands — existing rows keep their builder
+  /// index and only new ones are appended.
+  List<_EducationRow> _educationRows(int itemCount, int crossAxisCount) {
+    final rows = <_EducationRow>[];
+    var adOrdinal = 0;
+    var i = 0;
+    while (i < itemCount) {
+      final end =
+          (i + crossAxisCount <= itemCount) ? i + crossAxisCount : itemCount;
+      rows.add(_EducationRow.cards(i, end));
+      i = end;
+      // Never after the final row — an ad below the last card reads as the list
+      // having more to show when it does not.
+      if (i < itemCount && i % _kAdAfterEveryCards == 0) {
+        rows.add(_EducationRow.ad(adOrdinal++));
+      }
+    }
+    return rows;
   }
 
   Widget selfProfessionCard(SchoolDetailsData service) {
@@ -279,15 +377,17 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     }
 
     final String name =
-        (service.name?.isNotEmpty ?? false) ? service.name! : '';
+        (service.name?.isNotEmpty ?? false) ? service.name! : _kNoValue;
     final String numberOfStudents =
         (service.numberOfStudents != null && service.numberOfStudents! > 0)
-            ? _formatStudentCount(service.numberOfStudents!)
-            : '';
+            ? '${_formatStudentCount(service.numberOfStudents!)} Students'
+            : _kNoValue;
     final double? ratingValue = service.avgRating;
+    // `0 Ratings` rather than nothing for an unrated school — the row stays, so
+    // the card keeps its height.
     final String rating = (ratingValue != null && ratingValue > 0)
         ? ratingValue.toStringAsFixed(1)
-        : '';
+        : '0 ${AppStrings.ratings.tr}';
 
     // Distance + address feed the location line under the meta row —
     // the tile is half a screen wide, so distance wins the space and
@@ -300,13 +400,12 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     // Highlight cells show two items. The category's headline field
     // (board / streams / …) is rendered in the meta row above, so it
     // is filtered out of this row via [_buildHighlightCells].
-    final highlights = _buildHighlightCells(service);
+    // Padded to exactly two cells: a school missing one still occupies the same
+    // strip, so the card below it lines up. See [_buildHighlightCells].
+    final highlights = _padHighlightCells(_buildHighlightCells(service), service);
     final List<String> metaItems = _pillItems(service);
     final String? pillField = _pillFieldFor(service);
     final String metaSuffix = pillField == null ? '' : _suffixForKey(pillField);
-
-    final bool showLocation = distance.isNotEmpty || address.isNotEmpty;
-    final bool showMeta = rating.isNotEmpty || metaItems.isNotEmpty;
 
     return InkWell(
       onTap: () {
@@ -352,55 +451,51 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 SizeConfig.size10,
                 0,
               ),
+              // Every row below is unconditional. They used to be dropped when
+              // their value was missing, so no two cards were the same height —
+              // which is what forced the masonry grid, and masonry is what made
+              // the scroll position drift. Missing values read `—` instead.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (name.isNotEmpty)
-                    CustomText(
-                      name,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black22,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (showMeta) ...[
-                    SizedBox(height: SizeConfig.size4),
-                    _buildMetaRow(rating, metaItems, metaSuffix),
-                  ],
-                  if (showLocation) ...[
-                    SizedBox(height: SizeConfig.size4),
-                    _buildLocationRow(distance, address),
-                  ],
-                  if (highlights.isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size8),
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (int i = 0; i < highlights.length; i++) ...[
-                            if (i > 0) SizedBox(width: SizeConfig.size8),
-                            Expanded(
-                              child: _statCell(
-                                  highlights[i].icon, highlights[i].label),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
+                  CustomText(
+                    name,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black22,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: SizeConfig.size4),
+                  _buildMetaRow(rating, metaItems, metaSuffix),
+                  SizedBox(height: SizeConfig.size4),
+                  _buildLocationRow(distance, address),
+                  SizedBox(height: SizeConfig.size8),
+                  // No IntrinsicHeight: the two cells are single-line and
+                  // therefore already equal, and an intrinsic pass per card is
+                  // a double layout this grid does not need.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (int i = 0; i < highlights.length; i++) ...[
+                        if (i > 0) SizedBox(width: SizeConfig.size8),
+                        Expanded(
+                          child: _statCell(
+                              highlights[i].icon, highlights[i].label),
+                        ),
+                      ],
+                    ],
+                  ),
                   SizedBox(height: SizeConfig.size10),
                 ],
               ),
             ),
-            if (numberOfStudents.isNotEmpty) ...[
-              Container(height: 1, color: _kCardDivider),
-              Padding(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: _buildStudentsRow(numberOfStudents),
-              ),
-            ],
+            Container(height: 1, color: _kCardDivider),
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: _buildStudentsRow(numberOfStudents),
+            ),
           ],
         ),
       ),
@@ -536,6 +631,40 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       ));
     }
     return cells;
+  }
+
+  /// Pads [cells] out to exactly two, so the highlight strip is the same height
+  /// on every card whatever the listing carries.
+  ///
+  /// The filler keeps the schema's own icon for that slot and reads `—`, so a
+  /// half-populated school still shows "this is where the medium of instruction
+  /// would go" rather than a card that is visibly shorter than its neighbour.
+  List<_HighlightCell> _padHighlightCells(
+    List<_HighlightCell> cells,
+    SchoolDetailsData service,
+  ) {
+    if (cells.length >= 2) return cells;
+    final resolvedKey =
+        resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
+    final schema = resolvedKey != null
+        ? (_cardFieldsByCategory[resolvedKey] ??
+            kQuickInfoFieldsByCategory[resolvedKey]!)
+        : const <String>['classRange', 'mediumOfInstruction'];
+    final pillField = _pillFieldFor(service);
+    final filled = List<_HighlightCell>.of(cells);
+    for (final key in schema) {
+      if (filled.length >= 2) break;
+      if (key == 'numberOfStudents' || key == pillField) continue;
+      filled.add(_HighlightCell(icon: _iconForKey(key), label: _kNoValue));
+    }
+    // A schema with fewer than two usable keys still has to fill the strip.
+    while (filled.length < 2) {
+      filled.add(_HighlightCell(
+        icon: _iconForKey('classRange'),
+        label: _kNoValue,
+      ));
+    }
+    return filled;
   }
 
   /// Fall back to the typed mirror on [SchoolDetailsData] when
@@ -895,21 +1024,20 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     return Row(
       children: [
-        if (rating.isNotEmpty) ...[
-          LocalAssets(
-            imagePath: AppIconAssets.fill_star,
-            width: SizeConfig.size12,
-            height: SizeConfig.size12,
-            imgColor: AppColors.yellow,
-          ),
-          SizedBox(width: SizeConfig.size3),
-          CustomText(
-            rating,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black22,
-          ),
-        ],
+        // Star and rating unconditional — an unrated school reads `★ 0 Ratings`.
+        LocalAssets(
+          imagePath: AppIconAssets.fill_star,
+          width: SizeConfig.size12,
+          height: SizeConfig.size12,
+          imgColor: AppColors.yellow,
+        ),
+        SizedBox(width: SizeConfig.size3),
+        CustomText(
+          rating,
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black22,
+        ),
         if (labels.isNotEmpty)
           Flexible(
             child: RichText(
@@ -918,7 +1046,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               text: TextSpan(
                 children: [
                   for (int i = 0; i < labels.length; i++) ...[
-                    if (i > 0 || rating.isNotEmpty) separator,
+                    // The rating always precedes these, so every label needs its
+                    // leading separator.
+                    separator,
                     TextSpan(
                       text: labels[i],
                       style: TextStyle(
@@ -940,7 +1070,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   /// `service_business_card.dart._buildLocationRow` so both discover
   /// cards share the same location styling (pin + primary-coloured
   /// distance + secondary-coloured address).
+  ///
+  /// Drawn even when the listing carries neither — a lone pin beside an em-dash
+  /// keeps the card its full height.
   Widget _buildLocationRow(String distanceText, String address) {
+    final hasNeither = distanceText.isEmpty && address.isEmpty;
     return Row(
       children: [
         LocalAssets(
@@ -956,6 +1090,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             overflow: TextOverflow.ellipsis,
             text: TextSpan(
               children: [
+                if (hasNeither)
+                  TextSpan(
+                    text: _kNoValue,
+                    style: TextStyle(
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall,
+                    ),
+                  ),
                 if (distanceText.isNotEmpty)
                   TextSpan(
                     text: distanceText,
@@ -1048,9 +1190,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         SizedBox(width: SizeConfig.size6),
         Expanded(
           child: CustomText(
-            // Literal label, same as the "No. Of Students" copy this row
-            // replaces — there is no `students` translation key yet.
-            '$value Students',
+            // Already carries its "Students" suffix, or an em-dash when the
+            // listing has no head count — the row is drawn either way.
+            value,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
             color: AppColors.black22,

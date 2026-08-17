@@ -784,7 +784,7 @@ print("type==== ${type}");
   /// `fetchDetail`) so the screen shows its loader instead of a half-empty
   /// header; [FinanceDiscoverController.selectedDetail] is left null so the
   /// screen's initState doesn't kick off a second fetch. Mirrors the in-app tap
-  /// flow from the finance list ([FinanceListScreen]).
+  /// flow from the finance list ([FinanceListingScreen]).
   void _openFinance(String id) {
     final controller = getOrPut(() => FinanceDiscoverController());
     controller.selectedDetail.value = null;

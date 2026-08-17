@@ -78,6 +78,40 @@ const double kDiscoverGlassRadius = 26;
 /// plate can.
 const Color kDiscoverGlassPlateFill = Color(0x8FFFFFFF);
 
+/// Scroll behaviour every scroll view that CONTAINS glass panels has to use.
+///
+/// ## Why the glass goes dark when you drag
+///
+/// Android 12+ overscrolls by *stretching the content*: the default
+/// [StretchingOverscrollIndicator] wraps the scroll view's children in a clip
+/// and a non-identity [Transform] for the duration of the drag. That transform
+/// is a layer boundary, and a [BackdropFilter] can only sample what is painted
+/// inside its own enclosing layer.
+///
+/// On this page the background image is a SIBLING of the scroll view, not part
+/// of it. So the moment the stretch kicks in, every panel stops sampling the
+/// pale blue page and starts sampling an otherwise-empty layer — blurred
+/// transparent black, which is why the glass turns dark under your finger and
+/// recovers the instant you let go.
+///
+/// Dropping the indicator keeps the backdrop correct at every scroll offset.
+/// Pull-to-refresh still gives the downward drag its own feedback, so the page
+/// doesn't lose an affordance; the edges just stop rather than stretching. (A
+/// [GlowingOverscrollIndicator] would also be safe — it paints OVER the content
+/// instead of transforming it — but the old glow reads as a foreign material
+/// against these panels.)
+class DiscoverGlassScrollBehavior extends MaterialScrollBehavior {
+  const DiscoverGlassScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) =>
+      child;
+}
+
 /// A panel painted in the Discover glass recipe above.
 ///
 /// Note the shadow sits OUTSIDE the clip: a [ClipRRect] crops its child, so a

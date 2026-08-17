@@ -1011,6 +1011,31 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
+      //
+      // Manufacturing splits by WHAT IS MADE. The onboarding API serves four
+      // categories under it — grocery & stationary, product, healthcare and
+      // automotive — and each one's goods already have a catalogue screen in the
+      // app, so the merchant lands on the one built for their own stock instead
+      // of every manufacturer sharing the generic product screen.
+      //
+      // Matched on a token rather than an exact string, for the same reason the
+      // automotive helpers below are: `businessCategoryGlobal` carries the
+      // display name ("Manufacturing Healthcare") on some paths and the tag id
+      // ("MANUFACTURING_HEALTHCARE") on others. Each of these three tokens
+      // appears in exactly one manufacturing category, so either shape lands.
+      final category = businessCategoryGlobal.toUpperCase();
+      logs("MANUFACTURING -> category= $category");
+      if (category.contains('GROCERY')) {
+        return const GroceryScreen(fromBottomNavBar: true);
+      } else if (category.contains('HEALTHCARE')) {
+        return const MedicalScreen(fromBottomNavBar: true);
+      } else if (category.contains('AUTOMOTIVE')) {
+        return const AutomotivePartsScreen();
+      }
+      // MANUFACTURING_PRODUCT — and deliberately also anything added
+      // server-side later. A new manufacturing category then gets the general
+      // goods catalogue, which is where every manufacturer landed until now,
+      // rather than the unknown-business fallback.
       return const ManufacturerProductScreen();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Automotive.name.toUpperCase()) {

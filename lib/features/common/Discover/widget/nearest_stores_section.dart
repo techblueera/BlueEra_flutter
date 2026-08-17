@@ -8,7 +8,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/quick_rider_book_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,7 +39,20 @@ class NearestStoresSection extends StatefulWidget {
 class _NearestStoresSectionState extends State<NearestStoresSection> {
   final _controller = getOrPut(() => NearbyStoresController());
 
-  static const double _railHeight = 116;
+  /// Height of one item plate: a horizontal [ListView] constrains its children
+  /// tightly on the cross axis, so this IS the plate height and every plate is
+  /// identical.
+  ///
+  /// Measured against the content rather than rounded up: avatar (66) + the
+  /// chip's 9px overhang + 6 gap + the two label lines (~30 at these sizes) +
+  /// the plate's 16 of vertical padding ≈ 127. The 4px over that is headroom for
+  /// scripts whose line boxes run taller than Latin's, and the item centres
+  /// itself in whatever is left so the slack never collects under the last line.
+  ///
+  /// The plate's own parts are fixed pixels rather than [SizeConfig] steps for
+  /// the same reason the folder tile's are: this rail has to line up with that
+  /// grid, and the grid's geometry is fixed.
+  static const double _railHeight = 131;
 
   /// Drives the refresh button's spinner. Local rather than read off the
   /// controller because the refresh also re-acquires location first, and
@@ -149,53 +162,61 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
         return const SizedBox.shrink();
       }
 
-      return Container(
-        width: double.infinity,
-        margin: EdgeInsets.only(bottom: SizeConfig.size12),
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      AppStrings.nearestStores.tr,
-                      fontSize: SizeConfig.large18,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w700,
+      // The panel is the shared Discover glass — same fill, blur, rim, lift and
+      // 26px radius as the folder tiles below it, so the rail sits in the same
+      // material as the rest of the page instead of on a white sheet laid over
+      // it. It inherits the grid's own 14px side inset from
+      // `_buildSectionsColumn`, so the edges line up with the folders too.
+      return Padding(
+        padding: EdgeInsets.only(bottom: SizeConfig.size14),
+        child: DiscoverGlassPanel(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        AppStrings.nearestStores.tr,
+                        fontSize: SizeConfig.large18,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w700,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  _refreshButton(),
-                  SizedBox(width: SizeConfig.size8),
-                  if (widget.onViewAll != null)
-                    ViewAllButton(onTap: widget.onViewAll!),
-                ],
+                    _refreshButton(),
+                    SizedBox(width: SizeConfig.size8),
+                    if (widget.onViewAll != null)
+                      // Raw key: CustomText `.tr`s its own title.
+                      _GlassChip(
+                        onTap: widget.onViewAll!,
+                        label: AppStrings.viewAll,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: SizeConfig.size16),
-            SizedBox(
-              height: _railHeight,
-              child: loading
-                  ? _loadingRow()
-                  : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-                      itemCount: entries.length,
-                      separatorBuilder: (_, __) =>
-                          SizedBox(width: SizeConfig.size16),
-                      itemBuilder: (context, index) =>
-                          _NearbyAvatar(entry: entries[index], onTap: _open),
-                    ),
-            ),
-          ],
+              SizedBox(height: SizeConfig.size12),
+              SizedBox(
+                height: _railHeight,
+                child: loading
+                    ? _loadingRow()
+                    : ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size14),
+                        itemCount: entries.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(width: _kItemGap),
+                        itemBuilder: (context, index) =>
+                            _NearbyAvatar(entry: entries[index], onTap: _open),
+                      ),
+              ),
+            ],
+          ),
         ),
       );
     });
@@ -203,69 +224,63 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
 
   /// Refresh affordance sitting left of "View All" — refreshes only this rail.
   ///
-  /// Wears the same pale-blue chip as [ViewAllButton] (`primaryColor.withAlpha(10)`,
-  /// radius 30) so the two read as a matched pair rather than a stray icon.
+  /// Wears the same white plate as [_GlassChip] so the two read as a matched
+  /// pair of controls ON the glass. Its old fill was `primaryColor.withAlpha(10)`
+  /// — 4% ink, which was already close to invisible on the white card and would
+  /// have disappeared outright on the panel.
+  ///
   /// Spins while running, and is inert both while refreshing and while the
   /// controller's own fetch is in flight, so it can't stack requests.
   Widget _refreshButton() {
     final busy = _isRefreshing || _controller.isLoading.value;
-    return GestureDetector(
+    return _GlassChip(
       onTap: busy ? null : _refresh,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withAlpha(10),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: SizedBox(
-          // Fixed box so swapping icon ⇄ spinner doesn't jiggle the row.
-          width: 18,
-          height: 18,
-          child: busy
-              ? const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primaryColor,
-                )
-              : const Icon(
-                  Icons.refresh_rounded,
-                  size: 18,
-                  color: AppColors.primaryColor,
-                ),
-        ),
+      // Fixed box so swapping icon ⇄ spinner doesn't jiggle the row.
+      child: SizedBox(
+        width: 16,
+        height: 16,
+        child: busy
+            ? const CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primaryColor,
+              )
+            : const Icon(
+                Icons.refresh_rounded,
+                size: 16,
+                color: AppColors.primaryColor,
+              ),
       ),
     );
   }
 
-  /// Shown when the rail is empty *because an upstream failed* — same white
-  /// card as the rail so the section keeps its place, with a retry that
-  /// force-refetches. Never shown for a genuinely empty area (that collapses).
+  /// Shown when the rail is empty *because an upstream failed* — the same glass
+  /// panel as the rail so the section keeps both its place and its material,
+  /// with a retry that force-refetches. Never shown for a genuinely empty area
+  /// (that collapses).
   Widget _degradedCard() {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: SizeConfig.size12),
-      padding: EdgeInsets.all(SizeConfig.size16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.cloud_off_rounded,
-              size: SizeConfig.size20, color: AppColors.secondaryTextColor),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: CustomText(
-              "Couldn't load what's near you",
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size14),
+      child: DiscoverGlassPanel(
+        padding: EdgeInsets.all(SizeConfig.size14),
+        child: Row(
+          children: [
+            Icon(Icons.cloud_off_rounded,
+                size: SizeConfig.size20, color: AppColors.mainTextColor),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: CustomText(
+                "Couldn't load what's near you",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          SizedBox(width: SizeConfig.size8),
-          _refreshButton(),
-        ],
+            SizedBox(width: SizeConfig.size8),
+            _refreshButton(),
+          ],
+        ),
       ),
     );
   }
@@ -273,29 +288,128 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
   Widget _loadingRow() {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
       itemCount: 5,
-      separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size16),
+      separatorBuilder: (_, __) => const SizedBox(width: _kItemGap),
       itemBuilder: (_, __) => _shimmerAvatar(),
     );
   }
 
+  /// Placeholder in the shape of the real plate, so the swap to content moves
+  /// nothing: same plate, same radius, same avatar circle, same two text lines.
   Widget _shimmerAvatar() {
-    return buildLoadingShimmer(
-      child: SizedBox(
-        width: 64,
+    return _NearbyPlate(
+      child: buildLoadingShimmer(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            shimmerContainer(width: 64, height: 64, radius: 32),
-            const SizedBox(height: 10),
-            // Short category bar first, then the wider name bar — same order
-            // the real card lays out, so the swap to content doesn't jump.
-            shimmerContainer(width: 40, height: 9, radius: 4),
-            const SizedBox(height: 6),
-            shimmerContainer(width: 56, height: 11, radius: 4),
+            shimmerContainer(
+                width: _kAvatarSize,
+                height: _kAvatarSize,
+                radius: _kAvatarSize / 2),
+            // 9 for the chip's overhang + the 6 gap, so the bars land where the
+            // real labels do.
+            const SizedBox(height: 15),
+            shimmerContainer(width: 54, height: 11, radius: 4),
+            const SizedBox(height: 4),
+            shimmerContainer(width: 34, height: 8, radius: 4),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Geometry of one rail item. Fixed pixels, like the folder tile's — see
+/// [_NearestStoresSectionState._railHeight].
+///
+/// The avatar is the item: it is what gets recognised and what gets tapped, so
+/// it takes nearly the plate's full width and the labels read as its caption.
+const double _kItemWidth = 82;
+const double _kItemGap = 10;
+const double _kAvatarSize = 66;
+
+/// Radius of an item plate. Sits between the folder tile's 26 and its inner
+/// icon slots' 14: this plate holds one item, where a tile holds four.
+const double _kPlateRadius = 18;
+
+/// Availability green — the same one the recent-orders rail tags a new order
+/// with, so "live/new" is one colour across the page rather than two greens a
+/// shade apart.
+const Color _kLiveGreen = Color(0xFF1FB35A);
+
+/// A control sitting on the glass panel: a white plate with a hairline rim.
+///
+/// The page's shared [kDiscoverGlassPlateFill] is what makes a block on the
+/// panel legible — the panel itself is ink over an unknown background and can't
+/// be relied on for contrast, a plate can. Same reasoning as the folder tiles'
+/// icon slots, and the same fill.
+class _GlassChip extends StatelessWidget {
+  const _GlassChip({required this.onTap, this.label, this.child});
+
+  /// Null disables the chip — it dims rather than disappearing, so the row
+  /// doesn't reflow while a refresh is in flight.
+  final VoidCallback? onTap;
+  final String? label;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: onTap == null ? 0.55 : 1,
+      child: Material(
+        color: kDiscoverGlassPlateFill,
+        borderRadius: BorderRadius.circular(30),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: label != null ? 12 : 7,
+              vertical: label != null ? 5 : 7,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: child ??
+                CustomText(
+                  label!,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The white plate one rail item sits on.
+///
+/// This is the move that makes the rail belong to the page: the folder tiles
+/// are glass panels holding bright plates, and so is this. It also carries the
+/// contrast — the item's name and category are ordinary dark text, which the
+/// panel alone could not guarantee on a user-chosen background.
+class _NearbyPlate extends StatelessWidget {
+  const _NearbyPlate({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _kItemWidth,
+      padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+      decoration: BoxDecoration(
+        color: kDiscoverGlassPlateFill,
+        borderRadius: BorderRadius.circular(_kPlateRadius),
+        // Fill + rim only, no lift. The folder tiles' icon slots carry no
+        // shadow either — the panel underneath is what these plates lift off,
+        // and five shadowed plates in a row turned the rail busy.
+        border: Border.all(color: Colors.white, width: 1),
+      ),
+      child: child,
     );
   }
 }
@@ -341,97 +455,197 @@ class _NearbyAvatar extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => onTap(entry),
-      child: SizedBox(
-        width: 72,
+      child: _NearbyPlate(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          // Centred, not top-aligned. The plate is stretched to the rail's
+          // height, so whatever the content doesn't use has to go somewhere —
+          // top-aligned it all collected under the category line as a band of
+          // dead space. Split in two it reads as the plate's own padding.
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isStore
-                        ? const Color(0xFF17233F)
-                        : AppColors.primaryColor.withValues(alpha: 0.10),
-                    // Slight hairline border + soft shadow so the logo lifts off
-                    // the white card.
-                    border: Border.all(color: AppColors.greyE5, width: 0.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x14101828),
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
+            // The avatar and the two badges that qualify it. The stack is 9px
+            // taller than the circle so the distance chip can ride the bottom
+            // edge without being clipped.
+            SizedBox(
+              height: _kAvatarSize + 9,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  // The rim is painted as a FOREGROUND decoration over the
+                  // image, not as a border around it. A `Container` with a
+                  // border insets its child by the border's width
+                  // (`BoxDecoration.padding` comes from the border's
+                  // dimensions), which left a dead ring inside the circle and
+                  // stopped the photo ever reaching the edge. Painting the ring
+                  // on top instead lets the image fill the whole circle.
+                  DecoratedBox(
+                    position: DecorationPosition.foreground,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      // Hairline rim in the panel's own white, so the circle
+                      // separates from the plate the same way every other block
+                      // on this page separates from what it sits on.
+                      border: Border.fromBorderSide(
+                        BorderSide(color: Colors.white, width: 1.5),
                       ),
-                    ],
-                  ),
-                  child: image.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: Uri.encodeFull(image),
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => _fallbackIcon(isStore),
-                          errorWidget: (_, __, ___) => _fallbackIcon(isStore),
-                        )
-                      : _fallbackIcon(isStore),
-                ),
-                if (live)
-                  Positioned(
-                    right: 2,
-                    bottom: 2,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00C853),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.white, width: 2),
+                    ),
+                    child: ClipOval(
+                      child: Container(
+                        width: _kAvatarSize,
+                        height: _kAvatarSize,
+                        color: isStore
+                            ? const Color(0xFF17233F)
+                            : AppColors.primaryColor.withValues(alpha: 0.10),
+                        child: image.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: Uri.encodeFull(image),
+                                fit: BoxFit.cover,
+                                // Fills the circle even when the source is
+                                // smaller than the box — without these the
+                                // image is drawn at its intrinsic size and
+                                // floats in the middle.
+                                width: _kAvatarSize,
+                                height: _kAvatarSize,
+                                placeholder: (_, __) => _fallbackIcon(isStore),
+                                errorWidget: (_, __, ___) =>
+                                    _fallbackIcon(isStore),
+                              )
+                            : _fallbackIcon(isStore),
                       ),
                     ),
                   ),
-              ],
+                  // Availability, top-right: a worker who is online right now.
+                  // Kept as a dot rather than folded into the chip below so the
+                  // two facts stay separable — the rail sorts live-first, THEN
+                  // nearest, and the badges say so in that order.
+                  if (live)
+                    Positioned(
+                      // On the circle's upper-right edge (its 45° point), not
+                      // floating in the corner beside it — the Stack is exactly
+                      // as wide as the avatar, so these offsets are measured
+                      // from the circle itself.
+                      top: 2,
+                      right: 2,
+                      child: Container(
+                        width: 13,
+                        height: 13,
+                        decoration: BoxDecoration(
+                          color: _kLiveGreen,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                  // Distance, riding the circle's lower edge. This is the one
+                  // fact that justifies the rail existing and the thing it is
+                  // ordered by, so it is on the item rather than left implicit.
+                  if (_distanceLabel != null)
+                    Positioned(
+                      bottom: 0,
+                      child: _DistanceChip(label: _distanceLabel!),
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            // Category reads as a small eyebrow ABOVE the name — two points
-            // down from the name so the name still wins the row, and the pair
-            // reads as one block rather than two competing labels.
-
-              CustomText(
+            const SizedBox(height: 6),
+            // Both labels are [Flexible] on purpose. The rail is a fixed height
+            // and the plate is stretched to it, but a line box is taller in
+            // Devanagari than in Latin at the same point size — and the app ships
+            // 20-odd languages. Flexible lets the text be compressed to what is
+            // left rather than overflowing the plate in some locales.
+            Flexible(
+              child: CustomText(
                 name,
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
-
-              const SizedBox(height: 2),
-            if (label.isNotEmpty)
-            CustomText(
-              label,
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
             ),
-
+            if (label.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Flexible(
+                child: CustomText(
+                  label,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
+  /// `0.4 km` up close, `12 km` further out — a decimal is meaningful when you
+  /// might walk it and noise when you won't. Null when the backend sent no
+  /// distance, and the chip is then simply not drawn rather than reading `0 km`.
+  ///
+  /// `kmLabel` ("km") rather than `kmAway` ("km away"): the chip is 78px wide at
+  /// most and the longer phrase would spill out of the plate. Sitting on the
+  /// avatar is what says "away".
+  String? get _distanceLabel {
+    final km = entry.distance;
+    if (km <= 0) return null;
+    final value = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
+    return '$value ${AppStrings.kmLabel.tr}';
+  }
+
   Widget _fallbackIcon(bool isStore) => Center(
         child: Icon(
           isStore ? Icons.storefront_rounded : Icons.person,
           color: isStore ? Colors.white : AppColors.primaryColor,
-          size: isStore ? 26 : 30,
+          size: isStore ? 30 : 34,
         ),
       );
+}
+
+/// How far away this one is — the rail's ranking, made visible.
+///
+/// Opaque white rather than the plate's translucent fill: it overlaps the
+/// avatar, and a translucent chip over a photo is unreadable.
+class _DistanceChip extends StatelessWidget {
+  const _DistanceChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // Never wider than the plate it sits on: the chip is in a Stack, which
+      // does not constrain it, and a long value would otherwise hang over the
+      // plate's edge.
+      constraints: const BoxConstraints(maxWidth: _kItemWidth - 12),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F101828),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: CustomText(
+        label,
+        fontSize: 9,
+        fontWeight: FontWeight.w700,
+        color: AppColors.primaryColor,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
 }

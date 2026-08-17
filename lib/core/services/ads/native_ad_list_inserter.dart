@@ -123,9 +123,11 @@ List<Widget> buildNativeAdGridSlivers({
     if (!_shouldInsertAdAfter(pos,
         firstAfter: _kGridFirstAdAfter,
         everyAfter: _kGridAdEveryAfterFirst)) continue;
-    slivers.add(gridSliverBuilder(start, pos));
+    slivers.add(_keyedChunk(keyPrefix, start, gridSliverBuilder(start, pos)));
     slivers.add(
       SliverPadding(
+        // Keyed, like the chunks — see [_keyedChunk].
+        key: ValueKey('${keyPrefix}_slot_$adOrdinal'),
         padding: adPadding,
         sliver: SliverToBoxAdapter(
           child: NativeAdSlot(
@@ -138,9 +140,32 @@ List<Widget> buildNativeAdGridSlivers({
     );
     start = pos;
   }
-  if (start < itemCount) slivers.add(gridSliverBuilder(start, itemCount));
+  if (start < itemCount) {
+    slivers.add(
+        _keyedChunk(keyPrefix, start, gridSliverBuilder(start, itemCount)));
+  }
   return slivers;
 }
+
+/// Wraps one grid chunk so it carries a key derived from its FIRST item index.
+///
+/// `CustomScrollView.slivers` is reconciled the same way a `Column`'s children
+/// are: by position, unless the children carry keys. Loading a page inserts an
+/// ad slot and a fresh chunk into the MIDDLE of that list, which shifts every
+/// later sliver's position — so unkeyed, Flutter re-homes those elements, and a
+/// lazily-laid-out grid that gets re-created loses its measured child extents
+/// and re-estimates its own scroll extent. When that happens to a chunk sitting
+/// above the reader, the estimate moves the ground under them.
+///
+/// Keyed on `start`, the chunk that already existed keeps its element and its
+/// render object, and appending is purely additive. `SliverPadding` with zero
+/// padding is the wrapper because a key has to go on a real sliver widget —
+/// the chunk itself comes from the caller's builder.
+Widget _keyedChunk(String keyPrefix, int start, Widget chunk) => SliverPadding(
+      key: ValueKey('${keyPrefix}_chunk_$start'),
+      padding: EdgeInsets.zero,
+      sliver: chunk,
+    );
 
 /// A native ad row rendered inside a content list. Wraps [NativeAdWidget] with a
 /// stable key (so the loaded ad survives list rebuilds / load-more instead of

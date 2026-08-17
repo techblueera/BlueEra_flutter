@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -18,7 +20,7 @@ import 'account_plan_entitlement.dart';
 /// closest working precedent in the app.
 ///
 /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
-class AccountPlanController extends GetxController {
+class AccountPlanController extends GetxController with WidgetsBindingObserver {
   final AccountPlanRepo _repo = AccountPlanRepo();
   final RazorpayService _razorpay = RazorpayService();
 
@@ -119,6 +121,14 @@ class AccountPlanController extends GetxController {
   /// Which card is mid-purchase, so only the tapped one shows a spinner.
   final RxString purchasingCode = ''.obs;
 
+  /// The option code a checkout is currently open for, or null.
+  ///
+  /// This is what [_onAppResumed] recovers against: it is set the instant
+  /// before the sheet opens and cleared by [_reset] once the payment has been
+  /// settled one way or the other, so a non-null value on resume means "we
+  /// went away mid-payment and never heard how it ended".
+  String? _pendingOptionCode;
+
   /// Buys whatever the list currently has selected — the pinned CTA's action.
   Future<void> buySelected() async {
     final card = selectedCard;
@@ -140,9 +150,26 @@ class AccountPlanController extends GetxController {
   bool ownsPlan(PlanCard card) => activeOptionCodes.contains(card.optionCode);
 
   @override
+  void onInit() {
+    super.onInit();
+    // For [didChangeAppLifecycleState] — the payment can finish while this app
+    // is in the background, see [_onAppResumed].
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // A no-op while a checkout is still outstanding — the service defers its
+    // teardown so a payment made after this screen is gone still lands.
     _razorpay.dispose();
     super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) _onAppResumed();
   }
 
   /// The `data` map of a 2xx envelope, or null when the call failed or the
@@ -286,6 +313,7 @@ class AccountPlanController extends GetxController {
       return;
     }
 
+    _pendingOptionCode = card.optionCode;
     _razorpay.openCheckout(
       razorpayKeyId: order.keyId,
       name: AppStrings.appName,
@@ -414,6 +442,7 @@ class AccountPlanController extends GetxController {
     }
 
     _verifyingUpgrade = true;
+    _pendingOptionCode = card.optionCode;
     _razorpay.openCheckout(
       razorpayKeyId: order.keyId,
       name: AppStrings.appName,
@@ -436,19 +465,37 @@ class AccountPlanController extends GetxController {
     // An upgrade order settles through the upgrade's own verify — see
     // [_verifyingUpgrade].
     final wasUpgrade = _verifyingUpgrade;
-    _verifyingUpgrade = false;
+    final orderId = r.orderId ?? '';
+    final paymentId = r.paymentId ?? '';
+    final signature = r.signature ?? '';
+    _reset();
+
+    // The money is taken by this point, so a half-empty response is never a
+    // failure to report — verify would only 400 on it. The webhook settles it
+    // instead, and the re-fetch below is what tells the user.
+    if (orderId.isEmpty || paymentId.isEmpty || signature.isEmpty) {
+      logs('AccountPlan: incomplete Razorpay success payload '
+          '(order=$orderId payment=$paymentId signature=${signature.isEmpty ? "missing" : "present"}) '
+          '— leaving activation to the webhook');
+      commonSnackBar(message: AppStrings.paymentVerifyPending.tr);
+      await fetchPlans();
+      return;
+    }
+
+    // POST /account-plan/verify-payment — {razorpay_order_id,
+    // razorpay_payment_id, razorpay_signature}, exactly as sent back by
+    // Razorpay. Nothing about the amount is re-sent or re-computed.
     final res = wasUpgrade
         ? await _repo.verifyUpgrade(
-            orderId: r.orderId ?? '',
-            paymentId: r.paymentId ?? '',
-            signature: r.signature ?? '',
+            orderId: orderId,
+            paymentId: paymentId,
+            signature: signature,
           )
         : await _repo.verifyPayment(
-            orderId: r.orderId ?? '',
-            paymentId: r.paymentId ?? '',
-            signature: r.signature ?? '',
+            orderId: orderId,
+            paymentId: paymentId,
+            signature: signature,
           );
-    _reset();
 
     final body = res.response?.data;
     final ok = res.statusCode == 200 &&
@@ -465,14 +512,81 @@ class AccountPlanController extends GetxController {
   }
 
   void _onPaymentError(PaymentFailureResponse r) {
+    logs('AccountPlan: payment failed for '
+        '${_pendingOptionCode ?? "-"} (code=${r.code}) ${r.message}');
     _reset();
     commonSnackBar(message: RazorpayService.humanReadableError(r));
+  }
+
+  // ─── 3c. Coming back from a backgrounded payment ────────────────
+  /// Settles a checkout the app was away for.
+  ///
+  /// A UPI payment leaves the app: the user finishes in their bank app and
+  /// Android may recreate the activity underneath, which is enough for the
+  /// plugin's result to be delivered to a channel nobody is awaiting any more
+  /// — no success event, and the purchase looks like it never happened.
+  ///
+  /// Two recoveries, cheapest first:
+  ///  1. [RazorpayService.resync] asks the native side for a result it had to
+  ///     park. When there is one it arrives through the normal success path,
+  ///     verify included, and this method has nothing left to do.
+  ///  2. Otherwise the backend webhook is the source of truth and has very
+  ///     likely activated the plan already — so re-read `/my-plans` and treat
+  ///     the option turning `active` as the success we missed.
+  ///
+  /// If neither lands, the UI is unwound anyway: leaving the pay bar spinning
+  /// forever is the one outcome that helps nobody. `initiate` resumes the same
+  /// unpaid order, so retrying is safe and cannot double-charge.
+  Future<void> _onAppResumed() async {
+    final code = _pendingOptionCode;
+    // Nothing outstanding, or a recovery already walking the steps below — a
+    // second pass would only re-fetch and re-announce the same thing.
+    if (code == null || _recovering) return;
+    _recovering = true;
+    try {
+      await _recoverPendingCheckout(code);
+    } finally {
+      _recovering = false;
+    }
+  }
+
+  /// Guards [_onAppResumed] against overlapping runs (resume → pause → resume
+  /// while the first pass is still waiting on the webhook).
+  bool _recovering = false;
+
+  Future<void> _recoverPendingCheckout(String code) async {
+    _razorpay.resync();
+
+    // The parked result comes back over the platform channel; give it a beat
+    // to arrive and settle itself before falling back to the webhook.
+    await Future.delayed(const Duration(seconds: 2));
+    if (_pendingOptionCode != code) return; // recovered path 1
+
+    // Webhook activation is not instant — a couple of unhurried re-reads
+    // rather than one, then give up on the optimistic path.
+    for (var attempt = 0; attempt < 3; attempt++) {
+      if (_pendingOptionCode != code) return;
+      await fetchMyPlans();
+      if (activeOptionCodes.contains(code)) {
+        logs('AccountPlan: $code activated while backgrounded (webhook)');
+        _reset();
+        commonSnackBar(message: AppStrings.planActivated.tr);
+        await fetchPlans();
+        return;
+      }
+      await Future.delayed(const Duration(seconds: 3));
+    }
+
+    if (_pendingOptionCode != code) return;
+    logs('AccountPlan: no result for $code after resume — releasing the UI');
+    _reset();
   }
 
   void _reset() {
     isProcessing.value = false;
     purchasingCode.value = '';
     _verifyingUpgrade = false;
+    _pendingOptionCode = null;
   }
 
   // ─── GST gate ───────────────────────────────────────────────────

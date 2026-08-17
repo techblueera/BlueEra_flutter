@@ -274,6 +274,44 @@ class _CatalogHeader extends StatelessWidget {
   return (title: card.label, unit: null);
 }
 
+/// Keeps a numeric range on one line.
+///
+/// Left alone, the line breaker takes the dash as its break opportunity and
+/// splits the range itself: "Sales 30–" / "40 Lakh", "Sales 1–" / "1.25 Cr". The
+/// number the plan is NAMED for ends up straddling two lines and the first line
+/// is left half empty. A word joiner either side moves the break to the space
+/// instead — "Sales" / "30–40 Lakh".
+///
+/// U+2060 rather than swapping in a non-breaking hyphen: it is zero-width and
+/// default-ignorable, so the API's own dash glyph is what renders, and a font
+/// without the codepoint draws nothing rather than tofu.
+String _unbreakableRanges(String value) => value.replaceAllMapped(
+      RegExp(r'(\d)\s*([-–—])\s*(\d)'),
+      // Escaped, not the literal character: U+2060 renders as nothing, so a
+      // pasted one is invisible in this source and in any diff that touches it.
+      (m) => '${m[1]}\u2060${m[2]}\u2060${m[3]}',
+    );
+
+/// Headline size for [value], stepped down from [base] when the label is too
+/// long to sit on two lines at full size.
+///
+/// The comp's sizes were set for the short labels this catalog was built on —
+/// "3 km", "Pro", "All India". The sales-band plans are three or four words
+/// ("Sales 30–40 Lakh") and at full size the longest of them ellipsised, which
+/// on a price card means the plan is no longer named. Two steps is enough for
+/// everything the catalog currently sends, and short labels keep their intended
+/// weight.
+///
+/// Length-driven rather than a `FittedBox`: scaling down a two-line paragraph to
+/// fit its box shrinks it until BOTH lines fit, which on the narrow half of this
+/// row lands far smaller than the sublabel beneath it.
+double _headlineFontSize(String value, {required double base}) {
+  final length = value.trim().length;
+  if (length <= 14) return base;
+  if (length <= 20) return base * 0.84;
+  return base * 0.7;
+}
+
 /// One plan card: headline + price pill, the promise line, then the DB-driven
 /// feature bullets, the GST condition, and the per-plan T&C link.
 ///
@@ -542,8 +580,8 @@ class _Headline extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             CustomText(
-              title,
-              fontSize: SizeConfig.size26,
+              _unbreakableRanges(title),
+              fontSize: _headlineFontSize(title, base: SizeConfig.size26),
               fontWeight: FontWeight.w800,
               color: AccountPlanPalette.heading,
               height: 1.1,
@@ -956,8 +994,11 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                     children: [
                       Flexible(
                         child: CustomText(
-                          headline.title,
-                          fontSize: SizeConfig.size30,
+                          _unbreakableRanges(headline.title),
+                          fontSize: _headlineFontSize(
+                            headline.title,
+                            base: SizeConfig.size30,
+                          ),
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           height: 1.05,

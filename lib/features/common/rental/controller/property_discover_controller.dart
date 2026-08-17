@@ -171,6 +171,43 @@ class PropertyDiscoverController extends GetxController {
     return _priceFor(p) / area;
   }
 
+  // ── Search location (per-flow override) ────────────────────────────
+  /// The place THIS search is scoped to — what the user picked on
+  /// [RentalDiscoverEntryScreen]. Null means "no explicit pick": fall back to
+  /// the device fix.
+  ///
+  /// Deliberately does NOT mutate the global [LocationService]. Someone
+  /// browsing flats in Jaipur from Jodhpur has not moved, and the rest of the
+  /// app — the feed, nearby stores, delivery — must keep answering for where
+  /// they actually are. Same contract as
+  /// `DiscoverController.setEarnDiscoverLocation`, which the Book Home Services
+  /// flow uses for the same reason.
+  double? searchLat;
+  double? searchLng;
+
+  /// Human-readable label for the picked place ("Vaishali Nagar, Jaipur"),
+  /// shown on the entry field and on the results screen's map pill so the user
+  /// can always see which place the list is answering for.
+  final RxString searchLocationLabel = ''.obs;
+
+  /// Sets (or with all-null, clears) the location this search is scoped to.
+  ///
+  /// Every entry point into the results screen calls this — including the ones
+  /// that have no place to pass, which clear it. The controller is a `getOrPut`
+  /// singleton, so a pick left behind by an earlier visit would otherwise
+  /// silently scope a later search to a city the user has moved on from.
+  void setSearchLocation({double? lat, double? lng, String? label}) {
+    searchLat = lat;
+    searchLng = lng;
+    searchLocationLabel.value = label ?? '';
+  }
+
+  /// The coordinates the search resolves to: the explicit pick when there is
+  /// one, otherwise the device fix.
+  double get effectiveLat => searchLat ?? LocationService.lat;
+
+  double get effectiveLng => searchLng ?? LocationService.lng;
+
   // ── Free-text / range filters (don't fit the chip registry shape) ──
   final city = ''.obs;
   final minPrice = ''.obs;
@@ -208,7 +245,14 @@ class PropertyDiscoverController extends GetxController {
       List<PropertyDiscoverCategory> cats, int initialIndex) {
     categories = cats;
     selectedCategoryIndex.value = initialIndex;
-    final sig = 'property|$initialIndex';
+    // The location is part of the identity of a result set, not just the
+    // category: without it, searching Jaipur right after Jodhpur would be
+    // served the cached Jodhpur list. Rounded to ~110m, which is well inside
+    // the 1.5km search radius, so nudging the pin doesn't force a refetch.
+    final place = searchLat == null || searchLng == null
+        ? 'device'
+        : '${searchLat!.toStringAsFixed(3)},${searchLng!.toStringAsFixed(3)}';
+    final sig = 'property|$initialIndex|$place';
     if (_propertyCache.isFresh(sig, hasData: properties.isNotEmpty)) return;
     fetchProperties();
   }
@@ -432,9 +476,11 @@ class PropertyDiscoverController extends GetxController {
       'propertyType': currentPropertyType,
     };
 
-    if (LocationService.lat != 0.0 || LocationService.lng != 0.0) {
-      params['lat'] = LocationService.lat;
-      params['lng'] = LocationService.lng;
+    // The searched place when the user picked one, the device fix otherwise —
+    // see [setSearchLocation].
+    if (effectiveLat != 0.0 || effectiveLng != 0.0) {
+      params['lat'] = effectiveLat;
+      params['lng'] = effectiveLng;
       params['radius'] = 1500;
     }
 

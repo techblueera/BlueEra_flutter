@@ -163,8 +163,26 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
   Widget build(BuildContext context) {
     super.build(context); // AutomaticKeepAliveClientMixin
 
-    // Collapse to nothing on failure so the surrounding list looks unaffected.
-    if (_failed) return const SizedBox.shrink();
+    // ## The slot takes up nothing until it has an ad, and never gives it back
+    //
+    // This used to reserve [widget.height] from the moment it was built and
+    // collapse to zero when the request failed. Fill is close to zero right now
+    // (the ad account is gated), so in practice EVERY slot reserved 300px and
+    // then dropped it a second later — and a slot that shrinks while it sits
+    // ABOVE the viewport takes that height out from under the reader: content
+    // slides up and `maxScrollExtent` shrinks, so the scroll position is
+    // corrected backwards. In a paginated list with a slot every 10 cards that
+    // reads as "scrolling starts over", and it fires exactly when a page lands,
+    // because that is when the next slot is built.
+    //
+    // Flutter viewports have no scroll anchoring, so the only reliable rule is:
+    // never change an extent that may already be above the reader. Zero while
+    // loading, zero on failure, [widget.height] once an ad is live — and never
+    // back down, since nothing sets `_loaded` false again. Growth still happens,
+    // but only when an ad genuinely arrives, and slots are built lazily just
+    // ahead of the viewport, so it lands off-screen BELOW the reader, which
+    // pushes content down rather than pulling it out.
+    if (_failed || !_loaded || _ad == null) return const SizedBox.shrink();
 
     return Padding(
       padding: widget.margin ??
@@ -180,9 +198,8 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
         child: SizedBox(
           height: widget.height,
           width: double.infinity,
-          // Nothing until loaded (reserves the slot height so the list doesn't
-          // jump); the AdWidget renders the platform native template once ready.
-          child: (!_loaded || _ad == null) ? null : AdWidget(ad: _ad!),
+          // Only reached with a loaded ad — see the guard above.
+          child: AdWidget(ad: _ad!),
         ),
       ),
     );

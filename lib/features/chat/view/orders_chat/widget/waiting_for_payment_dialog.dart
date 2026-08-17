@@ -319,8 +319,11 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                   "${orderController.openedMessage?.buyer?.name}",
                               subscriptionId: "",
                               description: '',
+                              // `fare` is RUPEES (the button above prints it
+                              // as ₹) and openCheckout takes PAISE.
                               amount: double.parse(
-                                  orderController.fare.value.toString()),
+                                      orderController.fare.value.toString()) *
+                                  100,
                               contact:
                                   "${orderController.openedMessage?.buyer?.contact}",
                               email: 'admin@bluecs.in',

@@ -1133,7 +1133,13 @@ class DiscoverController extends GetxController {
       }
       isEducationServiceLoadingMore.value = true;
     } else {
-      schoolDetailsDataDataList.clear();
+      // NOT cleared here. `assignAll` below already replaces the list in one
+      // atomic step when the response lands, so this only ever blanked the
+      // screen for the length of a round trip — and a blank list has no scroll
+      // extent, so the viewport collapses to one screen and the position is
+      // clamped to zero. Every non-paging caller paid for that: switching
+      // category, retrying after an empty result, and submitting a rating
+      // (which reloads) all threw the reader back to the top.
       isEducationServiceLoading.value = true;
       educationServicePage = 1;
       hasMoreEducationServiceData = true;

@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/rental/controller/property_discover_controller.dart';
@@ -26,7 +25,26 @@ import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 class PropertyDiscoverScreen extends StatefulWidget {
   final int initialCategoryIndex;
 
-  const PropertyDiscoverScreen({super.key, this.initialCategoryIndex = 0});
+  /// The place this search is scoped to, as picked on
+  /// [RentalDiscoverEntryScreen]. Null on the paths that carry no place (the
+  /// Discover folder tiles, the "list your property" round trip) and the search
+  /// then answers for the device's own location.
+  ///
+  /// Passed in rather than read off the controller so every entry point is
+  /// explicit: the controller is a singleton, and an omitted place has to CLEAR
+  /// an earlier pick rather than inherit it. See
+  /// [PropertyDiscoverController.setSearchLocation].
+  final double? searchLat;
+  final double? searchLng;
+  final String? searchLabel;
+
+  const PropertyDiscoverScreen({
+    super.key,
+    this.initialCategoryIndex = 0,
+    this.searchLat,
+    this.searchLng,
+    this.searchLabel,
+  });
 
   @override
   State<PropertyDiscoverScreen> createState() =>
@@ -78,6 +96,13 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
   void initState() {
     super.initState();
     _ctrl = getOrPut(() => PropertyDiscoverController());
+    // Before initWithCategories: the location is part of the cache key it
+    // checks, so setting it afterwards would let a stale result set through.
+    _ctrl.setSearchLocation(
+      lat: widget.searchLat,
+      lng: widget.searchLng,
+      label: widget.searchLabel,
+    );
     _ctrl.initWithCategories(_categories, widget.initialCategoryIndex);
 
     _scrollController.addListener(() {
@@ -187,6 +212,16 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 child: DiscoverMapPreview(
                   statusBarHeight: statusBarHeight,
                   onTap: _openPropertyMapScreen,
+                  // Frame the SEARCHED place, not the device fix — the list
+                  // below is answering for that place, and a map showing
+                  // somewhere else would be the screen contradicting itself.
+                  // Both null → the preview falls back to the device location.
+                  center: widget.searchLat != null && widget.searchLng != null
+                      ? LatLng(widget.searchLat!, widget.searchLng!)
+                      : null,
+                  locationLabel: (widget.searchLabel ?? '').trim().isEmpty
+                      ? null
+                      : widget.searchLabel,
                 ),
               ),
               SliverPersistentHeader(
@@ -812,10 +847,12 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final initialLat =
-    LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng =
-    LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    // Opens over the place being searched (the controller's effective location
+    // — the pick when there is one, the device fix otherwise), so the pins the
+    // list just loaded are the pins in frame. Delhi only as a last resort, when
+    // there is no location at all.
+    final initialLat = _ctrl.effectiveLat != 0.0 ? _ctrl.effectiveLat : 28.6139;
+    final initialLng = _ctrl.effectiveLng != 0.0 ? _ctrl.effectiveLng : 77.2090;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(

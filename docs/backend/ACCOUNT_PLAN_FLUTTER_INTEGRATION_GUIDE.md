@@ -610,12 +610,20 @@ You do **not** create a `Razorpay()` yourself — use `RazorpayService` (`lib/co
 exactly as the deposit flow does:
 1. `initiate` → get `order_id`, `key_id`, `total_amount` (paise).
 2. `_razorpay.openCheckout(amount: order.totalAmount.toDouble(), orderId: order.orderId, subscriptionId: '', ...)`.
-   - `amount` is **paise**; `openCheckout` divides by 100 internally for Razorpay.
+   - `amount` is **paise** and is passed to Razorpay untouched (Razorpay's own `amount` is paise too). With an
+     `order_id` present Razorpay charges the ORDER's amount, so the two must agree — never re-compute it client-side.
    - `subscriptionId: ''` selects the one-time `order_id` path (not the recurring path).
    - `prefill` = buyer contact/email (hydrate from `ViewPersonalDetailsController` before pay).
 3. `onPaymentSuccess` → `verifyPayment(order_id, payment_id, signature)` → re-fetch. Webhook is the real source of truth.
-4. `onPaymentError` → `RazorpayService.humanReadableError(response)` (never raw errors).
-5. Always `_razorpay.dispose()` in `onClose()`.
+4. `onPaymentError` → `RazorpayService.humanReadableError(response)` (never raw errors). A sheet that fails to OPEN
+   arrives here too, as `RazorpayService.CHECKOUT_OPEN_FAILED` — the wrapper reports it rather than swallowing it, so
+   the spinner always unwinds.
+5. Always `_razorpay.dispose()` in `onClose()`. It defers itself while a checkout is outstanding, so closing the
+   screen mid-payment cannot clear the listeners the result is about to arrive on.
+6. **Backgrounded payments (UPI).** The user leaves for their bank app and the activity can be recreated, which loses
+   the plugin's result. On `AppLifecycleState.resumed` with a checkout outstanding: `_razorpay.resync()` (re-collects a
+   parked native result → normal success path), then fall back to re-reading `/account-plan/my-plans` and treat the
+   option turning `status: "active"` as success — the webhook has already activated it server-side.
 
 **Native setup is already done** (`razorpay_flutter` is a dependency and the deposit flow ships in production) — no
 Android/iOS changes needed.
