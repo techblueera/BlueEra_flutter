@@ -23,8 +23,8 @@ import 'messageMediaUrl.dart';
 
 class GetListOfMessageData {
   GetListOfMessageData({
-      this.messages, 
-      this.totalPages, 
+      this.messages,
+      this.totalPages,
       this.currentPage,});
 
   GetListOfMessageData.fromJson(dynamic json) {
@@ -81,41 +81,41 @@ class GetListOfMessageData {
 
 class Messages {
   Messages({
-      this.url, 
-      this.id, 
-      this.message, 
+      this.url,
+      this.id,
+      this.message,
       this.status,
       this.messageType,
-      this.whoSeenTheMessage, 
-      this.messageRead, 
-      this.videoTime, 
+      this.whoSeenTheMessage,
+      this.messageRead,
+      this.videoTime,
       this.metadata,
       this.audioTime,
       this.sendStatus,
       this.sendPendingMsgParams,
       this.latitude,
-      this.longitude, 
+      this.longitude,
       this.live_location_validity,
       this.live_location_expires_at,
       this.isEnded,
       this.sharedContactName,
-      this.sharedContactProfileImage, 
-      this.sharedContactNumber, 
-      this.forwardId, 
+      this.sharedContactProfileImage,
+      this.sharedContactNumber,
+      this.forwardId,
       this.userId,
       this.replyId,
-      this.statusId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.senderId, 
+      this.statusId,
+      this.createdAt,
+      this.updatedAt,
+      this.senderId,
       this.docFileName,
       this.conversationId,
       this.pendingFilePaths,
       this.deleteForMe,
-      this.deleteFromEveryone, 
+      this.deleteFromEveryone,
       this.visible_to,
       this.isSaveMessage,
-      this.myMessage, 
+      this.myMessage,
       this.sendLoadingFile,
       this.sender,
       this.seller,
@@ -1214,11 +1214,11 @@ class Rider {
 
 class Sender {
   Sender({
-      this.profileImage, 
-      this.id, 
-      this.username, 
-      this.name, 
-      this.lastName, 
+      this.profileImage,
+      this.id,
+      this.username,
+      this.name,
+      this.lastName,
       this.contactNo,});
 
   Sender.fromJson(dynamic json) {
