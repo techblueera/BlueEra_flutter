@@ -168,7 +168,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           index: index,
           postFilteredType: PostType.all,
           bottomPadding: 0,
-          horizontalPadding: 0, // Set to 0 to remove side gaps
+          horizontalPadding: 0,
+          // Set to 0 to remove side gaps
           isRepost: false,
         );
 

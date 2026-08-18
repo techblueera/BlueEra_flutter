@@ -30,7 +30,7 @@ class FeedCardWidget extends StatelessWidget {
       // shadow so the card keeps crisp, defined edges on ANY background —
       // the app-wide banner/colour now shows in the gaps around it.
       clipBehavior: Clip.antiAlias,
-      decoration: glass
+      decoration: !glass
           ? glassDecoration(borderRadius: radius)
           : BoxDecoration(
           color: AppColors.white,

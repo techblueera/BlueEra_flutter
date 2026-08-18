@@ -138,6 +138,12 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                 },
                 onBack: () => Get.back(),
                 expandedLabelColor: AppColors.white,
+                // Service category names ("Repair & Maintenance", "Beauty and
+                // Wellness") are the longest on any Discover screen — one step
+                // down from the default so they fit inside the two lines the
+                // header allows. Uniform across every tab; the delegate wraps
+                // and ellipsizes rather than shrinking individual labels.
+                labelFontSize: SizeConfig.small11,
                 backgroundGradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,

@@ -47,6 +47,16 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   /// search screen they want (e.g. an AI search overlay).
   final VoidCallback? onSearchTap;
 
+  /// Font size for the tab labels, before the width-based responsive scale.
+  ///
+  /// Defaults to [SizeConfig.small]. Screens whose category names run long can
+  /// pass a smaller step (e.g. [SizeConfig.small11]). The value is uniform:
+  /// EVERY tab on a given screen renders at the same size — a label that does
+  /// not fit wraps to a second line and then ellipsizes, it is never shrunk to
+  /// fit. Per-label shrinking is what made the strip look ragged, with a short
+  /// name printed large next to a long one printed small.
+  final double? labelFontSize;
+
   static const double _searchBarHeight = 44;
   static const double _searchGap = 10;
   static const double _tabsHeight = 95;
@@ -65,6 +75,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.backgroundGradient,
     this.expandedLabelColor,
     this.onSearchTap,
+    this.labelFontSize,
   });
 
   double get _effectiveTabsHeight =>
@@ -97,8 +108,16 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     final double scale = (screenWidth / 390).clamp(0.82, 1.0);
     final double tileWidth = SizeConfig.size65 * scale;
     final double iconTileSize = SizeConfig.size48 * scale;
-    final double labelFontSize = SizeConfig.small * scale;
-    final double labelLineHeight = labelFontSize * 1.25;
+    // One size for the whole strip. It follows the device (SizeConfig's
+    // phone/tablet step, then the same narrow-screen `scale` as the tiles) but
+    // never the individual label, and is floored so the narrow-screen scale
+    // can't take it below what still reads at arm's length.
+    final double minLabelFontSize = SizeConfig.isTablet ? 12.0 : 9.5;
+    final double effectiveLabelFontSize =
+        ((labelFontSize ?? SizeConfig.small) * scale)
+            .clamp(minLabelFontSize, double.infinity)
+            .toDouble();
+    final double labelLineHeight = effectiveLabelFontSize * 1.25;
 
     return ClipRect(
       child: BackdropFilter(
@@ -109,226 +128,196 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
         child: ColoredBox(
           color: AppColors.appBackgroundColorDefault,
           child: DecoratedBox(
-      decoration: BoxDecoration(gradient: backgroundGradient),
-      child: Material(
-      type: MaterialType.transparency,
-      child: Padding(
-        padding: EdgeInsets.only(top: currentTopPad),
-        child: Column(
-          children: [
-            // Search bar (collapses away)
-            SizedBox(
-              height: searchHeight,
-              child: ClipRect(
-                child: OverflowBox(
-                  minHeight: _collapsible,
-                  maxHeight: _collapsible,
-                  alignment: Alignment.topCenter,
-                  child: Opacity(
-                    opacity: searchOpacity,
-                    child: IgnorePointer(
-                      ignoring: searchOpacity < 0.05,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size12),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: onSearchTap,
-                              child: Container(
-                                height: _searchBarHeight,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  border: Border.all(
-                                      width: 1, color: AppColors.greyE5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.search,
-                                        color: AppColors.secondaryTextColor,
-                                        size: 20),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: CustomText(
-                                        AppStrings.searchAnything,
-                                        fontSize: 14,
-                                        color: AppColors.secondaryTextColor,
+            decoration: BoxDecoration(gradient: backgroundGradient),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Padding(
+                padding: EdgeInsets.only(top: currentTopPad),
+                child: Column(
+                  children: [
+                    // Search bar (collapses away)
+                    SizedBox(
+                      height: searchHeight,
+                      child: ClipRect(
+                        child: OverflowBox(
+                          minHeight: _collapsible,
+                          maxHeight: _collapsible,
+                          alignment: Alignment.topCenter,
+                          child: Opacity(
+                            opacity: searchOpacity,
+                            child: IgnorePointer(
+                              ignoring: searchOpacity < 0.05,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: SizeConfig.size12),
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: onSearchTap,
+                                      child: Container(
+                                        height: _searchBarHeight,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          border: Border.all(
+                                              width: 1,
+                                              color: AppColors.greyE5),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.search,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                                size: 20),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: CustomText(
+                                                AppStrings.searchAnything,
+                                                fontSize: 14,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                              ),
+                                            ),
+                                            LocalAssets(
+                                              imagePath: AppIconAssets.mic,
+                                              width: 18,
+                                              height: 18,
+                                              imgColor:
+                                                  AppColors.secondaryTextColor,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            LocalAssets(
+                                                imagePath:
+                                                    AppIconAssets.camera_black),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    LocalAssets(
-                                      imagePath: AppIconAssets.mic,
-                                      width: 18,
-                                      height: 18,
-                                      imgColor: AppColors.secondaryTextColor,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.camera_black),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: _searchGap),
+                                ],
                               ),
                             ),
-                          ),
-                          const SizedBox(height: _searchGap),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Tabs with back button when sticky
-            Expanded(
-              child: Row(
-                children: [
-                  if (isSticky)
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: SizeConfig.size6,
-                          right: SizeConfig.size6),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: onBack,
-                          child: Container(
-                            padding: EdgeInsets.all(SizeConfig.size8),
-                            decoration: BoxDecoration(
-                              color: AppColors.white
-                                  .withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.arrow_back_ios_new,
-                                color: AppColors.white,
-                                size: SizeConfig.size20),
                           ),
                         ),
                       ),
                     ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        left: isSticky ? 0 : SizeConfig.size12,
-                        right: SizeConfig.size12,
-                      ),
+
+                    // Tabs with back button when sticky
+                    Expanded(
                       child: Row(
-                        children: List.generate(
-                            categories.length, (index) {
-                          final item = categories[index];
-                          final isActive = selectedId == item.id;
-                          // Single-word labels can't be broken on a space,
-                          // so Flutter was fragmenting the word across two
-                          // lines. Treat space-less names as single-line and
-                          // scale them down with FittedBox so the whole word
-                          // fits inside the tile width.
-                          final hasSpace = item.name.trim().contains(' ');
-                          final isSingle = singleLineLabel || !hasSpace;
-                          final displayName = isSingle
-                              ? item.name
-                              : item.name.replaceFirst(' ', '\n');
-                          return Padding(
-                            padding: EdgeInsets.only(
-                                right: SizeConfig.size10),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => onCategoryTap(item),
-                              child: SizedBox(
-                                width: tileWidth,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _CategoryIconTile(
-                                      size: iconTileSize,
-                                      isActive: isActive,
-                                      child: _buildCategoryIcon(
-                                          item.imageUrl),
+                        children: [
+                          if (isSticky)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: SizeConfig.size6,
+                                  right: SizeConfig.size6),
+                              child: Material(
+                                color: Colors.transparent,
+                                shape: const CircleBorder(),
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: onBack,
+                                  child: Container(
+                                    padding: EdgeInsets.all(SizeConfig.size8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.white
+                                          .withValues(alpha: 0.15),
+                                      shape: BoxShape.circle,
                                     ),
-                                    SizedBox(height: SizeConfig.size4),
-                                    Container(
-                                      height: singleLineLabel
-                                          ? labelLineHeight * 1.3
-                                          : labelLineHeight * 2.7,
-                                      alignment: Alignment.topCenter,
-                                      child: isSingle
-                                          ? FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              alignment: Alignment.topCenter,
-                                              child: CustomText(
-                                                displayName,
-                                                fontSize: labelFontSize,
-                                                fontWeight: isActive
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w500,
-                                                color: expandedLabelColor ??
-                                                    (isActive
-                                                        ? AppColors
-                                                            .primaryColor
-                                                        : AppColors
-                                                            .secondaryTextColor),
-                                                maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            )
-                                          // Wrapping happens at the FIRST
-                                          // space, so a three-word label like
-                                          // "All New Vehicle" leaves "New
-                                          // Vehicle" on line two — wider than
-                                          // the tile, and it used to ellipsize
-                                          // to "New Vehic…". Scale the block
-                                          // down instead; this is a no-op for
-                                          // labels that already fit.
-                                          : FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              alignment: Alignment.topCenter,
-                                              child: CustomText(
-                                                displayName,
-                                                fontSize: labelFontSize,
-                                                fontWeight: isActive
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w500,
-                                                color: expandedLabelColor ??
-                                                    (isActive
-                                                        ? AppColors
-                                                            .primaryColor
-                                                        : AppColors
-                                                            .secondaryTextColor),
-                                                maxLines: 2,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                    ),
-                                  ],
+                                    child: Icon(Icons.arrow_back_ios_new,
+                                        color: AppColors.white,
+                                        size: SizeConfig.size20),
+                                  ),
                                 ),
                               ),
                             ),
-                          );
-                        }),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              padding: EdgeInsets.only(
+                                left: isSticky ? 0 : SizeConfig.size12,
+                                right: SizeConfig.size12,
+                              ),
+                              child: Row(
+                                children:
+                                    List.generate(categories.length, (index) {
+                                  final item = categories[index];
+                                  final isActive = selectedId == item.id;
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        right: SizeConfig.size10),
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () => onCategoryTap(item),
+                                      child: SizedBox(
+                                        width: tileWidth,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            _CategoryIconTile(
+                                              size: iconTileSize,
+                                              isActive: isActive,
+                                              child: _buildCategoryIcon(
+                                                  item.imageUrl),
+                                            ),
+                                            SizedBox(height: SizeConfig.size4),
+                                            Container(
+                                              height: singleLineLabel
+                                                  ? labelLineHeight * 1.3
+                                                  : labelLineHeight * 2.7,
+                                              alignment: Alignment.topCenter,
+                                              // Wraps on its own — no hand-inserted
+                                              // newline. Breaking at the FIRST space
+                                              // put "New Vehicle" alone on line two,
+                                              // wider than the tile; letting the text
+                                              // engine choose gives "All New" /
+                                              // "Vehicle" instead. Two lines is the
+                                              // ceiling, and anything still too long
+                                              // (or a single unbreakable word) ends
+                                              // in an ellipsis rather than shrinking.
+                                              child: CustomText(
+                                                item.name,
+                                                fontSize:
+                                                    effectiveLabelFontSize,
+                                                fontWeight: isActive
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: expandedLabelColor ??
+                                                    (isActive
+                                                        ? AppColors.primaryColor
+                                                        : AppColors
+                                                            .secondaryTextColor),
+                                                maxLines:
+                                                    singleLineLabel ? 1 : 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+
+                    SizedBox(height: _vPad),
+                  ],
+                ),
               ),
             ),
-
-            SizedBox(height: _vPad),
-          ],
-        ),
-      ),
-      ),
-        ),
+          ),
         ),
       ),
     );
@@ -392,8 +381,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       );
 
   @override
-  bool shouldRebuild(
-          covariant StickyCategoryHeaderDelegate oldDelegate) =>
+  bool shouldRebuild(covariant StickyCategoryHeaderDelegate oldDelegate) =>
       topPadding != oldDelegate.topPadding ||
       categories != oldDelegate.categories ||
       selectedId != oldDelegate.selectedId ||
@@ -401,7 +389,8 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       onBack != oldDelegate.onBack ||
       backgroundGradient != oldDelegate.backgroundGradient ||
       expandedLabelColor != oldDelegate.expandedLabelColor ||
-      onSearchTap != oldDelegate.onSearchTap;
+      onSearchTap != oldDelegate.onSearchTap ||
+      labelFontSize != oldDelegate.labelFontSize;
 }
 
 /// The rounded tile behind each category icon.
