@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '319'
+    flutterVersionCode = '321'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '14.0.60'
+    flutterVersionName = '14.0.62'
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')

@@ -8410,4 +8410,57 @@ class AppStrings {
   static const String globalSearchNoRating = "globalSearchNoRating";
   static const String globalSearchLocationUnavailable =
       "globalSearchLocationUnavailable";
+
+  // ─── Account creation — "How You Earn" (CreateAccountTypeV2Screen) ────────
+  //
+  // These used to be English literals passed through `LanguageListController.tr`,
+  // which resolves ONLY against the downloaded language pack and falls back to
+  // the key — so a phrase the pack didn't carry rendered in English forever.
+  // As keys here they go through the same asset JSON + pack + `en` fallback
+  // path as the rest of the app.
+
+  /// Screen 1 heading and its caption.
+  static const String accountTypeHowYouEarn = "accountTypeHowYouEarn";
+  static const String accountTypeSelectProfession =
+      "accountTypeSelectProfession";
+
+  /// The seven "How You Earn" rows — title and the line under it.
+  static const String earnBusinessShop = "earnBusinessShop";
+  static const String earnBusinessShopSub = "earnBusinessShopSub";
+  static const String earnBusinessStore = "earnBusinessStore";
+  static const String earnBusinessStoreSub = "earnBusinessStoreSub";
+  static const String earnSelfWork = "earnSelfWork";
+  static const String earnSelfWorkSub = "earnSelfWorkSub";
+  static const String earnGigWork = "earnGigWork";
+  static const String earnGigWorkSub = "earnGigWorkSub";
+  static const String earnNotEarning = "earnNotEarning";
+  static const String earnNotEarningSub = "earnNotEarningSub";
+  static const String earnDoingJob = "earnDoingJob";
+  static const String earnDoingJobSub = "earnDoingJobSub";
+  static const String earnManufacturing = "earnManufacturing";
+  static const String earnManufacturingSub = "earnManufacturingSub";
+
+  /// Screen 2 section headings, over the category / profession pills.
+  static const String accountSectionManufacturing =
+      "accountSectionManufacturing";
+  static const String accountSectionGrocery = "accountSectionGrocery";
+  static const String accountSectionFood = "accountSectionFood";
+  static const String accountSectionShopStore = "accountSectionShopStore";
+  static const String accountSectionServices = "accountSectionServices";
+  static const String accountSectionAutomotive = "accountSectionAutomotive";
+  static const String accountSectionHealthCare = "accountSectionHealthCare";
+  static const String accountSectionHospitality = "accountSectionHospitality";
+  static const String accountSectionEducation = "accountSectionEducation";
+  static const String accountSectionFinancial = "accountSectionFinancial";
+  static const String accountSectionSkillWork = "accountSectionSkillWork";
+  static const String accountSectionConsultant = "accountSectionConsultant";
+  static const String accountSectionSelfEmployed =
+      "accountSectionSelfEmployed";
+  static const String accountSectionSocialProfile =
+      "accountSectionSocialProfile";
+
+  /// Empty states on screen 2 and in the sub-category sheet.
+  static const String accountTypeNoCategory = "accountTypeNoCategory";
+  static const String accountTypeNoProfession = "accountTypeNoProfession";
+  static const String accountTypeNoSubCategory = "accountTypeNoSubCategory";
 }

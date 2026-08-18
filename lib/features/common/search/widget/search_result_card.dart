@@ -250,12 +250,24 @@ class SearchResultCard extends StatelessWidget {
     return searchEntityLabel(item.entityType);
   }
 
+  /// The row's distance, server-formatted (e.g. `4.5 km`), or empty when it
+  /// has none.
+  String get _distanceText =>
+      item.hasDistance ? (item.distanceText?.trim() ?? '') : '';
+
+  /// True when the trailing badge is carrying the distance, so [_locationRow]
+  /// leaves the number out instead of printing it twice.
+  ///
+  /// Only place-like rows hand it over: a priced product keeps its price in the
+  /// badge, so its distance stays on the address line where it has always been.
+  bool get _distanceInBadge => _distanceText.isNotEmpty && item.price == null;
+
   /// "◉ 4.5 Km | Sastri Nagar, Lucknow…". Distance and address arrive
   /// independently, so each half is optional. A place-like row keeps the line
   /// with a "not available" hint — an address is expected there — while a
   /// catalogue row drops it, since a product legitimately has no address.
   Widget? _locationRow() {
-    final distance = item.hasDistance ? (item.distanceText?.trim() ?? '') : '';
+    final distance = _distanceInBadge ? '' : _distanceText;
     final address = item.address?.trim() ?? '';
 
     if (distance.isEmpty && address.isEmpty) {
@@ -339,17 +351,31 @@ class SearchResultCard extends StatelessWidget {
         ),
       );
 
-  /// Right-hand badge: a shop's product count, else a product's price. Null
+  /// Right-hand badge: how far away a place is, else a product's price. Null
   /// when the row carries neither — the card then gives that width back to the
   /// title and address instead of drawing an empty box.
+  ///
+  /// The badge used to hold the shop's product count. Distance is the fact a
+  /// search result is picked on, so it takes the slot and the address line goes
+  /// back to being only the address (see [_distanceInBadge]). The old badge:
+  ///
+  /// ```dart
+  /// final count = item.productCountLabel;
+  /// if (count != null) {
+  ///   return _badge(
+  ///     context,
+  ///     icon: Icons.shopping_bag_outlined,
+  ///     value: count,
+  ///     label: AppStrings.globalSearchProducts.tr,
+  ///   );
+  /// }
+  /// ```
   Widget? _trailing(BuildContext context) {
-    final count = item.productCountLabel;
-    if (count != null) {
+    if (_distanceInBadge) {
       return _badge(
         context,
-        icon: Icons.shopping_bag_outlined,
-        value: count,
-        label: AppStrings.globalSearchProducts.tr,
+        icon: Icons.near_me_outlined,
+        value: _distanceText,
       );
     }
     if (item.price != null) {

@@ -13,7 +13,9 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
-import 'package:BlueEra/features/common/store/controller/store_controller.dart';
+// Only `storeCountsFor` came from here, and the box now shows distance instead
+// of the product count — restore this alongside `_productsPill` below.
+// import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 
 /// One automotive shop in the near-me listing — the same flat white row the
 /// grocery, restaurant and product listings use (`assets/grocery_card.jpeg`).
@@ -48,9 +50,9 @@ class AutomotiveStoreCard extends StatelessWidget {
   static const Color _kPillBorder = Color(0xFFE3E8EF);
   static const double _kRadius = 16;
 
-  /// The one accent on the card — distance, its pin, and the products glyph.
-  /// Everything else is ink or grey, so the eye lands on "how far" and "how
-  /// much", which is the whole decision being made in this list.
+  /// The one accent on the card — distance and its pin. Everything else is ink
+  /// or grey, so the eye lands on "how far", which is the whole decision being
+  /// made in this list.
   static const Color _kAccent = AppColors.blue5CAF;
 
   /// Live photos, empty entries dropped — the backend sends `[""]` for some
@@ -102,7 +104,8 @@ class AutomotiveStoreCard extends StatelessWidget {
                 SizedBox(width: SizeConfig.size12),
                 Expanded(child: _details(context)),
                 SizedBox(width: SizeConfig.size10),
-                _productsPill(),
+                // _productsPill(),
+                _distancePill(context),
               ],
             ),
           ),
@@ -236,12 +239,6 @@ class AutomotiveStoreCard extends StatelessWidget {
   /// fingernail; together they read as one fact ("how far, and where") and give
   /// the gesture a line to aim at.
   Widget _locationRow(BuildContext context) {
-    final km = calculateDistanceKm(
-      LocationService.lat,
-      LocationService.lng,
-      store.businessLocation?.lat?.toDouble() ?? 0.0,
-      store.businessLocation?.lon?.toDouble() ?? 0.0,
-    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _showMapBottomSheet(context),
@@ -254,13 +251,16 @@ class AutomotiveStoreCard extends StatelessWidget {
             width: 13,
           ),
           const SizedBox(width: 4),
-          CustomText(
-            '${km.toStringAsFixed(1)} Km',
-            fontSize: 12.5,
-            color: _kAccent,
-            fontWeight: FontWeight.w700,
-          ),
-          _divider(),
+          // Distance moved to the box on the right — printing it here too would
+          // put the same number on the card twice. Restore this (and the
+          // divider) if the box goes back to the product count.
+          // CustomText(
+          //   '${_distanceKm.toStringAsFixed(1)} Km',
+          //   fontSize: 12.5,
+          //   color: _kAccent,
+          //   fontWeight: FontWeight.w700,
+          // ),
+          // _divider(),
           Flexible(
             child: CustomText(
               store.address ?? AppStrings.na,
@@ -286,6 +286,68 @@ class AutomotiveStoreCard extends StatelessWidget {
 
   // ─── Right column ───────────────────────────────────────────────────────
 
+  /// Straight-line distance from the user to this store, in km.
+  double get _distanceKm => calculateDistanceKm(
+        LocationService.lat,
+        LocationService.lng,
+        store.businessLocation?.lat?.toDouble() ?? 0.0,
+        store.businessLocation?.lon?.toDouble() ?? 0.0,
+      );
+
+  /// How far away the store is, stacked in the outlined box on the right.
+  ///
+  /// This box used to carry the product count (see the commented-out
+  /// [_productsPill] below). Distance is the fact the list is actually sorted
+  /// and decided on, and unlike the count it is known the moment the card is
+  /// built — no second call, no dash while it waits.
+  ///
+  /// Tapping it opens the directions sheet, the same as the location line.
+  Widget _distancePill(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showMapBottomSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _kPillBorder, width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.location_outline,
+                  imgColor: _kAccent,
+                  height: 12,
+                  width: 12,
+                ),
+                const SizedBox(width: 4),
+                CustomText(
+                  _distanceKm.toStringAsFixed(1),
+                  fontSize: 13,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ],
+            ),
+            const SizedBox(height: 1),
+            CustomText(
+              'Km away',
+              fontSize: 10,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* Commented out — the box shows distance now (see [_distancePill] above).
   /// The product count, stacked in its own outlined box.
   ///
   /// Products only. The category count that used to sit beside it answered a
@@ -341,6 +403,7 @@ class AutomotiveStoreCard extends StatelessWidget {
       );
     });
   }
+  */
 
   // ─── Actions ────────────────────────────────────────────────────────────
 
@@ -374,6 +437,8 @@ class AutomotiveStoreCard extends StatelessWidget {
     );
   }
 
+  /* Commented out with [_productsPill] — nothing formats counts on this card
+     any more.
   /// A count for a stat, or `-` when it isn't known yet.
   ///
   /// Null is the pre-answer state, not zero: counts come from their own call
@@ -391,5 +456,6 @@ class AutomotiveStoreCard extends StatelessWidget {
     }
     return '$count';
   }
+  */
 }
 

@@ -77,6 +77,14 @@ class ManufacturerProductStoreCard extends StatelessWidget {
   _ProductCardPalette get _palette =>
       _palettes[index.abs() % _palettes.length];
 
+  /// Straight-line distance from the user to this store, in km.
+  double get _distanceKm => calculateDistanceKm(
+        LocationService.lat,
+        LocationService.lng,
+        _store.businessLocation?.lat?.toDouble() ?? 0.0,
+        _store.businessLocation?.lon?.toDouble() ?? 0.0,
+      );
+
   @override
   Widget build(BuildContext context) {
     final store = _store;
@@ -230,10 +238,22 @@ class ManufacturerProductStoreCard extends StatelessWidget {
                           borderColor: palette.tileBorder,
                         ),
                         SizedBox(width: SizeConfig.size6),
+                        // Was the product count. Distance is what the list is
+                        // sorted and decided on, and it's known the moment the
+                        // card is built — no second call, no dash while it
+                        // waits. The old box:
+                        //
+                        // _buildStatBox(
+                        //   icon: AppIconAssets.productCartIcon,
+                        //   count: _formatCount(counts?.productCount),
+                        //   label: 'ManufacturerProduct',
+                        //   iconColor: const Color(0xFF6179CD),
+                        //   borderColor: palette.tileBorder,
+                        // ),
                         _buildStatBox(
-                          icon: AppIconAssets.productCartIcon,
-                          count: _formatCount(counts?.productCount),
-                          label: 'ManufacturerProduct',
+                          icon: AppIconAssets.location_outline,
+                          count: _distanceKm.toStringAsFixed(1),
+                          label: 'Km away',
                           iconColor: const Color(0xFF6179CD),
                           borderColor: palette.tileBorder,
                         ),
@@ -260,17 +280,12 @@ class ManufacturerProductStoreCard extends StatelessWidget {
     );
   }
 
-  // --- Address card: white tile with shadowed location icon, distance + address.
+  // --- Address card: white tile with shadowed location icon and the address.
+  //
+  // Distance moved up to the stat box beside the category count; printing it
+  // here too would put the same number on the card twice.
   Widget _buildAddressCard(BuildContext context, _ProductCardPalette palette) {
     final store = _store;
-    final lat = store.businessLocation?.lat?.toDouble() ?? 0.0;
-    final lng = store.businessLocation?.lon?.toDouble() ?? 0.0;
-    final km = calculateDistanceKm(
-      LocationService.lat,
-      LocationService.lng,
-      lat,
-      lng,
-    );
 
     return GestureDetector(
       onTap: () => _showMapBottomSheet(context),
@@ -291,21 +306,23 @@ class ManufacturerProductStoreCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CustomText(
-                    '${km.toStringAsFixed(2)} Km Away',
-                    fontSize: 12.0,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: SizeConfig.size4),
+                  // CustomText(
+                  //   '${_distanceKm.toStringAsFixed(2)} Km Away',
+                  //   fontSize: 12.0,
+                  //   color: AppColors.secondaryTextColor,
+                  //   fontWeight: FontWeight.w600,
+                  //   maxLines: 1,
+                  //   overflow: TextOverflow.ellipsis,
+                  // ),
+                  // SizedBox(height: SizeConfig.size4),
+                  // The address is the tile's only line now, so it gets the
+                  // size and the wraps the distance above it used to take.
                   CustomText(
                     store.address ?? AppStrings.na,
-                    fontSize: 10.0,
+                    fontSize: 11.5,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

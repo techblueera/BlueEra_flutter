@@ -278,7 +278,10 @@ class _LinkStoreCard extends StatelessWidget {
 
                 SizedBox(height: SizeConfig.paddingXSL),
 
-                // ─── Address & Distance ───
+                // ─── Address ───
+                // Distance moved down to the stat box beside the category
+                // count; printing it here too would put the same number on the
+                // card twice.
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -294,21 +297,21 @@ class _LinkStoreCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText(
-                              '${calculateDistanceKm(
-                                LocationService.lat,
-                                LocationService.lng,
-                                store.businessLocation?.lat?.toDouble() ?? 0.0,
-                                store.businessLocation?.lon?.toDouble() ?? 0.0,
-                              ).toStringAsFixed(2)} Km Away',
-                              fontSize: 13,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(height: SizeConfig.size4),
+                            // CustomText(
+                            //   '${calculateDistanceKm(
+                            //     LocationService.lat,
+                            //     LocationService.lng,
+                            //     store.businessLocation?.lat?.toDouble() ?? 0.0,
+                            //     store.businessLocation?.lon?.toDouble() ?? 0.0,
+                            //   ).toStringAsFixed(2)} Km Away',
+                            //   fontSize: 13,
+                            //   color: AppColors.secondaryTextColor,
+                            //   fontWeight: FontWeight.w600,
+                            // ),
+                            // SizedBox(height: SizeConfig.size4),
                             CustomText(
                               store.address ?? AppStrings.na,
-                              fontSize: 11,
+                              fontSize: 12,
                               color: AppColors.secondaryTextColor,
                               fontWeight: FontWeight.w400,
                             ),
@@ -340,10 +343,27 @@ class _LinkStoreCard extends StatelessWidget {
                         bgColor: AppColors.purpleFD,
                       ),
                       SizedBox(width: SizeConfig.size6),
+                      // Was the product count — which tells a rider nothing
+                      // about whether a store is worth linking to. How far it
+                      // is does, and it's known without waiting on the counts
+                      // call. The old box:
+                      //
+                      // _statBox(
+                      //   icon: AppIconAssets.productCartIcon,
+                      //   count: '${counts?.productCount ?? '-'}',
+                      //   label: 'Product',
+                      //   iconColor: const Color(0xFF6179CD),
+                      //   bgColor: AppColors.purpleFF,
+                      // ),
                       _statBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: '${counts?.productCount ?? '-'}',
-                        label: 'Product',
+                        icon: AppIconAssets.location_outline,
+                        count: calculateDistanceKm(
+                          LocationService.lat,
+                          LocationService.lng,
+                          store.businessLocation?.lat?.toDouble() ?? 0.0,
+                          store.businessLocation?.lon?.toDouble() ?? 0.0,
+                        ).toStringAsFixed(1),
+                        label: 'Km away',
                         iconColor: const Color(0xFF6179CD),
                         bgColor: AppColors.purpleFF,
                       ),

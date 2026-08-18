@@ -10,7 +10,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
+// Only the leave-this-screen confirmation used this — restore it alongside
+// `_confirmExit` below if the dialog ever comes back.
+// import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -161,6 +163,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     }
   }
 
+  /* Back is a plain pop now — see the note on [build].
   /// Confirmation dialog shown for every exit attempt (app-bar back, system
   /// back button, and edge-swipe gesture). "Yes" lands the user on the main
   /// bottom-navigation home; "No" keeps them on this screen.
@@ -177,6 +180,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       },
     );
   }
+  */
 
   /// Scroll-spy: as the single scroll view moves, pick the tab whose block is
   /// currently at the top of the viewport and select it (so the indicator
@@ -254,75 +258,79 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     }
   }
 
+  /// Back — system gesture, hardware button and the app bar arrow alike — is a
+  /// plain pop, so the user lands back wherever they opened this from. Matches
+  /// [CreateAccountTypeV2Screen], which replaced this screen.
+  ///
+  /// It used to be wrapped in a [PopScope] with `canPop: false` that asked "Are
+  /// you sure you want to leave this screen?" and, on confirm, cleared the
+  /// whole stack to the bottom nav. That made sense when this was the landing
+  /// screen straight after signup, where there was nothing behind it to go back
+  /// to. It isn't any more: guest signup goes to the bottom nav directly
+  /// (`AuthController`), and the account-type screens are opened from inside
+  /// the app via `createProfileScreen()`. Nothing is entered here — it's a list
+  /// of links — so there is no work to lose and nothing to confirm.
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _confirmExit();
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.white,
-        appBar: CommonBackAppBar(
-          isLeading: true,
-          appBarColor: Colors.white,
-          title: AppStrings.chooseYourAccountType,
-          onBackTap: _confirmExit,
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildTopTabs(),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: const Color(0xFFF1F5FB),
-                  child: Obx(() {
-                    // Subscribe to every onboarding bucket so the silent
-                    // network refresh repaints the category grid even on the
-                    // cache-hit path (where isInitialCategoriesLoading never
-                    // flips again). The grid items are read across a build
-                    // boundary, so this explicit read is what registers the dep.
-                    authController.onboardingBucketsWatch;
-                    if (authController.isInitialCategoriesLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    // Touch the selection Rx so the body rebuilds when a
-                    // pill is tapped (so its highlight state updates).
-                    selectedItem.value;
-                    // All tabs' content in ONE scroll view, each block keyed so
-                    // the scroll-spy can track / scroll to it. Scrolling flows
-                    // continuously from one tab straight into the next.
-                    return SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      padding: EdgeInsets.fromLTRB(
-                        SizeConfig.size16,
-                        SizeConfig.size16,
-                        SizeConfig.size16,
-                        SizeConfig.size20,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (int i = 0; i < _tabs.length; i++)
-                            KeyedSubtree(
-                              key: _tabKeys[i],
-                              child: _buildBodyForTab(_tabs[i]),
-                            ),
-                        ],
-                      ),
-                    );
-                  }),
-                ),
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: CommonBackAppBar(
+        isLeading: true,
+        appBarColor: Colors.white,
+        title: AppStrings.chooseYourAccountType,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildTopTabs(),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                color: const Color(0xFFF1F5FB),
+                child: Obx(() {
+                  // Subscribe to every onboarding bucket so the silent
+                  // network refresh repaints the category grid even on the
+                  // cache-hit path (where isInitialCategoriesLoading never
+                  // flips again). The grid items are read across a build
+                  // boundary, so this explicit read is what registers the dep.
+                  authController.onboardingBucketsWatch;
+                  if (authController.isInitialCategoriesLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  // Touch the selection Rx so the body rebuilds when a
+                  // pill is tapped (so its highlight state updates).
+                  selectedItem.value;
+                  // All tabs' content in ONE scroll view, each block keyed so
+                  // the scroll-spy can track / scroll to it. Scrolling flows
+                  // continuously from one tab straight into the next.
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: EdgeInsets.fromLTRB(
+                      SizeConfig.size16,
+                      SizeConfig.size16,
+                      SizeConfig.size16,
+                      SizeConfig.size20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (int i = 0; i < _tabs.length; i++)
+                          KeyedSubtree(
+                            key: _tabKeys[i],
+                            child: _buildBodyForTab(_tabs[i]),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
               ),
-              _buildBottomNext(),
-            ],
-          ),
+            ),
+            _buildBottomNext(),
+          ],
         ),
       ),
     );

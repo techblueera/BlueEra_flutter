@@ -121,7 +121,7 @@ class PharmacyStoreCard extends StatelessWidget {
   static const Color _kPillBorder = Color(0xFFE3E8EF);
   static const double _kRadius = 16;
 
-  /// The one accent on the card — distance, its pin, and the products glyph.
+  /// The one accent on the card — distance and its pin.
   static const Color _kAccent = AppColors.blue5CAF;
 
   List<String> get _livePhotos {
@@ -144,12 +144,15 @@ class PharmacyStoreCard extends StatelessWidget {
   String get _ratingLabel =>
       item.rating % 1 == 0 ? '${item.rating.toInt()}' : '${item.rating}';
 
+  /* Only the product count read raw ints, and the box shows distance now —
+     restore this alongside [_productsPill].
   int? _rawInt(String key) {
     final value = item.raw[key];
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '');
   }
+  */
 
   double get _lat {
     final l = item.raw['business_location'];
@@ -202,7 +205,8 @@ class PharmacyStoreCard extends StatelessWidget {
                 SizedBox(width: SizeConfig.size12),
                 Expanded(child: _details(context)),
                 SizedBox(width: SizeConfig.size10),
-                _productsPill(),
+                // _productsPill(),
+                _distancePill(context),
               ],
             ),
           ),
@@ -307,53 +311,60 @@ class PharmacyStoreCard extends StatelessWidget {
     );
   }
 
-  /// Distance and address on one line; the whole row opens directions.
+  /// The address; the whole row opens directions.
   Widget _locationRow(BuildContext context) {
-    final km = calculateDistanceKm(
-      LocationService.lat,
-      LocationService.lng,
-      _lat,
-      _lng,
-    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => RouteMapBottomSheet.show(
+      onTap: () => _showMapBottomSheet(context),
+      child: _locationRowBody(),
+    );
+  }
+
+  /// The directions sheet for this pharmacy — shared by the address line and
+  /// the distance box, which are two ways into the same action.
+  void _showMapBottomSheet(BuildContext context) {
+    RouteMapBottomSheet.show(
         context: context,
         destinationName: item.name.isNotEmpty ? item.name : 'Pharmacy',
         destinationAddress: item.address,
         destinationLat: _lat,
         destinationLng: _lng,
-        livePhotos: _livePhotos,
-        visitCallback: _openDetail,
-      ),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.location_outline,
-            imgColor: _kAccent,
-            height: 13,
-            width: 13,
-          ),
-          const SizedBox(width: 4),
-          CustomText(
-            '${km.toStringAsFixed(1)} Km',
+      livePhotos: _livePhotos,
+      visitCallback: _openDetail,
+    );
+  }
+
+  Widget _locationRowBody() {
+    return Row(
+      children: [
+        LocalAssets(
+          imagePath: AppIconAssets.location_outline,
+          imgColor: _kAccent,
+          height: 13,
+          width: 13,
+        ),
+        const SizedBox(width: 4),
+        // Distance moved to the box on the right — printing it here too would
+        // put the same number on the card twice. Restore this (and the
+        // divider) if the box goes back to the product count.
+        // CustomText(
+        //   '${_distanceKm.toStringAsFixed(1)} Km',
+        //   fontSize: 12.5,
+        //   color: _kAccent,
+        //   fontWeight: FontWeight.w700,
+        // ),
+        // _divider(),
+        Flexible(
+          child: CustomText(
+            item.address.isNotEmpty ? item.address : AppStrings.na,
             fontSize: 12.5,
-            color: _kAccent,
-            fontWeight: FontWeight.w700,
+            color: AppColors.secondaryTextColor,
+            fontWeight: FontWeight.w400,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          _divider(),
-          Flexible(
-            child: CustomText(
-              item.address.isNotEmpty ? item.address : AppStrings.na,
-              fontSize: 12.5,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w400,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -364,6 +375,69 @@ class PharmacyStoreCard extends StatelessWidget {
         color: const Color(0xFFDDE3EB),
       );
 
+  /// Straight-line distance from the user to this pharmacy, in km.
+  double get _distanceKm => calculateDistanceKm(
+        LocationService.lat,
+        LocationService.lng,
+        _lat,
+        _lng,
+      );
+
+  /// How far away the pharmacy is, in the outlined box on the right.
+  ///
+  /// This box used to carry the product count (see the commented-out
+  /// [_productsPill] below), which `business/filter` never sends — so it read
+  /// as a dash on every card in the list. Distance is known from the
+  /// coordinates the listing already carries, and it's what the list is sorted
+  /// on.
+  ///
+  /// Tapping it opens the directions sheet, the same as the address line.
+  Widget _distancePill(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showMapBottomSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _kPillBorder, width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.location_outline,
+                  imgColor: _kAccent,
+                  height: 12,
+                  width: 12,
+                ),
+                const SizedBox(width: 4),
+                CustomText(
+                  _distanceKm.toStringAsFixed(1),
+                  fontSize: 13,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ],
+            ),
+            const SizedBox(height: 1),
+            CustomText(
+              'Km away',
+              fontSize: 10,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* Commented out — the box shows distance now (see [_distancePill] above).
   /// The product count, in its own outlined box.
   ///
   /// `business/filter` does not send `total_product_count` yet (see
@@ -425,6 +499,7 @@ class PharmacyStoreCard extends StatelessWidget {
     }
     return '$count';
   }
+  */
 }
 
 class PharmacyDetailsSheet extends StatelessWidget {

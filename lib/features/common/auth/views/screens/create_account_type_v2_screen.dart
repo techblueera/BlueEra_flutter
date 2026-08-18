@@ -12,7 +12,9 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/Individual/gig_work_aadhaar_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
+// Only the leave-this-screen confirmation used this — restore it alongside
+// `_confirmExit` below if the dialog ever comes back.
+// import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -21,7 +23,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+// Screen text now goes through AppStrings keys + GetX `.tr` (asset JSON +
+// language pack + `en` fallback) instead of LanguageListController.tr, which
+// resolved only against the downloaded pack.
 import '../../model/get_categories_model.dart';
 
 /// The six top-level "How You Earn" options shown on the first screen.
@@ -44,6 +48,11 @@ bool _isBusinessEarnType(_EarnType type) =>
     type == _EarnType.businessShop || type == _EarnType.businessStore || type == _EarnType.manufacturing;
 
 /// Static presentation config for a "How You Earn" row.
+///
+/// [title] and [subtitle] are TRANSLATION KEYS ([AppStrings]), not display
+/// text. Every widget that renders them ([CustomText], [CommonBackAppBar])
+/// applies `.tr` itself, so they translate wherever they are shown without the
+/// call site remembering to do it.
 class _EarnConfig {
   final String title;
   final String subtitle;
@@ -53,38 +62,38 @@ class _EarnConfig {
 
 const Map<_EarnType, _EarnConfig> _earnConfig = {
   _EarnType.businessShop: _EarnConfig(
-    'Business/Shop (GST)',
-    'High Range, More Rich, Verified ',
+    AppStrings.earnBusinessShop,
+    AppStrings.earnBusinessShopSub,
     "assets/onboarding/onboring_business.png",
   ),
   _EarnType.businessStore: _EarnConfig(
-    'Small Business/Shop (Non GST)',
-    'Low Range (2km) & Rich, Un-Verified ...',
+    AppStrings.earnBusinessStore,
+    AppStrings.earnBusinessStoreSub,
     "assets/onboarding/onbording_store.png",
   ),
   _EarnType.selfWork: _EarnConfig(
-    'Self Work',
-    'Skilled & consultant work',
+    AppStrings.earnSelfWork,
+    AppStrings.earnSelfWorkSub,
     "assets/onboarding/onbording_self_work.png",
   ),
   _EarnType.gigWork: _EarnConfig(
-    'Gig Work (Rider/Taxi)',
-    'Driver, rider & delivery',
+    AppStrings.earnGigWork,
+    AppStrings.earnGigWorkSub,
     "assets/onboarding/onbording_gig_worker.png",
   ),
   _EarnType.notEarning: _EarnConfig(
-    'Not Earning',
-    'Not currently earning',
+    AppStrings.earnNotEarning,
+    AppStrings.earnNotEarningSub,
     "assets/onboarding/onbording_not_earning.png",
   ),
   _EarnType.doingJob: _EarnConfig(
-    'Doing a Job',
-    'Gov,Private Employed / salaried',
+    AppStrings.earnDoingJob,
+    AppStrings.earnDoingJobSub,
     "assets/onboarding/onbording_doing_a_job.png",
   ),
   _EarnType.manufacturing: _EarnConfig(
-    'Manufacturing / Industrial',
-    'Manufacturing & industrial',
+    AppStrings.earnManufacturing,
+    AppStrings.earnManufacturingSub,
     "assets/onboarding/onbording_manufacturing.png",
   ),
 };
@@ -109,8 +118,6 @@ class CreateAccountTypeV2Screen extends StatefulWidget {
 
 class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
   final authController = getOrPut(() => AuthController());
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
 
   @override
   void initState() {
@@ -132,6 +139,7 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
     return _EarnType.values;
   }
 
+  /* Back is a plain pop now — see the note on [build].
   /// Confirmation dialog shown for every exit attempt — mirrors the legacy
   /// screen so backing out of account creation always lands on home.
   void _confirmExit() {
@@ -147,6 +155,7 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
       },
     );
   }
+  */
 
   void _openCategoryScreen(_EarnType type) {
     Navigator.of(context).push(
@@ -156,66 +165,66 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
     );
   }
 
+  /// Back — system gesture, hardware button and the app bar arrow alike — is a
+  /// plain pop, so the user lands back wherever they opened this from.
+  ///
+  /// It used to be wrapped in a [PopScope] with `canPop: false` that asked "Are
+  /// you sure you want to leave this screen?" and, on confirm, cleared the
+  /// whole stack to the bottom nav. Nothing has been entered on this screen —
+  /// it's a list of links — so there was no work to lose and nothing to
+  /// confirm; and dropping the stack sent people who arrived from Discover or a
+  /// profile back to home instead of to what they were looking at.
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _confirmExit();
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5FB),
-        appBar: CommonBackAppBar(
-          isLeading: true,
-          appBarColor: Colors.white,
-          title: AppStrings.chooseYourAccountType,
-          onBackTap: _confirmExit,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(SizeConfig.size16),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size16,
-                vertical: SizeConfig.size20,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(SizeConfig.size16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF1F5FB),
+      appBar: CommonBackAppBar(
+        isLeading: true,
+        appBarColor: Colors.white,
+        title: AppStrings.chooseYourAccountType,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16,
+              vertical: SizeConfig.size20,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(SizeConfig.size16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  AppStrings.accountTypeHowYouEarn,
+                  fontSize: SizeConfig.size24,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size4),
+                CustomText(
+                  AppStrings.accountTypeSelectProfession,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(height: SizeConfig.size16),
+                for (final type in _rows) ...[
+                  _earnRow(type),
+                  SizedBox(height: SizeConfig.size12),
                 ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    langController.tr('How You Earn'),
-                    fontSize: SizeConfig.size24,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size4),
-                  CustomText(
-                    langController.tr('Select Your Professional'),
-                    fontSize: SizeConfig.size14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  for (final type in _rows) ...[
-                    _earnRow(type),
-                    SizedBox(height: SizeConfig.size12),
-
-                  ],
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -258,14 +267,14 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    langController.tr(config.title),
+                    config.title,
                     fontSize: SizeConfig.size16,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
                   ),
                   SizedBox(height: SizeConfig.size2),
                   CustomText(
-                    langController.tr(config.subtitle),
+                    config.subtitle,
                     fontSize: SizeConfig.size12,
                     fontWeight: FontWeight.w400,
                     color: Color(0xff66727E),
@@ -303,8 +312,6 @@ class _AccountCategoryScreen extends StatefulWidget {
 
 class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
   final authController = getOrPut(() => AuthController());
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
 
   /// `CategoryData` (business) or `ProfessionTypeData` (individual).
   final Rxn<Object> selectedItem = Rxn<Object>();
@@ -381,11 +388,13 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
 
   // --- Business ------------------------------------------------------------
 
+  /// Section titles are [AppStrings] keys — [_sectionCard] renders them through
+  /// [CustomText], which translates.
   List<_Section> _businessSections() {
     if (widget.earnType == _EarnType.manufacturing) {
       return [
         _Section(
-          title: langController.tr('Manufacturing'),
+          title: AppStrings.accountSectionManufacturing,
           items: authController.businessOnboardingManufacturingCategories,
         ),
       ];
@@ -394,35 +403,35 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
     // manufacturing (and except finance on the Non-GST row, below).
     return [
       _Section(
-        title: langController.tr('Grocery & Stationary Stores'),
+        title: AppStrings.accountSectionGrocery,
         items: authController.businessOnboardingGroceriesCategories,
       ),
       _Section(
-        title: langController.tr('Food & Restaurant'),
+        title: AppStrings.accountSectionFood,
         items: authController.businessOnboardingFoodsCategories,
       ),
       _Section(
-        title: langController.tr('Shop & Store'),
+        title: AppStrings.accountSectionShopStore,
         items: authController.businessOnboardingProductsCategories,
       ),
       _Section(
-        title: langController.tr('Services'),
+        title: AppStrings.accountSectionServices,
         items: authController.businessOnboardingServicesCategories,
       ),
       _Section(
-        title: langController.tr('Automotive Services'),
+        title: AppStrings.accountSectionAutomotive,
         items: authController.businessOnboardingAutomotiveServicesCategories,
       ),
       _Section(
-        title: langController.tr('Health Care'),
+        title: AppStrings.accountSectionHealthCare,
         items: authController.businessOnboardingHealthcareSectorsCategories,
       ),
       _Section(
-        title: langController.tr('Hotel, Stay & Hospitality'),
+        title: AppStrings.accountSectionHospitality,
         items: authController.businessOnboardingHospitalityStayCategories,
       ),
       _Section(
-        title: langController.tr('Education & Training Sectors'),
+        title: AppStrings.accountSectionEducation,
         items: authController.businessOnboardingEducationTrainingCategories,
       ),
       // Banking / finance is a GST-registered vertical, so the whole Financial
@@ -431,7 +440,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
       // Manufacturing never reaches here (it returns its own section above).
       if (widget.earnType != _EarnType.businessStore)
         _Section(
-          title: langController.tr('Financial Sectors'),
+          title: AppStrings.accountSectionFinancial,
           items: authController.businessOnboardingFinancialSectorsCategories,
         ),
     ];
@@ -441,7 +450,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
     final nonEmpty =
         _businessSections().where((s) => s.items.isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
-      return EmptyStateWidget(message: langController.tr('No category found'));
+      return EmptyStateWidget(message: AppStrings.accountTypeNoCategory);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -506,18 +515,18 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
       case _EarnType.selfWork:
         return [
           _IndividualSection(
-            title: langController.tr('Skill Work'),
+            title: AppStrings.accountSectionSkillWork,
             items: authController.individualOnboardingSkillWorkList,
           ),
           _IndividualSection(
-            title: langController.tr('Consultant'),
+            title: AppStrings.accountSectionConsultant,
             items: authController.individualOnboardingConsultationList,
           ),
         ];
       case _EarnType.gigWork:
         return [
           _IndividualSection(
-            title: langController.tr('Self Employed'),
+            title: AppStrings.accountSectionSelfEmployed,
             items: authController.individualOnboardingGigWorkList,
           ),
         ];
@@ -525,7 +534,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
       case _EarnType.doingJob:
         return [
           _IndividualSection(
-            title: langController.tr('Social Profile'),
+            title: AppStrings.accountSectionSocialProfile,
             items: authController.individualOnboardingSocialProfileList,
           ),
         ];
@@ -540,7 +549,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
     final nonEmpty =
         _individualSections().where((s) => s.items.isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
-      return EmptyStateWidget(message: langController.tr('No profession found'));
+      return EmptyStateWidget(message: AppStrings.accountTypeNoProfession);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -698,7 +707,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
               isValidate: canProceed,
               bgColor: canProceed ? AppColors.primaryColor : AppColors.whiteF3,
               textColor: canProceed ? AppColors.white : AppColors.grey9B,
-              title: 'Next',
+              title: AppStrings.next,
               onTap: canProceed ? _onNext : null,
             );
           }),
@@ -839,8 +848,6 @@ class _BusinessSubCategoryBottomSheet extends StatefulWidget {
 
 class _BusinessSubCategoryBottomSheetState
     extends State<_BusinessSubCategoryBottomSheet> {
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
   SubCategories? _selectedSubCat;
 
   @override
@@ -934,7 +941,7 @@ class _BusinessSubCategoryBottomSheetState
                       child: Padding(
                         padding: EdgeInsets.all(SizeConfig.size20),
                         child: CustomText(
-                          langController.tr('No sub-categories found.'),
+                          AppStrings.accountTypeNoSubCategory,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                         ),
@@ -992,7 +999,7 @@ class _BusinessSubCategoryBottomSheetState
                           : AppColors.whiteF3,
                       textColor:
                           canConfirm ? AppColors.white : AppColors.grey9B,
-                      title: 'Done',
+                      title: AppStrings.done,
                       onTap: canConfirm
                           ? () => Navigator.of(context)
                               .pop(_SubCategoryPickResult(_selectedSubCat))
