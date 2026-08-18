@@ -1415,6 +1415,25 @@ void _initiateCallInApp({
   }
 }
 
+/// Public entry to the chat's voice call — places it straight away, exactly as
+/// picking "Voice call" in the appbar's call sheet does (separate CallActivity
+/// task on Android, in-app flow on iOS). Exposed so other widgets (e.g. the
+/// chat's "Call Customer" pill) can ring someone without asking first.
+void startChatVoiceCall({
+  String? otherUserId,
+  String? conversationId,
+  required String userName,
+  required String userImage,
+}) {
+  _initiateCallFromChat(
+    callType: CallType.audio,
+    otherUserId: otherUserId,
+    conversationId: conversationId,
+    userName: userName,
+    userImage: userImage,
+  );
+}
+
 /// Public entry to the chat call-options bottom sheet (voice / video / normal
 /// call) — the same sheet the chat appbar's call icon opens. Exposed so other
 /// widgets (e.g. the order card's Call button) can reuse it.

@@ -17,6 +17,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
+import '../widget/call_customer_button.dart';
 import '../widget/message_card.dart';
 import 'widgets/payment_qr_bottom_sheet.dart';
 
@@ -286,7 +287,11 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                         ),
                         if (chatViewController.businessTabIndexSelected == 0)
                           Expanded(
-                            child: (messages.isEmpty)
+                            // Hangs the "Call Customer" pill over the thread
+                            // once a packing PDF has been sent in it.
+                            child: CallCustomerOverlay(
+                              conversationId: widget.conversationId,
+                              child: (messages.isEmpty)
                                 ? Center(
                                     child: InkWell(
                                       onTap: () {
@@ -354,6 +359,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                       );
                                     },
                                   ),
+                            ),
                           )
                         else if (chatViewController.businessTabIndexSelected ==
                             chatViewController.productsTabIndex)

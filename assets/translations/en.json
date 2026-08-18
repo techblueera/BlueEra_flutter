@@ -7411,6 +7411,8 @@
   "phoneCallHint": "Dial the captain's number as usual",
   "callingUnavailableRightNow": "Calling is unavailable right now",
   "captainContactUnavailable": "Captain is not reachable right now",
+  "callCustomer": "Call Customer",
+  "customerContactUnavailable": "Customer is not reachable right now",
   "shareRideInfo": "Share Ride Info",
   "shareRideInfoHeading": "I'm on a ride with BlueEra",
   "chooseYourPlan": "Choose Your Plan",

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/chat/view/widget/call_customer_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -383,6 +384,17 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                             },
                           );
                         }),
+
+                        // "Call Customer" pill — appears once a packing PDF
+                        // has been sent in this thread. Sits above the
+                        // scroll-to-bottom FAB so the two never overlap.
+                        Positioned(
+                          right: 12,
+                          bottom: 56,
+                          child: CallCustomerFab(
+                            conversationId: widget.conversationId,
+                          ),
+                        ),
 
                         // Scroll-to-bottom FAB with unread badge
                         Positioned(

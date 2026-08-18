@@ -26,6 +26,8 @@ import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:BlueEra/features/chat/auth/controller/call_customer_controller.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/packing_pdf_qr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:get/get.dart';
@@ -521,6 +523,14 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
 
       final pdf = pw.Document();
 
+      // The shop owner's Scan-&-Pay QR, printed at the end of the slip so
+      // the customer can pay straight off the packing list. Null when the
+      // owner has no UPI configured — the slip is then produced as before.
+      final paymentQr = await buildShopOwnerPaymentQr(
+        payeeName: businessName,
+        orderId: widget.message.metadata?.selfpickupOrderId,
+      );
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -701,6 +711,10 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
                   headerColor: PdfColor.fromHex('#C62828'),
                 ),
               ],
+              if (paymentQr != null) ...[
+                pw.SizedBox(height: 20),
+                buildPackingPaymentQrSection(paymentQr),
+              ],
             ];
           },
         ),
@@ -728,6 +742,14 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
         ApiKeys.files: [multipartFile],
       };
       chatViewController.sendMessage(data, null, fileName);
+
+      // The packing slip is on its way — hang the "Call Customer" button
+      // over the thread so the owner can ring them about the order without
+      // hunting through the chat header.
+      showCallCustomerButtonFor(
+        conversationId: widget.conversationId,
+        orderMessage: widget.message,
+      );
 
       await _markAsReady();
     } catch (e) {
@@ -1280,6 +1302,14 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       final cellBoldStyle =
           pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold);
 
+      // The shop owner's Scan-&-Pay QR, printed at the end of the slip so
+      // the customer can pay straight off the packing list. Null when the
+      // owner has no UPI configured — the slip is then produced as before.
+      final paymentQr = await buildShopOwnerPaymentQr(
+        payeeName: businessName,
+        orderId: widget.message.metadata?.selfpickupOrderId,
+      );
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -1592,6 +1622,10 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
                   ],
                 ),
               ),
+              if (paymentQr != null) ...[
+                pw.SizedBox(height: 20),
+                buildPackingPaymentQrSection(paymentQr),
+              ],
             ];
           },
         ),

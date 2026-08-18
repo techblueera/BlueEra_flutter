@@ -5907,6 +5907,12 @@ class AppStrings {
   static const String captainContactUnavailable =
       "captainContactUnavailable";
 
+  // The chat's "Call Customer" pill, hung over a thread after a packing PDF
+  // is sent. Reuses the chat appbar's own call sheet for the options.
+  static const String callCustomer = "callCustomer";
+  static const String customerContactUnavailable =
+      "customerContactUnavailable";
+
   static const String riderOnTheWay = "riderOnTheWay";
   static const String pickupOtp = "pickupOtp";
   static const String pickupLabel = "pickupLabel";
