@@ -148,15 +148,15 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     _tabController.animateTo(0);
     await Get.to(() => const FoodCategoryMenuScreen());
     if (!mounted) return;
-    // Publishing sets this flag; the tab dispatcher's fetch is freshness-guarded
-    // and would leave the new dish invisible until the TTL lapsed, so force both
-    // rails (a dish published with an offer belongs in Offer Dish immediately).
+    // Publishing sets this flag from [RestaurantController.markMenuChanged],
+    // which has already dropped the saved snapshot and started the refetch —
+    // so this is the GUARDED call: it either finds that work done or does it
+    // once, instead of firing a duplicate pair of requests.
     if (_foodController.foodDataNeedsRefresh) {
       _foodController.foodDataNeedsRefresh = false;
       final id = businessId;
       if (id.isEmpty) return;
-      _foodController.fetchHomeData(businessId: id);
-      _foodController.fetchDiscountFoodProducts(businessId: id);
+      _foodController.fetchHomeAndDiscountIfNeeded(businessId: id);
     }
   }
 

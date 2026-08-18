@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/features/me/medical/service/medical_local_store.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -224,8 +224,9 @@ class MedicalController extends GetxController {
       // path, and for the same reason: nothing after this may gate the cart
       // clear or the refresh.
       clearMedicalSelection();
-      invalidateMedicalProductsTabCache();
-      unawaited(fetchMedicalProductsTabData(businessId: businessId));
+      // Drops the freshness stamp AND the saved snapshot, then refetches — a
+      // re-entry must not paint the pre-publish catalogue off disk.
+      markInventoryChanged();
 
       Get.until((route) =>
           route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
@@ -734,9 +735,9 @@ class MedicalController extends GetxController {
       // merchant on a Products tab that didn't contain what they had just
       // published. Nothing after this point is allowed to gate the data work.
       clearMedicalSelection();
-      invalidateMedicalProductsTabCache();
-      // Not awaited: the pop and the snackbar shouldn't wait on two GETs.
-      unawaited(fetchMedicalProductsTabData(businessId: businessId));
+      // Drops the freshness stamp AND the saved snapshot, then refetches (not
+      // awaited: the pop and the snackbar shouldn't wait on two GETs).
+      markInventoryChanged();
 
       Get.until((route) =>
                   route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
@@ -852,12 +853,14 @@ class MedicalController extends GetxController {
   Future<void> fetchMedicalProductsTabData({
     required String businessId,
     bool otherStore = false,
+    bool silent = false,
   }) async {
     await Future.wait([
-      fetchMyMedicalCategory(),
+      fetchMyMedicalCategory(silent: silent),
       fetchMedicalBusinessProducts(
         businessId: businessId,
         otherStore: otherStore,
+        silent: silent,
       ),
     ]);
   }
@@ -869,6 +872,20 @@ class MedicalController extends GetxController {
   /// Products-tab fetch that no-ops while the data is still loaded & fresh.
   /// Use on tab open / screen re-entry; call [fetchMedicalProductsTabData]
   /// directly for an explicit refresh (pull-to-refresh, post-publish).
+  ///
+  /// Three layers, cheapest first:
+  /// 1. [_medicalProductsTabCache] — same store, fetched < 5 min ago, still in
+  ///    memory.
+  /// 2. [MedicalLocalStore] — the saved snapshot. **If there is one, that is
+  ///    the answer and no request is made.**
+  /// 3. The network — only when nothing is saved.
+  ///
+  /// The snapshot is not a head start on a request; it replaces the request.
+  /// What keeps it honest is that every write the merchant makes (publish,
+  /// inventory edit, variant edit, delete, stock toggle) runs
+  /// [markInventoryChanged], which refetches and rewrites it — so the only way
+  /// to be looking at stale stock is for it to have changed somewhere other
+  /// than this device, and pull-to-refresh on the tab is the escape hatch.
   Future<void> fetchMedicalProductsTabDataIfNeeded({
     required String businessId,
     bool otherStore = false,
@@ -877,6 +894,13 @@ class MedicalController extends GetxController {
     final hasData = myMedicalCategoryList.isNotEmpty ||
         medicalBusinessProductsList.isNotEmpty;
     if (_medicalProductsTabCache.isFresh(signature, hasData: hasData)) return;
+
+    if (await _hydrateMedicalDataFromCache(businessId, otherStore)) {
+      // Stamped so a tab switch doesn't go back to disk either.
+      _medicalProductsTabCache.mark(signature);
+      return;
+    }
+
     await fetchMedicalProductsTabData(
       businessId: businessId,
       otherStore: otherStore,
@@ -886,15 +910,120 @@ class MedicalController extends GetxController {
     }
   }
 
-  /// Drops the freshness stamp so the next `*IfNeeded()` refetches. Called
-  /// after publishing, where the lists are known-stale.
-  void invalidateMedicalProductsTabCache() =>
-      _medicalProductsTabCache.invalidate();
+  /// Paints the Products tab from the last saved snapshot.
+  ///
+  /// Returns true only when something was actually restored — false sends the
+  /// caller to the network. Deliberately tolerant: a snapshot that fails to
+  /// parse (a model changed shape since it was written) counts as a miss, so a
+  /// bad cache degrades into a normal fetch rather than an error the user sees.
+  ///
+  /// Both lists must restore for this to report success. Restoring one and
+  /// declaring victory would leave the other permanently empty, since a `true`
+  /// return means no request is made.
+  Future<bool> _hydrateMedicalDataFromCache(
+      String storeId, bool otherStore) async {
+    // Owner scope only. A customer browsing someone else's pharmacy has no way
+    // to invalidate a snapshot — they can't publish, edit or restock anything —
+    // so a cache-first read with no revalidation would freeze that shelf on
+    // their device indefinitely. Their fetches stay live (in-memory guard
+    // only), exactly as before.
+    if (otherStore || storeId.isEmpty) return false;
 
+    List<MyMedicalSuperCategoryModel>? categories;
+    List<BusinessProductData>? topSelling;
+    try {
+      final entry =
+          await MedicalLocalStore.readCategories(storeId, otherStore: false);
+      if (entry != null && !entry.isEmpty) {
+        categories = entry.items
+            .whereType<Map>()
+            .map((e) => MyMedicalSuperCategoryModel.fromJson(
+                Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    } catch (e) {
+      log('medical: category cache hydrate failed — $e');
+    }
+    try {
+      final entry =
+          await MedicalLocalStore.readTopSelling(storeId, otherStore: false);
+      if (entry != null && !entry.isEmpty) {
+        topSelling = GroceryBusinessProductsModel.fromJson({
+          'data': entry.items,
+        }).data;
+      }
+    } catch (e) {
+      log('medical: top-selling cache hydrate failed — $e');
+    }
+
+    // Half a snapshot is not a snapshot: publish nothing unless both sides
+    // restored, or the missing list would stay empty with no request coming.
+    if (categories == null ||
+        categories.isEmpty ||
+        topSelling == null ||
+        topSelling.isEmpty) {
+      return false;
+    }
+
+    myMedicalCategoryList.value = categories;
+    fetchMyMedicalCategoryResponse.value = ApiResponse.complete();
+    // Starts as `true` and is only ever cleared by a fetch's `finally` — a
+    // hydrate makes no fetch, so without this the Products tab shimmers over
+    // data it already has.
+    myMedicalCategoryLoading.value = false;
+
+    medicalBusinessProductsList.value = topSelling;
+    // The snapshot only ever holds page 1, so "load more" resumes at page 2 —
+    // and a short page means the server had nothing after it.
+    _medicalBusinessProductsPage = 2;
+    _medicalBusinessProductsHasMore =
+        topSelling.length >= _medicalBusinessProductsLimit;
+    fetchMedicalBusinessProductsResponse.value = ApiResponse.complete();
+    return true;
+  }
+
+  /// Called after any inventory write (publish / inventory edit / variant edit
+  /// / delete / stock toggle) that the merchant just made.
+  ///
+  /// The sheets already patch their own models in place, so the screen is
+  /// correct the moment the call returns. What this fixes is everything the
+  /// patch cannot reach: the 5-minute freshness guard that would otherwise
+  /// short-circuit the next tab entry, the sibling list that still holds the
+  /// old row, and the disk snapshot, which must never outlive the change that
+  /// invalidated it.
+  ///
+  /// The server is the source of truth for the rewrite: rather than editing the
+  /// cached JSON — which would mean re-implementing every mutation against a
+  /// second data shape — the snapshot is **deleted** and then rebuilt from a
+  /// refetch.
+  ///
+  /// Deleting first, rather than overwriting when the refetch lands, is what
+  /// makes the race safe. The merchant can leave the add-medicine flow and be
+  /// back on the tab before the refetch resolves; with the old snapshot still
+  /// on disk, that re-entry would hydrate the pre-mutation list and stamp it
+  /// fresh, hiding the change until the guard expired.
+  void markInventoryChanged({String? storeId}) {
+    _medicalProductsTabCache.invalidate();
+    medicalBusinessProductsList.refresh();
+    myMedicalCategoryList.refresh();
+
+    final id = (storeId == null || storeId.isEmpty) ? businessId : storeId;
+    if (id.isEmpty) return;
+    // Fire-and-forget: the caller is a sheet closing on a completed write, or a
+    // publish popping back, and nothing on screen is waiting for this.
+    unawaited(MedicalLocalStore.clearStore(id).then(
+      (_) => fetchMedicalProductsTabData(businessId: id, silent: true),
+    ));
+  }
+
+  /// [silent] keeps the rendered list on screen while the call runs (hydrated
+  /// from disk, or refreshed after a write) instead of blinking back to a
+  /// skeleton.
   Future<void> fetchMedicalBusinessProducts({
     required String businessId,
     bool otherStore = false,
     bool isLoadMore = false,
+    bool silent = false,
   }) async {
     try {
       if (isLoadMore) {
@@ -908,11 +1037,16 @@ class MedicalController extends GetxController {
         }
         isMedicalBusinessProductsLoadingMore.value = true;
       } else {
-        fetchMedicalBusinessProductsResponse.value =
-            ApiResponse.initial('Initial');
+        // Paging always restarts, but a silent refresh keeps the rendered rows
+        // until the replacements arrive — clearing here is what would make the
+        // rail blink on every hydrate and after every write.
         _medicalBusinessProductsPage = 1;
         _medicalBusinessProductsHasMore = true;
-        medicalBusinessProductsList.clear();
+        if (!silent) {
+          fetchMedicalBusinessProductsResponse.value =
+              ApiResponse.initial('Initial');
+          medicalBusinessProductsList.clear();
+        }
       }
 
       final Map<String, dynamic> params = {
@@ -928,7 +1062,13 @@ class MedicalController extends GetxController {
               .fetchMedicalBusinessProductsRepo(params: params);
 
       if (!responseModel.isSuccess) {
-        fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
+        // A failed SILENT refresh must not replace what the user is reading
+        // with an error — the hydrated list stays, and the guard was already
+        // left un-stamped so the next entry retries.
+        if (!silent) {
+          fetchMedicalBusinessProductsResponse.value =
+              ApiResponse.error('error');
+        }
         return;
       }
 
@@ -940,6 +1080,19 @@ class MedicalController extends GetxController {
         medicalBusinessProductsList.addAll(newItems);
       } else {
         medicalBusinessProductsList.value = newItems;
+        // Page 1 only — that is exactly what the tab renders, and it keeps the
+        // snapshot small however deep the user paged. Owner scope only — see
+        // [_hydrateMedicalDataFromCache].
+        if (!otherStore && businessId.isNotEmpty) {
+          final raw = responseModel.response?.data;
+          final rawItems =
+              (raw is Map && raw['data'] is List) ? raw['data'] as List : const [];
+          unawaited(MedicalLocalStore.writeTopSelling(
+            businessId,
+            otherStore: false,
+            items: rawItems,
+          ));
+        }
       }
 
       if (newItems.isNotEmpty) _medicalBusinessProductsPage++;
@@ -952,16 +1105,24 @@ class MedicalController extends GetxController {
           ApiResponse.complete(responseModel);
       log("Loaded ${medicalBusinessProductsList.length} medical business products");
     } catch (e, s) {
-      fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
+      if (!silent) {
+        fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
+      }
       log("fetchMedicalBusinessProducts failed: $e\n$s");
     } finally {
       if (isLoadMore) isMedicalBusinessProductsLoadingMore.value = false;
     }
   }
 
-  Future<void> fetchMyMedicalCategory() async {
+  /// [silent] keeps the rendered categories on screen while the call runs —
+  /// see [fetchMedicalBusinessProducts].
+  ///
+  /// This endpoint is owner-only (it takes no store id and answers for the
+  /// logged-in pharmacy), so its snapshot is always keyed to the global
+  /// `businessId`.
+  Future<void> fetchMyMedicalCategory({bool silent = false}) async {
     try {
-      myMedicalCategoryLoading.value = true;
+      if (!silent) myMedicalCategoryLoading.value = true;
       ResponseModel responseModel = await MedicalRepo().fetchGroceryCategoryWithVariantRepo();
       if (responseModel.isSuccess) {
         fetchMyMedicalCategoryResponse.value = ApiResponse.complete(responseModel);
@@ -971,15 +1132,26 @@ class MedicalController extends GetxController {
             .map((e) => MyMedicalSuperCategoryModel.fromJson(e))
             .toList();
 
+        // Persist the raw payload, not the parsed models: the next open
+        // rebuilds them with this same `fromJson`, so there is one parser to
+        // keep right. See [_hydrateMedicalDataFromCache].
+        if (businessId.isNotEmpty) {
+          unawaited(MedicalLocalStore.writeCategories(
+            businessId,
+            otherStore: false,
+            items: listData,
+          ));
+        }
+
         log("Loaded ${myMedicalCategoryList.length}");
-      } else {
+      } else if (!silent) {
         fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+      if (!silent) fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
       log("ERROR===== 2 $e");
     } finally{
-      myMedicalCategoryLoading.value = false;
+      if (!silent) myMedicalCategoryLoading.value = false;
     }
   }
 
@@ -1062,34 +1234,59 @@ class MedicalController extends GetxController {
   Future<void> fetchGroceryNestedCategory() async {
     try {
       medicalNestedCategoryLoading.value = true;
-      medicalNestedCategoryList.clear();
 
-      // final cachedData = await HiveServices().getMedicalNestedCategories();
-      // if (cachedData != null && cachedData.isNotEmpty) {
-      //   medicalNestedCategoryLoading.value = false;
-      //   medicalNestedCategoryList.assignAll(cachedData);
-      //   return;
-      // }
+      // 1) Cache-first — inside the TTL the saved tree IS the answer and the
+      //    endpoint is not called at all. Unlike the pharmacy's own stock this
+      //    tree can only change on the backend — nothing the merchant does
+      //    invalidates it — so age is its only refresh trigger.
+      //
+      //    The list is NOT cleared up front any more: doing that emptied the
+      //    grid for the length of the request even when a perfectly good tree
+      //    was about to be restored.
+      final entry = await MedicalLocalStore.readCatalogCategories();
+      if (entry != null && !entry.isEmpty) {
+        final cached = entry.items
+            .whereType<Map>()
+            .map((e) =>
+                MedicalNestedCategoryModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+        if (cached.isNotEmpty) {
+          medicalNestedCategoryList.assignAll(cached);
+          if (!entry.isOlderThan(MedicalLocalStore.catalogTtl)) {
+            medicalNestedCategoryLoading.value = false;
+            return;
+          }
+        }
+      }
 
+      // 2) Network refresh.
       ResponseModel responseModel = await MedicalRepo().fetchGroceryNestedCategoryRepo();
       if (responseModel.isSuccess) {
         fetchMyMedicalCategoryResponse.value = ApiResponse.complete(responseModel);
 
         if (responseModel.response?.data != null && responseModel.response!.data is List) {
-          medicalNestedCategoryList.value = (responseModel.response!.data as List)
+          final List<dynamic> rawList =
+              responseModel.response!.data as List<dynamic>;
+          medicalNestedCategoryList.value = rawList
               .map((json) => MedicalNestedCategoryModel.fromJson(json))
               .toList();
           // Level-0 categories the snap-search grid renders (all of them).
           log('level-0 categories (${medicalNestedCategoryList.length}): '
               '${medicalNestedCategoryList.map((e) => '${e.name} [${e.key}] level=${e.level}').toList()}');
-          await HiveServices().saveMedicalNestedCategories(medicalNestedCategoryList);
+          // The RAW payload is what's saved (not `toJson()` of the models), so
+          // the next open rebuilds it with the same `fromJson` a live response
+          // goes through.
+          await MedicalLocalStore.writeCatalogCategories(rawList);
         }
-      } else {
+      } else if (medicalNestedCategoryList.isEmpty) {
+        // Only surface an error when there's no cached tree on screen.
         fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       log('stack trace -- $s');
-      fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+      if (medicalNestedCategoryList.isEmpty) {
+        fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+      }
     } finally{
       medicalNestedCategoryLoading.value = false;
     }
@@ -1110,21 +1307,50 @@ class MedicalController extends GetxController {
 
   /// Loads the level-0 roots. Cheap by design — no `children` come back, so a
   /// tapped root is expanded by [fetchMedicalCategorySubtree].
+  /// Cache-first under its own key, like the full tree: this is the grid the
+  /// snap-search screen opens on, so it was re-asked on every visit.
+  static const String _kMedicalLevel0 = 'level0';
+
   Future<void> fetchMedicalRootCategories() async {
     try {
       medicalRootCategoryLoading.value = true;
+
+      final entry =
+          await MedicalLocalStore.readCatalogChild(_kMedicalLevel0);
+      if (entry != null && !entry.isEmpty) {
+        final cached = entry.items
+            .whereType<Map>()
+            .map((e) => MedicalNestedCategoryModel.fromJson(
+                Map<String, dynamic>.from(e)))
+            .toList();
+        if (cached.isNotEmpty) {
+          medicalRootCategoryList.value = cached;
+          if (!entry.isOlderThan(MedicalLocalStore.catalogTtl)) {
+            medicalRootCategoryLoading.value = false;
+            return;
+          }
+        }
+      }
+
       ResponseModel responseModel = await MedicalRepo()
           .fetchGroceryNestedCategoryRepo(queryParams: {'level': 0});
       if (responseModel.isSuccess && responseModel.response?.data is List) {
-        medicalRootCategoryList.value = (responseModel.response!.data as List)
+        final List<dynamic> rawList =
+            responseModel.response!.data as List<dynamic>;
+        medicalRootCategoryList.value = rawList
             .map((json) => MedicalNestedCategoryModel.fromJson(json))
             .toList();
-      } else {
+        if (rawList.isNotEmpty) {
+          await MedicalLocalStore.writeCatalogChild(_kMedicalLevel0, rawList);
+        }
+      } else if (medicalRootCategoryList.isEmpty) {
+        // Only clear when there is no cached grid on screen — a failed refresh
+        // must not empty a list the merchant is already looking at.
         medicalRootCategoryList.clear();
       }
     } catch (e, s) {
       log('stack trace -- $s');
-      medicalRootCategoryList.clear();
+      if (medicalRootCategoryList.isEmpty) medicalRootCategoryList.clear();
     } finally {
       medicalRootCategoryLoading.value = false;
     }
@@ -1140,17 +1366,34 @@ class MedicalController extends GetxController {
   /// The caller owns the loading state — [MedicalLevel2CategoryScreen] opens
   /// first and shimmers while this runs, so there's no shared "expanding" flag
   /// for the grid that launched it.
+  /// Cache-first, one entry per category id. This is the drill-down the
+  /// merchant taps through on the way to a medicine, so the same subtree gets
+  /// asked for again on every pass; inside [MedicalLocalStore.catalogTtl] the
+  /// saved node IS the answer and no request is made.
   Future<MedicalNestedCategoryModel?> fetchMedicalCategorySubtree(
       String categoryId) async {
     if (categoryId.isEmpty) return null;
     try {
+      final entry = await MedicalLocalStore.readCatalogChild(categoryId);
+      final cached = entry?.map;
+      if (cached != null &&
+          cached.isNotEmpty &&
+          !entry!.isOlderThan(MedicalLocalStore.catalogTtl)) {
+        return MedicalNestedCategoryModel.fromJson(cached);
+      }
+
       ResponseModel responseModel = await MedicalRepo()
           .fetchGroceryNestedCategoryRepo(
               queryParams: {'categoryId': categoryId});
       final data = responseModel.response?.data;
       if (responseModel.isSuccess && data is Map) {
-        return MedicalNestedCategoryModel.fromJson(
-            Map<String, dynamic>.from(data));
+        final normalised = Map<String, dynamic>.from(data);
+        unawaited(MedicalLocalStore.writeCatalogChild(categoryId, normalised));
+        return MedicalNestedCategoryModel.fromJson(normalised);
+      }
+      // A stale saved node beats nothing at all when the network says no.
+      if (cached != null && cached.isNotEmpty) {
+        return MedicalNestedCategoryModel.fromJson(cached);
       }
       return null;
     } catch (e, s) {
@@ -1187,6 +1430,9 @@ class MedicalController extends GetxController {
       }
 
       commonSnackBar(message: response.message ?? AppStrings.medicalInventoryUpdatedSuccessfully.tr);
+      // Stock/price just changed on the server — the saved snapshot must not
+      // outlive it. See [markInventoryChanged].
+      markInventoryChanged();
       update();
     } catch (e, s) {
       log('updateInventory error: $s');
@@ -1278,6 +1524,8 @@ class MedicalController extends GetxController {
       }
 
       commonSnackBar(message: response.message ?? AppStrings.medicalInventoryDeleted.tr);
+      // A deleted inventory row must not come back from disk on the next open.
+      markInventoryChanged();
       if (categoryId != null) {
         fetchMyGroceryProducts(categoryId: categoryId);
       }
@@ -1321,6 +1569,10 @@ class MedicalController extends GetxController {
         commonSnackBar(message: AppStrings.medicalUpdateRequestSubmitted);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.medicalVariantUpdated.tr);
+        // Only a DIRECT update (200) changed the catalogue. A 202 means a
+        // change request is pending approval — nothing to invalidate yet, and
+        // dropping the snapshot then would just cost a pointless refetch.
+        markInventoryChanged();
       }
       update();
     } catch (e, s) {
@@ -1346,6 +1598,8 @@ class MedicalController extends GetxController {
       }
 
       commonSnackBar(message: response.message ?? AppStrings.medicalVariantDeleted.tr);
+      // Same reason as [deleteInventory].
+      markInventoryChanged();
       update();
     } catch (e, s) {
       log('deleteVariant error: $s');

@@ -13,7 +13,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/features/me/manufacturer/service/manufacturer_local_store.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/manufacturer/model/manufacturer_product_catalog_response.dart';
@@ -1321,14 +1321,30 @@ class ManufacturerProductController extends GetxController{
       nestedProductCategoryResponse.value = ApiResponse.initial('Initial');
       productsNestedCategoryList.clear();
 
-      // Cache-first for the top-level (no category key) fetch. Nested
-      // sub-levels (groceryCatKey != null) always hit the network.
-      if (groceryCatKey == null) {
-        final cached = HiveServices().getProductNestedCategories();
-        if (cached != null && cached.isNotEmpty) {
+      // Cache-first for the top-level fetch AND for every drilled-into branch,
+      // one entry each. The branch (`groceryCatKey != null`) used to go
+      // straight to the network every time, so walking back up and down the
+      // add-product tree re-asked for the same children on every tap.
+      //
+      // Both now live in [ManufacturerLocalStore], manufacturer's own box. Two
+      // things changed with the move: the old `productData` key lived in the
+      // PRODUCT service's box, and the cached tree had no age at all — once
+      // written it was served forever, so a backend category change never
+      // reached a device that had opened this screen. It now expires with
+      // [catalogTtl].
+      final entry = groceryCatKey == null
+          ? await ManufacturerLocalStore.readCatalogCategories()
+          : await ManufacturerLocalStore.readCatalogChild(groceryCatKey);
+      if (entry != null && !entry.isEmpty) {
+        final cached = entry.items
+            .whereType<Map>()
+            .map((e) => ProductNestedCategoryResponse.fromJson(
+                Map<String, dynamic>.from(e)))
+            .toList();
+        if (cached.isNotEmpty) {
           productsNestedCategoryList.assignAll(cached);
           nestedProductCategoryResponse.value = ApiResponse.complete();
-          return;
+          if (!entry.isOlderThan(ManufacturerLocalStore.catalogTtl)) return;
         }
       }
 
@@ -1340,19 +1356,30 @@ class ManufacturerProductController extends GetxController{
       );
       if (responseModel.isSuccess) {
         nestedProductCategoryResponse.value = ApiResponse.complete(responseModel);
-        productsNestedCategoryList.value = (responseModel.response?.data ?? [])
+        final List<dynamic> rawList = (responseModel.response?.data is List)
+            ? responseModel.response!.data as List<dynamic>
+            : const [];
+        productsNestedCategoryList.value = rawList
             .map<ProductNestedCategoryResponse>((e) => ProductNestedCategoryResponse.fromJson(e))
             .toList();
-        if (groceryCatKey == null && productsNestedCategoryList.isNotEmpty) {
-          await HiveServices()
-              .saveProductNestedCategories(productsNestedCategoryList);
+        // The RAW payload is what's saved (not `toJson()` of the models), so
+        // the next open rebuilds it with the same `fromJson` a live response
+        // goes through.
+        if (rawList.isNotEmpty) {
+          await (groceryCatKey == null
+              ? ManufacturerLocalStore.writeCatalogCategories(rawList)
+              : ManufacturerLocalStore.writeCatalogChild(
+                  groceryCatKey, rawList));
         }
-      } else {
+      } else if (productsNestedCategoryList.isEmpty) {
+        // Only surface an error when there's no cached tree on screen.
         nestedProductCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       log('stack trace -- $s');
-      nestedProductCategoryResponse.value = ApiResponse.error('error');
+      if (productsNestedCategoryList.isEmpty) {
+        nestedProductCategoryResponse.value = ApiResponse.error('error');
+      }
     }
   }
 

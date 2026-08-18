@@ -194,6 +194,14 @@ class Product {
   /// hard cast would throw on every grocery row.
   bool? isPrescriptionRequired;
 
+  /// MEDICAL-SERVICE ONLY: dosage form — "Spray", "Tablet", "Syrup". Same
+  /// deal as [isPrescriptionRequired]: medical's rows carry it, grocery's
+  /// don't, so it parses to null there and nothing renders.
+  ///
+  /// It is the first half of the pack label the pharmacy cards show
+  /// (`form · variantName`), matching the customer-facing card.
+  String? productForm;
+
   Product({
     this.sId,
     this.name,
@@ -201,6 +209,7 @@ class Product {
     this.brand,
     this.images,
     this.isPrescriptionRequired,
+    this.productForm,
   });
 
   Product.fromJson(Map<String, dynamic> json) {
@@ -213,6 +222,7 @@ class Product {
       json['images'].forEach((v) => images!.add(ProductImage.fromJson(v)));
     }
     isPrescriptionRequired = json['is_prescription_required'] == true;
+    productForm = json['product_form']?.toString();
   }
 }
 

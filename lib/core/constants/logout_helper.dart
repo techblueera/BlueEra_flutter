@@ -13,8 +13,27 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/account_plan/controller/account_plan_controller.dart';
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
+import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
+import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
+import 'package:BlueEra/features/me/automotive_products/service/automotive_local_store.dart';
+import 'package:BlueEra/features/me/food/service/food_local_store.dart';
+import 'package:BlueEra/features/me/medical/service/medical_local_store.dart';
+import 'package:BlueEra/features/me/manufacturer/service/manufacturer_local_store.dart';
+import 'package:BlueEra/features/me/product/service/product_local_store.dart';
+import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -101,9 +120,65 @@ class LogoutHelper {
   ///   drawer), so smart-management never auto-disposes them.
   /// - `ChatViewController`: owns chat sockets/listeners.
   static void _resetSessionControllers() {
-    deleteIfRegistered<ChatViewController>();
-    deleteIfRegistered<ViewPersonalDetailsController>();
-    deleteIfRegistered<ViewBusinessDetailsController>();
+    _drop(deleteIfRegistered<ChatViewController>);
+    _drop(deleteIfRegistered<ViewPersonalDetailsController>);
+    _drop(deleteIfRegistered<ViewBusinessDetailsController>);
+    _resetMeSectionControllers();
+  }
+
+  /// Deletes one controller, absorbing whatever its `onClose` does.
+  ///
+  /// `Get.delete(force: true)` runs the controller's own teardown — disposing
+  /// text controllers, tickers, sockets, a Razorpay instance. One of those
+  /// throwing used to abort the whole reset AND the two steps that follow it in
+  /// phase 2 (the reactive preference wipe and the language reset), because
+  /// they share a try/catch. Each drop now stands alone.
+  static void _drop(void Function() delete) {
+    try {
+      delete();
+    } catch (e) {
+      debugPrint('⚠️ logout: controller teardown failed — $e');
+    }
+  }
+
+  /// Drops the me-section merchant controllers and the plan entitlement.
+  ///
+  /// Wiping the boxes is only half of "clear on logout". Each of these
+  /// controllers holds the SAME data in memory — the Products-tab lists, the
+  /// category trees, and the `FetchCache` stamp that says "this is fresh, don't
+  /// refetch" — and they are deliberately kept for the whole session
+  /// (`MedicalScreen` / `GroceryScreen` document why they are not disposed on
+  /// tab exit). A logout that only cleared the disk therefore left the previous
+  /// merchant's catalogue on screen for the next account signing in without an
+  /// app restart, and the stamp stopped anything from refetching it.
+  ///
+  /// [AccountPlanEntitlement] is the one that matters most: it is registered
+  /// `permanent: true`, it caches `hasActivePlan`, and it is the GO-LIVE GATE.
+  /// Left behind, the next account inherits the previous one's paid plan.
+  ///
+  /// Safe here because this runs after `Get.offAllNamed` — every screen that
+  /// held one of these is gone, and each is re-created by `getOrPut` on the
+  /// next open.
+  /// Only controllers whose state IS the previous account's data. Anything the
+  /// login screen or the next sign-in still needs — `AuthController`, the
+  /// language controller, the app-background statics — is deliberately left
+  /// registered, exactly as the preserved halves of Hive (business categories,
+  /// profession types) and SharedPreferences (base URL, the per-account
+  /// one-time flags) are deliberately left on disk.
+  static void _resetMeSectionControllers() {
+    _drop(deleteIfRegistered<AccountPlanEntitlement>);
+    _drop(deleteIfRegistered<AccountPlanController>);
+    _drop(deleteIfRegistered<GroceryController>);
+    _drop(deleteIfRegistered<RestaurantController>);
+    _drop(deleteIfRegistered<FoodServiceController>);
+    _drop(deleteIfRegistered<InventoryController>);
+    _drop(deleteIfRegistered<ProductController>);
+    _drop(deleteIfRegistered<MedicalController>);
+    _drop(deleteIfRegistered<AutomotiveInventoryController>);
+    _drop(deleteIfRegistered<AutomotiveProductController>);
+    _drop(deleteIfRegistered<ManufacturerInventoryController>);
+    _drop(deleteIfRegistered<ManufacturerProductController>);
+    _drop(deleteIfRegistered<VehicleV3Controller>);
   }
 
   /// Logout's local-storage step, in two halves.
@@ -123,23 +198,28 @@ class LogoutHelper {
   ///
   /// Public so the API 401 handler can reuse it. Non-reactive.
   static Future<void> clearAllLocalData() async {
-    final shared = readSharedLocalData();
+    final shared = await readSharedLocalData();
     await clearAccountLocalData();
     await restoreSharedLocalData(shared);
   }
 
-  /// The SHARED half — read it BEFORE the wipe, while the boxes are open.
+  /// The SHARED half — read it BEFORE the wipe.
   ///
-  /// Today this is the onboarding catalog: the business categories and the
-  /// profession types. They are the same list for every user in the country,
-  /// and they are also the two lists the account-type screen cannot draw
-  /// without — so dropping them costs the next user two API calls and a
-  /// shimmer, and costs anyone who signs out without a connection the ability
-  /// to sign in at all.
+  /// Today this is the onboarding catalog: the BUSINESS categories and the
+  /// INDIVIDUAL profession types. **Neither is cleared on logout.** They are
+  /// the same list for every user in the country, and they are also the two
+  /// lists the account-type screen cannot draw without — so dropping them costs
+  /// the next user two API calls and a shimmer, and costs anyone who signs out
+  /// without a connection the ability to sign in at all.
+  ///
+  /// The in-memory copies survive too: `AuthController` holds both catalogs in
+  /// its onboarding buckets and is deliberately NOT in
+  /// [_resetMeSectionControllers], so the next sign-in reads them without
+  /// touching Hive at all (see `loadCategoriesCacheFirstThenRefresh`).
   ///
   /// Add to this only data that is genuinely account-agnostic. Anything keyed
   /// to a user, a business, or a device's session belongs in the other half.
-  static Map<String, dynamic> readSharedLocalData() =>
+  static Future<Map<String, dynamic>> readSharedLocalData() =>
       HiveServices.readSharedCatalogSnapshot();
 
   /// Writes the shared half back once the boxes have been reopened.
@@ -155,15 +235,33 @@ class LogoutHelper {
   /// takes the shared half with it, which is exactly what the pairing exists
   /// to prevent.
   static Future<void> clearAccountLocalData() async {
-    try {
-      await BusinessProfileCache.clear();
-      await PersonalProfileCache.clear();
-      // The grocery admin snapshot (top-selling, category inventory, catalog
-      // tree). `deleteFromDisk()` below takes it too — this is here for the
-      // same reason the profile caches are: the store owns account data, so the
-      // place that drops account data names it explicitly.
-      await GroceryLocalStore.clearAll();
-    } catch (_) {}
+    // Each clear is INDEPENDENTLY guarded. They used to share one try/catch,
+    // which meant the first one to throw silently skipped every clear after it
+    // — a locked box or a half-initialised cache would leave six merchant
+    // snapshots on disk, and the only thing standing between that and the next
+    // account reading them was `deleteFromDisk()` in the next block, which can
+    // fail for exactly the same reasons.
+    await _clearEach(<Future<void> Function()>[
+      BusinessProfileCache.clear,
+      PersonalProfileCache.clear,
+      // The per-feature merchant stores: grocery (top-selling, category
+      // inventory, catalog tree), food (home menu, Offer Dish rail, category
+      // tree), product / automotive / manufacturer (top-selling, category
+      // inventory, super-category list), medical (Top Selling, my-categories,
+      // category tree) and vehicle v3 (seller category tree only).
+      //
+      // `deleteFromDisk()` below takes them too — they are named here for the
+      // same reason the profile caches are: each store owns account data, so
+      // the place that drops account data names it, and a new vertical's box
+      // going missing from this list is an obvious omission.
+      GroceryLocalStore.clearAll,
+      FoodLocalStore.clearAll,
+      ProductLocalStore.clearAll,
+      MedicalLocalStore.clearAll,
+      AutomotiveLocalStore.clearAll,
+      ManufacturerLocalStore.clearAll,
+      VehicleLocalStore.clearAll,
+    ]);
     try {
       await Hive.deleteFromDisk();
       final dir = await getApplicationDocumentsDirectory();
@@ -201,6 +299,27 @@ class LogoutHelper {
     // Hive on disk is wiped above, but the live app-background statics would
     // linger until restart — reset them so the next user starts on defaults.
     AppBackgroundController.resetInMemory();
+  }
+
+  /// Runs every clear, whatever any single one does.
+  ///
+  /// Concurrent AND individually guarded, which is the whole point: they are
+  /// independent boxes, so waiting for each in turn only makes the logout
+  /// spinner longer, and one failure must not take the others with it.
+  ///
+  /// `Future.wait` with a per-item catch rather than a bare `Future.wait`: the
+  /// latter reports the FIRST error and abandons the rest, which is the same
+  /// trap the single try/catch was.
+  static Future<void> _clearEach(List<Future<void> Function()> clears) {
+    return Future.wait<void>(
+      clears.map((clear) async {
+        try {
+          await clear();
+        } catch (e) {
+          debugPrint('⚠️ logout: a local-store clear failed — $e');
+        }
+      }),
+    );
   }
 }
 

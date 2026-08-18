@@ -20,6 +20,7 @@ It mirrors the existing **Security Deposit** flow (`lib/features/contribution/`)
 |---|---|
 | `GET /account-plan/plans` | ✅ **LIVE** (Increment 1) |
 | `GET /account-plan/my-plans` | ✅ **LIVE** |
+| `GET /account-plan/sales/usage` | ✅ **LIVE** — A1 sales-shops only (see §2.2.1) |
 | `POST /account-plan/initiate` | ✅ **LIVE** (Increment 2) |
 | `POST /account-plan/verify-payment` | ✅ **LIVE** (Increment 2) |
 | `POST /account-plan/webhook/razorpay` | ✅ **LIVE** — backend-only (source of truth) |
@@ -61,7 +62,7 @@ Query (all optional): `tag_id`, `has_gst=true|false`, `account_type`.
     "account_type": "BUSINESS",
     "tag_id": "GENERAL_STORE",
     "group": "Grocery & Stationary",
-    "archetype": "A1_RADIUS_SHOP",
+    "archetype": "A1_SALES_SHOP",
     "vehicle_class": null,
     "earns_in_app": true,
     "has_gst": false,
@@ -69,32 +70,33 @@ Query (all optional): `tag_id`, `has_gst=true|false`, `account_type`.
     "gst_percent": 18,
     "plans": [
       {
-        "option_code": "RAD_NOGST_1KM",
-        "label": "1 km",
-        "sublabel": "visible to nearby buyers",
-        "archetype": "A1_RADIUS_SHOP",
+        "option_code": "SALES_6L",
+        "label": "Sales 6 Lakh",
+        "sublabel": "valid up to ₹6 Lakh sales",
+        "archetype": "A1_SALES_SHOP",
         "vehicle_class": null,
         "gst_track": "NON_GST",
         "billing": "lifetime",
         "popular": false,
         "validity_days": null,
-        "attributes": { "radius_km": 1, "job_types": null, "tier": null },
-        "price_base": 15000,
+        "attributes": { "radius_km": null, "job_types": null, "tier": null, "sale_limit": 600000 },
+        "sale_limit": 600000,
+        "price_base": 359900,
         "gst_percent": 18,
-        "gst_amount": 2700,
-        "price_total": 17700,
+        "gst_amount": 64782,
+        "price_total": 424682,
         "hsn_sac_code": "998599",
-        "price_base_inr": 150,
-        "gst_amount_inr": 27,
-        "price_total_inr": 177,
+        "price_base_inr": 3599,
+        "gst_amount_inr": 647.82,
+        "price_total_inr": 4246.82,
         "is_free": false,
-        "features": ["Reach nearby customers", "Business listing", "Local discovery"],
+        "features": ["Shop listed on BlueEra", "Receive customer orders", "Sell up to ₹6 Lakh", "Business visibility"],
         "terms_and_conditions": [
-          "Plan activates immediately after successful payment.",
-          "Price shown is inclusive of 18% GST; a GST tax invoice is emailed to you.",
+          "This plan is valid until your total sales reach the plan's sales limit.",
+          "When your sales cross the limit, the plan automatically deactivates — upgrade to a higher plan to continue selling.",
           "Fees are non-refundable.",
-          "Benefits apply only while the plan is active on your account.",
-          "Available without GST registration (capped local radius)."
+          "Available without GST registration.",
+          "Sales are counted from the date the plan is activated."
         ]
       }
     ]
@@ -109,7 +111,7 @@ headline `price_total_inr` on the card. The **total (`price_total` / `price_tota
 payment time and is what actually gets charged** — computed entirely by the backend; the app never re-computes it.
 
 **`popular`** — when `true`, render a **“Popular” ribbon/badge** on that card (one recommended pick per group, e.g. the
-3 km radius plan). Purely cosmetic; it does not change pricing or the purchase flow.
+Sales 15 Lakh plan). Purely cosmetic; it does not change pricing or the purchase flow.
 
 **`features`** (the bullet points the card shows) and
 **`terms_and_conditions`** are **stored in the DB per plan and returned here** — the app renders them verbatim and
@@ -118,15 +120,80 @@ never hard-codes them, so they differ by plan/archetype and can be edited backen
 Archetype → what the card carries:
 | archetype | key attribute | example labels |
 |---|---|---|
-| `A1_RADIUS_SHOP` / `A6_WIDE_REACH` | `attributes.radius_km` (`-1` = all-India) | "3 km", "All India" |
+| `A1_SALES_SHOP` | `attributes.sale_limit` (RUPEES cap) | "Valid up to ₹6 Lakh sales" |
+| `A6_WIDE_REACH` | `attributes.radius_km` (`-1` = all-India) | "All India" |
 | `A2_GIG_CALLS` | `attributes.job_types` (`["passenger","parcel"]`) + `vehicle_class` | "Passenger + Parcel" |
 | `A3_LOCAL_SERVICE` | `attributes.radius_km` | "Local (5 km)" |
 | `A4_LEAD_PRO` / `A5_BOOKING` | `attributes.tier` (`BASIC`/`PRO`) | "Basic", "Pro" |
+| `A7_MANUFACTURING` | `attributes.sale_promise` (display string) | "₹30–40 Lakh orders" |
 | `A0_SOCIAL_FREE` | `is_free` true for `SOC_FREE` | "Free", "Verified Badge" |
+
+> **A1 shops are now SALES-BASED, not radius-based.** The old radius ladder
+> (1/3/6/10/25 km) is retired. A shop buys a **sales subscription** — 5 tiers
+> (Sales 6 Lakh ₹3,599 → Sales 1 Cr ₹19,999). The plan stays active until the
+> shop's **cumulative sales cross `sale_limit`**, then it **auto-deactivates** and
+> the shop must upgrade. Render the sales cap chip from `attributes.sale_limit`
+> (e.g. `₹${sale_limit/100000} Lakh`), not a km radius. Use **`GET
+> account-plan/sales/usage`** to show a "₹X of ₹Y sales used" progress bar on the
+> shop's plan screen and warn as it approaches 100%. `attributes.radius_km` is
+> null for these cards.
 
 ### 2.2 `GET subscription-service/account-plan/my-plans` — the user's purchases ✅ LIVE
 Optional `?status=active` / `?archetype=`. Returns `{ success, count, data: [ UserAccountPlan ] }` where each item has
 `option_code, option_label, archetype, radius_km, job_types, tier, total_amount, status, activated_at, ...`.
+
+**How the app knows a plan is active:** an item's `status == "active"`. The app
+already centralises this in `AccountPlanEntitlement` (reads `my-plans?status=active`,
+exposes `hasActivePlan`). Nothing about that changes.
+
+### 2.2.1 `GET subscription-service/account-plan/sales/usage` — A1 sales-shop usage ✅ LIVE
+**⚠️ Call this ONLY for A1 sales-shops with an active plan — never for everyone.**
+It is meaningless (and returns `has_sales_plan:false`) for every other archetype
+(gig drivers, services, lead/booking, manufacturing, free, radius wide-reach). Do
+NOT add it to the generic plan/home load.
+
+**Gate (both conditions must hold before you call it):**
+1. The account has an **active** plan — `AccountPlanEntitlement.hasActivePlan == true`
+   (i.e. a `my-plans` item with `status == "active"`).
+2. That active plan's **`archetype == "A1_SALES_SHOP"`**.
+
+In code terms — from the already-fetched `my-plans` list, find the active plan and
+check its archetype; only then hit `sales/usage`:
+```dart
+final active = myPlans.firstWhereOrNull((p) => p.status == 'active');
+final isSalesShop = active?.archetype == 'A1_SALES_SHOP'; // add this const alongside A1_RADIUS_SHOP
+if (isSalesShop) {
+  // call sales/usage; render the usage bar. Otherwise skip entirely.
+}
+```
+
+**Response** (no request body; auth = the user's JWT):
+```json
+{
+  "success": true,
+  "data": {
+    "has_sales_plan": true,
+    "option_label": "Sales 6 Lakh",
+    "sale_limit_inr": 600000,
+    "sales_accrued_inr": 240000,
+    "sales_remaining_inr": 360000,
+    "percent_used": 40
+  }
+}
+```
+- `has_sales_plan: false` ⇒ no active sales plan → show nothing (or the buy/upgrade
+  CTA the screen already has). Treat a non-200 / error the same way (fail-quiet).
+- All amounts are **RUPEES**. `percent_used` is 0–100 (server-clamped).
+- Render a "**₹{sales_accrued_inr} of ₹{sale_limit_inr} sales used**" progress bar
+  using `percent_used`; warn as it nears 100% ("plan pauses at the limit — upgrade
+  to keep receiving orders"). When the plan auto-deactivates on the server, the next
+  `my-plans` read returns it as no-longer-active, so `hasActivePlan` flips false and
+  your existing go-live/active gates already react — no new UI wiring needed.
+
+> This is the ONLY new API in the sales-shop change. Everything else on the
+> contribution screen (menu → Contribution) is unchanged — same cards, same buy
+> flow, same go-live gate. You are only *adding* an A1-conditional usage bar, not
+> changing any existing UI.
 
 ### 2.3 `POST subscription-service/account-plan/initiate` — start a purchase ✅ LIVE
 Body:
@@ -155,10 +222,10 @@ Show `message` and focus a GSTIN input; on a valid GSTIN, retry `initiate`.
     "order_id": "order_XXXXXXXX",
     "key_id": "rzp_live_XXXX",
     "currency": "INR",
-    "base_amount": 50000,
+    "base_amount": 70000,
     "gst_percent": 18,
-    "gst_amount": 9000,
-    "total_amount": 59000,
+    "gst_amount": 12600,
+    "total_amount": 82600,
     "option_code": "RAD_GST_6KM",
     "option_label": "6 km",
     "account_plan_id": "665f...",
@@ -197,6 +264,7 @@ link is unauthenticated + short-lived; **do not** add the `Authorization` header
   /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
   final String accountPlanPlans        = 'subscription-service/account-plan/plans';
   final String accountPlanMyPlans      = 'subscription-service/account-plan/my-plans';
+  final String accountPlanSalesUsage   = 'subscription-service/account-plan/sales/usage'; // A1 sales-shops only
   final String accountPlanInitiate     = 'subscription-service/account-plan/initiate';
   final String accountPlanVerifyPayment= 'subscription-service/account-plan/verify-payment';
   final String accountPlanInvoices     = 'subscription-service/account-plan/invoices';
@@ -610,20 +678,12 @@ You do **not** create a `Razorpay()` yourself — use `RazorpayService` (`lib/co
 exactly as the deposit flow does:
 1. `initiate` → get `order_id`, `key_id`, `total_amount` (paise).
 2. `_razorpay.openCheckout(amount: order.totalAmount.toDouble(), orderId: order.orderId, subscriptionId: '', ...)`.
-   - `amount` is **paise** and is passed to Razorpay untouched (Razorpay's own `amount` is paise too). With an
-     `order_id` present Razorpay charges the ORDER's amount, so the two must agree — never re-compute it client-side.
+   - `amount` is **paise**; `openCheckout` divides by 100 internally for Razorpay.
    - `subscriptionId: ''` selects the one-time `order_id` path (not the recurring path).
    - `prefill` = buyer contact/email (hydrate from `ViewPersonalDetailsController` before pay).
 3. `onPaymentSuccess` → `verifyPayment(order_id, payment_id, signature)` → re-fetch. Webhook is the real source of truth.
-4. `onPaymentError` → `RazorpayService.humanReadableError(response)` (never raw errors). A sheet that fails to OPEN
-   arrives here too, as `RazorpayService.CHECKOUT_OPEN_FAILED` — the wrapper reports it rather than swallowing it, so
-   the spinner always unwinds.
-5. Always `_razorpay.dispose()` in `onClose()`. It defers itself while a checkout is outstanding, so closing the
-   screen mid-payment cannot clear the listeners the result is about to arrive on.
-6. **Backgrounded payments (UPI).** The user leaves for their bank app and the activity can be recreated, which loses
-   the plugin's result. On `AppLifecycleState.resumed` with a checkout outstanding: `_razorpay.resync()` (re-collects a
-   parked native result → normal success path), then fall back to re-reading `/account-plan/my-plans` and treat the
-   option turning `status: "active"` as success — the webhook has already activated it server-side.
+4. `onPaymentError` → `RazorpayService.humanReadableError(response)` (never raw errors).
+5. Always `_razorpay.dispose()` in `onClose()`.
 
 **Native setup is already done** (`razorpay_flutter` is a dependency and the deposit flow ships in production) — no
 Android/iOS changes needed.

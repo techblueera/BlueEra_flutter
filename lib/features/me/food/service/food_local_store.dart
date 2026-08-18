@@ -3,26 +3,24 @@ import 'dart:developer';
 
 import 'package:hive/hive.dart';
 
-/// One cached grocery list, with the moment it was written.
+/// One cached food payload, with the moment it was written.
 ///
-/// [items] is the raw JSON exactly as the API returned it — the caller rebuilds
-/// its models with the same `fromJson` it uses for a live response, so there is
+/// [data] is the raw JSON exactly as the API returned it — a List for the
+/// paginated rails, a Map for the home object — so the caller rebuilds its
+/// models with the same `fromJson` it uses for a live response, and there is
 /// only ever one parser to keep correct.
-class GroceryCacheEntry {
-  const GroceryCacheEntry({required this.data, required this.savedAt});
+class FoodCacheEntry {
+  const FoodCacheEntry({required this.data, required this.savedAt});
 
-  /// Raw JSON exactly as the API returned it: a List for the rails and for a
-  /// category LIST, a Map for a single category SUBTREE (the by-id endpoints
-  /// answer with one object, not a list).
   final dynamic data;
   final DateTime savedAt;
 
   /// The payload as a list — empty when this entry holds a map.
   List<dynamic> get items => data is List ? data as List<dynamic> : const [];
 
-  /// The payload as a JSON object — null when this entry holds a list. Rebuilt
-  /// as `Map<String, dynamic>` because that is what every `fromJson` here
-  /// wants.
+  /// The payload as a JSON object — null when this entry holds a list.
+  /// Rebuilt as `Map<String, dynamic>` because every `fromJson` here wants
+  /// that shape (see the class doc on why the box stores JSON strings).
   Map<String, dynamic>? get map =>
       data is Map ? Map<String, dynamic>.from(data as Map) : null;
 
@@ -39,49 +37,52 @@ class GroceryCacheEntry {
   bool isOlderThan(Duration ttl) => age >= ttl;
 }
 
-/// Local (Hive) store for everything the grocery admin screens read.
+/// Local (Hive) store for everything the restaurant admin screens read.
+///
+/// The food twin of `GroceryLocalStore`, entry for entry.
 ///
 /// ## What it holds
-/// * **Products tab** — the top-selling list and the category-with-inventory
-///   list, one entry each per store.
-/// * **Add-grocery flow** — the super-category catalog tree, which is global
-///   rather than per store.
+/// * **Products tab** — the restaurant home object (menu categories,
+///   restaurant specials, contact / profile) and the first page of the Offer
+///   Dish rail, one entry each per restaurant.
+/// * **Add-food flow** — the nested food-category tree, which is global rather
+///   than per restaurant.
 ///
 /// ## Why JSON strings and not raw maps
 /// Hive hands back `Map<dynamic, dynamic>` for anything written as a bare map,
-/// and every model here parses `Map<String, dynamic>` — reading such a cache
-/// would throw at the first `fromJson`. Values are therefore `jsonEncode`d on
-/// the way in and decoded on the way out, which is also what [KeyedJsonCache]
-/// does for the same reason.
+/// and `FoodData.fromJson` / `MyFoodProductData.fromJson` walk it as
+/// `Map<String, dynamic>` — reading such a cache would throw at the first
+/// nested model. Values are therefore `jsonEncode`d on the way in and decoded
+/// on the way out, which also gives every nested map the right type for free.
 ///
 /// ## Freshness
-/// Nothing here expires on its own. Each entry carries [GroceryCacheEntry
-/// .savedAt] and the caller decides: the products tab hydrates from any age and
-/// then revalidates in the background (a merchant must never be shown stock
-/// that quietly went stale), while the catalog tree — which changes on the
-/// order of weeks — skips the network entirely inside [catalogTtl].
+/// Nothing here expires on its own, because nothing needs to: the merchant's
+/// own writes are the only thing that can change their menu on this device, and
+/// every one of them runs `RestaurantController.markMenuChanged()`, which
+/// deletes the snapshot and refetches. The one exception is the category tree —
+/// no local action can invalidate it, so it carries [catalogTtl].
 ///
 /// ## Lifetime
 /// The box opens lazily and reopens itself if it was closed, so it survives
 /// logout's `Hive.deleteFromDisk()`; [clearAll] is called from
-/// `LogoutHelper.clearAllLocalData()` regardless, so the intent is explicit at
-/// the place where account data is dropped.
-class GroceryLocalStore {
-  const GroceryLocalStore._();
+/// `LogoutHelper.clearAccountLocalData()` regardless, so the intent is explicit
+/// at the place where account data is dropped.
+class FoodLocalStore {
+  const FoodLocalStore._();
 
-  static const String boxName = 'grocery_local_cache_box';
+  static const String boxName = 'food_local_cache_box';
 
-  /// Life of the add-grocery catalog tree before the network is consulted.
+  /// Life of the add-food category tree before the network is consulted.
   static const Duration catalogTtl = Duration(hours: 24);
 
-  /// How many stores' product caches to keep. The admin only ever writes its
-  /// own store, but the same lists back "visit another store", so without a cap
-  /// a browsing session would grow the box without bound. Oldest go first.
+  /// How many restaurants' caches to keep. The admin only ever writes its own,
+  /// but nothing stops the box growing if that ever changes, so the oldest go
+  /// first. Two entries per restaurant (home + discount).
   static const int _maxStoreEntries = 10;
 
-  static const String _kTopSelling = 'topSelling';
-  static const String _kCategories = 'categories';
-  static const String _kCatalog = 'catalog:superCategories';
+  static const String _kHome = 'home';
+  static const String _kDiscount = 'discount';
+  static const String _kCatalog = 'catalog:foodCategories';
 
   /// Every category-tree key starts with this, so [_prune] can hold the whole
   /// family out of the per-store cap with one test.
@@ -101,49 +102,41 @@ class GroceryLocalStore {
           ? Hive.box(boxName)
           : await Hive.openBox(boxName);
     } catch (e) {
-      log('GroceryLocalStore: box unavailable — $e');
+      log('FoodLocalStore: box unavailable — $e');
       return null;
     }
   }
 
-  /// Scopes an entry to the store AND to how it was fetched: the owner and
-  /// public endpoints return different shapes for the same store id, so one key
-  /// for both would let a visitor's payload render on the admin screen.
-  static String _storeKey(String kind, String storeId, bool otherStore) =>
-      '$kind|$storeId|${otherStore ? 'public' : 'owner'}';
+  /// Owner scope is the only one written (see
+  /// `RestaurantController._hydrateFoodDataFromCache`), but the scope stays in
+  /// the key so a visitor's payload could never render on the admin screen if
+  /// that ever changes.
+  static String _storeKey(String kind, String businessId) =>
+      '$kind|$businessId|owner';
 
   // ─── Products tab ────────────────────────────────────────────────
 
-  static Future<GroceryCacheEntry?> readTopSelling(
-    String storeId, {
-    required bool otherStore,
-  }) =>
-      _read(_storeKey(_kTopSelling, storeId, otherStore));
+  static Future<FoodCacheEntry?> readHome(String businessId) =>
+      _read(_storeKey(_kHome, businessId));
 
-  static Future<void> writeTopSelling(
-    String storeId, {
-    required bool otherStore,
+  static Future<void> writeHome(
+    String businessId, {
+    required Map<String, dynamic> data,
+  }) =>
+      _write(_storeKey(_kHome, businessId), data);
+
+  static Future<FoodCacheEntry?> readDiscount(String businessId) =>
+      _read(_storeKey(_kDiscount, businessId));
+
+  static Future<void> writeDiscount(
+    String businessId, {
     required List<dynamic> items,
   }) =>
-      _write(_storeKey(_kTopSelling, storeId, otherStore), items);
+      _write(_storeKey(_kDiscount, businessId), items);
 
-  static Future<GroceryCacheEntry?> readCategories(
-    String storeId, {
-    required bool otherStore,
-  }) =>
-      _read(_storeKey(_kCategories, storeId, otherStore));
+  // ─── Add-food category tree (global) ─────────────────────────────
 
-  static Future<void> writeCategories(
-    String storeId, {
-    required bool otherStore,
-    required List<dynamic> items,
-  }) =>
-      _write(_storeKey(_kCategories, storeId, otherStore), items);
-
-  // ─── Add-grocery catalog tree (global) ───────────────────────────
-
-  static Future<GroceryCacheEntry?> readCatalogCategories() =>
-      _read(_kCatalog);
+  static Future<FoodCacheEntry?> readCatalogCategories() => _read(_kCatalog);
 
   static Future<void> writeCatalogCategories(List<dynamic> items) =>
       _write(_kCatalog, items);
@@ -159,7 +152,7 @@ class GroceryLocalStore {
   /// The payload is a List for the by-key endpoints and a Map for the by-id
   /// ones (they answer with a single node) — the entry holds whichever, and the
   /// caller reads `items` or `map`.
-  static Future<GroceryCacheEntry?> readCatalogChild(String key) =>
+  static Future<FoodCacheEntry?> readCatalogChild(String key) =>
       key.isEmpty ? Future.value(null) : _read('$_kCatalogChild$key');
 
   static Future<void> writeCatalogChild(String key, dynamic data) =>
@@ -167,35 +160,35 @@ class GroceryLocalStore {
 
   // ─── Invalidation ────────────────────────────────────────────────
 
-  /// Drops both product caches for one store, in both scopes. Used when the
-  /// cached snapshot is known to be wrong and cannot be rebuilt locally.
-  static Future<void> clearStore(String storeId) async {
+  /// Drops both caches for one restaurant. Used when the cached snapshot is
+  /// known to be wrong and cannot be rebuilt locally.
+  static Future<void> clearStore(String businessId) async {
     final box = await _safeBox();
     if (box == null) return;
     try {
       await box.deleteAll([
-        for (final kind in const [_kTopSelling, _kCategories])
-          for (final other in const [true, false]) _storeKey(kind, storeId, other),
+        for (final kind in const [_kHome, _kDiscount])
+          _storeKey(kind, businessId),
       ]);
     } catch (e) {
-      log('GroceryLocalStore.clearStore error: $e');
+      log('FoodLocalStore.clearStore error: $e');
     }
   }
 
-  /// Everything, including the catalog tree. Called on logout.
+  /// Everything, including the category tree. Called on logout.
   static Future<void> clearAll() async {
     final box = await _safeBox();
     if (box == null) return;
     try {
       await box.clear();
     } catch (e) {
-      log('GroceryLocalStore.clearAll error: $e');
+      log('FoodLocalStore.clearAll error: $e');
     }
   }
 
   // ─── Storage ─────────────────────────────────────────────────────
 
-  static Future<GroceryCacheEntry?> _read(String key) async {
+  static Future<FoodCacheEntry?> _read(String key) async {
     final box = await _safeBox();
     if (box == null) return null;
     try {
@@ -203,27 +196,23 @@ class GroceryLocalStore {
       if (raw is! String || raw.isEmpty) return null;
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return null;
-      // `items` is the legacy envelope key, written back when every payload
-      // here was a list; `data` is the current one and also carries subtree
-      // objects. Reading both keeps snapshots written before subtrees existed
-      // readable instead of silently dropping them.
-      final payload = decoded['data'] ?? decoded['items'];
+      final data = decoded['data'];
       final savedAt = decoded['savedAt'];
-      if (payload == null || savedAt is! int) return null;
-      return GroceryCacheEntry(
-        data: payload,
+      if (data == null || savedAt is! int) return null;
+      return FoodCacheEntry(
+        data: data,
         savedAt: DateTime.fromMillisecondsSinceEpoch(savedAt),
       );
     } catch (e) {
-      log('GroceryLocalStore._read($key) error: $e');
+      log('FoodLocalStore._read($key) error: $e');
       return null;
     }
   }
 
-  /// Writes [data] under [key]. An empty list / map is stored as a deletion rather
-  /// than an empty entry: "the server has nothing for this store" is better
-  /// re-asked than cached, and it keeps a failed parse from pinning an empty
-  /// screen.
+  /// Writes [data] under [key]. An empty list / map is stored as a deletion
+  /// rather than an empty entry: "the server has nothing for this restaurant"
+  /// is better re-asked than cached, and it keeps a failed parse from pinning
+  /// an empty screen.
   static Future<void> _write(String key, dynamic data) async {
     final box = await _safeBox();
     if (box == null) return;
@@ -246,25 +235,26 @@ class GroceryLocalStore {
     } catch (e) {
       // A payload that won't encode (unexpected non-JSON value) must not take
       // the write path down with it — the screen already has its live data.
-      log('GroceryLocalStore._write($key) error: $e');
+      log('FoodLocalStore._write($key) error: $e');
     }
   }
 
   /// Keeps the box bounded, in two INDEPENDENT families:
   ///
-  /// * per-store snapshots — at most [_maxStoreEntries] stores, two rows each;
+  /// * per-store snapshots — at most [_maxStoreEntries] restaurants, two rows
+  ///   each;
   /// * category-tree entries — the root list plus one per drilled-into branch,
   ///   capped at [_maxCatalogEntries].
   ///
   /// Separate on purpose. One shared cap would let a merchant who browsed a few
-  /// category branches evict their own store's Products-tab snapshot; and the
-  /// previous version, which exempted only the single root key, would have
+  /// category branches evict their own restaurant's Products-tab snapshot; and
+  /// the previous version, which exempted only the single root key, would have
   /// evicted the branches themselves the moment they outnumbered the cap.
   static Future<void> _prune(Box box) async {
     try {
       final keys = box.keys.whereType<String>().toList();
-      // Two entries per store (top-selling + categories), so the cap is on
-      // stores rather than on rows.
+      // Two entries per restaurant (home + discount), so the cap is on
+      // restaurants rather than on rows.
       await _pruneFamily(
         box,
         keys.where((k) => !k.startsWith(_kCatalogPrefix)),
@@ -276,7 +266,7 @@ class GroceryLocalStore {
         _maxCatalogEntries,
       );
     } catch (e) {
-      log('GroceryLocalStore._prune error: $e');
+      log('FoodLocalStore._prune error: $e');
     }
   }
 

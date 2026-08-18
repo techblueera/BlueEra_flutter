@@ -28,6 +28,16 @@ String? _asStr(dynamic v) {
 /// attribute matters on the card — radius, job types, or tier — so one screen
 /// can render every account type without knowing any of them by name.
 abstract class PlanArchetype {
+  /// Shops, as they are sold TODAY: a sales subscription, valid until the
+  /// shop's cumulative sales cross the plan's `sale_limit`, at which point the
+  /// backend auto-deactivates it and the shop upgrades.
+  ///
+  /// This replaced [radiusShop] — same accounts, different rule. The old
+  /// constant stays because a plan bought under the radius ladder is still on
+  /// the account and still comes back on `my-plans`; nothing re-writes history.
+  static const String salesShop = 'A1_SALES_SHOP';
+
+  /// The retired radius ladder (1/3/6/10/25 km). See [salesShop].
   static const String radiusShop = 'A1_RADIUS_SHOP';
   static const String gigCalls = 'A2_GIG_CALLS';
   static const String localService = 'A3_LOCAL_SERVICE';
@@ -96,6 +106,11 @@ class PlanCard {
   final int? validityDays;
   final List<String>? jobTypes;
 
+  /// The sales cap an A1 plan is valid up to, in RUPEES — the one money field
+  /// here that is not paise, because the backend states it that way
+  /// (`sale_limit: 600000` = ₹6 Lakh). Null for every other archetype.
+  final int? saleLimit;
+
   final int priceBase;
   final int gstPercent;
   final int gstAmount;
@@ -137,6 +152,7 @@ class PlanCard {
     required this.radiusKm,
     required this.validityDays,
     required this.jobTypes,
+    required this.saleLimit,
     required this.priceBase,
     required this.gstPercent,
     required this.gstAmount,
@@ -174,6 +190,11 @@ class PlanCard {
           ?.map((e) => e.toString())
           .where((e) => e.isNotEmpty)
           .toList(),
+      // Sent at both levels; the attribute is the documented home and the
+      // top-level copy is the fallback.
+      saleLimit: (attributes['sale_limit'] ?? j['sale_limit']) == null
+          ? null
+          : _asInt(attributes['sale_limit'] ?? j['sale_limit']),
       priceBase: _asInt(j['price_base']),
       gstPercent: _asInt(j['gst_percent'], 18),
       gstAmount: _asInt(j['gst_amount']),
@@ -190,6 +211,10 @@ class PlanCard {
 
   /// The catalog encodes "everywhere" as a radius of -1.
   bool get isAllIndia => radiusKm == -1;
+
+  /// A sales-capped shop plan — the A1 rule as it stands now. See
+  /// [PlanArchetype.salesShop].
+  bool get isSalesShop => archetype == PlanArchetype.salesShop;
 
   /// Whether this plan is only sold to a GST-registered account. The catalog
   /// splits shop radius into a GST and a no-GST track; the card says so out
@@ -295,4 +320,63 @@ class UserAccountPlan {
       );
 
   bool get isActive => status == 'active';
+
+  /// Whether this purchase is a sales-capped shop plan — the gate on calling
+  /// `sales/usage` at all. See [PlanArchetype.salesShop].
+  bool get isSalesShop => archetype == PlanArchetype.salesShop;
+}
+
+/// `GET /account-plan/sales/usage` → `data`.
+///
+/// How much of an A1 shop plan's sales cap has been used. **Every amount here
+/// is RUPEES**, unlike the paise everywhere else in this file — the endpoint
+/// states it that way, and converting would only invite a second unit to get
+/// wrong.
+///
+/// [hasSalesPlan] false means the account holds no active sales plan; the UI
+/// shows nothing rather than an empty bar, which is also how a failed read is
+/// treated (guide §2.2.1: fail-quiet).
+class SalesUsage {
+  final bool hasSalesPlan;
+  final String optionLabel;
+  final int saleLimitInr;
+  final int salesAccruedInr;
+  final int salesRemainingInr;
+
+  /// 0–100, clamped server-side. Clamped again here because a progress bar is
+  /// one of the few widgets that throws on an out-of-range value.
+  final int percentUsed;
+
+  const SalesUsage({
+    required this.hasSalesPlan,
+    required this.optionLabel,
+    required this.saleLimitInr,
+    required this.salesAccruedInr,
+    required this.salesRemainingInr,
+    required this.percentUsed,
+  });
+
+  factory SalesUsage.fromJson(Map<String, dynamic> j) => SalesUsage(
+        hasSalesPlan: j['has_sales_plan'] == true,
+        optionLabel: j['option_label']?.toString() ?? '',
+        saleLimitInr: _asInt(j['sale_limit_inr']),
+        salesAccruedInr: _asInt(j['sales_accrued_inr']),
+        salesRemainingInr: _asInt(j['sales_remaining_inr']),
+        percentUsed: _asInt(j['percent_used']).clamp(0, 100),
+      );
+
+  /// Nothing worth drawing: no plan, or a cap of zero (which would make the
+  /// bar a division by zero as well as a meaningless statement).
+  bool get isRenderable => hasSalesPlan && saleLimitInr > 0;
+
+  /// The fraction for the bar itself.
+  double get fraction => (percentUsed / 100).clamp(0.0, 1.0);
+
+  /// Close enough to the cap that the shop should be told it is about to stop
+  /// receiving orders, rather than finding out when it does.
+  bool get isNearLimit => percentUsed >= 80;
+
+  /// Spent. The server has already deactivated the plan (or is about to), so
+  /// the copy stops warning and starts telling them to upgrade.
+  bool get isExhausted => percentUsed >= 100 || salesRemainingInr <= 0;
 }

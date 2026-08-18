@@ -327,7 +327,11 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
       // catalog, not whatever tab they launched the add flow from. Jump
       // to the AutomotiveProducts tab before kicking off the refresh.
       _tabController?.animateTo(0);
-      inventoryController.fetchAllProductData();
+      // `IfNeeded`, not a forced fetch: publishing already ran
+      // [AutomotiveInventoryController.markInventoryChanged], which dropped the
+      // saved snapshot and started the refetch. The guarded call either finds
+      // that work already done or does it once.
+      inventoryController.fetchAllProductDataIfNeeded();
     }
   }
 

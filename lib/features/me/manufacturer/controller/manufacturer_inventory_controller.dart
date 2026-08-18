@@ -29,6 +29,7 @@ import 'package:BlueEra/features/me/product/model/product_category_with_inventor
 import 'package:BlueEra/features/me/manufacturer/model/manufacturer_product_model.dart';
 import 'package:BlueEra/features/me/manufacturer/model/manufacturer_product_snap_search_response.dart';
 import 'package:BlueEra/features/me/manufacturer/repo/manufacturer_product_repo.dart';
+import 'package:BlueEra/features/me/manufacturer/service/manufacturer_local_store.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_variant_dialog.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
@@ -184,20 +185,42 @@ class ManufacturerInventoryController extends GetxController {
   /// store. Use on tab open / screen (re)entry; call [fetchAllProductData] to
   /// force (pull-to-refresh, post-publish). Mirrors the product and automotive
   /// controllers.
+  /// Three layers, cheapest first:
+  /// 1. [_allProductCache] — same store, fetched < 5 min ago, still in memory.
+  /// 2. [ManufacturerLocalStore] — the saved snapshot. **If there is one, that
+  ///    is the answer and no request is made.**
+  /// 3. The network — only when nothing is saved.
+  ///
+  /// The snapshot is not a head start on a request; it replaces the request.
+  /// What keeps it honest is that every write the merchant makes (publish,
+  /// price edit, delete, stock toggle) runs [markInventoryChanged], which
+  /// refetches and rewrites it — so the only way to be looking at stale stock
+  /// is for it to have changed somewhere other than this device, and
+  /// pull-to-refresh on the tab is the escape hatch for that.
   Future<void> fetchAllProductDataIfNeeded({String? visitBusinessId}) async {
     final sig = 'allProduct|${visitBusinessId ?? 'self'}';
     final hasData =
         productNestedCategoryList.isNotEmpty || allProducts.isNotEmpty;
     if (_allProductCache.isFresh(sig, hasData: hasData)) return;
+
+    if (await _hydrateProductDataFromCache(visitBusinessId)) {
+      // Stamped so a tab switch doesn't go back to disk either.
+      _allProductCache.mark(sig);
+      return;
+    }
     await fetchAllProductData(visitBusinessId: visitBusinessId);
   }
 
-  Future<void> fetchAllProductData({String? visitBusinessId}) async {
+  Future<void> fetchAllProductData({
+    String? visitBusinessId,
+    bool silent = false,
+  }) async {
     try {
-      myProductLoading.value = true;
+      if (!silent) myProductLoading.value = true;
       await Future.wait([
-        fetchProductCategoryWithInventory(visitBusinessId: visitBusinessId),
-        fetchBusinessProducts(visitBusinessId: visitBusinessId),
+        fetchProductCategoryWithInventory(
+            visitBusinessId: visitBusinessId, silent: silent),
+        fetchBusinessProducts(visitBusinessId: visitBusinessId, silent: silent),
       ]);
       // Stamp freshness once the category list actually loaded.
       if (fetchProductCategoryResponse.value.status == Status.COMPLETE) {
@@ -206,15 +229,120 @@ class ManufacturerInventoryController extends GetxController {
     } catch (e) {
       log('Error fetching product data: $e');
     } finally {
-      myProductLoading.value = false;
+      if (!silent) myProductLoading.value = false;
     }
   }
 
+  /// Paints the Products tab from the last saved snapshot.
+  ///
+  /// Returns true only when something was actually restored — false sends the
+  /// caller to the network. Deliberately tolerant: a snapshot that fails to
+  /// parse (a model changed shape since it was written) counts as a miss, so a
+  /// bad cache degrades into a normal fetch rather than an error the user sees.
+  ///
+  /// Both lists must restore for this to report success. Restoring one and
+  /// declaring victory would leave the other permanently empty, since a `true`
+  /// return means no request is made.
+  Future<bool> _hydrateProductDataFromCache(String? visitBusinessId) async {
+    // Owner scope only. A visitor browsing someone else's store has no way to
+    // invalidate a snapshot — they can't publish, edit or restock anything — so
+    // a cache-first read with no revalidation would freeze that store's shelf
+    // on their device indefinitely. Their fetches stay live (in-memory guard
+    // only), exactly as before.
+    if (visitBusinessId != null || userId.isEmpty) return false;
+
+    List<ProductCategoryWithInventoryModel>? categories;
+    List<GetProductData>? topSelling;
+    try {
+      final entry = await ManufacturerLocalStore.readCategories(userId,
+          otherStore: false);
+      if (entry != null && !entry.isEmpty) {
+        categories = _parseProductCategories(entry.items);
+      }
+    } catch (e) {
+      log('manufacturer: category cache hydrate failed — $e');
+    }
+    try {
+      final entry = await ManufacturerLocalStore.readTopSelling(userId,
+          otherStore: false);
+      if (entry != null && !entry.isEmpty) {
+        topSelling = GetProductModel.fromJson({'data': entry.items}).data;
+      }
+    } catch (e) {
+      log('manufacturer: top-selling cache hydrate failed — $e');
+    }
+
+    // Half a snapshot is not a snapshot: publish nothing unless both sides
+    // restored, or the missing list would stay empty with no request coming.
+    if (categories == null ||
+        categories.isEmpty ||
+        topSelling == null ||
+        topSelling.isEmpty) {
+      return false;
+    }
+
+    productNestedCategoryList.value = categories;
+    fetchProductCategoryResponse.value = ApiResponse.complete();
+
+    allProducts.value = topSelling;
+    // The snapshot only ever holds page 1, so "load more" resumes at page 2 —
+    // and a short page means the server had nothing after it.
+    _allProductsPage = 2;
+    _allProductsHasMore = topSelling.length >= _allProductsLimit;
+    ownDraftAndPublicProductResponse.value = ApiResponse.complete();
+    return true;
+  }
+
+  /// Called after any inventory write (publish / clone / add variant / edit
+  /// price / delete / stock toggle) that the merchant just made.
+  ///
+  /// The sheets already patch their own models in place, so the screen is
+  /// correct the moment the call returns. What this fixes is everything the
+  /// patch cannot reach: the 5-minute freshness guard that would otherwise
+  /// short-circuit the next tab entry, and the disk snapshot, which must never
+  /// outlive the change that invalidated it.
+  ///
+  /// The snapshot is **deleted** and then rebuilt from a refetch rather than
+  /// edited in place — editing it would mean re-implementing every mutation
+  /// against a second data shape. Deleting first is also what makes the race
+  /// safe: the merchant can be back on the tab before the refetch resolves, and
+  /// with the old snapshot still on disk that re-entry would hydrate the
+  /// pre-mutation list and stamp it fresh.
+  void markInventoryChanged() {
+    productDataNeedsRefresh = true;
+    _allProductCache.invalidate();
+    allProducts.refresh();
+    productNestedCategoryList.refresh();
+
+    if (userId.isEmpty) return;
+    // Fire-and-forget: the caller is a sheet closing on a completed write, or a
+    // publish popping back, and nothing on screen is waiting for this.
+    unawaited(ManufacturerLocalStore.clearStore(userId).then(
+      (_) => fetchAllProductData(silent: true),
+    ));
+  }
+
+  /// Rebuilds the category-with-inventory rows from raw API JSON — the one
+  /// parser for both a live response and the saved snapshot.
+  List<ProductCategoryWithInventoryModel> _parseProductCategories(
+          List<dynamic> rawList) =>
+      rawList
+          .whereType<Map>()
+          .map((e) => ProductCategoryWithInventoryModel.fromJson(
+              Map<String, dynamic>.from(e)))
+          .toList();
+
+  /// [silent] keeps the currently rendered list on screen while the call runs —
+  /// used when the tab was hydrated from disk, or refreshed after a write, so
+  /// the content never flashes back to a skeleton it has already moved past.
   Future<void> fetchProductCategoryWithInventory({
     String? visitBusinessId,
+    bool silent = false,
   }) async {
     try {
-      fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
+      if (!silent) {
+        fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
+      }
 
       ResponseModel response;
       if(visitBusinessId!=null){
@@ -233,17 +361,28 @@ class ManufacturerInventoryController extends GetxController {
             : (raw is Map && raw['data'] is List
                 ? List<dynamic>.from(raw['data'] as List)
                 : const <dynamic>[]);
-        productNestedCategoryList.value = rawList
-            .whereType<Map>()
-            .map((e) => ProductCategoryWithInventoryModel.fromJson(
-                Map<String, dynamic>.from(e)))
-            .toList();
+        productNestedCategoryList.value = _parseProductCategories(rawList);
+
+        // Persist the raw payload, not the parsed models: the next open rebuilds
+        // them with this same `fromJson`, so there is one parser to keep right.
+        // Owner scope only — see [_hydrateProductDataFromCache].
+        if (visitBusinessId == null && userId.isNotEmpty) {
+          unawaited(ManufacturerLocalStore.writeCategories(
+            userId,
+            otherStore: false,
+            items: rawList,
+          ));
+        }
+
         log("Loaded ${productNestedCategoryList.length} product categories");
-      } else {
+      } else if (!silent) {
+        // A failed SILENT refresh must not replace what the user is reading
+        // with an error — the hydrated list stays, and the guard was already
+        // left un-stamped so the next entry retries.
         fetchProductCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      fetchProductCategoryResponse.value = ApiResponse.error('error');
+      if (!silent) fetchProductCategoryResponse.value = ApiResponse.error('error');
       log("ERROR fetching product categories: $e");
     }
   }
@@ -457,10 +596,14 @@ class ManufacturerInventoryController extends GetxController {
     super.onClose();
   }
 
+  /// [silent] keeps the rendered list on screen while the call runs (hydrated
+  /// from disk, or refreshed after a write) instead of blinking back to a
+  /// skeleton — see [fetchProductCategoryWithInventory].
   Future<void> fetchBusinessProducts({
     String? visitBusinessId,
     bool? isDiscountedProducts,
     bool isLoadMore = false,
+    bool silent = false,
   }) async {
 
     try {
@@ -474,12 +617,18 @@ class ManufacturerInventoryController extends GetxController {
         }
         isAllProductsLoadingMore.value = true;
       } else {
-        ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
-        isLoading.value = true;
-        isProductLoading.value = true;
+        // Paging always restarts, but a silent refresh keeps the rendered rows
+        // until the replacements arrive — clearing here is what would make the
+        // list blink on every hydrate and after every write.
         _allProductsPage = 1;
         _allProductsHasMore = true;
-        allProducts.clear();
+        if (!silent) {
+          ownDraftAndPublicProductResponse.value =
+              ApiResponse.initial('Initial');
+          isLoading.value = true;
+          isProductLoading.value = true;
+          allProducts.clear();
+        }
       }
 
       final Map<String, dynamic> queryParams = {
@@ -502,6 +651,24 @@ class ManufacturerInventoryController extends GetxController {
             allProducts.addAll(products);
         } else {
             allProducts.assignAll(products);
+            // Page 1 of the UNFILTERED owner list only — that is exactly what
+            // the tab renders. The `isDiscountedProducts` variant writes into
+            // this same list from the "view all top selling" screen, and
+            // caching that filtered payload would replay it as the merchant's
+            // whole catalogue on the next open.
+            if (visitBusinessId == null &&
+                isDiscountedProducts == null &&
+                userId.isNotEmpty) {
+              final raw = response.response?.data;
+              final rawItems = (raw is Map && raw['data'] is List)
+                  ? raw['data'] as List
+                  : const [];
+              unawaited(ManufacturerLocalStore.writeTopSelling(
+                userId,
+                otherStore: false,
+                items: rawItems,
+              ));
+            }
           }
           if (products.isNotEmpty) {
             _allProductsPage++;
@@ -511,13 +678,13 @@ class ManufacturerInventoryController extends GetxController {
             _allProductsHasMore = false;
           }
 
-      } else {
+      } else if (!silent) {
         print("API failed with status: ${response.statusCode}");
         ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       print("stack trace: $s");
-      ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
+      if (!silent) ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {
         isAllProductsLoadingMore.value = false;
@@ -778,7 +945,16 @@ class ManufacturerInventoryController extends GetxController {
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
-        productDataNeedsRefresh = true;
+        if (providerType == ProviderType.business) {
+          // Publishing must also delete the saved snapshot, or a re-entry would
+          // paint the pre-publish catalogue straight off disk.
+          markInventoryChanged();
+        } else {
+          // Self-employed / rider publish. It doesn't feed the business
+          // Products tab, so there is no snapshot to drop and no owner list
+          // worth refetching — just the flag the screens read on return.
+          productDataNeedsRefresh = true;
+        }
         if((providerType==ProviderType.business)){
           navigateToProductSection();
         }else{
@@ -883,7 +1059,7 @@ class ManufacturerInventoryController extends GetxController {
         return;
       }
 
-      productDataNeedsRefresh = true;
+      markInventoryChanged();
       commonSnackBar(message: 'ManufacturerVariant added successfully');
       Get.back();
     } catch (e, s) {
@@ -1043,6 +1219,10 @@ class ManufacturerInventoryController extends GetxController {
         }
         list.refresh();
       }
+      // The in-place purge fixes what is on screen; this drops the saved
+      // snapshot so the deleted variant can't come back from disk on the next
+      // open. See [markInventoryChanged].
+      markInventoryChanged();
       return true;
     } catch (_) {
       return false;
@@ -1081,6 +1261,9 @@ class ManufacturerInventoryController extends GetxController {
         }
       }
       allProducts.refresh();
+      // Same reason as [deleteInventoryVariant]: the patched price must not be
+      // undone by a stale snapshot on the next open.
+      markInventoryChanged();
       return true;
     } catch (_) {
       return false;
@@ -1126,6 +1309,8 @@ class ManufacturerInventoryController extends GetxController {
         }
         list.refresh();
       }
+      // Same reason as [deleteInventoryVariant].
+      markInventoryChanged();
       return isOutOfStock;
     } catch (_) {
       return null;

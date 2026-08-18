@@ -206,7 +206,13 @@ class AccountPlanCatalogView extends StatelessWidget {
             // back to compare them.
             for (final (index, plan) in _ordered(catalog.plans))
               if (controller.ownsPlan(plan))
-                _ActivePlanCard(card: plan)
+                // The sales bar rides on the ACTIVE card and nowhere else: it
+                // measures the plan the shop is holding, and it is null for
+                // every account that is not an A1 sales shop.
+                _ActivePlanCard(
+                  card: plan,
+                  usage: plan.isSalesShop ? controller.salesUsage.value : null,
+                )
               else
                 _PlanCardTile(
                   card: plan,
@@ -894,9 +900,13 @@ class _GstRequiredRow extends StatelessWidget {
 /// Motion is dropped entirely when the platform asks for reduced motion; the
 /// panel then stands on its gradient alone, which was designed to work still.
 class _ActivePlanCard extends StatefulWidget {
-  const _ActivePlanCard({required this.card});
+  const _ActivePlanCard({required this.card, this.usage});
 
   final PlanCard card;
+
+  /// Sales consumed against this plan's cap — A1 sales shops only, and null
+  /// until `sales/usage` has answered. See [_SalesUsageMeter].
+  final SalesUsage? usage;
 
   @override
   State<_ActivePlanCard> createState() => _ActivePlanCardState();
@@ -1064,6 +1074,13 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                         ),
                       ),
                   ],
+                  // How much of the sales cap is spent. A1 sales plans only —
+                  // this is the one plan shape that ends by being used up
+                  // rather than by a date, so it is the one that needs a meter.
+                  if (widget.usage != null) ...[
+                    SizedBox(height: SizeConfig.size14),
+                    _SalesUsageMeter(usage: widget.usage!),
+                  ],
                   // Validity, when the plan carries one. No price line: a
                   // migrated plan was activated free, and stamping an amount
                   // on a card the user may never have paid would be a claim
@@ -1094,6 +1111,120 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "₹2,40,000 of ₹6,00,000 sales used" — the A1 sales plan's meter.
+///
+/// A sales plan doesn't expire on a date; it expires when the shop has sold
+/// through its cap, at which point the backend deactivates it and orders stop.
+/// That makes the remaining headroom the single most useful thing on this card,
+/// and it is invisible without a meter — a merchant would otherwise find out by
+/// going dark.
+///
+/// Drawn INSIDE the active (green) panel, so everything is white-on-green:
+/// the track is a white wash, the fill is solid white, and the warning states
+/// change the copy rather than the colour — a red bar on a green card would
+/// read as the card being broken.
+///
+/// All amounts here are RUPEES, straight from the endpoint. See [SalesUsage].
+class _SalesUsageMeter extends StatelessWidget {
+  const _SalesUsageMeter({required this.usage});
+
+  final SalesUsage usage;
+
+  /// Indian digit grouping — ₹2,40,000, not ₹240,000. The last three digits
+  /// group, then pairs, which is what every other rupee figure in the app and
+  /// on the invoice does.
+  static String _inr(int amount) {
+    final digits = amount.abs().toString();
+    if (digits.length <= 3) return digits;
+    final last3 = digits.substring(digits.length - 3);
+    var rest = digits.substring(0, digits.length - 3);
+    final parts = <String>[];
+    while (rest.length > 2) {
+      parts.insert(0, rest.substring(rest.length - 2));
+      rest = rest.substring(0, rest.length - 2);
+    }
+    if (rest.isNotEmpty) parts.insert(0, rest);
+    return '${parts.join(',')},$last3';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const rupee = AppConstants.rupeeSymbol;
+    // Exhausted first: once the cap is spent, "20% left" is no longer the
+    // useful sentence, "upgrade to keep receiving orders" is.
+    final note = usage.isExhausted
+        ? AppStrings.salesLimitReachedNote.tr
+        : usage.isNearLimit
+            ? AppStrings.salesNearLimitNote.tr
+            : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(height: 1, color: Colors.white.withValues(alpha: 0.18)),
+        SizedBox(height: SizeConfig.size12),
+        Row(
+          children: [
+            Expanded(
+              child: CustomText(
+                AppStrings.salesUsedFmt.trParams({
+                  'used': '$rupee${_inr(usage.salesAccruedInr)}',
+                  'limit': '$rupee${_inr(usage.saleLimitInr)}',
+                }),
+                fontSize: SizeConfig.size12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.92),
+                maxLines: 2,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            CustomText(
+              '${usage.percentUsed}%',
+              fontSize: SizeConfig.size12,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(SizeConfig.size20),
+          child: LinearProgressIndicator(
+            value: usage.fraction,
+            minHeight: SizeConfig.size8,
+            backgroundColor: Colors.white.withValues(alpha: 0.22),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              // Amber once it is nearly spent: still legible on green, and the
+              // only place on this card that stops being plain white.
+              usage.isNearLimit
+                  ? AccountPlanPalette.popularLight
+                  : Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: SizeConfig.size6),
+        CustomText(
+          AppStrings.salesRemainingFmt
+              .trParams({'amount': '$rupee${_inr(usage.salesRemainingInr)}'}),
+          fontSize: SizeConfig.size11,
+          fontWeight: FontWeight.w500,
+          color: Colors.white.withValues(alpha: 0.80),
+        ),
+        if (note != null) ...[
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            note,
+            fontSize: SizeConfig.size11,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.92),
+            maxLines: 3,
+          ),
+        ],
+      ],
     );
   }
 }

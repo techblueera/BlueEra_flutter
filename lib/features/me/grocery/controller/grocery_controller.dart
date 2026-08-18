@@ -1224,20 +1224,24 @@ class GroceryController extends GetxController {
       fetchNestedGroceryCategoryResponse.value = ApiResponse.initial('Initial');
       grocerySuperCategoryList.clear();
 
-      // 1) Cache-first (super-category list only).
-      if (isSuper) {
-        final entry = await GroceryLocalStore.readCatalogCategories();
-        if (entry != null && !entry.isEmpty) {
-          final cached =
-              await compute(_parseGroceryNestedCategories, entry.items);
-          if (cached.isNotEmpty) {
-            grocerySuperCategoryList.assignAll(cached);
-            fetchNestedGroceryCategoryResponse.value = ApiResponse.complete();
-            // Served from disk, no request. Unlike the store's own stock, this
-            // tree can only change on the backend — nothing the merchant does
-            // invalidates it — so a long TTL is its refresh trigger.
-            if (!entry.isOlderThan(GroceryLocalStore.catalogTtl)) return;
-          }
+      // 1) Cache-first — the root list AND every drilled-into branch.
+      //
+      // The branch (`groceryCatKey != null`) used to go straight to the network
+      // every time, so walking back up and down the add-grocery tree re-asked
+      // for the same children on every tap. Each branch is now its own entry.
+      final entry = isSuper
+          ? await GroceryLocalStore.readCatalogCategories()
+          : await GroceryLocalStore.readCatalogChild(groceryCatKey);
+      if (entry != null && !entry.isEmpty) {
+        final cached =
+            await compute(_parseGroceryNestedCategories, entry.items);
+        if (cached.isNotEmpty) {
+          grocerySuperCategoryList.assignAll(cached);
+          fetchNestedGroceryCategoryResponse.value = ApiResponse.complete();
+          // Served from disk, no request. Unlike the store's own stock, this
+          // tree can only change on the backend — nothing the merchant does
+          // invalidates it — so a long TTL is its refresh trigger.
+          if (!entry.isOlderThan(GroceryLocalStore.catalogTtl)) return;
         }
       }
 
@@ -1259,8 +1263,10 @@ class GroceryController extends GetxController {
         fetchNestedGroceryCategoryResponse.value =
             ApiResponse.complete(responseModel);
 
-        if (isSuper && rawList.isNotEmpty) {
-          await GroceryLocalStore.writeCatalogCategories(rawList);
+        if (rawList.isNotEmpty) {
+          await (isSuper
+              ? GroceryLocalStore.writeCatalogCategories(rawList)
+              : GroceryLocalStore.writeCatalogChild(groceryCatKey, rawList));
         }
       } else if (grocerySuperCategoryList.isEmpty) {
         // Only surface an error when there's no cached data on screen.

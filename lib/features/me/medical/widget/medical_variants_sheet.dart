@@ -91,11 +91,12 @@ VariantInventoryService medicalVariantInventoryService() {
     ),
     refreshOwner: () {
       if (Get.isRegistered<MedicalController>()) {
-        final controller = Get.find<MedicalController>();
-        // Nudge the rail behind the sheet, and drop the freshness stamp so the
-        // next tab entry re-reads rather than trusting the edited copy.
-        controller.medicalBusinessProductsList.refresh();
-        controller.invalidateMedicalProductsTabCache();
+        // Nudges the rail behind the sheet, drops the freshness stamp so the
+        // next tab entry re-reads rather than trusting the edited copy, and
+        // deletes the saved snapshot + refetches — without that last part the
+        // edit would be undone by disk on the next open. See
+        // [MedicalController.markInventoryChanged].
+        Get.find<MedicalController>().markInventoryChanged();
       }
     },
   );

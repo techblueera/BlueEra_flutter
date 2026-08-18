@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/features/me/food/service/food_local_store.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -245,16 +245,19 @@ class FoodServiceController extends GetxController {
     try {
       getFoodCategoryResponse.value = ApiResponse.initial("Initial");
 
-      // 1) Cache-first — show the last-saved categories instantly while the
-      //    network call refreshes them in the background. Parsing happens off
-      //    the UI isolate via `compute`.
-      final cachedRaw = HiveServices().getFoodSuperCategoriesRaw();
-      if (cachedRaw != null && cachedRaw.isNotEmpty) {
-        final cached = await compute(_parseFoodNestedCategories, cachedRaw);
+      // 1) Cache-first — the last-saved tree IS the answer inside the TTL, so
+      //    the endpoint is not called at all. Unlike the restaurant's own menu
+      //    this tree can only change on the backend — nothing the merchant does
+      //    invalidates it — so age is its only refresh trigger. Parsing happens
+      //    off the UI isolate via `compute`.
+      final entry = await FoodLocalStore.readCatalogCategories();
+      if (entry != null && !entry.isEmpty) {
+        final cached = await compute(_parseFoodNestedCategories, entry.items);
         if (cached.isNotEmpty) {
           foodNestedCateList.assignAll(cached);
           getFoodCategoryResponse.value =
               ApiResponse.complete(foodNestedCateList);
+          if (!entry.isOlderThan(FoodLocalStore.catalogTtl)) return;
         }
       }
 
@@ -282,7 +285,7 @@ class FoodServiceController extends GetxController {
 
         // Persist the fresh tree for the next cold start.
         if (rawList.isNotEmpty) {
-          await HiveServices().saveFoodSuperCategoriesRaw(rawList);
+          await FoodLocalStore.writeCatalogCategories(rawList);
         }
       } else if (foodNestedCateList.isEmpty) {
         // Only surface an error when we have no cached data to fall back on.
@@ -312,6 +315,31 @@ class FoodServiceController extends GetxController {
     try {
       if (restaurantSpecialCateList.isNotEmpty) return;
       restaurantSpecialCategoryResponse.value = ApiResponse.loading('loading');
+
+      // Cache-first, same as the main tree: this is a BRANCH of the platform
+      // catalogue (the children of RESTAURANT_SPECIAL), so nothing the merchant
+      // does can invalidate it and age is its only refresh trigger. The
+      // in-memory guard above only covers one app run; this covers the next.
+      //
+      // The RAW children are what's cached — [_relevelCategories] rewrites the
+      // parsed models in place, so caching those would save a tree that had
+      // already been re-levelled once and re-level it again on the next open.
+      final cachedEntry =
+          await FoodLocalStore.readCatalogChild(restaurantSpecialType);
+      if (cachedEntry != null &&
+          !cachedEntry.isEmpty &&
+          !cachedEntry.isOlderThan(FoodLocalStore.catalogTtl)) {
+        final cached =
+            await compute(_parseFoodNestedCategories, cachedEntry.items);
+        if (cached.isNotEmpty) {
+          _relevelCategories(cached, 0);
+          restaurantSpecialCateList.assignAll(cached);
+          restaurantSpecialCategoryResponse.value =
+              ApiResponse.complete(restaurantSpecialCateList);
+          return;
+        }
+      }
+
       final ResponseModel response = await FoodRepo()
           .getFoodCategoryChildrenByKeyRepo(restaurantSpecialType);
       if (response.isSuccess) {
@@ -333,7 +361,13 @@ class FoodServiceController extends GetxController {
         restaurantSpecialCateList.assignAll(parsed);
         restaurantSpecialCategoryResponse.value =
             ApiResponse.complete(restaurantSpecialCateList);
-      } else {
+
+        if (rawList.isNotEmpty) {
+          await FoodLocalStore.writeCatalogChild(
+              restaurantSpecialType, rawList);
+        }
+      } else if (restaurantSpecialCateList.isEmpty) {
+        // Only surface an error when there's no cached branch on screen.
         restaurantSpecialCategoryResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
@@ -464,8 +498,10 @@ class FoodServiceController extends GetxController {
         if (responseModel.isSuccess) {
           commonSnackBar(message: responseModel.message ?? AppStrings.success);
 
+          // A new variant changes the menu — drop the saved snapshot and
+          // refetch. See [RestaurantController.markMenuChanged].
           if (Get.isRegistered<RestaurantController>()) {
-            Get.find<RestaurantController>().foodDataNeedsRefresh = true;
+            Get.find<RestaurantController>().markMenuChanged();
           }
 
           String variantId = responseModel.response?.data['data']['_id'];
@@ -689,14 +725,12 @@ class FoodServiceController extends GetxController {
       if (responseModel.isSuccess) {
         // Refresh FoodMainScreen's Products tab data (popular dishes +
         // discount products) so the newly-added items show up when the
-        // user lands back on it via Get.until below. Fire-and-forget;
-        // both calls own their own loading state.
+        // user lands back on it via Get.until below. Goes through the
+        // invalidate hook: publishing must also delete the saved snapshot,
+        // or a re-entry would paint the pre-publish menu straight off disk.
         if (Get.isRegistered<RestaurantController>() &&
             businessId.isNotEmpty) {
-          final restaurantController = Get.find<RestaurantController>();
-          restaurantController.fetchHomeData(businessId: businessId);
-          restaurantController.fetchDiscountFoodProducts(
-              businessId: businessId);
+          Get.find<RestaurantController>().markMenuChanged();
         }
 
         final bool hasNoMissingProducts =
@@ -850,15 +884,14 @@ class FoodServiceController extends GetxController {
             message:
                 responseModel.message ?? AppStrings.foodProductAddedSuccess.tr);
 
-        // Refresh FoodMainScreen's Overview-tab data (popular dishes +
+        // Refresh FoodMainScreen's Products-tab data (popular dishes +
         // discount products) so the just-published item shows up the
-        // moment the user lands back on it via Get.until below.
+        // moment the user lands back on it via Get.until below — and drop
+        // the saved snapshot with it. See [RestaurantController
+        // .markMenuChanged].
         if (Get.isRegistered<RestaurantController>() &&
             businessId.isNotEmpty) {
-          final restaurantController = Get.find<RestaurantController>();
-          restaurantController.fetchHomeData(businessId: businessId);
-          restaurantController.fetchDiscountFoodProducts(
-              businessId: businessId);
+          Get.find<RestaurantController>().markMenuChanged();
         }
 
         if (createMissingProductIndex == null) {

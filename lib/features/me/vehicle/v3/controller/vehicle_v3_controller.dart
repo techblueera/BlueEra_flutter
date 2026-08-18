@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -7,6 +9,7 @@ import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_basket_entry_v3.dar
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_listing_draft_v3.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_v3_models.dart';
 import 'package:BlueEra/features/me/vehicle/v3/repo/vehicle_v3_repo.dart';
+import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart';
 import 'package:get/get.dart';
 
 /// Owner-side state for the rebuilt vehicle service (v3).
@@ -285,6 +288,17 @@ class VehicleV3Controller extends GetxController {
 
   // ───── Catalog: reads ─────────────────────────────────────────────
 
+  /// Three layers, cheapest first:
+  /// 1. [_rootCategoriesCache] — loaded < 5 min ago, still in memory.
+  /// 2. [VehicleLocalStore] — the saved list. **If there is one and it is
+  ///    inside [VehicleLocalStore.catalogTtl], that is the answer and no
+  ///    request is made.**
+  /// 3. The network.
+  ///
+  /// The memory guard alone died with the app, so a cold start re-asked for a
+  /// catalogue that changes on the order of weeks. Age is the only refresh
+  /// trigger it can have — nothing the seller does from this device changes the
+  /// platform's category tree.
   Future<void> fetchRootCategories() async {
     if (_rootCategoriesCache.isFresh('vehicleV3|roots',
         hasData: rootCategories.isNotEmpty)) {
@@ -292,18 +306,35 @@ class VehicleV3Controller extends GetxController {
     }
     rootCategoriesStatus.value = Status.LOADING;
     try {
+      final entry = await VehicleLocalStore.readCatalogRoots();
+      if (entry != null && !entry.isEmpty) {
+        final cached = VehicleCategoryV3.listFrom(entry.items);
+        if (cached.isNotEmpty) {
+          rootCategories.assignAll(cached);
+          rootCategoriesStatus.value = Status.COMPLETE;
+          if (!entry.isOlderThan(VehicleLocalStore.catalogTtl)) {
+            _rootCategoriesCache.mark('vehicleV3|roots');
+            return;
+          }
+        }
+      }
+
       final res = await _repo.getCategories(level: 0);
       if (!res.isSuccess) {
-        rootCategoriesStatus.value = Status.ERROR;
+        // A failed refresh must not wipe a list restored from disk.
+        if (rootCategories.isEmpty) rootCategoriesStatus.value = Status.ERROR;
         return;
       }
-      rootCategories
-          .assignAll(VehicleCategoryV3.listFrom(res.response?.data));
+      // The unwrapped list is what gets cached, so the next open rebuilds it
+      // through this same `listFrom` — the envelope helper takes a bare array.
+      final raw = VehicleV3Envelope.list(res.response?.data);
+      rootCategories.assignAll(VehicleCategoryV3.listFrom(raw));
       rootCategoriesStatus.value = Status.COMPLETE;
       _rootCategoriesCache.mark('vehicleV3|roots');
+      if (raw.isNotEmpty) await VehicleLocalStore.writeCatalogRoots(raw);
     } catch (e) {
       logs('VEHICLE_V3: fetchRootCategories failed — $e');
-      rootCategoriesStatus.value = Status.ERROR;
+      if (rootCategories.isEmpty) rootCategoriesStatus.value = Status.ERROR;
     }
   }
 
@@ -352,17 +383,40 @@ class VehicleV3Controller extends GetxController {
   /// (2) steps. Returns the list rather than parking it in controller state:
   /// the picker screen is transient and owns its own page state, so keeping a
   /// copy here would just go stale.
+  /// Cache-first, one entry per `parentId|level`. Both belong in the key: the
+  /// endpoint takes both, and the same parent answers differently per level.
+  ///
+  /// This is the branch the picker walks on every add — root → brand → model,
+  /// then back up and down again to correct a wrong turn — and it had no cache
+  /// of any kind, so each of those taps was a request.
   Future<List<VehicleCategoryV3>> fetchChildCategories({
     required String parentId,
     required int level,
   }) async {
+    final cacheKey = '$parentId|$level';
     try {
+      final entry = await VehicleLocalStore.readCatalogChild(cacheKey);
+      final hasCache = entry != null && !entry.isEmpty;
+      if (hasCache && !entry.isOlderThan(VehicleLocalStore.catalogTtl)) {
+        final cached = VehicleCategoryV3.listFrom(entry.items);
+        if (cached.isNotEmpty) return cached;
+      }
+
       final res = await _repo.getCategories(level: level, parentId: parentId);
       if (!res.isSuccess) {
+        // A stale saved branch beats an empty picker when the network says no.
+        if (hasCache) {
+          final cached = VehicleCategoryV3.listFrom(entry.items);
+          if (cached.isNotEmpty) return cached;
+        }
         _reportIfMessage(res);
         return const [];
       }
-      return VehicleCategoryV3.listFrom(res.response?.data);
+      final raw = VehicleV3Envelope.list(res.response?.data);
+      if (raw.isNotEmpty) {
+        unawaited(VehicleLocalStore.writeCatalogChild(cacheKey, raw));
+      }
+      return VehicleCategoryV3.listFrom(raw);
     } catch (e) {
       logs('VEHICLE_V3: fetchChildCategories failed — $e');
       return const [];

@@ -9,9 +9,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:hive/hive.dart';
 
 /// A persisted, location-stamped list cache entry (see [HiveServices.getGeoList]).
@@ -44,9 +42,7 @@ class HiveServices{
   static const String _savedProfessionTypeBox = 'profession_type_box';
   static const String _savedAdminVideosBox = 'savedAdminVideosBox';
   static const String _savedGroceryNestedCategoryBox = 'savedGroceryNestedCategoryBox';
-  static const String _savedMedicalNestedCategoryBox = 'savedMedicalNestedCategoryBox';
   static const String _savedProductNestedCategoryBox = 'savedProductNestedCategoryBox';
-  static const String _savedFoodNestedCategoryBox = 'savedFoodNestedCategoryBox';
   static const String _savedVehicleCategoryBox = 'savedVehicleCategoryBox';
 
   /// Product / category counts per store, keyed by store id.
@@ -72,9 +68,7 @@ class HiveServices{
     await Hive.openBox(_savedProfessionTypeBox);
     await Hive.openBox(_savedAdminVideosBox);
     await Hive.openBox(_savedGroceryNestedCategoryBox);
-    await Hive.openBox(_savedMedicalNestedCategoryBox);
     await Hive.openBox(_savedProductNestedCategoryBox);
-    await Hive.openBox(_savedFoodNestedCategoryBox);
     await Hive.openBox(_savedVehicleCategoryBox);
     await Hive.openBox(_savedStoreCountsBox);
   }
@@ -90,9 +84,7 @@ class HiveServices{
     _savedProfessionTypeBox,
     _savedAdminVideosBox,
     _savedGroceryNestedCategoryBox,
-    _savedMedicalNestedCategoryBox,
     _savedProductNestedCategoryBox,
-    _savedFoodNestedCategoryBox,
     _savedVehicleCategoryBox,
     _savedStoreCountsBox,
   ];
@@ -158,24 +150,23 @@ class HiveServices{
     }
   }
 
-  Future<void> saveFoodSuperCategoriesRaw(List<dynamic> raw) =>
-      _putRawList(_savedFoodNestedCategoryBox, 'foodSuper', raw);
-  List<dynamic>? getFoodSuperCategoriesRaw() =>
-      _getRawList(_savedFoodNestedCategoryBox, 'foodSuper');
+  // Every me-section merchant vertical — grocery, food, product, medical,
+  // automotive, manufacturer — now keeps its category tree in its own
+  // `<Feature>LocalStore` (one store per feature holding all of its caches,
+  // each entry with a savedAt stamp), so there is no `saveGrocerySuper…` /
+  // `saveFoodSuper…` / `saveMedicalNested…` / `saveProductSuper…` /
+  // `saveProductNested…` here any more. They used to share two keys in the
+  // product box (`productSuperRaw`, `productData`), which meant one service
+  // could replay another's categories.
 
-  // Grocery's category tree moved to `GroceryLocalStore` (one store for every
-  // grocery cache, with a savedAt stamp), so there is no `saveGrocerySuper…`
-  // here any more.
-
-  Future<void> saveProductSuperCategoriesRaw(List<dynamic> raw) =>
-      _putRawList(_savedProductNestedCategoryBox, 'productSuperRaw', raw);
-  List<dynamic>? getProductSuperCategoriesRaw() =>
-      _getRawList(_savedProductNestedCategoryBox, 'productSuperRaw');
-
-  // Level-0 nested categories backing the automotive consumer
+  // Level-0 nested categories backing the automotive CONSUMER
   // category-discover tabs. Cache-first so the tabs render instantly and
   // the network refresh stays silent. Reuses the product nested-category
   // box with a distinct key (no extra box to register).
+  //
+  // Deliberately still here rather than in `AutomotiveLocalStore`: the
+  // per-feature stores are the ME-side (merchant) caches, and this is a
+  // consumer screen.
   Future<void> saveAutomotiveDiscoverCategoriesRaw(List<dynamic> raw) async {
     await _putRawList(
         _savedProductNestedCategoryBox, 'automotiveDiscoverRaw', raw);
@@ -632,20 +623,37 @@ class HiveServices{
   /// so a model that has changed shape since it was cached cannot make this
   /// throw in the middle of a logout, and restoring is a straight write-back.
   ///
-  /// Returns an empty map when the boxes aren't open or hold nothing, which
+  /// Returns an empty map only when the boxes genuinely hold nothing, which
   /// restores as a no-op.
-  static Map<String, dynamic> readSharedCatalogSnapshot() {
+  static Future<Map<String, dynamic>> readSharedCatalogSnapshot() async {
     final snapshot = <String, dynamic>{};
-    void take(String boxName, String key) {
+    // Opens the box when it is closed, rather than skipping it.
+    //
+    // It used to `return` on a closed box, which silently captured NOTHING —
+    // and since the wipe that follows is wholesale, "captured nothing" means
+    // the business categories / individual professions are gone until the next
+    // network fetch. That is precisely the data this pairing exists to keep.
+    Future<void> take(String boxName, String key) async {
       try {
-        if (!Hive.isBoxOpen(boxName)) return;
-        final value = Hive.box(boxName).get(key);
+        final box =
+            Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await Hive.openBox(boxName);
+        final value = box.get(key);
         if (value != null) snapshot['$boxName|$key'] = value;
-      } catch (_) {}
+      } catch (e) {
+        log('Hive readSharedCatalogSnapshot($boxName/$key) error: $e');
+      }
     }
 
-    take(_savedBusinessCategoryBox, 'category');
-    take(_savedProfessionTypeBox, 'profession');
+    // The onboarding catalog, both halves: BUSINESS categories and INDIVIDUAL
+    // professions. Neither is account data — they are the same lists for every
+    // user — and the account-type screen cannot draw without them, so they must
+    // survive a sign-out.
+    await take(_savedBusinessCategoryBox, 'category');
+    await take(_savedProfessionTypeBox, 'profession');
+    if (snapshot.isEmpty) {
+      log('⚠️ logout: captured no shared catalog — business categories and '
+          'professions will be refetched on the next sign-in');
+    }
     return snapshot;
   }
 
@@ -837,90 +845,10 @@ class HiveServices{
     }
   }
 
-  /// Save all nested categories (Medical)
-  Future<void> saveMedicalNestedCategories(List<MedicalNestedCategoryModel> nestedCategories) async {
-    try {
-      final box = Hive.isBoxOpen(_savedMedicalNestedCategoryBox)
-          ? Hive.box(_savedMedicalNestedCategoryBox)
-          : await Hive.openBox(_savedMedicalNestedCategoryBox);
-      const String key = 'medicalData';
+  // Medical's category tree moved to `MedicalLocalStore` (one store for every
+  // medical cache, with a savedAt stamp), so there is no
+  // `saveMedicalNestedCategories` / `getMedicalNestedCategories` here any more.
 
-      final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
 
-      await box.put(key, jsonList);
-    } catch (e) {
-      print('Error saving medical nested categories: $e');
-    }
-  }
-
-  /// Save all nested categories (Product)
-  Future<void> saveProductNestedCategories(List<ProductNestedCategoryResponse> nestedCategories) async {
-    try {
-      final box = Hive.isBoxOpen(_savedProductNestedCategoryBox)
-          ? Hive.box(_savedProductNestedCategoryBox)
-          : await Hive.openBox(_savedProductNestedCategoryBox);
-      final String key = 'productData';
-
-      final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
-
-      await box.put(key, jsonList);
-    } catch (e) {
-      print('Error saving product nested categories: $e');
-    }
-  }
-
-  /// Get all nested categories (Product)
-  List<ProductNestedCategoryResponse>? getProductNestedCategories() {
-    try {
-      if (!Hive.isBoxOpen(_savedProductNestedCategoryBox)) return null;
-      final box = Hive.box(_savedProductNestedCategoryBox);
-      const String key = 'productData';
-      final data = box.get(key);
-
-      if (data == null) return null;
-      if (data is! List) return null;
-
-      final List<ProductNestedCategoryResponse> nestedCategories = data
-          .map((json) => ProductNestedCategoryResponse.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
-          .toList();
-
-      return nestedCategories;
-    } catch (e) {
-      print('Error loading product nested categories: $e');
-      return null;
-    }
-  }
-
-  /// Get all nested categories (Medical)
-  List<MedicalNestedCategoryModel>? getMedicalNestedCategories() {
-    try {
-      if (!Hive.isBoxOpen(_savedMedicalNestedCategoryBox)) return null;
-      final box = Hive.box(_savedMedicalNestedCategoryBox);
-      const String key = 'medicalData';
-      final data = box.get(key);
-
-      if (data == null) {
-        print('No cached nested categories data found');
-        return null;
-      }
-
-      if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
-        return null;
-      }
-
-      final List<MedicalNestedCategoryModel> nestedCategories = data
-          .map((json) => MedicalNestedCategoryModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
-          .toList();
-
-      print('Loaded ${nestedCategories.length} Nested Category Data');
-
-      return nestedCategories;
-
-    }catch (e) {
-      print('Error loading medical data: $e');
-      return null;
-    }
-  }
 
 }

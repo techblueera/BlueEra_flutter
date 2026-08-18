@@ -174,8 +174,11 @@ class _VariantListState extends State<_VariantList> {
     for (final v in widget.product.variants ?? const <FoodVariants>[]) {
       if (v.inventoryId == inventoryId) v.isOutOfStock = markOutOfStock;
     }
+    // Repairs everything this sheet's in-place patch cannot reach: the
+    // freshness guard, the sibling rails that still hold the old row, and the
+    // saved snapshot on disk. See [RestaurantController.markMenuChanged].
     if (Get.isRegistered<RestaurantController>()) {
-      Get.find<RestaurantController>().foodDataNeedsRefresh = true;
+      Get.find<RestaurantController>().markMenuChanged();
     }
     setState(() => _togglingStockId = null);
     commonSnackBar(
@@ -212,9 +215,10 @@ class _VariantListState extends State<_VariantList> {
     _variants.removeWhere((v) => v.inventoryId == item.inventoryId);
     widget.product.variants
         ?.removeWhere((v) => v.inventoryId == item.inventoryId);
-    // Ask the food screens to refetch on return so counts stay in sync.
+    // Ask the food screens to refetch on return so counts stay in sync, and
+    // drop the saved snapshot — a deleted variant must not survive on disk.
     if (Get.isRegistered<RestaurantController>()) {
-      Get.find<RestaurantController>().foodDataNeedsRefresh = true;
+      Get.find<RestaurantController>().markMenuChanged();
     }
     if (mounted) setState(() {});
     commonSnackBar(message: 'Variant deleted.');

@@ -44,6 +44,17 @@ class AccountPlanRepo extends BaseService {
     );
   }
 
+  /// `GET /account-plan/sales/usage` — how much of an A1 sales plan's cap the
+  /// shop has spent.
+  ///
+  /// **Call this ONLY for an A1 sales-shop that holds an active plan** — the
+  /// guide (§2.2.1) is explicit that it is meaningless for every other
+  /// archetype and must not join a generic load. The caller owns that gate;
+  /// see [AccountPlanController.refreshSalesUsage].
+  Future<ResponseModel> salesUsage() {
+    return ApiBaseHelper().getHTTP(accountPlanSalesUsage, showProgress: false);
+  }
+
   /// `POST /account-plan/initiate` — creates (or resumes) a Razorpay order.
   ///
   /// The price is re-computed server-side from [optionCode]; nothing the

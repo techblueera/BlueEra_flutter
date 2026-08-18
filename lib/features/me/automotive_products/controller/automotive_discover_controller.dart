@@ -77,6 +77,10 @@ class AutomotiveDiscoverController extends GetxController {
   /// The cache stays this screen's own (`…AutomotiveDiscoverCategoriesRaw`)
   /// rather than shared with the seller flow — same endpoint, different
   /// lifetime and refresh moment.
+  ///
+  /// It also stays in [HiveServices] rather than moving into
+  /// `AutomotiveLocalStore` with the rest of automotive's caches: that store is
+  /// the ME-side (merchant) store, and this is a consumer screen.
   Future<void> fetchLevel0Categories({bool force = false}) async {
     // 1) Cache-first — show tabs from Hive immediately if present.
     final cachedRaw = HiveServices().getAutomotiveDiscoverCategoriesRaw();

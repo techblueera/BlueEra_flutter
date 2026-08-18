@@ -94,6 +94,44 @@ class MedicalTopSellingProductCard extends StatelessWidget {
       variants.isEmpty ||
       variants.any((v) => v.inventory?.isOutOfStock != true);
 
+  /// The pack label: `form · variantName`, e.g. "Spray · Standard Pack" or
+  /// "450 g".
+  ///
+  /// This used to be `variant.quantity` alone, which is the WRONG field to
+  /// read. It is the bare magnitude with the unit stripped off ("450", not
+  /// "450 g"), and for anything not sold by weight or volume the API sends it
+  /// empty — a spray's row carries `quantity: ""` with `variantName: "Standard
+  /// Pack"`, so those cards rendered no pack line at all. `variantName` is the
+  /// label the backend composes for display, and it is what the customer-facing
+  /// [MedicalProductCard] shows.
+  ///
+  /// `quantity + unit` is kept as the fallback for a variant that somehow has
+  /// no name, and bare `quantity` after that.
+  String _packLabel(ProductVariants? variant) {
+    final parts = <String>[];
+    final form = product.product?.productForm ?? '';
+    if (form.isNotEmpty) parts.add(form);
+
+    final name = variant?.variantName ?? '';
+    if (name.isNotEmpty) {
+      parts.add(name);
+    } else {
+      final quantity = variant?.quantity ?? '';
+      final unit = variant?.unit ?? '';
+      if (quantity.isNotEmpty) {
+        parts.add(unit.isNotEmpty ? '$quantity $unit' : quantity);
+      }
+    }
+    return parts.join(' · ');
+  }
+
+  // The card deliberately ENDS at the price row: name → pack → price, nothing
+  // after it and nothing conditional in between. Every other field the
+  // response carries (brand, pack count, units in stock, category) was tried
+  // here and taken back out — each one is present on some rows and absent on
+  // others, so each one made the cards in the rail different heights. The
+  // variants sheet behind a tap is where the rest of a product's detail lives.
+
   @override
   Widget build(BuildContext context) {
     final firstVariant =
@@ -111,7 +149,7 @@ class MedicalTopSellingProductCard extends StatelessWidget {
     final productImageUrl = (product.product?.images?.isNotEmpty ?? false)
         ? product.product!.images!.first.url
         : null;
-    final quantity = firstVariant?.quantity ?? '';
+    final packLabel = _packLabel(firstVariant);
     // Prescription-only medicines carry the red Rx chip. Absent flag means
     // "not prescription-only", so nothing renders — which is also what happens
     // if the business-products response turns out not to send the field.
@@ -178,19 +216,19 @@ class MedicalTopSellingProductCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
                 SizedBox(height: SizeConfig.size6),
-                // Rx marker + pack size. No veg/non-veg dot here — that is a
+                // Rx marker + pack label. No veg/non-veg dot here — that is a
                 // grocery concern the pharmacy card was carrying for no
                 // reason; the leading slot it occupied belongs to Rx instead,
                 // exactly as on the customer-facing [MedicalProductCard].
-                if (isRx || quantity.isNotEmpty)
+                if (isRx || packLabel.isNotEmpty)
                   Row(
                     children: [
                       if (isRx) ...[
                         const RxBadge(),
-                        if (quantity.isNotEmpty)
+                        if (packLabel.isNotEmpty)
                           SizedBox(width: SizeConfig.size6),
                       ],
-                      if (quantity.isNotEmpty)
+                      if (packLabel.isNotEmpty)
                         Flexible(
                           child: Container(
                             decoration: BoxDecoration(
@@ -201,7 +239,7 @@ class MedicalTopSellingProductCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             child: CustomText(
-                              quantity,
+                              packLabel,
                               fontSize: 11,
                               color: AppColors.secondaryTextColor,
                               maxLines: 1,

@@ -327,7 +327,11 @@ class _ProductScreenState extends State<ProductScreen>
       // catalog, not whatever tab they launched the add flow from. Jump
       // to the Products tab before kicking off the refresh.
       _tabController?.animateTo(0);
-      inventoryController.fetchAllProductData();
+      // `IfNeeded`, not a forced fetch: publishing already ran
+      // [InventoryController.markInventoryChanged], which dropped the saved
+      // snapshot and started the refetch. The guarded call either finds that
+      // work already done or does it once.
+      inventoryController.fetchAllProductDataIfNeeded();
     }
   }
 

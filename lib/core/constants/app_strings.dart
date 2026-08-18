@@ -6624,6 +6624,14 @@ class AppStrings {
   static const String yourPlanLabel = "yourPlanLabel";
   static const String planValidDaysFmt = "planValidDaysFmt";
 
+  /// A1 SALES-SHOP usage meter on the active plan card. A sales plan ends when
+  /// the shop sells through its cap, not on a date, so the card shows how much
+  /// of the cap is spent — `GET /account-plan/sales/usage`, guide §2.2.1.
+  static const String salesUsedFmt = "salesUsedFmt";
+  static const String salesRemainingFmt = "salesRemainingFmt";
+  static const String salesNearLimitNote = "salesNearLimitNote";
+  static const String salesLimitReachedNote = "salesLimitReachedNote";
+
   /// UPGRADE CONFIRMATION — the centred dialog shown before an upgrade's
   /// payment sheet opens. Every amount is the server's; these are only the
   /// labels around it. See DEPOSIT_MIGRATION_FLUTTER_GUIDE.md §5b.

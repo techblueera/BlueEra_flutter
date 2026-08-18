@@ -16,7 +16,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/serper_image_search_service.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/features/me/automotive_products/service/automotive_local_store.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_by_root_category_model.dart';
@@ -1573,14 +1573,29 @@ class AutomotiveProductController extends GetxController{
       // Parsed inline (not via `compute`): the level-0 list is a small flat
       // payload, so the isolate spawn + cross-isolate serialisation cost more
       // than the parse itself — that overhead was the slow cache replay.
-      if (isSuper) {
-        final cachedRaw = HiveServices().getProductSuperCategoriesRaw();
-        if (cachedRaw != null && cachedRaw.isNotEmpty) {
-          final cached = _parseProductNestedCategories(cachedRaw);
-          if (cached.isNotEmpty) {
-            productsNestedCategoryList.assignAll(cached);
-            nestedProductCategoryResponse.value = ApiResponse.complete();
-          }
+      // Inside the TTL the saved list IS the answer and the endpoint is not
+      // called at all. Unlike the store's own stock this tree can only change
+      // on the backend — nothing the merchant does invalidates it — so age is
+      // its only refresh trigger.
+      //
+      // Now in [AutomotiveLocalStore], automotive's own box: the old
+      // `HiveServices.getProductSuperCategoriesRaw()` key was shared with the
+      // PRODUCT service, which fetches a different level-0 tree into it, so
+      // each could replay the other's categories.
+      //
+      // The BRANCH fetch (`groceryCatKey != null`) is cached too, one entry per
+      // key: it used to go straight to the network every time, so walking back
+      // up and down the add-product tree re-asked for the same children on
+      // every tap.
+      final entry = isSuper
+          ? await AutomotiveLocalStore.readCatalogCategories()
+          : await AutomotiveLocalStore.readCatalogChild(groceryCatKey);
+      if (entry != null && !entry.isEmpty) {
+        final cached = _parseProductNestedCategories(entry.items);
+        if (cached.isNotEmpty) {
+          productsNestedCategoryList.assignAll(cached);
+          nestedProductCategoryResponse.value = ApiResponse.complete();
+          if (!entry.isOlderThan(AutomotiveLocalStore.catalogTtl)) return;
         }
       }
 
@@ -1612,8 +1627,10 @@ class AutomotiveProductController extends GetxController{
         nestedProductCategoryResponse.value =
             ApiResponse.complete(responseModel);
 
-        if (isSuper && rawList.isNotEmpty) {
-          await HiveServices().saveProductSuperCategoriesRaw(rawList);
+        if (rawList.isNotEmpty) {
+          await (isSuper
+              ? AutomotiveLocalStore.writeCatalogCategories(rawList)
+              : AutomotiveLocalStore.writeCatalogChild(groceryCatKey, rawList));
         }
       } else if (productsNestedCategoryList.isEmpty) {
         // Only surface an error when there's no cached data on screen.
@@ -1663,18 +1680,39 @@ class AutomotiveProductController extends GetxController{
   /// No loader here — the caller (the nested-category screen) owns the
   /// loading UI so it can show an in-place shimmer instead of a blocking
   /// global overlay.
+  /// Cache-first, one entry per category id. This is the drill-down the
+  /// merchant taps through on the way to a part, so the same subtree gets asked
+  /// for again on every pass; inside [AutomotiveLocalStore.catalogTtl] the
+  /// saved node IS the answer and no request is made.
   Future<AutomotiveProductNestedCategoryResponse?> fetchProductSubtreeById(
       String categoryId) async {
     if (categoryId.isEmpty) return null;
     try {
+      final entry = await AutomotiveLocalStore.readCatalogChild(categoryId);
+      final cached = entry?.map;
+      if (cached != null &&
+          cached.isNotEmpty &&
+          !entry!.isOlderThan(AutomotiveLocalStore.catalogTtl)) {
+        return AutomotiveProductNestedCategoryResponse.fromJson(cached);
+      }
+
       final res = await AutomotiveProductRepo().productNestedCategoryRepo(
         queryParams: {ApiKeys.categoryId: categoryId},
       );
       if (res.isSuccess && res.response?.data is Map) {
         // Round-trip normalises nested map key types (matches the list parser)
-        // so `fromJson` never hits a `_Map<dynamic, dynamic>` cast error.
-        return AutomotiveProductNestedCategoryResponse.fromJson(
-            jsonDecode(jsonEncode(res.response!.data)) as Map<String, dynamic>);
+        // so `fromJson` never hits a `_Map<dynamic, dynamic>` cast error. The
+        // normalised map is also exactly what gets saved, so the cached copy
+        // parses through this same path on the next open.
+        final normalised =
+            jsonDecode(jsonEncode(res.response!.data)) as Map<String, dynamic>;
+        unawaited(
+            AutomotiveLocalStore.writeCatalogChild(categoryId, normalised));
+        return AutomotiveProductNestedCategoryResponse.fromJson(normalised);
+      }
+      // A stale saved node beats nothing at all when the network says no.
+      if (cached != null && cached.isNotEmpty) {
+        return AutomotiveProductNestedCategoryResponse.fromJson(cached);
       }
       commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       return null;

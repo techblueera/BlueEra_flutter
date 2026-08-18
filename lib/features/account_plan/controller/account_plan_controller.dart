@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -149,6 +151,48 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
 
   bool ownsPlan(PlanCard card) => activeOptionCodes.contains(card.optionCode);
 
+  /// The active A1 sales plan, or null. Both halves of the guide's gate in one
+  /// place: an ACTIVE plan (§2.2) whose archetype is `A1_SALES_SHOP` (§2.2.1).
+  UserAccountPlan? get activeSalesPlan =>
+      myPlans.firstWhereOrNull((p) => p.isActive && p.isSalesShop);
+
+  /// How much of the active sales plan's cap is spent. Null until read, and
+  /// null for every account that isn't a sales shop — which is most of them.
+  final Rxn<SalesUsage> salesUsage = Rxn<SalesUsage>();
+
+  /// Reads `sales/usage`, but ONLY for an A1 sales-shop holding an active plan.
+  ///
+  /// The gate is the point of this method. The endpoint answers
+  /// `has_sales_plan: false` for gig drivers, services, lead/booking,
+  /// manufacturing, free and wide-reach accounts, so calling it for them is a
+  /// request that can never say anything — the guide (§2.2.1) asks for it to be
+  /// skipped entirely rather than called and ignored.
+  ///
+  /// Fail-quiet on every other outcome: a non-200, an unparseable body or
+  /// `has_sales_plan: false` all clear the bar rather than showing an error.
+  /// This is a progress bar beside a plan the merchant already owns — nothing
+  /// on the screen depends on it, and an error state here would only be noise
+  /// over a working catalog.
+  Future<void> refreshSalesUsage() async {
+    if (activeSalesPlan == null) {
+      salesUsage.value = null;
+      return;
+    }
+    try {
+      final res = await _repo.salesUsage();
+      final data = _dataOf(res);
+      if (data == null) {
+        salesUsage.value = null;
+        return;
+      }
+      final usage = SalesUsage.fromJson(data);
+      salesUsage.value = usage.isRenderable ? usage : null;
+    } catch (e) {
+      debugPrint('❌ AccountPlanController.refreshSalesUsage error: $e');
+      salesUsage.value = null;
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -224,6 +268,10 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
     // Same payload the go-live gate needs, so a purchase updates it here
     // rather than every gate re-fetching on its next tap.
     AccountPlanEntitlement.to.publish(parsed);
+    // The sales bar hangs off THIS list — the gate needs the active plan's
+    // archetype, which only arrives here. Not awaited: the catalog must not
+    // wait on a bar that decorates one card.
+    unawaited(refreshSalesUsage());
   }
 
   // ─── 3. Purchase ────────────────────────────────────────────────

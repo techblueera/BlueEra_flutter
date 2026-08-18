@@ -150,18 +150,17 @@ class FoodProductsTab extends StatelessWidget {
     _refreshIfDirty(controller);
   }
 
-  /// Force-refreshes both rails after the merchant published something.
+  /// Reloads the rails after the merchant published something.
   ///
-  /// Deliberately the UNGUARDED fetches: the host's tab dispatcher uses
-  /// `fetchHomeAndDiscountIfNeeded`, so without an explicit reload here a
-  /// newly published dish would sit invisible until the freshness TTL lapsed.
-  /// The discount call matters as much as the menu one — a dish published with
-  /// an offer belongs in the Offer Dish rail immediately.
+  /// `IfNeeded`, not a forced fetch: publishing already ran
+  /// [RestaurantController.markMenuChanged], which dropped the saved snapshot
+  /// and started the refetch. Forcing a second full reload here would duplicate
+  /// those requests; the guarded call either finds that work already done or
+  /// does it once.
   void _refreshIfDirty(RestaurantController controller) {
     if (controller.foodDataNeedsRefresh) {
       controller.foodDataNeedsRefresh = false;
-      controller.fetchHomeData(businessId: businessId);
-      controller.fetchDiscountFoodProducts(businessId: businessId);
+      controller.fetchHomeAndDiscountIfNeeded(businessId: businessId);
     }
   }
 

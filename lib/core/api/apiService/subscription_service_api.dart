@@ -47,6 +47,15 @@ mixin SubscriptionServiceApi {
   final String accountPlanPlans = 'subscription-service/account-plan/plans';
   final String accountPlanMyPlans =
       'subscription-service/account-plan/my-plans';
+
+  /// `GET /account-plan/sales/usage` — how much of an A1 sales plan's cap the
+  /// shop has spent.
+  ///
+  /// **A1 sales-shops with an ACTIVE plan only.** It answers
+  /// `has_sales_plan: false` for every other archetype, so calling it from a
+  /// generic load would be a request that can never say anything. Guide §2.2.1.
+  final String accountPlanSalesUsage =
+      'subscription-service/account-plan/sales/usage';
   final String accountPlanInitiate =
       'subscription-service/account-plan/initiate';
   final String accountPlanVerifyPayment =
