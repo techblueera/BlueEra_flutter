@@ -155,7 +155,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       child: Scaffold(
         // Transparent so the app-wide background banner (AppHomeBackground)
         // shows through and the glass header below can frost it.
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           // Top inset is handled manually inside the glass header so the
           // frosted glass extends behind the status bar (like the Me tab)
