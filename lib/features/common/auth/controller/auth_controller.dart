@@ -612,6 +612,18 @@ class AuthController extends GetxController {
             reqBody['type'] = "finance";
             reqBody['sub_type'] = categoryOfBusiness;
             // reqBody['sub_type'] = typeOfBusiness;
+            // A finance profile is rejected (400) without a GST number and a
+            // branch, and it is the PAIR that must be unique — one bank lists
+            // many branches under one GSTIN. Both are sent flat at the top
+            // level; the server echoes the GSTIN back nested under `gst`.
+            // See docs/finance-gst-branch-ui-integration.md §0/§1/§4.
+            //
+            // `profileName` above is only a fallback: when the GSTIN verifies,
+            // the server overwrites it with the registered trade/legal name.
+            final financeGst = (reqData?[ApiKeys.gst_number] ?? '').toString().trim();
+            final financeBranch = (reqData?[ApiKeys.branch] ?? '').toString().trim();
+            if (financeGst.isNotEmpty) reqBody[ApiKeys.gstNumber] = financeGst;
+            if (financeBranch.isNotEmpty) reqBody[ApiKeys.branch] = financeBranch;
             pending.add(controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness == BusinessType.Motel.name.toUpperCase()) {
             // await SharedPreferenceUtils.setSecureValue(
@@ -713,6 +725,28 @@ class AuthController extends GetxController {
   final businessNameTextController = TextEditingController();
   final businessOtherCategoryTextController = TextEditingController();
   RxString businessName = "".obs;
+
+  /// Brand / branch name typed on business step one once a GST number has been
+  /// verified. The backend keys uniqueness off the (GST number + branch) pair,
+  /// so this travels with the GSTIN wherever the GSTIN goes — see
+  /// docs/finance-gst-branch-ui-integration.md §1/§4.
+  final brandOrBranchNameTextController = TextEditingController();
+
+  /// Drug licence number typed on business step one when the chosen category
+  /// is PHARMACY.
+  final medicalStoreLicenseTextController = TextEditingController();
+
+  /// GSTIN of the verified GST record, or an empty string when the user never
+  /// verified one. Reads through [gstVerifyModel] so there is a single source
+  /// of truth for "which GST number did this account register with".
+  String get verifiedGstNumber =>
+      (gstVerifyModel?.value.data?.gstin ?? '').trim();
+
+  /// Whether a GST number was actually verified for this signup. Both the
+  /// `success` flag and a non-empty GSTIN are required, mirroring the check the
+  /// step-one payload already made inline.
+  bool get hasVerifiedGst =>
+      (gstVerifyModel?.value.success ?? false) && verifiedGstNumber.isNotEmpty;
 
   Future<void> getGstVerify({required String? gstNumber}) async {
     try {
@@ -865,6 +899,8 @@ class AuthController extends GetxController {
     isValidate.value = false;
     isHaveGstApprove.value = false;
     businessNameTextController.clear();
+    brandOrBranchNameTextController.clear();
+    medicalStoreLicenseTextController.clear();
     mobileNumberEditController.clear();
     subCategorySpecializationTextController.clear();
   }

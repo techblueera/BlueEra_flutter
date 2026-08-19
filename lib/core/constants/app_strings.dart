@@ -2720,6 +2720,22 @@ class AppStrings {
   static const pleaseEnterNumberOfEmployees = "pleaseEnterNumberOfEmployees";
   static const pleaseEnterNumberOfBranchOrUnit = "pleaseEnterNumberOfBranchOrUnit";
 
+  /// Pharmacy (medical store / shop) drug licence, asked on business step one
+  /// when the chosen category is PHARMACY.
+  static const medicalStoreLicenseNumber = "medicalStoreLicenseNumber";
+  static const medicalStoreLicenseNumberHint = "medicalStoreLicenseNumberHint";
+  static const enterMedicalStoreLicenseNumber = "enterMedicalStoreLicenseNumber";
+  static const invalidMedicalStoreLicenseNumber = "invalidMedicalStoreLicenseNumber";
+
+  /// Brand / branch name, asked on business step one once a GST number has
+  /// been verified. Sent to the backend as `branch`.
+  static const brandOrBranchName = "brandOrBranchName";
+  static const brandOrBranchNameHint = "brandOrBranchNameHint";
+  static const brandOrBranchNameHelper = "brandOrBranchNameHelper";
+  static const enterBrandOrBranchName = "enterBrandOrBranchName";
+  static const invalidBrandOrBranchName = "invalidBrandOrBranchName";
+  static const brandOrBranchNameMaxLength = "brandOrBranchNameMaxLength";
+
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
   static const yourNameHint = "your_name_hint";
