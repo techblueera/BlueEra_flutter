@@ -167,14 +167,53 @@ class BusinessProfileFullController extends GetxController {
         await getBusinessProfileFull();
         await Future.delayed(Duration(milliseconds: 500));
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        createSchoolResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
+        final failure = _createFailureMessage(response);
+        commonSnackBar(message: failure);
+        createSchoolResponse.value = ApiResponse.error(failure);
       }
     } on Exception {
       // TODO
       createSchoolResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
+  }
+
+  /// User-facing reason a business-profile create was rejected.
+  ///
+  /// The service answers a rejection with a `message` plus an `errors` array of
+  /// `{field, message}` — a missing/malformed GSTIN or branch, a GSTIN the
+  /// provider does not recognise (both `400`), or a `409` because that GST
+  /// number is already registered with that branch. Every one of those is
+  /// something the owner can act on, and all of them used to surface as a flat
+  /// "something went wrong". See docs/finance-gst-branch-ui-integration.md
+  /// §3/§4.
+  ///
+  /// The `409` messages are already written for the user, so the top-level
+  /// `message` is preferred; the per-field messages are appended only when they
+  /// say something the headline does not (the "Validation failed." envelope).
+  String _createFailureMessage(ResponseModel response) {
+    final body = response.response?.data;
+    if (body is! Map) return AppStrings.somethingWentWrong;
+
+    final headline = (body['message'] ?? '').toString().trim();
+    final fieldErrors = <String>[];
+    final errors = body['errors'];
+    if (errors is List) {
+      for (final error in errors) {
+        if (error is! Map) continue;
+        final text = (error['message'] ?? '').toString().trim();
+        if (text.isNotEmpty && text != headline) fieldErrors.add(text);
+      }
+    }
+
+    // "Validation failed." is only an envelope — the per-field messages are the
+    // informative part. Anything else (a provider rejection, a duplicate
+    // GST+branch) is already written for the user, so show it as-is.
+    if (headline.isNotEmpty &&
+        !headline.toLowerCase().startsWith('validation failed')) {
+      return headline;
+    }
+    if (fieldErrors.isNotEmpty) return fieldErrors.join('\n');
+    return headline.isNotEmpty ? headline : AppStrings.somethingWentWrong;
   }
 }

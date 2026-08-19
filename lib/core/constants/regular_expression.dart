@@ -20,6 +20,19 @@ class RegularExpressionUtils {
   static String skills = r'^[^\s][a-zA-Z0-9+\.\#_\-]*$';
   static String pinCodeRegExp = r'^[1-9][0-9]{5}$';
 
+  /// Typing filter for a medical store / shop (drug) licence number. Those are
+  /// printed as alphanumerics broken up by `/` or `-` (e.g. `MH-20B-123456/21`),
+  /// so both separators are allowed through — [ValidationMethod.validateMedicalStoreLicense]
+  /// applies the length and shape rule on submit.
+  static String medicalStoreLicensePattern = r"[a-zA-Z0-9/-]";
+
+  /// Typing filter for the brand / branch name collected once GST is verified:
+  /// capitals, digits and spaces only. The field pairs this with
+  /// [UppercaseTextFormatter] so lower-case keystrokes become capitals rather
+  /// than being swallowed, and with `NoLeadingSpaceFormatter` /
+  /// `NoConsecutiveSpacesFormatter` so only a single space can separate words.
+  static String brandOrBranchNamePattern = r"[A-Za-z0-9 ]";
+
   static final String courseNameRegex = r"^[a-zA-Z .'-]*$";
   static final String institutionNameRegex = r"^[a-zA-Z0-9 .'-]*$";
   static final String phoneWithPrefixPattern = r'^[+0-9]*$';
@@ -586,6 +599,49 @@ class ValidationMethod {
     if (!RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
         .hasMatch(value)) {
       return "Invalid GSTIN format";
+    }
+    return null;
+  }
+
+  /// Medical store / shop (drug) licence number, required when a business is
+  /// created under the PHARMACY category.
+  ///
+  /// State drug-control licence numbers have no single national format — what
+  /// they share is an alphanumeric body with `/` or `-` separators — so this
+  /// checks the character set and a sane length rather than a fixed template.
+  static String? validateMedicalStoreLicense(String? value) {
+    final licence = (value ?? '').trim();
+    if (licence.isEmpty) {
+      return AppStrings.enterMedicalStoreLicenseNumber.tr;
+    }
+    if (!RegExp(r'^[A-Za-z0-9/-]{5,30}$').hasMatch(licence)) {
+      return AppStrings.invalidMedicalStoreLicenseNumber.tr;
+    }
+    return null;
+  }
+
+  /// Longest a brand / branch name may be. Kept here rather than inline so the
+  /// field's `maxLength` and this validator can never drift apart.
+  static const int brandOrBranchNameMaxLength = 12;
+
+  /// Brand / branch name — required, `A-Z` and `0-9` only, at most
+  /// [brandOrBranchNameMaxLength] characters, and words separated by a single
+  /// space.
+  ///
+  /// The value is trimmed first, so a stray trailing space the formatters let
+  /// through is not reported as an error; the single-space rule then applies
+  /// between words only. Sent to the backend as `branch`
+  /// (docs/finance-gst-branch-ui-integration.md §1).
+  static String? validateBrandOrBranchName(String? value) {
+    final name = (value ?? '').trim();
+    if (name.isEmpty) {
+      return AppStrings.enterBrandOrBranchName.tr;
+    }
+    if (name.length > brandOrBranchNameMaxLength) {
+      return AppStrings.brandOrBranchNameMaxLength.tr;
+    }
+    if (!RegExp(r'^[A-Z0-9]+( [A-Z0-9]+)*$').hasMatch(name.toUpperCase())) {
+      return AppStrings.invalidBrandOrBranchName.tr;
     }
     return null;
   }

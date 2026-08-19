@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -25,6 +26,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class CreateBusinessAccountNewStepOne extends StatefulWidget {
@@ -43,6 +45,22 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
   String? _imagePath;
   bool isServiceOrManufacturing =  false;
 
+  /// Chosen category is the pharmacy / medical-store one, which by law trades
+  /// on a drug licence — so step one asks for that licence number.
+  bool isPharmacyCategory = false;
+
+  /// Whether a brand / branch name has to be collected here.
+  ///
+  /// Two reasons it can be true, and they are separate:
+  ///  * a GST number was verified — the business name is then locked to the
+  ///    GST trade name, so the branch is the only thing distinguishing one
+  ///    listing of that GSTIN from another, and the backend keys uniqueness off
+  ///    the (GST number + branch) PAIR rather than the GSTIN alone;
+  ///  * the business is a Finance one, where the branch is required outright.
+  ///
+  /// See docs/finance-gst-branch-ui-integration.md §0/§1/§4.
+  bool needsBrandOrBranchName = false;
+
   @override
   initState(){
     super.initState();
@@ -55,7 +73,23 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     ].contains(authController.selectedTypeOfBusiness)){
       isServiceOrManufacturing = true;
     }
+
+    // Match on the category's slug (`tag_id`) first — that is the stable
+    // identifier the rest of the app routes pharmacy screens on. The display
+    // name is only a fallback for a backend that ever renames the slug.
+    final categorySlug = (authController.selectedCategorySlugId ?? '').toUpperCase();
+    final categoryName = (authController.selectedCategoryName ?? '').toUpperCase();
+    isPharmacyCategory =
+        categorySlug == PHARMACY || categoryName.contains(PHARMACY);
+
+    // `hasVerifiedGst` (and not `isHaveGstApprove`) is the real "the GSTIN came
+    // back verified" signal: the GST screen pre-sets `isHaveGstApprove` to true
+    // merely to pre-select "Yes I have" when GST is compulsory.
+    needsBrandOrBranchName = authController.hasVerifiedGst ||
+        authController.selectedTypeOfBusiness == BusinessType.Finance;
+
     log('is Service or manufacturer -- $isServiceOrManufacturing');
+    log('is pharmacy -- $isPharmacyCategory | needs branch -- $needsBrandOrBranchName');
     // _prefillGuestData();
   }
 
@@ -153,7 +187,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                         ),
                       ],
                     )),
-          
+
                     /// Category and Sub Category
                     if(authController.selectedTypeOfBusiness != BusinessType.Both)
                     ...[
@@ -218,7 +252,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                         )
                                       ],
                                     ),
-          
+
                                     if(authController.selectedSubCategoryData!=null)...[
                                       SizedBox(height: SizeConfig.paddingXSmall),
                                       Row(
@@ -240,12 +274,12 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                         ],
                                       ),
                                     ]
-          
+
                                   ],
                                 ),
                               ),
-          
-          
+
+
                               // RichText(
                               //   text: TextSpan(
                               //     style: TextStyle(
@@ -275,13 +309,13 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               //     ],
                               //   ),
                               // ),
-          
-          
+
+
                               // SizedBox(
                               //   height: SizeConfig.paddingM,
                               // ),
-          
-          
+
+
                               /// Business Specialization
                               // CommonTextField(
                               //   textEditController: authController
@@ -325,7 +359,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               //
                               //   },
                               // ),
-          
+
                               // SizedBox(height: SizeConfig.size5),
                               //
                               // // 👇 Error/Helper Message
@@ -353,16 +387,16 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               //     fontSize: 12,
                               //   )),
                               // ),
-          
+
                             ],
                           )
                       ),
                     ],
-          
+
                     SizedBox(
                       height: SizeConfig.paddingXSL,
                     ),
-          
+
                     /// Business Details
                     CustomFormCard(
                       child: Column(
@@ -377,7 +411,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                           SizedBox(
                             height: SizeConfig.paddingS,
                           ),
-          
+
                           ///ENTER ORG/COMPANY NAME...
                           Obx(() {
                             return IgnorePointer(
@@ -390,7 +424,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 keyBoardType: TextInputType.text,
                                 regularExpression:
                                 RegularExpressionUtils.alphabetSpacePattern,
-          
+
                                 title: AppStrings.businessName,
                                 hintText: AppConstants.businessName,
                                 isValidate: true,
@@ -398,7 +432,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                   authController.businessName.value = val;
                                   setState(() {});
                                 },
-          
+
                                 validator: (value) {
                                   if (authController.businessName.value.isEmpty) {
                                     return AppStrings.enterBusinessName.tr;
@@ -423,11 +457,51 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 fontSize: SizeConfig.small,
                               )),
                             ),
-          
+
+                          /// BRAND / BRANCH NAME (GST-verified or Finance)
+                          if (needsBrandOrBranchName) ...[
+                            SizedBox(
+                              height: SizeConfig.paddingM,
+                            ),
+                            CommonTextField(
+                              textEditController: authController
+                                  .brandOrBranchNameTextController,
+                              maxLength:
+                                  ValidationMethod.brandOrBranchNameMaxLength,
+                              isCounterVisible: true,
+                              keyBoardType: TextInputType.text,
+                              textInputAction: TextInputAction.next,
+                              title: AppStrings.brandOrBranchName,
+                              hintText: AppStrings.brandOrBranchNameHint,
+                              autovalidateMode: _autoValidate,
+                              // Passing `inputFormatters` REPLACES the widget's
+                              // default list, so the leading/consecutive-space
+                              // rules are re-stated here — they are what keeps
+                              // words to a single separating space.
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(
+                                    RegularExpressionUtils
+                                        .brandOrBranchNamePattern)),
+                                // UppercaseTextFormatter(),
+                                NoLeadingSpaceFormatter(),
+                                NoConsecutiveSpacesFormatter(),
+                                LengthLimitingTextInputFormatter(
+                                    ValidationMethod.brandOrBranchNameMaxLength),
+                              ],
+                              validator:
+                                  ValidationMethod.validateBrandOrBranchName,
+                            ),
+                            CustomText(
+                              AppStrings.brandOrBranchNameHelper,
+                              fontSize: SizeConfig.small,
+                              color: AppColors.grey9B,
+                            ),
+                          ],
+
                           SizedBox(
                             height: SizeConfig.paddingM,
                           ),
-          
+
                           ///DOB selection
                           CustomText(
                             AppStrings.dateOfIncorporation,
@@ -457,7 +531,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               ),
                             );
                           }),
-          
+
                           if (authController.selectedTypeOfBusiness == BusinessType.Product) ...[
                             SizedBox(
                               height: SizeConfig.paddingM,
@@ -502,12 +576,12 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 },
                               ),
                             ],
-          
+
                             // SizedBox(height: SizeConfig.paddingL),
                           ],
-          
+
                           if (isServiceOrManufacturing) ...[
-          
+
                             // Number Of Employees
                             SizedBox(
                               height: SizeConfig.paddingM,
@@ -532,7 +606,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 });
                               },
                             ),
-          
+
                             // Number Of Branch
                             SizedBox(
                               height: SizeConfig.paddingM,
@@ -557,19 +631,48 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 });
                               },
                             ),
-          
+
                           ],
-          
-          
+
+                          /// MEDICAL STORE / SHOP LICENSE (Pharmacy only)
+                          if (isPharmacyCategory) ...[
+                            SizedBox(
+                              height: SizeConfig.paddingM,
+                            ),
+                            CommonTextField(
+                              textEditController: authController
+                                  .medicalStoreLicenseTextController,
+                              maxLength: AppConstants.inputCharterLimit30,
+                              keyBoardType: TextInputType.text,
+                              textInputAction: TextInputAction.done,
+                              title: AppStrings.medicalStoreLicenseNumber,
+                              hintText: AppStrings.medicalStoreLicenseNumberHint,
+                              autovalidateMode: _autoValidate,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(
+                                    RegularExpressionUtils
+                                        .medicalStoreLicensePattern)),
+                                UppercaseTextFormatter(),
+                                NoLeadingSpaceFormatter(),
+                                NoConsecutiveSpacesFormatter(),
+                                LengthLimitingTextInputFormatter(
+                                    AppConstants.inputCharterLimit30),
+                              ],
+                              validator:
+                                  ValidationMethod.validateMedicalStoreLicense,
+                            ),
+                          ],
+
+
                           SizedBox(
                             height: SizeConfig.size20,
                           ),
-          
-                
+
+
                         ],
                       ),
                     ),
-          
+
                   ],
                 ),
               ),
@@ -746,6 +849,18 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
             (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
                 false))
           ApiKeys.gst_number: authController.gstVerifyModel?.value.data?.gstin,
+
+        // Brand / branch name. Sent whenever it was collected — for a GST
+        // business it is half of the (GST number + branch) uniqueness key the
+        // backend enforces, and for a Finance business the profile is rejected
+        // without it. See docs/finance-gst-branch-ui-integration.md §1/§4.
+        if (needsBrandOrBranchName)
+          ApiKeys.branch:
+              authController.brandOrBranchNameTextController.text.trim(),
+
+        if (isPharmacyCategory)
+          ApiKeys.license_number:
+              authController.medicalStoreLicenseTextController.text.trim(),
         ApiKeys.gst_verified: ((authController.gstVerifyModel?.value.success ??
                     false) &&
                 (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
