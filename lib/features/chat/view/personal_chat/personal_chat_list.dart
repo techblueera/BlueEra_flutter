@@ -19,6 +19,7 @@ import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/flag_chat_list.dart';
 import '../group_chat/group_chat_list.dart';
 import '../pin_chat/pin_chat_list.dart';
+import '../contacts/widget/start_chat_contact_suggestions.dart';
 import '../widget/component_widgets.dart';
 import '../../../../widgets/glass_surface.dart';
 import 'custom_tab_conversation_picker.dart';
@@ -562,6 +563,20 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
     );
   }
 
+  /// True for the read-only "BlueEra" broadcast/system thread. It arrives in
+  /// the server chat list like any other conversation, but the user can't
+  /// reply to it — so it doesn't count as "this user has a conversation".
+  /// Matched the same way `AppNotificationHandler` resolves the thread:
+  /// by sender name or the `Admin` account type (plus the client-side
+  /// notifications row id).
+  bool _isBlueEraBroadcastChat(ChatList? chat) {
+    if (chat == null) return true;
+    if (chat.conversationId == 'blueera_notifications') return true;
+    final name = (chat.sender?.name ?? '').trim().toLowerCase();
+    final type = chat.sender?.accountType ?? '';
+    return name == 'blueera' || type == AppStrings.Admin;
+  }
+
 Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     // Sort pinned to top — archived chats are no longer filtered out here.
     List<ChatList?> chatList = data?.chatList ?? [];
@@ -595,18 +610,35 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     final recordsOffset = hasArchived ? 1 : 0;
     final topRowCount = recordsOffset;
 
+    // A brand-new user's list is either completely empty or holds nothing but
+    // the BlueEra broadcast thread — which they can't reply to. In both cases
+    // we append the "contacts on BlueEra" suggestions so there's something to
+    // start a conversation from. Never in the forward / new-group pickers:
+    // those pick an EXISTING conversation, and a suggestion row there would
+    // both mislead and navigate away mid-selection.
+    final hasRealConversation =
+        chatList.any((chat) => !_isBlueEraBroadcastChat(chat));
+    final showContactSuggestions = !hasRealConversation &&
+        !hasArchived &&
+        widget.isForwardUI != true &&
+        widget.isNewGroupUI != true;
+    final suggestionRowCount = showContactSuggestions ? 1 : 0;
+
     return Container(
       // Still render the list when there are no real chats but pinned system
       // rows exist (AI / BlueEra notifications), so those stay visible for a
       // brand-new user. Only the truly-empty case shows the empty state.
       child: (chatList.isEmpty && !hasArchived && topRowCount == 0)
-          ? noChatsFound()
+          ? (showContactSuggestions
+              ? const SingleChildScrollView(
+                  child: StartChatContactSuggestions())
+              : noChatsFound())
           : ListView.builder(
         // Kill the top inset ListView auto-injects when it's the primary
         // scrollable (it adds MediaQuery.padding.top), which showed up as an
         // empty strip above the first chat row.
         padding: EdgeInsets.zero,
-        itemCount: chatList.length + topRowCount,
+        itemCount: chatList.length + topRowCount + suggestionRowCount,
         shrinkWrap: true,
         physics: widget.isForwardUI == true
             ? NeverScrollableScrollPhysics()
@@ -615,6 +647,12 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
           // Records row at very top (index 0)
           if (hasArchived && index == 0) {
             return _buildRecordsRow();
+          }
+
+          // Suggestions sit BELOW the (broadcast-only) chat rows.
+          if (showContactSuggestions &&
+              index == chatList.length + topRowCount) {
+            return const StartChatContactSuggestions();
           }
 
           final chatIndex = index - topRowCount;
