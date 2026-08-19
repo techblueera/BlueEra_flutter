@@ -21,6 +21,10 @@ class SelfWorkStatisticsModel {
   /// generic label.
   final String profession;
 
+  /// The window the numbers actually cover, as the backend computed it in the
+  /// worker's timezone. Shown in the header so "this week" is never ambiguous.
+  final SelfWorkStatsRange range;
+
   final SelfWorkEarningsStats earnings;
   final SelfWorkJobStats jobs;
   final SelfWorkEnquiryFunnel funnel;
@@ -41,6 +45,7 @@ class SelfWorkStatisticsModel {
   const SelfWorkStatisticsModel({
     this.period = 'week',
     this.profession = '',
+    this.range = const SelfWorkStatsRange(),
     this.earnings = const SelfWorkEarningsStats(),
     this.jobs = const SelfWorkJobStats(),
     this.funnel = const SelfWorkEnquiryFunnel(),
@@ -56,6 +61,7 @@ class SelfWorkStatisticsModel {
     return SelfWorkStatisticsModel(
       period: json['period']?.toString() ?? 'week',
       profession: json['profession']?.toString() ?? '',
+      range: SelfWorkStatsRange.fromJson(_map(json['range'])),
       earnings: SelfWorkEarningsStats.fromJson(_map(json['earnings'])),
       jobs: SelfWorkJobStats.fromJson(_map(json['jobs'])),
       funnel: SelfWorkEnquiryFunnel.fromJson(_map(json['funnel'])),
@@ -91,6 +97,46 @@ class SelfWorkStatisticsModel {
         .whereType<Map>()
         .map((e) => parse(Map<String, dynamic>.from(e)))
         .toList();
+  }
+}
+
+/// The window the numbers cover — `range.from` / `range.to`, ISO-8601 with the
+/// worker's local UTC offset (`2026-08-03T00:00:00+05:30`).
+///
+/// Held as plain calendar dates, not instants. See [_calendarDate] for why that
+/// is the only correct reading of these two strings.
+class SelfWorkStatsRange {
+  final DateTime? from;
+  final DateTime? to;
+
+  const SelfWorkStatsRange({this.from, this.to});
+
+  factory SelfWorkStatsRange.fromJson(Map<String, dynamic> json) {
+    return SelfWorkStatsRange(
+      from: _calendarDate(json['from']),
+      to: _calendarDate(json['to']),
+    );
+  }
+
+  /// Both ends present, so the header has something to show. A backend that
+  /// omits `range` renders no line rather than a half one.
+  bool get isComplete => from != null && to != null;
+
+  /// Takes the DATE PART of the string and reads it as a plain local date.
+  ///
+  /// `DateTime.parse("2026-08-03T00:00:00+05:30")` is correct but not what we
+  /// want: it returns the equivalent UTC *instant* (02 Aug 18:30Z), whose
+  /// `.day` is **2**, so a week starting Monday the 3rd would print as starting
+  /// Sunday the 2nd. `.toLocal()` fixes that only for devices in the worker's
+  /// timezone and re-breaks it for anyone travelling.
+  ///
+  /// The backend already computed these boundaries in the worker's timezone
+  /// (guide §1), so the calendar date it wrote down IS the answer — no
+  /// conversion should happen on this side at all.
+  static DateTime? _calendarDate(dynamic value) {
+    final raw = value?.toString();
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw.split('T').first);
   }
 }
 
@@ -270,11 +316,23 @@ class SelfWorkTrendPoint {
 
   /// Weekday tick for the axis, or the raw string when the date won't parse —
   /// the chart never shows an empty label.
+  ///
+  /// Only meaningful for a window of a week or less. Over a month the same
+  /// weekday comes round four or five times, so the chart uses [dayLabel]
+  /// there instead.
   String get shortLabel {
     final parsed = DateTime.tryParse(date);
     if (parsed == null) return date;
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return names[(parsed.weekday - 1).clamp(0, 6)];
+  }
+
+  /// Day of the month ("1", "14", "31"), for windows long enough that weekday
+  /// names repeat.
+  String get dayLabel {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date;
+    return '${parsed.day}';
   }
 }
 

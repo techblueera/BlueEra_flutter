@@ -145,7 +145,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                 AppIconAssets.app_setting_manage_subscription,
                 AppStrings.contribute,
                     () {
-                      Get.to(() => const ContributionScreen());
+                      openContributionScreen();
                   // accountController.setIndex("6");
                   // accountController.setTitle("Manage Subscription");
                 },

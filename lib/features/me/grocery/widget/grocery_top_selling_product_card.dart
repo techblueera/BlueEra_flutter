@@ -96,14 +96,7 @@ class GroceryTopSellingProductCard extends StatelessWidget {
         : null;
     final quantity = firstVariant?.quantity ?? '';
 
-    // Measures the name against this card's own width so the line it doesn't
-    // use can be spent at the BOTTOM of the card instead of as a gap under the
-    // title. `SizeConfig.size8 * 2` is the details block's horizontal padding.
-    return CardNameSlack(
-      text: product.product?.name ?? '',
-      fontSize: SizeConfig.small,
-      horizontalPadding: SizeConfig.size8 * 2,
-      builder: (context, nameSlack) => Container(
+    return Container(
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
@@ -170,10 +163,26 @@ class GroceryTopSellingProductCard extends StatelessWidget {
           Padding(
             padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size6,
                 SizeConfig.size8, SizeConfig.size10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            // Measures the name so the line it doesn't use can be spent at the
+            // BOTTOM of the card instead of as a gap under the title.
+            //
+            // It sits HERE, inside the padding, rather than around the whole
+            // card. Wrapping the card meant measuring against the card's outer
+            // width minus the padding — which ignored the 1px border on each
+            // side, so the measurement ran at 136 where the text was painted at
+            // 134. A name that fits in 136 but wraps at 134 was measured as one
+            // line and painted as two: it got a full line of slack it hadn't
+            // earned, on top of the second line it did use, and stood a line
+            // taller than every other card in the rail. Measuring where the
+            // text actually lives makes the two widths the same by
+            // construction.
+            child: CardNameSlack(
+              text: product.product?.name ?? '',
+              fontSize: SizeConfig.small,
+              builder: (context, nameSlack) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Natural height — one line or two. The card still matches its
                 // neighbours because the unused line is added at the END of the
                 // card (see the SizedBox after the price row).
@@ -236,12 +245,12 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                 // card in the rail is the same height with the blank at the
                 // bottom rather than under the title.
                 if (nameSlack > 0) SizedBox(height: nameSlack),
-              ],
+                ],
+              ),
             ),
           ),
           ],
         ),
-      ),
     );
   }
 }

@@ -123,6 +123,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     )..repeat(reverse: true);
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
+    // Grocery is a walk-in / self-pickup vertical: a 300km list is padded with
+    // shops nobody is going to visit. 50km is the reach this screen searches;
+    // every other store screen keeps the app-wide default. Restored in
+    // [dispose] — [StoreController] is shared.
+    controller.searchRadiusKm = kmRadius50;
 
     // A category named by the caller wins over everything: the user has just
     // tapped it, so it outranks both the default and whatever they last looked
@@ -156,6 +161,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     _nestedScrollController.dispose();
     _shimmerController?.dispose();
     _shimmerController = null;
+    // Hand the shared controller back on its app-wide default radius.
+    controller.searchRadiusKm = kmRadius300;
     deleteIfRegistered<GroceryController>();
     deleteIfRegistered<GrocerySelfPickupConsumerController>();
     super.dispose();

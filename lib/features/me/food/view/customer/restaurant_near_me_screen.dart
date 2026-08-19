@@ -96,6 +96,11 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   void _fetchStores({String? categoryId, bool ifNeeded = true}) {
     storeController.typeOfBusiness = BusinessType.Food.name;
     storeController.businessCategoryId = categoryId;
+    // Food is a walk-in / self-pickup vertical: a 300km list is padded with
+    // restaurants nobody is going to visit. 50km is the reach this screen
+    // searches; every other store screen keeps the app-wide default. Restored
+    // in [dispose] — [StoreController] is shared.
+    storeController.searchRadiusKm = kmRadius50;
     if (ifNeeded) {
       storeController.getAllStoreNearByIfNeeded();
     } else {
@@ -106,6 +111,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   void dispose() {
     deleteIfRegistered<FoodSelfPickupController>();
+    // Hand the shared controller back on its app-wide default radius.
+    storeController.searchRadiusKm = kmRadius300;
     super.dispose();
   }
 

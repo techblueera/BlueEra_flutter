@@ -1,17 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/quick_rider_book_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
-import 'package:BlueEra/features/common/visit_profile_config.dart';
+import 'package:BlueEra/features/common/Discover/widget/nearby_entry.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,7 +19,10 @@ import 'package:get/get.dart';
 ///
 ///   store   → grocery / food / product store-visit screen
 ///   service → self-employee / professional provider profile
-///   rider   → provider profile (fallback — no dedicated rider screen yet)
+///   rider   → the quick-book flow
+///
+/// The item plate, the ordering rule and that routing live in
+/// `nearby_entry.dart`, shared with the "View All" screen ([NearYouAllScreen]).
 ///
 /// Self-managing like the recently-visited rail: own white card, collapses when
 /// there's nothing nearby.
@@ -43,16 +42,30 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
   /// tightly on the cross axis, so this IS the plate height and every plate is
   /// identical.
   ///
-  /// Measured against the content rather than rounded up: avatar (66) + the
-  /// chip's 9px overhang + 6 gap + the two label lines (~30 at these sizes) +
-  /// the plate's 16 of vertical padding ≈ 127. The 4px over that is headroom for
-  /// scripts whose line boxes run taller than Latin's, and the item centres
-  /// itself in whatever is left so the slack never collects under the last line.
+  /// **Derived, not fixed.** It used to be a flat 131 — measured against the
+  /// avatar (66) + the distance chip's 9px overhang + the 6 gap + two label
+  /// lines + the plate's 16 of vertical padding. That held at the default font
+  /// size and broke above it: the labels are [Flexible], which caps their WIDTH
+  /// but does nothing about a taller line box, so a phone with the system font
+  /// turned up overflowed the rail. Recomputing from the ambient
+  /// [TextScaler] costs nothing and covers every accessibility setting, on a
+  /// small phone as much as a large one.
   ///
-  /// The plate's own parts are fixed pixels rather than [SizeConfig] steps for
-  /// the same reason the folder tile's are: this rail has to line up with that
-  /// grid, and the grid's geometry is fixed.
-  static const double _railHeight = 131;
+  /// The plate's own parts stay fixed pixels rather than [SizeConfig] steps,
+  /// for the same reason the folder tile's are: this rail has to line up with
+  /// that grid, and the grid's geometry is fixed.
+  double _railHeight(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    // The avatar block: circle + the chip's overhang + the gap under it.
+    const avatarBlock = kNearbyAvatarSize + 9 + 6;
+    // The two label lines at the sizes [NearbyAvatar] sets them, times the 1.3
+    // line-height factor a line box adds around a glyph, plus the 2px between.
+    final labels = scaler.scale(12) * 1.3 + 2 + scaler.scale(9) * 1.3;
+    // 16 of plate padding, and 4 of headroom for scripts whose line boxes run
+    // taller than Latin's. The item centres itself in whatever is left, so the
+    // slack never collects under the last line.
+    return avatarBlock + labels + 16 + 4;
+  }
 
   /// Drives the refresh button's spinner. Local rather than read off the
   /// controller because the refresh also re-acquires location first, and
@@ -81,67 +94,10 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
     }
   }
 
-  /// Merge stores + services + riders into one rail.
-  ///
-  /// **Live workers lead**, then everything else nearest-first. The backend
-  /// deliberately ranks live workers ahead of closer offline ones, and the
-  /// guide is explicit: *"don't re-sort purely by distance or you'll bury the
-  /// available people"* (§2.4, §7). This rail flattens several buckets into one
-  /// list so it must re-sort — but only *within* that rule, never across it.
-  /// Stores have no live concept and sort by distance among themselves.
-  List<_NearbyEntry> _entries() {
-    final list = <_NearbyEntry>[
-      ..._controller.stores.map(_NearbyEntry.store),
-      ..._controller.services.map(_NearbyEntry.worker),
-      ..._controller.riders.map(_NearbyEntry.worker),
-    ]..sort((a, b) {
-        if (a.isLive != b.isLive) return a.isLive ? -1 : 1;
-        return a.distance.compareTo(b.distance);
-      });
-    return list;
-  }
-
-  void _open(_NearbyEntry e) {
-    final store = e.store;
-    if (store != null) {
-      // `type` (Grocery | Food | Product) is the BUCKET the backend put this
-      // store in, not `typeOfBusiness` — a Service business that lists products
-      // arrives here as `type: Product, typeOfBusiness: Service`, and the
-      // product store is what the user wants. So route on the bucket, exactly
-      // as this rail always has.
-      openVisitProfile(
-        accountType: AppConstants.business,
-        typeOfBusiness: store.type,
-        categoryOfBusiness: store.categoryName,
-        businessId: store.id,
-        userId: store.userId,
-      );
-      return;
-    }
-    final worker = e.worker!;
-    if (worker.userId.isEmpty) return;
-    // Riders (gig workers) → the quick-book flow instead of a profile: the user
-    // wants to hire THIS rider, not view them. Enter drop location on a map and
-    // connect to the rider. Deliberately NOT routed through openVisitProfile —
-    // that opens profiles, and this is a booking.
-    if (worker.isRider) {
-      Get.to(() => QuickRiderBookScreen(rider: worker));
-      return;
-    }
-    // `profession` is the coarse SELF_EMPLOYED / PROFESSIONAL enum the guide
-    // says to route on (`profileType` is the display string "Self Employed" /
-    // "GigWork"), so that's what the resolver gets.
-    openVisitProfile(
-      accountType: AppConstants.individual,
-      profileType: worker.profession,
-      userId: worker.userId,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final entries = _entries();
+      final entries = buildNearbyEntries(_controller);
       // Shimmer on the first load AND on a button refresh, so a refresh reads
       // as a reload rather than a frozen rail. `fetch()` leaves the old list in
       // place until the new one lands (it only `assignAll`s on success), so
@@ -174,6 +130,18 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Title, then the two controls.
+              //
+              // `SizeConfig.medium` + w700 is the FOLDER CAPTION's type — the
+              // labels under the 2x2 tiles further down the same page (see
+              // `_FolderCaption` in discover_folder_tile.dart). This rail and
+              // those folders are peers in the Discover grid, so their headings
+              // are one size; the rail used to be a step larger and read as
+              // ranking above them.
+              //
+              // The controls beside it are secondary — one refreshes, one
+              // navigates — so they stay smaller still, and on a 320px phone
+              // (the row gets ~264) the title now has room to spare.
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
                 child: Row(
@@ -181,15 +149,16 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
                     Expanded(
                       child: CustomText(
                         AppStrings.nearestStores.tr,
-                        fontSize: SizeConfig.large18,
+                        fontSize: SizeConfig.large,
                         color: AppColors.mainTextColor,
                         fontWeight: FontWeight.w700,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    SizedBox(width: SizeConfig.size6),
                     _refreshButton(),
-                    SizedBox(width: SizeConfig.size8),
+                    SizedBox(width: SizeConfig.size6),
                     if (widget.onViewAll != null)
                       // Raw key: CustomText `.tr`s its own title.
                       _GlassChip(
@@ -201,7 +170,7 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
               ),
               SizedBox(height: SizeConfig.size12),
               SizedBox(
-                height: _railHeight,
+                height: _railHeight(context),
                 child: loading
                     ? _loadingRow()
                     : ListView.separated(
@@ -210,9 +179,9 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
                             horizontal: SizeConfig.size14),
                         itemCount: entries.length,
                         separatorBuilder: (_, __) =>
-                            const SizedBox(width: _kItemGap),
+                            const SizedBox(width: kNearbyItemGap),
                         itemBuilder: (context, index) =>
-                            _NearbyAvatar(entry: entries[index], onTap: _open),
+                            NearbyAvatar(entry: entries[index], onTap: openNearbyEntry),
                       ),
               ),
             ],
@@ -235,18 +204,20 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
     final busy = _isRefreshing || _controller.isLoading.value;
     return _GlassChip(
       onTap: busy ? null : _refresh,
-      // Fixed box so swapping icon ⇄ spinner doesn't jiggle the row.
+      // Fixed box so swapping icon ⇄ spinner doesn't jiggle the row. Fixed in
+      // PIXELS, not scaled: it holds a glyph, not text, and growing it with the
+      // font setting would eat the title's width for nothing.
       child: SizedBox(
-        width: 16,
-        height: 16,
+        width: 14,
+        height: 14,
         child: busy
             ? const CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: 1.8,
                 color: AppColors.primaryColor,
               )
             : const Icon(
                 Icons.refresh_rounded,
-                size: 16,
+                size: 14,
                 color: AppColors.primaryColor,
               ),
       ),
@@ -290,7 +261,7 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
       scrollDirection: Axis.horizontal,
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
       itemCount: 5,
-      separatorBuilder: (_, __) => const SizedBox(width: _kItemGap),
+      separatorBuilder: (_, __) => const SizedBox(width: kNearbyItemGap),
       itemBuilder: (_, __) => _shimmerAvatar(),
     );
   }
@@ -298,15 +269,15 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
   /// Placeholder in the shape of the real plate, so the swap to content moves
   /// nothing: same plate, same radius, same avatar circle, same two text lines.
   Widget _shimmerAvatar() {
-    return _NearbyPlate(
+    return NearbyPlate(
       child: buildLoadingShimmer(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             shimmerContainer(
-                width: _kAvatarSize,
-                height: _kAvatarSize,
-                radius: _kAvatarSize / 2),
+                width: kNearbyAvatarSize,
+                height: kNearbyAvatarSize,
+                radius: kNearbyAvatarSize / 2),
             // 9 for the chip's overhang + the 6 gap, so the bars land where the
             // real labels do.
             const SizedBox(height: 15),
@@ -319,24 +290,6 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
     );
   }
 }
-
-/// Geometry of one rail item. Fixed pixels, like the folder tile's — see
-/// [_NearestStoresSectionState._railHeight].
-///
-/// The avatar is the item: it is what gets recognised and what gets tapped, so
-/// it takes nearly the plate's full width and the labels read as its caption.
-const double _kItemWidth = 82;
-const double _kItemGap = 10;
-const double _kAvatarSize = 66;
-
-/// Radius of an item plate. Sits between the folder tile's 26 and its inner
-/// icon slots' 14: this plate holds one item, where a tile holds four.
-const double _kPlateRadius = 18;
-
-/// Availability green — the same one the recent-orders rail tags a new order
-/// with, so "live/new" is one colour across the page rather than two greens a
-/// shade apart.
-const Color _kLiveGreen = Color(0xFF1FB35A);
 
 /// A control sitting on the glass panel: a white plate with a hairline rim.
 ///
@@ -365,8 +318,8 @@ class _GlassChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           child: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: label != null ? 12 : 7,
-              vertical: label != null ? 5 : 7,
+              horizontal: label != null ? 10 : 6,
+              vertical: label != null ? 4 : 6,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
@@ -375,276 +328,17 @@ class _GlassChip extends StatelessWidget {
             child: child ??
                 CustomText(
                   label!,
+                  // Explicit and small: [CustomText] falls back to
+                  // `SizeConfig.medium` (14), which is only 4pt off the section
+                  // title and made a secondary control read as a heading.
+                  fontSize: SizeConfig.small11,
                   color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The white plate one rail item sits on.
-///
-/// This is the move that makes the rail belong to the page: the folder tiles
-/// are glass panels holding bright plates, and so is this. It also carries the
-/// contrast — the item's name and category are ordinary dark text, which the
-/// panel alone could not guarantee on a user-chosen background.
-class _NearbyPlate extends StatelessWidget {
-  const _NearbyPlate({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: _kItemWidth,
-      padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-      decoration: BoxDecoration(
-        color: kDiscoverGlassPlateFill,
-        borderRadius: BorderRadius.circular(_kPlateRadius),
-        // Fill + rim only, no lift. The folder tiles' icon slots carry no
-        // shadow either — the panel underneath is what these plates lift off,
-        // and five shadowed plates in a row turned the rail busy.
-        border: Border.all(color: Colors.white, width: 1),
-      ),
-      child: child,
-    );
-  }
-}
-
-/// A merged nearby item — either a store or a worker.
-class _NearbyEntry {
-  final NearbyStoreCard? store;
-  final NearbyWorkerCard? worker;
-
-  const _NearbyEntry.store(this.store) : worker = null;
-  const _NearbyEntry.worker(this.worker) : store = null;
-
-  double get distance => store?.distance ?? worker?.distance ?? 0;
-
-  /// Only workers can be live — a store is never "live" in this sense, so it
-  /// sorts purely on distance.
-  bool get isLive => worker?.live ?? false;
-}
-
-class _NearbyAvatar extends StatelessWidget {
-  final _NearbyEntry entry;
-  final void Function(_NearbyEntry entry) onTap;
-
-  const _NearbyAvatar({required this.entry, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final store = entry.store;
-    final worker = entry.worker;
-
-    // Stores: own logo first, then the category image. Workers: profile image.
-    final String image =
-        store != null ? store.displayImage : (worker?.profileImage ?? '');
-    final String name = store != null
-        ? store.businessName
-        : (worker!.name.isNotEmpty ? worker.name : worker.professionName);
-    final String label =
-        store != null ? store.displayCategory : (worker?.displayLabel ?? '');
-    final bool live = worker?.live ?? false;
-    // Stores get the navy "storefront" circle; workers get a person circle.
-    final bool isStore = store != null;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => onTap(entry),
-      child: _NearbyPlate(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          // Centred, not top-aligned. The plate is stretched to the rail's
-          // height, so whatever the content doesn't use has to go somewhere —
-          // top-aligned it all collected under the category line as a band of
-          // dead space. Split in two it reads as the plate's own padding.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // The avatar and the two badges that qualify it. The stack is 9px
-            // taller than the circle so the distance chip can ride the bottom
-            // edge without being clipped.
-            SizedBox(
-              height: _kAvatarSize + 9,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                children: [
-                  // The rim is painted as a FOREGROUND decoration over the
-                  // image, not as a border around it. A `Container` with a
-                  // border insets its child by the border's width
-                  // (`BoxDecoration.padding` comes from the border's
-                  // dimensions), which left a dead ring inside the circle and
-                  // stopped the photo ever reaching the edge. Painting the ring
-                  // on top instead lets the image fill the whole circle.
-                  DecoratedBox(
-                    position: DecorationPosition.foreground,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      // Hairline rim in the panel's own white, so the circle
-                      // separates from the plate the same way every other block
-                      // on this page separates from what it sits on.
-                      border: Border.fromBorderSide(
-                        BorderSide(color: Colors.white, width: 1.5),
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: Container(
-                        width: _kAvatarSize,
-                        height: _kAvatarSize,
-                        color: isStore
-                            ? const Color(0xFF17233F)
-                            : AppColors.primaryColor.withValues(alpha: 0.10),
-                        child: image.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: Uri.encodeFull(image),
-                                fit: BoxFit.cover,
-                                // Fills the circle even when the source is
-                                // smaller than the box — without these the
-                                // image is drawn at its intrinsic size and
-                                // floats in the middle.
-                                width: _kAvatarSize,
-                                height: _kAvatarSize,
-                                placeholder: (_, __) => _fallbackIcon(isStore),
-                                errorWidget: (_, __, ___) =>
-                                    _fallbackIcon(isStore),
-                              )
-                            : _fallbackIcon(isStore),
-                      ),
-                    ),
-                  ),
-                  // Availability, top-right: a worker who is online right now.
-                  // Kept as a dot rather than folded into the chip below so the
-                  // two facts stay separable — the rail sorts live-first, THEN
-                  // nearest, and the badges say so in that order.
-                  if (live)
-                    Positioned(
-                      // On the circle's upper-right edge (its 45° point), not
-                      // floating in the corner beside it — the Stack is exactly
-                      // as wide as the avatar, so these offsets are measured
-                      // from the circle itself.
-                      top: 2,
-                      right: 2,
-                      child: Container(
-                        width: 13,
-                        height: 13,
-                        decoration: BoxDecoration(
-                          color: _kLiveGreen,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.white, width: 2),
-                        ),
-                      ),
-                    ),
-                  // Distance, riding the circle's lower edge. This is the one
-                  // fact that justifies the rail existing and the thing it is
-                  // ordered by, so it is on the item rather than left implicit.
-                  if (_distanceLabel != null)
-                    Positioned(
-                      bottom: 0,
-                      child: _DistanceChip(label: _distanceLabel!),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            // Both labels are [Flexible] on purpose. The rail is a fixed height
-            // and the plate is stretched to it, but a line box is taller in
-            // Devanagari than in Latin at the same point size — and the app ships
-            // 20-odd languages. Flexible lets the text be compressed to what is
-            // left rather than overflowing the plate in some locales.
-            Flexible(
-              child: CustomText(
-                name,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            if (label.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Flexible(
-                child: CustomText(
-                  label,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w700,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// `0.4 km` up close, `12 km` further out — a decimal is meaningful when you
-  /// might walk it and noise when you won't. Null when the backend sent no
-  /// distance, and the chip is then simply not drawn rather than reading `0 km`.
-  ///
-  /// `kmLabel` ("km") rather than `kmAway` ("km away"): the chip is 78px wide at
-  /// most and the longer phrase would spill out of the plate. Sitting on the
-  /// avatar is what says "away".
-  String? get _distanceLabel {
-    final km = entry.distance;
-    if (km <= 0) return null;
-    final value = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
-    return '$value ${AppStrings.kmLabel.tr}';
-  }
-
-  Widget _fallbackIcon(bool isStore) => Center(
-        child: Icon(
-          isStore ? Icons.storefront_rounded : Icons.person,
-          color: isStore ? Colors.white : AppColors.primaryColor,
-          size: isStore ? 30 : 34,
-        ),
-      );
-}
-
-/// How far away this one is — the rail's ranking, made visible.
-///
-/// Opaque white rather than the plate's translucent fill: it overlaps the
-/// avatar, and a translucent chip over a photo is unreadable.
-class _DistanceChip extends StatelessWidget {
-  const _DistanceChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // Never wider than the plate it sits on: the chip is in a Stack, which
-      // does not constrain it, and a long value would otherwise hang over the
-      // plate's edge.
-      constraints: const BoxConstraints(maxWidth: _kItemWidth - 12),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(9),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F101828),
-            blurRadius: 4,
-            offset: Offset(0, 1),
           ),
-        ],
-      ),
-      child: CustomText(
-        label,
-        fontSize: 9,
-        fontWeight: FontWeight.w700,
-        color: AppColors.primaryColor,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
+        ),
       ),
     );
   }

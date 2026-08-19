@@ -43,6 +43,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/near_you_all_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -118,10 +119,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       // nearby-discover response: grocery/food/product stores + service workers
       // + riders, distance-sorted, each routed to its own screen by card type.
       // Self-manages its own white card and collapses when nothing is nearby.
+      //
+      // View All opens [NearYouAllScreen] — the SAME nearby-discover set, in
+      // full, paged as it renders. It used to open the grocery-stores listing,
+      // which is a different endpoint entirely: the user asked to see
+      // everything near them and got a grocery search back.
       (
         widget: NearestStoresSection(
-          onViewAll: () =>
-              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          onViewAll: () => Get.to(() => const NearYouAllScreen()),
         ),
         tabs: {1},
         folder: false

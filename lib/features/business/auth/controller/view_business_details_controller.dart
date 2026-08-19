@@ -985,7 +985,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     // Refresh on return so a freshly-bought PLAN (reconciled server-side by
     // the Razorpay webhook, with no in-app trigger) and the updated
     // `freeOrdersUsed` are both picked up.
-    Get.to(() => const ContributionScreen())?.then((_) {
+    openContributionScreen().then((_) {
       viewBusinessProfile(silent: true);
       AccountPlanEntitlement.to.refresh();
     });

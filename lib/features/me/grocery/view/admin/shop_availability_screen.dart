@@ -12,9 +12,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Shop availability capture shown right before a Mohalla-Kirana
-/// individual grocery seller goes live. The seller declares when their
-/// shop is open — either the SAME hours every day (Daily) or DIFFERENT
-/// hours per weekday (Weekly) — by setting an open + closing time.
+/// individual grocery seller goes live. The seller declares when their shop is
+/// open by setting an open + closing time **per weekday**, plus a per-day
+/// open/closed flag.
+///
+/// Weekly is the only mode. The screen used to also offer a "Daily" mode that
+/// fanned one open/close pair across all seven days, but it saved the exact
+/// same 7-day payload as Weekly — a second way to enter the same thing, one
+/// more state to hydrate into and detect on the way back out. A seller who
+/// keeps identical hours all week sets the same two dropdowns seven times,
+/// which is the cost of dropping a whole mode.
 ///
 /// On save the screen persists the assembled weekly [Schedule] through the
 /// business availability endpoint (`PUT /availability/hours`) and pops back
@@ -45,8 +52,8 @@ class ShopAvailabilityScreen extends StatefulWidget {
 
 class _ShopAvailabilityScreenState
     extends State<ShopAvailabilityScreen> {
-  // Weekdays in display order. The same order is used for the Weekly rows
-  // and for fanning the Daily hours across every day on save.
+  // Weekdays in display order — the order of the rows and of the saved
+  // schedule.
   static const List<String> _days = [
     'Monday',
     'Tuesday',
@@ -57,15 +64,7 @@ class _ShopAvailabilityScreenState
     'Sunday',
   ];
 
-  // Availability mode — false = Daily (same hours every day),
-  // true = Weekly (per-day hours + per-day open/closed).
-  bool _isWeekly = false;
-
-  // Daily mode hours (apply to all seven days).
-  TimeOfDay _dailyOpen = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _dailyClose = const TimeOfDay(hour: 21, minute: 0);
-
-  // Weekly mode — one editable row per weekday.
+  // One editable row per weekday.
   late final Map<String, _DayHours> _weekly;
 
   // True while the save request is in flight — drives the Save button loader
@@ -86,9 +85,8 @@ class _ShopAvailabilityScreenState
     _hydrateFromInitial();
   }
 
-  // Pre-fills the form from a previously-saved schedule when one is passed.
-  // A schedule whose days all share identical open hours is treated as
-  // Daily; anything else opens in Weekly mode.
+  // Pre-fills the rows from a previously-saved schedule when one is passed, so
+  // the seller edits their hours rather than re-entering them.
   void _hydrateFromInitial() {
     final saved = widget.initialSchedule;
     if (saved == null || saved.isEmpty) return;
@@ -108,19 +106,6 @@ class _ShopAvailabilityScreenState
         close: _parse(s.shopCloseTime ?? slot?.endTime) ??
             const TimeOfDay(hour: 21, minute: 0),
       );
-    }
-
-    // Detect "same hours, all open" → present as Daily.
-    final allOpen = _weekly.values.every((d) => d.isOpen);
-    final first = _weekly.values.first;
-    final uniform = _weekly.values.every((d) =>
-        _eq(d.open, first.open) && _eq(d.close, first.close));
-    if (allOpen && uniform) {
-      _isWeekly = false;
-      _dailyOpen = first.open;
-      _dailyClose = first.close;
-    } else {
-      _isWeekly = true;
     }
   }
 
@@ -160,111 +145,10 @@ class _ShopAvailabilityScreenState
                 color: AppColors.secondaryTextColor,
               ),
               SizedBox(height: SizeConfig.size16),
-              _buildModeToggle(),
-              SizedBox(height: SizeConfig.size16),
-              if (_isWeekly) _buildWeeklyCard() else _buildDailyCard(),
+              _buildWeeklyCard(),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ── Daily / Weekly segmented toggle ─────────────────────────────
-  Widget _buildModeToggle() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const trackPadding = 4.0;
-        final pillWidth = (constraints.maxWidth - trackPadding * 2) / 2;
-        return Container(
-          height: 44,
-          padding: const EdgeInsets.all(trackPadding),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-          ),
-          child: Stack(
-            children: [
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 240),
-                curve: Curves.easeOutCubic,
-                left: _isWeekly ? pillWidth : 0,
-                top: 0,
-                bottom: 0,
-                width: pillWidth,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Row(
-                  children: [
-                    Expanded(child: _modeTab(AppStrings.daily.tr, false)),
-                    Expanded(child: _modeTab(AppStrings.weekly.tr, true)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _modeTab(String label, bool weekly) {
-    final selected = _isWeekly == weekly;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _isWeekly = weekly),
-      child: Center(
-        child: CustomText(
-          label,
-          fontSize: 13.5,
-          fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-          color: selected ? Colors.white : AppColors.mainTextColor,
-        ),
-      ),
-    );
-  }
-
-  // ── Daily card — one open/close pair applied to every day ───────
-  Widget _buildDailyCard() {
-    return CustomFormCard(
-      isBoxShadowAvail: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            AppStrings.openEveryDay.tr,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
-          ),
-          SizedBox(height: SizeConfig.size12),
-          Row(
-            children: [
-              Expanded(
-                child: _timeField(
-                  label: AppStrings.openingTime.tr,
-                  time: _dailyOpen,
-                  onChanged: (t) => setState(() => _dailyOpen = t),
-                ),
-              ),
-              SizedBox(width: SizeConfig.size12),
-              Expanded(
-                child: _timeField(
-                  label: AppStrings.closingTime.tr,
-                  time: _dailyClose,
-                  onChanged: (t) => setState(() => _dailyClose = t),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -417,14 +301,13 @@ class _ShopAvailabilityScreenState
   }
 
   // ── Save bar pinned at the bottom ───────────────────────────────
+  //
+  // The [SafeArea] is INSIDE the decorated container, not around it: it insets
+  // the button by the gesture bar / home indicator so the tap target clears it,
+  // while the bar's white fill and top shadow still run to the physical bottom
+  // edge instead of leaving a strip of page background under them.
   Widget _buildSaveBar() {
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        14,
-        SizeConfig.size12,
-        14,
-        SizeConfig.size16,
-      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: const [
@@ -435,64 +318,57 @@ class _ShopAvailabilityScreenState
           ),
         ],
       ),
-      child: CustomBtn(
-        title: AppStrings.save.tr,
-        radius: 10,
-        bgColor: AppColors.primaryColor,
-        isLoading: _isSaving,
-        onTap: _onSave,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            14,
+            SizeConfig.size12,
+            14,
+            SizeConfig.size16,
+          ),
+          child: CustomBtn(
+            title: AppStrings.save.tr,
+            radius: 10,
+            bgColor: AppColors.primaryColor,
+            isLoading: _isSaving,
+            onTap: _onSave,
+          ),
+        ),
       ),
     );
   }
 
-  // Validates the timings, assembles the per-day [Schedule] list, persists it
-  // through the business availability endpoint, then flips the shop live.
-  // Daily mode fans the single open/close pair across all seven days; Weekly
-  // mode keeps each day's own hours and open flag. Open days carry explicit
-  // shopOpenTime/shopCloseTime (HH:MM) as the backend requires; closed days
+  // Validates the timings, assembles the per-day [Schedule] list and persists
+  // it through the business availability endpoint. Every weekday is sent, each
+  // with its own hours and open flag; open days carry explicit
+  // shopOpenTime/shopCloseTime (HH:MM) as the backend requires, closed days
   // omit the times. On full success the screen pops back `true` so the caller
   // can reflect the live state.
   Future<void> _onSave() async {
     final schedule = <Schedule>[];
 
-    if (_isWeekly) {
-      final anyOpen = _weekly.values.any((d) => d.isOpen);
-      if (!anyOpen) {
-        commonSnackBar(message: AppStrings.keepAtLeastOneDayOpen.tr);
+    final anyOpen = _weekly.values.any((d) => d.isOpen);
+    if (!anyOpen) {
+      commonSnackBar(message: AppStrings.keepAtLeastOneDayOpen.tr);
+      return;
+    }
+    for (final day in _days) {
+      final hours = _weekly[day]!;
+      if (hours.isOpen && !_isBefore(hours.open, hours.close)) {
+        commonSnackBar(
+            message: '${AppStrings.closingTimeMustBeAfterOpening.tr} '
+                '(${_dayLabelKey(day).tr})');
         return;
       }
-      for (final day in _days) {
-        final hours = _weekly[day]!;
-        if (hours.isOpen && !_isBefore(hours.open, hours.close)) {
-          commonSnackBar(
-              message: '${AppStrings.closingTimeMustBeAfterOpening.tr} '
-                  '(${_dayLabelKey(day).tr})');
-          return;
-        }
-        schedule.add(
-          Schedule(
-            day: day,
-            isOpen: hours.isOpen,
-            shopOpenTime: hours.isOpen ? _hhmm(hours.open) : null,
-            shopCloseTime: hours.isOpen ? _hhmm(hours.close) : null,
-          ),
-        );
-      }
-    } else {
-      if (!_isBefore(_dailyOpen, _dailyClose)) {
-        commonSnackBar(message: AppStrings.closingTimeMustBeAfterOpening.tr);
-        return;
-      }
-      for (final day in _days) {
-        schedule.add(
-          Schedule(
-            day: day,
-            isOpen: true,
-            shopOpenTime: _hhmm(_dailyOpen),
-            shopCloseTime: _hhmm(_dailyClose),
-          ),
-        );
-      }
+      schedule.add(
+        Schedule(
+          day: day,
+          isOpen: hours.isOpen,
+          shopOpenTime: hours.isOpen ? _hhmm(hours.open) : null,
+          shopCloseTime: hours.isOpen ? _hhmm(hours.close) : null,
+        ),
+      );
     }
 
     // Persist the weekly schedule via the host (business or individual
@@ -563,9 +439,6 @@ class _ShopAvailabilityScreenState
         return day;
     }
   }
-
-  bool _eq(TimeOfDay a, TimeOfDay b) =>
-      a.hour == b.hour && a.minute == b.minute;
 
   bool _isBefore(TimeOfDay a, TimeOfDay b) =>
       a.hour * 60 + a.minute < b.hour * 60 + b.minute;

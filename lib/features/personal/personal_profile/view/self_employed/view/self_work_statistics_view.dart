@@ -50,11 +50,24 @@ class SelfWorkStatisticsView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _PeriodSelector(controller: controller),
-            SizedBox(height: SizeConfig.size12),
-            if (controller.isSample) ...[
-              const _SampleDataBanner(),
-              SizedBox(height: SizeConfig.size12),
+            // The dates the tab is actually reporting on, straight from the
+            // response. "This Week" is a label; this is the answer to "which
+            // week?", and it also confirms the numbers moved when the worker
+            // switches tabs.
+            if (data != null && _rangeLabel(data.range) != null) ...[
+              SizedBox(height: SizeConfig.size8),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+                child: CustomText(
+                  _rangeLabel(data.range)!,
+                  fontSize: SizeConfig.small11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                ),
+              ),
             ],
+            SizedBox(height: SizeConfig.size12),
             if (status == Status.LOADING && data == null)
               const _StatsLoading()
             else if (status == Status.ERROR && data == null)
@@ -123,6 +136,37 @@ String _money(double value) => '₹${_grouped.format(value.round())}';
 String _count(num value) => _grouped.format(value);
 
 String _pct(double value) => '${value.round()}%';
+
+/// The window under the period tabs: `7 Aug`, `3 – 7 Aug`, `28 Jul – 3 Aug`,
+/// `28 Dec 2025 – 3 Jan 2026`.
+///
+/// The year is printed only when the window isn't in the current one — on a
+/// dashboard showing this week, "2026" is a fact nobody needed. Collapses to a
+/// single date when the window is one day (`period=today`), because "7 Aug –
+/// 7 Aug" reads like a bug.
+///
+/// Null when the backend didn't send `range`, and the line is then not drawn.
+String? _rangeLabel(SelfWorkStatsRange range) {
+  final from = range.from;
+  final to = range.to;
+  if (from == null || to == null) return null;
+
+  final thisYear = DateTime.now().year;
+  final needsYear = from.year != thisYear || to.year != thisYear;
+  final end = needsYear ? _fullDate.format(to) : _dayMonth.format(to);
+
+  if (from.year == to.year && from.month == to.month) {
+    if (from.day == to.day) return end;
+    // Same month — the month name only needs saying once.
+    return '${_dayOnly.format(from)} – $end';
+  }
+  if (from.year == to.year) return '${_dayMonth.format(from)} – $end';
+  return '${_fullDate.format(from)} – ${_fullDate.format(to)}';
+}
+
+final DateFormat _dayOnly = DateFormat('d');
+final DateFormat _dayMonth = DateFormat('d MMM');
+final DateFormat _fullDate = DateFormat('d MMM yyyy');
 
 String _hoursMinutes(int minutes) {
   if (minutes <= 0) return '0m';
@@ -392,44 +436,6 @@ class _PeriodSelector extends StatelessWidget {
   }
 }
 
-/// Shown while the numbers are invented rather than fetched. Loud on purpose: a
-/// worker must never mistake a layout preview for their actual earnings.
-class _SampleDataBanner extends StatelessWidget {
-  const _SampleDataBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.yellow00.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.yellow00.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline_rounded,
-              size: SizeConfig.size16, color: AppColors.yellow00),
-          SizedBox(width: SizeConfig.size8),
-          Expanded(
-            child: CustomText(
-              'Sample data — live statistics are not connected yet',
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-              maxLines: 2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatsLoading extends StatelessWidget {
   const _StatsLoading();
 
@@ -680,6 +686,12 @@ class _TrendCard extends StatelessWidget {
     // deciding whether to go live tomorrow.
     final chartMax = maxY <= 0 ? 1.0 : maxY * 1.2;
 
+    // A month sends up to 31 points. Labelling every one overlaps them into a
+    // smear, and weekday names repeat four or five times over that window — so
+    // past a week the axis thins out to ~6 ticks and switches to day numbers.
+    final weekOrLess = trend.length <= 8;
+    final tickEvery = weekOrLess ? 1 : (trend.length / 6).ceil();
+
     return _Card(
       title: 'Earnings trend',
       child: Column(
@@ -723,16 +735,19 @@ class _TrendCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 22,
-                      interval: 1,
+                      interval: tickEvery.toDouble(),
                       getTitlesWidget: (value, _) {
                         final i = value.round();
                         if (i < 0 || i >= trend.length) {
                           return const SizedBox.shrink();
                         }
+                        // Belt and braces: fl_chart can still ask for an
+                        // off-interval tick at the axis ends.
+                        if (i % tickEvery != 0) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            trend[i].shortLabel,
+                            weekOrLess ? trend[i].shortLabel : trend[i].dayLabel,
                             style: TextStyle(
                               color: AppColors.secondaryTextColor,
                               fontSize: SizeConfig.extraSmall,
@@ -1008,10 +1023,15 @@ class _ReputationCard extends StatelessWidget {
           ],
           SizedBox(height: SizeConfig.size14),
           _MetricRow(metrics: [
-            _Metric(
-              value: _pct(reputation.onTimeRate),
-              label: 'Finished on time',
-            ),
+            // On-time is hidden rather than shown as 0%. The guide (§3
+            // `reputation`) says to send `onTimeRate: 0` where there is no
+            // "promised completion time" concept yet — rendering that reads as
+            // "you are never on time", which is the opposite of the truth.
+            if (reputation.onTimeRate > 0)
+              _Metric(
+                value: _pct(reputation.onTimeRate),
+                label: 'Finished on time',
+              ),
             _Metric(
               value: _count(reputation.unansweredReviews),
               label: 'Reviews to reply to',

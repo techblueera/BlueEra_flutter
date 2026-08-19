@@ -42,6 +42,24 @@ import 'package:get/get.dart';
 /// > longer a way to PAY it from this screen. Those gates have to move onto
 /// > `/account-plan/my-plans` — see `docs/DEPOSIT_TO_PAID_PLAN_REDESIGN.txt`
 /// > §7–8.
+/// The supported way to open [ContributionScreen] — **use this instead of
+/// `Get.to(() => const ContributionScreen())`.**
+///
+/// A guest account has nothing to buy a plan FOR: the catalog is scoped to the
+/// buyer's account type and entity tag ([AccountPlanTag.resolve]), and a guest
+/// has neither, so the screen would come back empty and any purchase would fail
+/// at `initiate`. Guests are sent to profile creation instead — the step that
+/// actually unblocks them.
+///
+/// Returns the navigation future either way, so callers that `await` the return
+/// (to refresh entitlements after a purchase) keep working unchanged; for a
+/// guest that future completes as soon as the create-profile route is pushed
+/// and the refresh that follows is a harmless no-op.
+Future<dynamic> openContributionScreen() {
+  if (isGuestUser()) return createProfileScreen();
+  return Get.to(() => const ContributionScreen()) ?? Future<dynamic>.value();
+}
+
 class ContributionScreen extends StatefulWidget {
   const ContributionScreen({super.key});
 

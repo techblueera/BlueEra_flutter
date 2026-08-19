@@ -1,8 +1,14 @@
 /// Models for `GET map-service/api/nearby/discover`.
 /// See docs/backend/nearby-discover-integration.md.
 ///
-/// This app currently consumes only the **stores** slice (the "Nearest Stores"
-/// rail); the services/riders buckets are parsed lazily elsewhere if needed.
+/// The response is bucketed per vertical — `grocery`, `food`, `product` and
+/// (newer) `healthcare` — each a list of `{category, count, items}`.
+///
+/// The `services` and `riders` worker buckets are no longer part of the
+/// response. They are still parsed when present: the parser costs nothing when
+/// the keys are absent, and dropping the support would mean re-deriving it if
+/// the workers come back. Everything downstream already renders an empty
+/// worker list as "no workers", not as an error.
 
 double _toDouble(dynamic v) =>
     v == null ? 0 : (v is num ? v.toDouble() : double.tryParse('$v') ?? 0);
@@ -23,6 +29,11 @@ class NearbyStoreCard {
   final String address;
   final double distance; // km
   final double avgRating;
+
+  /// How many ratings [avgRating] is an average OF. A rating with no ratings
+  /// behind it is not a 0-star store, so the UI shows the score only when this
+  /// is above zero.
+  final int totalRatings;
   final int totalProductCount;
   final int totalCategoryCount;
   final String? subCategoryName;
@@ -45,6 +56,7 @@ class NearbyStoreCard {
     required this.address,
     required this.distance,
     required this.avgRating,
+    required this.totalRatings,
     required this.totalProductCount,
     required this.totalCategoryCount,
     required this.subCategoryName,
@@ -80,6 +92,7 @@ class NearbyStoreCard {
       address: _str(json['address']),
       distance: _toDouble(json['distance']),
       avgRating: _toDouble(json['avg_rating']),
+      totalRatings: _toInt(json['total_ratings']),
       totalProductCount: _toInt(json['total_product_count']),
       totalCategoryCount: _toInt(json['total_category_count']),
       subCategoryName: (sub is Map) ? _str(sub['name']) : null,
@@ -167,16 +180,31 @@ class NearbyDiscoverResult {
   final List<NearbyWorkerCard> riders;
   final List<String> degraded;
 
+  /// The radius the backend actually searched, from `meta.radius` (km). Read
+  /// back rather than assumed: it's the difference between a screen that says
+  /// "nothing within 5 km" and one that says "nothing nearby", and the server
+  /// is free to answer on a radius other than the one requested.
+  final double radiusKm;
+
   const NearbyDiscoverResult({
     required this.stores,
     required this.services,
     required this.riders,
     required this.degraded,
+    required this.radiusKm,
   });
 
-  /// The three store sections, in the guide's render order (riders → **grocery**
-  /// → **food** → services → **product**).
-  static const List<String> _storeSectionKeys = ['grocery', 'food', 'product'];
+  /// The store sections on `data`, in render order. **Healthcare** joined the
+  /// response alongside the original three — `meta.types` now answers
+  /// `["Grocery","Food","Product","Healthcare"]` — and a section this list
+  /// doesn't name is silently dropped, so a new vertical has to be added here
+  /// or its stores never reach the UI.
+  static const List<String> _storeSectionKeys = [
+    'grocery',
+    'food',
+    'product',
+    'healthcare',
+  ];
 
   /// True when a slice the rail renders failed upstream (an outage) rather than
   /// genuinely having nothing nearby — see the guide's §4 `meta.degraded` table.
@@ -184,9 +212,22 @@ class NearbyDiscoverResult {
   /// kill only their own.
   bool get storesDegraded =>
       degraded.contains('businesses') ||
-      degraded.contains('grocery_inventory') ||
-      degraded.contains('food_inventory') ||
-      degraded.contains('product_inventory');
+      degraded.any(_inventoryLabels.contains);
+
+  /// Per-vertical inventory outages — each takes out ONE section of the
+  /// response while the call still answers 200.
+  ///
+  /// Only ever read in aggregate: the "Near you" screen used to name the failed
+  /// vertical in an advisory strip, but the backend carries a label here on
+  /// essentially every call, so the warning was permanent and told the user
+  /// nothing they could act on. What survives is [storesDegraded], which the
+  /// rail uses to offer a retry instead of an empty state.
+  static const Set<String> _inventoryLabels = {
+    'grocery_inventory',
+    'food_inventory',
+    'product_inventory',
+    'medical_inventory',
+  };
 
   /// `services` and `riders` both come from the profession master, so one label
   /// takes out both worker slices.
@@ -240,6 +281,7 @@ class NearbyDiscoverResult {
       services: services,
       riders: riders,
       degraded: degraded,
+      radiusKm: (meta is Map) ? _toDouble(meta['radius']) : 0,
     );
   }
 

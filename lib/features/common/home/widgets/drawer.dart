@@ -591,7 +591,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             icon: Icons.workspace_premium_rounded,
             color: _gold,
             title: AppStrings.contribution.tr,
-            onTap: () => Get.to(() => const ContributionScreen()),
+            onTap: () => openContributionScreen(),
           ),
         _DrawerItem(
           icon: Icons.payments_outlined,

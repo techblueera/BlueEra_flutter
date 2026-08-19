@@ -8,6 +8,11 @@
 /// See `docs/backend/RIDER_STATISTICS_API_GUIDE.md` for the full contract.
 class RiderStatisticsModel {
   final String period;
+
+  /// The window the numbers cover, as the backend computed it in the rider's
+  /// timezone. Shown under the period tabs so "this week" is never ambiguous.
+  final RiderStatsRange range;
+
   final RiderEarningsStats earnings;
   final RiderTripStats trips;
   final RiderPerformanceStats performance;
@@ -24,6 +29,7 @@ class RiderStatisticsModel {
 
   const RiderStatisticsModel({
     this.period = 'today',
+    this.range = const RiderStatsRange(),
     this.earnings = const RiderEarningsStats(),
     this.trips = const RiderTripStats(),
     this.performance = const RiderPerformanceStats(),
@@ -36,6 +42,7 @@ class RiderStatisticsModel {
     final trendRaw = json['trend'];
     return RiderStatisticsModel(
       period: json['period']?.toString() ?? 'today',
+      range: RiderStatsRange.fromJson(_map(json['range'])),
       earnings: RiderEarningsStats.fromJson(_map(json['earnings'])),
       trips: RiderTripStats.fromJson(_map(json['trips'])),
       performance: RiderPerformanceStats.fromJson(_map(json['performance'])),
@@ -57,6 +64,46 @@ class RiderStatisticsModel {
   /// state over a grid of zeros.
   bool get isEmpty =>
       earnings.total == 0 && trips.completed == 0 && trips.onlineMinutes == 0;
+}
+
+/// The window the numbers cover — `range.from` / `range.to`, ISO-8601 with the
+/// rider's local UTC offset (`2026-08-03T00:00:00+05:30`).
+///
+/// Held as plain calendar dates, not instants. See [_calendarDate] for why that
+/// is the only correct reading of these two strings.
+class RiderStatsRange {
+  final DateTime? from;
+  final DateTime? to;
+
+  const RiderStatsRange({this.from, this.to});
+
+  factory RiderStatsRange.fromJson(Map<String, dynamic> json) {
+    return RiderStatsRange(
+      from: _calendarDate(json['from']),
+      to: _calendarDate(json['to']),
+    );
+  }
+
+  /// Both ends present, so the header has something to show. A backend that
+  /// omits `range` renders no line rather than a half one.
+  bool get isComplete => from != null && to != null;
+
+  /// Takes the DATE PART of the string and reads it as a plain local date.
+  ///
+  /// `DateTime.parse("2026-08-03T00:00:00+05:30")` is correct but not what we
+  /// want: it returns the equivalent UTC *instant* (02 Aug 18:30Z), whose
+  /// `.day` is **2**, so a week starting Monday the 3rd would print as starting
+  /// Sunday the 2nd. `.toLocal()` fixes that only for devices in the rider's
+  /// timezone and re-breaks it for anyone travelling.
+  ///
+  /// The backend already computed these boundaries in the rider's timezone
+  /// (guide §1), so the calendar date it wrote down IS the answer — no
+  /// conversion should happen on this side at all.
+  static DateTime? _calendarDate(dynamic value) {
+    final raw = value?.toString();
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw.split('T').first);
+  }
 }
 
 /// `data._meta` — the backend telling us which numbers it cannot source yet.
@@ -214,11 +261,34 @@ class RiderTrendPoint {
 
   /// Single-letter-ish weekday for the axis (`Mon`), or the raw string when the
   /// date can't be parsed — the chart never shows an empty tick.
+  ///
+  /// Only meaningful for a window of a week or less. A month brings the same
+  /// weekday round four or five times, so the chart uses [dayLabel] there.
   String get shortLabel {
     final parsed = DateTime.tryParse(date);
     if (parsed == null) return date;
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return names[(parsed.weekday - 1).clamp(0, 6)];
+  }
+
+  /// Day of the month (`1`, `14`, `31`), for windows long enough that weekday
+  /// names repeat.
+  String get dayLabel {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date;
+    return '${parsed.day}';
+  }
+
+  /// `14 Aug` — used where a bare weekday or day number would be ambiguous out
+  /// of the axis's context, like the "best day" caption under the chart.
+  String get mediumLabel {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date;
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${parsed.day} ${months[(parsed.month - 1).clamp(0, 11)]}';
   }
 }
 

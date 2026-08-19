@@ -283,7 +283,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     );
     // Refresh on return so a freshly-paid deposit + updated freeServiceUsed
     // are picked up.
-    Get.to(() => const ContributionScreen())?.then((_) {
+    openContributionScreen().then((_) {
       _viewCtrl.viewPersonalProfile(forceRefresh: true);
       AccountPlanEntitlement.to.refresh();
     });

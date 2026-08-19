@@ -42,6 +42,10 @@ class NearbyStoresController extends GetxController {
   /// user can't recover from "nothing nearby" when the truth is "we failed".
   final RxBool degraded = false.obs;
 
+  /// The radius the backend searched, in km (`meta.radius`). 0 until the first
+  /// response lands.
+  final RxDouble radiusKm = 0.0.obs;
+
   final FetchCache _cache = FetchCache(ttl: const Duration(hours: 24));
 
   /// A persisted set older than this triggers a silent background refresh on
@@ -165,6 +169,7 @@ class NearbyStoresController extends GetxController {
     stores.assignAll(parsed.stores);
     services.assignAll(parsed.services);
     riders.assignAll(parsed.riders);
+    if (parsed.radiusKm > 0) radiusKm.value = parsed.radiusKm;
   }
 
   /// Re-parse a persisted raw response. The JSON round-trip normalises nested

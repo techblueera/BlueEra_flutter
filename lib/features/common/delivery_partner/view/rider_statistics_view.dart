@@ -37,11 +37,24 @@ class RiderStatisticsView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _PeriodSelector(controller: controller),
-            SizedBox(height: SizeConfig.size12),
-            if (controller.isSample) ...[
-              const _SampleDataBanner(),
-              SizedBox(height: SizeConfig.size12),
+            // The dates these numbers actually cover, straight from the
+            // response. "This Week" is a label; this is the answer to "which
+            // week?", and it confirms the window moved when the rider switches
+            // tabs.
+            if (data != null && _rangeLabel(data.range) != null) ...[
+              SizedBox(height: SizeConfig.size8),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+                child: CustomText(
+                  _rangeLabel(data.range)!,
+                  fontSize: SizeConfig.small11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                ),
+              ),
             ],
+            SizedBox(height: SizeConfig.size12),
             if (status == Status.LOADING && data == null)
               const _StatsLoading()
             else if (status == Status.ERROR && data == null)
@@ -125,6 +138,37 @@ String _errorBody(String? message) {
   return looksInternal ? fallback : text;
 }
 
+/// The window under the period tabs: `7 Aug`, `3 – 7 Aug`, `28 Jul – 3 Aug`,
+/// `28 Dec 2025 – 3 Jan 2026`.
+///
+/// The year is printed only when the window isn't in the current one — on a
+/// dashboard showing this week, "2026" is a fact nobody needed. Collapses to a
+/// single date when the window is one day (`period=today`), because "7 Aug –
+/// 7 Aug" reads like a bug.
+///
+/// Null when the backend didn't send `range`, and the line is then not drawn.
+String? _rangeLabel(RiderStatsRange range) {
+  final from = range.from;
+  final to = range.to;
+  if (from == null || to == null) return null;
+
+  final thisYear = DateTime.now().year;
+  final needsYear = from.year != thisYear || to.year != thisYear;
+  final end = needsYear ? _fullDate.format(to) : _dayMonth.format(to);
+
+  if (from.year == to.year && from.month == to.month) {
+    if (from.day == to.day) return end;
+    // Same month — the month name only needs saying once.
+    return '${_dayOnly.format(from)} – $end';
+  }
+  if (from.year == to.year) return '${_dayMonth.format(from)} – $end';
+  return '${_fullDate.format(from)} – ${_fullDate.format(to)}';
+}
+
+final DateFormat _dayOnly = DateFormat('d');
+final DateFormat _dayMonth = DateFormat('d MMM');
+final DateFormat _fullDate = DateFormat('d MMM yyyy');
+
 String _hoursMinutes(int minutes) {
   if (minutes <= 0) return '0m';
   final h = minutes ~/ 60;
@@ -181,44 +225,6 @@ class _PeriodSelector extends StatelessWidget {
         ),
       );
     });
-  }
-}
-
-/// Shown while the numbers are invented rather than fetched. Loud on purpose:
-/// a rider must never mistake a layout preview for their actual earnings.
-class _SampleDataBanner extends StatelessWidget {
-  const _SampleDataBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.yellow00.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.yellow00.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline_rounded,
-              size: SizeConfig.size16, color: AppColors.yellow00),
-          SizedBox(width: SizeConfig.size8),
-          Expanded(
-            child: CustomText(
-              'Sample data — live statistics are not connected yet',
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-              maxLines: 2,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -518,6 +524,17 @@ class _EarningsTrendCard extends StatelessWidget {
     final maxY = maxEarning <= 0 ? 100.0 : maxEarning * 1.25;
     final bestIndex = trend.indexWhere((e) => e.earnings == maxEarning);
 
+    // A month sends up to 31 points. At the week's bar width those bars are
+    // wider than the card and overlap into a solid block, and a label under
+    // every one smears — so both scale with the count, and past a week the
+    // ticks become day numbers (weekday names repeat four or five times over
+    // a month, which makes them worse than useless).
+    final weekOrLess = trend.length <= 8;
+    final tickEvery = weekOrLess ? 1 : (trend.length / 6).ceil();
+    final barWidth = weekOrLess
+        ? SizeConfig.size18
+        : (trend.length <= 16 ? SizeConfig.size10 : SizeConfig.size6);
+
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
@@ -563,10 +580,13 @@ class _EarningsTrendCard extends StatelessWidget {
                         if (i < 0 || i >= trend.length) {
                           return const SizedBox.shrink();
                         }
+                        if (i % tickEvery != 0) return const SizedBox.shrink();
                         return Padding(
                           padding: EdgeInsets.only(top: SizeConfig.size6),
                           child: CustomText(
-                            trend[i].shortLabel,
+                            weekOrLess
+                                ? trend[i].shortLabel
+                                : trend[i].dayLabel,
                             fontSize: SizeConfig.extraSmall,
                             color: AppColors.secondaryTextColor,
                           ),
@@ -611,7 +631,7 @@ class _EarningsTrendCard extends StatelessWidget {
                       barRods: [
                         BarChartRodData(
                           toY: trend[i].earnings,
-                          width: SizeConfig.size18,
+                          width: barWidth,
                           // Rounded data-end, square base — the bar is anchored
                           // to the baseline, so only the top is capped.
                           borderRadius: const BorderRadius.vertical(
@@ -644,7 +664,7 @@ class _EarningsTrendCard extends StatelessWidget {
               SizedBox(width: SizeConfig.size6),
               Expanded(
                 child: CustomText(
-                  'Best day: ${trend[bestIndex].shortLabel} · '
+                  'Best day: ${weekOrLess ? trend[bestIndex].shortLabel : trend[bestIndex].mediumLabel} · '
                   '${_money(trend[bestIndex].earnings)}',
                   fontSize: SizeConfig.small11,
                   color: AppColors.secondaryTextColor,

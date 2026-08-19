@@ -263,7 +263,7 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
         subtitle = AppStrings.toGetOrderVisibility.tr;
       }
       return _ActionCard(
-        onTap: () => Get.to(() => const ContributionScreen()),
+        onTap: () => openContributionScreen(),
         background: const [Color(0xFFF3ECFF), Color(0xFFE2D0FB)],
         border: const Color(0xFF844CD5),
         accent: const [Color(0xFF6D3BD0), Color(0xFF4B2A8E)],

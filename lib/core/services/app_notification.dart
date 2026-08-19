@@ -3449,7 +3449,7 @@ class AppNotificationHandler {
       case 'subscription_cancelled':
       case 'subscription_expired':
       case 'recharge_activated':
-        Get.to(() => const ContributionScreen());
+        openContributionScreen();
         break;
 
       default:

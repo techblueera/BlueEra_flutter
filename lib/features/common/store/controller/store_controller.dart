@@ -53,6 +53,16 @@ class StoreController extends GetxController{
   String? typeOfBusiness;
   String? businessCategoryId;
 
+  /// Search radius (km) sent with the near-by store request.
+  ///
+  /// [kmRadius300] is the app-wide default; a screen that needs a different
+  /// reach sets this where it sets [typeOfBusiness] and restores the default
+  /// when it leaves — this controller is a shared singleton, so an un-restored
+  /// value would follow the user into the next store screen. It is part of
+  /// [_storeIdentity] as well, so two screens on different radii can never
+  /// serve each other's cached list.
+  int searchRadiusKm = kmRadius300;
+
   /// Optional `subCategory` filter for the near-by store search — the
   /// sub-category's `_id`, one level below [businessCategoryId]. Used by the
   /// auto-parts discover screen, whose tabs ARE the sub-categories; null on
@@ -253,14 +263,15 @@ class StoreController extends GetxController{
     }
   }
 
-  /// `stores|<user>|<type>|<category>` — the dataset *identity*. Location is no
+  /// `stores|<user>|<type>|<category>|<subCategory>|<radius>` — the dataset
+  /// *identity*. Location is no
   /// longer baked into the key; instead it's tracked as a distance delta (see
   /// [_lastStoreFetchLat]/[_lastStoreFetchLng] + [_moveInvalidationMeters]) so
   /// a small walk doesn't refetch but a real relocation does. This is also the
   /// Hive key, so each (user, type, category) gets its own persisted entry.
   String get _storeIdentity =>
       'stores|$userId|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}'
-      '|${businessSubCategoryId ?? ''}';
+      '|${businessSubCategoryId ?? ''}|$searchRadiusKm';
 
   /// `services|<user>|<category>` — service search ignores [typeOfBusiness].
   String get _serviceIdentity => 'services|$userId|${businessCategoryId ?? ''}';
@@ -472,7 +483,7 @@ class StoreController extends GetxController{
         ApiKeys.lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "0.0",
         ApiKeys.lng: LocationService.lng != 0.0 ? "${LocationService.lng}" : "0.0",
         ApiKeys.typeOfBusiness: typeOfBusiness,
-        ApiKeys.radius: kmRadius300
+        ApiKeys.radius: searchRadiusKm
       };
       if (businessCategoryId != null) {
         queryParams[ApiKeys.category] = businessCategoryId;
