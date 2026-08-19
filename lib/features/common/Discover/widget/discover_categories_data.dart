@@ -1,5 +1,5 @@
+import 'package:BlueEra/core/constants/discover_category_images.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/discover_icon_assets.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 
@@ -45,33 +45,33 @@ String? apiCategoryIcon(List<CategoryData> apiCategories, String? slugId) {
 ///
 /// Routing is uniform — every tile opens the shared Home Made Food discover
 /// flow (see `HmfCategoryDiscoverScreen`) — but the artwork is no longer a
-/// "closest existing icon" stand-in: the 2026 [DiscoverIcons] set ships one
-/// drawn for each of these five.
+/// "closest existing icon" stand-in: [DiscoverCategoryImages] ships one drawn
+/// for each of these five.
 final List<CollapsibleGridModel> discoverHomeMadeFoodCategories = [
   CollapsibleGridModel(
     name: 'Tiffin',
     slugId: 'HOME_MADE_FOOD',
-    icon: DiscoverIcons.tiffin,
+    icon: DiscoverCategoryImages.homeMadeFoodTiffin,
   ),
   CollapsibleGridModel(
     name: 'Bakery',
     slugId: 'HOME_MADE_FOOD',
-    icon: DiscoverIcons.bakery,
+    icon: DiscoverCategoryImages.homeMadeFoodBakery,
   ),
   CollapsibleGridModel(
     name: 'Sweets',
     slugId: 'HOME_MADE_FOOD',
-    icon: DiscoverIcons.sweets,
+    icon: DiscoverCategoryImages.homeMadeFoodSweets,
   ),
   CollapsibleGridModel(
     name: 'Namkeen',
     slugId: 'HOME_MADE_FOOD',
-    icon: DiscoverIcons.namkeen,
+    icon: DiscoverCategoryImages.homeMadeFoodNamkeen,
   ),
   CollapsibleGridModel(
     name: 'Pickles',
     slugId: 'HOME_MADE_FOOD',
-    icon: DiscoverIcons.pickles,
+    icon: DiscoverCategoryImages.homeMadeFoodPickles,
   ),
 ];
 
@@ -83,27 +83,27 @@ final List<CollapsibleGridModel> discoverHomeMadeProductCategories = [
   CollapsibleGridModel(
     name: 'Art & Craft',
     slugId: 'PRODUCT',
-    icon: DiscoverIcons.artCraft,
+    icon: DiscoverCategoryImages.homeMadeProductArtCraft,
   ),
   CollapsibleGridModel(
     name: 'Gift Items',
     slugId: 'PRODUCT',
-    icon: DiscoverIcons.giftItems,
+    icon: DiscoverCategoryImages.homeMadeProductGiftItems,
   ),
   CollapsibleGridModel(
     name: 'Handicrafts',
     slugId: 'PRODUCT',
-    icon: DiscoverIcons.handicrafts,
+    icon: DiscoverCategoryImages.homeMadeProductHandicrafts,
   ),
   CollapsibleGridModel(
     name: 'Textile',
     slugId: 'PRODUCT',
-    icon: DiscoverIcons.textile,
+    icon: DiscoverCategoryImages.homeMadeProductTextile,
   ),
   CollapsibleGridModel(
     name: 'Utility Product',
     slugId: 'PRODUCT',
-    icon: DiscoverIcons.utilityProduct,
+    icon: DiscoverCategoryImages.homeMadeProductUtility,
   ),
 ];
 
@@ -116,24 +116,24 @@ final List<CollapsibleGridModel> discoverHomeServicesCategories = [
   CollapsibleGridModel(
     name: 'Tailor',
     slugId: 'SERVICE',
-    // No tailoring icon in the 2026 set; textile (bolts of cloth) is the
-    // nearest subject in it and keeps the row on one style.
-    icon: DiscoverIcons.textile,
+    // Tailoring now has art of its own (a dress form, shears and thread). It
+    // used to borrow the textile bolts from the Home-Made Product row.
+    icon: DiscoverCategoryImages.homeServiceTailor,
   ),
   CollapsibleGridModel(
     name: 'Beautician',
     slugId: 'SERVICE',
-    icon: DiscoverIcons.beautyPersonalCare,
+    icon: DiscoverCategoryImages.homeServiceBeautician,
   ),
   CollapsibleGridModel(
     name: 'Interior Decor',
     slugId: 'SERVICE',
-    icon: DiscoverIcons.renovator,
+    icon: DiscoverCategoryImages.homeServiceInteriorDecor,
   ),
   CollapsibleGridModel(
     name: 'Digital Marketing',
     slugId: 'SERVICE',
-    icon: DiscoverIcons.mediaPublicity,
+    icon: DiscoverCategoryImages.homeServiceDigitalMarketing,
   ),
 ];
 

@@ -293,6 +293,11 @@ class UserAccountPlan {
   final int totalAmount;
   final DateTime? activatedAt;
 
+  /// The refund window on this purchase — see [PlanRefund]. Never absent in
+  /// practice, but parsed leniently: a backend that has not shipped the block
+  /// yet reads as "refunds are off", which hides the control.
+  final PlanRefund refund;
+
   const UserAccountPlan({
     required this.id,
     required this.optionCode,
@@ -304,6 +309,7 @@ class UserAccountPlan {
     required this.jobTypes,
     required this.totalAmount,
     required this.activatedAt,
+    required this.refund,
   });
 
   factory UserAccountPlan.fromJson(Map<String, dynamic> j) => UserAccountPlan(
@@ -317,6 +323,7 @@ class UserAccountPlan {
         jobTypes: (j['job_types'] as List?)?.map((e) => e.toString()).toList(),
         totalAmount: _asInt(j['total_amount']),
         activatedAt: DateTime.tryParse(j['activated_at']?.toString() ?? ''),
+        refund: PlanRefund.fromJson(j['refund']),
       );
 
   bool get isActive => status == 'active';
@@ -324,6 +331,108 @@ class UserAccountPlan {
   /// Whether this purchase is a sales-capped shop plan — the gate on calling
   /// `sales/usage` at all. See [PlanArchetype.salesShop].
   bool get isSalesShop => archetype == PlanArchetype.salesShop;
+}
+
+/// `my-plans[].refund` — the refund window on one purchase.
+///
+/// Plans are refundable, but narrowly: the fee (GST excluded) can be returned
+/// only after **6 months**, for a **10-day window**, and only if the account
+/// earned less than the plan cost. All three tests are the server's — this
+/// object is the answer, and [canRequestRefund] is the only thing that decides
+/// whether the button works.
+///
+/// Nothing here is computed client-side on purpose. Comparing
+/// [refundEligibleAt] against the device clock would put the decision on a
+/// clock the user can change, and re-deriving "6 months" would hard-code a
+/// policy the backend is free to move. The dates below are for the DISABLED
+/// label only ("available after…"), never for enabling anything.
+class PlanRefund {
+  /// Server kill-switch. False hides the refund control entirely — the guide is
+  /// explicit that the whole feature can be turned off backend-side.
+  final bool refundSystemEnabled;
+
+  /// Whether this plan is refundable at all. False for free plans, which never
+  /// took money to give back.
+  final bool refundable;
+
+  /// `none | requested | approved | refunded | rejected | expired`.
+  final String refundStatus;
+
+  /// When the window opens (activation + 6 months) and closes (+10 days).
+  final DateTime? refundEligibleAt;
+  final DateTime? refundWindowClosesAt;
+
+  final bool windowOpen;
+
+  /// **The only enable condition.** Everything else on this object explains a
+  /// disabled button; this one turns it on.
+  final bool canRequestRefund;
+
+  /// Base fee only — GST is not refunded. RUPEES.
+  final int refundableAmountInr;
+
+  final String? razorpayRefundId;
+  final DateTime? refundedAt;
+
+  const PlanRefund({
+    required this.refundSystemEnabled,
+    required this.refundable,
+    required this.refundStatus,
+    required this.refundEligibleAt,
+    required this.refundWindowClosesAt,
+    required this.windowOpen,
+    required this.canRequestRefund,
+    required this.refundableAmountInr,
+    required this.razorpayRefundId,
+    required this.refundedAt,
+  });
+
+  /// A missing block reads as "refunds are off" rather than as an error: a
+  /// backend that has not shipped this yet, and one that has switched it off,
+  /// should look the same to the user — no control.
+  factory PlanRefund.fromJson(dynamic raw) {
+    final j = raw is Map ? Map<String, dynamic>.from(raw) : const <String, dynamic>{};
+    return PlanRefund(
+      refundSystemEnabled: j['refund_system_enabled'] == true,
+      refundable: j['refundable'] == true,
+      refundStatus: j['refund_status']?.toString() ?? 'none',
+      refundEligibleAt:
+          DateTime.tryParse(j['refund_eligible_at']?.toString() ?? ''),
+      refundWindowClosesAt:
+          DateTime.tryParse(j['refund_window_closes_at']?.toString() ?? ''),
+      windowOpen: j['window_open'] == true,
+      canRequestRefund: j['can_request_refund'] == true,
+      refundableAmountInr: _asInt(j['refundable_amount_inr']),
+      razorpayRefundId: _asStr(j['razorpay_refund_id']),
+      refundedAt: DateTime.tryParse(j['refunded_at']?.toString() ?? ''),
+    );
+  }
+
+  /// Whether to draw the control at all. Off when the feature is disabled
+  /// server-side, and off for a free plan — "request a refund" on something
+  /// nobody paid for is a question with no answer.
+  bool get isVisible => refundSystemEnabled && refundable;
+
+  bool get isRequested => refundStatus == 'requested';
+  bool get isSettled =>
+      refundStatus == 'approved' || refundStatus == 'refunded';
+  bool get isRejected => refundStatus == 'rejected';
+
+  /// Window has been and gone — either the server said so, or the close date
+  /// is in the past with nothing having been asked for.
+  bool get isExpired {
+    if (refundStatus == 'expired') return true;
+    if (refundStatus != 'none') return false;
+    final closes = refundWindowClosesAt;
+    return closes != null && DateTime.now().isAfter(closes);
+  }
+
+  /// Still waiting for the window to open.
+  bool get isPending {
+    if (refundStatus != 'none' || canRequestRefund) return false;
+    final opens = refundEligibleAt;
+    return opens != null && DateTime.now().isBefore(opens);
+  }
 }
 
 /// `GET /account-plan/sales/usage` → `data`.

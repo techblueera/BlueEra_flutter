@@ -40,7 +40,11 @@ class DiscoverTilePlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (DiscoverIcons.isSelfContained(iconPath)) {
+    // [DiscoverIcons.fillsTile], not `isSelfContained`: a `/category` URL is
+    // artwork that already carries its own square, and plating it left the
+    // Grocery and Food tiles ringed with blank space while every bundled
+    // section beside them filled edge to edge.
+    if (DiscoverIcons.fillsTile(iconPath)) {
       return SizedBox(width: diameter, height: diameter, child: child);
     }
     return Container(
@@ -147,11 +151,26 @@ class _DiscoverSheetTileState extends State<DiscoverSheetTile> {
     final path = widget.iconPath;
     final borderRadius = BorderRadius.circular(20);
 
-    if (DiscoverIcons.isSelfContained(path)) {
-      // Ships its own tinted square — let it be the tile.
+    if (DiscoverIcons.fillsTile(path)) {
+      // Ships its own tinted square — let it be the tile. Network art takes
+      // this path too, at `contain` rather than `cover`, so a category that is
+      // still a bare cut-out scales inside the slot instead of being cropped.
       return ClipRRect(
         borderRadius: borderRadius,
-        child: LocalAssets(imagePath: path, boxFix: BoxFit.cover),
+        child: DiscoverIcons.isNetwork(path)
+            ? CachedNetworkImage(
+                imageUrl: path,
+                fit: DiscoverIcons.fitFor(path),
+                width: double.infinity,
+                height: double.infinity,
+                placeholder: (_, __) => const SizedBox.shrink(),
+                errorWidget: (_, __, ___) => const Icon(
+                  Icons.image_not_supported_outlined,
+                  color: AppColors.secondaryTextColor,
+                  size: 22,
+                ),
+              )
+            : LocalAssets(imagePath: path, boxFix: BoxFit.cover),
       );
     }
 
@@ -450,6 +469,11 @@ class DiscoverIconTile extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: iconPath,
         fit: fit,
+        // Fill the slot [DiscoverTilePlate] hands over. Without these the image
+        // lays out at its intrinsic size and floats in the middle — the same
+        // blank ring the plate used to draw, minus the plate.
+        width: double.infinity,
+        height: double.infinity,
         placeholder: (_, __) => const SizedBox.shrink(),
         errorWidget: (_, __, ___) => const Icon(
           Icons.image_not_supported_outlined,

@@ -6630,6 +6630,20 @@ class AppStrings {
   static const String yourPlanLabel = "yourPlanLabel";
   static const String planValidDaysFmt = "planValidDaysFmt";
 
+  // Refund on a paid account plan — guide §2.2.2.
+  static const String requestRefund = "requestRefund";
+  static const String refundAvailableAfterFmt = "refundAvailableAfterFmt";
+  static const String refundWindowClosed = "refundWindowClosed";
+  static const String refundUnderReview = "refundUnderReview";
+  static const String refundedAmountFmt = "refundedAmountFmt";
+  static const String refundDeclined = "refundDeclined";
+  static const String refundRequestSubmitted = "refundRequestSubmitted";
+  static const String refundRequestFailed = "refundRequestFailed";
+  static const String refundConfirmTitle = "refundConfirmTitle";
+  static const String refundConfirmBody = "refundConfirmBody";
+  static const String refundConfirmAmountFmt = "refundConfirmAmountFmt";
+  static const String refundCloseByFmt = "refundCloseByFmt";
+
   /// A1 SALES-SHOP usage meter on the active plan card. A sales plan ends when
   /// the shop sells through its cap, not on a date, so the card shows how much
   /// of the cap is spent — `GET /account-plan/sales/usage`, guide §2.2.1.

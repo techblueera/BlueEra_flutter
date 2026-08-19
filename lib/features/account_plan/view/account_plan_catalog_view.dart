@@ -212,6 +212,10 @@ class AccountPlanCatalogView extends StatelessWidget {
                 _ActivePlanCard(
                   card: plan,
                   usage: plan.isSalesShop ? controller.salesUsage.value : null,
+                  // The PURCHASE behind this card — it carries the refund
+                  // window, which the catalog card knows nothing about.
+                  purchase: controller.ownedPlanFor(plan),
+                  controller: controller,
                 )
               else
                 _PlanCardTile(
@@ -900,13 +904,27 @@ class _GstRequiredRow extends StatelessWidget {
 /// Motion is dropped entirely when the platform asks for reduced motion; the
 /// panel then stands on its gradient alone, which was designed to work still.
 class _ActivePlanCard extends StatefulWidget {
-  const _ActivePlanCard({required this.card, this.usage});
+  const _ActivePlanCard({
+    required this.card,
+    this.usage,
+    this.purchase,
+    this.controller,
+  });
 
   final PlanCard card;
 
   /// Sales consumed against this plan's cap — A1 sales shops only, and null
   /// until `sales/usage` has answered. See [_SalesUsageMeter].
   final SalesUsage? usage;
+
+  /// The user's purchase of [card] — the object that carries the refund
+  /// window. Null while `my-plans` is still loading, which simply means no
+  /// refund control yet.
+  final UserAccountPlan? purchase;
+
+  /// Needed only to submit a refund request. Null in any preview that has no
+  /// controller to talk to, which also hides the control.
+  final AccountPlanController? controller;
 
   @override
   State<_ActivePlanCard> createState() => _ActivePlanCardState();
@@ -1081,6 +1099,13 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                     SizedBox(height: SizeConfig.size14),
                     _SalesUsageMeter(usage: widget.usage!),
                   ],
+                  // Refund on this purchase. Drawn from the server's `refund`
+                  // object alone — see [_RefundControl].
+                  if (widget.purchase != null && widget.controller != null)
+                    _RefundControl(
+                      plan: widget.purchase!,
+                      controller: widget.controller!,
+                    ),
                   // Validity, when the plan carries one. No price line: a
                   // migrated plan was activated free, and stamping an amount
                   // on a card the user may never have paid would be a claim
@@ -1117,6 +1142,330 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
 
 /// "₹2,40,000 of ₹6,00,000 sales used" — the A1 sales plan's meter.
 ///
+/// The active panel's deepest green, used as INK on a white plate.
+///
+/// Written as a literal rather than `AccountPlanPalette.activePanel.first`
+/// because a list element is not a compile-time constant, and this has to be
+/// const to sit inside a `const Icon`. It is the same value — keep the two in
+/// step if the panel gradient is ever retuned.
+const Color _refundInk = Color(0xFF0B4C3C);
+
+/// The refund control on the active plan card.
+///
+/// Every state here is READ from the server's `refund` object (guide §2.2.2) —
+/// this widget decides nothing. `can_request_refund` is the only thing that
+/// enables the button; the dates are used for wording a DISABLED one and never
+/// for unlocking it, so a device with a wrong clock cannot talk its way into a
+/// request the server would refuse anyway.
+///
+/// Hidden entirely when refunds are switched off backend-side, and for free
+/// plans, which took no money to give back.
+///
+/// ## Two states, two shapes
+///
+/// This used to be one outlined pill for every state, which failed both of
+/// them. The pill was green-on-green — a 55%-white outline over the panel's own
+/// gradient — so the ONE state that can be tapped looked disabled; and the
+/// states that cannot be tapped (which is nearly always, the window opening six
+/// months after activation) looked like buttons that did nothing.
+///
+/// So the shape now follows the job: an action gets a real control (white
+/// plate, green label, the highest contrast this card has to offer), and a fact
+/// gets a line of text with an icon. A label labels, a button acts.
+class _RefundControl extends StatelessWidget {
+  const _RefundControl({required this.plan, required this.controller});
+
+  final UserAccountPlan plan;
+  final AccountPlanController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final refund = plan.refund;
+    if (!refund.isVisible) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.size14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.18)),
+          SizedBox(height: SizeConfig.size12),
+          // Two states, two shapes — see the class doc.
+          if (refund.canRequestRefund) _action(context) else _note(refund),
+        ],
+      ),
+    );
+  }
+
+  /// The rare, actionable state: a white plate with the card's own deep green
+  /// on it.
+  ///
+  /// White is the only value that reads instantly on a saturated green field —
+  /// the outlined pill this replaces was green-on-green at 55% white, which
+  /// looked disabled at exactly the moment it was not. Green TEXT rather than a
+  /// new accent keeps the control inside the card's palette instead of
+  /// importing a second hue for one button.
+  Widget _action(BuildContext context) {
+    return Obx(() {
+      final busy = controller.isRequestingRefund.value;
+      return Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(SizeConfig.size12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(SizeConfig.size12),
+          onTap: busy ? null : () => _confirm(context),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (busy)
+                  const SizedBox(
+                    width: 15,
+                    height: 15,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: _refundInk,
+                    ),
+                  )
+                else
+                  const Icon(
+                    Icons.assignment_return_outlined,
+                    size: 17,
+                    color: _refundInk,
+                  ),
+                SizedBox(width: SizeConfig.size8),
+                CustomText(
+                  AppStrings.requestRefund.tr,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w800,
+                  color: _refundInk,
+                  maxLines: 1,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// Every other state — and the one nearly every merchant sees, since the
+  /// window opens six months after activation.
+  ///
+  /// Deliberately NOT a button. "Refund available after 19 Feb 2027" is a fact,
+  /// not an offer, and drawing it inside a pill invited a tap that could never
+  /// land. Left-aligned with a small icon, it reads as the note it is; the
+  /// button shape is reserved for the one state that can be pressed.
+  Widget _note(PlanRefund refund) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(
+            _icon(refund),
+            size: SizeConfig.size14,
+            color: Colors.white.withValues(alpha: 0.62),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        Expanded(
+          child: CustomText(
+            _label(refund),
+            fontSize: SizeConfig.size12,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.72),
+            height: 1.35,
+            maxLines: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The note's wording, in the order the guide lists the states.
+  String _label(PlanRefund refund) {
+    if (refund.isRequested) return AppStrings.refundUnderReview.tr;
+    if (refund.isSettled) {
+      return AppStrings.refundedAmountFmt
+          .trParams({'amount': '${refund.refundableAmountInr}'});
+    }
+    if (refund.isRejected) return AppStrings.refundDeclined.tr;
+    if (refund.isPending) {
+      return AppStrings.refundAvailableAfterFmt
+          .trParams({'date': _date(refund.refundEligibleAt)});
+    }
+    // Expired, or a state the server gave no date to explain. "Closed" is the
+    // one thing true of every remaining case.
+    return AppStrings.refundWindowClosed.tr;
+  }
+
+  IconData _icon(PlanRefund refund) {
+    if (refund.isRequested) return Icons.hourglass_top_rounded;
+    if (refund.isSettled) return Icons.check_circle_outline_rounded;
+    if (refund.isRejected) return Icons.cancel_outlined;
+    return Icons.schedule_rounded;
+  }
+
+  static String _date(DateTime? value) {
+    if (value == null) return '';
+    final local = value.toLocal();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${local.day} ${months[(local.month - 1).clamp(0, 11)]} '
+        '${local.year}';
+  }
+
+  /// The terms the guide requires, stated BEFORE the user commits rather than
+  /// after. `tnc_accepted: true` on the request is this sheet having been
+  /// accepted, so it is not optional chrome.
+  void _confirm(BuildContext context) {
+    final refund = plan.refund;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size20,
+            SizeConfig.size16,
+            SizeConfig.size20,
+            SizeConfig.size20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.greyE5,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size16),
+              CustomText(
+                AppStrings.refundConfirmTitle.tr,
+                fontSize: SizeConfig.size16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+              SizedBox(height: SizeConfig.size6),
+              CustomText(
+                plan.optionLabel,
+                fontSize: SizeConfig.size13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondaryTextColor,
+              ),
+              SizedBox(height: SizeConfig.size12),
+              // The amount is the server's, and it is the BASE fee — GST is not
+              // refunded, which the body says in the same breath so the two
+              // numbers are never a surprise at settlement.
+              if (refund.refundableAmountInr > 0)
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(SizeConfig.size12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(SizeConfig.size10),
+                  ),
+                  child: CustomText(
+                    AppStrings.refundConfirmAmountFmt
+                        .trParams({'amount': '${refund.refundableAmountInr}'}),
+                    fontSize: SizeConfig.size15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              SizedBox(height: SizeConfig.size12),
+              CustomText(
+                AppStrings.refundConfirmBody.tr,
+                fontSize: SizeConfig.size13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                height: 1.45,
+                maxLines: 8,
+              ),
+              if (refund.refundWindowClosesAt != null) ...[
+                SizedBox(height: SizeConfig.size10),
+                CustomText(
+                  AppStrings.refundCloseByFmt
+                      .trParams({'date': _date(refund.refundWindowClosesAt)}),
+                  fontSize: SizeConfig.size12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+              ],
+              SizedBox(height: SizeConfig.size20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.greyE5),
+                        padding:
+                            EdgeInsets.symmetric(vertical: SizeConfig.size14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size12),
+                        ),
+                      ),
+                      child: CustomText(
+                        AppStrings.cancel.tr,
+                        fontSize: SizeConfig.size13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(sheetContext).pop();
+                        controller.requestRefund(plan);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding:
+                            EdgeInsets.symmetric(vertical: SizeConfig.size14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size12),
+                        ),
+                      ),
+                      child: CustomText(
+                        AppStrings.requestRefund.tr,
+                        fontSize: SizeConfig.size13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A sales plan doesn't expire on a date; it expires when the shop has sold
 /// through its cap, at which point the backend deactivates it and orders stop.
 /// That makes the remaining headroom the single most useful thing on this card,
@@ -1196,7 +1545,11 @@ class _SalesUsageMeter extends StatelessWidget {
           child: LinearProgressIndicator(
             value: usage.fraction,
             minHeight: SizeConfig.size8,
-            backgroundColor: Colors.white.withValues(alpha: 0.22),
+            // 0.30, not 0.22: a brand-new plan sits at 0%, where the track IS
+            // the whole widget. At 22% white on this gradient it read as a
+            // faint smudge, so the one card that most needs to say "nothing
+            // used yet" was the one that showed nothing at all.
+            backgroundColor: Colors.white.withValues(alpha: 0.30),
             valueColor: AlwaysStoppedAnimation<Color>(
               // Amber once it is nearly spent: still legible on green, and the
               // only place on this card that stops being plain white.

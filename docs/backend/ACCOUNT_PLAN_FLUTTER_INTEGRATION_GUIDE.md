@@ -195,6 +195,55 @@ if (isSalesShop) {
 > flow, same go-live gate. You are only *adding* an A1-conditional usage bar, not
 > changing any existing UI.
 
+### 2.2.2 Refund — request a refund on a paid plan ✅ LIVE
+Plans are now **refundable** (not one-time/lifetime): a paid plan's fee (GST excluded)
+can be refunded **only after 6 months, for a 10-day window**, and only if the user
+earned/sold **less than the plan price**. The user *requests*; an admin approves and
+the base amount is auto-refunded to the original payment method.
+
+**Where the data comes from:** every item in `GET /account-plan/my-plans` now
+carries a **`refund`** object — render the button straight from it, don't compute
+dates yourself:
+```json
+"refund": {
+  "refund_system_enabled": true,       // false ⇒ hide the button entirely
+  "refundable": true,                   // paid plan (free plans: false)
+  "refund_status": "none",              // none|requested|approved|refunded|rejected|expired
+  "refund_eligible_at": "2027-02-19T…", // window OPENS (activation + 6 months)
+  "refund_window_closes_at": "2027-03-01T…", // +10 days
+  "window_open": false,                 // now within [eligible_at, closes_at]
+  "can_request_refund": false,          // ← ENABLE the Refund button ONLY when true
+  "refundable_amount_inr": 300,         // base only, no GST
+  "razorpay_refund_id": null,
+  "refunded_at": null
+}
+```
+
+**Button rules (do exactly this):**
+- `refund_system_enabled == false` → **don't show** the Refund control at all.
+- `can_request_refund == true` → show an **enabled** "Request Refund" button.
+- Otherwise show it **disabled** with a reason from `refund_status` / dates:
+  - `refund_status == "none"` & now `< refund_eligible_at` → "Refund available after {date} (6 months)".
+  - `refund_status == "none"` & now `> refund_window_closes_at` → "Refund window closed".
+  - `requested` → "Refund requested — under review".
+  - `approved`/`refunded` → "Refunded ₹{refundable_amount_inr}".
+  - `rejected` → "Refund declined".
+
+**Request API:**
+```
+POST subscription-service/account-plan/{id}/refund-request   (user JWT)
+Body: { "tnc_accepted": true, "note": "optional reason" }
+```
+- `tnc_accepted` **must be true** — show a confirm sheet stating: *"Refundable only if your
+  total earnings/sales are less than the plan price. Only the plan fee is refunded (GST
+  is non-refundable). This is a one-time 10-day window."*
+- **200** → `{ success, data: { refund: {...} } }` (status now `requested`); refresh my-plans.
+- **400/403** → show `message` (outside window / already requested / refunds disabled).
+
+> **No UI change to existing screens** beyond adding this button on the my-plans /
+> contribution card. The whole feature can be turned off server-side
+> (`refund_system_enabled:false`) — when it is, just hide the button.
+
 ### 2.3 `POST subscription-service/account-plan/initiate` — start a purchase ✅ LIVE
 Body:
 ```json

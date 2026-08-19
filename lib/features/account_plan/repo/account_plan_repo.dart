@@ -122,6 +122,30 @@ class AccountPlanRepo extends BaseService {
         .getHTTP(accountPlanInvoiceById(accountPlanId), showProgress: false);
   }
 
+  /// `POST /account-plan/{id}/refund-request` — ask for the plan fee back.
+  ///
+  /// `tnc_accepted` must be true, so the caller has to have shown the terms —
+  /// the app never sends it without the confirm sheet having been accepted.
+  /// A 400/403 (outside the window, already requested, refunds disabled) comes
+  /// back with a `message` the UI shows verbatim.
+  ///
+  /// `showProgress: true`: unlike the reads on this repo, this is a deliberate
+  /// one-shot action the user just tapped, and it must not look ignorable while
+  /// it runs.
+  Future<ResponseModel> requestRefund({
+    required String accountPlanId,
+    String? note,
+  }) {
+    return ApiBaseHelper().postHTTP(
+      accountPlanRefundRequest(accountPlanId),
+      params: {
+        'tnc_accepted': true,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+      showProgress: true,
+    );
+  }
+
   /// `GET /migration/eligibility` — whether this deposit holder can be moved
   /// onto a free account plan, and which plan that would be.
   ///

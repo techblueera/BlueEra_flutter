@@ -57,9 +57,50 @@ class DiscoverIcons {
   /// True when [path] is one of these self-contained tiles, i.e. the caller
   /// must NOT draw a plate behind it. False for every other asset path and for
   /// network URLs.
+  ///
+  /// [DiscoverCategoryImages] counts too. Its art is the same kind — a
+  /// rounded square with the tint and the border baked in — and it sits in
+  /// `assets/discover_images/`, which is NOT a prefix match for
+  /// `assets/discover/` (the `_` lands where the `/` is expected). Without this
+  /// second prefix every one of those tiles was treated as a bare cut-out:
+  /// padded, shrunk to `contain`, and given a plate behind a background it
+  /// already had — the same "tinted square floating in a white one" the stay
+  /// renders hit above.
   static bool isSelfContained(String? path) =>
       path != null &&
-      (path.startsWith(_p) || _selfContainedElsewhere.contains(path));
+      (path.startsWith(_p) ||
+          path.startsWith(_discoverImagesPrefix) ||
+          _selfContainedElsewhere.contains(path));
+
+  /// Mirror of `DiscoverCategoryImages._p`. Duplicated rather than imported to
+  /// keep this file free of feature dependencies — the two must move together.
+  static const String _discoverImagesPrefix = 'assets/discover_images/';
+
+  /// A backend image rather than a bundled asset.
+  static bool isNetwork(String? path) =>
+      path != null &&
+      (path.startsWith('http://') || path.startsWith('https://'));
+
+  /// Whether [path] should be drawn EDGE-TO-EDGE — no plate behind it, no
+  /// padding around it.
+  ///
+  /// Wider than [isSelfContained] by exactly one case: `/category` URLs. Most
+  /// of that art now ships with its own tinted rounded square baked in, so a
+  /// plate drew a background behind a background — the Grocery and Food
+  /// folders showed a coloured square marooned in a white one while every
+  /// bundled section beside them filled its tile.
+  ///
+  /// The `/category` art that is still a bare transparent cut-out is safe here
+  /// because the FIT does not change with it: [fitFor] keeps network art on
+  /// `contain`, so a square baked source fills a square slot exactly while a
+  /// cut-out scales inside it with nothing cropped. That is the same
+  /// conclusion the pinned category strip reached for the same mixed source —
+  /// see `sticky_category_header_delegate.dart`.
+  ///
+  /// Use this for the PLATE decision and [fitFor] for the fit; they are
+  /// deliberately not the same question.
+  static bool fillsTile(String? path) =>
+      isSelfContained(path) || isNetwork(path);
 
   /// How [path] should fill its tile.
   ///

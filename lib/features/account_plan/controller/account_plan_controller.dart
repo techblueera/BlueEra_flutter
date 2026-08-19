@@ -151,6 +151,55 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
 
   bool ownsPlan(PlanCard card) => activeOptionCodes.contains(card.optionCode);
 
+  /// The PURCHASE behind a catalog card, or null when the user doesn't hold it.
+  ///
+  /// The catalog card is what the plan costs; this is what the user bought —
+  /// and only the purchase carries the refund window, so the refund control
+  /// reads through here rather than off the card.
+  UserAccountPlan? ownedPlanFor(PlanCard card) => myPlans.firstWhereOrNull(
+      (p) => p.isActive && p.optionCode == card.optionCode);
+
+  /// True while a refund request is in flight, so the tapped control can show
+  /// a spinner and stop a second tap creating a second request.
+  final RxBool isRequestingRefund = false.obs;
+
+  /// Ask for the plan fee back. The confirm sheet (with the terms the guide
+  /// dictates) is the CALLER's job — reaching here means the user accepted it,
+  /// which is what `tnc_accepted: true` asserts.
+  ///
+  /// Refreshes `my-plans` on success rather than patching the object in place:
+  /// the server owns `refund_status` and the window, and a locally-flipped
+  /// status that the next read disagreed with would be worse than a moment's
+  /// wait.
+  Future<void> requestRefund(UserAccountPlan plan, {String? note}) async {
+    if (isRequestingRefund.value || plan.id.isEmpty) return;
+    isRequestingRefund.value = true;
+    try {
+      final res = await _repo.requestRefund(accountPlanId: plan.id, note: note);
+      if (res.statusCode == 200) {
+        // The 200 body carries the updated refund object, but my-plans is what
+        // every card on this screen reads, so re-read it rather than keeping
+        // two copies that can disagree.
+        await fetchMyPlans();
+        commonSnackBar(message: AppStrings.refundRequestSubmitted.tr);
+        return;
+      }
+      // 400/403 carry the reason — outside the window, already requested,
+      // refunds disabled. The server's wording is more specific than anything
+      // this screen could say, so it is shown as sent.
+      commonSnackBar(
+        message: res.message?.toString().trim().isNotEmpty == true
+            ? res.message.toString()
+            : AppStrings.refundRequestFailed.tr,
+      );
+    } catch (e) {
+      debugPrint('❌ AccountPlanController.requestRefund error: $e');
+      commonSnackBar(message: AppStrings.refundRequestFailed.tr);
+    } finally {
+      isRequestingRefund.value = false;
+    }
+  }
+
   /// The active A1 sales plan, or null. Both halves of the guide's gate in one
   /// place: an ACTIVE plan (§2.2) whose archetype is `A1_SALES_SHOP` (§2.2.1).
   UserAccountPlan? get activeSalesPlan =>

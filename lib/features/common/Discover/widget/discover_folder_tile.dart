@@ -442,9 +442,11 @@ class _DiscoverFolderPlate extends StatelessWidget {
     // [DiscoverIcons] art already sits on its own tinted rounded-square, so it
     // fills the slot edge-to-edge and the translucent plate is dropped —
     // otherwise the folder shows a coloured square inset inside a white one.
-    // Everything else (legacy assets, `/category` URLs) is a transparent
-    // cut-out and still needs the plate. Same rule as [DiscoverTilePlate].
-    if (DiscoverIcons.isSelfContained(iconPath)) {
+    // `/category` URLs now count too: most of that art carries its own square
+    // as well, and plating it was what left the Grocery and Food folders ringed
+    // with blank space. Only legacy bundled cut-outs still take the plate. Same
+    // rule as [DiscoverTilePlate] — see [DiscoverIcons.fillsTile].
+    if (DiscoverIcons.fillsTile(iconPath)) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: DiscoverFolderIcon(iconPath: iconPath!),
@@ -479,6 +481,11 @@ class DiscoverFolderIcon extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: iconPath,
         fit: fit,
+        // Fill the slot the plate used to define. Without these the image is
+        // laid out at its intrinsic size and floats in the middle — the same
+        // blank ring the plate was drawing, just without the plate.
+        width: double.infinity,
+        height: double.infinity,
         placeholder: (_, __) => const SizedBox.shrink(),
         errorWidget: (_, __, ___) => const SizedBox.shrink(),
       );

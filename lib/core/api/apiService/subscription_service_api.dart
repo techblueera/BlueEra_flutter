@@ -67,6 +67,17 @@ mixin SubscriptionServiceApi {
   String accountPlanInvoiceById(String id) =>
       'subscription-service/account-plan/$id/invoice';
 
+  /// `POST /account-plan/{id}/refund-request` — ask for a refund on a paid
+  /// plan. Body `{ tnc_accepted: true, note?: String }`.
+  ///
+  /// The app never decides WHETHER a refund can be asked for: every my-plans
+  /// item carries a `refund` object whose `can_request_refund` is the only
+  /// answer, so the window (activation + 6 months, open for 10 days) and the
+  /// earnings test both stay server-side.
+  /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md §2.2.2.
+  String accountPlanRefundRequest(String id) =>
+      'subscription-service/account-plan/$id/refund-request';
+
   /// Deposit → account-plan MIGRATION. An existing security-deposit holder is
   /// offered the matching account plan for free; the deposit itself stays
   /// refundable and is auto-refunded on its original date.

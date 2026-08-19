@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:BlueEra/core/constants/discover_category_images.dart';
 import 'dart:core';
 import 'dart:math' hide log;
 
@@ -1520,33 +1521,32 @@ final List<OnboardingCategoryModel> jobCategories = [
   OnboardingCategoryModel(
     name: 'Full Time',
     slugId: '',
-    icon: DiscoverIcons.jobFullTime,
+    icon: DiscoverCategoryImages.jobFullTime,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Part Time',
     slugId: '',
-    icon: DiscoverIcons.jobPartTime,
+    icon: DiscoverCategoryImages.jobPartTime,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Remote',
     slugId: '',
-    icon: DiscoverIcons.jobRemote,
+    icon: DiscoverCategoryImages.jobRemote,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Onsite',
     slugId: '',
-    icon: DiscoverIcons.jobOnsite,
+    icon: DiscoverCategoryImages.jobOnsite,
     accountType: AppConstants.business,
   ),
   OnboardingCategoryModel(
     name: 'Near By',
     slugId: '',
-    // "Near By" isn't in the 2026 set — onsite (a workplace pin) is the
-    // closest read of it and keeps the row on one style.
-    icon: DiscoverIcons.jobOnsite,
+    // Its own artwork now (a map with a job pin). It used to borrow Onsite's.
+    icon: DiscoverCategoryImages.jobNearBy,
     accountType: AppConstants.business,
   ),
 ];
@@ -2639,53 +2639,63 @@ class PropertyTileData {
 /// Rent & Property tiles on Discover. The 2026 [DiscoverIcons] set draws the
 /// sell/rent split for houses and for shops & offices, so those four keep
 /// distinct art; lands & plots ships one icon and both listing types share it.
+/// The Rent & Properties tiles.
+///
+/// The delivered artwork covers SIX of these eight: the Sell/Rent split is
+/// drawn separately for houses and for shops, but Lands & Plots ships only a
+/// "For Sell" picture and PG & Guest House ships none at all. Those two keep
+/// borrowing the nearest tile in the same set, exactly as they did before —
+/// flagged here so a later delivery knows what is still missing rather than
+/// looking like a deliberate reuse.
 final List<PropertyTileData> propertyDiscoverTiles = [
   PropertyTileData(
-      image: DiscoverIcons.housesApartments,
+      image: DiscoverCategoryImages.propertyHousesSell,
       label: 'Houses & Apartments',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'HouseAndApartment'),
   PropertyTileData(
-      image: DiscoverIcons.housesApartmentsRent,
+      image: DiscoverCategoryImages.propertyHousesRent,
       label: 'Houses & Apartments',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'HouseAndApartment'),
   PropertyTileData(
-      image: DiscoverIcons.newProjectsProperties,
+      image: DiscoverCategoryImages.propertyNewProjectsSell,
       label: 'New Projects & Properties',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'NewProjectsAndProperties'),
   PropertyTileData(
-      image: DiscoverIcons.landsPlots,
+      image: DiscoverCategoryImages.propertyLandsSell,
       label: 'Lands & Plots',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'LandAndPlots'),
   PropertyTileData(
-      image: DiscoverIcons.shopsOffices,
+      image: DiscoverCategoryImages.propertyShopsRent,
       label: 'Shops & Offices',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'ShopAndOffices'),
   PropertyTileData(
-      image: DiscoverIcons.shopsOfficesSell,
+      image: DiscoverCategoryImages.propertyShopsSell,
       label: 'Shops & Offices',
       isSale: true,
       listingType: 'Sell',
       propertyType: 'ShopAndOffices'),
   PropertyTileData(
-      image: DiscoverIcons.landsPlots,
+      // No "for rent" lands picture was delivered — the sell one is the same
+      // subject and is what this tile showed before.
+      image: DiscoverCategoryImages.propertyLandsSell,
       label: 'Lands & Plots',
       isSale: false,
       listingType: 'Rent',
       propertyType: 'LandAndPlots'),
   PropertyTileData(
-      // PG & Guest House has no tile in the 2026 set; the rent-house icon is
-      // the nearest subject in it, so the row stays on one style.
-      image: DiscoverIcons.housesApartmentsRent,
+      // PG & Guest House has no picture of its own in the delivery; the
+      // rent-house tile is the nearest subject, so the row stays on one style.
+      image: DiscoverCategoryImages.propertyHousesRent,
       label: 'PG & Guest House',
       isSale: false,
       listingType: 'Rent',
@@ -2757,19 +2767,19 @@ final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(
       name: '2 Wheeler',
       slugId: 'TWO_WHEELER',
-      icon: DiscoverIcons.twoWheeler),
+      icon: DiscoverCategoryImages.transportTwoWheeler),
   CollapsibleGridModel(
       name: 'Passenger',
       slugId: 'PASSENGER',
-      icon: DiscoverIcons.passenger),
+      icon: DiscoverCategoryImages.transportPassenger),
   CollapsibleGridModel(
-      name: 'Goods', slugId: 'GOODS', icon: DiscoverIcons.goods),
+      name: 'Goods', slugId: 'GOODS', icon: DiscoverCategoryImages.transportGoods),
   CollapsibleGridModel(
-      name: 'Out Station', slugId: 'OUR_STATION', icon: DiscoverIcons.outStation),
+      name: 'Out Station', slugId: 'OUR_STATION', icon: DiscoverCategoryImages.transportOutStation),
   CollapsibleGridModel(
-      name: 'Rental', slugId: 'RENTAL', icon: DiscoverIcons.vehicleRental),
+      name: 'Rental', slugId: 'RENTAL', icon: DiscoverCategoryImages.transportRental),
   CollapsibleGridModel(
-      name: 'Logistics', slugId: 'LOGISTICS', icon: DiscoverIcons.logistics),
+      name: 'Logistics', slugId: 'LOGISTICS', icon: DiscoverCategoryImages.transportLogistics),
 ];
 
 final List<OnboardingCategoryModel> financeCategories = [

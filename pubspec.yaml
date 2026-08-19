@@ -160,6 +160,7 @@ flutter:
   assets:
     - assets/images/
     - assets/discover/
+    - assets/discover_images/
     - assets/svg/
     - assets/icons/
     - assets/sound/
