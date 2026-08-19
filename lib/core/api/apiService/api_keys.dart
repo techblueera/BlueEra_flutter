@@ -738,6 +738,14 @@ class ApiKeys {
   static const profileType = 'profileType';
   static const number_of_Employees = 'number_of_Employees';
   static const number_of_branch = 'number_of_branch ';
+
+  /// Brand / branch name of a GST-registered business. Flat, top level — the
+  /// (GST number + branch) pair is what the backend enforces as unique.
+  /// See docs/finance-gst-branch-ui-integration.md §1.
+  static const branch = 'branch';
+
+  /// Drug licence number of a PHARMACY-category business.
+  static const license_number = 'license_number';
   static const coverPage = 'coverPage';
   static const logoImage = 'logoImage';
   static const visionMission = 'visionMission';
