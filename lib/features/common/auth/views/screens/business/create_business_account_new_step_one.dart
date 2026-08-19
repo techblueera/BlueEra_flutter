@@ -482,7 +482,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 FilteringTextInputFormatter.allow(RegExp(
                                     RegularExpressionUtils
                                         .brandOrBranchNamePattern)),
-                                UppercaseTextFormatter(),
+                                // UppercaseTextFormatter(),
                                 NoLeadingSpaceFormatter(),
                                 NoConsecutiveSpacesFormatter(),
                                 LengthLimitingTextInputFormatter(
