@@ -963,6 +963,7 @@
   "doctorDiscoverExperienceYearsFmt": "@count વર્ષનો અનુભવ",
   "doctorDiscoverFallbackName": "ડૉક્ટર",
   "doctorDiscoverMoreFmt": "+@count વધુ",
+  "doctorDiscoverMoreServicesFmt": "+@count વધુ સેવાઓ",
   "doctorDiscoverShareFmt": "BlueEra પર @name ને જુઓ",
   "doctorDiscoverTimingNotSet": "સમય સેટ કરેલ નથી",
   "doctorDiscoverTitle": "ક્લિનિક ડૉક્ટર",

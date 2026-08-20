@@ -79,24 +79,17 @@ class AllEducationServiceScreen extends StatefulWidget {
 
 class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   final controller_ = getOrPut(() => DiscoverController());
-  late List<OnboardingCategoryModel> _professionalConsultantCategories;
-  ScrollController scrollController = ScrollController();
+  final ScrollController scrollController = ScrollController();
 
   final List<String> _bannerImages = const [
     "https://img.magnific.com/free-vector/education-horizontal-typography-banner-set-with-learning-knowledge-symbols-flat-illustration_1284-29493.jpg",
     "https://img.magnific.com/premium-psd/school-education-admission-youtube-thumbnail-web-banner-template_475351-415.jpg?semt=ais_hybrid&w=740&q=80",
     "https://c8.alamy.com/comp/P70PTA/school-banner-with-education-items-P70PTA.jpg"
   ];
-  // final List<String> _bannerImages = const [
-  //   "https://img.freepik.com/free-photo/happy-students-classroom_23-2149207191.jpg?w=1380",
-  //   "https://img.freepik.com/free-photo/group-college-students-studying-library_329181-15025.jpg?w=1380",
-  //   "https://img.freepik.com/free-photo/group-young-students-with-books-chalkboard_1303-20932.jpg?w=1380",
-  // ];
 
   @override
   initState() {
     super.initState();
-    _professionalConsultantCategories = widget.professionalConsultantCategories;
     controller_.selectedEducationServiceData.value =
         widget.selectedProfessionConsultantData;
     controller_.fetchEducationServiceServices();
@@ -115,6 +108,12 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
@@ -122,7 +121,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           id: 'ALL_OPTION',
           name: AppStrings.all.tr,
           imageUrl: AppImageAssets.all),
-      ..._professionalConsultantCategories.map((c) => StickyCategory(
+      ...widget.professionalConsultantCategories.map((c) => StickyCategory(
             id: c.slugId,
             name: c.name,
             imageUrl: c.icon,
@@ -137,71 +136,67 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            CustomScrollView(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: BannerCarousel(
-                    images: _bannerImages,
-                    onBack: () => Navigator.pop(context),
-                    statusBarHeight: statusBarHeight,
-                    backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
-                    bottomBorderSide: const BorderSide(
-                      color: AppColors.white,
-                      width: 2,
-                    ),
-                  ),
+        body: CustomScrollView(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+                backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
+                bottomBorderSide: const BorderSide(
+                  color: AppColors.white,
+                  width: 2,
                 ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: StickyCategoryHeaderDelegate(
-                    topPadding: statusBarHeight,
-                    // The header paints a search bar; this is what it opens —
-                    // the shared store search, scoped to this vertical by its
-                    // StoreSearchConfig. Tapping a result opens that profile.
-                    onSearchTap: () => Get.to(() => StoreSearchScreen(
-                        config: StoreSearchConfig.education())),
-                    categories: stickyCategories,
-                    selectedId: controller_
-                            .selectedEducationServiceData.value?.slugId ??
-                        'ALL_OPTION',
-                    onCategoryTap: (item) {
-                      final index =
-                          stickyCategories.indexWhere((c) => c.id == item.id);
-                      controller_.selectedTabIndex.value = index;
-                      controller_.selectedEducationServiceData.value =
-                          item.id == 'ALL_OPTION'
-                              ? null
-                              : _professionalConsultantCategories
-                                  .firstWhere((c) => c.slugId == item.id);
-                      // A different category is a different result set, so the
-                      // viewport goes back to the top with it rather than
-                      // dropping the reader into the middle of a list they have
-                      // not seen.
-                      if (scrollController.hasClients) {
-                        scrollController.jumpTo(0);
-                      }
-                      controller_.fetchEducationServiceServices();
-                      setState(() {});
-                    },
-                    onBack: () => Navigator.pop(context),
-                    expandedLabelColor: AppColors.white,
-                    backgroundGradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                        AppColors.blue5CAF.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
-                ),
-                _buildListSliver(),
-              ],
+              ),
             ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                // The header paints a search bar; this is what it opens —
+                // the shared store search, scoped to this vertical by its
+                // StoreSearchConfig. Tapping a result opens that profile.
+                onSearchTap: () => Get.to(() =>
+                    StoreSearchScreen(config: StoreSearchConfig.education())),
+                categories: stickyCategories,
+                selectedId:
+                    controller_.selectedEducationServiceData.value?.slugId ??
+                        'ALL_OPTION',
+                onCategoryTap: (item) {
+                  final index =
+                      stickyCategories.indexWhere((c) => c.id == item.id);
+                  controller_.selectedTabIndex.value = index;
+                  controller_.selectedEducationServiceData.value =
+                      item.id == 'ALL_OPTION'
+                          ? null
+                          : widget.professionalConsultantCategories
+                              .firstWhere((c) => c.slugId == item.id);
+                  // A different category is a different result set, so the
+                  // viewport goes back to the top with it rather than
+                  // dropping the reader into the middle of a list they have
+                  // not seen.
+                  if (scrollController.hasClients) {
+                    scrollController.jumpTo(0);
+                  }
+                  controller_.fetchEducationServiceServices();
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
+                expandedLabelColor: AppColors.white,
+                backgroundGradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.blue5CAF.withValues(alpha: 0.1),
+                    AppColors.blue5CAF.withValues(alpha: 0.8),
+                  ],
+                ),
+              ),
+            ),
+            _buildListSliver(),
           ],
         ),
       ),
@@ -352,12 +347,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Widget selfProfessionCard(SchoolDetailsData service) {
-    // Hero shows the cover banner, never the logo. Priority:
-    //   1. `coverPicture` — the field the backend now sets for schools
+    // Hero is `images.first`; the rest of the list is what the full-screen
+    // viewer pages through. Priority:
+    //   1. `logo` — schools set this far more reliably than the cover.
+    //   2. `coverPicture` — the field the backend now sets for schools
     //      (see the education-service payload sample).
-    //   2. `bannerUrl` — legacy field kept for records that haven't been
-    //      migrated to `coverPicture` yet.
-    //   3. `galleryPhotos` — last resort so a school with no explicit
+    //   3. `bannerUrl` — legacy field, only consulted when neither of the
+    //      above is set, for records not yet migrated to `coverPicture`.
+    //   4. `galleryPhotos` — last resort so a school with no explicit
     //      cover still shows something.
     final List<String> coverImages = <String>[];
     if ((service.logo ?? '').trim().isNotEmpty) {
@@ -399,12 +396,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     // Highlight cells show two items. The category's headline field
     // (board / streams / …) is rendered in the meta row above, so it
-    // is filtered out of this row via [_buildHighlightCells].
-    // Padded to exactly two cells: a school missing one still occupies the same
-    // strip, so the card below it lines up. See [_buildHighlightCells].
-    final highlights = _padHighlightCells(_buildHighlightCells(service), service);
+    // is filtered out of this row — see [_highlightCells].
+    final highlights = _highlightCells(service);
     final List<String> metaItems = _pillItems(service);
-    final String? pillField = _pillFieldFor(service);
+    final pillField = _pillFieldFor(service);
     final String metaSuffix = pillField == null ? '' : _suffixForKey(pillField);
 
     return InkWell(
@@ -475,16 +470,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   // No IntrinsicHeight: the two cells are single-line and
                   // therefore already equal, and an intrinsic pass per card is
                   // a double layout this grid does not need.
-                  Row(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (int i = 0; i < highlights.length; i++) ...[
-                        if (i > 0) SizedBox(width: SizeConfig.size8),
-                        Expanded(
-                          child: _statCell(
-                              highlights[i].icon, highlights[i].label),
-                        ),
-                      ],
+                      for (final highlight in highlights)
+                        _statCell(highlight.icon, highlight.label),
                     ],
                   ),
                   SizedBox(height: SizeConfig.size10),
@@ -556,7 +546,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   /// for cell selection; everything else falls through to the schema.
   ///
   /// Each category's pill field ([_pillFieldByCategory]) is filtered
-  /// out at iteration time in [_buildHighlightCells] — the lists here
+  /// out at iteration time in [_highlightCells] — the lists here
   /// already exclude it too so the intent is explicit.
   ///
   /// School / Coaching also drop `studentTeacherRatio` so the two
@@ -595,76 +585,65 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     ],
   };
 
-  /// Pick up to 3 highlight cells for the stats row based on the
-  /// listing's category. Draws keys from [_cardFieldsByCategory] when a
-  /// card-specific list is defined, otherwise from
-  /// [kQuickInfoFieldsByCategory] (skipping `numberOfStudents`, which
-  /// gets its own dedicated row) and reads each value from
-  /// `service.quickInfoRaw`. Falls back to school-flavoured defaults
-  /// when the category isn't resolvable — that's what the old card
-  /// showed, so this keeps behaviour identical for the historical
-  /// case. Empty fields are skipped entirely (no "N/A Board" filler).
-  List<_HighlightCell> _buildHighlightCells(SchoolDetailsData service) {
+  /// The highlight-cell field list for a listing's category: the card-only
+  /// override when one is defined, otherwise the shared quick-info schema.
+  /// School-flavoured defaults when the category isn't resolvable — that's what
+  /// the old card showed, so legacy records keep their behaviour.
+  List<String> _cardSchema(SchoolDetailsData service) {
     final resolvedKey =
         resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
-    final schema = resolvedKey != null
-        ? (_cardFieldsByCategory[resolvedKey] ??
-            kQuickInfoFieldsByCategory[resolvedKey]!)
-        : const <String>['classRange', 'mediumOfInstruction'];
-
-    // Whichever field is in the header pill for this category should
-    // not also appear as a highlight cell.
-    final pillField = _pillFieldFor(service);
-
-    final raw = service.quickInfoRaw ?? const <String, dynamic>{};
-    final cells = <_HighlightCell>[];
-    for (final key in schema) {
-      if (key == 'numberOfStudents') continue; // rendered in the fee row
-      if (key == pillField) continue; // rendered in the header pill row
-      if (cells.length >= 2) break;
-      final value = raw[key] ?? _typedFallback(service, key);
-      final label = _formatCellLabel(key, value);
-      if (label.isEmpty) continue;
-      cells.add(_HighlightCell(
-        icon: _iconForKey(key),
-        label: label,
-      ));
+    if (resolvedKey == null) {
+      return const <String>['classRange', 'mediumOfInstruction'];
     }
-    return cells;
+    return _cardFieldsByCategory[resolvedKey] ??
+        kQuickInfoFieldsByCategory[resolvedKey]!;
   }
 
-  /// Pads [cells] out to exactly two, so the highlight strip is the same height
-  /// on every card whatever the listing carries.
+  /// The two highlight cells for the stats strip, read from
+  /// `service.quickInfoRaw` (with [_typedFallback] behind it).
   ///
-  /// The filler keeps the schema's own icon for that slot and reads `—`, so a
-  /// half-populated school still shows "this is where the medium of instruction
-  /// would go" rather than a card that is visibly shorter than its neighbour.
-  List<_HighlightCell> _padHighlightCells(
-    List<_HighlightCell> cells,
-    SchoolDetailsData service,
-  ) {
-    if (cells.length >= 2) return cells;
-    final resolvedKey =
-        resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
-    final schema = resolvedKey != null
-        ? (_cardFieldsByCategory[resolvedKey] ??
-            kQuickInfoFieldsByCategory[resolvedKey]!)
-        : const <String>['classRange', 'mediumOfInstruction'];
+  /// Always exactly two, so the strip is the same height on every card whatever
+  /// the listing carries — which is what lets a fixed-row grid pack as tightly
+  /// as the masonry it replaced. A field the listing has nothing for still
+  /// takes its slot, reading `—` under its own icon.
+  ///
+  /// `numberOfStudents` gets its own footer row and the category's pill field
+  /// is already in the meta row, so neither is eligible here.
+  List<_HighlightCell> _highlightCells(SchoolDetailsData service) {
     final pillField = _pillFieldFor(service);
-    final filled = List<_HighlightCell>.of(cells);
-    for (final key in schema) {
-      if (filled.length >= 2) break;
+    final raw = service.quickInfoRaw ?? const <String, dynamic>{};
+
+    final cells = <_HighlightCell>[];
+    // Fields that WERE eligible but had no value. Held back rather than
+    // dropped: they are what fills a short strip, and filling from these keeps
+    // each placeholder on the icon of a field that isn't already drawn.
+    final placeholders = <_HighlightCell>[];
+
+    for (final key in _cardSchema(service)) {
+      if (cells.length >= 2) break;
       if (key == 'numberOfStudents' || key == pillField) continue;
-      filled.add(_HighlightCell(icon: _iconForKey(key), label: _kNoValue));
+      final icon = _iconForKey(key);
+      final label =
+          _formatCellLabel(key, raw[key] ?? _typedFallback(service, key));
+      if (label.isEmpty) {
+        placeholders.add(_HighlightCell(icon: icon, label: _kNoValue));
+        continue;
+      }
+      cells.add(_HighlightCell(icon: icon, label: label));
+    }
+
+    for (final placeholder in placeholders) {
+      if (cells.length >= 2) break;
+      cells.add(placeholder);
     }
     // A schema with fewer than two usable keys still has to fill the strip.
-    while (filled.length < 2) {
-      filled.add(_HighlightCell(
+    while (cells.length < 2) {
+      cells.add(_HighlightCell(
         icon: _iconForKey('classRange'),
         label: _kNoValue,
       ));
     }
-    return filled;
+    return cells;
   }
 
   /// Fall back to the typed mirror on [SchoolDetailsData] when
@@ -740,11 +719,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     switch (key) {
       // School Education / Coaching — unchanged per request.
       case 'classRange':
-        return AppIconAssets.classIcon;
+        return "assets/svg/class_book.svg";
       case 'board':
         return AppIconAssets.personProfileIcon;
       case 'mediumOfInstruction':
-        return AppIconAssets.mediumIcon;
+        return "assets/svg/web_black.svg";
       case 'studentTeacherRatio':
         return AppIconAssets.personProfileIcon;
       // College/University-specific fields (per kQuickInfoFieldsByCategory).
@@ -771,7 +750,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       default:
         // Any key we haven't mapped yet (e.g. coursesOffered) still falls
         // back to the generic classes icon.
-        return AppIconAssets.classIcon;
+        return "assets/svg/class_book.svg";
     }
   }
 
@@ -798,22 +777,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final name = (service.name?.trim().isNotEmpty ?? false)
         ? service.name!.trim()
         : 'this school';
-    // final address = service.location?.name?.trim() ?? '';
-    // final classRange = service.classRange?.trim() ?? '';
-    // final mediums = service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
-    // final fees = service.fees;
-
     final shareLink = educationProfileDeepLink(userId: service.ownerId);
 
-    final lines = <String>['Check out $name on BlueEra'];
-    // if (address.isNotEmpty) lines.add(address);
-    // if (classRange.isNotEmpty) lines.add('Classes: $classRange');
-    // if (mediums.isNotEmpty) lines.add('Medium: ${mediums.join(', ')}');
-    // if (fees != null) lines.add('Annual fee: ${_formatFee(fees)}');
-    lines.add(shareLink);
-
     await ShareService.instance.openShareSheet(
-      text: lines.join('\n'),
+      text: 'Check out $name on BlueEra\n$shareLink',
       subject: name,
     );
   }
@@ -1137,36 +1104,41 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   /// truncating it against a side-by-side icon.
   Widget _statCell(String icon, String label) {
     return Container(
+      // Fills the card, not the screen — `Get.width` only ever survived
+      // because the parent clamps it.
+      width: double.infinity,
+      margin: EdgeInsets.only(top: SizeConfig.size8),
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.greyE5, width: 1),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Fixed box so mixed-source assets (small SVGs like standard.svg
           // vs. large rasters like stream.png) all read at the same visual
           // weight across cells.
           SizedBox(
-            height: SizeConfig.size18,
-            width: SizeConfig.size18,
+            height: SizeConfig.size15,
+            width: SizeConfig.size15,
             child: LocalAssets(
               imagePath: icon,
               imgColor: AppColors.grey7E,
               boxFix: BoxFit.contain,
             ),
           ),
-          SizedBox(height: SizeConfig.size6),
-          CustomText(
-            label,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w500,
-            color: AppColors.black22,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(width: SizeConfig.size6),
+          Expanded(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w500,
+              color: AppColors.black22,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

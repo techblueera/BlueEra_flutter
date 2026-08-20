@@ -219,6 +219,56 @@ class DoctorDiscoverSummary {
     return [...languagesSpoken, ...extraSpecializations];
   }
 
+  /// The service names the card's services panel lists.
+  ///
+  /// `business/filter` is inconsistent about this one field across categories —
+  /// some builds send `servicesOffered`, older ones `serviceOffered`, and the
+  /// doctor enrichment sometimes sends `services` as objects rather than
+  /// strings — so all three shapes are accepted here rather than in the widget.
+  ///
+  /// When the listing carries none of them the panel falls back to what the
+  /// doctor DID fill in: the specializations beyond the one already shown as
+  /// the headline, then the languages. Empty only when the doctor has filled in
+  /// nothing at all, in which case the card hides the panel entirely.
+  List<String> get services {
+    for (final key in const ['servicesOffered', 'serviceOffered', 'services']) {
+      final parsed = _serviceList(raw[key]);
+      if (parsed.isNotEmpty) return parsed;
+    }
+    final extraSpecializations =
+        specialization.where((s) => s != headline).toList();
+    return [...extraSpecializations, ...languagesSpoken];
+  }
+
+  /// Accepts `["X", "Y"]` and `[{name: "X"}, {title: "Y"}]` alike — the server
+  /// sends whichever the owning service happens to store.
+  static List<String> _serviceList(dynamic raw) {
+    if (raw is! List) return const [];
+    final out = <String>[];
+    for (final item in raw) {
+      String value = '';
+      if (item is Map) {
+        for (final key in const [
+          'name',
+          'title',
+          'serviceName',
+          'service_name',
+          'label'
+        ]) {
+          final candidate = item[key]?.toString().trim() ?? '';
+          if (candidate.isNotEmpty) {
+            value = candidate;
+            break;
+          }
+        }
+      } else {
+        value = item?.toString().trim() ?? '';
+      }
+      if (value.isNotEmpty && !out.contains(value)) out.add(value);
+    }
+    return out;
+  }
+
   /// `"17:00"` → `"5:00 PM"`. Empty for null / malformed input, which is what
   /// the server sends for a closed day.
   static String formatClock(dynamic hhmm) {

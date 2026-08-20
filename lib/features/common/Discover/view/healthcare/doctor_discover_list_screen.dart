@@ -166,6 +166,10 @@ class _DoctorDiscoverListViewState extends State<DoctorDiscoverListView> {
               final doctor = controller.doctors[index];
               return DoctorDiscoverCard(
                 doctor: doctor,
+                // Drives the card's alternating tint — the list index is the
+                // position on screen, since the trailing loader is the only
+                // other row and it comes after every card.
+                index: index,
                 onTap: () => _openProfile(doctor),
               );
             },

@@ -4473,6 +4473,8 @@ class AppStrings {
   static const String doctorDiscoverExperienceYearsFmt =
       "doctorDiscoverExperienceYearsFmt";
   static const String doctorDiscoverMoreFmt = "doctorDiscoverMoreFmt";
+  static const String doctorDiscoverMoreServicesFmt =
+      "doctorDiscoverMoreServicesFmt";
   static const String doctorDiscoverShareFmt = "doctorDiscoverShareFmt";
 
   /// Discover doctor public profile (doctor_public_profile_screen.dart). Every
