@@ -60,8 +60,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 322
-        versionName "14.0.63"
+        versionCode 323
+        versionName "14.0.64"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey
         ]
