@@ -37,11 +37,17 @@ class PersonalProfileDetailsModel {
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
         : null;
-    // `freeServiceUsed` / `freeRideUsed` are deliberately NOT read. They drove
-    // the first-service-free waiver, which let a self-work provider go live
-    // once without paying. Nothing is free now — payment is the only go-live
-    // rule, here as on the rider and business sides — so the client ignores the
-    // flags even when the backend keeps sending them.
+    // First-service-free waiver: the provider's FIRST service is on the house,
+    // so they may go live without paying until they have used it. Backend spells
+    // it `freeServiceUsed`; `freeRideUsed` is accepted as a legacy alias because
+    // the individual profile shipped the rider key first.
+    //
+    // Fail-CLOSED, unlike `securityDeposit` above: only an explicit `false`
+    // waives payment. A missing / null flag means "no waiver known", which
+    // enforces the plan gate — a backend that doesn't ship the flag must not
+    // hand every account a free pass.
+    freeServiceUsed =
+        json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
     // Referral promo clip — a TOP-LEVEL sibling of `user` / `securityDeposit`,
     // NOT part of `marketing_card` (that object is poster-only). The backend
     // key really is spelled `referal_video`, with one 'r'; `referral_video` is
@@ -65,6 +71,10 @@ class PersonalProfileDetailsModel {
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
   SecurityDepositStatus? securityDeposit;
+
+  /// Whether this individual has already used their one free service. `false`
+  /// → still free → the payment gate is waived. Null / absent → enforce.
+  bool? freeServiceUsed;
   List<String> earnProfileType;
 
   /// Referral promo clip URL (`referal_video`), or null when the profile has
@@ -80,6 +90,11 @@ class PersonalProfileDetailsModel {
   /// there's no deposit info or the deposit is paid / not required; blocked
   /// ONLY when the backend explicitly reports `required && !paid`.
   bool get canGoLive => securityDeposit?.canGoLive ?? true;
+
+  /// True while the provider's FIRST service is still free, which waives the
+  /// payment gate. Fail-closed: only an explicit `false` from the backend
+  /// counts, so an absent flag leaves payment required.
+  bool get isFirstServiceFree => freeServiceUsed == false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

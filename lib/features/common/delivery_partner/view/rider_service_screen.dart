@@ -341,17 +341,18 @@ Future<void> handleGoLiveTap() async {
     return;
   }
 
-  // After document verification, the security deposit must be paid before
-  // going online. This gate applies only to bike riders / cab drivers (the
-  // professions that pay a deposit); other roles skip it.
+  // After document verification, payment is required before going online.
   //
-  // The deposit is the ONLY gate. A first-ride-free waiver used to sit here and
-  // let an unpaid rider go live until they finished one ride; it is removed, so
-  // an unpaid rider is blocked from the start and there is one rule to explain.
-  final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
-      userProfessionGlobal == CAR_TAXI_DRIVER;
-  final depositBlocked = isRiderRole &&
-      !AccountPlanEntitlement.to.hasActivePlan.value &&
+  // No profession check: this screen is reached only by GIG_WORKER accounts
+  // (via GigWorkOptionsScreen / the Me tab), so everyone who can tap Go Live
+  // here pays. The old `BIKE_RIDER || CAR_TAXI_DRIVER` narrowing let every
+  // other gig profession — mechanic, tailor, beautician — go live for free.
+  //
+  // FIRST ONE FREE: a gig worker whose free job is still unused goes online
+  // without paying — the payment page only appears once it is done
+  // (`freeRideUsed == true`). Fail-closed on an absent flag.
+  final depositBlocked = !AccountPlanEntitlement.to.hasActivePlan.value &&
+      !riderCtrl.isFirstRideFree &&
       !riderCtrl.isSecurityDepositPaid;
 
   if (depositBlocked) {

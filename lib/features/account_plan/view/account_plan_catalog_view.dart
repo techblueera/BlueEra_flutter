@@ -1295,8 +1295,19 @@ class _RefundControl extends StatelessWidget {
     }
     if (refund.isRejected) return AppStrings.refundDeclined.tr;
     if (refund.isPending) {
-      return AppStrings.refundAvailableAfterFmt
-          .trParams({'date': _date(refund.refundEligibleAt)});
+      // The guide's exact wording: the server's day count, with the date it
+      // lands on in brackets. The count is what a waiting merchant actually
+      // reads — "after 19 Feb 2027" makes them do the arithmetic themselves.
+      final days = refund.daysUntilEligible;
+      final date = _date(refund.refundEligibleAt);
+      if (days == null) {
+        return AppStrings.refundAvailableAfterFmt.trParams({'date': date});
+      }
+      if (days == 1) {
+        return AppStrings.refundAvailableInOneDayFmt.trParams({'date': date});
+      }
+      return AppStrings.refundAvailableInDaysFmt
+          .trParams({'days': '$days', 'date': date});
     }
     // Expired, or a state the server gave no date to explain. "Closed" is the
     // one thing true of every remaining case.

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -31,23 +32,33 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-/// Tinted surface set for a provider card. Mirrors the grocery/product store
-/// cards so a result card reads as the same family across the app — a soft
-/// coloured card body instead of flat white, with the inner "Expertise" box
-/// tinted by a translucent wash of the same hue.
+// ─── Provider card palette (assets/img.png) ─────────────────────────────────
+// Every value below was DECODED out of the design PNG rather than matched by
+// eye: the file was inflated and the pixels read directly, taking the modal
+// colour of each flat region and the darkest pixel of each text run. Where a
+// sample landed on an existing token it is written as that token instead
+// (the CTA's #0085FE is [AppColors.primaryColor]) so the card follows the
+// theme rather than pinning a duplicate literal beside it.
+
+/// Tinted surface set for one provider card. Cards alternate between the two
+/// entries in [_providerCardPalettes] so a scrolling list reads as a rhythm
+/// rather than a stack of identical blocks — the same two-tone treatment the
+/// grocery and product store cards use elsewhere in the app.
+///
+/// The teal entry is the design (`assets/img.png`) as sampled; the purple one
+/// is its counterpart, carried over from the card this replaced.
 class _ProviderCardPalette {
   final Color cardBg;
   final Color cardBorder;
-  final Color tileBg;
-  final Color tileBorder;
-  final Color dividerLine;
+
+  /// The services checklist panel — one step more saturated than [cardBg],
+  /// which is what separates it from the body without needing a border.
+  final Color panelBg;
 
   const _ProviderCardPalette({
     required this.cardBg,
     required this.cardBorder,
-    required this.tileBg,
-    required this.tileBorder,
-    required this.dividerLine,
+    required this.panelBg,
   });
 }
 
@@ -55,24 +66,63 @@ const _providerCardPalettes = <_ProviderCardPalette>[
   _ProviderCardPalette(
     cardBg: Color(0xFFEDFDFF),
     cardBorder: Color(0xFFC0DDE1),
-    // CSS #13DBF414 (RGBA) → Flutter ARGB 0x1413DBF4 — translucent
-    // teal wash so the inner tiles tint with the card's identity.
-    tileBg: Color(0x1413DBF4),
-    tileBorder: Color(0xFFD0EEF2),
-    dividerLine: Color(0xFFBBE3E8),
+    panelBg: Color(0xFFDBFAFD),
   ),
   _ProviderCardPalette(
-    // Deliberately stronger than the grocery card's #FCF5FF: that value is
-    // only ~10/255 off white on its strongest channel, so next to the teal
-    // card (~18 off) the body read as plain white and only the inner tile
-    // looked pink. This carries the tint across the whole card instead.
     cardBg: Color(0xFFF9EDFF),
     cardBorder: Color(0xFFE7CBF5),
-    tileBg: Color(0x14BE26FF),
-    tileBorder: Color(0xFFF7E3FF),
-    dividerLine: Color(0xFFE3D4E9),
+    // The purple twin of the sampled panel: the old card tinted this box with
+    // an ~8% #BE26FF wash over its body, which resolves to this.
+    panelBg: Color(0xFFF4DDFF),
   ),
 ];
+
+/// Profession pill behind the blue label ("Electrician"). Shared by both
+/// palettes — the trade chip and the CTA are the card's accent, and swapping
+/// them per card would leave nothing constant to recognise.
+const Color _chipBg = Color(0xFFD6F2FF);
+
+/// Hairline on the white glyph plates.
+///
+/// The design has no stroke at all there — decoding it, the plate edge goes
+/// from the card body straight to #FFFFFF across two pixels of antialiasing.
+/// This is the lightest cool hairline that still resolves as an edge, so the
+/// plates keep a defined shape on both palettes without gaining weight.
+const Color _glyphPlateBorder = Color(0xFFDCEFF4);
+
+/// Name and the two info rows.
+const Color _cardInk = Color(0xFF0D161F);
+
+/// "Starting From", and the price unit.
+const Color _cardInkSoft = Color(0xFF617077);
+
+/// Checklist entries — deliberately lighter than [_cardInk]. In the design the
+/// service names are secondary to the provider's name and read as a list, not
+/// as headlines.
+const Color _serviceInk = Color(0xFF5C6873);
+
+const double _cardRadius = 18;
+
+/// The photo's width as a share of the card's inner width — the proportion the
+/// design uses (216 of 632).
+///
+/// A share, not a fixed size, because the card has to hold on any screen. The
+/// HEIGHT is not set here at all: the photo stretches to whatever the four
+/// items beside it need (see the `IntrinsicHeight` in the top band), so the
+/// two columns finish level on a small phone, on a tablet, and at any system
+/// text scale — none of which a hard-coded height survives. At default
+/// settings that lands within a few points of square, as drawn.
+const double _cardPhotoWidthRatio = 0.34;
+
+/// Bounds for the above. Below the minimum a face is unreadable; above the
+/// maximum the photo starts eating the space the name and the trade need.
+///
+/// The ceiling is raised on tablets, where the card is roughly twice as wide:
+/// a phone-sized cap there would hold the photo at a fifth of the card instead
+/// of the third the design draws, and the row would read as a thumbnail with a
+/// paragraph next to it.
+const double _cardPhotoMinWidth = 96;
+double get _cardPhotoMaxWidth => SizeConfig.isTablet ? 220 : 148;
 
 /// **Self-profession (Book Home Services) results — v2.**
 ///
@@ -99,10 +149,6 @@ class SelfProfessionDiscoverScreenV2 extends StatefulWidget {
   State<SelfProfessionDiscoverScreenV2> createState() =>
       _SelfProfessionDiscoverScreenV2State();
 }
-
-/// Hero aspect ratio from the card design (assets/card_ui.png, 1568×800).
-/// Shared by both discover v2 result cards so they stay identical.
-const double _heroAspectRatio = 1.96;
 
 class _SelfProfessionDiscoverScreenV2State
     extends State<SelfProfessionDiscoverScreenV2> {
@@ -185,8 +231,9 @@ class _SelfProfessionDiscoverScreenV2State
     if (cleaned != cleaned.toUpperCase()) return cleaned;
     return cleaned
         .split(RegExp(r'\s+'))
-        .map((w) =>
-            w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .map((w) => w.isEmpty
+            ? w
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
         .join(' ');
   }
 
@@ -267,10 +314,12 @@ class _SelfProfessionDiscoverScreenV2State
     final priceDisplay = isRange
         ? "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}-${formatIndianNumber(priceData?.effectiveMax ?? 0)}"
         : "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}";
-    final priceUnit =
-        (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : 'Hour';
-    final ratingValue =
-        service.rating != null && service.rating != 0 ? service.rating.toString() : '0';
+    final priceUnit = (priceData?.unitLabel.isNotEmpty ?? false)
+        ? priceData!.unitLabel
+        : 'Hour';
+    final ratingValue = service.rating != null && service.rating != 0
+        ? service.rating.toString()
+        : '0';
     final distance = '${service.distance ?? 0} km';
 
     showModalBottomSheet<void>(
@@ -313,7 +362,8 @@ class _SelfProfessionDiscoverScreenV2State
                               decoration: BoxDecoration(
                                 color: Colors.green,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
                               ),
                             ),
                           ),
@@ -392,22 +442,24 @@ class _SelfProfessionDiscoverScreenV2State
                           source: ChatClickSource.searchResult,
                         );
                         openVisitProfile(
-        accountType: AppConstants.individual,
-        profileType: SELF_EMPLOYED,
-        userId: service.id,
-        serviceData: service,
-      );
+                          accountType: AppConstants.individual,
+                          profileType: SELF_EMPLOYED,
+                          userId: service.id,
+                          serviceData: service,
+                        );
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size8),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryColor.withValues(alpha: 0.25),
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.25),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -433,9 +485,12 @@ class _SelfProfessionDiscoverScreenV2State
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
       controller.fetchEarnServices(
-          earnServiceType: earnServiceType, subType: serviceSubType, isLoadMore: true);
+          earnServiceType: earnServiceType,
+          subType: serviceSubType,
+          isLoadMore: true);
     }
     return false;
   }
@@ -511,7 +566,8 @@ class _SelfProfessionDiscoverScreenV2State
               maxChildSize: 0.94,
               snap: true,
               snapSizes: const [0.32, 0.62, 0.94],
-              builder: (context, scrollController) => _buildSheet(scrollController),
+              builder: (context, scrollController) =>
+                  _buildSheet(scrollController),
             ),
           ],
         ),
@@ -571,8 +627,8 @@ class _SelfProfessionDiscoverScreenV2State
               delegate: _PinnedFilterBar(
                 child: Container(
                   color: Colors.white,
-                  padding: EdgeInsets.fromLTRB(
-                      SizeConfig.size12, SizeConfig.size10, SizeConfig.size12, SizeConfig.size10),
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size12,
+                      SizeConfig.size10, SizeConfig.size12, SizeConfig.size10),
                   child: Obx(() => FilterCapsule(
                         filters: controller.filters,
                         selected: controller.selectedFilter.value,
@@ -601,7 +657,8 @@ class _SelfProfessionDiscoverScreenV2State
                   // flip to title-case so the message reads naturally.
                   final pretty = _prettyCategoryName(selectedName);
                   final message = pretty.isNotEmpty
-                      ? AppStrings.noProvidersFoundNearYou.trParams({'category': pretty})
+                      ? AppStrings.noProvidersFoundNearYou
+                          .trParams({'category': pretty})
                       : AppStrings.noServicesFound.tr;
                   return SliverFillRemaining(
                     hasScrollBody: false,
@@ -612,7 +669,8 @@ class _SelfProfessionDiscoverScreenV2State
                   controller.earnServiceList,
                   controller.selectedFilter.value,
                 );
-                final showMoreSpinner = controller.isEarnServiceLoadingMore.value;
+                final showMoreSpinner =
+                    controller.isEarnServiceLoadingMore.value;
                 final rows = buildNativeAdRows(sorted.length);
                 return SliverList.builder(
                   itemCount: rows.length + (showMoreSpinner ? 1 : 0),
@@ -621,7 +679,8 @@ class _SelfProfessionDiscoverScreenV2State
                       return const Center(
                           child: Padding(
                               padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(strokeWidth: 2)));
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2)));
                     }
                     final row = rows[index];
                     if (row.isAd) {
@@ -630,8 +689,8 @@ class _SelfProfessionDiscoverScreenV2State
                         keyPrefix: 'self_profession_v2_native_ad',
                       );
                     }
-                    // Palette alternates on the content index (not the row
-                    // index) so injected ad rows don't break the rhythm.
+                    // Palette alternates on the CONTENT index, not the row
+                    // index, so injected ad rows don't break the rhythm.
                     return _buildSpecCard(
                         sorted[row.contentIndex], row.contentIndex);
                   },
@@ -657,10 +716,27 @@ class _SelfProfessionDiscoverScreenV2State
     );
   }
 
-  /// **Spec-Sheet Card** — hero photo (rating badge / share + save / "Open |
-  /// hours" chip) → avatar + name + location → "Expertise" checklist box →
-  /// price + Book Now footer. Same card the v1 list used, so switching chrome
-  /// doesn't change how a provider reads.
+  /// **Provider card**, built to `assets/img.png`.
+  ///
+  /// Three bands, top to bottom:
+  ///  1. a SQUARE photo on the left (rating pill inset into its top-left) beside
+  ///     name → profession chip → two glyph-and-label info rows, with an
+  ///     overflow "⋮" at the far right;
+  ///  2. the services checklist on its own pale-cyan panel — two columns of
+  ///     green ticks, no heading and no divider;
+  ///  3. "Starting From" + price on the left, a solid blue "Book Now →" on the
+  ///     right.
+  ///
+  /// This replaced a full-bleed letterbox hero. The design puts the photo
+  /// beside the details rather than above them, which is what lets a card show
+  /// the provider, their trade, their experience and their whole service list
+  /// in roughly the height the hero alone used to take.
+  ///
+  /// **Where the old card's parts went:** share and save moved off the photo
+  /// into the "⋮" menu (the design has one control there, not two floating
+  /// circles); the address line was dropped, the design carrying distance
+  /// alone; and opening hours became the fallback for the experience row
+  /// rather than a chip over the photo — see [_infoRows].
   Widget _buildSpecCard(ServiceData service, int index) {
     final palette =
         _providerCardPalettes[index.abs() % _providerCardPalettes.length];
@@ -688,11 +764,17 @@ class _SelfProfessionDiscoverScreenV2State
     // Hero image: a service photo if one exists, else the profile photo.
     final heroImage = livePhotos.isNotEmpty ? livePhotos.first : profileImage;
 
-    final address = (service.address?.trim().isNotEmpty ?? false)
-        ? service.address!.trim()
-        : (service.location ?? '').trim();
-    final ratingValue =
-        (service.rating != null && service.rating != 0) ? service.rating.toString() : null;
+    final ratingValue = (service.rating != null && service.rating != 0)
+        ? service.rating.toString()
+        : null;
+
+    // Trade label for the pill. The provider's own profession when they carry
+    // one, else the category the user picked to get here — the screen is
+    // scoped to a single trade, so that is never a guess.
+    final professionLabel = _prettyCategoryName(
+        (service.profession?.trim().isNotEmpty ?? false)
+            ? service.profession!.trim()
+            : (controller.selectedEarnServiceData.value?.name ?? ''));
 
     // Prefer the provider's explicit `expertise` list (the design labels this
     // box "Expertise"), else fall back to serviceOffered + typesOfWork.
@@ -703,21 +785,26 @@ class _SelfProfessionDiscoverScreenV2State
         expertiseList.isNotEmpty ? expertiseList : _combinedServices(service);
     final totalServices = services.length;
     final showMoreServices = totalServices > 6;
-    final visibleServices =
-        showMoreServices ? services.take(5).toList() : services.take(6).toList();
+    final visibleServices = showMoreServices
+        ? services.take(5).toList()
+        : services.take(6).toList();
     final extraServices = showMoreServices ? totalServices - 5 : 0;
 
+    // "₹1000 – ₹1,000": the design repeats the ₹ on both ends of a range and
+    // spaces the dash, so the two figures read as two prices rather than as one
+    // hyphenated token.
     final priceStr = priceMin == 0
         ? '—'
         : (isRange
-            ? '₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}'
+            ? '₹${formatIndianNumber(priceMin)} – ₹${formatIndianNumber(priceMax)}'
             : '₹${formatIndianNumber(priceMin)}');
     final distStr = distance == 0
         ? null
-        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km away';
+        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} Km Away';
     // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" for the floating chip.
     String compactTime(String t) {
-      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false).firstMatch(t.trim());
+      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false)
+          .firstMatch(t.trim());
       if (m == null) return t;
       final hh = m.group(1)!;
       final mm = m.group(2)!;
@@ -744,319 +831,552 @@ class _SelfProfessionDiscoverScreenV2State
 
     return InkWell(
       onTap: openDetail,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(_cardRadius),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        margin: EdgeInsets.only(bottom: SizeConfig.size12),
+        padding: EdgeInsets.all(SizeConfig.size14),
         decoration: BoxDecoration(
           color: palette.cardBg,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_cardRadius),
           border: Border.all(color: palette.cardBorder, width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x14001120),
-              blurRadius: 18,
-              offset: Offset(0, 6),
+              color: Color(0x0F001120),
+              blurRadius: 14,
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Hero image + rating badge + "Open | hours" chip ──
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  // Ratio taken from the design (assets/card_ui.png, 1568×800)
-                  // instead of a fixed 175 px, so the hero keeps the intended
-                  // proportions on every screen width rather than growing
-                  // letterboxed on wide phones and cramped on small ones.
-                  child: AspectRatio(
-                    aspectRatio: _heroAspectRatio,
-                    child: heroImage.isEmpty
-                        ? Container(color: const Color(0xFFEDEFF4))
-                        : CachedNetworkImage(
-                            imageUrl: heroImage,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 800,
-                            placeholder: (_, __) => Container(color: const Color(0xFFEDEFF4)),
-                            errorWidget: (_, __, ___) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.fill,
-                            ),
-                          ),
-                  ),
-                ),
-                // Unconditional: the design always carries a rating pill in the
-                // hero's top-left, so an unrated provider shows "NA" instead
-                // of leaving the slot empty.
-                Positioned(
-                  left: SizeConfig.size12,
-                  top: SizeConfig.size12,
-                  child: _buildRatingBadge(ratingValue),
-                ),
-                // Share + Save, stacked top-right. Availability is conveyed by
-                // the "Open | hours" chip, so no standalone live badge here.
-                Positioned(
-                  right: SizeConfig.size12,
-                  top: SizeConfig.size12,
-                  child: Column(
+            // ─── Band 1: photo | name + trade + facts ─────
+            //
+            // IntrinsicHeight + stretch is what keeps the two columns level on
+            // every device. The photo declares no height of its own, so the
+            // row takes its height from the text column — longer trade names,
+            // a bigger system font, a narrow screen that wraps something — and
+            // then stretches the photo to match. A fixed photo height only
+            // lines up on the one screen it was measured against.
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final photoWidth = (constraints.maxWidth * _cardPhotoWidthRatio)
+                    .clamp(_cardPhotoMinWidth, _cardPhotoMaxWidth);
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _heroCircleButton(
-                        assetPath: AppIconAssets.reelShare,
-                        onTap: () => _shareProvider(service),
+                      SizedBox(
+                        width: photoWidth,
+                        child: _cardPhoto(service, heroImage, ratingValue),
                       ),
-                      SizedBox(height: SizeConfig.size8),
-                      // Local-only save (no backend yet) — fills the star and
-                      // shows a "coming soon" note on first save.
-                      Obx(() {
-                        final saved = controller.isProviderLocallySaved(service.id);
-                        return _heroCircleButton(
-                          icon: saved ? Icons.star_rounded : Icons.star_border_rounded,
-                          iconColor: saved ? const Color(0xFFFFB400) : Colors.white,
-                          onTap: () => _toggleSave(service),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-                if (hoursStr != null)
-                  Positioned(
-                    right: SizeConfig.size12,
-                    bottom: SizeConfig.size12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        // Green hairline, per the design — the chip is outlined,
-                        // not just white-on-photo.
-                        border: Border.all(
-                            color: AppColors.green00.withValues(alpha: 0.55),
-                            width: 1),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1F001120),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.access_time_rounded, size: 14, color: AppColors.green00),
-                          const SizedBox(width: 6),
-                          CustomText(
-                            'Open | $hoursStr',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.green00,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            Padding(
-              padding: EdgeInsets.all(SizeConfig.size14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ─── Avatar + name + location ─────────────────
-                  // Avatar and name open the poster's profile (personal or
-                  // business, per account type); the rest of the card still
-                  // opens the service detail.
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DiscoverProfileTap(
-                        accountType: service.accountType,
-                        userId: service.id,
-                        child: CachedAvatarWidget(
-                          imageUrl: profileImage,
-                          size: SizeConfig.size40,
-                          borderColor: Colors.white,
-                          borderRadius: SizeConfig.size20,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size10),
+                      SizedBox(width: SizeConfig.size12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            DiscoverProfileTap(
-                              accountType: service.accountType,
-                              userId: service.id,
-                              child: Text(
-                                name,
-                                style: TextStyle(
-                                  fontFamily: AppConstants.OpenSans,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.mainTextColor,
-                                  letterSpacing: -0.2,
-                                  height: 1.15,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (distStr != null || address.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.location_on,
-                                      size: 14, color: AppColors.primaryColor),
-                                  const SizedBox(width: 2),
-                                  if (distStr != null)
-                                    CustomText(
-                                      distStr,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primaryColor,
-                                    ),
-                                  if (distStr != null && address.isNotEmpty)
-                                    CustomText(
-                                      '  |  ',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                  if (address.isNotEmpty)
-                                    Expanded(
-                                      child: CustomText(
-                                        address,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  // The name still opens the poster's own profile;
+                                  // everywhere else on the card opens the service.
+                                  child: DiscoverProfileTap(
+                                    accountType: service.accountType,
+                                    userId: service.id,
+                                    child: Text(
+                                      name,
+                                      style: const TextStyle(
+                                        fontFamily: AppConstants.OpenSans,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w800,
+                                        color: _cardInk,
+                                        letterSpacing: -0.2,
+                                        height: 1.2,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                ],
+                                  ),
+                                ),
+                                _overflowMenu(service),
+                              ],
+                            ),
+                            if (professionLabel.isNotEmpty) ...[
+                              SizedBox(height: SizeConfig.size6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: _chipBg,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: CustomText(
+                                  professionLabel,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
+                            ..._infoRows(service, distStr, hoursStr),
                           ],
                         ),
                       ),
                     ],
                   ),
+                );
+              },
+            ),
 
-                  // ─── "Expertise" box ──────────────────────────
-                  if (visibleServices.isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size12),
-                    Container(
-                      padding: EdgeInsets.all(SizeConfig.size12),
-                      decoration: BoxDecoration(
-                        color: palette.tileBg,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: palette.tileBorder, width: 1),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            'Expertise',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.mainTextColor,
-                          ),
-                          SizedBox(height: SizeConfig.size8),
-                          Container(height: 1, color: palette.dividerLine),
-                          SizedBox(height: SizeConfig.size10),
-                          _servicesGrid(visibleServices, extraServices, openDetail),
-                        ],
-                      ),
-                    ),
-                  ],
+            // ─── Band 2: the services checklist ───────────
+            if (visibleServices.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(SizeConfig.size12),
+                decoration: BoxDecoration(
+                  color: palette.panelBg,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                // No heading and no divider: the design lets the ticks say what
+                // the block is, and an "Expertise" label above six items the
+                // reader can already see is a row of height spent on nothing.
+                child:
+                    _servicesGrid(visibleServices, extraServices, openDetail),
+              ),
+            ],
 
-                  SizedBox(height: SizeConfig.size14),
-
-                  // ─── Footer: price + Book Now ─────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            // ─── Band 3: price | Book Now ─────────────────
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Expanded, NOT a bare Column followed by a Spacer. A price
+                // range is the widest thing on this row ("₹10,000 – ₹1,00,000"
+                // is ~130dp at 19px) and the CTA is another ~136dp; on a 320dp
+                // phone the card's inner width is ~266dp, so the two together
+                // overrun it, the Spacer collapses to nothing and the row
+                // overflows. Giving the price the leftover space instead lets
+                // it ellipsize and keeps the button whole — the button is the
+                // thing that must never be clipped.
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomText(
-                            'Starting From',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              CustomText(
-                                priceStr,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryColor,
-                              ),
-                              if (priceStr != '—' && priceUnit.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  child: CustomText(
-                                    '/$priceUnit',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
+                      CustomText(
+                        'Starting From',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _cardInkSoft,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Spacer(),
-                      InkWell(
-                        onTap: openDetail,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryColor.withValues(alpha: 0.30),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                      const SizedBox(height: 2),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: CustomText(
+                              priceStr,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primaryColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomText(
-                                'Book Now',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                          if (priceStr != '—' && priceUnit.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: CustomText(
+                                '/$priceUnit',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: _cardInkSoft,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward_rounded,
-                                  size: 16, color: Colors.white),
-                            ],
-                          ),
-                        ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                InkWell(
+                  onTap: openDetail,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    height: 46,
+                    // 18, not 22: the CTA is the one fixed-width thing on the
+                    // row, so every point it gives back is a point the price
+                    // keeps on a narrow screen.
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor.withValues(alpha: 0.28),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          'Book Now',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded,
+                            size: 18, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// The square provider photo, with the rating pill inset into its top-left
+  /// corner exactly as the design places it.
+  Widget _cardPhoto(ServiceData service, String heroImage, String? rating) {
+    // No width or height of its own — the caller sets the width from the card's
+    // measurements and the row's stretch sets the height. `StackFit.expand` is
+    // what passes that down: without it a Stack whose children are all
+    // positioned collapses, and the photo would vanish.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(
+          child: ClipRRect(
+            // Tighter than the card's own corner, per the design — the photo
+            // reads as a framed portrait, not as a pill.
+            borderRadius: BorderRadius.circular(10),
+            child: heroImage.isEmpty
+                ? _professionHero(service)
+                : CachedNetworkImage(
+                    imageUrl: heroImage,
+                    fit: BoxFit.cover,
+                    // A quarter of the old budget: this slot is a ~120dp
+                    // thumbnail now, not a full-width letterbox.
+                    memCacheWidth: 400,
+                    placeholder: (_, __) =>
+                        Container(color: const Color(0xFFEDEFF4)),
+                    errorWidget: (_, __, ___) => _professionHero(service),
+                  ),
+          ),
+        ),
+        Positioned(left: 6, top: 6, child: _photoRatingBadge(rating)),
+      ],
+    );
+  }
+
+  /// Star + score, inset into the photo.
+  ///
+  /// A near-opaque black plate with a soft 10px radius, which is what the
+  /// design draws — not the translucent stadium with a white ring that the map
+  /// sheet uses ([_buildRatingBadge]). On a dark portrait, which is most of
+  /// them, a see-through pill has nothing to sit against.
+  Widget _photoRatingBadge(String? rating) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(imagePath: AppIconAssets.star, height: 12, width: 12),
+          const SizedBox(width: 4),
+          CustomText(
+            rating ?? 'NA',
+            fontSize: 12,
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The fact rows under the trade chip — a white glyph plate, then a bold
+  /// label. The design shows experience and distance.
+  ///
+  /// Experience comes from `experienceStartDate` (see [_experienceLabel]), and
+  /// plenty of providers have not set one. Rather than leave the slot empty it
+  /// falls back to opening hours — which is where the old card's floating
+  /// "Open | hours" chip went. A card with one lonely row reads as broken; a
+  /// card with hours reads as a provider you can call today.
+  List<Widget> _infoRows(
+      ServiceData service, String? distStr, String? hoursStr) {
+    final rows = <Widget>[];
+    final experience = _experienceLabel(service);
+    if (experience != null) {
+      rows.add(
+          _infoRow(icon: Icons.workspace_premium_outlined, label: experience));
+    } else if (hoursStr != null) {
+      rows.add(
+          _infoRow(icon: Icons.access_time_rounded, label: 'Open $hoursStr'));
+    }
+    if (distStr != null) {
+      // The app's own pin rather than a Material glyph — it is the same mark
+      // the rest of the app points to a place with.
+      rows.add(
+          _infoRow(assetPath: AppIconAssets.location_outline, label: distStr));
+    }
+    return [
+      for (final row in rows) ...[SizedBox(height: SizeConfig.size8), row],
+    ];
+  }
+
+  /// One fact row. Pass [assetPath] for an app SVG or [icon] for a Material
+  /// glyph — the distance row uses the former, so the two are not
+  /// interchangeable at the call site.
+  ///
+  /// The white plate keeps a [_glyphPlateBorder] hairline so its shape stays
+  /// defined on the purple palette as well as the teal one, where white on
+  /// white-ish would otherwise have nothing to sit against.
+  Widget _infoRow({IconData? icon, String? assetPath, required String label}) {
+    return Row(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: _glyphPlateBorder, width: 1),
+          ),
+          child: assetPath != null
+              ? LocalAssets(
+                  imagePath: assetPath,
+                  height: 15,
+                  width: 15,
+                  imgColor: AppColors.primaryColor,
+                )
+              : Icon(icon, size: 16, color: AppColors.primaryColor),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: CustomText(
+            label,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _cardInk,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// "10 Years Experience", or null when there is nothing to say.
+  ///
+  /// Two sources, in order:
+  ///  1. an `experience` total the backend already worked out — if the server
+  ///     has done the arithmetic, re-deriving it here is just a second answer
+  ///     that can disagree with the provider's own profile;
+  ///  2. otherwise the JOINING DATE (`experienceStartDate`), run through the
+  ///     shared [calculateExperience] so the card says exactly what the
+  ///     provider's own service screen says.
+  ///
+  /// Never from `experiences` — that field is a free-text list of past roles,
+  /// not a duration.
+  ///
+  /// Under a year it reports months rather than giving up: a provider who
+  /// started eight months ago has eight months of experience, and "0 Years"
+  /// would read as an accusation.
+  String? _experienceLabel(ServiceData service) {
+    final explicit = _explicitExperienceLabel(service.experience);
+    if (explicit != null) return explicit;
+
+    final raw = service.experienceStartDate?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    // Guard the parse ourselves: calculateExperience swallows a bad date into
+    // {0, 0}, which is indistinguishable from "joined this month" and would
+    // print a row saying nothing.
+    if (DateTime.tryParse(raw) == null) return null;
+
+    final exp = calculateExperience(raw);
+    final years = exp['years'] ?? 0;
+    final months = exp['months'] ?? 0;
+    if (years >= 1) {
+      return '$years ${years == 1 ? 'Year' : 'Years'} Experience';
+    }
+    if (months >= 1) {
+      return '$months ${months == 1 ? 'Month' : 'Months'} Experience';
+    }
+    return null;
+  }
+
+  /// Renders a backend-supplied experience total.
+  ///
+  /// Accepts either a bare count (`10`, `"10"`) or a phrase the server already
+  /// worded (`"10 years"`), and only appends "Experience" when it is missing —
+  /// so a server that starts sending a full label does not produce
+  /// "10 Years Experience Experience".
+  String? _explicitExperienceLabel(String? raw) {
+    final value = raw?.trim();
+    if (value == null || value.isEmpty) return null;
+
+    final years = num.tryParse(value);
+    if (years != null) {
+      if (years <= 0) return null;
+      final n = years == years.roundToDouble() ? years.toInt() : years;
+      return '$n ${years == 1 ? 'Year' : 'Years'} Experience';
+    }
+    if (value.toLowerCase().contains('experience')) return value;
+    return '$value Experience';
+  }
+
+  /// The "⋮" at the card's top-right.
+  ///
+  /// Share and save used to be two circles floating on the photo. The design
+  /// has a single control in this corner, so they became its menu — a sheet
+  /// rather than a popup so it needs no [BuildContext] from inside the list
+  /// builder, and so both actions carry a label instead of a bare glyph.
+  Widget _overflowMenu(ServiceData service) {
+    return InkWell(
+      onTap: () => _showProviderMenu(service),
+      borderRadius: BorderRadius.circular(999),
+      child: const Padding(
+        padding: EdgeInsets.only(left: 8, bottom: 6),
+        child: Icon(Icons.more_vert, size: 20, color: _cardInkSoft),
+      ),
+    );
+  }
+
+  void _showProviderMenu(ServiceData service) {
+    Get.bottomSheet(
+      SafeArea(
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: EdgeInsets.only(bottom: SizeConfig.size8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _grabHandle(),
+              _menuAction(
+                icon: Icons.share_outlined,
+                label: 'Share',
+                onTap: () {
+                  Get.back<void>();
+                  _shareProvider(service);
+                },
+              ),
+              Obx(() {
+                final saved = controller.isProviderLocallySaved(service.id);
+                return _menuAction(
+                  icon: saved ? Icons.star_rounded : Icons.star_border_rounded,
+                  iconColor: saved ? const Color(0xFFFFB400) : _cardInk,
+                  label: saved ? 'Saved' : 'Save',
+                  onTap: () {
+                    Get.back<void>();
+                    _toggleSave(service);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  Widget _menuAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color iconColor = _cardInk,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20, vertical: SizeConfig.size14),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            SizedBox(width: SizeConfig.size14),
+            CustomText(
+              label,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _cardInk,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Photo stand-in for a provider who has none — their PROFESSION's tile from
+  /// `assets/discover/`, the same art the category that led here was drawn
+  /// with.
+  ///
+  /// Fills the slot rather than being letterboxed inside it: the tiles are
+  /// 160×160 squares and the photo slot is a square too, so `cover` scales
+  /// without cropping anything and the tile's own rounded wash becomes the
+  /// photo's face. That only works because the design's photo is square —
+  /// the old full-width hero had to inset the tile to keep the subject.
+  ///
+  /// Falls back to a neutral plate when the profession has no tile:
+  /// [individualProfessionIcons] covers every current category, but it is data
+  /// and a new profession can arrive before its art does.
+  Widget _professionHero(ServiceData service) {
+    final tile = _professionTile(service);
+    if (tile == null) return Container(color: const Color(0xFFEDEFF4));
+    return LocalAssets(imagePath: tile, boxFix: BoxFit.cover);
+  }
+
+  /// Asset path of the profession illustration for [service], or null.
+  ///
+  /// Three sources, cheapest first: the provider's own `profession`, then the
+  /// category the user picked to get here (its slug, then its display name).
+  /// The screen is scoped to ONE profession, so the selection is a reliable
+  /// answer even when a provider record carries nothing — which is the case
+  /// that matters, since a provider with no photo often has a thin record all
+  /// round.
+  ///
+  /// Every candidate is normalised to the map's key shape (`Home Tutor` →
+  /// `HOME_TUTOR`): the API has sent both the tag id and the display label in
+  /// this field, and keying on only one of them would blank the hero for half
+  /// the categories.
+  String? _professionTile(ServiceData service) {
+    String? lookup(String? raw) {
+      if (raw == null) return null;
+      final key = raw.trim().toUpperCase().replaceAll(RegExp(r'\s+'), '_');
+      return key.isEmpty ? null : individualProfessionIcons[key];
+    }
+
+    final selected = controller.selectedEarnServiceData.value;
+    return lookup(service.profession) ??
+        lookup(selected?.slugId) ??
+        lookup(selected?.name);
   }
 
   /// Merges the provider's `serviceOffered` + `typesOfWork` into a single
@@ -1093,7 +1413,8 @@ class _SelfProfessionDiscoverScreenV2State
           Expanded(child: cells[i]),
           SizedBox(width: SizeConfig.size10),
           Expanded(
-            child: i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+            child:
+                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
           ),
         ],
       ));
@@ -1112,14 +1433,17 @@ class _SelfProfessionDiscoverScreenV2State
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.check_circle, size: 15, color: AppColors.green00),
+        // Outlined tick, per the design — the filled disc read as a status
+        // indicator ("done") rather than as a list bullet.
+        Icon(Icons.check_circle_outline_rounded,
+            size: 16, color: AppColors.green00),
         const SizedBox(width: 6),
         Expanded(
           child: CustomText(
             text,
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: AppColors.mainTextColor,
+            color: _serviceInk,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1136,41 +1460,16 @@ class _SelfProfessionDiscoverScreenV2State
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: AppColors.primaryColor,
+        // Matches the tick rows either side of it. Without a cap this wraps to
+        // two lines in a narrow cell and the last grid row grows taller than
+        // the ones above it.
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  // ─── Hero overlay actions (share + local save) ─────────────────
-  /// Pass either [assetPath] (an SVG/PNG from AppIconAssets — the share glyph
-  /// uses this) or [icon] for a Material glyph. [assetPath] wins when both are
-  /// supplied.
-  Widget _heroCircleButton({
-    IconData? icon,
-    String? assetPath,
-    Color iconColor = Colors.white,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.black.withValues(alpha: 0.38),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: assetPath != null
-              ? LocalAssets(
-                  imagePath: assetPath,
-                  height: 18,
-                  width: 18,
-                  imgColor: iconColor,
-                )
-              : Icon(icon, size: 18, color: iconColor),
-        ),
-      ),
-    );
-  }
-
+  // ─── Card actions (share + local save), reached from the "⋮" menu ──────────
   void _shareProvider(ServiceData service) {
     ShareService.instance.shareProfile(
       userId: service.id ?? '',
@@ -1230,7 +1529,8 @@ class _SelfProfessionDiscoverScreenV2State
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.location_on_outlined, size: 12, color: AppColors.secondaryTextColor),
+          Icon(Icons.location_on_outlined,
+              size: 12, color: AppColors.secondaryTextColor),
           const SizedBox(width: 3),
           CustomText(
             text,
@@ -1247,7 +1547,8 @@ class _SelfProfessionDiscoverScreenV2State
   /// a translucent tint) because it overlays photos/maps, where a see-through
   /// pill would be unreadable.
   Widget _buildLiveBadge(bool isLive) {
-    final Color fg = isLive ? Colors.green.shade700 : AppColors.secondaryTextColor;
+    final Color fg =
+        isLive ? Colors.green.shade700 : AppColors.secondaryTextColor;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       decoration: BoxDecoration(
@@ -1301,7 +1602,8 @@ class _SelfProfessionDiscoverScreenV2State
   }
 
   Map<String, String> getMinMaxTimings(List<Timings>? timingsList) {
-    if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
+    if (timingsList == null || timingsList.isEmpty)
+      return {"start": "--", "end": "--"};
     Timings? earliest = timingsList.first;
     Timings? latest = timingsList.first;
     for (final t in timingsList) {
@@ -1332,11 +1634,13 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
   double get maxExtent => _extent;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+  Widget build(
+          BuildContext context, double shrinkOffset, bool overlapsContent) =>
       SizedBox.expand(child: child);
 
   @override
-  bool shouldRebuild(_PinnedFilterBar oldDelegate) => oldDelegate.child != child;
+  bool shouldRebuild(_PinnedFilterBar oldDelegate) =>
+      oldDelegate.child != child;
 }
 
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
@@ -1359,10 +1663,12 @@ class _SelfProfessionMapScreenV2 extends StatefulWidget {
   });
 
   @override
-  State<_SelfProfessionMapScreenV2> createState() => _SelfProfessionMapScreenV2State();
+  State<_SelfProfessionMapScreenV2> createState() =>
+      _SelfProfessionMapScreenV2State();
 }
 
-class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> {
+class _SelfProfessionMapScreenV2State
+    extends State<_SelfProfessionMapScreenV2> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _serviceIcon;
 
@@ -1423,19 +1729,21 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
     if (_mapController == null) return;
     final markers = cluster.markerIds;
     if (markers.length <= 1) {
-      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
+      _mapController!
+          .animateCamera(CameraUpdate.newLatLngZoom(cluster.position, 15));
       return;
     }
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
+    _mapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(cluster.bounds, 80));
   }
 
   @override
   Widget build(BuildContext context) {
     // Frame on the picked earn-discover location when set, else the device fix.
-    final initialLat =
-        _ctrl.earnDiscoverLat ?? (LocationService.lat != 0.0 ? LocationService.lat : 28.6139);
-    final initialLng =
-        _ctrl.earnDiscoverLng ?? (LocationService.lng != 0.0 ? LocationService.lng : 77.2090);
+    final initialLat = _ctrl.earnDiscoverLat ??
+        (LocationService.lat != 0.0 ? LocationService.lat : 28.6139);
+    final initialLng = _ctrl.earnDiscoverLng ??
+        (LocationService.lng != 0.0 ? LocationService.lng : 77.2090);
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -1465,7 +1773,8 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
           }),
           // Loading overlay while the unpaginated fetch is in flight.
           Obx(() {
-            final isLoading = _ctrl.earnServiceMapResponse.value.status == Status.INITIAL;
+            final isLoading =
+                _ctrl.earnServiceMapResponse.value.status == Status.INITIAL;
             if (!isLoading) return const SizedBox.shrink();
             return const Center(
               child: SizedBox(
@@ -1499,7 +1808,8 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
                   icon: Icons.my_location,
                   onTap: () {
                     _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(LatLng(initialLat, initialLng), 13),
+                      CameraUpdate.newLatLngZoom(
+                          LatLng(initialLat, initialLng), 13),
                     );
                   },
                 ),
@@ -1521,10 +1831,12 @@ class _SelfProfessionMapScreenV2State extends State<_SelfProfessionMapScreenV2> 
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded,
+                          size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(

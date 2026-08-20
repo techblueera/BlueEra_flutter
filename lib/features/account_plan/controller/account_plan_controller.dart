@@ -173,6 +173,17 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
   /// wait.
   Future<void> requestRefund(UserAccountPlan plan, {String? note}) async {
     if (isRequestingRefund.value || plan.id.isEmpty) return;
+    // The API is NEVER called while the button is disabled — `can_request_refund`
+    // is the single enable condition (guide §2.2.2), and this is the one place
+    // that can enforce it for every caller. The control that leads here is not
+    // tappable in that state, so this is a backstop against a future caller,
+    // not a path a user can reach; it stays silent for that reason.
+    if (!plan.refund.canRequestRefund) {
+      debugPrint('⛔ requestRefund blocked: can_request_refund=false '
+          '(status=${plan.refund.refundStatus}, '
+          'daysUntilEligible=${plan.refund.daysUntilEligible})');
+      return;
+    }
     isRequestingRefund.value = true;
     try {
       final res = await _repo.requestRefund(accountPlanId: plan.id, note: note);
@@ -184,9 +195,25 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
         commonSnackBar(message: AppStrings.refundRequestSubmitted.tr);
         return;
       }
-      // 400/403 carry the reason — outside the window, already requested,
-      // refunds disabled. The server's wording is more specific than anything
-      // this screen could say, so it is shown as sent.
+      // `refund_window_not_open` means our snapshot was stale — the card said
+      // the window was open, the server disagrees, and it sends back the same
+      // `days_until_eligible` the disabled label would have quoted. Re-read
+      // my-plans so the card corrects itself to the countdown instead of
+      // staying an enabled button that just failed.
+      final blockedDays = _refundWindowNotOpenDays(res);
+      if (blockedDays != null) {
+        await fetchMyPlans();
+        commonSnackBar(
+          message: blockedDays == 1
+              ? AppStrings.refundWindowNotOpenOneDay.tr
+              : AppStrings.refundWindowNotOpenFmt
+                  .trParams({'days': '$blockedDays'}),
+        );
+        return;
+      }
+      // Every other 400/403 carries the reason — already requested, refunds
+      // disabled. The server's wording is more specific than anything this
+      // screen could say, so it is shown as sent.
       commonSnackBar(
         message: res.message?.toString().trim().isNotEmpty == true
             ? res.message.toString()
@@ -197,6 +224,48 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
       commonSnackBar(message: AppStrings.refundRequestFailed.tr);
     } finally {
       isRequestingRefund.value = false;
+    }
+  }
+
+  /// `days_until_eligible` off a `refund_window_not_open` rejection, or null
+  /// when the failure was anything else (already requested, refunds disabled)
+  /// and the server's own `message` should be shown instead.
+  ///
+  /// The code and the count are looked for at the root, under `data` and under
+  /// `data.refund`: the guide pins the SUCCESS shape but not the error
+  /// envelope, and reading only one of the three would quietly fall back to the
+  /// generic message for the other two.
+  int? _refundWindowNotOpenDays(ResponseModel res) {
+    try {
+      final body = res.response?.data;
+      if (body is! Map) return null;
+      final root = Map<String, dynamic>.from(body);
+      final data = root['data'] is Map
+          ? Map<String, dynamic>.from(root['data'] as Map)
+          : const <String, dynamic>{};
+      final refund = data['refund'] is Map
+          ? Map<String, dynamic>.from(data['refund'] as Map)
+          : const <String, dynamic>{};
+
+      final code =
+          (root['error'] ?? root['code'] ?? data['error'] ?? data['code'] ?? '')
+              .toString()
+              .toLowerCase();
+      final message = res.message?.toString().toLowerCase() ?? '';
+      if (code != 'refund_window_not_open' &&
+          !message.contains('refund_window_not_open')) {
+        return null;
+      }
+
+      final raw = root['days_until_eligible'] ??
+          data['days_until_eligible'] ??
+          refund['days_until_eligible'];
+      final days =
+          raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
+      return (days != null && days > 0) ? days : null;
+    } catch (e) {
+      debugPrint('❌ _refundWindowNotOpenDays parse error: $e');
+      return null;
     }
   }
 

@@ -243,9 +243,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   Widget _goLivePill() {
     return Obx(
       () => GoLivePill(
-        // Open now (schedule-driven) AND the personal deposit is paid — the
-        // deposit is the first wall, so an unpaid provider is never shown live.
-        value: _viewCtrl.isShopOpenNow.value && _viewCtrl.canGoLive,
+        // Open now (schedule-driven) AND the payment gate passes — payment is
+        // the first wall, so an unpaid provider is never shown live. Must read
+        // the same [isGoLiveAllowed] the tap gate uses (plan OR free first
+        // service OR legacy deposit), or a provider on their free service
+        // passes the gate and the pill still says offline.
+        value: _viewCtrl.isShopOpenNow.value && _viewCtrl.isGoLiveAllowed,
         isUpdating: _viewCtrl.isAvailabilityUpdating.value,
         onTap: _handleGoLiveTap,
         onScheduleTap: _viewCtrl.openScheduleControl,
@@ -271,12 +274,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// live; otherwise shows why and routes to the plan flow. Fail-open — blocks
   /// only when the backend reports `required && !paid` and no plan is held.
   ///
-  /// No waivers: the first-service-free exemption that used to OR into this has
-  /// been removed, so payment is the whole rule. Mirrors the self-employed and
+  /// FIRST SERVICE FREE: a professional whose free first service is unspent
+  /// passes without paying — [ViewPersonalDetailsController.isGoLiveAllowed]
+  /// ORs plan + free service + legacy deposit. Mirrors the self-employed and
   /// business gates.
   bool _ensureCanGoLive() {
-    if (AccountPlanEntitlement.to.hasActivePlan.value ||
-        _viewCtrl.canGoLive) return true;
+    if (_viewCtrl.isGoLiveAllowed) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',

@@ -22,6 +22,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -441,9 +442,26 @@ class ViewPersonalDetailsController extends GetxController
   /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool get canGoLive => personalProfileDetails.value.canGoLive;
 
-  // The first-service-free waiver used to sit here (`isFirstServiceFree`). It
-  // is gone: payment is now the only go-live rule for individuals, riders and
-  // businesses alike, so [canGoLive] is the whole gate.
+  /// First-service-free waiver: an individual / self-employed provider gets
+  /// their FIRST service on the house, so they can go live and take that
+  /// enquiry before paying anything. Once it is used the plan gate applies on
+  /// every subsequent go-live.
+  ///
+  /// Fail-CLOSED: only an explicit `freeServiceUsed == false` waives, so an
+  /// absent flag leaves payment required. The business analogue is
+  /// `ViewBusinessDetailsController.isFreeQuotaAvailable`; the rider one is
+  /// `DeliveryPartnerController.isFirstRideFree`.
+  bool get isFirstServiceFree =>
+      personalProfileDetails.value.isFirstServiceFree;
+
+  /// The single go-live truth for individuals — an ACTIVE PLAN, the free first
+  /// service, or a satisfied legacy deposit. Every gate on the self-employed
+  /// and professional screens must read THIS, not bare [canGoLive], or the pill
+  /// and the gate disagree about whether the provider is live.
+  bool get isGoLiveAllowed =>
+      AccountPlanEntitlement.to.hasActivePlan.value ||
+      isFirstServiceFree ||
+      canGoLive;
 
   /// True when this account's identity has been established by a verified
   /// Aadhaar. Name, date of birth and gender are then READ-ONLY everywhere they

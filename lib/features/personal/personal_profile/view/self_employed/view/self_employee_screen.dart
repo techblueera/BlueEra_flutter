@@ -142,11 +142,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // deposit always allows go-live. The backend also enforces this server-side
     // (402 on the go-live PUT). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     //
-    // No waivers: the first-service-free exemption is gone, so an active plan
-    // or a satisfied deposit is the whole rule — as it already is for riders
-    // and businesses.
-    final depositBlocked = !AccountPlanEntitlement.to.hasActivePlan.value &&
-        !_viewCtrl.canGoLive;
+    // FIRST SERVICE FREE: the provider's first service is on the house, so a
+    // provider whose `freeServiceUsed` is still `false` goes live without
+    // paying — the payment screen only appears once that free service is spent.
+    // Fail-closed on an absent flag; see
+    // [ViewPersonalDetailsController.isGoLiveAllowed], which ORs plan + free
+    // service + legacy deposit and is the same gate the professionals screen
+    // and the auto-go-live scheduler read.
+    final depositBlocked = !_viewCtrl.isGoLiveAllowed;
     if (depositBlocked) {
       // Tell the provider why go-live is blocked, then route them to the
       // security-deposit flow to complete payment — go-live stays blocked

@@ -106,7 +106,20 @@ class ServiceData {
   List<String>? skills;
   List<String>? projects;
   List<String>? experiences;
+
+  /// When this provider started working — the "joining date" they pick during
+  /// profile setup. The card turns it into "N Years Experience".
+  ///
+  /// Read from several spellings and from inside `service`, because the
+  /// discover list and the provider's own service record have not always
+  /// agreed on where it sits. See [ServiceData.fromJson].
   String? experienceStartDate;
+
+  /// A total already worked out by the backend, when it sends one (`experience`
+  /// / `totalExperience` / `experienceYears`). Preferred over
+  /// [experienceStartDate]: if the server has done the arithmetic, the client
+  /// re-deriving it is a second answer that can disagree.
+  String? experience;
 
   ServiceData(
       {
@@ -234,7 +247,39 @@ class ServiceData {
     if (json['experiences'] != null) {
       experiences = List<String>.from(json['experiences']);
     }
-    experienceStartDate = json['experienceStartDate'];
+    // The start date has appeared at the root and inside `service`, in both
+    // camelCase and snake_case, depending on which endpoint filled the list.
+    // Reading only one of them is why the card's experience row came back
+    // empty for providers who had certainly set a date.
+    final svc = json['service'];
+    experienceStartDate = _firstString([
+      json['experienceStartDate'],
+      json['experience_start_date'],
+      json['joiningDate'],
+      json['joining_date'],
+      if (svc is Map) svc['experienceStartDate'],
+      if (svc is Map) svc['experience_start_date'],
+    ]);
+    experience = _firstString([
+      json['experience'],
+      json['totalExperience'],
+      json['experienceYears'],
+      if (svc is Map) svc['experience'],
+      if (svc is Map) svc['totalExperience'],
+    ]);
+  }
+
+  /// First non-blank value in [values], stringified. Numbers are kept (an
+  /// `experience: 10` is as valid as `"10 years"`); empty strings are not,
+  /// since `""` from the API means "unset" and would otherwise beat a real
+  /// value further down the list.
+  static String? _firstString(List<dynamic> values) {
+    for (final v in values) {
+      if (v == null) continue;
+      final s = v.toString().trim();
+      if (s.isNotEmpty && s.toLowerCase() != 'null') return s;
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {

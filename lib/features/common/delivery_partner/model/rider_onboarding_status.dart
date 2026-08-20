@@ -49,6 +49,7 @@ class RiderOnboardingStatusData {
     this.vehicleImageUrls = const [],
     this.securityDepositPaid,
     this.securityDepositPaymentStatus,
+    this.freeRideUsed,
   });
 
   RiderOnboardingStatusData.fromJson(dynamic json) {
@@ -149,9 +150,13 @@ class RiderOnboardingStatusData {
       securityDepositPaid = deposit['paid'] as bool?;
       securityDepositPaymentStatus = deposit['paymentStatus'] as String?;
     }
-    // `freeRideUsed` was parsed here for the first-ride-free waiver. That
-    // concept is gone — the deposit is the only gate — so the field is ignored
-    // even if the backend keeps sending it.
+    // First-ride-free waiver: the rider's FIRST ride is on the house, so they
+    // may go live without paying until they have used it.
+    //
+    // Fail-CLOSED, unlike the deposit above: only an explicit `false` waives
+    // payment, so a missing / null flag keeps the gate on rather than handing
+    // every rider a free pass.
+    freeRideUsed = json['freeRideUsed'] as bool?;
   }
 
   // Pulls a single side ('front'/'back') out of the nested
@@ -267,6 +272,10 @@ class RiderOnboardingStatusData {
   bool? securityDepositPaid;
   String? securityDepositPaymentStatus;
 
+  /// Whether the rider has already used their one free ride. `false` → still
+  /// free → the payment gate is waived. Null / absent → enforce.
+  bool? freeRideUsed;
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['personalInformation'] = personalInformation;
@@ -304,6 +313,9 @@ class RiderOnboardingStatusData {
       'paid': securityDepositPaid,
       'paymentStatus': securityDepositPaymentStatus,
     };
+    // Round-tripped too, or a cache replay loses the free-ride waiver and the
+    // fail-closed default charges a rider who still has their free ride.
+    map['freeRideUsed'] = freeRideUsed;
     return map;
   }
 

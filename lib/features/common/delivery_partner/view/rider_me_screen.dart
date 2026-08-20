@@ -466,16 +466,14 @@ class _RiderMeScreenState extends State<RiderMeScreen>
                     Get.to(() => const RiderServiceScreen());
                     return;
                   }
-                  // After document verification, the security deposit must be
-                  // paid before going online. This gate applies only to bike
-                  // riders / cab drivers (the professions that pay a deposit).
-                  // ensureSecurityDepositPaid re-fetches the onboarding
-                  // status when the snapshot says unpaid, so a freshly paid
-                  // deposit is honored instead of re-routing to payment.
-                  final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
-                      userProfessionGlobal == CAR_TAXI_DRIVER;
-                  if (isRiderRole &&
-                      !await _riderCtrl.ensureSecurityDepositPaid()) {
+                  // After document verification, payment is required before
+                  // going online. No profession check — this is a GIG_WORKER
+                  // screen, so everyone who can tap this pill pays, exactly as
+                  // in handleGoLiveTap. ensureSecurityDepositPaid honours the
+                  // first-job-free waiver and re-fetches the onboarding status
+                  // when the snapshot says unpaid, so a freshly paid worker is
+                  // not re-routed to payment.
+                  if (!await _riderCtrl.ensureSecurityDepositPaid()) {
                     commonSnackBar(
                         message:
                             'Your payment is incomplete. Please complete the payment process to go live.');

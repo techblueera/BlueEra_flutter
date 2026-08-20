@@ -383,9 +383,9 @@ class SecurityDepositController extends GetxController {
   /// only they have the controller registered), so this is a no-op for every
   /// other account type.
   Future<void> _refreshRiderDepositGate() async {
-    final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
-        userProfessionGlobal == CAR_TAXI_DRIVER;
-    if (!isRiderRole) return;
+    // Every gig worker pays now, not just drivers — a non-driver who paid and
+    // was not refreshed here would keep failing the gate on the stale snapshot.
+    if (!isGigWorkerAccount()) return;
     if (!Get.isRegistered<DeliveryPartnerController>()) return;
     await Get.find<DeliveryPartnerController>()
         .ridersOnboardingStatusRepoApi(forceRefresh: true);

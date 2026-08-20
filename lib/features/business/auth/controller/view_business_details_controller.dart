@@ -132,12 +132,28 @@ class ViewBusinessDetailsController extends GetxController
   /// already paid one is not knocked offline by the migration — there is no
   /// longer any way for them to buy it back.
   ///
-  /// There used to be a third term: a free intro quota (`freeOrdersUsed`) that
-  /// waived the gate for the first N orders / enquiries. Nothing is given away
-  /// for free now, so the whole concept is gone from the client — the backend
-  /// may still send the flag; we no longer read it.
+  /// The third term is the FREE INTRO QUOTA — a business gets its first N
+  /// orders / enquiries on the house, so it can go live and start trading
+  /// before it pays anything. Once the quota is spent the plan gate applies on
+  /// every subsequent go-live.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value || canGoLive;
+      AccountPlanEntitlement.to.hasActivePlan.value ||
+      isFreeQuotaAvailable ||
+      canGoLive;
+
+  /// Free intro quota (first N orders / enquiries) — waives the payment gate
+  /// while it lasts. Fail-CLOSED: only an explicit `freeOrdersUsed == false`
+  /// waives, so an absent flag leaves payment required. The individual
+  /// analogue is `ViewPersonalDetailsController.isFirstServiceFree`; the rider
+  /// one is `DeliveryPartnerController.isFirstRideFree`.
+  bool get isFreeQuotaAvailable =>
+      businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
+
+  /// Free orders / enquiries left, for display copy only — never gate on this
+  /// ([isFreeQuotaAvailable] is the authority). Null when the backend ships the
+  /// boolean without a count.
+  int? get freeOrdersRemaining =>
+      businessProfileDetails.value?.data?.freeOrdersRemaining;
 
   /// Joining-bonus object embedded in the `business/:id` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).

@@ -6648,7 +6648,18 @@ class AppStrings {
 
   // Refund on a paid account plan — guide §2.2.2.
   static const String requestRefund = "requestRefund";
+  // The disabled button's wording, quoting the SERVER's day count. Singular is
+  // its own key rather than "1 days" — the count reaches 1 for a whole day, so
+  // it is a state every waiting user actually sees.
+  static const String refundAvailableInDaysFmt = "refundAvailableInDaysFmt";
+  static const String refundAvailableInOneDayFmt =
+      "refundAvailableInOneDayFmt";
+  // Fallback for a response that carries the date but no day count.
   static const String refundAvailableAfterFmt = "refundAvailableAfterFmt";
+  // The server's `refund_window_not_open` rejection, worded from the same day
+  // count. No date here — the snackbar is a correction, not the card's label.
+  static const String refundWindowNotOpenFmt = "refundWindowNotOpenFmt";
+  static const String refundWindowNotOpenOneDay = "refundWindowNotOpenOneDay";
   static const String refundWindowClosed = "refundWindowClosed";
   static const String refundUnderReview = "refundUnderReview";
   static const String refundedAmountFmt = "refundedAmountFmt";

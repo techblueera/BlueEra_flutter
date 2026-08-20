@@ -3,10 +3,10 @@ import 'dart:developer';
 
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../permissionCentralize/go_live_permission_service.dart';
+import '../../../account_plan/controller/account_plan_entitlement.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../controller/delivery_partner_controller.dart';
 import '../repo/delivery_partner_repo.dart';
@@ -260,12 +260,14 @@ class RiderAutoGoLiveScheduler {
       //    session alive.
       final verified =
           riderCtrl.riderVerificationState == RiderVerificationState.completed;
-      final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
-          userProfessionGlobal == CAR_TAXI_DRIVER;
-      // Deposit is required only for rider roles, and it is now the ONLY gate —
-      // the first-ride-free waiver that used to sit alongside it is gone.
-      final depositBlocked =
-          isRiderRole && !riderCtrl.isSecurityDepositPaid;
+      // Payment terms, identical to the manual tap (handleGoLiveTap) — no
+      // profession check there and none here, since only GIG_WORKER accounts
+      // ever opt into this scheduler. Waived while the worker's FIRST JOB is
+      // still free, so the scheduler never auto-closes someone who would pass
+      // the manual gate.
+      final depositBlocked = !AccountPlanEntitlement.to.hasActivePlan.value &&
+          !riderCtrl.isFirstRideFree &&
+          !riderCtrl.isSecurityDepositPaid;
       final eligible = verified && !depositBlocked;
 
       final inWindow = _inWindow(DateTime.now());

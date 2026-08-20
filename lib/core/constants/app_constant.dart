@@ -823,6 +823,21 @@ const Set<String> kRiderProfessions = {
 bool isRiderProfession(String? profession) =>
     profession != null && kRiderProfessions.contains(profession);
 
+/// True for EVERY gig worker, riders and non-riders alike (mechanic, tailor,
+/// beautician, cleaner, labour…). They all share the `RiderServiceScreen`
+/// dashboard via `GigWorkOptionsScreen`, so anything that gates that screen —
+/// the go-live payment gate above all — must use this, not
+/// [isRiderProfession]: a check narrowed to drivers lets every other gig
+/// profession go live without ever paying.
+///
+/// The profession OR is a safety net, not redundancy: `userProfileTypeGlobal`
+/// is a non-reactive global hydrated from prefs and is briefly EMPTY on a cold
+/// start / re-login, and an empty type must not open the gate for a rider we
+/// can already identify by profession.
+bool isGigWorkerAccount() =>
+    userProfileTypeGlobal == GIG_WORKER ||
+    isRiderProfession(userProfessionGlobal);
+
 const String HOSPITAL = "HOSPITAL";
 const String PHARMACY = "PHARMACY";
 const String LABTEST = "LABTEST";

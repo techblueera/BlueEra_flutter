@@ -18,6 +18,19 @@ num _asNum(dynamic v, [num d = 0]) => v == null
     ? d
     : (v is num ? v : num.tryParse(v.toString()) ?? d);
 
+/// A day count that keeps NULL distinct from zero, unlike [_asInt].
+///
+/// `days_until_eligible` uses null for "the window is open, or already gone" —
+/// collapsing that to 0 would be indistinguishable from "opens today" and would
+/// word the button wrongly in both directions. Negative values are read as null
+/// for the same reason: a countdown that has run out is not a countdown.
+int? _asDays(dynamic v) {
+  if (v == null) return null;
+  final n = v is num ? v.toInt() : int.tryParse(v.toString());
+  if (n == null || n <= 0) return null;
+  return n;
+}
+
 String? _asStr(dynamic v) {
   if (v == null) return null;
   final s = v.toString().trim();
@@ -364,6 +377,14 @@ class PlanRefund {
 
   final bool windowOpen;
 
+  /// Days left before the window opens, counted by the SERVER. `> 0` is what
+  /// words the disabled button ("available in N days"); null means the window
+  /// is already open or long closed, and the label falls to those cases.
+  ///
+  /// Server-counted on purpose — the same reason the dates are not compared
+  /// here: a day count derived from the device clock would drift with it.
+  final int? daysUntilEligible;
+
   /// **The only enable condition.** Everything else on this object explains a
   /// disabled button; this one turns it on.
   final bool canRequestRefund;
@@ -381,6 +402,7 @@ class PlanRefund {
     required this.refundEligibleAt,
     required this.refundWindowClosesAt,
     required this.windowOpen,
+    required this.daysUntilEligible,
     required this.canRequestRefund,
     required this.refundableAmountInr,
     required this.razorpayRefundId,
@@ -401,6 +423,7 @@ class PlanRefund {
       refundWindowClosesAt:
           DateTime.tryParse(j['refund_window_closes_at']?.toString() ?? ''),
       windowOpen: j['window_open'] == true,
+      daysUntilEligible: _asDays(j['days_until_eligible']),
       canRequestRefund: j['can_request_refund'] == true,
       refundableAmountInr: _asInt(j['refundable_amount_inr']),
       razorpayRefundId: _asStr(j['razorpay_refund_id']),
@@ -428,8 +451,16 @@ class PlanRefund {
   }
 
   /// Still waiting for the window to open.
+  ///
+  /// [daysUntilEligible] is the authority when the server sends it — that is
+  /// the guide's rule (`refund_status == "none"` & `days_until_eligible > 0`),
+  /// and it is the number the disabled label quotes. The date comparison is
+  /// only a fallback for a backend that ships the dates without the count;
+  /// without it such a response would fall through to "window closed", which
+  /// is the opposite of the truth.
   bool get isPending {
     if (refundStatus != 'none' || canRequestRefund) return false;
+    if (daysUntilEligible != null) return true;
     final opens = refundEligibleAt;
     return opens != null && DateTime.now().isBefore(opens);
   }

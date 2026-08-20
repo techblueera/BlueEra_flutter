@@ -450,20 +450,31 @@ class DeliveryPartnerController extends GetxController {
     // fallback so a rider who already paid one is not knocked offline by the
     // migration; there is no longer any way for them to buy it back.
     if (await AccountPlanEntitlement.to.ensureAllowed()) return true;
+    // FIRST RIDE FREE: a rider whose free ride is still unused goes live
+    // without paying anything. Checked before the refresh below so the free
+    // rider never sees the payment screen at all.
+    if (isFirstRideFree) return true;
     if (isSecurityDepositPaid) return true;
     await ridersOnboardingStatusRepoApi(forceRefresh: true);
-    return isSecurityDepositPaid;
+    return isFirstRideFree || isSecurityDepositPaid;
   }
 
   /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
   /// can go online only once this is true. Reads the `securityDeposit.paid`
   /// flag from the latest onboarding-status response (null → treated as unpaid).
-  /// NOTE: there used to be a first-ride-free waiver here (`isFirstRideFree`,
-  /// off the backend's `freeRideUsed`) that let an unpaid rider go live until
-  /// they finished one ride. It has been removed — the deposit is now the only
-  /// gate, checked the same way everywhere.
   bool get isSecurityDepositPaid =>
       riderOnboardingStatusData.value?.securityDepositPaid == true;
+
+  /// First-ride-free waiver: the rider's FIRST ride is on the house, so they
+  /// may go live and take it before paying anything. Once it is used the plan
+  /// gate applies on every subsequent go-live.
+  ///
+  /// Fail-CLOSED: only an explicit `freeRideUsed == false` waives, so an absent
+  /// flag leaves payment required. The individual analogue is
+  /// `ViewPersonalDetailsController.isFirstServiceFree`; the business one is
+  /// `ViewBusinessDetailsController.isFreeQuotaAvailable`.
+  bool get isFirstRideFree =>
+      riderOnboardingStatusData.value?.freeRideUsed == false;
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();

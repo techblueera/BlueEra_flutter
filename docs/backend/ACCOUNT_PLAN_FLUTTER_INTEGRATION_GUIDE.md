@@ -212,6 +212,7 @@ dates yourself:
   "refund_eligible_at": "2027-02-19T…", // window OPENS (activation + 6 months)
   "refund_window_closes_at": "2027-03-01T…", // +10 days
   "window_open": false,                 // now within [eligible_at, closes_at]
+  "days_until_eligible": 184,           // >0 ⇒ "available in N days"; null ⇒ open/closed
   "can_request_refund": false,          // ← ENABLE the Refund button ONLY when true
   "refundable_amount_inr": 300,         // base only, no GST
   "razorpay_refund_id": null,
@@ -223,7 +224,7 @@ dates yourself:
 - `refund_system_enabled == false` → **don't show** the Refund control at all.
 - `can_request_refund == true` → show an **enabled** "Request Refund" button.
 - Otherwise show it **disabled** with a reason from `refund_status` / dates:
-  - `refund_status == "none"` & now `< refund_eligible_at` → "Refund available after {date} (6 months)".
+  - `refund_status == "none"` & `days_until_eligible > 0` → **disabled**, "Refund available in {days_until_eligible} days (on {refund_eligible_at})". (Do NOT let the user submit — the backend also blocks it with a `refund_window_not_open` error carrying the same `days_until_eligible`.)
   - `refund_status == "none"` & now `> refund_window_closes_at` → "Refund window closed".
   - `requested` → "Refund requested — under review".
   - `approved`/`refunded` → "Refunded ₹{refundable_amount_inr}".

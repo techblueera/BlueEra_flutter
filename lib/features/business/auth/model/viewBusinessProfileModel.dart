@@ -174,10 +174,16 @@ class BusinessProfileDetails {
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
         : null;
-    // `freeOrdersUsed` / `freeOrdersRemaining` are deliberately NOT read. The
-    // free intro quota used to waive the go-live gate for a business's first N
-    // orders / enquiries; nothing is free now, so the client ignores the flags
-    // even when the backend still sends them.
+    // Free intro quota — the business's first N orders / enquiries are on the
+    // house, so it may go live without paying until the quota is spent.
+    //
+    // Fail-CLOSED, unlike `securityDeposit` above: only an explicit `false`
+    // waives payment, so a missing / null flag enforces the plan gate rather
+    // than handing every business a free pass.
+    freeOrdersUsed = json['freeOrdersUsed'] as bool?;
+    freeOrdersRemaining = json['freeOrdersRemaining'] is num
+        ? (json['freeOrdersRemaining'] as num).toInt()
+        : null;
 
     // ── Location fallbacks ──
     // Service-business profiles often carry coordinates and the human
@@ -289,9 +295,24 @@ class BusinessProfileDetails {
   /// docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
   SecurityDepositStatus? securityDeposit;
 
+  /// Whether this business has spent its free intro quota (the first N orders /
+  /// enquiries, N being a backend policy — the client never needs to know it).
+  /// `false` → quota left → the payment gate is waived. Null / absent → enforce.
+  bool? freeOrdersUsed;
+
+  /// How many free orders / enquiries are left, for display copy only. Never
+  /// gate on this — [freeOrdersUsed] is the authority, so a backend that ships
+  /// the boolean but not the count still behaves correctly.
+  int? freeOrdersRemaining;
+
   /// The go-live decision: allowed when there's no deposit info or the deposit
   /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
   bool get canGoLive => securityDeposit?.canGoLive ?? true;
+
+  /// True while the business still has free intro quota, which waives the
+  /// payment gate. Fail-closed: only an explicit `false` from the backend
+  /// counts, so an absent flag leaves payment required.
+  bool get isFreeQuotaAvailable => freeOrdersUsed == false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
