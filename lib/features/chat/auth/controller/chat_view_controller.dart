@@ -3957,7 +3957,7 @@ class ChatViewController extends GetxController {
 
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
-    print("ksjdcnksjd");
+
     if (isSending.value) return null;
     isSending.value = true;
     try {
@@ -4028,7 +4028,6 @@ class ChatViewController extends GetxController {
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
           if (!alreadyExists) {
-            getListOfMessageData?.add(message);
              getListOfMessageData?.add(message);
           }
           getListOfMessageResponse.value =
