@@ -5,6 +5,7 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/doctor_discover_summary.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -46,9 +47,24 @@ const Color _kAvailBorder = Color(0xFFDDE2EE);
 /// closing time / "Closed today". NOT [Colors.red], which is duller and warmer.
 const Color _kAccentRed = Color(0xFFFF2C55);
 
+/// Card fills, alternating down the list — an even card is mint, an odd one
+/// lilac. Straight off the reference (`docs/img.png`); do not re-tune them to
+/// "look right" in isolation, the pair only reads as a rhythm side by side.
+const List<Color> _kCardTints = [Color(0xFFEDFDFF), Color(0xFFFCF5FF)];
+
+/// Fill of the services panel, indexed the SAME way as [_kCardTints] — each is
+/// its card's tint pushed one step deeper so the panel separates from the card
+/// without a border. Keep the two lists the same length and order.
+const List<Color> _kServicePanelTints = [Color(0xFFE1F3F8), Color(0xFFF4EAF9)];
+
 class DoctorDiscoverCard extends StatefulWidget {
   final DoctorDiscoverSummary doctor;
   final VoidCallback onTap;
+
+  /// Position in the list, used ONLY to pick the alternating tint — the card
+  /// is otherwise index-agnostic. Defaults to 0, so a card rendered outside a
+  /// list (a preview, a single result) still gets a valid fill.
+  final int index;
 
   /// Footer CTA. Defaults to opening the profile — same destination as the
   /// card body — so the button is never a dead end.
@@ -62,6 +78,7 @@ class DoctorDiscoverCard extends StatefulWidget {
     super.key,
     required this.doctor,
     required this.onTap,
+    this.index = 0,
     this.onBookNow,
     this.onMenuTap,
   });
@@ -84,12 +101,28 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
 
   static const int _maxChips = 3;
 
+  /// Cells in the services panel — 3 rows of 2. When the doctor has more, the
+  /// last cell becomes the "+N more services" link instead of a sixth service.
+  static const int _maxServiceCells = 6;
+
+  /// The availability strip is hidden for now: the timing payload is only as
+  /// good as what each doctor bothered to save, and a card that mostly says
+  /// "Timing not set" is worse than one that says nothing. Flip to `true` to
+  /// bring the strip (and its expand/collapse) back — the code below is intact.
+  bool get _showAvailability => false;
+
+  Color get _cardTint => _kCardTints[widget.index % _kCardTints.length];
+
+  Color get _servicePanelTint =>
+      _kServicePanelTints[widget.index % _kServicePanelTints.length];
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: widget.onTap,
       child: CustomFormCard(
         padding: EdgeInsets.zero,
+        color: _cardTint,
         borderRadius: BorderRadius.circular(_kCardRadius),
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         child: Column(
@@ -101,12 +134,22 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _headerRow(),
-                  if (_chips.isNotEmpty) ...[
+                  // The panel and the chip strip occupy the same slot and say
+                  // much the same thing, so they are mutually exclusive: the
+                  // panel is what the reference draws, and the chips only
+                  // stand in for a doctor whose listing carries nothing the
+                  // panel could list.
+                  if (_services.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    _servicesBlock(),
+                  ] else if (_chips.isNotEmpty) ...[
                     SizedBox(height: SizeConfig.size12),
                     _chipsRow(),
                   ],
-                  SizedBox(height: SizeConfig.size12),
-                  _availabilityBlock(),
+                  if (_showAvailability) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    _availabilityBlock(),
+                  ],
                 ],
               ),
             ),
@@ -173,8 +216,9 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
                 _iconLine(
                   // Filled mortarboard, as in the reference — the outlined
                   // school glyph disappears at 15px inside the tile.
-                  icon: const Icon(Icons.school,
-                      size: 15, color: AppColors.primaryColor),
+              icon: LocalAssets(imagePath:"assets/svg/edu_cap.svg" ),
+                  // icon: const Icon(Icons.school,
+                  //     size: 15, color: AppColors.primaryColor),
                   child: CustomText(
                     doctor.degreeLabel,
                     fontSize: SizeConfig.small,
@@ -277,38 +321,54 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
 
   Widget _overflowMenu() {
     if (widget.onMenuTap != null) {
-      return GestureDetector(
-        onTap: widget.onMenuTap,
-        child: Icon(Icons.more_vert, size: 20, color: AppColors.grey7E),
+      return Container(
+        color: AppColors.red,
+        child: GestureDetector(
+          onTap: widget.onMenuTap,
+          child: Icon(Icons.more_vert, size: 20, color: AppColors.grey7E),
+        ),
       );
     }
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      splashRadius: 18,
-      constraints: const BoxConstraints(minWidth: 140),
-      icon: Icon(Icons.more_vert, size: 20, color: AppColors.grey7E),
-      onSelected: (value) {
-        if (value == 'profile') {
-          widget.onTap();
-        } else {
-          ShareService.instance.openShareSheet(
-            text: AppStrings.doctorDiscoverShareFmt
-                .trParams({'name': doctor.name}),
-            subject: doctor.name,
-          );
-        }
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'profile',
-          child:
-              CustomText(AppStrings.viewProfile.tr, fontSize: SizeConfig.small),
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        iconSize: 20,
+        icon: Icon(
+          Icons.more_vert,
+          size: 20,
+          color: AppColors.grey7E,
         ),
-        PopupMenuItem(
-          value: 'share',
-          child: CustomText(AppStrings.share.tr, fontSize: SizeConfig.small),
-        ),
-      ],
+        onSelected: (value) {
+          if (value == 'profile') {
+            widget.onTap();
+          } else {
+            ShareService.instance.openShareSheet(
+              text: AppStrings.doctorDiscoverShareFmt
+                  .trParams({'name': doctor.name}),
+              subject: doctor.name,
+            );
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'profile',
+            child: CustomText(
+              AppStrings.viewProfile.tr,
+              fontSize: SizeConfig.small,
+            ),
+          ),
+          PopupMenuItem(
+            value: 'share',
+            child: CustomText(
+              AppStrings.share.tr,
+              fontSize: SizeConfig.small,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -381,7 +441,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
           width: SizeConfig.size24,
           height: SizeConfig.size24,
           decoration: BoxDecoration(
-            color: _iconTileBg,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
@@ -450,6 +510,107 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+      ),
+    );
+  }
+
+  // ── Services panel ──────────────────────────────────────────────────
+  List<String> get _services => doctor.services;
+
+  /// Two-column tick list on its own tinted panel, as in the reference. Laid
+  /// out as explicit [Row]s rather than a [GridView] or [Wrap] — the panel sits
+  /// inside a scrolling list, so it has to size itself to its content, and the
+  /// reference's columns are a fixed even split regardless of label length.
+  Widget _servicesBlock() {
+    final all = _services;
+    final overflows = all.length > _maxServiceCells;
+    // One cell is surrendered to the "+N more" link when the list overflows,
+    // so the panel never grows a fourth row.
+    final visible = overflows ? all.take(_maxServiceCells - 1).toList() : all;
+    final more = all.length - visible.length;
+
+    final cells = <Widget>[
+      for (final service in visible) _serviceCell(service),
+      if (more > 0) _moreServicesCell(more),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: _servicePanelTint,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < cells.length; i += 2)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : SizeConfig.size6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: cells[i]),
+                  SizedBox(width: SizeConfig.size10),
+                  // An odd count leaves the right column empty rather than
+                  // letting the last cell stretch across both.
+                  Expanded(
+                    child: i + 1 < cells.length
+                        ? cells[i + 1]
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _serviceCell(String label) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          // Nudged down to sit on the text's baseline rather than its box top.
+          padding: const EdgeInsets.only(top: 1.5),
+          child: Icon(
+            Icons.check_circle_outline,
+            size: 14,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        SizedBox(width: SizeConfig.size6),
+        Expanded(
+          child: CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w400,
+            color: AppColors.grey7E,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Repeats the card tap rather than expanding the panel in place — the full
+  /// service list lives on the profile, which is one tap away anyway.
+  Widget _moreServicesCell(int more) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: CustomText(
+        AppStrings.doctorDiscoverMoreServicesFmt
+            .trParams({'count': '$more'}),
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w600,
+        color: AppColors.primaryColor,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -659,9 +820,11 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
         horizontal: SizeConfig.size12,
         vertical: SizeConfig.size14,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.geryFC,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        // Transparent, not grey: the reference runs the card's tint straight
+        // through the footer, and a grey band would cut the card in two.
+        color: Colors.transparent,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(_kCardRadius),
           bottomRight: Radius.circular(_kCardRadius),
         ),

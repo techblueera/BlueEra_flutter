@@ -1378,6 +1378,7 @@
   "doctorDiscoverExperienceYearsFmt": "@count वर्ष का अनुभव",
   "doctorDiscoverFallbackName": "डॉक्टर",
   "doctorDiscoverMoreFmt": "+@count और",
+  "doctorDiscoverMoreServicesFmt": "+@count और सेवाएं",
   "doctorDiscoverShareFmt": "BlueEra पर @name को देखें",
   "doctorDiscoverTimingNotSet": "समय निर्धारित नहीं",
   "doctorDiscoverTitle": "क्लिनिक डॉक्टर",

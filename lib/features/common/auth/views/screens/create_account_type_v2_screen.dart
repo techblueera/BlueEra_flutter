@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/Individual/gig_work_aadhaar_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+
 // Only the leave-this-screen confirmation used this — restore it alongside
 // `_confirmExit` below if the dialog ever comes back.
 // import 'package:BlueEra/widgets/common_dialog.dart';
@@ -45,7 +46,9 @@ enum _EarnType {
 /// (`CategoryData`); false when it resolves to INDIVIDUAL profession
 /// buckets (`ProfessionTypeData`).
 bool _isBusinessEarnType(_EarnType type) =>
-    type == _EarnType.businessShop || type == _EarnType.businessStore || type == _EarnType.manufacturing;
+    type == _EarnType.businessShop ||
+    type == _EarnType.businessStore ||
+    type == _EarnType.manufacturing;
 
 /// Static presentation config for a "How You Earn" row.
 ///
@@ -57,6 +60,7 @@ class _EarnConfig {
   final String title;
   final String subtitle;
   final String icon;
+
   const _EarnConfig(this.title, this.subtitle, this.icon);
 }
 
@@ -257,8 +261,8 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                 color: AppColors.skyBlueE4,
                 shape: BoxShape.circle,
               ),
-              child: LocalAssets(imagePath:
-                config.icon,
+              child: LocalAssets(
+                imagePath: config.icon,
               ),
             ),
             SizedBox(width: SizeConfig.size12),
@@ -372,9 +376,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
                       SizeConfig.size16,
                       SizeConfig.size20,
                     ),
-                    child: _isBusiness
-                        ? _businessBody()
-                        : _individualBody(),
+                    child: _isBusiness ? _businessBody() : _individualBody(),
                   );
                 }),
               ),
@@ -430,10 +432,11 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
         title: AppStrings.accountSectionHospitality,
         items: authController.businessOnboardingHospitalityStayCategories,
       ),
-      _Section(
-        title: AppStrings.accountSectionEducation,
-        items: authController.businessOnboardingEducationTrainingCategories,
-      ),
+      if (widget.earnType == _EarnType.businessStore)
+        _Section(
+          title: AppStrings.accountSectionEducation,
+          items: authController.businessOnboardingEducationTrainingCategories,
+        ),
       // Banking / finance is a GST-registered vertical, so the whole Financial
       // Sectors bucket is offered on Business/Shop (GST) only — the Non-GST
       // small-shop row must not be able to onboard as a finance business.
@@ -763,8 +766,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
           ApiKeys.argSubCategory: selectedSubCategory.value,
           // Business/Shop (GST) → GST is compulsory. Small Business/Shop
           // (Non GST) and Manufacturing keep GST optional.
-          ApiKeys.argIsGstMandatory:
-              widget.earnType == _EarnType.businessShop,
+          ApiKeys.argIsGstMandatory: widget.earnType == _EarnType.businessShop,
         },
       );
     } else if (item is ProfessionTypeData) {
@@ -814,17 +816,20 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
 class _Section {
   final String title;
   final List<CategoryData> items;
+
   _Section({required this.title, required this.items});
 }
 
 class _IndividualSection {
   final String title;
   final List<ProfessionTypeData> items;
+
   _IndividualSection({required this.title, required this.items});
 }
 
 class _SubCategoryPickResult {
   final SubCategories? subCategory;
+
   _SubCategoryPickResult(this.subCategory);
 }
 

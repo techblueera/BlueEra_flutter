@@ -965,6 +965,7 @@
   "doctorDiscoverExperienceYearsFmt": "@count ವರ್ಷಗಳ ಅನುಭವ",
   "doctorDiscoverFallbackName": "ವೈದ್ಯರು",
   "doctorDiscoverMoreFmt": "+@count ಇನ್ನಷ್ಟು",
+  "doctorDiscoverMoreServicesFmt": "+@count ಹೆಚ್ಚಿನ ಸೇವೆಗಳು",
   "doctorDiscoverShareFmt": "BlueEra ನಲ್ಲಿ @name ಅನ್ನು ನೋಡಿ",
   "doctorDiscoverTimingNotSet": "ಸಮಯ ಹೊಂದಿಸಿಲ್ಲ",
   "doctorDiscoverTitle": "ಕ್ಲಿನಿಕ್ ವೈದ್ಯರು",
