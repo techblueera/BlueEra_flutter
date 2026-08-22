@@ -941,8 +941,8 @@ class CallController extends GetxController {
 
     print('[CALL_DEBUG] acceptCall → API call starting, callId=$savedCallId, roomId=$savedRoomId');
     ResponseModel response = await _callRepo.acceptCall({
-      'call_iD': savedCallId,
-      'room_iD': savedRoomId,
+      'call_id': savedCallId,
+      'room_id': savedRoomId,
     });
 
     if (!response.isSuccess) {
