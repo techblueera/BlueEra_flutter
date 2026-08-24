@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../permissionCentralize/go_live_permission_service.dart';
-import '../../../account_plan/controller/account_plan_entitlement.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../controller/delivery_partner_controller.dart';
 import '../repo/delivery_partner_repo.dart';
@@ -265,9 +264,12 @@ class RiderAutoGoLiveScheduler {
       // ever opt into this scheduler. Waived while the worker's FIRST JOB is
       // still free, so the scheduler never auto-closes someone who would pass
       // the manual gate.
-      final depositBlocked = !AccountPlanEntitlement.to.hasActivePlan.value &&
-          !riderCtrl.isFirstRideFree &&
-          !riderCtrl.isSecurityDepositPaid;
+      // Same single getter the manual tap uses, so the two can never drift.
+      // It also accepts `isOnboardingComplete` — the backend satisfies that
+      // from a deposit OR an account plan, and without it a plan-holding rider
+      // (whose payload still reads `securityDeposit.paid: false`) was treated
+      // as unpaid and auto-closed. See RIDER_AADHAAR_VERIFIED_APP_GUIDE §4.
+      final depositBlocked = !riderCtrl.isDepositRequirementMet;
       final eligible = verified && !depositBlocked;
 
       final inWindow = _inWindow(DateTime.now());

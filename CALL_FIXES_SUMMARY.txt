@@ -27,10 +27,27 @@ SCOPE
   older "tap to return to call" widgets were deleted so the strip is the only
   one left.
 
-TOTALS
-  22 files changed, +530 / -1570 lines
-  4 new files
-  7 files deleted
+  A second round of call bugs was then reported from screenshots and video, and
+  fixed (Parts 2B–2F):
+    5. Decline dead, Accept freezing on the launch animation
+    6. "Message" disconnected instead of offering a quick reply
+    7. Caller shown as "Unknown" when opened from the notification
+    8. The ongoing-call indicator bar was missing
+    9. Audio→video switch: raw translation key, blank preview, black screen
+   10. Network loss: frozen incoming call, ghost calls, no 10s termination
+   11. Calling someone already on a call rang out instead of saying "busy"
+
+TOTALS  (whole working tree, calls + the non-call fixes listed at the end)
+  33 files changed, ~+1600 / -1660 lines
+  5 new source files, 6 deleted
+  2 backend docs
+
+BACKEND WORK IS REQUIRED — see Part 2F and
+docs/backend/CALL_SIGNALLING_BACKEND_UPDATES.md. Both items are additive; the
+app ships ahead of them and degrades sanely.
+
+NOTHING IN THIS FILE HAS BEEN RUN ON A DEVICE. "Fixed" throughout means: root
+cause identified, changed, `flutter analyze lib` clean, debug APK builds.
 
 
 ================================================================================
@@ -454,6 +471,329 @@ FEATURE — WHATSAPP-STYLE TOP CALL STRIP  (+ the emergency fixes that followed)
   Get.isRegistered check. Bail out before touching any observable and Obx
   throws "improper use of a Obx" — its builder must track something.
 
+================================================================================
+PART 2B — SECOND ROUND OF CALL FIXES (reported from screenshots + video)
+================================================================================
+
+  Reported as:
+    - Decline button unresponsive
+    - Accept inconsistent, freezes on the app opening animation
+    - Message disconnects immediately instead of offering a quick reply
+    - Notification must persist in the tray while ringing
+    - Caller shows "Unknown" when the app is opened from the notification
+    - The ongoing-call indicator bar is missing during a call
+
+
+R1. DECLINE DEAD / ACCEPT FLAKY — the wrong notification was winning
+--------------------------------------------------------------------------------
+  TWO incoming-call notifications existed and the app tried the broken one
+  FIRST. showIncomingCallLocalNotification() attempted a native RemoteViews
+  notification over a MethodChannel, and only fell back to
+  flutter_local_notifications when that channel was unavailable (i.e. the FCM
+  background isolate). So whenever the main engine was alive — the common case —
+  the broken path is the one that ran.
+
+  The native notification's buttons went to CallActionReceiver.kt:
+
+      ACTION_DECLINE -> {
+          savePendingAction(context, "decline", callId, roomId, callType)
+          // Intentionally NOT calling launchApp()
+      }
+
+  It writes a SharedPreferences flag and stops. THE SERVER IS NEVER TOLD, so the
+  caller keeps ringing — and because decline deliberately does not open the app,
+  nothing ever consumes the flag. Decline was a no-op by construction.
+
+  Accept called getLaunchIntentForPackage() + CLEAR_TOP, a raw relaunch — the
+  "stuck on the opening animation".
+
+  Meanwhile the flutter_local_notifications path ALREADY had working handlers:
+    - onForegroundNotificationResponse  → declineCall() / acceptCall() in-process
+    - onBackgroundNotificationResponse  → a real REST POST call/decline that
+                                          works with the app killed
+
+  FIX: the native attempt is gone. One notification path in every state.
+       Accept now goes through `showsUserInterface: true` — the plugin's
+       supported launch path — instead of a hand-rolled intent.
+
+  NOTE: CallActionReceiver.kt, its manifest entry and
+  readAndClearPendingNativeCallAction() in main.dart are now unreachable for
+  calls. Left in place as harmless dead code in case the nicer native buttons
+  are wanted back — but the receiver would need a REAL decline first, not a
+  stashed flag.
+
+
+R2. "MESSAGE" WAS A SECOND, MISLABELLED DECLINE
+--------------------------------------------------------------------------------
+  onTap was literally `controller.declineCall()`.
+
+  FIX: opens a sheet with four canned reasons ("Can't talk right now", "I'll
+  call you back", "I'm in a meeting", "Call me later") plus a free-text field.
+
+  NEW  CallController.declineWithMessage(text)
+       Sends the message and THEN declines. That order is load-bearing:
+       declineCall() runs _cleanup(), which wipes conversationId and the remote
+       user id, so sending afterwards would have nothing to address it to.
+       Uses sendInitialMessage when no thread exists yet (a call from someone
+       never chatted with) and sendMessage otherwise. A send failure still
+       declines — failing to deliver the note must never leave a call ringing.
+
+  The ringtone stops when the sheet opens; the call stays live until a reason is
+  picked, and dismissing the sheet leaves the call untouched.
+
+
+R3. CALLER SHOWS "Unknown"
+--------------------------------------------------------------------------------
+  TWO bugs in initStateFromCallKitExtra, either of which produces it:
+
+      if (callStatus.value != CallStatus.idle || extra.isEmpty) return;   // 1
+      ...
+      if (senderId.isNotEmpty) {                                          // 2
+          callerName.value = extra['callerName'] ?? '';
+          ...   // callId and roomId live in here too
+
+    1. It bailed on ANY non-idle status — including `ringing`, which is exactly
+       what the socket's call:incoming leaves us in. The thin socket payload
+       (often nameless) landed first and set ringing; the richer push payload
+       that DID carry the name was then discarded.
+
+    2. Every field — name, image, callId, roomId — sat inside
+       `if (senderId.isNotEmpty)`. A payload without senderId (a socket event
+       with no `initiated_by`) applied literally nothing.
+
+  FIX: rewritten as a MERGE.
+    - bails only when a DIFFERENT call is already past ringing
+    - applies identity fields unconditionally
+    - a pick() helper means a later, thinner payload can never blank a field an
+      earlier one filled; a literal "Unknown" is treated as empty
+
+
+R4. MISSING ONGOING-CALL INDICATOR BAR
+--------------------------------------------------------------------------------
+  bottom_navigation_bar_screen.dart reserved space for a bar that never existed:
+
+      if (hasActiveCall) topOffset = 50;     // 50px of nothing
+
+  The widget it was reserving for was the commented-out OngoingCallOverlay in
+  main.dart — the same placeholder the top strip replaced. So a live call just
+  left a 50px empty band at the top of every tab.
+
+  FIX: branch removed. The strip is the indicator and pushes the app down
+       itself; keeping this would have double-gapped.
+
+  NOTE: the strip is GREEN (#00A884, WhatsApp's colour) per the "same ditto like
+  whatsapp" spec, not red. Trivial to change if red is wanted.
+
+
+R5. NOTIFICATION PERSISTENCE — NOT FIXED
+--------------------------------------------------------------------------------
+  Could not reproduce from the code. The flags are already correct on the path
+  now in use (ongoing: true, autoCancel: false, FLAG_INSISTENT) and every
+  cancelIncomingCallLocalNotification() call traced fires on a legitimate event
+  (accept, decline, call cancelled, call ended, screen opened).
+
+  Plausible that the NATIVE notification — the broken one — was what was being
+  cancelled, in which case R1 fixed this as a side effect. Retest decides.
+
+  If it still vanishes, the two things needed to diagnose:
+    - does it go IMMEDIATELY on swipe, or after a delay?
+    - Android version — 14+ made ongoing notifications user-dismissible, which
+      would move the fix to a foreground service.
+
+
+================================================================================
+PART 2C — AUDIO → VIDEO SWITCH
+================================================================================
+
+  Reported as: raw text in the toast, blank view after switching, black screen
+  after the other side approves.
+
+
+V1. THE TOAST WAS AN UNTRANSLATED KEY, NOT A SPACING BUG
+--------------------------------------------------------------------------------
+  The screenshot showed the literal string "waitingForApprovalToSwitchVideo",
+  broken mid-word. AppStrings stores key-as-value:
+
+      static const String waitingForApprovalToSwitchVideo =
+          "waitingForApprovalToSwitchVideo";
+
+  `.tr` looks the key up in assets/translations/en.json and returns the raw
+  string when absent. Its neighbours were all present; two were missed:
+
+      waitingForApprovalToSwitchVideo    MISSING → added
+      cameraPermissionRequiredToSwitch   MISSING → added
+
+  No layout change needed: the mid-word break was camelCase having no spaces to
+  break on. Real prose wraps normally.
+
+  ⚠ SCOPE: 2,539 of 7,021 AppStrings entries are key-as-value. Any other one
+  missing from en.json surfaces exactly the same way. Only the two hit here were
+  fixed — a script diffing AppStrings against en.json would find the rest.
+
+
+V2. BLANK LOCAL PREVIEW — the renderer was never created
+--------------------------------------------------------------------------------
+  _setupLocalMedia only builds a renderer when the call STARTS as video:
+
+      if (isVideo) { localRenderer = RTCVideoRenderer(); await ...initialize(); }
+
+  So on an audio → video switch it is still null, and _enableLocalVideo did:
+
+      localRenderer?.srcObject = localStream;    // null-safe → silent no-op
+
+  Camera capturing, nothing rendering it.
+
+  FIX: _ensureLocalRenderer(), called at the top of _enableLocalVideo, plus the
+       srcObject assignment on the already-has-a-track path, which was missing
+       it too.
+
+
+V3. BLACK SCREEN AFTER APPROVAL — no renegotiation existed at all
+--------------------------------------------------------------------------------
+  `grep onRenegotiationNeeded` across the controller returns NOTHING.
+
+  _enableLocalVideo does pc.addTrack(videoTrack, localStream!) on an already-
+  established peer connection, which requires a fresh offer/answer before the
+  far end gets a video m-line. Nobody sent one — so the remote never received
+  video and both sides sat black.
+
+  FIX: _renegotiateAfterMediaChange().
+    - only the ORIGINAL CALLER re-offers. Both ends know who that is from
+      isCaller, and two simultaneous offers would collide (glare). The callee's
+      video still gets through — it rides in the answer.
+    - 600ms settle delay: both sides run _enableLocalVideo off the same
+      call:type-switched event, so offering immediately races the callee's
+      addTrack and yields one-way video.
+
+  ⚠ LEAST VERIFIABLE CHANGE IN THE WHOLE SESSION. Live WebRTC renegotiation
+    cannot be confirmed by building. Two symptoms to watch:
+      - ONE-WAY VIDEO      → 600ms too short, or the answer is not carrying the
+                             callee's track
+      - CALL DROPS ON SWITCH → glare; the offer collided with something
+
+
+================================================================================
+PART 2D — NETWORK LOSS DURING A CALL
+================================================================================
+
+  Reported as: incoming call + network drop freezes on a black screen; the other
+  participant is left in a ghost call; calls should auto-terminate after 10s.
+
+  ROOT CAUSE, one line:
+
+      case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+        print('⚠️ PEER DISCONNECTED (may reconnect), peer=$peerId');
+        break;                       // ← and nothing else
+
+  `_peerDisconnectTimer` was DECLARED, and CANCELLED IN THREE PLACES, but NEVER
+  ONCE STARTED. A network drop was logged and then ignored: no teardown, no
+  timeout, no UI change. Nothing anywhere watched the device's own connectivity
+  during a call either.
+
+  N1. INCOMING CALL + DROP → BLACK SCREEN
+      Connectivity is now watched for the WHOLE life of a call, from the first
+      ring — hung off the callStatus worker, not _setupLocalMedia. The latter
+      only runs on ACCEPT, so it would have missed exactly the reported case:
+      losing signal while ringing, where there is no peer connection yet to
+      notice anything.
+
+      While `ringing` or `outgoing`, a transport loss ABANDONS IMMEDIATELY
+      rather than waiting 10s — there is no media path to resume and no way to
+      reach the server to accept, so waiting is just 10s of frozen screen. It
+      dismisses the UI, cancels the notification, stops the ringtone, and says
+      "Call ended — no internet connection".
+
+  N2. GHOST CALL ON THE OTHER SIDE
+      RTCPeerConnectionStateDisconnected now arms the grace timer. ICE
+      `disconnected` is genuinely recoverable so it does not kill the call
+      outright, but after 10s the far end tears down instead of sitting there
+      with a running timer and no audio.
+
+      This half works with NO BACKEND CHANGE — the surviving side detects it.
+
+  N3. THE 10-SECOND RULE
+      One _networkGracePeriod = 10s, used by both the local-radio and peer-ICE
+      paths. Cancelled on reconnect (which also kicks the socket back up) and on
+      any transition back to connected. The call screen shows "Reconnecting…" in
+      amber during the window instead of a ticking timer over a dead connection
+      — which is what read as a freeze.
+
+      On expiry: best-effort POST call/end with end_reason: "network_error"
+      (4s timeout — we are probably still offline and an untimed request would
+      hold teardown open behind a connection that is not coming back),
+      best-effort socket leave, then local teardown regardless.
+
+  ⚠ REGRESSION RISK: a brief drop (< 10s) must let the call SURVIVE. An
+    over-eager timer killing healthy calls is the failure mode to watch for.
+
+
+================================================================================
+PART 2E — BUSY SIGNAL
+================================================================================
+
+  Reported as: calling someone already on a call should say "user is busy", not
+  ring out.
+
+  The callee's app was throwing the second call away silently:
+
+      if (callStatus.value != CallStatus.idle) return;   // already in a call
+
+  So the SERVER never learned B was busy. A rang for the full 30-second timer
+  and was then told "No answer" — when the truthful answer was available the
+  instant the second call arrived.
+
+  Everything else was already in place: CallRingingState.busy exists,
+  fromServer("busy") parses it, its label is "User is busy", isTerminal is true
+  so the outgoing screen auto-dismisses after 2s. The only missing link was the
+  callee telling anyone.
+
+  FIX: _rejectAsBusy(data) declines the SECOND call with reason: "busy".
+    - touches NONE of our own call state. The ids in the payload belong to the
+      INCOMING call — calling declineCall() would have used them to tear down
+      the call actually in progress.
+    - ignores a re-delivery of the same call (socket + FCM both deliver
+      call:incoming), so it bails when callId matches the live call or is empty.
+    - silences the second call's ring: the FCM background isolate has its own
+      controller state and may already have posted a notification / CallKit UI,
+      which would otherwise ring on top of a call in progress.
+
+  ALREADY WORKING: 409 on POST call/initiate is handled — the caller shows "User
+  is busy on another call". That covers the case where the server ALREADY knows
+  B is engaged. This fix covers the case where it does not: a race between two
+  calls, or B on a call the server has not marked busy.
+
+
+================================================================================
+PART 2F — BACKEND WORK REQUIRED
+================================================================================
+
+  Written up in full: docs/backend/CALL_SIGNALLING_BACKEND_UPDATES.md
+
+  Both items are ADDITIVE — the app ships ahead of them and degrades sanely.
+
+  1. PARTICIPANT-DROP TIMEOUT  (the app CANNOT do this)
+     An offline device cannot tell the server anything, so the teardown POST is
+     issued while still offline and will usually fail. Without a server-side
+     timeout the call record stays open forever and BOTH users' call logs are
+     wrong.
+
+     Needed: socket leaves an active call room and does not rejoin within 10s
+     → mark ended with end_reason "network_error", emit call:ended to the rest,
+     write the log with the real duration. Plus idempotent handling of a late
+     duplicate call/end from a recovering client.
+
+  2. HONOUR reason: "busy" ON DECLINE
+     Relay it as ringing state `busy`, not `declined`, and log the call as
+     busy/rejected rather than missed.
+     Degradation if never shipped: the caller sees "Call declined" instead of
+     "User is busy". Wrong word, right timing.
+
+  OPEN QUESTION for the backend team (in the doc): is there an existing
+  presence/heartbeat on the call room to hang the 10s timer off? A raw socket
+  `disconnect` also fires on healthy transport upgrades and cell handovers, so
+  using it naively would end calls that were fine.
+
+
 PART 3 — VERIFIED vs NOT VERIFIED
 ================================================================================
 
@@ -553,6 +893,57 @@ PART 4 — TEST PLAN (in the order I would run it)
      Especially on the incoming path: ring -> accept -> call room. The two
      routes share one widget, which is what used to leave the flag wrong.
 
+  --- second round (Parts 2B–2F) ---
+
+ 20. DECLINE FROM THE NOTIFICATION                     [was a total no-op]
+     Caller must stop ringing IMMEDIATELY and see the call rejected. Test in
+     all three states: app foreground, backgrounded, and fully killed. The
+     killed case goes through the background isolate's REST decline.
+
+ 21. ACCEPT FROM THE NOTIFICATION
+     No hang on the launch animation. Repeat several times — the old failure
+     was intermittent, so one success proves nothing.
+
+ 22. MESSAGE BUTTON
+     Sheet of reasons appears; the call keeps ringing until one is picked;
+     dismissing the sheet leaves the call alone; the chosen text ARRIVES in
+     the caller's chat. Test both an existing thread and a first-ever contact
+     (that path uses sendInitialMessage).
+
+ 23. CALLER NAME FROM THE NOTIFICATION                 [was "Unknown"]
+     Open the app by tapping the notification BODY (not Accept) and confirm
+     the real name and photo show.
+
+ 24. NO 50px EMPTY BAND during a call on any tab.
+
+ 25. NOTIFICATION PERSISTS while ringing after the heads-up is swiped.
+     STILL UNVERIFIED — see R5 for what to report if it fails.
+
+ 26. AUDIO -> VIDEO SWITCH                             [highest risk in 2C]
+     a) the toast reads "Waiting for them to accept video…", not a raw key
+     b) local self-preview appears after approval
+     c) BOTH sides see each other — one-way video means the renegotiation
+        delay is wrong; a dropped call means glare
+
+ 27. NETWORK: BRIEF DROP (< 10s) DURING A CALL         [regression risk]
+     Airplane mode on and back off quickly. The call must SURVIVE and show
+     "Reconnecting…" while it is down. An over-eager timer killing healthy
+     calls is the failure mode to watch for.
+
+ 28. NETWORK: SUSTAINED DROP (> 10s) DURING A CALL
+     Both sides terminate. Test dropping EACH side separately — they take
+     different code paths (local connectivity vs peer ICE).
+
+ 29. NETWORK: DROP WHILE THE PHONE IS RINGING
+     Incoming UI dismisses with "Call ended — no internet connection".
+     No black screen, no frozen call screen.
+
+ 30. BUSY: CALL SOMEONE WHO IS ALREADY ON A CALL
+     Caller sees a terminal state within ~1s, not a 30s ring-out. Exact
+     wording depends on the backend: "User is busy" once reason:"busy" is
+     honoured, "Call declined" until then. Also have TWO people call you in
+     quick succession — that is the race the dedup guard exists for.
+
 
 ================================================================================
 PART 5 — DELIBERATELY LEFT ALONE
@@ -621,6 +1012,76 @@ MODIFIED
   lib/features/common/onboarding/view/splash_screen.dart
   lib/features/common/connect/view/connect_main_page.dart
   lib/features/chat/view/personal_chat/personal_chat_screen.dart
+
+ALSO MODIFIED IN THE SECOND ROUND (calls)
+  lib/core/services/app_notification.dart          (single notification path)
+  lib/core/constants/app_strings.dart              (network / video-switch keys)
+  assets/translations/en.json                      (the same keys)
+
+NEW BACKEND DOCS
+  docs/backend/CALL_SIGNALLING_BACKEND_UPDATES.md  (10s timeout + busy signal)
+
+
+================================================================================
+PART 7 — NON-CALL FIXES IN THE SAME WORKING TREE
+================================================================================
+
+Not call work, but they are in this branch and will land in the same commit.
+
+  LOGIN NO LONGER LOST ON A FAILED PROFILE FETCH
+      `isUserLogin` was ONLY ever written inside the profile-apply methods
+      (SharedPreferenceUtils.userLoggedInBusiness / userLoggedInIndividualGuest),
+      which run only on a SUCCESSFUL fetch. A login whose profile fetch failed —
+      e.g. verify-otp returning `business: null` / `business_id: null`, leaving
+      nothing to fetch with — kept a valid token but never flipped the flag, so
+      the next launch read it as "false" and forced a full re-login.
+      Now written in verifyOTP beside the authToken, for both account types.
+      Files: lib/features/common/auth/controller/auth_controller.dart
+
+  "ME" TAB NO LONGER SHIMMERS FOREVER
+      The tab keys off the type global being empty, and a FAILED fetch leaves it
+      empty exactly like one still in flight — so a failed profile load was an
+      infinite loader with no way out. Added meProfileError to both profile
+      controllers and a _MeTabError state with a retry AND the hamburger →
+      ProfileMenuDrawer, because Logout only lives in that drawer and an account
+      whose profile will not load is exactly the account that needs it.
+      Files: bottom_navigation_bar_screen.dart, view_business_details_controller,
+             view_personal_details_controller
+
+      ⚠ FOLLOW-UP ALREADY HIT ONCE: the individual guard was first written as
+      `if (userId.isEmpty) return;` — wrong twice over. The endpoint is keyed on
+      PHONE (`user-service/user/get?contact_no=$userMobileGlobal`), and `userId`
+      is only populated BY that response, so on a fresh login the guard blocked
+      the very fetch that would fill it. Now guards on userMobileGlobal. If that
+      error screen shows on a healthy account, suspect the guard before the
+      network.
+
+  CHAT REAL-TIME (pre-existing, not caused by the call work)
+      ChatSocketService.disposeSocket() CLEARS _registeredListeners outright, so
+      onConnect has nothing to replay — and the only thing that re-ran
+      ChatViewController.connectSocket() was an app RESUME. The bottom-nav host
+      disposes the socket on any root re-navigation (returning from a call, a
+      notification renav, offAllNamed), after which live chat was dead until the
+      user backgrounded and reopened the app.
+      Calls already had a fix for this exact problem (onCallListenersRebind);
+      chat did not. Mirrored it: onChatListenersRebind +
+      ensureChatSocketListeners().
+      Files: chat_socket.dart, chat_view_controller.dart
+      TEST: open a chat, take a call (or any root re-nav), come back, then have
+      someone message you WITHOUT backgrounding the app.
+
+  RIDER AADHAAR — THREE STATES  (docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md)
+      _applyAadhaarStageFromRiderStatus rendered a verified tick from `aadhar`,
+      which means "an Aadhaar has been provided", not "verified" — the bug that
+      guide says told 1,591 riders they were done when they were still pending.
+      Now entry / pending / rejected / verified, using aadharVerified with the
+      guide's interim `aadharVerifiedThrough != null` fallback so it works
+      before the be_rider_service deploy. Display uses `aadharMasked`, never
+      `aadharNo` (null on the OTP route by design).
+      Left alone deliberately: stepStatus still reads `aadhar` (it is the
+      "submitted" checklist, a different axis), and the go-live gate already
+      correctly uses verificationStatus == "approved".
+
 
 ================================================================================
 END

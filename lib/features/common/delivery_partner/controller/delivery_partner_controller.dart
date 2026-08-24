@@ -461,13 +461,14 @@ class DeliveryPartnerController extends GetxController {
     // fallback so a rider who already paid one is not knocked offline by the
     // migration; there is no longer any way for them to buy it back.
     if (await AccountPlanEntitlement.to.ensureAllowed()) return true;
-    // FIRST RIDE FREE: a rider whose free ride is still unused goes live
-    // without paying anything. Checked before the refresh below so the free
-    // rider never sees the payment screen at all.
-    if (isFirstRideFree) return true;
-    if (isSecurityDepositPaid) return true;
+    // Everything else the gate accepts, in one place — including
+    // `isOnboardingComplete`, which the backend already satisfies from a
+    // deposit OR an account plan (see [isDepositRequirementMet]). Checked
+    // before the refresh below so a covered rider never sees the payment
+    // screen at all.
+    if (isDepositRequirementMet) return true;
     await ridersOnboardingStatusRepoApi(forceRefresh: true);
-    return isFirstRideFree || isSecurityDepositPaid;
+    return isDepositRequirementMet;
   }
 
   /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
@@ -486,6 +487,42 @@ class DeliveryPartnerController extends GetxController {
   /// `ViewBusinessDetailsController.isFreeQuotaAvailable`.
   bool get isFirstRideFree =>
       riderOnboardingStatusData.value?.freeRideUsed == false;
+
+  /// The backend's own verdict that this rider has satisfied everything —
+  /// all six onboarding sections PLUS *either* a paid security deposit *or* an
+  /// active account plan.
+  ///
+  /// Fail-closed: null reads as false.
+  bool get isOnboardingComplete =>
+      riderOnboardingStatusData.value?.isOnboardingComplete == true;
+
+  /// Whether the rider has satisfied the PAYMENT half of the go-live gate.
+  ///
+  /// ONE definition, used by every gate — the go-live tap, the auto go-live
+  /// scheduler and [ensureSecurityDepositPaid]. Two places deciding what blocks
+  /// a rider is two places to get out of step.
+  ///
+  /// `isOnboardingComplete` leads deliberately. Per
+  /// docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4, that flag is already
+  /// satisfied by a deposit **or** an account plan, so the backend has done this
+  /// arithmetic for us against `accountPlanCache.jobTypes`. The payload for a
+  /// plan-holding rider legitimately looks like:
+  ///
+  ///     "isOnboardingComplete": true,
+  ///     "securityDeposit": { "paid": false, "paymentStatus": "pending" }
+  ///
+  /// which is not a contradiction — they paid via a plan, not a deposit. The
+  /// guide is explicit that prompting off `securityDeposit.paid` alone nags all
+  /// 46 riders in that state, so it must never be the only signal.
+  ///
+  /// The client-side plan check stays as well rather than being replaced by it:
+  /// AccountPlanEntitlement knows about a plan bought THIS session before the
+  /// next status poll has reflected it.
+  bool get isDepositRequirementMet =>
+      isOnboardingComplete ||
+      AccountPlanEntitlement.to.hasActivePlan.value ||
+      isFirstRideFree ||
+      isSecurityDepositPaid;
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();

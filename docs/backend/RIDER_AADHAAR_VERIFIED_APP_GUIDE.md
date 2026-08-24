@@ -101,9 +101,30 @@ Three independent states. Don't render one as another:
 |---|---|---|
 | `aadharVerified` | Aadhaar verified | 7,272 riders |
 | `verificationStatus: "approved"` | Aadhaar **+ RC + DL** all verified | 4,132 riders |
-| `isOnboardingComplete` | all 6 sections **+ security deposit paid** | see below |
+| `isOnboardingComplete` | all 6 sections **+ deposit paid OR an active account plan** | 232 riders |
 
 A rider can be Aadhaar-verified and still legitimately mid-onboarding because they haven't added vehicle images. When you show "onboarding pending", show **which section** is missing — never let it read as "your KYC failed".
+
+### The `personalIdentification` section now requires a VERIFIED Aadhaar
+
+Until recently that section passed on a typed number alone, so the response could say `aadharVerified: false` and `isOnboardingComplete: true` at the same time — which is how riders who never uploaded their card ended up shown as fully onboarded.
+
+It now requires `isAadharVerified === "verified"`. **1,591 riders** lose that section as a result; only **16** lose `isOnboardingComplete`, because the rest were already failing another section.
+
+Treat this as a correction, not a regression: those riders were never verified. Show them the pending state and what's missing.
+
+### Do NOT prompt for the deposit from `securityDeposit.paid` alone
+
+`isOnboardingComplete` is satisfied by **either** a paid security deposit **or** an active account plan (`accountPlanCache.jobTypes`). A rider on a plan is already covered, but the payload still reports:
+
+```json
+"isOnboardingComplete": true,
+"securityDeposit": { "paid": false, "paymentStatus": "pending" }
+```
+
+That is not a contradiction — they paid via a plan, not a deposit. **39 riders** who are onboarding-complete have exactly this shape, and **46** across the whole fleet hold a plan with no paid deposit. If the UI nags "pay your security deposit" whenever `securityDeposit.paid` is false, it nags all of them.
+
+Gate that prompt on `isOnboardingComplete === false` instead, or ask us to expose the plan explicitly and we will add it.
 
 ### The address section was broken and is now fixed
 
