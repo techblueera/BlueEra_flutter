@@ -17,7 +17,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import '../../auth/controller/call_controller.dart';
-import '../../auth/service/call_activity_service.dart';
 import '../../auth/controller/chat_flag_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import 'chat_flag_bottom_sheet.dart';
@@ -1346,39 +1345,6 @@ void _initiateCallFromChat({
   required String userName,
   required String userImage,
 }) async {
-  // On Android: launch call in a separate task (WhatsApp-style separate Recent Apps entry)
-  if (Platform.isAndroid) {
-    CallController.isCallActivityActive = true;
-    final launched = await CallActivityService.launchCallActivity(
-      callId: '',
-      roomId: '',
-      conversationId: conversationId ?? '',
-      callType: callType == CallType.video ? 'video' : 'audio',
-      callerName: userName,
-      callerImage: userImage,
-      remoteUserId: otherUserId ?? '',
-      remoteUserName: userName,
-      remoteUserImage: userImage,
-      isCaller: true,
-    );
-    print("launched: $launched");
-    if (launched) {
-      _refreshChatAfterOutgoingCall(conversationId);
-    } else {
-      // Fallback to in-app call if CallActivity launch fails
-      CallController.isCallActivityActive = false;
-      _initiateCallInApp(
-        callType: callType,
-        otherUserId: otherUserId,
-        conversationId: conversationId,
-        userName: userName,
-        userImage: userImage,
-      );
-    }
-    return;
-  }
-
-  // On iOS: use in-app call flow (no separate task support)
   _initiateCallInApp(
     callType: callType,
     otherUserId: otherUserId,
@@ -1388,7 +1354,7 @@ void _initiateCallFromChat({
   );
 }
 
-/// Fallback: initiate call within the main app (iOS or when CallActivity fails)
+/// Initiate the call in the app's own engine and open the call room.
 void _initiateCallInApp({
   required CallType callType,
   String? otherUserId,
@@ -1416,9 +1382,9 @@ void _initiateCallInApp({
 }
 
 /// Public entry to the chat's voice call — places it straight away, exactly as
-/// picking "Voice call" in the appbar's call sheet does (separate CallActivity
-/// task on Android, in-app flow on iOS). Exposed so other widgets (e.g. the
-/// chat's "Call Customer" pill) can ring someone without asking first.
+/// picking "Voice call" in the appbar's call sheet does. Exposed so other
+/// widgets (e.g. the chat's "Call Customer" pill) can ring someone without
+/// asking first.
 void startChatVoiceCall({
   String? otherUserId,
   String? conversationId,

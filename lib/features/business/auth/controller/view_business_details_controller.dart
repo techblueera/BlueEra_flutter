@@ -106,6 +106,17 @@ class ViewBusinessDetailsController extends GetxController
   /// fetch completes — `businessTypeGlobal` is non-reactive, so this true→false
   /// flip is the rebuild trigger. Toggled in [_fetchBusinessProfile].
   final RxBool isMeProfileFetching = false.obs;
+
+  /// Non-empty when the last own-profile fetch could not produce a usable
+  /// profile — the request failed, or there is no businessId to request with
+  /// (login can return `business: null` / `business_id: null`).
+  ///
+  /// Without this the "Me" tab shimmered forever: it keys off
+  /// `businessTypeGlobal` being empty, and a failed fetch leaves it empty just
+  /// like a fetch that has not finished. Set in [_fetchBusinessProfile],
+  /// cleared when a fetch starts and on success.
+  final RxString meProfileError = ''.obs;
+
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
@@ -291,9 +302,20 @@ class ViewBusinessDetailsController extends GetxController
     // Mark the fetch in-flight so the "Me" tab can show its loader (when there's
     // no data yet) and rebuild to the correct screen class on completion.
     isMeProfileFetching.value = true;
+    meProfileError.value = '';
     try {
     await getUserLoginBusinessId();
 logs("BUSINESS ID=== ${businessId}");
+
+    // No businessId to fetch with. Login can legitimately return
+    // `business: null` / `business_id: null` for a BUSINESS account whose
+    // profile was never created (or was removed server-side). Requesting
+    // `/user-service/business/` with an empty id just 404s, so stop here and
+    // let the "Me" tab show a retry state instead of shimmering forever.
+    if (businessId.trim().isEmpty) {
+      meProfileError.value = AppStrings.businessProfileNotFound.tr;
+      return;
+    }
     // 1. Show cached business profile (if any) immediately so the UI
     //    isn't blank while the network call is in flight. Skipped in
     //    `silent` mode — the caller (typically a post-update refresh)
@@ -318,7 +340,14 @@ logs("BUSINESS ID=== ${businessId}");
         await BusinessProfileCache.write(freshKey, data);
       }
       viewBusinessResponse = ApiResponse.complete(responseModel);
+      // A 200 that carries no usable body leaves businessTypeGlobal empty,
+      // which is indistinguishable from "still loading" to the Me tab.
+      if (businessTypeGlobal.trim().isEmpty) {
+        meProfileError.value = AppStrings.businessProfileNotFound.tr;
+      }
     } else {
+      meProfileError.value =
+          responseModel.message ?? AppStrings.somethingWentWrong.tr;
       // logs(
       //     "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
 

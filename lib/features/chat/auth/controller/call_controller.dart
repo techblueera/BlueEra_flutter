@@ -7,6 +7,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
@@ -28,10 +30,14 @@ import '../../../../core/services/notifications/default_ringtone.dart';
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
 import '../repo/make_order_repo.dart';
-import '../service/call_activity_service.dart';
+import '../service/call_audio_route_service.dart';
+import '../service/call_window_service.dart';
 import '../service/overlay_service.dart';
 import '../service/socket_keep_alive_service.dart';
 import '../socket/chat_socket.dart';
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/getx_utils.dart';
+import 'chat_view_controller.dart';
 import '../../../common/Discover/controller/discover_controller.dart';
 
 enum CallType { audio, video }
@@ -65,9 +71,40 @@ extension AudioRouteUi on AudioRoute {
         return 'Headset';
     }
   }
+
+  /// The name flutter_webrtc's AudioSwitch uses for this sink. Single source of
+  /// truth for both `Helper.selectAudioOutput` and the native read-back.
+  String get typeName {
+    switch (this) {
+      case AudioRoute.earpiece:
+        return 'earpiece';
+      case AudioRoute.speaker:
+        return 'speaker';
+      case AudioRoute.bluetooth:
+        return 'bluetooth';
+      case AudioRoute.wiredHeadset:
+        return 'wired-headset';
+    }
+  }
+
+  /// Inverse of [typeName]. Null for an unrecognised name.
+  static AudioRoute? fromTypeName(String? name) {
+    switch (name) {
+      case 'earpiece':
+        return AudioRoute.earpiece;
+      case 'speaker':
+        return AudioRoute.speaker;
+      case 'bluetooth':
+        return AudioRoute.bluetooth;
+      case 'wired-headset':
+        return AudioRoute.wiredHeadset;
+      default:
+        return null;
+    }
+  }
 }
 
-class CallController extends GetxController {
+class CallController extends GetxController with WidgetsBindingObserver {
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
 
@@ -104,6 +141,11 @@ class CallController extends GetxController {
 
   // Media toggles
   var isMicOn = true.obs;
+  // True once this engine actually owns a local mic capture. The call UI reads
+  // it to disable Mute rather than render a live-looking button that does
+  // nothing — which is what the main engine showed while CallActivity owned
+  // the call, and before getUserMedia had returned.
+  var hasLocalAudio = false.obs;
   var isCameraOn = true.obs;
   var isSpeakerOn = false.obs;
   // Whether call audio is currently routed to a connected Bluetooth headset.
@@ -129,6 +171,11 @@ class CallController extends GetxController {
   // True once the user has explicitly tapped Speaker, so auto-routing (e.g. a
   // Bluetooth device connecting mid-call) does not override their choice.
   bool _userPickedSpeaker = false;
+  // The route the user (or auto-routing) last asked for, as opposed to
+  // [currentAudioRoute], which tracks what the platform reports as active.
+  // Kept so _reassertAudioRoute() can re-drive the intent after another Flutter
+  // engine replaces flutter_webrtc's shared audio manager mid-call.
+  AudioRoute? _desiredAudioRoute;
   // Guards the `ondevicechange` subscription so we attach/detach exactly once
   // per call and never leak it across calls.
   bool _audioMonitoringActive = false;
@@ -146,6 +193,14 @@ class CallController extends GetxController {
   static const double _volumeStep = 0.1;
   final callVolumeLevel = 0.7.obs;
   bool _volumeInterceptActive = false;
+
+  // Mirrors the native call-window state so repeated callStatus transitions
+  // don't spam the platform channel. See [_setCallWindowActive].
+  bool _callWindowActive = false;
+  Worker? _callWindowWorker;
+  // Retries opening the call room until the navigator exists and splash has
+  // finished. See [_openCallRoom].
+  Timer? _callRoomOpenTimer;
 
   // Remote user media state (1-to-1)
   var remoteAudioEnabled = true.obs;
@@ -353,19 +408,33 @@ class CallController extends GetxController {
   static const String _ongoingChannelId = 'ongoing_call';
   Timer? _notificationTimer;
 
-  /// Reactive flag: when true, app shows only the call screen (killed-state accept)
-  static final launchedForCall = false.obs;
+  /// How many call screens are currently mounted. The top call strip
+  /// (OngoingCallStrip) shows only while this is zero — i.e. the user has
+  /// navigated away from the call UI.
+  ///
+  /// A COUNTER, not a bool: `/IncomingCallScreen` and `/CallRoomScreen` render
+  /// the same widget, and on `Get.offNamed` between them Flutter runs the new
+  /// screen's initState BEFORE the old screen's dispose. A bool would be left
+  /// false by that trailing dispose and the strip would appear on top of the
+  /// call screen.
+  static final callScreensMounted = 0.obs;
 
-  /// Whether this session was a call-only cold start (used to navigate to home on call end)
-  static bool _coldStartCall = false;
+  /// True once the call screen has been shown at least once for the CURRENT
+  /// call. The strip is for RETURNING to a call you have already seen, so
+  /// without this it flashes up in every gap before the call screen mounts:
+  /// while an outgoing call is still doing its API/ICE setup, between
+  /// `accepting` and the accept round-trip finishing, and over the splash
+  /// screen during a killed-state accept. Reset in [_resetState].
+  static final callRoomEverShown = false.obs;
 
-  /// True when this CallController runs inside CallActivity's separate Flutter engine.
-  /// Prevents _navigateBackFromCallScreen from trying app routes that don't exist.
-  static bool isCallActivityEngine = false;
+  static void callScreenMounted() {
+    callScreensMounted.value++;
+    callRoomEverShown.value = true;
+  }
 
-  /// True when an outgoing/incoming call is being handled by CallActivity's separate task.
-  /// Prevents the main engine from reacting to socket events for the same call.
-  static bool isCallActivityActive = false;
+  static void callScreenUnmounted() {
+    if (callScreensMounted.value > 0) callScreensMounted.value--;
+  }
 
   /// Whether the CURRENT call ever reached the connected state (i.e. was
   /// actually picked up). The end-of-call interstitial only fires for answered
@@ -386,20 +455,52 @@ class CallController extends GetxController {
     _killedStateAcceptHandled = true;
   }
 
-  /// Mark this session as a cold-start call (app launched only to handle call).
-  /// Sets launchedForCall so MyApp shows CallRoomScreen immediately.
-  static void markColdStartCall() {
-    _coldStartCall = true;
-    launchedForCall.value = true;
-  }
+  /// Retained as a no-op so the three killed-state accept paths in main.dart
+  /// read the same as before.
+  ///
+  /// A cold-start accept used to force the call screen to become the app's
+  /// `home`. That made the call the only reachable screen for its whole
+  /// duration, gave Back nothing to pop to, and left a dead blank page behind
+  /// when the call ended. The app now always boots normally and the call room
+  /// is pushed on top like any other screen, so there is nothing to record.
+  static void markColdStartCall() {}
 
-  /// Reset cold-start state when call accept fails (e.g. call expired / 404).
-  /// Prevents the app from staying stuck on CallRoomScreen.
-  static void _resetColdStartIfNeeded() {
-    if (_coldStartCall) {
-      _coldStartCall = false;
-      launchedForCall.value = false;
+  /// Open the call room on top of whatever the app is showing.
+  ///
+  /// On a cold start the navigator may not exist yet (accept runs during app
+  /// init), and splash performs its own `pushNamedAndRemoveUntil` shortly
+  /// after — so a push issued too early is either dropped or wiped. Retry on a
+  /// short cadence until the route sticks, then stop.
+  void _openCallRoom() {
+    if (isFareCall.value) return;
+    _callRoomOpenTimer?.cancel();
+    var attempts = 0;
+
+    bool tryOpen() {
+      // Call already gone — nothing to open.
+      final status = callStatus.value;
+      if (status == CallStatus.idle || status == CallStatus.ended) return true;
+      if (Get.currentRoute == '/CallRoomScreen') return true;
+      if (Get.key.currentState == null) return false;
+      // Still on splash: pushing now would be wiped by its own
+      // pushNamedAndRemoveUntil. Wait for the app to land.
+      if (Get.currentRoute.contains('Splash')) return false;
+      if (Get.currentRoute == '/IncomingCallScreen') {
+        Get.offNamed('/CallRoomScreen');
+      } else {
+        Get.toNamed('/CallRoomScreen');
+      }
+      return true;
     }
+
+    if (tryOpen()) return;
+    _callRoomOpenTimer =
+        Timer.periodic(const Duration(milliseconds: 250), (timer) {
+      attempts++;
+      // ~10s ceiling. If the app never lands, the top strip is still there as
+      // the way back into the call — better than retrying forever.
+      if (tryOpen() || attempts > 40) timer.cancel();
+    });
   }
 
   bool _disposed = false;
@@ -417,14 +518,35 @@ class CallController extends GetxController {
     _socket.onCallListenersRebind = ensureCallSocketListeners;
     _setupCallKitListeners();
     _setupVolumeKeyChannel();
+    WidgetsBinding.instance.addObserver(this);
+    // Drive the call window behaviour (show-over-lock-screen, turn-screen-on,
+    // keep-screen-on, Home-shrinks-to-PiP) straight off the call state.
+    //
+    // It used to be switched on in _setupLocalMedia, which only runs once a
+    // call is ACCEPTED — far too late for the thing that matters most: an
+    // incoming call has to be visible on a locked screen while it is still
+    // ringing. Hanging it off callStatus covers every entry path at once —
+    // incoming, outgoing, fare-call, rider order and cold-start accept — with
+    // no per-path wiring to keep in sync.
+    _callWindowWorker = ever(callStatus, (CallStatus status) {
+      final live = status != CallStatus.idle && status != CallStatus.ended;
+      _setCallWindowActive(live);
+      // Connectivity is watched for the WHOLE life of a call, from the first
+      // ring. Starting it at _setupLocalMedia (i.e. on accept) would miss the
+      // case this was reported for: losing signal while the phone is still
+      // ringing, where there is no peer connection yet to notice anything.
+      if (live) {
+        _startConnectivityWatch();
+      } else {
+        _cancelNetworkGrace();
+        _stopConnectivityWatch();
+      }
+    });
     // Clear any stale ongoing-call record left behind by a previous session
     // that was force-killed mid-call — on a cold start no call can still be
     // live, so a lingering record would show a phantom "Live call ongoing"
-    // banner. Guarded to the main engine so we never wipe a record the
-    // CallActivity engine is about to write for a genuinely live call.
-    if (!isCallActivityEngine) {
-      clearActiveCallSession();
-    }
+    // banner.
+    clearActiveCallSession();
     // Ensure socket is connected so incoming `call:incoming` events are
     // delivered even when the user hasn't opened chat yet. Without this,
     // the server falls back to FCM and CallKit's ring timer can elapse,
@@ -445,9 +567,21 @@ class CallController extends GetxController {
   @override
   void onClose() {
     _disposed = true;
-
+    WidgetsBinding.instance.removeObserver(this);
+    _callWindowWorker?.dispose();
     _cleanup();
     super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state != AppLifecycleState.resumed) return;
+    // Coming back to the foreground is the most likely moment for the audio
+    // route to have been silently lost: whatever ran while we were away (an
+    // FCM data message, the floating overlay) may have replaced
+    // flutter_webrtc's shared AudioSwitchManager. Re-drive the user's choice.
+    _reassertAudioRoute();
   }
 
   // ==================== SOCKET EVENT LISTENERS ====================
@@ -721,15 +855,16 @@ class CallController extends GetxController {
   // ==================== INCOMING CALL HANDLING ====================
 
   void _handleIncomingCall(dynamic data) {
-    // print('[FARE_CALL_DEBUG] _handleIncomingCall → currentStatus=${callStatus.value}, isCallActivityActive=$isCallActivityActive');
     // log('[FARE_CALL_DEBUG] _handleIncomingCall → raw data=$data');
     if (callStatus.value != CallStatus.idle) {
-      // print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (not idle, status=${callStatus.value})');
-      return; // already in a call
-    }
-    if (isCallActivityActive) {
-      // print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (CallActivity active)');
-      return; // call handled by separate task
+      // Already on a call. This used to `return` silently, so the SERVER never
+      // learned we were busy: the caller kept ringing for the full 30s timer
+      // and was then told "no answer", when the truthful answer was available
+      // the instant the second call arrived. Tell the server instead — it
+      // relays `state: "busy"` on `call:ringing`, which the caller's UI already
+      // knows how to render (CallRingingState.busy).
+      _rejectAsBusy(data);
+      return;
     }
     // Fresh incoming call — clear the "was picked up" marker.
     _wasCallConnected = false;
@@ -954,7 +1089,6 @@ class CallController extends GetxController {
         commonSnackBar(message: response.message ?? AppStrings.failedToAcceptCall.tr);
       }
       _cleanup();
-      _resetColdStartIfNeeded();
       return false;
     }
 
@@ -983,7 +1117,7 @@ class CallController extends GetxController {
     // On Android: dismiss immediately (CallActivity handles audio).
     // On iOS: dismiss AFTER WebRTC setup so CallKit keeps the audio session
     // active during the handshake — dismissing too early kills the audio path.
-    print('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}, isCallActivityEngine=$isCallActivityEngine');
+    print('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}');
     if (Platform.isAndroid &&
         !isFareCall.value &&
         callKitWasShownFor(savedCallId)) {
@@ -1005,36 +1139,9 @@ class CallController extends GetxController {
       cancelIncomingCallLocalNotification(savedCallId);
     }
 
-    // --- Android main engine: launch CallActivity to handle WebRTC ---
-    // Skip CallActivity for fare calls — manage calling in-app instead
-    if (Platform.isAndroid && !isCallActivityEngine && !isFareCall.value) {
-      isCallActivityActive = true;
-      await CallActivityService.launchCallActivity(
-        callId: savedCallId,
-        roomId: savedRoomId,
-        conversationId: conversationId.value,
-        callType: callType.value == CallType.video ? 'video' : 'audio',
-        callerName: callerName.value,
-        callerImage: callerImage.value,
-        remoteUserId: savedRemoteUserId ?? '',
-        remoteUserName: remoteUserName.value,
-        remoteUserImage: remoteUserImage.value,
-        isCaller: false,
-        isGroupCall: isGroupCall.value,
-        iceServers: jsonEncode(iceServersJson),
-      );
-      // Light reset — only clear main-engine UI state. Keep isCallActivityActive
-      // true so we don't process duplicate socket events while CallActivity runs.
-      // Do NOT call _cleanup() here — it clears isCallActivityActive and stops
-      // the socket keep-alive, which can cause the socket to disconnect while
-      // the call is still active in CallActivity.
-      _resetState();
-      _navigateBackFromCallScreen();
-      return true;
-    }
-
-    // --- CallActivity engine (or iOS): handle WebRTC here ---
-    // print('[CALL_DEBUG] acceptCall → handling WebRTC in-process (iOS or CallActivity)');
+    // WebRTC is handled in-process on every platform. Android used to hand off
+    // to a separate CallActivity task running its own Flutter engine here; that
+    // engine is gone, so this is now the single accept path.
     // ice_servers can be a Map {'iceServers': [...]} or a raw List [...]
     if (iceServersJson is List) {
       _iceConfig = IceServerConfig(
@@ -1051,17 +1158,14 @@ class CallController extends GetxController {
 
     callStatus.value = CallStatus.connecting;
 
-    // Navigate off the IncomingCallScreen to the active call UI. Without this,
-    // iOS stays on IncomingCallScreen forever showing its "Connecting…" loader
-    // even after the peer connection reaches Connected — because the screen's
-    // _isAccepting flag only clears on accept failure.
-    // NOTE: On iOS the early-accept navigation above already swapped to
-    // /CallRoomScreen, so this guard is false there and this is now a no-op
-    // fallback. It still fires for the CallActivity-engine path that reaches
-    // here from /IncomingCallScreen without the iOS early nav.
-    if (!isFareCall.value && Get.currentRoute == '/IncomingCallScreen') {
-      Get.offNamed('/CallRoomScreen');
-    }
+    // Land on the active call UI. Without this, IncomingCallScreen sits on its
+    // "Connecting…" loader forever even after the peer connection reaches
+    // Connected — its _isAccepting flag only clears on accept failure.
+    //
+    // Accepts also arrive from outside any call screen (notification action,
+    // CallKit, background, killed-state cold start), so this pushes on top of
+    // whatever the app is showing and retries until the navigator is ready.
+    _openCallRoom();
 
     // Ensure socket is connected and wait for it (killed-state accept may
     // start before socket is ready — without waiting, emitEvent is lost)
@@ -1196,6 +1300,22 @@ class CallController extends GetxController {
 
   Timer? _connectionTimer;
   Timer? _peerDisconnectTimer;
+
+  // ── Network loss during a call ──────────────────────────────────────────
+  //
+  // A call may survive this long without a working transport before it is torn
+  // down on both ends. Previously nothing enforced it:
+  // `RTCPeerConnectionStateDisconnected` only printed a log line, and
+  // `_peerDisconnectTimer` was declared and cancelled in three places but NEVER
+  // STARTED — so when one side lost internet the other sat in a ghost call
+  // indefinitely, timer still ticking, with no audio.
+  static const Duration _networkGracePeriod = Duration(seconds: 10);
+  Timer? _networkGraceTimer;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+
+  /// True while the transport is down and we are inside the grace window. The
+  /// call screen shows a "Reconnecting…" state off this instead of freezing.
+  final isReconnecting = false.obs;
   Timer? _offerRetryTimer;
 
   void _startConnectionTimeout() {
@@ -1366,6 +1486,234 @@ class CallController extends GetxController {
     _navigateBackFromCallScreen();
   }
 
+  /// Decline the call AND send [message] to the caller as a chat message —
+  /// the "Message" quick action on the incoming-call screen.
+  ///
+  /// The message is sent BEFORE the decline: [declineCall] runs `_cleanup()`,
+  /// which wipes conversationId / remote user id, so sending afterwards would
+  /// have nothing left to address the message to.
+  Future<void> declineWithMessage(String message) async {
+    final text = message.trim();
+    if (text.isEmpty) {
+      await declineCall();
+      return;
+    }
+
+    final conversation = conversationId.value;
+    final otherUserId = _remoteUserId ?? '';
+
+    try {
+      if (conversation.isNotEmpty || otherUserId.isNotEmpty) {
+        final chatController = getOrPut(() => ChatViewController());
+        final data = <String, dynamic>{
+          if (conversation.isNotEmpty)
+            ApiKeys.conversation_id: conversation
+          else
+            ApiKeys.other_user_id: otherUserId,
+          ApiKeys.message: text,
+          ApiKeys.message_type: 'text',
+        };
+        // No conversation yet (first contact / incoming call from someone the
+        // user has never chatted with) — the initial-message endpoint creates
+        // the thread, the normal one requires it to exist.
+        if (conversation.isEmpty) {
+          await chatController.sendInitialMessage(data);
+        } else {
+          await chatController.sendMessage(data);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) print('declineWithMessage: send failed: $e');
+      // Fall through — failing to deliver the note must never leave the call
+      // ringing.
+    }
+
+    await declineCall();
+  }
+
+  /// Turn away an incoming call that arrived while we are already on one.
+  ///
+  /// Declines the SECOND call with `reason: "busy"` so the server can tell the
+  /// new caller immediately, and deliberately touches NONE of our own call
+  /// state — the ids belong to the incoming call, not the live one, and
+  /// [declineCall] would tear the live call down with them.
+  ///
+  /// Also clears any ring the second call already started: the FCM background
+  /// isolate has its own CallController state and may have posted a
+  /// notification / CallKit UI before this engine saw the socket event, which
+  /// would otherwise leave the phone ringing on top of a call in progress.
+  Future<void> _rejectAsBusy(dynamic data) async {
+    if (data is! Map) return;
+    final incomingCallId = (data['call_id'] ?? '').toString();
+    final incomingRoomId = (data['room_id'] ?? '').toString();
+    // Same call re-delivered (socket echo + FCM) — not a second caller.
+    if (incomingCallId.isEmpty || incomingCallId == callId.value) return;
+
+    print('[CALL_DEBUG] busy → declining incoming call $incomingCallId');
+
+    if (incomingCallId.isNotEmpty) {
+      cancelIncomingCallLocalNotification(incomingCallId);
+      try {
+        if (callKitWasShownFor(incomingCallId)) {
+          await FlutterCallkitIncoming.endCall(incomingCallId);
+          clearCallKitShownFor(incomingCallId);
+        }
+      } catch (_) {}
+    }
+
+    if (incomingRoomId.isEmpty) return;
+    try {
+      await _callRepo.declineCall({
+        'call_id': incomingCallId,
+        'room_id': incomingRoomId,
+        // Additive: the server already models `busy` as a ringing state
+        // (CallRingingState.fromServer), so this asks it to report that rather
+        // than a plain decline. Harmless if the field is ignored — the caller
+        // then sees "declined" instead of "no answer", still better than a
+        // 30-second wait.
+        'reason': 'busy',
+      });
+    } catch (e) {
+      if (kDebugMode) print('_rejectAsBusy failed: $e');
+    }
+  }
+
+  // ==================== NETWORK LOSS HANDLING ====================
+
+  /// Watch the device's connectivity for the lifetime of a call.
+  ///
+  /// The WebRTC ICE state covers the REMOTE side going away, but not our own
+  /// radio dropping while the peer connection has not noticed yet — and on an
+  /// incoming call there is no peer connection at all, which is why losing
+  /// signal while the phone was ringing left the call screen up with nothing
+  /// behind it.
+  void _startConnectivityWatch() {
+    _connectivitySub ??=
+        Connectivity().onConnectivityChanged.listen((results) {
+      final offline = results.isEmpty ||
+          results.every((r) => r == ConnectivityResult.none);
+      if (offline) {
+        _onTransportLost('device offline');
+      } else {
+        _onTransportRestored();
+      }
+    });
+  }
+
+  void _stopConnectivityWatch() {
+    _connectivitySub?.cancel();
+    _connectivitySub = null;
+  }
+
+  /// The transport is down — either our radio or the peer's.
+  ///
+  /// A call that has not been answered yet cannot survive this: there is no
+  /// media path to resume and no way to reach the server to accept, so the
+  /// incoming UI is dismissed immediately with an explanation rather than left
+  /// on screen over a dead connection.
+  ///
+  /// A live call gets [_networkGracePeriod] to recover before both ends are
+  /// torn down.
+  void _onTransportLost(String reason) {
+    final status = callStatus.value;
+    if (status == CallStatus.idle || status == CallStatus.ended) return;
+
+    if (status == CallStatus.ringing || status == CallStatus.outgoing) {
+      print('[CALL_DEBUG] transport lost while $status ($reason) → abandon');
+      _abandonCallForNetwork();
+      return;
+    }
+
+    if (_networkGraceTimer?.isActive == true) return;
+    print('[CALL_DEBUG] transport lost ($reason) → '
+        '${_networkGracePeriod.inSeconds}s grace');
+    isReconnecting.value = true;
+    _networkGraceTimer = Timer(_networkGracePeriod, () {
+      if (callStatus.value == CallStatus.idle ||
+          callStatus.value == CallStatus.ended) {
+        return;
+      }
+      print('[CALL_DEBUG] grace expired → terminating call (network)');
+      _abandonCallForNetwork();
+    });
+  }
+
+  /// Transport came back inside the grace window — keep the call.
+  void _onTransportRestored() {
+    if (_networkGraceTimer == null && !isReconnecting.value) return;
+    print('[CALL_DEBUG] transport restored → cancelling grace timer');
+    _networkGraceTimer?.cancel();
+    _networkGraceTimer = null;
+    isReconnecting.value = false;
+    // The socket may have dropped with the radio; getting it back is what lets
+    // the teardown signalling below actually reach the other side next time.
+    if (!_socket.isConnected) _socket.connectToSocket();
+  }
+
+  void _cancelNetworkGrace() {
+    _networkGraceTimer?.cancel();
+    _networkGraceTimer = null;
+    isReconnecting.value = false;
+  }
+
+  /// Tear the call down because the connection could not be recovered.
+  ///
+  /// Best-effort on the wire: we are very likely still offline, so the REST
+  /// end-call and the socket emit will fail. That is expected and is why the
+  /// server needs its own participant-drop timeout — see
+  /// docs/backend/CALL_SIGNALLING_BACKEND_UPDATES.md. Locally we always finish the
+  /// teardown so this device never sits in a ghost call.
+  Future<void> _abandonCallForNetwork() async {
+    _cancelNetworkGrace();
+    if (callStatus.value == CallStatus.idle ||
+        callStatus.value == CallStatus.ended) {
+      return;
+    }
+
+    final savedCallId = callId.value;
+    final savedRoomId = roomId.value;
+    final wasUnanswered = callStatus.value == CallStatus.ringing ||
+        callStatus.value == CallStatus.outgoing;
+
+    stopRingtone();
+    if (savedCallId.isNotEmpty) {
+      cancelIncomingCallLocalNotification(savedCallId);
+    }
+
+    if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
+      try {
+        // `end_reason` lets the backend log this as a dropped call rather than
+        // a normal hang-up. Unknown fields are ignored server-side, so this is
+        // safe to send before the backend work lands.
+        // Bounded: we are probably still offline, and an un-timed-out request
+        // would hold teardown open behind a connection that is not coming back.
+        await _callRepo.endCall({
+          'call_id': savedCallId,
+          'room_id': savedRoomId,
+          'end_reason': 'network_error',
+        }).timeout(const Duration(seconds: 4));
+      } catch (_) {}
+      try {
+        _socket.emitEvent('call:leave-room', {
+          'room_id': savedRoomId,
+          'call_id': savedCallId,
+          'reason': 'network_error',
+        });
+      } catch (_) {}
+    }
+
+    if (callStatus.value != CallStatus.idle) {
+      _cleanup();
+      _navigateBackFromCallScreen();
+    }
+
+    commonSnackBar(
+      message: wasUnanswered
+          ? AppStrings.callFailedNoConnection.tr
+          : AppStrings.callEndedNoConnection.tr,
+    );
+  }
+
   /// Cancel an outgoing call (before anyone answers)
   Future<void> cancelCall() async {
     if (callStatus.value == CallStatus.idle) return;
@@ -1492,14 +1840,8 @@ class CallController extends GetxController {
 
     // For fare-calls: customer stays on FareCallQueueScreen — audio connects in background.
     // For regular calls: navigate to CallRoomScreen.
-    // Skip navigation when running inside the CallActivity engine — that
-    // engine's GetMaterialApp has only `home:` set (no onGenerateRoute), so
-    // Get.offNamed('/CallRoomScreen') throws "onUnknownRoute was not set".
-    // The CallActivity already renders CallRoomScreen as its home widget.
-    print('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}, isCallActivityEngine=$isCallActivityEngine');
-    if (!isFareCall.value && !isCallActivityEngine) {
-      Get.offNamed('/CallRoomScreen');
-    }
+    print('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}');
+    _openCallRoom();
 
     // Caller creates and sends the SDP offer
     print('[FARE_CALL_DEBUG] _handleCallAccepted → existing peerConnections=${peerConnections.keys.toList()}, localStream=${localStream != null ? "EXISTS" : "NULL"}, _remoteUserId=$_remoteUserId');
@@ -1556,7 +1898,6 @@ class CallController extends GetxController {
   void _handleCallCancelled(dynamic data) {
     stopRingtone();
     print('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
-    if (isCallActivityActive && !isCallActivityEngine) return;
 
     // Always cancel the Android local notification for this call — it may have
     // been posted by the FCM background isolate and keeps ringing independently
@@ -1607,25 +1948,10 @@ class CallController extends GetxController {
     if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
 
     print('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
-    if (isCallActivityActive && !isCallActivityEngine) {
-      // This call ran in the CallActivity engine (separate isolate, no Ads
-      // SDK). The MAIN engine also receives this `call:ended` event and IS
-      // where ads are initialised — so show the post-call interstitial here.
-      // Connected calls only (duration > 0), delayed so the call activity has
-      // finished and this app is foreground. (Complements the cross-isolate
-      // resume flag; the ad manager's _isShowing guard dedupes.)
-      final dur = (data is Map)
-          ? (int.tryParse('${data['duration_seconds'] ?? 0}') ?? 0)
-          : 0;
-      print('[INTERSTITIAL_AD] main engine ← call-activity call:ended dur=${dur}s');
-      if (dur > 0) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          print('[INTERSTITIAL_AD] main engine showing post-call ad (call-activity call)');
-          InterstitialAdManager.instance.showInterstitial();
-        });
-      }
-      return;
-    }
+    // The post-call interstitial used to be shown from here for CallActivity
+    // calls, because that engine had no Ads SDK. The call now ends in this
+    // engine, so the normal teardown path (_showCallEndedInterstitial) handles
+    // it and this special case is gone.
     if (callStatus.value == CallStatus.idle) return;
 
     // Ignore self-originated `call:ended` echoes: if the server is just
@@ -1758,22 +2084,8 @@ class CallController extends GetxController {
 
   /// Safely navigate back from any call screen if currently on one
   void _navigateBackFromCallScreen() {
-    // The interstitial must fire on EVERY call end, including the Android
-    // CallActivity engine path that returns early below (the wrapper handles
-    // the activity finish, so the Flutter-navigation tail never runs). Showing
-    // it here first guarantees the ad triggers regardless of engine.
     _showCallEndedInterstitial();
 
-    // In CallActivity engine, the wrapper handles activity finish — skip Flutter navigation
-    if (isCallActivityEngine) return;
-
-    if (_coldStartCall) {
-      // App was launched only for this call — go to home screen
-      _coldStartCall = false;
-      launchedForCall.value = false;
-      Get.offAllNamed('/BottomNavigationBarScreen');
-      return;
-    }
     final route = Get.currentRoute;
     if (kDebugMode) print('_navigateBackFromCallScreen: currentRoute=$route');
     if (route == '/CallRoomScreen' ||
@@ -1803,22 +2115,9 @@ class CallController extends GetxController {
     final wasConnected = _wasCallConnected;
     _wasCallConnected = false;
     print('[INTERSTITIAL_AD] call ended → _showCallEndedInterstitial '
-        'isFareCall=${isFareCall.value} wasConnected=$wasConnected '
-        'engine=${isCallActivityEngine ? "callActivity" : "main"}');
+        'isFareCall=${isFareCall.value} wasConnected=$wasConnected');
     if (!wasConnected) {
       print('[INTERSTITIAL_AD] skipped — call was never connected (not picked up)');
-      return;
-    }
-
-    if (isCallActivityEngine) {
-      // The Android CallActivity runs in a SEPARATE Flutter engine/isolate
-      // where the Ads SDK was never initialised (main()'s init ran in the main
-      // isolate), and its activity is about to finish — so an interstitial
-      // can't show here. Hand off via a disk flag (statics don't cross
-      // isolates); the MAIN engine shows it on resume. See
-      // AppLifecycleHandler.
-      print('[INTERSTITIAL_AD] callActivity engine → flagged; main app shows on resume');
-      markPendingCallEndedAd();
       return;
     }
 
@@ -1828,50 +2127,21 @@ class CallController extends GetxController {
     });
   }
 
-  /// Cross-isolate hand-off flag for the call-ended interstitial. The
-  /// there (where the Ads SDK is initialised). Statics can't be used — the two
-  /// engines are different Dart isolates.
-  ///
-  /// Uses flutter_secure_storage (via [SharedPreferenceUtils]) NOT Hive: Hive
-  /// caches each box per-isolate, so the main engine wouldn't see the call
-  /// engine's write. Secure storage hits the platform store on every call, so
-  /// it's reliable across engines.
-  static const String _callAdPendingKey = 'pending_call_ended_ad';
-
-  static Future<void> markPendingCallEndedAd() async {
-    try {
-      await SharedPreferenceUtils.setSecureValue(_callAdPendingKey, 'true');
-    } catch (_) {}
-  }
-
-  static Future<bool> consumePendingCallEndedAd() async {
-    try {
-      final value =
-          await SharedPreferenceUtils.getSecureValue(_callAdPendingKey);
-      final pending = value == 'true';
-      if (pending) {
-        await SharedPreferenceUtils.setSecureValue(_callAdPendingKey, '');
-      }
-      return pending;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // ==================== ACTIVE CALL SESSION (cross-isolate) ====================
+  // ==================== ACTIVE CALL SESSION ====================
   //
-  // On Android the live call runs in the CallActivity engine — a SEPARATE Dart
-  // isolate from the main app engine that hosts the chat screens. So the chat
-  // screen cannot read the reactive call state (callStatus / callDurationSeconds)
-  // of the engine that actually owns the call. To let the chat show a "Live call
-  // ongoing" banner, the engine that owns the connected call writes a small
-  // session record to disk; the chat screen polls it. Uses secure storage (not
-  // Hive) for the same reason as the pending-ad flag above — Hive caches boxes
-  // per-isolate, secure storage always hits the platform store.
+  // A small on-disk record of the currently-connected call, used by the chat
+  // screens and the Connect banner to show "Live call ongoing".
+  //
+  // This began as a cross-isolate channel (the call used to run in a second
+  // Flutter engine that the chat screens could not read state from). The call
+  // now runs in this engine, but the record is kept because it also survives a
+  // process restart and is written/read by the FCM background isolate paths.
+  // Uses secure storage rather than Hive: Hive caches boxes per-isolate, so a
+  // background-isolate write would not be visible here.
   static const String _activeCallKey = 'active_call_session';
 
-  /// Persist the currently-connected call so other isolates (chat screens) can
-  /// surface an "ongoing call" banner. Called on connect from [_startCallTimer].
+  /// Persist the currently-connected call so the chat screens can surface an
+  /// "ongoing call" banner. Called on connect from [_startCallTimer].
   static Future<void> saveActiveCallSession({
     required String conversationId,
     required String callId,
@@ -2282,6 +2552,10 @@ class CallController extends GetxController {
 
     callType.value = isVideo ? CallType.video : CallType.audio;
 
+    // A type switch renegotiates and can hand the peer connection a fresh set
+    // of senders; without this, a muted mic came back live on the far end.
+    if (!isMicOn.value) _applyMicEnabled(false);
+
     if (isVideo) {
       // Enable local video - add video track if not present
       _enableLocalVideo();
@@ -2307,8 +2581,24 @@ class CallController extends GetxController {
     commonSnackBar(message: AppStrings.switchToVideoDeclined.tr);
   }
 
+  /// Make sure a local video renderer exists and is initialised.
+  ///
+  /// [_setupLocalMedia] only builds one when the call STARTS as video, so on an
+  /// audio → video switch `localRenderer` was still null. `_enableLocalVideo`
+  /// then did `localRenderer?.srcObject = ...` — a null-safe no-op — so the
+  /// camera was capturing and sending, but nothing rendered it: the local
+  /// preview stayed black after the switch was approved.
+  Future<void> _ensureLocalRenderer() async {
+    if (localRenderer != null) return;
+    final renderer = RTCVideoRenderer();
+    await renderer.initialize();
+    localRenderer = renderer;
+  }
+
   /// Enable local video track (for audio → video switch)
   Future<void> _enableLocalVideo() async {
+    await _ensureLocalRenderer();
+
     // Check if we already have a video track
     final existingVideoTracks = localStream?.getVideoTracks() ?? [];
     if (existingVideoTracks.isNotEmpty) {
@@ -2316,6 +2606,7 @@ class CallController extends GetxController {
       for (var track in existingVideoTracks) {
         track.enabled = true;
       }
+      localRenderer?.srcObject = localStream;
       isCameraOn.value = true;
       return;
     }
@@ -2339,9 +2630,55 @@ class CallController extends GetxController {
       }
 
       isCameraOn.value = true;
+      // addTrack changes the sender set — re-assert mute over it.
+      if (!isMicOn.value) await _applyMicEnabled(false);
+
+      // Adding a track to an established peer connection needs a NEW
+      // offer/answer round before the far end will receive it. Nothing did
+      // that: there is no onRenegotiationNeeded handler anywhere in this
+      // controller, so after an approved audio → video switch the camera was
+      // capturing locally but the remote peer never got a video m-line — both
+      // sides sat on a black screen.
+      await _renegotiateAfterMediaChange();
     } catch (e) {
       if (kDebugMode) print('Failed to enable video: $e');
       commonSnackBar(message: AppStrings.failedToEnableCamera.tr);
+    }
+  }
+
+  /// Re-offer after the local track set changed mid-call (audio → video).
+  ///
+  /// Only ONE side may re-offer or the two offers collide (glare). The original
+  /// caller is the deterministic choice — both ends already know who that is
+  /// from `isCaller`, so no extra signalling is needed to agree on it. The
+  /// callee's newly added video track still reaches the caller, because it is
+  /// included in the ANSWER it sends back to this offer.
+  ///
+  /// The short delay lets both sides finish adding their track before the offer
+  /// is built — both run `_enableLocalVideo` off the same `call:type-switched`
+  /// event, so an immediate offer can race the callee's addTrack and produce a
+  /// one-way video call.
+  Future<void> _renegotiateAfterMediaChange() async {
+    if (!isCaller.value) return;
+    final peerId = _remoteUserId;
+    if (peerId == null || peerId.isEmpty) return;
+    final pc = peerConnections[peerId];
+    if (pc == null) return;
+
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (callStatus.value != CallStatus.connected) return;
+
+    try {
+      final offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      _socket.emitEvent('call:offer', {
+        'room_id': roomId.value,
+        'target_user_id': peerId,
+        'sdp': {'sdp': offer.sdp, 'type': offer.type},
+      });
+      if (kDebugMode) print('_renegotiateAfterMediaChange: re-offer sent');
+    } catch (e) {
+      if (kDebugMode) print('_renegotiateAfterMediaChange failed: $e');
     }
   }
 
@@ -2413,6 +2750,8 @@ class CallController extends GetxController {
             : false,
       });
       print('[FARE_CALL_DEBUG] _setupLocalMedia → getUserMedia SUCCESS, tracks=${localStream?.getTracks().length}, audioTracks=${localStream?.getAudioTracks().length}');
+      hasLocalAudio.value =
+          (localStream?.getAudioTracks().isNotEmpty ?? false);
 
       if (isVideo && localRenderer != null) {
         localRenderer!.srcObject = localStream;
@@ -2500,6 +2839,7 @@ class CallController extends GetxController {
         _offerRetryTimer?.cancel();
         callStatus.value = CallStatus.connected;
         _startCallTimer();
+        _cancelNetworkGrace();
       }
     };
 
@@ -2521,13 +2861,20 @@ class CallController extends GetxController {
           _offerRetryTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
+          _cancelNetworkGrace();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           print('[CALL_DEBUG] ❌ CALL FAILED! peer=$peerId');
           endCall();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+          // ICE `disconnected` is recoverable, so this does NOT end the call
+          // outright — but it used to do nothing at all, which is how the far
+          // end was left in a ghost call when the other side lost internet:
+          // no audio, timer still counting, no way to know. Give it the same
+          // grace window as a local drop, then tear down.
           print('[CALL_DEBUG] ⚠️ PEER DISCONNECTED (may reconnect), peer=$peerId');
+          _onTransportLost('peer disconnected');
           break;
         default:
           break;
@@ -2547,24 +2894,68 @@ class CallController extends GetxController {
     remoteRenderers[peerId]!.srcObject = stream;
     remoteStreams[peerId] = stream;
     // The track may arrive after the route was already chosen — re-apply the
-    // gain so the speaker/earpiece volume matches the current route.
+    // gain so the speaker/earpiece volume matches the current route, and
+    // re-assert the route itself in case an engine swap dropped it.
     _applyRouteVolume(currentAudioRoute.value);
+    _reassertAudioRoute();
   }
 
   // ==================== MEDIA CONTROLS ====================
 
-  void toggleMic() {
-    final audioTrack = localStream?.getAudioTracks().firstOrNull;
-    if (audioTrack == null) return;
-    audioTrack.enabled = !audioTrack.enabled;
-    isMicOn.value = audioTrack.enabled;
+  /// Every local audio track that is actually reaching the far end: the capture
+  /// track on [localStream] plus whatever each peer connection's senders hold.
+  ///
+  /// The old code only touched `localStream.getAudioTracks().first`. That is
+  /// the same object as the sender's track in the common case, but not after a
+  /// renegotiation or a replaceTrack — and it is null entirely in the main
+  /// engine while CallActivity owns the call, which made Mute a silent no-op
+  /// that did not even move the button.
+  Future<List<MediaStreamTrack>> _localAudioTracks() async {
+    final tracks = <MediaStreamTrack>[];
+    final seen = <String>{};
+
+    void add(MediaStreamTrack? track) {
+      if (track == null || track.kind != 'audio') return;
+      final id = track.id ?? '';
+      if (id.isNotEmpty && !seen.add(id)) return;
+      tracks.add(track);
+    }
+
+    for (final track in localStream?.getAudioTracks() ?? const <MediaStreamTrack>[]) {
+      add(track);
+    }
+    for (final pc in peerConnections.values) {
+      try {
+        for (final sender in await pc.getSenders()) {
+          add(sender.track);
+        }
+      } catch (e) {
+        if (kDebugMode) print('_localAudioTracks: getSenders failed: $e');
+      }
+    }
+    return tracks;
+  }
+
+  /// Force every outgoing audio track to [enabled] and tell the peer. Used by
+  /// [toggleMic] and re-run whenever the track set can have changed underneath
+  /// us (connect, audio↔video switch), so mute survives renegotiation.
+  Future<void> _applyMicEnabled(bool enabled) async {
+    final tracks = await _localAudioTracks();
+    if (tracks.isEmpty) return;
+    for (final track in tracks) {
+      track.enabled = enabled;
+    }
+    isMicOn.value = enabled;
+    hasLocalAudio.value = true;
 
     _socket.emitEvent('call:media-toggle', {
       'room_id': roomId.value,
-      'is_audio_enabled': isMicOn.value,
+      'is_audio_enabled': enabled,
       'is_video_enabled': isCameraOn.value,
     });
   }
+
+  Future<void> toggleMic() => _applyMicEnabled(!isMicOn.value);
 
   void toggleCamera() {
     final videoTrack = localStream?.getVideoTracks().firstOrNull;
@@ -2612,9 +3003,14 @@ class CallController extends GetxController {
   }
 
   /// Route active-call audio to [route] and reflect it in the reactive state.
-  /// Works on both Android (Twilio AudioSwitch via `selectAudioOutput`) and iOS
+  /// Works on both Android (Twilio AudioSwitch via the native bridge) and iOS
   /// (AVAudioSession override + category options). Safe to call any time during
   /// a call; ignored for routes that aren't currently available.
+  ///
+  /// The reactive flags are updated from what the platform reports as ACTIVE,
+  /// not from what was requested — see [_applyAudioRoute]. A speaker button
+  /// that stays dark is a true "the switch didn't take", which is far better
+  /// than one that lights up over earpiece audio.
   Future<void> selectAudioRoute(AudioRoute route) async {
     // Don't let callers pick a device that isn't plugged in.
     if (!availableAudioRoutes.contains(route)) {
@@ -2624,39 +3020,76 @@ class CallController extends GetxController {
       }
     }
 
-    currentAudioRoute.value = route;
+    // Remember the intent even if the platform refuses it, so a later
+    // re-assert (on connect / resume / remote track) can try again.
+    _desiredAudioRoute = route;
     _userPickedSpeaker = route == AudioRoute.speaker;
+
+    final active = await _applyAudioRoute(route);
+
+    currentAudioRoute.value = active;
     // Keep legacy flags in sync so existing UI bindings stay correct.
-    isSpeakerOn.value = route == AudioRoute.speaker;
-    isBluetoothOn.value = route == AudioRoute.bluetooth;
+    isSpeakerOn.value = active == AudioRoute.speaker;
+    isBluetoothOn.value = active == AudioRoute.bluetooth;
 
     // Boost the remote playback gain on the loudspeaker (phone held away from
     // the ear) and keep it low on the earpiece / headsets (held close to the
     // ear) so neither is uncomfortable.
-    _applyRouteVolume(route);
+    _applyRouteVolume(active);
+  }
 
+  /// Push [route] down to the platform and report which route is genuinely
+  /// active afterwards.
+  ///
+  /// On Android this goes through [CallAudioRouteService], which re-activates
+  /// flutter_webrtc's shared AudioSwitchManager before selecting and then reads
+  /// the selection back. That re-activation is the whole point: another engine
+  /// attaching mid-call (FCM background isolate, overlay window, MainActivity
+  /// restart) replaces the singleton with one that was never activated, and
+  /// every subsequent `selectAudioOutput` is silently dropped.
+  ///
+  /// Falls back to [Helper.selectAudioOutput] and optimism when the bridge
+  /// can't report a route, so behaviour never regresses below the old code.
+  Future<AudioRoute> _applyAudioRoute(AudioRoute route) async {
     try {
       if (Platform.isAndroid) {
-        // AudioSwitch routes by type name: bluetooth | wired-headset | speaker | earpiece.
-        switch (route) {
-          case AudioRoute.speaker:
-            await Helper.selectAudioOutput('speaker');
-            break;
-          case AudioRoute.earpiece:
-            await Helper.selectAudioOutput('earpiece');
-            break;
-          case AudioRoute.bluetooth:
-            await Helper.selectAudioOutput('bluetooth');
-            break;
-          case AudioRoute.wiredHeadset:
-            await Helper.selectAudioOutput('wired-headset');
-            break;
+        final activeName = await CallAudioRouteService.selectOutput(
+          route.typeName,
+        );
+        final active = AudioRouteUi.fromTypeName(activeName);
+        if (active != null) {
+          if (active != route && kDebugMode) {
+            print('_applyAudioRoute: asked for $route, got $active');
+          }
+          return active;
         }
+        // Bridge unavailable (older build / plugin internals moved) — fall back
+        // to the plugin's own path and assume it landed.
+        await Helper.selectAudioOutput(route.typeName);
       } else if (Platform.isIOS) {
         await _applyIosRoute(route);
       }
     } catch (e) {
-      if (kDebugMode) print('selectAudioRoute($route) failed: $e');
+      if (kDebugMode) print('_applyAudioRoute($route) failed: $e');
+    }
+    return route;
+  }
+
+  /// Re-push the user's chosen route to the platform without changing their
+  /// intent. Cheap and idempotent, so it can be fired at every point where
+  /// another Flutter engine may have swapped the audio manager out from under
+  /// the live call: connect, remote track arrival, and app resume.
+  Future<void> _reassertAudioRoute() async {
+    if (!Platform.isAndroid) return;
+    final status = callStatus.value;
+    if (status == CallStatus.idle || status == CallStatus.ended) return;
+    final route = _desiredAudioRoute ?? currentAudioRoute.value;
+    final active = await _applyAudioRoute(route);
+    if (active != currentAudioRoute.value) {
+      currentAudioRoute.value = active;
+      isSpeakerOn.value = active == AudioRoute.speaker;
+      isBluetoothOn.value = active == AudioRoute.bluetooth;
+      _applyRouteVolume(active);
     }
   }
 
@@ -2738,6 +3171,21 @@ class CallController extends GetxController {
       }
       return null;
     });
+  }
+
+  /// Apply (or drop) the window behaviour a call needs from the host Activity:
+  /// visible over the lock screen, screen turned on for an incoming ring, no
+  /// screen timeout, and Home shrinking the call into PiP.
+  ///
+  /// The old CallActivity got all of this from its manifest entry. MainActivity
+  /// cannot — that would apply it to the whole app — so it is scoped to the
+  /// duration of a call. Deduped because callStatus moves through several
+  /// states per call and each transition would otherwise hit the channel.
+  void _setCallWindowActive(bool active) {
+    if (!Platform.isAndroid) return;
+    if (_callWindowActive == active) return;
+    _callWindowActive = active;
+    CallWindowService.setCallWindowActive(active);
   }
 
   /// Start/stop native interception of the hardware volume rocker. While active
@@ -2847,6 +3295,7 @@ class CallController extends GetxController {
       } catch (_) {}
     }
     _userPickedSpeaker = false;
+    _desiredAudioRoute = null;
     availableAudioRoutes.assignAll([AudioRoute.earpiece, AudioRoute.speaker]);
     currentAudioRoute.value = AudioRoute.earpiece;
     isBluetoothOn.value = false;
@@ -3017,13 +3466,16 @@ class CallController extends GetxController {
     // The call is now connected (picked up) — mark it so the end-of-call
     // interstitial fires for this call.
     _wasCallConnected = true;
+    // Setup ran before the peer connection came up; anything that attached a
+    // Flutter engine in between could have dropped the route. Re-assert it now
+    // that there is actually audio to route, and re-apply the mute state for
+    // the same reason (the sender's track may have been swapped in late).
+    _reassertAudioRoute();
+    if (!isMicOn.value) _applyMicEnabled(false);
     // Preload an interstitial NOW so one is ready by the time the call ends
-    // (the call duration gives it ample time to load). Skipped in the
-    // CallActivity engine — that ad is shown by the main engine, which already
-    // preloads at startup. initialize() is idempotent + fire-and-forget.
-    if (!isCallActivityEngine) {
-      InterstitialAdManager.instance.initialize();
-    }
+    // (the call duration gives it ample time to load). initialize() is
+    // idempotent + fire-and-forget.
+    InterstitialAdManager.instance.initialize();
     _callTimer?.cancel();
     callDurationSeconds.value = 0;
     _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -3395,6 +3847,8 @@ class CallController extends GetxController {
     _connectionTimer = null;
     _peerDisconnectTimer?.cancel();
     _peerDisconnectTimer = null;
+    _cancelNetworkGrace();
+    _stopConnectivityWatch();
     _offerRetryTimer?.cancel();
     _offerRetryTimer = null;
 
@@ -3406,6 +3860,10 @@ class CallController extends GetxController {
     // intercepting the hardware volume rocker.
     _restoreMediaAudioMode();
     _setVolumeInterceptActive(false);
+    // Belt and braces — the callStatus worker drops this too once _resetState()
+    // lands at the end of teardown, but a call must never leave the app itself
+    // showing over the lock screen.
+    _setCallWindowActive(false);
 
     // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
@@ -3491,18 +3949,12 @@ class CallController extends GetxController {
     WakelockPlus.disable();
     SocketKeepAliveService.stop();
 
-    // --- 9. Close CallActivity if running inside it ---
-    if (isCallActivityEngine) {
-      CallActivityService.closeCallActivity();
-    }
-
-    // --- 10. Reset static flags so the next call starts with a clean slate ---
-    isCallActivityActive = false;
+    // --- 9. Reset static flags so the next call starts with a clean slate ---
+    _callRoomOpenTimer?.cancel();
+    _callRoomOpenTimer = null;
     _killedStateAcceptHandled = false;
-    _coldStartCall = false;
-    launchedForCall.value = false;
 
-    // --- 11. Reset all observable state ---
+    // --- 10. Reset all observable state ---
     _resetState();
   }
 
@@ -3519,7 +3971,9 @@ class CallController extends GetxController {
     remoteUserName.value = '';
     remoteUserImage.value = '';
     callDurationSeconds.value = 0;
+    callRoomEverShown.value = false;
     isMicOn.value = true;
+    hasLocalAudio.value = false;
     isCameraOn.value = true;
     isSpeakerOn.value = false;
     remoteAudioEnabled.value = true;
@@ -3740,51 +4194,77 @@ class CallController extends GetxController {
 
   /// Initialize call state from CallKit extra data (for push notification calls)
   void initStateFromCallKitExtra(Map<String, dynamic> extra) {
-    if (callStatus.value != CallStatus.idle || extra.isEmpty) return;
+    if (extra.isEmpty) return;
 
-    // These come from the push notification payload passed via showFlutterCallNotification
-    final senderId = extra['senderId'] ?? '';
-    final convId = extra['conversationId'] ?? '';
-    final callTypeStr = extra['callType'] ?? '';
+    final incomingCallId = (extra['callId'] ?? '').toString();
+    final status = callStatus.value;
 
-    if (senderId.isNotEmpty) {
-      _remoteUserId = senderId;
+    // Only bail when a DIFFERENT call is already past ringing — a stale payload
+    // must not disturb a live conversation. This used to bail on ANY non-idle
+    // status, including `ringing`, which is exactly the state the socket's
+    // `call:incoming` leaves us in. So when the socket payload arrived without
+    // a caller name (common) and the richer push payload arrived after it, the
+    // name was thrown away and the screen showed "Unknown".
+    if (status != CallStatus.idle &&
+        status != CallStatus.ringing &&
+        incomingCallId.isNotEmpty &&
+        callId.value.isNotEmpty &&
+        callId.value != incomingCallId) {
+      return;
+    }
+
+    /// Keep what we already have unless [incoming] actually carries something —
+    /// these payloads arrive from several sources of differing richness and a
+    /// later, thinner one must never blank a field a earlier one filled.
+    String pick(String current, Object? incoming) {
+      final next = (incoming ?? '').toString().trim();
+      if (next.isEmpty || next.toLowerCase() == 'unknown') return current;
+      return next;
+    }
+
+    // Identity fields are applied UNCONDITIONALLY. They used to sit inside an
+    // `if (senderId.isNotEmpty)` guard, so a payload without `senderId` (a
+    // socket `call:incoming` with no `initiated_by`) applied nothing at all —
+    // no name, no callId, no roomId — and the screen fell back to "Unknown".
+    final senderId = (extra['senderId'] ?? '').toString();
+    if (senderId.isNotEmpty) _remoteUserId = senderId;
+
+    final callTypeStr = (extra['callType'] ?? '').toString();
+    if (callTypeStr.isNotEmpty) {
       callType.value =
           callTypeStr == 'video_call' ? CallType.video : CallType.audio;
-      conversationId.value = convId;
-      isCaller.value = false;
+    }
+
+    conversationId.value = pick(conversationId.value, extra['conversationId']);
+    callerName.value = pick(callerName.value, extra['callerName']);
+    callerImage.value = pick(callerImage.value, extra['callerImage']);
+    remoteUserName.value = pick(remoteUserName.value, callerName.value);
+    remoteUserImage.value = pick(remoteUserImage.value, callerImage.value);
+    callId.value = pick(callId.value, extra['callId']);
+    roomId.value = pick(roomId.value, extra['roomId']);
+
+    isCaller.value = false;
+    if (callStatus.value == CallStatus.idle) {
       callStatus.value = CallStatus.ringing;
-      callerName.value = extra['callerName'] ?? '';
-      callerImage.value = extra['callerImage'] ?? '';
-      remoteUserName.value = callerName.value;
-      remoteUserImage.value = callerImage.value;
+    }
 
-      // Set callId and roomId from push notification data (critical for acceptCall API)
-      if (extra['callId'] != null && extra['callId'].toString().isNotEmpty) {
-        callId.value = extra['callId'];
-      }
-      if (extra['roomId'] != null && extra['roomId'].toString().isNotEmpty) {
-        roomId.value = extra['roomId'];
-      }
+    // Detect fare-call from push notification extra
+    if (extra['isFareCall'] == 'true') {
+      isFareCall.value = true;
+      fareCallOrderId.value = extra['fareCallOrderId'] ?? '';
+      try {
+        final rideJson = extra['fareCallRideDetails'];
+        if (rideJson is String && rideJson.isNotEmpty) {
+          fareCallRideDetails.value =
+              Map<String, dynamic>.from(jsonDecode(rideJson));
+        }
+      } catch (_) {}
+    }
 
-      // Detect fare-call from push notification extra
-      if (extra['isFareCall'] == 'true') {
-        isFareCall.value = true;
-        fareCallOrderId.value = extra['fareCallOrderId'] ?? '';
-        try {
-          final rideJson = extra['fareCallRideDetails'];
-          if (rideJson is String && rideJson.isNotEmpty) {
-            fareCallRideDetails.value = Map<String, dynamic>.from(jsonDecode(rideJson));
-          }
-        } catch (_) {}
-        // print('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
-      }
-
-      // Connect socket if not connected (app may have been in background)
-      _socket = ChatSocketService();
-      if (!_socket.isConnected) {
-        _socket.connectToSocket();
-      }
+    // Connect socket if not connected (app may have been in background)
+    _socket = ChatSocketService();
+    if (!_socket.isConnected) {
+      _socket.connectToSocket();
     }
   }
 }

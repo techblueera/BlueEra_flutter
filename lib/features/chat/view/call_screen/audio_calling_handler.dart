@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -11,7 +11,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
 
 import '../../auth/controller/call_controller.dart';
-import '../../auth/service/call_pip_service.dart';
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CallActivityRoomScreen — Unified call screen for both incoming and outgoing calls.
@@ -62,7 +62,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   bool _positionInitialized = false;
 
   // PiP state
-  bool _isInPipMode = false;
 
   // Controls visibility (tap to toggle in video call)
   bool _showControls = true;
@@ -81,6 +80,10 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   @override
   void initState() {
     super.initState();
+
+    // Hide the top call strip while the full call UI is on screen — it only
+    // exists for when the user has navigated away from this screen.
+    CallController.callScreenMounted();
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
@@ -226,24 +229,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
       }
     });
 
-    // Setup PiP listeners
-    if (Platform.isAndroid) {
-      CallPipService.init();
-      CallPipService.onPipModeChanged = (isInPip) {
-        if (mounted) setState(() => _isInPipMode = isInPip);
-      };
-      CallPipService.onPipAction = (action) {
-        if (!mounted) return;
-        switch (action) {
-          case 'mute_toggle':
-            controller.toggleMic();
-            break;
-          case 'hangup':
-            controller.endCall();
-            break;
-        }
-      };
-    }
   }
 
   void _stopRingtone() {
@@ -392,13 +377,21 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     if (Get.isRegistered<CallController>()) {
       Get.find<CallController>().stopRingtone();
     }
-    CallPipService.dispose();
+    // Leaving the call UI — let the top call strip take over if the call is
+    // still live. It hides itself when the call ends.
+    CallController.callScreenUnmounted();
     super.dispose();
   }
 
-  Future<bool> _enterPipMode() async {
-    if (!Platform.isAndroid) return false;
-    return await CallPipService.enterPipMode();
+  /// Minimise the call: leave the call screen, keep the call running, and let
+  /// the top strip take over. Picture-in-Picture used to happen here first —
+  /// it is gone, because leaving PiP exited the app entirely.
+  void _minimiseCall() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Get.offAllNamed('/BottomNavigationBarScreen');
   }
 
   @override
@@ -406,14 +399,31 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     final controller = Get.find<CallController>();
 
     return PopScope(
+      // Back ALWAYS minimises the call to the top strip and returns to the app.
+      //
+      // It used to enter Picture-in-Picture instead, which was the source of
+      // "Back closes the app": with the call screen as the app's `home` there
+      // was nothing to pop to, so PiP was the only outcome and leaving PiP
+      // exited the app. The call room is now pushed on top of a normally
+      // booted app, so there is always something underneath to return to.
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        if (Platform.isAndroid) {
-          final entered = await _enterPipMode();
-          if (entered) return;
+        // An unanswered incoming call has no top strip to minimise into (the
+        // strip deliberately skips `ringing`), so backing out would strand a
+        // ringing call with no way back to it. Swallow Back until the user
+        // accepts or declines — same as WhatsApp.
+        if (controller.callStatus.value == CallStatus.ringing &&
+            !controller.isCaller.value) {
+          return;
         }
-        if (context.mounted) Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          return;
+        }
+        // Nothing beneath us (the push lost a race with splash). Land on the
+        // app rather than leaving the user stuck on the call screen.
+        Get.offAllNamed('/BottomNavigationBarScreen');
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),
@@ -425,11 +435,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           final isVideo = controller.callType.value == CallType.video;
           final isGroup = controller.isGroupCall.value;
           final isCaller = controller.isCaller.value;
-
-          // PiP mode
-          if (_isInPipMode) {
-            return _buildPipModeView(controller, isVideo);
-          }
 
           // Call has ended/reset — show empty body while navigation pops the screen.
           // Prevents the ringing/active view from re-rendering during the gap
@@ -487,10 +492,10 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           // Active call — audio
           return _buildAudioCallView(controller);
             }),
-            // Transient volume indicator (hardware volume buttons). Shown only
-            // while not in PiP, since the native volume HUD is suppressed during
-            // a call (we consume the keys to drive the WebRTC gain).
-            if (!_isInPipMode) _buildVolumeIndicator(),
+            // Transient volume indicator (hardware volume buttons) — the native
+            // volume HUD is suppressed during a call, because we consume the
+            // keys to drive the WebRTC gain.
+            _buildVolumeIndicator(),
           ],
         ),
       ),
@@ -765,10 +770,10 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 _buildSmallAction(
                   icon: Icons.message_rounded,
                   label: 'Message',
-                  onTap: () {
-                    _stopRingtone();
-                    controller.declineCall();
-                  },
+                  // Used to decline on the spot, which made the button a
+                  // second, mislabelled Decline. It now asks WHY first and
+                  // sends that to the caller before hanging up.
+                  onTap: () => _showDeclineWithMessageSheet(controller),
                 ),
               ],
             ),
@@ -919,13 +924,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                   children: [
                     _CircleIconButton(
                       icon: Icons.close_fullscreen_rounded,
-                      onTap: () async {
-                        if (Platform.isAndroid) {
-                          final entered = await _enterPipMode();
-                          if (entered) return;
-                        }
-                        Get.back();
-                      },
+                      onTap: _minimiseCall,
                     ),
                     Flexible(
                       child: Padding(
@@ -1116,7 +1115,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                           isActive: !controller.isMicOn.value,
                           activeColor: Colors.red,
                           bold: !controller.isMicOn.value,
-                          onTap: () => controller.toggleMic(),
+                          onTap: controller.hasLocalAudio.value
+                              ? () => controller.toggleMic()
+                              : null,
                         ),
                         _ControlButton(
                           icon: Icons.call_end_rounded,
@@ -1160,13 +1161,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                   children: [
                     _CircleIconButton(
                       icon: Icons.close_fullscreen_rounded,
-                      onTap: () async {
-                        if (Platform.isAndroid) {
-                          final entered = await _enterPipMode();
-                          if (entered) return;
-                        }
-                        Get.back();
-                      },
+                      onTap: _minimiseCall,
                     ),
                     Flexible(
                       child: Column(
@@ -1230,6 +1225,21 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                       const SizedBox(height: 20),
                       // Call timer / status
                       Obx(() {
+                        // Transport is down but the call is still inside its
+                        // grace window — say so. The screen used to keep
+                        // rendering a ticking timer over a dead connection,
+                        // which is what read as a freeze.
+                        if (controller.isReconnecting.value) {
+                          return Text(
+                            AppStrings.callReconnecting.tr,
+                            style: const TextStyle(
+                              color: Color(0xFFFFB020),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.8,
+                            ),
+                          );
+                        }
                         if (controller.callStatus.value ==
                             CallStatus.connected) {
                           return Text(
@@ -1328,7 +1338,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                           isActive: !controller.isMicOn.value,
                           activeColor: Colors.red,
                           bold: !controller.isMicOn.value,
-                          onTap: () => controller.toggleMic(),
+                          onTap: controller.hasLocalAudio.value
+                              ? () => controller.toggleMic()
+                              : null,
                         ),
                         _ControlButton(
                           icon: Icons.call_end_rounded,
@@ -1404,44 +1416,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         Icons.person,
         size: 80,
         color: Colors.white,
-      ),
-    );
-  }
-
-  // ==================== PiP MODE VIEW ====================
-
-  Widget _buildPipModeView(CallController controller, bool isVideo) {
-    if (isVideo) {
-      final remoteRenderer = controller.remoteRenderers.values.firstOrNull;
-      if (remoteRenderer != null && controller.remoteVideoEnabled.value) {
-        return RTCVideoView(
-          remoteRenderer,
-          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-        );
-      }
-    }
-    return Container(
-      color: const Color(0xFF111B21),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildSmallCircleAvatar(
-              name: controller.remoteUserName.value,
-              image: controller.remoteUserImage.value,
-              radius: 30,
-            ),
-            const SizedBox(height: 8),
-            Obx(() => Text(
-                  controller.formattedCallDuration,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontFamily: 'Poppins',
-                  ),
-                )),
-          ],
-        ),
       ),
     );
   }
@@ -1714,13 +1688,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
               children: [
                 _CircleIconButton(
                   icon: Icons.close_fullscreen_rounded,
-                  onTap: () async {
-                    if (Platform.isAndroid) {
-                      final entered = await _enterPipMode();
-                      if (entered) return;
-                    }
-                    Get.back();
-                  },
+                  onTap: _minimiseCall,
                 ),
                 Flexible(
                   child: Column(
@@ -1891,7 +1859,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                     isActive: !controller.isMicOn.value,
                     activeColor: Colors.red,
                     bold: !controller.isMicOn.value,
-                    onTap: () => controller.toggleMic(),
+                    onTap: controller.hasLocalAudio.value
+                        ? () => controller.toggleMic()
+                        : null,
                   ),
                   _ControlButton(
                     icon: Icons.call_end_rounded,
@@ -1908,6 +1878,122 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           ),
         ),
       ),
+    );
+  }
+
+  /// Canned decline reasons offered by the "Message" quick action, in the order
+  /// they are shown. Same idea as WhatsApp's — the common answers to "why
+  /// aren't you picking up".
+  static const List<String> _declineReasons = [
+    "Can't talk right now",
+    "I'll call you back",
+    "I'm in a meeting",
+    "Call me later",
+  ];
+
+  /// Pick a reason, send it to the caller, then decline.
+  ///
+  /// The ringtone is stopped as soon as the sheet opens — the phone should go
+  /// quiet the moment the user has clearly seen the call, not only once they
+  /// have finished choosing what to say. The call itself keeps ringing for the
+  /// caller until a reason is picked, and dismissing the sheet leaves the call
+  /// untouched so this is not a one-way door.
+  void _showDeclineWithMessageSheet(CallController controller) {
+    _stopRingtone();
+    final customController = TextEditingController();
+
+    Future<void> send(String message) async {
+      Get.back();
+      await controller.declineWithMessage(message);
+    }
+
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1F2C34),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white30,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(20, 6, 20, 10),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Decline with a message',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                ..._declineReasons.map(
+                  (reason) => ListTile(
+                    leading: const Icon(Icons.chat_bubble_outline_rounded,
+                        color: Colors.white70, size: 20),
+                    title: Text(
+                      reason,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 15),
+                    ),
+                    onTap: () => send(reason),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 12, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: customController,
+                          autofocus: false,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15),
+                          decoration: const InputDecoration(
+                            hintText: 'Write a message…',
+                            hintStyle: TextStyle(color: Colors.white38),
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: (value) {
+                            if (value.trim().isNotEmpty) send(value);
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send_rounded,
+                            color: Color(0xFF25D366)),
+                        onPressed: () {
+                          final text = customController.text.trim();
+                          if (text.isNotEmpty) send(text);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 
@@ -2264,7 +2350,10 @@ class _ControlButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
-  final VoidCallback onTap;
+  /// Null renders the button dimmed and inert — used when the control genuinely
+  /// cannot act (e.g. Mute with no local audio track), so it stops looking live
+  /// while doing nothing.
+  final VoidCallback? onTap;
   final Color? activeColor;
   final bool bold;
   final Color? backgroundColor;
@@ -2292,23 +2381,28 @@ class _ControlButton extends StatelessWidget {
                 : const Color(0xFF2A3942));
     final resolvedIconColor =
         iconColor ?? (useTintedActive ? activeColor! : Colors.white);
+    final enabled = onTap != null;
     return Semantics(
       label: label,
       button: true,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: _size,
-          height: _size,
-          decoration: BoxDecoration(
-            color: bg,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: resolvedIconColor,
-            size: _size * (bold ? 0.5 : 0.44),
-            weight: bold ? 900 : 400,
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.4,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: _size,
+            height: _size,
+            decoration: BoxDecoration(
+              color: bg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: resolvedIconColor,
+              size: _size * (bold ? 0.5 : 0.44),
+              weight: bold ? 900 : 400,
+            ),
           ),
         ),
       ),

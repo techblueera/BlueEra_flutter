@@ -230,21 +230,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Call Activity — runs in a separate task (like WhatsApp) -->
-        <activity
-            android:name=".CallActivity"
-            android:launchMode="standard"
-            android:label="Voice Call"
-            android:taskAffinity="ai.bluecs.app.calling"
-            android:excludeFromRecents="false"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:hardwareAccelerated="true"
-            android:supportsPictureInPicture="true"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:theme="@style/LaunchTheme"
-            android:windowSoftInputMode="adjustResize" />
-
         <!-- uCrop Activity -->
         <!-- No android:screenOrientation: Android 16 ignores orientation/resizability
              restrictions on large-screen devices (foldables, tablets). The crop UI

@@ -67,6 +67,10 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         switch (controller.aadhaarStage.value) {
           case AadhaarStage.verified:
             return _buildVerifiedState();
+          case AadhaarStage.pending:
+            return _buildPendingState();
+          case AadhaarStage.rejected:
+            return _buildRejectedState();
           case AadhaarStage.entry:
             return _buildEntryStage();
         }
@@ -188,7 +192,100 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
     }
   }
 
-  // ── Stage 2: verified ──────────────────────────────────────────────
+  // ── Stage 2a: submitted, awaiting review ───────────────────────────
+  //
+  // The state that was missing entirely. It is also the most common failure to
+  // land in, so it says WHAT is missing rather than just "pending": the
+  // document route needs the number AND both card sides, and a number-only or
+  // one-sided submission stays pending forever with nothing telling the rider
+  // why. The re-submit button drops back to the entry form so they can finish.
+  Widget _buildPendingState() {
+    return Obx(() {
+      final masked = controller.aadhaarMaskedNumber.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.hourglass_top_rounded,
+            color: AppColors.primaryColor,
+            size: SizeConfig.size48,
+          ),
+          SizedBox(height: SizeConfig.size10),
+          CustomText(
+            AppStrings.aadhaarPendingTitle.tr,
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size8),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+            child: CustomText(
+              AppStrings.aadhaarPendingHint.tr,
+              fontSize: SizeConfig.small,
+              color: AppColors.coloGreyText,
+              textAlign: TextAlign.center,
+              maxLines: 4,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          if (masked != null && masked.isNotEmpty)
+            _infoRow(AppStrings.aadharNumber.tr, masked),
+          SizedBox(height: SizeConfig.paddingM),
+          CustomBtn(
+            title: AppStrings.aadhaarResubmit.tr,
+            onTap: () =>
+                controller.aadhaarStage.value = AadhaarStage.entry,
+            radius: 10.0,
+            bgColor: AppColors.primaryColor,
+          ),
+        ],
+      );
+    });
+  }
+
+  // ── Stage 2b: rejected ─────────────────────────────────────────────
+  Widget _buildRejectedState() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.error_outline_rounded,
+          color: AppColors.red,
+          size: SizeConfig.size48,
+        ),
+        SizedBox(height: SizeConfig.size10),
+        CustomText(
+          AppStrings.aadhaarRejectedTitle.tr,
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w700,
+          color: AppColors.red,
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: SizeConfig.size8),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+          child: CustomText(
+            AppStrings.aadhaarRejectedHint.tr,
+            fontSize: SizeConfig.small,
+            color: AppColors.coloGreyText,
+            textAlign: TextAlign.center,
+            maxLines: 4,
+          ),
+        ),
+        SizedBox(height: SizeConfig.paddingM),
+        CustomBtn(
+          title: AppStrings.aadhaarResubmit.tr,
+          onTap: () => controller.aadhaarStage.value = AadhaarStage.entry,
+          radius: 10.0,
+          bgColor: AppColors.primaryColor,
+        ),
+      ],
+    );
+  }
+
+  // ── Stage 3: verified ──────────────────────────────────────────────
   Widget _buildVerifiedState() {
     return Obx(() {
       // No name row: the photo path produces no verified identity name — the

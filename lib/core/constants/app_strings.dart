@@ -7,6 +7,22 @@ class AppStrings {
   static const emailIsRequired = "Email is required";
   static const pleaseEnterValidEmail = "Please enter a valid email";
   static const somethingWentWrong = "Something went wrong try after sometimes";
+  /// Call teardown after the connection could not be recovered — see the
+  /// network grace period in CallController.
+  static const String callEndedNoConnection = "callEndedNoConnection";
+  static const String callFailedNoConnection = "callFailedNoConnection";
+  static const String callReconnecting = "callReconnecting";
+
+  /// "Me" tab profile-load failures. Shown in place of the tab's shimmer when
+  /// the own-profile fetch cannot produce a usable profile — a failed request,
+  /// or a login response that carried no `business` / `business_id` to fetch
+  /// with. See _MeTabError in bottom_navigation_bar_screen.dart.
+  static const String profileNotFound = "We couldn't load your profile";
+  static const String businessProfileNotFound =
+      "We couldn't load your business profile";
+  static const String profileLoadFailedHint =
+      "Check your connection and try again. If this keeps happening, please contact support.";
+  static const String tryAgain = "Try again";
   static const success = "success";
   static const tokenIsNull = "Token is null";
   static const storagePermissionDenied = "Storage permission is denied";
@@ -2065,6 +2081,11 @@ class AppStrings {
   static const String resendOtp = 'resendOtp';
   static const String editAadhaarNumber = 'editAadhaarNumber';
   static const String aadhaarVerified = 'aadhaarVerified';
+  static const String aadhaarPendingTitle = 'aadhaarPendingTitle';
+  static const String aadhaarPendingHint = 'aadhaarPendingHint';
+  static const String aadhaarRejectedTitle = 'aadhaarRejectedTitle';
+  static const String aadhaarRejectedHint = 'aadhaarRejectedHint';
+  static const String aadhaarResubmit = 'aadhaarResubmit';
 
   /// Generic label that already existed in the translation files but had no
   /// constant here. (The "OR" separator reuses the existing [orLabel].)

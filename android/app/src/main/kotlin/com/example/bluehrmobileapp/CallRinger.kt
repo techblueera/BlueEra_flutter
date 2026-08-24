@@ -15,12 +15,11 @@ import android.os.Vibrator
 /**
  * Process-wide incoming-call ringer (sound + vibration).
  *
- * A singleton on purpose: the app runs TWO Flutter engines (MainActivity and
- * CallActivity), and the old per-activity `ringtone` field meant a ring
- * started in one activity could never be stopped from the other — accept a
- * call in the CallActivity engine and MainActivity's ringtone kept ringing.
- * CallActionReceiver also stops this directly so the ring dies the instant
- * Accept/Decline is tapped on the notification, before any Dart runs.
+ * A singleton on purpose: a ring can be started from the UI engine or from the
+ * FCM background isolate, and a per-activity `ringtone` field meant a ring
+ * started in one could never be stopped from the other. CallActionReceiver
+ * also stops this directly so the ring dies the instant Accept/Decline is
+ * tapped on the notification, before any Dart runs.
  *
  * Sound rides the RINGTONE stream (follows the phone's ringer volume) and
  * honors the ringer mode: normal → sound + vibration, vibrate → vibration

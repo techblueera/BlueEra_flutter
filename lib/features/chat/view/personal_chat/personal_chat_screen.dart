@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -10,16 +9,13 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/socket/chat_socket.dart';
-import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/broadcast_message_card.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
-import '../widget/ongoing_call_message_card.dart';
 
 class PersonalChatScreen extends StatefulWidget {
   PersonalChatScreen(
@@ -59,13 +55,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
   final chatThemeController = getOrPut(() => ChatThemeController());
   final TextEditingController editingController = TextEditingController();
 
-  // Whether a call for THIS conversation is currently live. Driven by a poll of
-  // the cross-isolate active-call record (the call may run in Android's separate
-  // CallActivity engine, so reactive controller state isn't reliable here).
-  // When true, a synthetic `callongoing` message is injected at the bottom of
-  // the thread.
-  final RxBool _ongoingCallActive = false.obs;
-  Timer? _ongoingCallPoll;
 
   @override
   void initState() {
@@ -132,31 +121,13 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
       });
     }
 
-    // Poll for a live call on this conversation so the in-chat "Ongoing call"
-    // message appears/disappears without the user leaving the screen. Admin
-    // (broadcast) threads never have calls, so skip the poll there.
-    if (widget.type != "Admin") {
-      _pollOngoingCall();
-      _ongoingCallPoll = Timer.periodic(
-          const Duration(seconds: 2), (_) => _pollOngoingCall());
-    }
+    // The in-chat "Ongoing call" message used to be polled into existence here.
+    // It is gone: the app-wide top call strip is now the single "tap to return
+    // to call" affordance, so the thread no longer needs its own.
 
     // checkPendingMessages();
     super.initState();
   }
-
-  Future<void> _pollOngoingCall() async {
-    final session = await CallController.readActiveCallSession();
-    final active = session != null &&
-        OngoingCallMessageCard.sessionMatches(
-          session,
-          conversationId: widget.conversationId ?? '',
-          userId: widget.userId,
-        );
-    if (!mounted) return;
-    _ongoingCallActive.value = active;
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -201,7 +172,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
 
   @override
   void dispose() {
-    _ongoingCallPoll?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
@@ -320,13 +290,10 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                             );
                           }
 
-                          // Inject a synthetic "callongoing" message at the very
-                          // bottom (newest slot) of the reversed list while a
-                          // call for this conversation is live. It renders the
-                          // OngoingCallMessageCard and self-hides when the call
-                          // ends. Admin threads never have calls.
-                          final showOngoing = widget.type != "Admin" &&
-                              _ongoingCallActive.value;
+                          // A synthetic "callongoing" message used to be injected
+                          // at the bottom of this list while a call was live.
+                          // Removed: the app-wide top call strip is the single
+                          // "tap to return to call" affordance now.
                           return ListView.builder(
                             controller: chatViewController.scrollController,
                             // Reversed for every thread (incl. Admin/broadcast)
@@ -337,25 +304,9 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                             reverse: true,
                             addAutomaticKeepAlives: true,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            itemCount: messages.length + (showOngoing ? 1 : 0),
+                            itemCount: messages.length,
                             itemBuilder: (context, index) {
-                              // Reversed list → index 0 is the bottom row.
-                              if (showOngoing && index == 0) {
-                                return RepaintBoundary(
-                                  key: const ValueKey('__ongoing_call__'),
-                                  child: MessageCard(
-                                    message: Messages(
-                                      id: '__ongoing_call__',
-                                      messageType: 'callongoing',
-                                      conversationId: widget.conversationId,
-                                    ),
-                                    isInitialMessage: false,
-                                    conversationId: widget.conversationId,
-                                    conversationUserId: widget.userId,
-                                  ),
-                                );
-                              }
-                              final dataIndex = showOngoing ? index - 1 : index;
+                              final dataIndex = index;
                               // Newest message at the bottom (index 0) for all
                               // threads now that the list is reversed.
                               final message =

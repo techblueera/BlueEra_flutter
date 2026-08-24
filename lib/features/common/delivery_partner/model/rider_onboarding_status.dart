@@ -27,6 +27,10 @@ class RiderOnboardingStatusData {
     this.isOnboardingComplete,
     this.verificationStatus,
     this.aadhar,
+    this.aadharVerified,
+    this.aadharStatus,
+    this.aadharVerifiedThrough,
+    this.aadharMasked,
     this.pan,
     this.rc,
     this.dl,
@@ -77,6 +81,31 @@ class RiderOnboardingStatusData {
     aadhar = (aadhaarStepFlag == true || json['aadharVerified'] == true)
         ? true
         : (aadhaarStepFlag as bool?);
+
+    // `aadhar` above means "we have an Aadhaar on file" — NOT "it is verified".
+    // Rendering a green tick from it told 1,591 riders their Aadhaar was
+    // verified while it was still pending: they typed a number, never uploaded
+    // the card images, and the backend therefore cannot verify them. See
+    // docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md.
+    //
+    // `aadharVerified` is the real state. Until be_rider_service ships it, the
+    // guide's interim rule gives the same answer from a field that already
+    // exists: `aadharVerifiedThrough` is "otp"/"manual" only when verified and
+    // null otherwise. Falling back to it fixes those riders today without
+    // waiting on a deploy, and the explicit field wins as soon as it arrives.
+    aadharVerifiedThrough = json['aadharVerifiedThrough'] as String?;
+    aadharStatus = json['aadharStatus'] as String?;
+    final explicitVerified = json['aadharVerified'];
+    aadharVerified = explicitVerified is bool
+        ? explicitVerified
+        : ((aadharVerifiedThrough ?? '').isNotEmpty ||
+            (aadharStatus ?? '').toLowerCase() == 'verified');
+
+    // What to DISPLAY. Never `aadharNo`: it is null on the OTP route by design
+    // (be_user_service keeps only a SHA-256 hash plus the last four digits), so
+    // masking it locally produced an empty row for exactly the riders who did
+    // verify properly.
+    aadharMasked = json['aadharMasked'] as String?;
     pan = json['pan'];
     rc = json['rc'];
     dl = json['dl'];
@@ -237,7 +266,24 @@ class RiderOnboardingStatusData {
   bool? vehicleInformation;
   bool? isOnboardingComplete;
   String? verificationStatus;
+  /// "We have an Aadhaar on file." NOT a verification result — see
+  /// [aadharVerified], which is what a tick must read.
   bool? aadhar;
+
+  /// Aadhaar is actually verified. This is what a tick reads.
+  bool? aadharVerified;
+
+  /// Raw per-document state: "pending" | "verified" | "rejected".
+  String? aadharStatus;
+
+  /// How it was verified — "otp" | "manual". Null unless verified.
+  String? aadharVerifiedThrough;
+
+  /// Display form, e.g. "XXXX XXXX 3693". Use this, never [aadharNo].
+  String? aadharMasked;
+
+  /// Raw number, present only on the document route and `null` on the OTP one.
+  /// Never gate anything on it.
   bool? pan;
   bool? rc;
   bool? dl;

@@ -49,6 +49,21 @@ class ChatSocketService {
   /// rings. Set once by CallController.onInit; survives controller lifetime.
   void Function()? onCallListenersRebind;
 
+  /// Re-binds ChatViewController's chat listeners after a fresh socket is
+  /// built. Exactly the same problem as [onCallListenersRebind], which calls
+  /// already had a fix for and chat did not:
+  ///
+  /// disposeSocket() clears `_registeredListeners` outright, so the replay in
+  /// onConnect has nothing to replay for `newMessageReceived` / `ChatList` /
+  /// `messageReceived`. The bottom-nav host disposes the socket on any root
+  /// re-navigation (returning from a call, a notification renav, offAllNamed),
+  /// and the ONLY thing that re-ran connectSocket() was an app RESUME. So live
+  /// chat stayed dead — new messages appeared only after a manual refresh —
+  /// until the user backgrounded and reopened the app.
+  ///
+  /// Set once by ChatViewController.connectSocket(); survives its lifetime.
+  void Function()? onChatListenersRebind;
+
   // ─── Connect ───────────────────────────────────────────────────────────────
 
   Future<void> connectToSocket() async {
@@ -126,6 +141,13 @@ class ChatSocketService {
         // calls ring again immediately, not only after the next app resume.
         try {
           onCallListenersRebind?.call();
+        } catch (_) {}
+
+        // Same for chat listeners — see [onChatListenersRebind]. Runs BEFORE
+        // the ChatList / screenRoom emits below so the replies have somewhere
+        // to land.
+        try {
+          onChatListenersRebind?.call();
         } catch (_) {}
 
         _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});

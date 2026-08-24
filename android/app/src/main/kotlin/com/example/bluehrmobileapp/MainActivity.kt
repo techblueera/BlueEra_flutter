@@ -1,6 +1,5 @@
 package ai.bluecs.app
 
-import android.app.ActivityManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -42,7 +41,7 @@ class MainActivity: FlutterActivity() {
     private val VIDEO_CHANNEL = "com.bluehr.video/keep_screen_on"
     private val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
     private val SHORTCUT_CHANNEL = "com.bluehr.shortcut/channel"
-    private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
+    private val CALL_PIP_CHANNEL = "com.bluehr.call/pip"
     private val INCOMING_CALL_NOTIF_CHANNEL = "com.bluehr.incoming_call_notification"
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
     private val APP_SHARE_CHANNEL = "ai.bluecs.app/app_share"
@@ -65,8 +64,20 @@ class MainActivity: FlutterActivity() {
     // gain instead of changing the OS stream volume.
     private var callVolumeActive = false
 
+    // ── Call window / PiP ───────────────────────────────────────────────────
+    // Behaviour inherited from the old CallActivity, which had show-on-lock,
+    // turn-screen-on and keep-screen-on baked into its manifest entry. Those
+    // must not apply to the whole app all the time, so Flutter switches them on
+    // for the duration of a call and off when it ends.
+    private var callPipChannel: MethodChannel? = null
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // Audio-route bridge. Registered on every engine that can own a call so
+        // Dart can re-activate + read back flutter_webrtc's shared
+        // AudioSwitchManager. See CallAudioBridge for why that is necessary.
+        CallAudioBridge.register(flutterEngine.dartExecutor.binaryMessenger)
 
         // ------------------------------
         // MEDIA SCANNER CHANNEL — makes files show in Gallery
@@ -245,68 +256,24 @@ class MainActivity: FlutterActivity() {
             }
 
         // ------------------------------
-        // CALL LAUNCHER CHANNEL — launches CallActivity in a separate task
+        // CALL WINDOW CHANNEL — show-over-lock-screen / turn-screen-on /
+        // keep-screen-on for the duration of a call. Inherited from the retired
+        // CallActivity, which had these in its manifest entry.
+        //
+        // Call Picture-in-Picture used to live here too and is deliberately
+        // gone: the call screen entered PiP on Back, and leaving PiP exited the
+        // app. Back now minimises to the in-app top call strip.
         // ------------------------------
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALL_LAUNCHER_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "launchCallActivity" -> {
-                        val intent = Intent(this@MainActivity, CallActivity::class.java).apply {
-                            addFlags(
-                                Intent.FLAG_ACTIVITY_NEW_TASK or
-                                Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                            )
-                            putExtra("callId", call.argument<String>("callId") ?: "")
-                            putExtra("roomId", call.argument<String>("roomId") ?: "")
-                            putExtra("conversationId", call.argument<String>("conversationId") ?: "")
-                            putExtra("callType", call.argument<String>("callType") ?: "audio")
-                            putExtra("callerName", call.argument<String>("callerName") ?: "")
-                            putExtra("callerImage", call.argument<String>("callerImage") ?: "")
-                            putExtra("remoteUserId", call.argument<String>("remoteUserId") ?: "")
-                            putExtra("remoteUserName", call.argument<String>("remoteUserName") ?: "")
-                            putExtra("remoteUserImage", call.argument<String>("remoteUserImage") ?: "")
-                            putExtra("isCaller", call.argument<Boolean>("isCaller") ?: true)
-                            putExtra("isGroupCall", call.argument<Boolean>("isGroupCall") ?: false)
-                            putExtra("iceServers", call.argument<String>("iceServers") ?: "{}")
-                        }
-                        startActivity(intent)
-                        result.success(null)
-                    }
-                    "bringCallActivityToFront" -> {
-                        // CallActivity runs in its OWN task (launched with
-                        // FLAG_ACTIVITY_NEW_TASK | MULTIPLE_TASK + a distinct
-                        // taskAffinity), so a REORDER_TO_FRONT intent from
-                        // MainActivity's task can't reach it — Android would
-                        // instead spawn a fresh, param-less CallActivity that
-                        // tries to initiate a brand-new call (400) and bounces
-                        // straight back. Locate the existing call task via
-                        // ActivityManager and raise it in place instead.
-                        var brought = false
-                        try {
-                            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                            val callClass = CallActivity::class.java.name
-                            for (task in am.appTasks) {
-                                val info = task.taskInfo
-                                val base = info.baseIntent.component?.className
-                                val top = try { info.topActivity?.className } catch (e: Exception) { null }
-                                if (base == callClass || top == callClass) {
-                                    task.moveToFront()
-                                    brought = true
-                                    break
-                                }
-                            }
-                        } catch (e: Exception) {
-                            brought = false
-                        }
-                        // Return whether an existing call task was actually
-                        // raised. On false, the Dart caller falls back to the
-                        // in-app call room (used by main-engine fare calls,
-                        // which have no separate CallActivity task).
-                        result.success(brought)
-                    }
-                    else -> result.notImplemented()
+        callPipChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALL_PIP_CHANNEL)
+        callPipChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setCallWindowActive" -> {
+                    setCallWindowActive(call.argument<Boolean>("active") ?: false)
+                    result.success(null)
                 }
+                else -> result.notImplemented()
             }
+        }
 
         // ------------------------------
         // INCOMING CALL NOTIFICATION CHANNEL — shows custom notification with filled buttons
@@ -599,7 +566,36 @@ class MainActivity: FlutterActivity() {
         }
     }
 
+    /**
+     * Apply (or drop) the window behaviour a call needs: visible over the lock
+     * screen, screen turned on for an incoming ring, and no screen timeout for
+     * its duration. The old CallActivity declared these in the manifest; doing
+     * that on MainActivity would apply them to the entire app, so they are
+     * scoped to the call here.
+     */
+    private fun setCallWindowActive(active: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(active)
+            setTurnScreenOn(active)
+        } else {
+            val flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            @Suppress("DEPRECATION")
+            if (active) window.addFlags(flags) else window.clearFlags(flags)
+        }
+        if (active) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
     override fun onUserLeaveHint() {
+        // No call branch here any more. Leaving the app mid-call used to shrink
+        // the call into Picture-in-Picture; PiP is gone because dismissing it
+        // closed the app. The call keeps running in the background (foreground
+        // service + the floating overlay), and the in-app top strip is the way
+        // back to it.
         if (isPipEnabled) {
             enterPipMode()
         } else {

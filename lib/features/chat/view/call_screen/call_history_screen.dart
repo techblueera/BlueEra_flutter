@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -10,7 +9,6 @@ import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/call_models.dart';
-import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -157,9 +155,8 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     return chat?.sender?.id;
   }
 
-  /// Mirrors `_initiateCallFromChat` in component_widgets.dart:
-  /// Android → launch CallActivity in a separate task (with in-app fallback).
-  /// iOS → in-app call flow + navigate to /CallRoomScreen.
+  /// Mirrors `_initiateCallFromChat` in component_widgets.dart: place the call
+  /// and navigate to /CallRoomScreen.
   Future<void> _placeCall(
       CallModel call, ChatList? chat, CallType type) async {
     final otherUserId = _otherUserIdFor(call, chat);
@@ -167,27 +164,6 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     final userName = chat?.sender?.name ?? AppStrings.userFallback.tr;
     final userImage = chat?.sender?.profileImage ?? '';
     final conversationId = call.conversationId;
-
-    if (Platform.isAndroid) {
-      CallController.isCallActivityActive = true;
-      final launched = await CallActivityService.launchCallActivity(
-        callId: '',
-        roomId: '',
-        conversationId: conversationId,
-        callType: type == CallType.video ? 'video' : 'audio',
-        callerName: userName,
-        callerImage: userImage,
-        remoteUserId: otherUserId,
-        remoteUserName: userName,
-        remoteUserImage: userImage,
-        isCaller: true,
-      );
-      if (launched) {
-        _refreshChatAfterOutgoingCall(conversationId);
-        return;
-      }
-      CallController.isCallActivityActive = false;
-    }
 
     final success = await _callController.initiateCall(
       type: type,

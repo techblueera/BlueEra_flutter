@@ -428,6 +428,15 @@ class ViewPersonalDetailsController extends GetxController
   /// true→false flip is the rebuild trigger. Toggled in [viewPersonalProfile].
   final RxBool isMeProfileFetching = false.obs;
 
+  /// Non-empty when the last own-profile fetch could not produce a usable
+  /// profile — the request failed, or there is no userId to request with.
+  ///
+  /// Without this the "Me" tab shimmered forever: it keys off
+  /// `userProfileTypeGlobal` being empty, and a failed fetch leaves it empty
+  /// just like a fetch that has not finished. Set in [viewPersonalProfile],
+  /// cleared when a fetch starts and on success.
+  final RxString meProfileError = ''.obs;
+
   /// Joining-bonus object embedded in the `user/get` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
   final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
@@ -755,6 +764,22 @@ class ViewPersonalDetailsController extends GetxController
     // Mark the fetch in-flight so the "Me" tab can show its loader (when there's
     // no data yet) and rebuild to the correct screen class on completion.
     isMeProfileFetching.value = true;
+    meProfileError.value = '';
+
+    // Guard on the PHONE, because that is what the request is keyed on:
+    //     getUser = 'user-service/user/get?contact_no=$userMobileGlobal'
+    //
+    // This used to guard on `userId`, which was wrong twice over. The endpoint
+    // does not use it — and `userId` is only ever populated BY this profile
+    // response (via SharedPreferenceUtils.userLoggedInIndividualGuest), so on a
+    // fresh login it is still empty and the guard blocked the very fetch that
+    // would have filled it. The Me tab then showed "couldn't load your profile"
+    // for a perfectly healthy account.
+    if (userMobileGlobal.trim().isEmpty) {
+      meProfileError.value = AppStrings.profileNotFound.tr;
+      isMeProfileFetching.value = false;
+      return;
+    }
 
     final personalController = Get.put(PersonalCreateProfileController());
 
@@ -819,7 +844,14 @@ class ViewPersonalDetailsController extends GetxController
           unawaited(_restoreDeviceTokenIfMissing(data));
         }
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
+        // A 200 with no usable body leaves the type globals empty, which the
+        // Me tab cannot tell apart from "still loading".
+        if (userProfileTypeGlobal.trim().isEmpty) {
+          meProfileError.value = AppStrings.profileNotFound.tr;
+        }
       } else {
+        meProfileError.value =
+            responseModel.message ?? AppStrings.somethingWentWrong.tr;
         if (cached == null) {
           commonSnackBar(
               message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -827,6 +859,7 @@ class ViewPersonalDetailsController extends GetxController
       }
     } catch (e, s) {
       log('stack trace -- $s');
+      meProfileError.value = AppStrings.somethingWentWrong.tr;
       viewPersonalResponse.value = ApiResponse.error('error');
     } finally {
       // Cleared last — AFTER the globals + response were applied above — so the

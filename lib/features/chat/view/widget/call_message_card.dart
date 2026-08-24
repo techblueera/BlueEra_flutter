@@ -1,8 +1,6 @@
-import 'dart:io';
 
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -94,49 +92,9 @@ class CallMessageCard extends StatelessWidget {
 
 
 
-  /// Open the active call screen. On Android the call runs inside a separate
-  /// task (CallActivity, often in PiP) — bring that task back to front, or
-  /// relaunch it using the current CallController state if the task was
-  /// dismissed. On iOS / when there is no native task, fall back to the
-  /// in-app CallRoomScreen.
+  /// Open the active call screen. The call runs in this engine now, so this is
+  /// just a navigation — no task to locate and raise.
   Future<void> _openCallScreen() async {
-    if (Platform.isAndroid) {
-      final brought = await CallActivityService.bringCallActivityToFront();
-      if (brought) return;
-
-      if (Get.isRegistered<CallController>()) {
-        final cc = Get.find<CallController>();
-        final ctStr =
-            cc.callType.value == CallType.video ? 'video' : 'audio';
-        final relaunched = await CallActivityService.launchCallActivity(
-          callId: cc.callId.value,
-          roomId: cc.roomId.value,
-          conversationId: cc.conversationId.value.isNotEmpty
-              ? cc.conversationId.value
-              : (conversationId ?? ''),
-          callType: ctStr,
-          callerName: cc.callerName.value,
-          callerImage: cc.callerImage.value,
-          remoteUserId: cc.remoteUserName.value.isNotEmpty
-              ? (message.metadata?.otherUserId ?? otherUserId ?? '')
-              : (message.metadata?.otherUserId ?? otherUserId ?? ''),
-          remoteUserName:
-              cc.remoteUserName.value.isNotEmpty
-                  ? cc.remoteUserName.value
-                  : (otherUserName ?? ''),
-          remoteUserImage: cc.remoteUserImage.value.isNotEmpty
-              ? cc.remoteUserImage.value
-              : (otherUserImage ?? ''),
-          isCaller: cc.isCaller.value,
-          isGroupCall: cc.isGroupCall.value,
-        );
-        if (relaunched) {
-          CallController.isCallActivityActive = true;
-          return;
-        }
-      }
-    }
-
     if (Get.currentRoute != '/CallRoomScreen') {
       Get.toNamed('/CallRoomScreen');
     }
@@ -157,29 +115,6 @@ class CallMessageCard extends StatelessWidget {
 
     final callType = _isVideoCall ? CallType.video : CallType.audio;
 
-
-    if (Platform.isAndroid) {
-      CallController.isCallActivityActive = true;
-      CallActivityService.launchCallActivity(
-        callId: '',
-        roomId: '',
-        conversationId: targetConversationId,
-        callType: _isVideoCall ? 'video' : 'audio',
-        callerName: targetUserName,
-        callerImage: targetUserImage,
-        remoteUserId: targetUserId,
-        remoteUserName: targetUserName,
-        remoteUserImage: targetUserImage,
-        isCaller: true,
-      ).then((launched) {
-        if (!launched) {
-          CallController.isCallActivityActive = false;
-          _initiateCallInApp(callType, targetUserId, targetConversationId,
-              targetUserName, targetUserImage);
-        }
-      });
-      return;
-    }
 
     _initiateCallInApp(callType, targetUserId, targetConversationId,
         targetUserName, targetUserImage);

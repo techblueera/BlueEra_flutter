@@ -36,7 +36,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
 
   // Call room state (after accepted)
   bool _isCallConnected = false;
-  bool _isSpeakerOn = false;
   int _callDurationSeconds = 0;
   Timer? _callTimer;
 
@@ -463,7 +462,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   }
 
   void _toggleSpeaker() {
-    setState(() => _isSpeakerOn = !_isSpeakerOn);
+    // No local mirror of the state: the button renders from
+    // _callController.isSpeakerOn, which now reflects the route the platform
+    // actually applied rather than the one that was requested.
     _callController.toggleSpeaker();
   }
 

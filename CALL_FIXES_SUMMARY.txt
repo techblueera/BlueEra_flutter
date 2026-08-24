@@ -1,0 +1,627 @@
+================================================================================
+CALL FLOW — INVESTIGATION & FIXES
+Branch: himanshu-dev-24Aug
+Date:   2026-08-24
+Status: NOT COMMITTED — all changes are in the working tree
+================================================================================
+
+SCOPE
+  Three problems were reported:
+    1. Calling opens a "new package / new layer"
+    2. In killed mode the app "makes a new app"
+    3. Speaker and Mute do not work properly
+
+  All three are fixed, plus two related bugs found on the way.
+
+  Then one feature was requested on top:
+    4. WhatsApp-style green call strip at the top when Back is pressed during
+       a call — tap to return, and end the call directly from the strip.
+
+  The first cut of that feature shipped three serious bugs, all reported and
+  all now fixed (see the FEATURE section in Part 2):
+    - Back closed the app instead of staying in it
+    - reopening the app went straight to the call, and after the call ended it
+      opened on a BLANK page with no way out
+    - the app was unusable for the whole duration of a call
+  Picture-in-Picture was removed as part of the fix, as requested, and the two
+  older "tap to return to call" widgets were deleted so the strip is the only
+  one left.
+
+TOTALS
+  22 files changed, +530 / -1570 lines
+  4 new files
+  7 files deleted
+
+
+================================================================================
+PART 1 — WHAT WAS ACTUALLY WRONG
+================================================================================
+
+1.1  "NEW PACKAGE / NEW LAYER"
+--------------------------------------------------------------------------------
+  A call was not a screen. It was a second app.
+
+  android/app/src/main/AndroidManifest.xml declared:
+
+      <activity android:name=".CallActivity"
+          android:taskAffinity="ai.bluecs.app.calling"
+          android:label="Voice Call" ... />
+
+  CallActivity.kt overrode:
+
+      override fun getDartEntrypointFunctionName(): String = "callMain"
+
+  So every call started a SECOND FlutterEngine + SECOND Dart isolate in a
+  SEPARATE Android task. callMainImpl() re-ran the whole boot each time:
+  projectKeys -> firebaseInitializeApp -> Hive.initFlutter -> 4 secure-storage
+  reads -> Get.put(CallController) -> a second socket connection.
+
+  That is the ~1-2s delay and the separate "Voice Call" card in Recents.
+
+
+1.2  "KILLED MODE MAKES A NEW APP"
+--------------------------------------------------------------------------------
+  The killed-state accept booted the app TWICE:
+
+    1. CallActionReceiver.kt  -> getLaunchIntentForPackage()
+                              -> MainActivity cold start, full main()
+    2. main.dart cold-start check -> callController.acceptCall(...)
+    3. call_controller.dart       -> launchCallActivity(...)
+                              -> CallActivity cold start, full callMain()
+
+  Result: two engines, two isolates, two GetX containers, two CallControllers,
+  TWO AUTHENTICATED SOCKETS for the same user, two Recents cards.
+
+  The codebase was already full of workarounds for this — cross-isolate
+  mailboxes written to secure storage because "statics can't be used, the two
+  engines are different Dart isolates".
+
+
+1.3  SPEAKER
+--------------------------------------------------------------------------------
+  ROOT CAUSE: flutter_webrtc keeps audio routing in a process-wide static that
+  every engine attach overwrites.
+
+    FlutterWebRTCPlugin.java:115
+        AudioSwitchManager.instance = new AudioSwitchManager(context);
+
+  The app has several engines that all register flutter_webrtc:
+      - MainActivity
+      - CallActivity              (until this change)
+      - FCM background isolate    (new FlutterEngine(ctx) auto-registers plugins)
+      - flutter_overlay_window    (FlutterEngineGroup)
+
+  When any of them attached mid-call, the singleton was replaced by a fresh
+  instance that was NEVER activate()d. Every later Helper.selectAudioOutput()
+  was recorded but never applied.
+
+  Nothing threw. And the UI set isSpeakerOn BEFORE the native call:
+
+      currentAudioRoute.value = route;
+      isSpeakerOn.value = route == AudioRoute.speaker;   <-- UI flips here
+      try { await Helper.selectAudioOutput('speaker'); }
+      catch (e) { if (kDebugMode) print(...); }          <-- invisible in release
+
+  So the button lit up while audio stayed on the earpiece.
+
+  An FCM data message during a call is enough to trigger this — and call
+  signalling itself arrives over FCM, so it was not an edge case.
+
+
+1.4  MUTE
+--------------------------------------------------------------------------------
+  toggleMic() only touched:
+
+      localStream?.getAudioTracks().firstOrNull
+      if (audioTrack == null) return;    <-- silent, UI does not even move
+
+  Three failure modes:
+    a) Wrong engine — the main engine's localStream was null while the other
+       engine owned the call, so any main-engine Mute button did nothing.
+    b) Missed senders — after a renegotiation the sender's track is not the
+       same object as localStream's first audio track.
+    c) Audio->video switch re-enabled tracks and never re-applied isMicOn, so
+       a muted mic silently went live again.
+
+
+1.5  BONUS BUG — isCallActivityActive reset on every resume
+--------------------------------------------------------------------------------
+  app_lifecycle_handler.dart blanked the flag unconditionally on resume.
+  Switching from the "Voice Call" card back to the app card therefore told the
+  main engine it owned the call: it resumed handling call:ended /
+  call:cancelled / call:incoming for a call in the other engine, and the
+  `detached` branch would then endCall() a live call.
+
+
+================================================================================
+PART 2 — WHAT WAS CHANGED
+================================================================================
+
+FIX 1 — SPEAKER: honest state + self-healing route
+--------------------------------------------------------------------------------
+  NEW  android/app/src/main/kotlin/com/example/bluehrmobileapp/CallAudioBridge.kt
+       Talks to AudioSwitchManager.instance directly.
+         - re-ACTIVATES whichever instance is current before selecting
+           (a clobbered one was never activate()d — this is the actual fix)
+         - READS THE SELECTION BACK so Dart can show the true route
+       All reflection on purpose: com.twilio.audioswitch is a transitive
+       `implementation` dep of the plugin and is not on the app module's
+       compile classpath, so selectedAudioDevice() cannot be named directly.
+       Reflection also means a plugin upgrade degrades to "no read-back"
+       instead of a build failure.
+
+  NEW  lib/features/chat/auth/service/call_audio_route_service.dart
+       Dart side of that bridge.
+
+  MOD  call_controller.dart
+         - selectAudioRoute() sets the reactive flags from what the platform
+           reports as ACTIVE, not from what was requested
+         - _applyAudioRoute() does the push + read-back, falls back to the old
+           Helper path when the bridge cannot answer
+         - _reassertAudioRoute() re-drives the user's choice at the three
+           moments an engine swap is likely:
+               * call connect       (_startCallTimer)
+               * remote track arrival (_handleRemoteStream)
+               * app resume         (didChangeAppLifecycleState)
+         - CallController now mixes in WidgetsBindingObserver for that resume
+           hook (AppLifecycleHandler only ran in the main engine)
+         - AudioRoute gained typeName / fromTypeName so there is one mapping
+
+  MOD  incoming_rider_order_screen.dart
+         - deleted a dead _isSpeakerOn field that was written and never read
+           (the UI already binds to controller.isSpeakerOn)
+
+
+FIX 2 — MUTE
+--------------------------------------------------------------------------------
+  MOD  call_controller.dart
+         - _localAudioTracks() collects audio tracks from localStream AND
+           every peer connection's senders (pc.getSenders())
+         - _applyMicEnabled(bool) forces them all + emits call:media-toggle
+         - toggleMic() = _applyMicEnabled(!isMicOn.value)
+         - mute re-applied on connect, on audio<->video switch, and after
+           _enableLocalVideo's addTrack (all three used to unmute silently)
+         - new hasLocalAudio observable
+
+  MOD  audio_calling_handler.dart
+         - _ControlButton.onTap is nullable; null renders dimmed + inert
+         - the 3 Mute buttons are gated on hasLocalAudio, so they stop looking
+           live while doing nothing
+
+  NOTE: Helper.setMicrophoneMute was deliberately NOT used — it is
+        process-global and a clobbered singleton could strand the device mic
+        muted. Track-level mute on all senders is the correct WebRTC-level fix.
+
+
+FIX 3 — isCallActivityActive  (later superseded by Fix 5)
+--------------------------------------------------------------------------------
+  Replaced the blanket reset with a real ActivityManager task probe
+  (isCallActivityRunning). Fix 5 removed the second task entirely, so this
+  flag and its probe no longer exist.
+
+
+FIX 4 — Recents stacking  (later superseded by Fix 5)
+--------------------------------------------------------------------------------
+  FLAG_ACTIVITY_MULTIPLE_TASK forced a brand-new task on every launch — three
+  calls left three "Voice Call" cards. Fixed with launchMode="singleTask" plus
+  onNewIntent plumbing. Fix 5 removed CallActivity, so this is gone too.
+
+
+FIX 5 — ONE ENGINE (the structural fix)
+--------------------------------------------------------------------------------
+  Chosen approach: calls became a route in the main app (/CallRoomScreen).
+
+  DELETED:
+    android/.../CallActivity.kt                              (329 lines)
+    lib/features/chat/view/call_screen/call_activity_main.dart (346 lines)
+    lib/features/chat/auth/service/call_activity_service.dart  (134 lines)
+    callMain() entrypoint in main.dart
+    the <activity android:name=".CallActivity"> manifest entry
+    isCallActivityEngine       (14 call sites)
+    isCallActivityActive       (26 call sites)
+    markPendingCallEndedAd / consumePendingCallEndedAd
+        (secure-storage mailbox that existed only because the post-call ad
+         could not cross the isolate boundary)
+
+  acceptCall()'s Android branch is gone — it now falls through to the
+  in-process WebRTC path that iOS and fare calls were ALREADY using. That path
+  was well exercised, which is what made this tractable.
+
+  All 8 launchCallActivity sites already had an in-app fallback
+  (_initiateCallInApp / _initiateContactCallInApp / _startBlueEraCallInApp),
+  so each one collapsed to deleting the
+      if (Platform.isAndroid) { ...; return; }
+  wrapper:
+      component_widgets.dart
+      call_message_card.dart
+      call_history_screen.dart
+      group_message_card.dart
+      message_card.dart
+      phone_user_bottom_sheet.dart
+      ongoing_call_message_card.dart      (return-to-call)
+      ongoing_call_banner.dart            (return-to-call)
+
+  Return-to-call in the banners/cards is now just Get.toNamed('/CallRoomScreen').
+
+  MOVED INTO MainActivity (CallActivity had these in its manifest entry, which
+  cannot live on MainActivity or they would apply to the whole app):
+      - setCallWindowActive on the com.bluehr.call/pip channel
+        -> setShowWhenLocked / setTurnScreenOn / FLAG_KEEP_SCREEN_ON,
+           scoped to the duration of a call
+      - call PiP with the Mute / Hang Up RemoteActions
+      - onPictureInPictureModeChanged forwarding
+      - a receiver for the PiP action buttons
+      - onUserLeaveHint prefers call PiP over the video-player PiP
+
+  CallPipService lost its two-channel try/fallback — there is one channel now.
+
+
+FOLLOW-UP — LOCK-SCREEN RING
+--------------------------------------------------------------------------------
+  setCallWindowActive was first wired into _setupLocalMedia, which only runs on
+  ACCEPT — too late for a ring to show on a locked screen.
+
+  It is now a worker on callStatus, registered in onInit:
+
+      _callWindowWorker = ever(callStatus, (CallStatus status) {
+        _setCallWindowActive(
+            status != CallStatus.idle && status != CallStatus.ended);
+      });
+
+  Why a worker instead of a call in _handleIncomingCall: five places put the
+  controller into a live state and would all need the same line —
+      :725  outgoing
+      :828  incoming ring
+      :942  accepting   (the cold-start / killed-state accept path)
+      :1083 connecting
+      :3837 CallKit listener ring
+  One worker covers incoming, outgoing, fare-call, rider order and killed-state
+  accept with nothing to keep in sync.
+
+  _setCallWindowActive dedupes against a _callWindowActive mirror, so a call
+  moving ringing -> accepting -> connecting -> connected hits the channel once,
+  not four times.
+
+  ORDERING CHECK: in _handleIncomingCall, callStatus = ringing is at :828; the
+  background branch that posts the full-screen-intent notification is ~25 lines
+  below. So setShowWhenLocked(true) reaches the Activity BEFORE the notification
+  that raises it. The channel is serviced on the platform thread regardless of
+  whether the Activity is paused, so this works from background too.
+
+
+FEATURE — WHATSAPP-STYLE TOP CALL STRIP  (+ the emergency fixes that followed)
+--------------------------------------------------------------------------------
+
+  WHAT IT DOES
+    A green bar pinned to the top of EVERY screen whenever a call is live and
+    the user is not on the call screen:
+
+      +----------------------------------------------------+
+      | (P)  01:23 . Tap to return to call      [ End ]     |   #00A884
+      +----------------------------------------------------+
+      |                                                    |
+      |            whatever screen you are on              |
+
+      - tap the bar   -> back into the call room
+      - tap End       -> hangs up right there, without going back in first
+      - label adapts  -> "Calling..." / "Connecting..." / live duration
+
+    It is the ONLY "tap to return to call" affordance in the app now. See
+    "ONE AFFORDANCE, NOT THREE" below.
+
+
+  ~~~ THE THREE BUGS THE FIRST CUT SHIPPED WITH ~~~
+
+  All three had ONE root cause: a killed-state call accept replaced the app's
+  `home` with the call screen.
+
+      main.dart:
+          home: Obx(() {
+            if (CallController.launchedForCall.value) {
+              return const CallActivityRoomScreen();   // <-- the whole problem
+            }
+
+  Everything that went wrong followed from it:
+
+    "Back closes the app"
+        The call screen was `home`, so there was nothing beneath it to pop to.
+        Back therefore fell through to Picture-in-Picture, and dismissing PiP
+        exits the app.
+
+    "Can't use the app while a call is on"
+        `home` WAS the call. There was no app behind it to go back to.
+
+    "Close and reopen -> goes straight to the call"
+        `launchedForCall` was still true, so `home` still resolved to the call
+        screen.
+
+    "Call cut, reopen -> BLANK page, app unusable"
+        Worst case of the same thing. After the call ended `launchedForCall`
+        was still true and callStatus was idle — and the call screen renders
+        an empty SizedBox for idle. So `home` was a blank page with no way out
+        except force-quitting.
+
+
+  ~~~ THE FIXES ~~~
+
+  1. THE `home` HIJACK IS GONE
+       main.dart always boots the app normally now. The call room is PUSHED on
+       top of it like any other screen.
+
+       Removed with it:
+         - CallController.launchedForCall            (the Rx behind the hijack)
+         - CallController._coldStartCall             (only fed the hijack)
+         - two `launchedForCall` bail-outs in splash_screen.dart, which used to
+           skip normal navigation and would now strand the user on splash
+         - markColdStartCall() kept as a no-op so main.dart's three killed-state
+           accept paths still read the same
+
+  2. NEW  CallController._openCallRoom()
+       Pushes /CallRoomScreen on top of whatever is showing, and RETRIES on a
+       250ms cadence (~10s ceiling) because on a cold start:
+         - the navigator may not exist yet (accept runs during app init), and
+         - splash does its own pushNamedAndRemoveUntil shortly after, which
+           would wipe a push issued too early.
+       It waits for the route to leave splash, then pushes once and stops.
+       Called from acceptCall and _handleCallAccepted.
+
+  3. PICTURE-IN-PICTURE REMOVED
+       Requested, and it was the mechanism behind "Back closes the app".
+
+       Dart:
+         - the call screen's PiP branch, _buildPipModeView (~35 lines),
+           _enterPipMode, _isInPipMode, and the PiP listeners in initState
+         - the three "minimise" buttons now call a new _minimiseCall() which
+           pops (or lands on the bottom nav if there is nothing to pop)
+         - call_pip_service.dart -> RENAMED to call_window_service.dart
+           (CallPipService -> CallWindowService). It kept only
+           setCallWindowActive; a class called "PipService" with no PiP left
+           in it would have been a lie.
+
+       Kotlin (MainActivity):
+         - enterCallPipMode(), the Mute/Hang-Up RemoteActions, the PiP action
+           BroadcastReceiver + its register/unregister, ACTION_CALL_MUTE_TOGGLE,
+           ACTION_CALL_HANGUP, onPictureInPictureModeChanged, isInCallPip
+         - onUserLeaveHint no longer shrinks a call into PiP on Home. The call
+           keeps running in the background (foreground service + the floating
+           overlay) and the strip is the way back.
+         - setCallWindowActive KEPT — that is the lock-screen / keep-screen-on
+           behaviour, which is unrelated to PiP and still needed.
+         - the video-player PiP (isPipEnabled) is untouched.
+
+       Back now always minimises to the strip. If there is genuinely nothing
+       beneath (the push lost a race with splash) it lands on the bottom nav
+       rather than leaving the user stuck.
+
+  4. THE STRIP SHOWED ON THE CALL PAGE ITSELF
+       Visibility was a single bool set in initState / cleared in dispose.
+       But `/IncomingCallScreen` and `/CallRoomScreen` render the SAME widget,
+       and on Get.offNamed between them Flutter runs the new screen's initState
+       BEFORE the old screen's dispose. The trailing dispose set the bool back
+       to false while the call screen was still on top.
+
+       Now a COUNTER: CallController.callScreensMounted (+ callScreenMounted() /
+       callScreenUnmounted()). Strip shows only at zero.
+
+  5. THE STRIP FLASHED BEFORE THE CALL SCREEN APPEARED
+       Caught during the flow audit, not on device. There are three windows
+       where a call is live but its screen has not mounted yet:
+         - an outgoing call between callStatus=outgoing and the API/ICE setup
+           finishing
+         - an accept between callStatus=accepting and the accept round-trip
+         - a killed-state accept, for the whole boot (strip over the splash)
+
+       Added CallController.callRoomEverShown: the strip only appears once the
+       call screen has been shown at least once for THIS call. Semantically
+       right — the strip is for RETURNING to a call you have already seen — and
+       it closes all three windows with one condition instead of three patches.
+
+
+  ~~~ ONE AFFORDANCE, NOT THREE ~~~
+
+  There were three "tap to return to call" widgets. Two are deleted; the strip
+  is the only one left, so the whole app stays traversable during a call.
+
+    DELETED  lib/features/common/connect/widget/ongoing_call_banner.dart
+             The Connect tab banner (rendered twice — Chat and Inquiry tabs).
+
+    DELETED  lib/features/chat/view/widget/ongoing_call_message_card.dart
+             The in-chat "Ongoing call" bubble. Removing it also meant removing
+             what fed it:
+               - the synthetic `callongoing` message injected at the bottom of
+                 the reversed message list (personal_chat_screen.dart)
+               - its 2-second poll of the active-call record (_pollOngoingCall,
+                 _ongoingCallActive, _ongoingCallPoll)
+               - the `case "callongoing":` branch in message_card.dart
+
+
+  ~~~ FINAL STRIP CONDITIONS ~~~
+
+    SHOWN when ALL of:
+      - callRoomEverShown        (call screen seen at least once this call)
+      - callScreensMounted == 0  (not on the call screen right now)
+      - !isFareCall              (fare calls / rider orders keep their own UI)
+      - callStatus in { outgoing, accepting, connecting, connected }
+
+    HIDDEN for:
+      - ringing   an unanswered incoming call owns the full screen. Back is
+                  SWALLOWED there so the user cannot strand a ringing call with
+                  no way back — accept or decline, same as WhatsApp.
+      - idle / ended
+      - fare calls and rider orders
+
+  Note on Obx: shouldShow reads the two static observables FIRST, before the
+  Get.isRegistered check. Bail out before touching any observable and Obx
+  throws "improper use of a Obx" — its builder must track something.
+
+PART 3 — VERIFIED vs NOT VERIFIED
+================================================================================
+
+VERIFIED
+  flutter analyze lib          -> zero errors, no unused imports in touched files
+  flutter build apk --debug    -> succeeds
+  gradlew :app:compileDebugKotlin -> BUILD SUCCESSFUL
+     (2 deprecation warnings on the pre-API-27 window-flag fallback branch —
+      the old CallActivity had the same ones)
+
+NOT VERIFIED
+  None of this has been run on a device. Everything above is static reasoning
+  plus a clean build.
+
+
+================================================================================
+PART 4 — TEST PLAN (in the order I would run it)
+================================================================================
+
+  1. LOCKED SCREEN -> INCOMING CALL                      [highest risk]
+     The ring must show over the lock screen from BACKGROUND (app alive) and
+     from KILLED. Those take different routes to the same Activity; killed
+     depends on the accept at call_controller.dart:942 firing early enough.
+
+  2. KILLED -> ACCEPT FROM NOTIFICATION
+     Expect ONE app launch and ONE Recents card.
+     "CALL MAIN STARTED" should never appear in logcat again.
+
+  3. CHAT MESSAGE ARRIVES MID-CALL, THEN TAP SPEAKER     [proof of Fix 1]
+     Previously: UI flipped, audio stayed on earpiece.
+     Now: speaker actually engages.
+     Watch:  adb logcat -s AudioSwitchManager FlutterWebRTC AudioSwitch
+     The engine churn still shows in the log — it should just no longer matter.
+
+  4. HOME DURING A CALL
+     App backgrounds, call keeps running, NO Picture-in-Picture window (PiP
+     is gone). Returning to the app shows the strip.
+
+  5. (moved — Back during a call is now test 9, under the strip section)
+
+  6. AUDIO -> VIDEO SWITCH WHILE MUTED
+     Mic must stay muted (it used to silently unmute).
+
+  7. THREE CALLS IN A ROW
+     No stacking Recents entries.
+
+  8. MUTE WITH NO LIVE TRACK
+     Button renders dimmed and inert instead of live-but-dead.
+
+  --- top call strip ---
+
+  9. BACK DURING A CONNECTED CALL                        [check layout shift]
+     Green strip appears at the top. Then page through your busier screens
+     while it is showing and confirm nothing overflows — the app is 38px
+     shorter than usual for as long as the strip is up. This is the main
+     risk of the whole feature.
+
+ 10. TAP THE STRIP
+     Returns to the call room; the strip disappears while you are on it.
+
+ 11. TAP "End" ON THE STRIP
+     Call ends from wherever you are, strip disappears, no need to open the
+     call screen first.
+
+ 12. STRIP LABEL THROUGH A WHOLE CALL
+     "Calling..." while ringing out -> "Connecting..." -> ticking duration.
+
+ 13. BACK ON AN UNANSWERED INCOMING RING
+     Should do NOTHING (you must accept or decline). No strip, no stranded
+     ringing call.
+
+  --- the four regressions from the first cut. RUN THESE FIRST. ---
+
+ 14. BACK DURING A CALL DOES NOT CLOSE THE APP
+     Back must land you in the app with the strip up. Try it from a normal
+     in-app call AND from a killed-state accept, which is where it used to
+     fall through to PiP and exit.
+
+ 15. THE WHOLE APP IS USABLE DURING A CALL
+     With the strip up, navigate freely: chats, Discover, Me, settings. This
+     was impossible before — the call screen was the app's only screen.
+
+ 16. CLOSE AND REOPEN THE APP DURING A LIVE CALL
+     Must open the app NORMALLY (splash -> home), not the call screen. The
+     strip should be there; tapping it goes to the call.
+
+ 17. END THE CALL, THEN CLOSE AND REOPEN            [the blank-page bug]
+     Must open normally. Previously this was a blank unusable page that
+     needed a force-quit.
+
+ 18. NO STRIP FLASH
+     Place a call and watch the top of the screen between tapping Call and
+     the call screen appearing — no green bar should flicker. Same on a
+     killed-state accept (no bar over the splash screen).
+
+ 19. STRIP NEVER APPEARS ON THE CALL PAGE ITSELF
+     Especially on the incoming path: ring -> accept -> call room. The two
+     routes share one widget, which is what used to leave the flag wrong.
+
+
+================================================================================
+PART 5 — DELIBERATELY LEFT ALONE
+================================================================================
+
+  CallActivityRoomScreen keeps its name.
+      It is the widget behind /CallRoomScreen and always was. Renaming touches
+      route_helper.dart and main.dart for no functional gain. Worth a follow-up
+      rename if the name bothers you.
+
+  saveActiveCallSession / readActiveCallSession stay.
+      The pending-ad mailbox was deleted, but this one also survives a process
+      restart and is reachable from the FCM background isolate, so it is not
+      purely a two-engine artifact. Its three consumers (personal_chat_screen,
+      ongoing_call_message_card, ongoing_call_banner) still poll it.
+      Converting them to read the controller directly is a clean follow-up.
+
+  AppStrings.blueEraCall / callInitFailed / closeLabel are now unreferenced
+      (they belonged to the deleted engine's error screen). Harmless.
+
+  OngoingCallBanner / OngoingCallMessageCard were not retired.
+      The new top strip now overlaps them — on the Connect tab during a call
+      you would see the strip AND the banner. They were left in because
+      removing existing UI was not part of the request. Decide whether the
+      banner still earns its place now that the strip is global.
+
+  The remaining engines still clobber AudioSwitchManager.
+      MainActivity, the FCM background isolate and the overlay window are all
+      still separate engines. This is exactly why the Fix 1 bridge is still
+      needed and was NOT removed by Fix 5.
+
+
+================================================================================
+PART 6 — FILE MANIFEST
+================================================================================
+
+NEW
+  android/app/src/main/kotlin/com/example/bluehrmobileapp/CallAudioBridge.kt
+  lib/features/chat/auth/service/call_audio_route_service.dart
+  lib/features/chat/auth/service/call_window_service.dart   (was call_pip_service)
+  lib/features/chat/view/widget/ongoing_call_strip.dart
+
+DELETED
+  android/app/src/main/kotlin/com/example/bluehrmobileapp/CallActivity.kt
+  lib/features/chat/view/call_screen/call_activity_main.dart
+  lib/features/chat/auth/service/call_activity_service.dart
+  lib/features/chat/auth/service/call_pip_service.dart      (-> call_window_service)
+
+MODIFIED
+  android/app/src/main/AndroidManifest.xml
+  android/app/src/main/kotlin/com/example/bluehrmobileapp/MainActivity.kt
+  android/app/src/main/kotlin/com/example/bluehrmobileapp/CallRinger.kt        (comment)
+  android/app/src/main/kotlin/com/example/bluehrmobileapp/SocketKeepAliveService.kt (comment)
+  lib/main.dart
+  lib/core/services/app_lifecycle_handler.dart
+  lib/features/chat/auth/controller/call_controller.dart
+  lib/features/chat/view/call_screen/audio_calling_handler.dart
+  lib/features/chat/view/call_screen/call_history_screen.dart
+  lib/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart
+  lib/features/chat/view/widget/call_message_card.dart
+  lib/features/chat/view/widget/component_widgets.dart
+  lib/features/chat/view/widget/group_message_card.dart
+  lib/features/chat/view/widget/message_card.dart
+  lib/features/chat/view/widget/phone_user_bottom_sheet.dart
+  lib/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart
+  lib/features/common/onboarding/view/splash_screen.dart
+  lib/features/common/connect/view/connect_main_page.dart
+  lib/features/chat/view/personal_chat/personal_chat_screen.dart
+
+================================================================================
+END
+================================================================================

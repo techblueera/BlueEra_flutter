@@ -598,27 +598,20 @@ Future<void> showIncomingCallLocalNotification({
 
   final notifId = incomingCallNotificationId(callId);
 
-  // Try native notification with filled green/red buttons (custom RemoteViews).
-  // This works when the main FlutterEngine is running (socket-driven calls,
-  // foreground FCM). Falls back to flutter_local_notifications for the FCM
-  // background isolate where the MethodChannel isn't registered.
-  try {
-    const nativeChannel =
-        MethodChannel('com.bluehr.incoming_call_notification');
-    await nativeChannel.invokeMethod('show', {
-      'callId': callId,
-      'roomId': roomId,
-      'callerName': callerName,
-      'callerImage': callerImage,
-      'callType': callType,
-      'notifId': notifId,
-    });
-    return; // Native notification shown successfully
-  } catch (e) {
-    print('Native call notification unavailable, using fallback: $e');
-  }
-
-  // Fallback: flutter_local_notifications (text-colored buttons)
+  // ONE notification path, deliberately.
+  //
+  // There used to be a native RemoteViews notification tried first (nicer
+  // filled buttons) with this as the fallback. Its buttons went to
+  // CallActionReceiver, which only stashed a SharedPreferences flag and waited
+  // for the app to be opened — so Decline never reached the server and the
+  // caller just kept ringing, and Accept relied on getLaunchIntentForPackage,
+  // which is what made it hang on the launch animation. Whenever the main
+  // engine was alive (the common case) that broken path is the one that ran.
+  //
+  // flutter_local_notifications is used for every state instead: its actions
+  // are handled by onForegroundNotificationResponse (declineCall / acceptCall
+  // in-process) and onBackgroundNotificationResponse (a REST decline that works
+  // with the app killed). Both already existed and both work.
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
     const InitializationSettings(

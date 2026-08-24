@@ -923,10 +923,30 @@ class ChatViewController extends GetxController {
     _emitFetchMessages(convId);
   }
 
+  /// Re-register the chat socket listeners if they were wiped.
+  ///
+  /// [disposeSocket] clears ChatSocketService's `_registeredListeners`, and the
+  /// only thing that used to call [connectSocket] again was an app RESUME
+  /// (AppLifecycleHandler._reconnectChatSocketIfNeeded). So once the bottom-nav
+  /// host disposed the socket — which it does on any root re-navigation — live
+  /// chat was dead until the user backgrounded and reopened the app, and new
+  /// messages only appeared on a manual refresh.
+  ///
+  /// Safe to call from ChatSocketService.onConnect: `socketConnected` short-
+  /// circuits when the listeners are already bound, and connectToSocket()
+  /// early-returns while the socket is connected, so there is no re-entry.
+  void ensureChatSocketListeners() {
+    if (socketConnected.value) return;
+    connectSocket();
+  }
+
   Future<void> connectSocket() async {
     // Belt-and-suspenders: ensure the on-connect re-fetch is wired even if the
     // controller was constructed before this callback field existed.
     chatSocket.onConnected = _refetchOpenConversationOnConnect;
+    // Re-bind chat listeners on every socket (re)connect — see
+    // [ensureChatSocketListeners].
+    chatSocket.onChatListenersRebind = ensureChatSocketListeners;
     // Always ensure socket is connected
     await chatSocket.connectToSocket();
 

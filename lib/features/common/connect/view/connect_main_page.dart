@@ -64,7 +64,6 @@ import '../../../personal/personal_profile/controller/languge_list_controller.da
 import '../../../../widgets/glass_surface.dart';
 import 'goods_multi_order_booking_main.dart';
 import '../widget/customer_ongoing_ride_card.dart';
-import '../widget/ongoing_call_banner.dart';
 
 enum SavedFeedTab {
   posts;
@@ -798,7 +797,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     // nothing when there is no ongoing ride).
                     Column(
                       children: [
-                        const OngoingCallBanner(),
                         const CustomerOngoingRideCard(),
                         Expanded(
                           child: PersonalChatsList(isForwardUI: false),
@@ -826,7 +824,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     // nothing when there is no ongoing ride.
                     Column(
                       children: [
-                        const OngoingCallBanner(),
                         const CustomerOngoingRideCard(),
                         Expanded(
                           child: BusinessChatsList(

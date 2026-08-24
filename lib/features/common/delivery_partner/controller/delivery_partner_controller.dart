@@ -51,7 +51,18 @@ enum AadhaarStage {
   /// Enter 12-digit Aadhaar + consent + both card photos → submit.
   entry,
 
-  /// Identity verified — show name + masked number.
+  /// Submitted and awaiting review — NOT verified.
+  ///
+  /// The state that was missing, and the one ~1,591 riders were actually in
+  /// while the app showed them a green tick. Almost always means the number was
+  /// typed but the card images were never uploaded: the document route needs
+  /// the number AND both sides, and a partial submission stays pending forever.
+  pending,
+
+  /// Review rejected it — the rider has to submit again.
+  rejected,
+
+  /// Identity verified — show the masked number.
   verified,
 }
 
@@ -904,18 +915,47 @@ class DeliveryPartnerController extends GetxController {
     _applyAadhaarStageFromRiderStatus();
   }
 
-  /// Verified when the rider's `aadhar` step is already complete.
+  /// Resolve the sheet's stage from the rider's onboarding record.
+  ///
+  /// THREE states, not two. This used to read
+  ///     if (data?.aadhar != true) → entry;  else → verified
+  /// which collapsed "an Aadhaar has been provided" into "an Aadhaar has been
+  /// verified" and is the whole bug in
+  /// docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md: riders who typed a
+  /// number but never uploaded the card images got a green tick, believed they
+  /// were done, and then could not understand why they still couldn't go live.
   void _applyAadhaarStageFromRiderStatus() {
     final data = riderOnboardingStatusData.value;
+
+    // Nothing on file → the form.
     if (data?.aadhar != true) {
+      aadhaarIsVerified.value = false;
       aadhaarStage.value = AadhaarStage.entry;
       return;
     }
-    aadhaarIsVerified.value = true;
-    // The saved number is the only identity the photo path produces — there is
-    // no OKYC name to show.
-    aadhaarMaskedNumber.value = _maskAadhaar(data?.aadharNo);
-    aadhaarStage.value = AadhaarStage.verified;
+
+    // On file and genuinely verified.
+    if (data?.aadharVerified == true) {
+      aadhaarIsVerified.value = true;
+      // `aadharMasked` from the API first — `aadharNo` is null on the OTP route
+      // by design, so masking it locally showed nothing for riders who verified
+      // that way. Local masking stays as the fallback for the document route.
+      final masked = data?.aadharMasked;
+      aadhaarMaskedNumber.value = (masked != null && masked.isNotEmpty)
+          ? masked
+          : _maskAadhaar(data?.aadharNo);
+      aadhaarStage.value = AadhaarStage.verified;
+      return;
+    }
+
+    // On file, not verified. Rejected gets its own state so the rider is told
+    // to re-submit rather than left waiting on a review that already finished.
+    aadhaarIsVerified.value = false;
+    aadhaarMaskedNumber.value = data?.aadharMasked ?? _maskAadhaar(data?.aadharNo);
+    aadhaarStage.value =
+        (data?.aadharStatus ?? '').toLowerCase() == 'rejected'
+            ? AadhaarStage.rejected
+            : AadhaarStage.pending;
   }
 
   /// Both Aadhaar sides picked — the submit needs both. Read inside an `Obx`:

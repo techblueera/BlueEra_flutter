@@ -15,6 +15,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart';
+import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/social_main_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
@@ -747,11 +748,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _joiningBonusWorker?.dispose();
     bottomBarVisibleNotifier.dispose(); // Clean up
     // Only fully dispose socket if no active call — otherwise the socket
-    // gets killed when the widget tree rebuilds after returning from CallActivity
-    // and can never reconnect (listeners are cleared permanently).
+    // gets killed when the widget tree rebuilds after returning from the call
+    // room and can never reconnect (listeners are cleared permanently).
     final hasActiveCall = Get.isRegistered<CallController>() &&
-        (Get.find<CallController>().callStatus.value != CallStatus.idle ||
-            CallController.isCallActivityActive);
+        Get.find<CallController>().callStatus.value != CallStatus.idle;
     // Also skip when a notification tap is re-navigating the root onto a new
     // bottom-nav host (e.g. the admin_broadcast flow). This dispose fires while
     // the incoming host is being built; tearing the socket down here would kill
@@ -814,15 +814,19 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 // rebuilding the page. A call heartbeat / rider-live refresh no
                 // longer re-runs _getScreen → resolveIndividualScreen.
                 Obx(() {
-                  final hasActiveCall =
-                      callController.callStatus.value == CallStatus.connected;
                   final isRiderLive =
                       viewPersonalDetailsController.shopStatusOpenClose.value;
-                  // Push content down when live bar or call bar is showing
-                  double topOffset = 0;
-                  if (hasActiveCall)
-                    topOffset = 50;
-                  else if (isRiderLive) topOffset = 42;
+                  // Push content down for the "I'm Live" bar only.
+                  //
+                  // There used to be a `hasActiveCall → topOffset = 50` branch
+                  // reserving room for an ongoing-call bar that NOTHING ever
+                  // rendered (the widget was the commented-out OngoingCallOverlay
+                  // in main.dart). So a live call just left a 50px empty band at
+                  // the top of every tab — the "missing call bar". The call
+                  // indicator is now OngoingCallStrip, mounted app-wide in
+                  // main.dart's builder, which pushes the whole app down itself;
+                  // reserving space here as well would double the gap.
+                  final double topOffset = isRiderLive ? 42 : 0;
 
                   return Positioned.fill(
                     top: topOffset,
@@ -952,11 +956,23 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // every refresh) is what re-runs this builder against the fresh globals.
       businessCtrl.isBusinessProfileReady.value;
       businessCtrl.isMeProfileFetching.value;
-      // Type not resolved yet (first load, re-login with a stale ready flag, or
-      // an in-flight refresh) → branded SHIMMER. NEVER fall through to
-      // _UnknownBusinessFallback here: that fallback is reserved for a genuinely
-      // UNRECOGNISED *non-empty* type (handled inside _buildBusinessScreen).
+      final error = businessCtrl.meProfileError.value;
       if (businessTypeGlobal.isEmpty) {
+        // The fetch settled and could not produce a profile (request failed, or
+        // login carried no business_id to fetch with) → say so and offer a
+        // retry. Without this the tab shimmered forever, because a failed fetch
+        // leaves businessTypeGlobal empty exactly like one still in flight.
+        if (error.isNotEmpty && !businessCtrl.isMeProfileFetching.value) {
+          return _MeTabError(
+            message: error,
+            onRetry: () => businessCtrl.viewBusinessProfile(),
+          );
+        }
+        // Type not resolved yet (first load, re-login with a stale ready flag,
+        // or an in-flight refresh) → branded SHIMMER. NEVER fall through to
+        // _UnknownBusinessFallback here: that fallback is reserved for a
+        // genuinely UNRECOGNISED *non-empty* type (handled inside
+        // _buildBusinessScreen).
         return const _MeTabShimmer();
       }
       return _buildBusinessScreen();
@@ -1141,11 +1157,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // every refresh) is what re-runs this builder against the fresh globals.
       viewPersonalDetailsController.isPersonalProfileReady.value;
       viewPersonalDetailsController.isMeProfileFetching.value;
-      // Type not resolved yet (first load, re-login with a stale ready flag, or
-      // an in-flight refresh) → branded SHIMMER. NEVER fall through to
-      // _UnknownProfileFallback here: that fallback is reserved for a genuinely
-      // UNRECOGNISED *non-empty* type (handled inside _buildIndividualScreen).
+      final error = viewPersonalDetailsController.meProfileError.value;
       if (userProfileTypeGlobal.isEmpty) {
+        // The fetch settled and could not produce a profile → say so and offer
+        // a retry, rather than shimmering forever (a failed fetch leaves the
+        // type global empty exactly like one still in flight).
+        if (error.isNotEmpty &&
+            !viewPersonalDetailsController.isMeProfileFetching.value) {
+          return _MeTabError(
+            message: error,
+            onRetry: () => viewPersonalDetailsController
+                .viewPersonalProfile(forceRefresh: true),
+          );
+        }
+        // Type not resolved yet (first load, re-login with a stale ready flag,
+        // or an in-flight refresh) → branded SHIMMER. NEVER fall through to
+        // _UnknownProfileFallback here: that fallback is reserved for a
+        // genuinely UNRECOGNISED *non-empty* type (handled inside
+        // _buildIndividualScreen).
         return const _MeTabShimmer();
       }
       return _buildIndividualScreen();
@@ -1387,6 +1416,141 @@ class _UnknownProfileFallback extends StatelessWidget {
 /// [businessCategoryGlobal] don't match any of the known business
 /// modules. Surfaces the business identity (name + owner + type +
 /// category) so the user isn't staring at a blank screen.
+/// Shown on the "Me" tab when the own-profile fetch could not produce a usable
+/// profile — the request failed, or login returned no `business` /
+/// `business_id` to fetch with.
+///
+/// This exists because the tab's only other "type is empty" state is the
+/// shimmer, and a FAILED fetch leaves the type globals empty exactly like a
+/// fetch that has not finished — so the tab used to shimmer forever with no
+/// way out. A dead end with no explanation and no retry is worse than an error.
+///
+/// Carries the same hamburger → ProfileMenuDrawer as every real Me screen. That
+/// is the ONLY route to Logout, and an account whose profile will not load is
+/// exactly the account that needs it — without the menu here the user is stuck
+/// on a broken tab with no way to sign out and try another account.
+class _MeTabError extends StatelessWidget {
+  const _MeTabError({required this.message, required this.onRetry});
+
+  final String message;
+  final Future<void> Function() onRetry;
+
+  void _openDrawer(BuildContext context) {
+    showDialog(
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      useSafeArea: false,
+      context: context,
+      builder: (_) => Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          height: double.infinity,
+          child: Drawer(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: ProfileMenuDrawer(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size12, top: SizeConfig.size8),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                color: AppColors.primaryColor.withValues(alpha: 0.10),
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => _openDrawer(context),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Icon(Icons.menu,
+                        size: 22, color: AppColors.primaryColor),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _buildBody(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                ),
+                child: Icon(
+                  Icons.person_off_outlined,
+                  size: 44,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              SizedBox(height: SizeConfig.size16),
+              CustomText(
+                message,
+                fontSize: SizeConfig.large18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: SizeConfig.size8),
+              CustomText(
+                AppStrings.profileLoadFailedHint.tr,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                textAlign: TextAlign.center,
+                maxLines: 3,
+              ),
+              SizedBox(height: SizeConfig.size24),
+              ElevatedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: CustomText(
+                  AppStrings.tryAgain.tr,
+                  fontSize: SizeConfig.medium15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size24,
+                    vertical: SizeConfig.size12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+    );
+  }
+}
+
 class _UnknownBusinessFallback extends StatelessWidget {
   const _UnknownBusinessFallback();
 

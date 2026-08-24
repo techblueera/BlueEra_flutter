@@ -34,7 +34,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/Emergency/view/emergency_profileScreen.dart';
-import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
@@ -93,9 +92,6 @@ class _SplashScreenState extends State<SplashScreen> {
     // final logoutRequired = await _shouldLogoutAfterUpdate();
     // log('logout required--> $logoutRequired');
 
-    // If a call was accepted from CallKit during cold start, skip everything
-    if (CallController.launchedForCall.value) return;
-
     // If shared media is pending and user is logged in, skip splash delay
     if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
       final media = pendingSharedMedia!;
@@ -126,11 +122,11 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     Timer(const Duration(milliseconds: 200), () async {
-      // If a call was accepted from CallKit (killed state), skip normal navigation —
-      // CallController will navigate directly to ActiveCallScreen
-      if (CallController.launchedForCall.value) {
-        return;
-      }
+      // Splash no longer bails out for a killed-state call accept. It used to,
+      // because the call screen had replaced `home` and normal navigation would
+      // have fought it. The app now boots normally and CallController pushes
+      // the call room on top once we land, so splash must run as usual —
+      // otherwise the user is left on the splash screen for the whole call.
 
       // The notification-launch check runs in _initDeferred after runApp —
       // wait for it (bounded) before reading its flag, otherwise this timer

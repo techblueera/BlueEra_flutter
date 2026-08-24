@@ -15,7 +15,7 @@ import androidx.core.app.NotificationCompat
  * alive when the app goes to background during a call.
  *
  * This prevents Android from killing the app's process and dropping the
- * WebSocket connection while CallActivity is in the foreground.
+ * WebSocket connection while a call is running.
  */
 class SocketKeepAliveService : Service() {
 

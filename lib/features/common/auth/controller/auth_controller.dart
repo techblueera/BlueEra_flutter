@@ -196,6 +196,18 @@ class AuthController extends GetxController {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userBusinessId, data.data?.business);
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
+              // Mark the session logged in HERE, at the moment we actually
+              // hold a token — not later as a side effect of the profile
+              // fetch. `isUserLogin` used to be written only by
+              // SharedPreferenceUtils.userLoggedInBusiness(), which runs from
+              // _applyBusinessProfileData(). So a login whose profile fetch
+              // failed (e.g. verify-otp returned `business: null` /
+              // `business_id: null`, leaving nothing to fetch with) kept a
+              // valid token but never flipped this flag — and the next launch
+              // read it as "false" on splash and forced a full re-login.
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.isUserLogin, "true");
+              isUserLoginGlobal = "true";
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               // Populate the in-memory globals directly from `data` instead of
@@ -271,6 +283,11 @@ class AuthController extends GetxController {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.accountType, AppConstants.individual);
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
+              // Mark the session logged in HERE — see the business branch
+              // above for why this must not wait on the profile fetch.
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.isUserLogin, "true");
+              isUserLoginGlobal = "true";
               // Set the globals directly from `data` instead of re-reading the
               // three keys we just wrote (getMobileNo/getUserLoginAccountType/
               // getUserAuthToken) — those were redundant secure-storage

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -19,7 +18,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
-import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
@@ -73,7 +71,6 @@ import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
 import 'message_bubble.dart';
-import 'ongoing_call_message_card.dart';
 import 'message_context_menu.dart';
 
 class MessageCard extends StatefulWidget {
@@ -461,17 +458,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           otherUserImage: isMineCall ? widget.conversationProfileImage : widget.profileImage,
         );
 
-      case "callongoing":
-        // Synthetic system message injected at the bottom of the thread while a
-        // call for this conversation is live. It self-hides when the call ends.
-        // Early-return so it skips the swipe-to-reply / context-menu wrapping.
-        return OngoingCallMessageCard(
-          conversationId:
-              widget.conversationId ?? widget.message.conversationId ?? '',
-          // Conversation partner — fallback match when the active-call record
-          // has no conversationId (incoming calls on the receiver side).
-          userId: widget.conversationUserId ?? widget.userId,
-        );
+      // NOTE: the "callongoing" synthetic message is gone. Returning to a live
+      // call is handled app-wide by the top call strip (OngoingCallStrip), so
+      // the thread no longer renders its own card for it.
 
       case "broadcast":
         // Broadcast (admin/channel-style) message delivered inside a normal
@@ -2183,36 +2172,12 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
   }
 
   /// Start an in-app BlueEra audio call to [user]. Mirrors the call-back flow
-  /// used by [CallMessageCard]: on Android the call runs in the native
-  /// CallActivity (with an in-app fallback if it can't launch), elsewhere it
-  /// goes straight to the in-app CallRoomScreen.
+  /// used by [CallMessageCard]: places the call and opens the CallRoomScreen.
   void _startBlueEraAudioCall(UserByPhoneModel user, String fallbackName) {
     final targetUserId = user.id;
     if (targetUserId.isEmpty) return;
     final targetUserName = user.name.isNotEmpty ? user.name : fallbackName;
     final targetUserImage = user.profileImage ?? '';
-
-    if (Platform.isAndroid) {
-      CallController.isCallActivityActive = true;
-      CallActivityService.launchCallActivity(
-        callId: '',
-        roomId: '',
-        conversationId: '',
-        callType: 'audio',
-        callerName: targetUserName,
-        callerImage: targetUserImage,
-        remoteUserId: targetUserId,
-        remoteUserName: targetUserName,
-        remoteUserImage: targetUserImage,
-        isCaller: true,
-      ).then((launched) {
-        if (!launched) {
-          CallController.isCallActivityActive = false;
-          _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
-        }
-      });
-      return;
-    }
 
     _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
   }

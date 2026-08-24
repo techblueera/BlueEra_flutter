@@ -60,10 +60,9 @@ import 'features/chat/auth/controller/call_controller.dart';
 
 // `showIncomingCallLocalNotification` lives in app_notification.dart and is
 // already imported via the `app_notification.dart` import above.
-import 'features/chat/view/call_screen/audio_calling_handler.dart';
-import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
 import 'features/chat/view/widget/chat_video_pip_overlay.dart';
+import 'features/chat/view/widget/ongoing_call_strip.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
@@ -666,11 +665,6 @@ void _setupOverlayListener() {
   });
 }
 
-/// Entry point for Android CallActivity (separate Flutter engine).
-/// Must be in main.dart so the engine can resolve it from the default library.
-@pragma('vm:entry-point')
-void callMain() => call_entry.callMainImpl();
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -1265,11 +1259,12 @@ class _MyAppState extends State<MyApp> {
 // Scaffolds go transparent while a banner is active (AppColors.scaffoldBackgroundColor),
 // so this shows through app-wide; in colour mode scaffolds stay opaque and this is hidden.
               const AppHomeBackground(),
-// Safe null handling:
-              if (child != null) child,
+// Safe null handling. OngoingCallStrip.wrap adds the WhatsApp-style green call
+// bar above the app (and shrinks the app to fit) whenever a call is live and
+// the user has navigated away from the call screen; it returns `child`
+// untouched otherwise.
+              if (child != null) OngoingCallStrip.wrap(child),
               const GlobalMessage(),
-// WhatsApp-style call bar at top -- shown when navigating away from call screen
-//               const OngoingCallOverlay(),
 // Floating mini-map for ride navigation
               const RideNavigationFloatingOverlay(),
 // Floating PiP mini-player for video links tapped in chat
@@ -1278,12 +1273,13 @@ class _MyAppState extends State<MyApp> {
           );
         },
         home: Obx(() {
-          print(
-              "CallController.launchedForCall.value ${CallController.launchedForCall.value}");
-// Call accepted from killed state -- show ONLY the call screen
-          if (CallController.launchedForCall.value) {
-            return const CallActivityRoomScreen();
-          }
+// NOTE: a killed-state call accept used to replace `home` with the call screen
+// outright. That made the call the ONLY thing the app could show: Back had
+// nothing to pop to, the rest of the app was unreachable for the whole call,
+// and when the call ended the screen rendered an empty box that the user could
+// not get out of without force-quitting. The app now always boots normally and
+// the call room is PUSHED on top (see CallController._openCallRoom), so Back
+// minimises to the top strip and everything else keeps working.
 
 // Still waiting on the very first maintenance check -- show a calm
 // branded loader instead of letting SplashScreen flash before we
