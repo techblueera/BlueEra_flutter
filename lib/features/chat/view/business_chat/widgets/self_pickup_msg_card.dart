@@ -11,7 +11,11 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
@@ -74,6 +78,69 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       (widget.message.metadata?.orderStatus == true);
 
   bool get _isCancelled => widget.message.metadata?.is_cancelled ?? false;
+
+  // ── Server-driven lifecycle ──────────────────────────────────────────
+  //
+  // The backend computes the state machine and emits `availableActions[]`;
+  // this card renders that list and sends the action back. The 24-hour
+  // client-side expiry that used to gate the action row is gone — the server
+  // expires on its own, shorter, configurable clocks. See
+  // lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §0.
+
+  OrderLifecycle? get _lifecycle => widget.message.metadata?.lifecycle;
+
+  String get _lifecycleOrderId =>
+      widget.message.metadata?.selfPickupOrder?.orderId ??
+      widget.message.metadata?.selfpickupOrderId ??
+      '';
+
+  /// The shop side of the card. `myMessage` is the customer — they placed the
+  /// order — so the owner is the other party.
+  bool get _isOwnerView => !_isMyMessage;
+
+  OrderCardContext get _cardContext => OrderCardContext(
+        orderId: _lifecycleOrderId,
+        service: OrderServiceApi.groceryOrderService,
+        isOwner: _isOwnerView,
+        conversationId: widget.conversationId,
+        otherUserId: _conversationPersonId,
+        otherUserName: widget.message.sender?.name,
+        otherUserPhone: widget.message.seller?.contact,
+        shopName: widget.message.seller?.name,
+        shopAddress: widget.message.seller?.location,
+        orderTotal: widget.message.metadata?.selfPickupOrder?.grandTotal,
+        onFindRider: _isMyMessage ? _findRiderFromCard : null,
+        onChanged: _onLifecycleChanged,
+      );
+
+  /// Keep the legacy `order_status` / `is_cancelled` flags in step with the
+  /// server so the rest of the app keeps behaving, then rebuild.
+  void _onLifecycleChanged(OrderActionsModel? fresh) {
+    final status = fresh?.lifecycle.orderStatus;
+    if (status != null) {
+      final meta = widget.message.metadata;
+      if (meta != null) {
+        meta.lifecycle = fresh!.lifecycle;
+        meta.orderStatus = status == OrderStatusValue.ready ||
+            status == OrderStatusValue.dispatched ||
+            status == OrderStatusValue.completed;
+        meta.is_cancelled = status == OrderStatusValue.cancelled ||
+            status == OrderStatusValue.expired;
+      }
+      if (status == OrderStatusValue.ready) {
+        widget.message.metadata?.selfPickupOrder?.isReady = true;
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+  /// `FIND_RIDER` reuses the existing chat-dispatch flow untouched — the rider
+  /// leg is unchanged (guide §7).
+  Future<void> _findRiderFromCard() async {
+    final drop = await showRideDropLocationSheet(context);
+    if (drop == null || !mounted) return;
+    Get.to(() => GoodsMultiOrderBookingMain(dropAddress: drop));
+  }
 
   /// Business taps "Mark as Ready" → show product selection bottom sheet
   void _onMarkAsReadyTap() {
@@ -933,12 +1000,22 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
             ),
           ),
 
-          // Mark as Ready button (business side only) or Ready status (customer side)
-          if (!_isCancelled) _buildActionSection(),
+          // Server-driven lifecycle: banner, countdowns, payment sub-state,
+          // refund wording and the action bar. Renders `availableActions` and
+          // nothing else. Falls through to the card's original status row on a
+          // legacy order that carries no `metadata.lifecycle`.
+          OrderLifecycleSection(
+            ctx: _cardContext,
+            fallbackLifecycle: _lifecycle,
+            legacyFallback: _isCancelled ? null : _buildActionSection(),
+          ),
 
-          // Forward icon
-          const Divider(height: 1, color: Color(0xFFE5E5E5)),
-          _buildForwardRow(),
+          // Legacy shortcut row — superseded by the action bar once the
+          // server drives the card.
+          if (_lifecycle == null) ...[
+            const Divider(height: 1, color: Color(0xFFE5E5E5)),
+            _buildForwardRow(),
+          ],
 
           // Time
           Padding(
@@ -960,34 +1037,12 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     );
   }
 
+  /// Legacy status row — used ONLY for orders with no `lifecycle` block.
+  ///
+  /// The 24-hour client-side expiry that used to open this method is gone.
+  /// Order age is the server's business; deciding it here is what let the shop
+  /// and the customer disagree about the same order for twenty-three hours.
   Widget _buildActionSection() {
-    // 24h after createdAt, lock the action row regardless of side. Mirrors
-    // the order-chat appbar/input expiry — the order can't be progressed.
-    final bool isExpired =
-        isMessageOlderThan24Hours(widget.message.createdAt);
-    if (isExpired && !_isReady) {
-      return Column(
-        children: [
-          const Divider(height: 1, color: Colors.grey),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_clock, color: AppColors.grayText, size: 18),
-                const SizedBox(width: 6),
-                CustomText(
-                  'Order Closed',
-                  fontSize: SizeConfig.size14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grayText,
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
     // If already ready, show ready confirmation for both sides
     if (_isReady) {
       return Column(

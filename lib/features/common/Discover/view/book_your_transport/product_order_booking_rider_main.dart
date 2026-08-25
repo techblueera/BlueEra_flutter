@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 
 import '../../controller/discover_controller.dart';
@@ -106,7 +107,13 @@ class _ProductOrderBookingRiderMainState
                   // pickup/delivery OTP cards then arrive over the chat socket.
                   if (discoverController.chatDispatchContext != null) {
                     final dispatched =
-                        await discoverController.makeChatDispatchOrderApi();
+                        await discoverController.makeChatDispatchOrderApi(
+                      // The server recomputes the fare. If it comes back
+                      // different we ASK — never silently re-submit at the
+                      // higher price (guide §4.3).
+                      onFareMismatch: (quotedFare, freshQuote) =>
+                          _confirmNewFare(context, quotedFare, freshQuote),
+                    );
                     if (dispatched) {
                       discoverController.clearChatDispatchContext();
                       Get.back();
@@ -442,4 +449,61 @@ class _ProductOrderBookingRiderMainState
       );
     });
   }
+}
+
+
+/// `FARE_MISMATCH` (409): the delivery charge changed between the quote the
+/// customer saw and the moment they tapped. Show the new number and let them
+/// decide. Returns true when they accept the new price.
+Future<bool> _confirmNewFare(
+  BuildContext context,
+  num quotedFare,
+  DeliveryQuote? freshQuote,
+) async {
+  final eta = freshQuote?.etaLabel ?? '';
+  final confirmed = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: CustomText(
+        'The delivery charge has changed',
+        fontSize: SizeConfig.size16,
+        fontWeight: FontWeight.w700,
+        color: AppColors.mainTextColor,
+      ),
+      content: CustomText(
+        'The delivery charge is now '
+        '\u20B9${quotedFare % 1 == 0 ? quotedFare.toInt() : quotedFare}'
+        '${eta.isEmpty ? '' : ' \u00B7 $eta'}.',
+        fontSize: SizeConfig.size14,
+        color: AppColors.secondaryTextColor,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: CustomText(
+            'Cancel',
+            fontSize: SizeConfig.size14,
+            color: AppColors.secondaryTextColor,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: CustomText(
+            'Confirm',
+            fontSize: SizeConfig.size14,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
 }

@@ -1218,6 +1218,17 @@ class ChatEmitEvents {
   static const newMedicalPickupOrderReceived = "newMedicalPickupOrderReceived";
   static const medicalPickupOrderReady = "medicalPickupOrderReady";
 
+  // ── Order lifecycle ────────────────────────────────────────────────────
+  //
+  // ONE generic channel carrying every order state change:
+  //   { messageId, orderId, action, lifecycle: { … } }
+  //
+  // Subscribe to this and switch on `lifecycle`; the older per-event names
+  // above (`productPickupOrderReady` and friends) exist for legacy
+  // compatibility only and are a strict subset of what this emits.
+  // See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §5.1.
+  static const productOrderLifecycle = "productOrderLifecycle";
+
   // Service enquiry (Discover self-profession → chat). `new…Received` delivers
   // the enquiry card to the provider; `…StatusUpdated` notifies both parties
   // when the provider accepts / declines.
@@ -1289,6 +1300,11 @@ class ChatEmitEvents {
   // Emitted to a Payment QR's owner when a payer records a payment against it.
   // See payment-qr-integration-guide.md §Realtime.
   static const paymentReceived = "payment:received";
+
+  // Emitted to the PAYER when the payee resolves their payment. Without these
+  // the payer is never told the outcome and sits on a "waiting" card forever.
+  static const paymentVerified = "payment:verified";
+  static const paymentRejected = "payment:rejected";
 
   // Emitted to BOTH participants when a payment image's status changes
   // (pending → success/failed). See image-is-payment-flutter-integration-guide.md.

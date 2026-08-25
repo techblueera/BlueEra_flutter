@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -26,6 +27,17 @@ import 'package:get/get.dart';
 /// is scoped to a browsing session — matching the grocery behavior where
 /// going back from the stores list clears the cart.
 class FoodSelfPickupController extends GetxController {
+  // One idempotency key per checkout ATTEMPT. The `isPlacing…` guard already
+  // in this controller stops a double-tap inside one session, but it cannot
+  // survive a lost response — the request lands, the reply doesn't come back,
+  // the user taps again, and the shop gets two orders. This key is what makes
+  // that retry safe: the second POST resolves to the SAME order with a 200.
+  // See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+  final CheckoutAttempt _checkoutAttempt = CheckoutAttempt();
+
+  /// Call when the checkout sheet OPENS — not on every tap.
+  void beginCheckoutAttempt() => _checkoutAttempt.begin();
+
   RxBool isPlaceFoodOrderLoading = false.obs;
   Rx<ApiResponse> placeFoodOrderResponse = ApiResponse.initial('Initial').obs;
 
@@ -361,8 +373,13 @@ class FoodSelfPickupController extends GetxController {
 
       final Map<String, dynamic> requestBody = {
         "items": itemsList,
-        "deliveryType": "self-pickup",
+        "deliveryType": OrderDeliveryType.selfPickup,
         "discount": totalSavings,
+        // Cash is what this cart offers today. Sending it explicitly keeps the
+        // order out of the UPI submit/verify flow rather than leaning on a
+        // server-side default that could change.
+        "paymentMethod": OrderPaymentMethod.cash,
+        "idempotencyKey": _checkoutAttempt.key,
       };
 
       final response =
@@ -375,6 +392,10 @@ class FoodSelfPickupController extends GetxController {
         );
         return;
       }
+
+      // 201 = created, 200 = already created under this key. Both are success,
+      // and both finish the attempt — a NEW order needs a NEW key.
+      _checkoutAttempt.complete();
 
       // Navigate FIRST, clear the cart afterwards — mirrors the
       // grocery flow. Clearing before navigation triggers an Obx

@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -24,6 +25,17 @@ import 'package:get/get.dart';
 /// Keyed by the first variant id of each product — that variant is what
 /// carries the selling price / MRP used for totals.
 class AutomotiveProductSelfPickupController extends GetxController {
+  // One idempotency key per checkout ATTEMPT. The `isPlacing…` guard already
+  // in this controller stops a double-tap inside one session, but it cannot
+  // survive a lost response — the request lands, the reply doesn't come back,
+  // the user taps again, and the shop gets two orders. This key is what makes
+  // that retry safe: the second POST resolves to the SAME order with a 200.
+  // See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+  final CheckoutAttempt _checkoutAttempt = CheckoutAttempt();
+
+  /// Call when the checkout sheet OPENS — not on every tap.
+  void beginCheckoutAttempt() => _checkoutAttempt.begin();
+
   RxBool isPlaceProductOrderLoading = false.obs;
   Rx<ApiResponse> placeProductOrderResponse = ApiResponse.initial('Initial').obs;
 
@@ -247,8 +259,13 @@ class AutomotiveProductSelfPickupController extends GetxController {
 
       final Map<String, dynamic> requestBody = {
         "items": itemsList,
-        "deliveryType": "self-pickup",
+        "deliveryType": OrderDeliveryType.selfPickup,
         "discount": totalSavings,
+        // Cash is what this cart offers today. Sending it explicitly keeps the
+        // order out of the UPI submit/verify flow rather than leaning on a
+        // server-side default that could change.
+        "paymentMethod": OrderPaymentMethod.cash,
+        "idempotencyKey": _checkoutAttempt.key,
       };
 
       final response =
@@ -264,6 +281,9 @@ class AutomotiveProductSelfPickupController extends GetxController {
 
       placeProductOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
+      // 201 = created, 200 = already created under this key. Both are success,
+      // and both finish the attempt — a NEW order needs a NEW key.
+      _checkoutAttempt.complete();
       clearCart();
 
       // Land on Discover (index 1) instead of the chat screen — the placed

@@ -11,7 +11,11 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/pickup_otp_dialog.dart';
@@ -101,6 +105,74 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       _order?.isReady ?? (widget.message.metadata?.orderStatus == true);
 
   bool get _isCancelled => widget.message.metadata?.is_cancelled ?? false;
+
+  // ── Server-driven lifecycle ──────────────────────────────────────────
+  //
+  // Everything below reads what the backend computed. There is deliberately
+  // NO client-side rule about order age, cancellability or readiness here —
+  // the 24-hour expiry that used to live in `_buildActionSection` disagreed
+  // with the server's own (configurable, and much shorter) clock for
+  // twenty-three hours at a stretch, so the shop saw a live order while the
+  // customer saw a dead one. See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §0.
+
+  /// `metadata.lifecycle`, or null on a legacy order.
+  OrderLifecycle? get _lifecycle => widget.message.metadata?.lifecycle;
+
+  /// The order id the lifecycle endpoints key on.
+  String get _lifecycleOrderId => _order?.orderId ?? _pickupOrderId ?? '';
+
+  /// Which vertical's order service owns this card.
+  String get _orderService => widget.isMedical
+      ? OrderServiceApi.medicalOrderService
+      : OrderServiceApi.productOrderService;
+
+  /// The shop side of the card. `myMessage` is the *customer* — they are the
+  /// one who placed the order — so the owner is the other party.
+  bool get _isOwnerView => !_isMyMessage;
+
+  OrderCardContext get _cardContext => OrderCardContext(
+        orderId: _lifecycleOrderId,
+        service: _orderService,
+        isOwner: _isOwnerView,
+        conversationId: widget.conversationId,
+        otherUserId: _conversationPersonId,
+        otherUserName: widget.message.sender?.name,
+        otherUserPhone: widget.message.seller?.contact,
+        shopName: widget.message.seller?.name,
+        shopAddress: widget.message.seller?.location,
+        orderTotal: _order?.grandTotal,
+        onFindRider: _isMyMessage ? _findRiderFromCard : null,
+        onChanged: _onLifecycleChanged,
+      );
+
+  /// Keep the legacy `order_status` / `is_cancelled` flags in step with the
+  /// server's state so the rest of the app — chat list previews, the packing
+  /// PDF, old code paths — keeps behaving, then rebuild.
+  void _onLifecycleChanged(OrderActionsModel? fresh) {
+    final status = fresh?.lifecycle.orderStatus;
+    if (status != null) {
+      final meta = widget.message.metadata;
+      if (meta != null) {
+        meta.lifecycle = fresh!.lifecycle;
+        meta.orderStatus = status == OrderStatusValue.ready ||
+            status == OrderStatusValue.dispatched ||
+            status == OrderStatusValue.completed;
+        meta.is_cancelled = status == OrderStatusValue.cancelled ||
+            status == OrderStatusValue.expired;
+      }
+      if (status == OrderStatusValue.ready) _order?.isReady = true;
+    }
+    if (mounted) setState(() {});
+  }
+
+  /// `FIND_RIDER` reuses the existing chat-dispatch flow untouched — the rider
+  /// leg is unchanged (guide §7). Asks for the drop address first, exactly as
+  /// the legacy button did.
+  Future<void> _findRiderFromCard() async {
+    final drop = await showRideDropLocationSheet(context);
+    if (drop == null || !mounted) return;
+    Get.to(() => GoodsMultiOrderBookingMain(dropAddress: drop));
+  }
 
   String _itemDisplayName(SelfPickupItem item) {
     if (item.productName != null && item.productName!.isNotEmpty) {
@@ -919,12 +991,26 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
                 ),
               ),
 
-              // Action section
-              if (!_isCancelled) _buildActionSection(),
+              // Server-driven lifecycle: banner, countdowns, payment
+              // sub-state, refund wording and the action bar. It renders
+              // `availableActions` and nothing else — a button this build
+              // doesn't know is never guessed at.
+              //
+              // On a legacy order (no `metadata.lifecycle`) the section falls
+              // straight through to the card's original status row, so old
+              // orders keep working exactly as before.
+              OrderLifecycleSection(
+                ctx: _cardContext,
+                fallbackLifecycle: _lifecycle,
+                legacyFallback: _isCancelled ? null : _buildActionSection(),
+              ),
 
-              // Call / Payment / Ride row
-              const Divider(height: 1, color: Color(0xFFE5E5E5)),
-              _buildForwardRow(),
+              // Call / Payment / Ride row — legacy shortcuts, superseded by
+              // the action bar once the server drives the card.
+              if (_lifecycle == null) ...[
+                const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                _buildForwardRow(),
+              ],
 
               // Time
               Padding(
@@ -946,33 +1032,15 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
     );
   }
 
+  /// Legacy status row — used ONLY for orders the backend has not attached a
+  /// `lifecycle` block to.
+  ///
+  /// The 24-hour client-side expiry that used to open this method is gone.
+  /// The server expires orders on its own, much shorter, configurable clocks
+  /// and says so through `lifecycle.deadlines` + `availableActions`; deciding
+  /// locally is what let the two sides disagree for twenty-three hours. Never
+  /// reintroduce an age check here.
   Widget _buildActionSection() {
-    // 24h after createdAt, lock the action row regardless of side.
-    final bool isExpired =
-        isMessageOlderThan24Hours(widget.message.createdAt);
-    if (isExpired && !_isReady) {
-      return Column(
-        children: [
-          const Divider(height: 1, color: Colors.grey),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_clock, color: AppColors.grayText, size: 18),
-                const SizedBox(width: 6),
-                CustomText(
-                  'Order Closed',
-                  fontSize: SizeConfig.size14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grayText,
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
     if (_isReady) {
       return Column(
         children: [
@@ -1659,10 +1727,54 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
     }
   }
 
+  Widget _statusChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: CustomText(
+        label,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    );
+  }
+
   Widget _buildStatusBadge() {
     String label;
     Color bgColor;
     Color textColor;
+
+    // Prefer the server's own status word. The badge is a one-word summary of
+    // `lifecycle.orderStatus`; the human sentence is `lifecycle.banner`, which
+    // the lifecycle section renders verbatim below.
+    final serverStatus = _lifecycle?.orderStatus;
+    if (serverStatus != null) {
+      switch (serverStatus) {
+        case OrderStatusValue.cancelled:
+          return _statusChip('Cancelled', Colors.red);
+        case OrderStatusValue.expired:
+          return _statusChip('Expired', AppColors.grayText);
+        case OrderStatusValue.completed:
+          return _statusChip('Completed', const Color(0xFF1B9E4B));
+        case OrderStatusValue.ready:
+          return _statusChip('Ready', const Color(0xFF1B9E4B));
+        case OrderStatusValue.dispatched:
+          return _statusChip('On the way', AppColors.primaryColor);
+        case OrderStatusValue.accepted:
+        case OrderStatusValue.inProgress:
+          return _statusChip('Preparing', AppColors.primaryColor);
+        case OrderStatusValue.placed:
+          return _statusChip('New', Colors.orange);
+        default:
+          // Unknown status from a newer backend — say nothing rather than
+          // guess a colour and a word.
+          return const SizedBox.shrink();
+      }
+    }
 
     if (_isCancelled) {
       label = 'Cancelled';

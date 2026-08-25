@@ -65,6 +65,8 @@ import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
 import '../socket/live_location_track_socket.dart';
 import 'ai_chat_profile_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'payment_qr_controller.dart';
 
 class ChatViewController extends GetxController {
@@ -918,35 +920,92 @@ class ChatViewController extends GetxController {
   /// start from a killed-state broadcast tap) is dropped by socket.io, so
   /// without this the thread renders empty until manually reopened.
   void _refetchOpenConversationOnConnect() {
+    // Sockets drop. A missed lifecycle event is the difference between a shop
+    // staring at a stale "Accept" button and a shop that knows the order was
+    // auto-cancelled ten minutes ago — so every visible open order re-reads
+    // `/actions` on reconnect. There is deliberately no polling timer:
+    // sockets + this + post-action responses cover it (guide §5.2).
+    refreshVisibleOrderActions();
+
     final convId = userOpenConversationId.value;
     if (convId.isEmpty) return;
     _emitFetchMessages(convId);
   }
 
-  /// Re-register the chat socket listeners if they were wiped.
+  /// Re-read `/actions` for every order card currently on screen. Called on
+  /// socket reconnect and on `AppLifecycleState.resumed`.
+  void refreshVisibleOrderActions() {
+    try {
+      OrderLifecycleController.instance.refreshVisibleOrders();
+    } catch (_) {
+      // Never let a refresh sweep break socket setup.
+    }
+  }
+
+  /// Apply a `productOrderLifecycle` payload:
+  /// `{ messageId, orderId, action, lifecycle }`.
   ///
-  /// [disposeSocket] clears ChatSocketService's `_registeredListeners`, and the
-  /// only thing that used to call [connectSocket] again was an app RESUME
-  /// (AppLifecycleHandler._reconnectChatSocketIfNeeded). So once the bottom-nav
-  /// host disposed the socket — which it does on any root re-navigation — live
-  /// chat was dead until the user backgrounded and reopened the app, and new
-  /// messages only appeared on a manual refresh.
+  /// Patches the message's `metadata.lifecycle` in place (so the card rebuilds
+  /// with the new buttons and banner), mirrors the legacy `order_status` /
+  /// `is_cancelled` flags for code that still reads them, and pushes the same
+  /// lifecycle into [OrderLifecycleController].
   ///
-  /// Safe to call from ChatSocketService.onConnect: `socketConnected` short-
-  /// circuits when the listeners are already bound, and connectToSocket()
-  /// early-returns while the socket is connected, so there is no re-entry.
-  void ensureChatSocketListeners() {
-    if (socketConnected.value) return;
-    connectSocket();
+  /// A `..._REMINDER` event is **not** a state change — the banner updates and
+  /// the card stays where it is; nothing re-animates (guide §3.7).
+  void patchMessageLifecycle(Map<String, dynamic> data) {
+    final messageId = data['messageId']?.toString() ?? '';
+    final orderId = data['orderId']?.toString() ?? '';
+    final raw = data['lifecycle'];
+    if (raw is! Map) return;
+    final lifecycle = OrderLifecycle.fromJson(Map<String, dynamic>.from(raw));
+
+    if (orderId.isNotEmpty) {
+      try {
+        OrderLifecycleController.instance
+            .applySocketLifecycle(orderId, Map<String, dynamic>.from(raw));
+      } catch (_) {}
+    }
+
+    if (messageId.isEmpty) return;
+    final currentMessages =
+        getListOfMessageResponse.value.data as List<Messages>? ?? [];
+    for (final msg in currentMessages) {
+      if (msg.id != messageId) continue;
+      final meta = msg.metadata;
+      if (meta == null) break;
+
+      if (meta.lifecycle == null) {
+        meta.lifecycle = lifecycle;
+      } else {
+        meta.lifecycle!.applyFrom(lifecycle);
+      }
+
+      final status = meta.lifecycle?.orderStatus;
+      if (status != null) {
+        final isReady = status == OrderStatusValue.ready ||
+            status == OrderStatusValue.dispatched ||
+            status == OrderStatusValue.completed;
+        meta.orderStatus = isReady;
+        meta.is_cancelled = status == OrderStatusValue.cancelled ||
+            status == OrderStatusValue.expired;
+        if (isReady) {
+          meta.productPickupOrder?.isReady = true;
+          meta.foodPickupOrder?.isReady = true;
+          meta.selfPickupOrder?.isReady = true;
+          meta.medicalPickupOrder?.isReady = true;
+          meta.homeMadeFoodPickupOrder?.isReady = true;
+          meta.tiffinPickupOrder?.isReady = true;
+        }
+      }
+      break;
+    }
+    getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
   }
 
   Future<void> connectSocket() async {
     // Belt-and-suspenders: ensure the on-connect re-fetch is wired even if the
     // controller was constructed before this callback field existed.
     chatSocket.onConnected = _refetchOpenConversationOnConnect;
-    // Re-bind chat listeners on every socket (re)connect — see
-    // [ensureChatSocketListeners].
-    chatSocket.onChatListenersRebind = ensureChatSocketListeners;
     // Always ensure socket is connected
     await chatSocket.connectToSocket();
 
@@ -1928,6 +1987,36 @@ class ChatViewController extends GetxController {
           getListOfMessageResponse.value =
               ApiResponse.complete(currentMessages);
         }
+      });
+
+      // ── Order lifecycle (generic) ────────────────────────────────────
+      //
+      // ONE channel for every order state change across every vertical:
+      //   { messageId, orderId, action, lifecycle: { … } }
+      //
+      // The per-event listeners above are legacy and cover only "ready"; this
+      // one carries accept / reject / prep-eta / payment / handover / no-show
+      // / cancel / refund / reminder / needs-attention as well. Patching the
+      // message's `metadata.lifecycle` is what makes the card's buttons,
+      // banner and countdowns follow the server without a fetch.
+      chatSocket.listenEvent(ChatEmitEvents.productOrderLifecycle, (data) {
+        if (data is! Map) return;
+        patchMessageLifecycle(Map<String, dynamic>.from(data));
+      });
+
+      // Payment resolved by the payee — tell the PAYER. Without this the
+      // customer's card sits on "waiting for the shop" forever.
+      chatSocket.listenEvent(ChatEmitEvents.paymentVerified, (data) {
+        final controller = Get.isRegistered<PaymentQrController>()
+            ? Get.find<PaymentQrController>()
+            : Get.put(PaymentQrController(), permanent: true);
+        controller.handlePaymentResolved(data, verified: true);
+      });
+      chatSocket.listenEvent(ChatEmitEvents.paymentRejected, (data) {
+        final controller = Get.isRegistered<PaymentQrController>()
+            ? Get.find<PaymentQrController>()
+            : Get.put(PaymentQrController(), permanent: true);
+        controller.handlePaymentResolved(data, verified: false);
       });
 
       // Medical/Pharmacy Self-Pickup: New order received (pharmacy side)

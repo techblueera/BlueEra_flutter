@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -2072,13 +2074,62 @@ class DiscoverController extends GetxController {
     };
   }
 
-  void clearChatDispatchContext() => chatDispatchContext = null;
+  /// Distance / order value for the chat-dispatch quote, when the caller knows
+  /// them. Sent alongside the order so the server recomputes against the same
+  /// inputs the customer was quoted on.
+  double? chatDispatchDistanceKm;
+  num? chatDispatchOrderValue;
+
+  void clearChatDispatchContext() {
+    chatDispatchContext = null;
+    chatDispatchDistanceKm = null;
+    chatDispatchOrderValue = null;
+    chatDispatchQuote.value = null;
+  }
+
+  /// The quote shown before dispatch, so the booking screen can display the
+  /// fee, the ETA range and the economics note rather than a bare fare.
+  final Rxn<DeliveryQuote> chatDispatchQuote = Rxn<DeliveryQuote>();
+
+  /// Fetch the delivery quote for the current chat-dispatch context — call it
+  /// **before** the customer commits, not after (guide §4.2).
+  Future<DeliveryQuote?> fetchChatDispatchQuote({num? orderValue}) async {
+    final shopLat = selectedFromLat?.value;
+    final shopLng = selectedFromLong?.value;
+    final dropLat = selectedToLat?.value;
+    final dropLng = selectedToLong?.value;
+    if (shopLat == null || shopLng == null || dropLat == null ||
+        dropLng == null) {
+      return null;
+    }
+    final quote = await OrderLifecycleController.instance.fetchDeliveryQuote(
+      shopLat: shopLat,
+      shopLng: shopLng,
+      dropLat: dropLat,
+      dropLng: dropLng,
+      orderValue: orderValue ?? chatDispatchOrderValue,
+    );
+    chatDispatchQuote.value = quote;
+    chatDispatchDistanceKm = quote?.distanceKm ?? chatDispatchDistanceKm;
+    if (orderValue != null) chatDispatchOrderValue = orderValue;
+    return quote;
+  }
 
   /// Create a chat self-pickup → rider dispatch order. Reuses the shop/customer
   /// coordinates already seeded on this controller by the chat card (pickup =
   /// shop, drop = customer) plus the [chatDispatchContext]. Returns true on a
   /// 201; the OTP cards then arrive over the chat socket.
-  Future<bool> makeChatDispatchOrderApi() async {
+  Future<bool> makeChatDispatchOrderApi({
+    /// The fare the customer has already agreed to at the NEW price, after a
+    /// `FARE_MISMATCH` was shown and confirmed. Null on the first attempt.
+    num? confirmedFare,
+
+    /// Called when the server recomputes a different fare. Return true to
+    /// re-submit at [quotedFare], false to abandon. **Never re-submit silently
+    /// at the higher price** (guide §4.3).
+    Future<bool> Function(num quotedFare, DeliveryQuote? freshQuote)?
+        onFareMismatch,
+  }) async {
     final ctx = chatDispatchContext;
     if (ctx == null) return false;
     if (selectedRiders.isEmpty) {
@@ -2087,6 +2138,13 @@ class DiscoverController extends GetxController {
     }
     bookRiderBtnLoading.value = true;
     try {
+      // `POST /fare/chat-dispatch/orders` recomputes the fare server-side. The
+      // fare we send is a CONFIRMATION of what the customer was shown, not an
+      // instruction — a mismatch comes back as a typed 409 rather than a
+      // silent re-price.
+      final displayedFare =
+          confirmedFare ?? ridersDetailsList.value.twoWheelerRider?.fare;
+
       final params = <String, dynamic>{
         'selfpickupOrderId': ctx['selfpickupOrderId'],
         'selfpickupType': ctx['selfpickupType'],
@@ -2104,13 +2162,52 @@ class DiscoverController extends GetxController {
         ApiKeys.orderFor: ctx['orderFor'],
         ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
         ApiKeys.modeOfPayment: "prepaid",
-        ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare,
+        ApiKeys.fare: displayedFare,
+        if (chatDispatchDistanceKm != null)
+          'distance_in_km': chatDispatchDistanceKm,
+        if (chatDispatchOrderValue != null) 'orderValue': chatDispatchOrderValue,
       };
       final response =
           await DiscoverRepo().makeChatDispatchOrderApi(params: params);
       if (response.isSuccess) {
         return true;
       }
+
+      final body = response.response?.data;
+      final json = body is Map ? Map<String, dynamic>.from(body) : null;
+      final code = (json?['code'] ?? json?['errorCode'])?.toString();
+      final status = response.response?.statusCode;
+
+      if (code == OrderErrorCode.fareMismatch && onFareMismatch != null) {
+        final quoted = json?['quotedFare'];
+        final quotedFare = quoted is num
+            ? quoted
+            : num.tryParse(quoted?.toString() ?? '');
+        final fresh = json?['quote'] is Map
+            ? DeliveryQuote.fromJson(Map<String, dynamic>.from(json!['quote']))
+            : null;
+        final effective = quotedFare ?? fresh?.deliveryFee;
+        if (effective != null) {
+          bookRiderBtnLoading.value = false;
+          final confirmed = await onFareMismatch(effective, fresh);
+          if (!confirmed) return false;
+          // Re-submit ONCE, at the price the customer just agreed to.
+          return makeChatDispatchOrderApi(confirmedFare: effective);
+        }
+      }
+
+      if (code == OrderErrorCode.outsideDeliveryRadius || status == 422) {
+        commonSnackBar(message: "We can't deliver to this address.");
+        return false;
+      }
+
+      if (status == 429) {
+        commonSnackBar(
+            message:
+                'You already requested delivery for this order recently.');
+        return false;
+      }
+
       commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong);
       return false;

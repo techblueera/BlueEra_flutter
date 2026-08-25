@@ -98,6 +98,21 @@ mixin ChatServiceApi {
   String paymentQrTransactionsForQr(String id) =>
       'chat-service/payment-qr/$id/transactions';
 
+  /// Transactions awaiting the payee's decision.
+  /// `GET chat-service/payment-qr/transactions/pending`.
+  final String paymentQrTransactionsPending =
+      'chat-service/payment-qr/transactions/pending';
+
+  /// The payee confirms / refuses one recorded payment. For an ORDER-linked
+  /// transaction prefer the order service's own
+  /// `POST /api/orders/:id/payment/verify|reject` — that is what advances the
+  /// order state machine. These two exist for payments recorded outside an
+  /// order. See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §9.
+  String paymentQrTransactionVerify(String id) =>
+      'chat-service/payment-qr/transactions/$id/verify';
+  String paymentQrTransactionReject(String id) =>
+      'chat-service/payment-qr/transactions/$id/reject';
+
   // Resolve the QR registered by a given owner so a payer can record a payment
   // against it. NOTE: not documented in payment-qr-integration-guide.md (which
   // only lists *your own* QRs) — assumed endpoint, TODO: confirm with backend.

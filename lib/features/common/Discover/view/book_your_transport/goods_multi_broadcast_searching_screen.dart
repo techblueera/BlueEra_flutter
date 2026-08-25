@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_multi_call_tracking_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -82,11 +81,64 @@ class _GoodsMultiBroadcastSearchingScreenState
     Get.off(() => GoodsMultiCallTrackingScreen(orderId: widget.orderId));
   }
 
-  void _onNoRiders() {
+  /// `ride:broadcast:exhausted` — the waves ran out with nobody accepting.
+  ///
+  /// This is an escalation, **not** a cancellation of the order: the goods are
+  /// still packed and waiting at the shop. So the customer gets a clear
+  /// statement and the two things they can actually do — search again, or
+  /// collect it themselves — rather than a snackbar that pops them back to a
+  /// screen with no explanation (guide §7).
+  Future<void> _onNoRiders() async {
     if (!mounted || _navigated) return;
     _navigated = true;
+
+    final retry = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: CustomText(
+          'No delivery partner available right now',
+          fontSize: SizeConfig.size16,
+          fontWeight: FontWeight.w700,
+        ),
+        content: CustomText(
+          'Your order is packed and waiting at the shop. You can look for a '
+          'rider again, or collect it yourself.',
+          fontSize: SizeConfig.size13,
+          color: AppColors.secondaryTextColor,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: CustomText(
+              'Pick it up instead',
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            child: CustomText(
+              'Try again',
+              fontSize: SizeConfig.size13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (!mounted) return;
+    if (retry == true) {
+      // Re-arm this screen and let the caller's search run again.
+      _navigated = false;
+      discoverController.isMultiShopBroadcastExhausted.value = false;
+      discoverController.isMultiShopBroadcastSearching.value = true;
+      return;
+    }
     Get.back();
-    commonSnackBar(message: 'No riders available. Please try again.');
   }
 
   /// Backing out of a live search must cancel the order, not orphan it — the
