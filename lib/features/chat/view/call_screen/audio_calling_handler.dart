@@ -81,9 +81,11 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   void initState() {
     super.initState();
 
-    // Hide the top call strip while the full call UI is on screen — it only
-    // exists for when the user has navigated away from this screen.
-    CallController.callScreenMounted();
+    // Nothing to register here: the top call strip keys off the current ROUTE,
+    // which the navigator publishes on the very push that is mounting us
+    // (CallController.onRouteChanged). This used to poke a static observable
+    // from initState — a write inside the build pass, which is exactly what
+    // brought the app up as a red GlobalKey error screen.
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
@@ -377,9 +379,10 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     if (Get.isRegistered<CallController>()) {
       Get.find<CallController>().stopRingtone();
     }
-    // Leaving the call UI — let the top call strip take over if the call is
-    // still live. It hides itself when the call ends.
-    CallController.callScreenUnmounted();
+    // Nothing to un-register here: the top call strip keys off the current
+    // ROUTE (CallController.currentRouteRx), which the navigator republishes
+    // on the pop that is disposing us. A dispose-time counter was what let the
+    // strip go permanently missing when one ever failed to run.
     super.dispose();
   }
 
@@ -389,9 +392,26 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   void _minimiseCall() {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+      _landOnAppIfPoppedToRoot();
       return;
     }
     Get.offAllNamed('/BottomNavigationBarScreen');
+  }
+
+  /// After leaving the call screen, make sure the user landed on the APP.
+  ///
+  /// On a killed-state accept the call room can be pushed straight on top of
+  /// the splash screen — GetMaterialApp's `home`, whose route is named '/'.
+  /// Popping the call then revealed that splash again: a blank branded page
+  /// with no navigation left to run and no way into the app. If that is where
+  /// we ended up, replace it with the home shell.
+  void _landOnAppIfPoppedToRoot() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final route = Get.currentRoute;
+      if (route.isEmpty || route == '/' || route.contains('Splash')) {
+        Get.offAllNamed('/BottomNavigationBarScreen');
+      }
+    });
   }
 
   @override
@@ -419,6 +439,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         }
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
+          _landOnAppIfPoppedToRoot();
           return;
         }
         // Nothing beneath us (the push lost a race with splash). Land on the

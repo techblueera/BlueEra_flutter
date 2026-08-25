@@ -30,6 +30,14 @@ class CallMessageCard extends StatelessWidget {
   bool get _isMissedCall => message.metadata?.missedCall == true;
   bool get _isCompleted => message.metadata?.callStatus == 'completed';
   bool get _isDeclined => message.metadata?.callDecline == true;
+
+  /// A call that was connected and then lost the network, rather than being
+  /// hung up. The call record already distinguishes these server-side
+  /// (`end_reason: "network_error"`); this renders it once the chat service
+  /// starts sending it as a `call_status`. Until then no message carries it and
+  /// the getter is simply always false — the bubble keeps reading "Call ended".
+  bool get _isDropped => message.metadata?.callStatus == 'dropped';
+
   String get _callTime => message.metadata?.callTime ?? '';
 
   /// True when this message's call is the currently active call.
@@ -65,6 +73,12 @@ class CallMessageCard extends StatelessWidget {
     }
     if (_isDeclined) {
       return 'Call declined';
+    }
+    if (_isDropped) {
+      // A dropped call still had a duration — show it, so "we spoke for two
+      // minutes and the line died" doesn't read the same as a call that never
+      // connected at all.
+      return _callTime.isNotEmpty ? 'Call dropped • $_callTime' : 'Call dropped';
     }
     if (_isCompleted && _callTime.isNotEmpty) {
       return 'Call ended • $_callTime';

@@ -76,17 +76,83 @@ SharedMedia? pendingSharedMedia;
 /// Order of preference: the push `senderName`, then the caller profile `name`
 /// (sender_profile), then their `username`. Falls back to "Incoming Call" so
 /// the notification never displays a raw "Unknown".
+/// How long after it was sent an incoming-call push is still worth ringing.
+///
+/// The caller's own ring timer is 30s ([CallController._startRingTimer]); the
+/// extra 15s covers delivery latency on a healthy network. Anything older
+/// describes a call that has already been answered, cancelled or missed.
+const Duration kIncomingCallPushMaxAge = Duration(seconds: 45);
+
+/// True when [message] is an incoming-call push that arrived too late to ring.
+///
+/// FCM queues messages for an unreachable device and delivers them all at once
+/// on reconnect, so a phone that was offline gets handed calls from minutes ago.
+/// Without this guard each of them opens a full-screen ringing UI for a call
+/// that is long over.
+///
+/// `sentTime` is server-stamped, so this does not trust the device clock any
+/// further than it already trusts it elsewhere. When it is absent — some FCM
+/// paths omit it — the push is treated as fresh: a missed real call is worse
+/// than a late one.
+bool isStaleCallPush(RemoteMessage message) {
+  final sentTime = message.sentTime;
+  if (sentTime == null) return false;
+  final age = DateTime.now().difference(sentTime);
+  return age > kIncomingCallPushMaxAge;
+}
+
+/// `callerData.businessData`, which arrives as either a JSON string or an
+/// already-decoded map depending on the FCM path.
+Map<String, dynamic> _callerBusinessData(Map<String, dynamic> callerData) {
+  var biz = callerData['businessData'];
+  if (biz is String && biz.isNotEmpty) {
+    try {
+      biz = jsonDecode(biz);
+    } catch (_) {}
+  }
+  return biz is Map ? Map<String, dynamic>.from(biz) : {};
+}
+
 String resolveCallerName(
     Map<String, dynamic> data, Map<String, dynamic> callerData) {
-  for (final candidate in [
+  // A BUSINESS caller is announced by their business, not by whoever is holding
+  // the phone. The socket's `caller_info.name` already resolves it that way, so
+  // the push has to agree — otherwise the same call rings as "David Retail
+  // Mart" when it arrives over the socket and as the staff member's own name
+  // when it arrives as a push.
+  final candidates = <Object?>[];
+  if ((callerData['account_type'] ?? '').toString() == 'BUSINESS') {
+    candidates.add(_callerBusinessData(callerData)['business_name']);
+  }
+  candidates.addAll([
     data['senderName'],
     callerData['name'],
     callerData['username'],
-  ]) {
+  ]);
+  for (final candidate in candidates) {
     final name = (candidate ?? '').toString().trim();
     if (name.isNotEmpty && name.toLowerCase() != 'unknown') return name;
   }
   return 'Incoming Call';
+}
+
+/// The avatar to ring with, resolved on the same rule as [resolveCallerName]:
+/// a business calls with its logo, everyone else with their profile image.
+String resolveCallerImage(
+    Map<String, dynamic> data, Map<String, dynamic> callerData) {
+  final candidates = <Object?>[];
+  if ((callerData['account_type'] ?? '').toString() == 'BUSINESS') {
+    candidates.add(_callerBusinessData(callerData)['logo']);
+  }
+  candidates.addAll([
+    callerData['profile_image'],
+    data['senderProfileImage'],
+  ]);
+  for (final candidate in candidates) {
+    final url = (candidate ?? '').toString().trim();
+    if (url.isNotEmpty) return url;
+  }
+  return '';
 }
 
 @pragma('vm:entry-point')
@@ -149,9 +215,18 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
+    // Drop a push that is already older than the ring window. FCM holds
+    // undeliverable messages and replays them the moment the device comes back
+    // online, so a phone that was in a tunnel (or simply off) can be handed a
+    // call push minutes late — and it would ring, full screen, for a
+    // conversation that ended long ago. The server-side fix is a TTL on the
+    // message; this is the client half, which works regardless.
+    if (isStaleCallPush(message)) {
+      logs('[CALL_DEBUG] bg handler → incoming_call push is stale, ignoring');
+      return;
+    }
     try {
       final data = message.data;
-      final callerImage = (data['senderProfileImage'] ?? '').toString();
 
       // Defensive parsing: backend may send payload/callerData as a JSON
       // string OR as an already-decoded Map (depending on FCM path). Either
@@ -189,42 +264,27 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final isFareCall =
           metadata is Map && metadata['orderType'] == 'fare-call';
 
-      String designation = 'Incoming Call';
-      final accountType = (callerData['account_type'] ?? '').toString();
-      if (accountType == 'BUSINESS') {
-        var biz = callerData['businessData'];
-        if (biz is String && biz.isNotEmpty) {
-          try {
-            biz = jsonDecode(biz);
-          } catch (_) {}
-        }
-        if (biz is Map) {
-          final cat = biz['category_of_business'];
-          if (cat != null && cat.toString().isNotEmpty) {
-            designation = cat.toString();
-          } else {
-            final subCat = biz['sub_category_of_business'];
-            if (subCat is Map) {
-              final name = subCat['name'];
-              if (name != null && name.toString().isNotEmpty) {
-                designation = name.toString();
-              }
-            }
-          }
-        }
-      } else {
-        final d = (callerData['designation'] ?? '').toString();
-        if (d.isNotEmpty) designation = d.toLowerCase();
-      }
-      if (isFareCall) designation = 'Ride Request';
+      // NOTE: a caller "designation" (business category / job title / "Ride
+      // Request") used to be derived here. It was left over from when this path
+      // showed CallKit, whose card has a subtitle slot for it. Android now rings
+      // through a local notification whose body is deliberately "Incoming voice
+      // call" / "Incoming video call", so the value had nowhere to go and was
+      // computed and dropped on every incoming call in the background isolate.
+      // The foreground path (AppNotificationHandler._handleIncomingCallPush)
+      // still derives it, because CallKit there does use it.
 
-      final profileImage = (callerData['profile_image'] ?? '').toString();
+      // One resolved avatar for the whole call — the ringing notification, the
+      // extras the accept path restores state from, and (via those) the call
+      // screen itself. They used to disagree: the notification preferred
+      // `callerData.profile_image` while the extras carried
+      // `data.senderProfileImage`.
+      final profileImage = resolveCallerImage(data, callerData);
       final extras = <String, dynamic>{
         'senderId': (data['senderId'] ?? '').toString(),
         'conversationId': (data['conversationId'] ?? '').toString(),
         'callType': callType,
         'callerName': callerName,
-        'callerImage': callerImage,
+        'callerImage': profileImage,
         'callId': callId,
         'roomId': roomId,
         'operation': 'incoming_call',
@@ -248,7 +308,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           callId: callId,
           roomId: roomId,
           callerName: callerName,
-          callerImage: profileImage.isNotEmpty ? profileImage : callerImage,
+          callerImage: profileImage,
           callType: callType,
           extra: extras,
         );
@@ -1249,6 +1309,10 @@ class _MyAppState extends State<MyApp> {
         initialRoute: null,
         onGenerateRoute: RouteHelper.generateRoute,
         navigatorObservers: [RouteHelper.routeObserver],
+// Publishes the visible route to CallController.currentRouteRx on every push /
+// pop / replace. The top call strip reads it to know whether a call screen is
+// on top — see CallController.onRouteChanged.
+        routingCallback: CallController.onRouteChanged,
         translations: LocalizationService(),
         locale: widget.initialLocale,
         fallbackLocale: const Locale('en'),

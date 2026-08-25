@@ -36,11 +36,11 @@ class OngoingCallStrip extends StatelessWidget {
     // controller is registered, so the enclosing Obx always has something to
     // track — bail out before touching any observable and Obx throws
     // "improper use of Obx".
-    final callScreensMounted = CallController.callScreensMounted.value;
+    final route = CallController.currentRouteRx.value;
     final everShown = CallController.callRoomEverShown.value;
     if (!Get.isRegistered<CallController>()) return false;
-    // The call screen is on top — nothing to return to.
-    if (callScreensMounted > 0) return false;
+    // A call screen is on top — nothing to return to.
+    if (CallController.isCallRoute(route)) return false;
     // The call screen has not been shown yet for this call (still setting up,
     // or still booting into it from a killed state). Showing the strip here
     // would flash it over the screen we are about to replace.

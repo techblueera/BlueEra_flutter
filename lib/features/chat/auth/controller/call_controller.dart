@@ -408,16 +408,53 @@ class CallController extends GetxController with WidgetsBindingObserver {
   static const String _ongoingChannelId = 'ongoing_call';
   Timer? _notificationTimer;
 
-  /// How many call screens are currently mounted. The top call strip
-  /// (OngoingCallStrip) shows only while this is zero — i.e. the user has
-  /// navigated away from the call UI.
+  /// The route the app is currently showing, as an observable.
   ///
-  /// A COUNTER, not a bool: `/IncomingCallScreen` and `/CallRoomScreen` render
-  /// the same widget, and on `Get.offNamed` between them Flutter runs the new
-  /// screen's initState BEFORE the old screen's dispose. A bool would be left
-  /// false by that trailing dispose and the strip would appear on top of the
-  /// call screen.
-  static final callScreensMounted = 0.obs;
+  /// Fed by [onRouteChanged], which is wired into
+  /// `GetMaterialApp.routingCallback` in main.dart. This is what tells the top
+  /// call strip (OngoingCallStrip) whether a call screen is on top.
+  ///
+  /// This used to be a mounted-screens COUNTER, incremented in the call
+  /// screen's initState and decremented in its dispose. A counter drifts: any
+  /// call-screen route replaced or removed without its dispose reaching the
+  /// hook leaves it stuck above zero, and since it is process-wide static
+  /// state the strip then stays hidden for EVERY later call in that app
+  /// session — which is exactly the "picked up the call, went back, no timer
+  /// bar" report (and why the same build still showed the bar after a cold
+  /// start, where the static reset to zero). A route name cannot drift: the
+  /// navigator republishes it on every push, pop and replace.
+  static final currentRouteRx = ''.obs;
+
+  /// Every route name that renders a call screen. While one of these is on
+  /// top there is nothing for the strip to take the user back to.
+  static const Set<String> callRouteNames = {
+    '/CallRoomScreen',
+    '/IncomingCallScreen',
+    '/OutgoingCallScreen',
+    '/ActiveCallScreen',
+    '/IncomingRiderOrderScreen',
+  };
+
+  static bool isCallRoute(String route) => callRouteNames.contains(route);
+
+  /// Wired to `GetMaterialApp.routingCallback` — the one place the app learns
+  /// that the visible route changed.
+  ///
+  /// The write is deferred to after the frame, and that is NOT optional. The
+  /// navigator notifies its observers from inside
+  /// `NavigatorState._flushHistoryUpdates`, which runs during the build pass
+  /// that is pushing or popping the route. Writing an observable there marks
+  /// the top strip's `Obx` dirty mid-build — and that is not merely the
+  /// "setState() called during build" assert: the rebuild re-parents the app's
+  /// Navigator, whose GlobalKey is then claimed by two widgets at once, and the
+  /// entire app comes up as a red error screen.
+  static void onRouteChanged(Routing? routing) {
+    final route = routing?.current ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      currentRouteRx.value = route;
+      if (isCallRoute(route)) callRoomEverShown.value = true;
+    });
+  }
 
   /// True once the call screen has been shown at least once for the CURRENT
   /// call. The strip is for RETURNING to a call you have already seen, so
@@ -425,16 +462,15 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// while an outgoing call is still doing its API/ICE setup, between
   /// `accepting` and the accept round-trip finishing, and over the splash
   /// screen during a killed-state accept. Reset in [_resetState].
+  ///
+  /// Also set the moment the call CONNECTS ([_startCallTimer]), whether or not
+  /// a call screen ever mounted — an answered call with no way back to it is
+  /// worse than a strip that appears a beat early.
+  ///
+  /// Set from [onRouteChanged] and [_startCallTimer] only. The call screen used
+  /// to set it from its own `initState`, which is inside the build pass and so
+  /// hit the same mid-build write described on [onRouteChanged].
   static final callRoomEverShown = false.obs;
-
-  static void callScreenMounted() {
-    callScreensMounted.value++;
-    callRoomEverShown.value = true;
-  }
-
-  static void callScreenUnmounted() {
-    if (callScreensMounted.value > 0) callScreensMounted.value--;
-  }
 
   /// Whether the CURRENT call ever reached the connected state (i.e. was
   /// actually picked up). The end-of-call interstitial only fires for answered
@@ -471,6 +507,43 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// init), and splash performs its own `pushNamedAndRemoveUntil` shortly
   /// after — so a push issued too early is either dropped or wiped. Retry on a
   /// short cadence until the route sticks, then stop.
+  /// True when a failed call API response means "that call is over", as
+  /// opposed to a transient failure worth surfacing as an error.
+  ///
+  /// The call service splits this across two status codes: **404** is "call not
+  /// found", **400** is "call found but no longer active" — the far more likely
+  /// answer when the caller hangs up during the 2–5s an accept from a killed
+  /// state spends launching the app. Keying on 404 alone showed the user a raw
+  /// "Call is no longer active" error toast for what is simply a call that
+  /// ended a moment ago.
+  ///
+  /// The message match is deliberately loose: it only decides which of two
+  /// user-facing strings to show, and both paths clean up identically.
+  bool _isCallGoneResponse(ResponseModel response) {
+    final statusCode = response.response?.statusCode;
+    if (statusCode == 404) return true;
+    if (statusCode != 400) return false;
+    final message = (response.message ?? '').toString().toLowerCase();
+    return message.contains('no longer') ||
+        message.contains('not active') ||
+        message.contains('already ended');
+  }
+
+  /// A call is in flight — ringing, being set up, or connected.
+  bool get isCallLive =>
+      callStatus.value != CallStatus.idle &&
+      callStatus.value != CallStatus.ended;
+
+  /// Re-open the call room for a call that is still live. Used by the splash
+  /// screen after a killed-state accept: splash installs the home shell with
+  /// `pushNamedAndRemoveUntil`, which wipes anything already pushed on top, so
+  /// the call room has to be put back once the app has landed.
+  void reopenCallRoomIfActive() {
+    final status = callStatus.value;
+    if (status == CallStatus.idle || status == CallStatus.ended) return;
+    _openCallRoom();
+  }
+
   void _openCallRoom() {
     if (isFareCall.value) return;
     _callRoomOpenTimer?.cancel();
@@ -482,10 +555,19 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if (status == CallStatus.idle || status == CallStatus.ended) return true;
       if (Get.currentRoute == '/CallRoomScreen') return true;
       if (Get.key.currentState == null) return false;
-      // Still on splash: pushing now would be wiped by its own
+      // Still booting: pushing now would be wiped by splash's own
       // pushNamedAndRemoveUntil. Wait for the app to land.
-      if (Get.currentRoute.contains('Splash')) return false;
-      if (Get.currentRoute == '/IncomingCallScreen') {
+      //
+      // '/' is part of that test because splash is GetMaterialApp's `home`,
+      // and a `home` widget's route is named '/' — never anything containing
+      // "Splash". Testing only for the word is why a killed-state accept used
+      // to push the call room straight on top of the splash screen, leaving
+      // the user on a dead splash page when they backed out of the call.
+      final route = Get.currentRoute;
+      if (route.isEmpty || route == '/' || route.contains('Splash')) {
+        return false;
+      }
+      if (route == '/IncomingCallScreen') {
         Get.offNamed('/CallRoomScreen');
       } else {
         Get.toNamed('/CallRoomScreen');
@@ -497,9 +579,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _callRoomOpenTimer =
         Timer.periodic(const Duration(milliseconds: 250), (timer) {
       attempts++;
-      // ~10s ceiling. If the app never lands, the top strip is still there as
-      // the way back into the call — better than retrying forever.
-      if (tryOpen() || attempts > 40) timer.cancel();
+      // ~30s ceiling — a cold boot waits on the notification-launch check and
+      // deep-link resolution before splash lands, which can outlast the old
+      // 10s. If the app never lands, the top strip is still there as the way
+      // back into the call — better than retrying forever.
+      if (tryOpen() || attempts > 120) timer.cancel();
     });
   }
 
@@ -577,6 +661,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state != AppLifecycleState.resumed) return;
+    // The 1s timer may have been throttled or suspended while we were away, so
+    // the visible duration can be stale by however long that lasted. Re-derive
+    // it from the connect anchor before the user sees the call bar, rather than
+    // letting them watch it jump on the next tick.
+    _syncCallDuration();
     // Coming back to the foreground is the most likely moment for the audio
     // route to have been silently lost: whatever ran while we were away (an
     // FCM data message, the floating overlay) may have replaced
@@ -1083,8 +1172,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
       print('[CALL_DEBUG] acceptCall → API FAILED, statusCode=$statusCode, message=${response.message}');
-      if (statusCode == 404) {
-        commonSnackBar(message: '${AppStrings.callNoLongerAvailable.tr} ${statusCode}');
+      if (_isCallGoneResponse(response)) {
+        commonSnackBar(message: AppStrings.callNoLongerAvailable.tr);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.failedToAcceptCall.tr);
       }
@@ -1661,7 +1750,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// Best-effort on the wire: we are very likely still offline, so the REST
   /// end-call and the socket emit will fail. That is expected and is why the
   /// server needs its own participant-drop timeout — see
-  /// docs/backend/CALL_SIGNALLING_BACKEND_UPDATES.md. Locally we always finish the
+  /// docs/backend/CALL_BACKEND_REQUIREMENTS.md. Locally we always finish the
   /// teardown so this device never sits in a ghost call.
   Future<void> _abandonCallForNetwork() async {
     _cancelNetworkGrace();
@@ -3462,10 +3551,31 @@ class CallController extends GetxController with WidgetsBindingObserver {
   String get formattedCallDuration =>
       _formatDuration(callDurationSeconds.value);
 
+  /// Wall-clock moment the call connected, in epoch ms. 0 while no call is
+  /// connected. The call duration is derived from this rather than counted, so
+  /// a throttled or suspended timer cannot lose seconds — see [_startCallTimer].
+  int _callConnectedAtMs = 0;
+
+  /// Recompute the visible duration from the connect anchor. Safe to call at
+  /// any time; a no-op before the call connects.
+  void _syncCallDuration() {
+    if (_callConnectedAtMs == 0) return;
+    final elapsed =
+        (DateTime.now().millisecondsSinceEpoch - _callConnectedAtMs) ~/ 1000;
+    if (elapsed < 0) return; // clock moved backwards — keep the last good value
+    if (callDurationSeconds.value != elapsed) {
+      callDurationSeconds.value = elapsed;
+    }
+  }
+
   void _startCallTimer() {
     // The call is now connected (picked up) — mark it so the end-of-call
     // interstitial fires for this call.
     _wasCallConnected = true;
+    // A picked-up call is always reachable from the top strip, even if the
+    // call screen never mounted (accepted from the notification / CallKit
+    // while the call room push was still racing the app's boot).
+    callRoomEverShown.value = true;
     // Setup ran before the peer connection came up; anything that attached a
     // Flutter engine in between could have dropped the route. Re-assert it now
     // that there is actually audio to route, and re-apply the mute state for
@@ -3477,9 +3587,20 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // idempotent + fire-and-forget.
     InterstitialAdManager.instance.initialize();
     _callTimer?.cancel();
+    // The duration is derived from a wall-clock anchor, not counted in ticks.
+    //
+    // A `Timer.periodic` that increments a counter only measures the call
+    // correctly while the app is in front of the user: Android throttles (and
+    // Doze outright suspends) timers for a backgrounded process, so every
+    // skipped tick was a second the call bar, the floating overlay, the ongoing
+    // notification and the call-log duration all silently lost. Minimise the
+    // call for two minutes and the strip came back reading well under the real
+    // elapsed time. Re-deriving from the anchor makes a missed tick cost
+    // nothing — the next one that fires shows the true elapsed time.
+    _callConnectedAtMs = DateTime.now().millisecondsSinceEpoch;
     callDurationSeconds.value = 0;
     _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      callDurationSeconds.value++;
+      _syncCallDuration();
       // Update floating overlay timer if active
       OverlayService.updateTimer(formattedCallDuration);
     });
@@ -3493,7 +3614,9 @@ class CallController extends GetxController with WidgetsBindingObserver {
       remoteName: remoteUserName.value.isNotEmpty
           ? remoteUserName.value
           : callerName.value,
-      startedAtMs: DateTime.now().millisecondsSinceEpoch,
+      // The same anchor the timer runs off, so the chat banner and the call
+      // bar can never disagree about when the call started.
+      startedAtMs: _callConnectedAtMs,
       remoteUserId: _remoteUserId ?? '',
     );
     // Start the ongoing call notification
@@ -3971,6 +4094,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     remoteUserName.value = '';
     remoteUserImage.value = '';
     callDurationSeconds.value = 0;
+    _callConnectedAtMs = 0;
     callRoomEverShown.value = false;
     isMicOn.value = true;
     hasLocalAudio.value = false;
@@ -4259,6 +4383,17 @@ class CallController extends GetxController with WidgetsBindingObserver {
               Map<String, dynamic>.from(jsonDecode(rideJson));
         }
       } catch (_) {}
+    } else if (status == CallStatus.idle) {
+      // A payload that bootstraps a FRESH call and does not declare itself a
+      // fare-call is a plain call. Saying so explicitly matters: fare-calls own
+      // their own UI, so a `true` left behind by an earlier fare-call makes
+      // _openCallRoom bail and hides the top call strip — the user ends up on
+      // a call with no screen and no way back to it. Guarded on `idle` so a
+      // thinner follow-up payload can't clear the flag on a live fare-call.
+      isFareCall.value = false;
+      fareCallOrderId.value = '';
+      fareCallOrderMongoId.value = '';
+      fareCallRideDetails.value = null;
     }
 
     // Connect socket if not connected (app may have been in background)
@@ -4296,6 +4431,13 @@ void showFlutterCallNotification({
   Map<String, dynamic>? extra,
   int duration = 45000,
 }) async {
+  // This call is already over — a late or out-of-order push must not resurrect
+  // the CallKit UI. Mirrors the same guard on the Android notification path.
+  if (await isCallRetired(callSessionId)) {
+    print('[CALL_DEBUG] showFlutterCallNotification → skipped, call retired');
+    return;
+  }
+
   // Don't show CallKit if a call is already in progress — keeps CallKit free.
   // Only skip when this push is for a DIFFERENT call than the live one;
   // re-delivery of the SAME call_id (common when server retries) must not

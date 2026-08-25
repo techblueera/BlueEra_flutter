@@ -33,6 +33,7 @@ import 'package:BlueEra/features/me/school/controller/school_about_us_controller
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/Emergency/view/emergency_profileScreen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
@@ -139,9 +140,29 @@ class _SplashScreenState extends State<SplashScreen> {
         } catch (_) {}
       }
 
+      // A killed-state INCOMING CALL launch is the one notification launch with
+      // no screen to navigate to: main()'s pre-runApp checks already accepted
+      // the call, and the cold-start router deliberately skips `incoming_call`
+      // payloads. Holding the splash for that navigation left the navigator
+      // with splash as its only page for the whole call — the call room was
+      // pushed on top of it, so backing out of the call landed the user on a
+      // dead branded page with no way into the app. Boot normally instead, and
+      // re-open the call room on top once the home shell is in place.
+      final isCallLaunch = AppNotificationHandler.launchedFromIncomingCall ||
+          (Get.isRegistered<CallController>() &&
+              Get.find<CallController>().isCallLive);
+      // Consume only the call marker. `launchedFromNotification` stays as it
+      // is: firebaseNotificationSetup()'s iOS cold-start block still gates its
+      // own routing on it, and splash reads it exactly once per process.
+      if (isCallLaunch) {
+        AppNotificationHandler.launchedFromIncomingCall = false;
+      }
+
       // If app was launched by tapping a notification, stay on splash screen
       // and wait for notification handler to navigate to the correct screen.
-      if (AppNotificationHandler.launchedFromNotification && isLoginStatus == "true") {
+      if (!isCallLaunch &&
+          AppNotificationHandler.launchedFromNotification &&
+          isLoginStatus == "true") {
         // Wait for notification navigation to complete (with a safety timeout)
         if (AppNotificationHandler.notificationNavigationCompleter != null) {
           await AppNotificationHandler.notificationNavigationCompleter!.future
@@ -195,6 +216,14 @@ class _SplashScreenState extends State<SplashScreen> {
         // dead-end splash screen.
         if (initialDeepLink != null) {
           _handleDeepLink(initialDeepLink);
+        }
+
+        // Killed-state call accept: the `pushNamedAndRemoveUntil` above wipes
+        // the whole stack, so a call room already pushed on top of splash went
+        // with it. Put it back — now with the home shell underneath, so Back
+        // minimises to the top call strip and lands on the app.
+        if (isCallLaunch && Get.isRegistered<CallController>()) {
+          Get.find<CallController>().reopenCallRoomIfActive();
         }
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(

@@ -491,6 +491,70 @@ const String _kPendingIncomingCallExtrasKey = '__pending_incoming_call_extras';
 const String _kPendingIncomingCallAcceptKey =
     '__pending_incoming_call_accept_tapped';
 
+/// Call ids that must never ring again, with the time they were retired.
+///
+/// Secure storage rather than a static set: the FCM background isolate and the
+/// app isolate are different worlds, and the whole point is that one can tell
+/// the other a call is over.
+const String _kRetiredCallIdsKey = '__retired_call_ids';
+
+/// How long a retired call id is remembered. Comfortably longer than any ring
+/// window, short enough that the record cannot grow without bound.
+const Duration _kRetiredCallMemory = Duration(minutes: 5);
+
+/// Remember that [callId] is over, so a later push cannot ring for it.
+///
+/// Push delivery is not ordered. A device that was offline can be handed the
+/// "call cancelled" and the "incoming call" messages in either order, and the
+/// backend also suppresses a cancel sent within 2s of the call starting — both
+/// end with a phone ringing, full screen, for a call nobody is on. Writing a
+/// tombstone the moment a call is retired lets the ring path (below) refuse to
+/// show it, whichever order the messages arrive in.
+///
+/// Called from every path that takes an incoming call down: cancel, decline,
+/// accept, remote hang-up, and the `missed_call` / `call_cancelled` pushes.
+Future<void> markCallRetired(String callId) async {
+  if (callId.isEmpty) return;
+  try {
+    const storage = FlutterSecureStorage();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final Map<String, dynamic> entries = {};
+    final raw = await storage.read(key: _kRetiredCallIdsKey);
+    if (raw != null && raw.isNotEmpty) {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) entries.addAll(Map<String, dynamic>.from(decoded));
+    }
+    entries[callId] = now;
+    // Prune on write — no separate sweep to forget to run.
+    entries.removeWhere((_, at) {
+      final ts = at is int ? at : int.tryParse(at.toString()) ?? 0;
+      return now - ts > _kRetiredCallMemory.inMilliseconds;
+    });
+    await storage.write(key: _kRetiredCallIdsKey, value: jsonEncode(entries));
+  } catch (_) {}
+}
+
+/// True when [callId] has been retired and must not ring. Fails OPEN — if the
+/// record cannot be read, the call rings. A missed real call is worse than a
+/// late one.
+Future<bool> isCallRetired(String callId) async {
+  if (callId.isEmpty) return false;
+  try {
+    const storage = FlutterSecureStorage();
+    final raw = await storage.read(key: _kRetiredCallIdsKey);
+    if (raw == null || raw.isEmpty) return false;
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) return false;
+    final at = decoded[callId];
+    if (at == null) return false;
+    final ts = at is int ? at : int.tryParse(at.toString()) ?? 0;
+    return DateTime.now().millisecondsSinceEpoch - ts <=
+        _kRetiredCallMemory.inMilliseconds;
+  } catch (_) {
+    return false;
+  }
+}
+
 Future<void> stashPendingIncomingCallExtras(Map<String, dynamic> extras) async {
   try {
     const storage = FlutterSecureStorage();
@@ -577,6 +641,10 @@ Future<void> showIncomingCallLocalNotification({
 }) async {
   if (!Platform.isAndroid) return;
   if (callId.isEmpty || roomId.isEmpty) return;
+
+  // This call is already over — a late or out-of-order push must not resurrect
+  // its ringing UI. See [markCallRetired].
+  if (await isCallRetired(callId)) return;
 
   // The same call can be surfaced by BOTH the FCM path (rich payload with the
   // sender's name) and the socket call:incoming path (often nameless) — the
@@ -693,6 +761,10 @@ Future<void> showIncomingCallLocalNotification({
 /// Cancel the incoming-call notification once the call is accepted, declined,
 /// cancelled by the caller, or otherwise ended.
 Future<void> cancelIncomingCallLocalNotification(String callId) async {
+  // Taking the ringing UI down also retires the call: whatever arrives for it
+  // afterwards — a duplicate push, a message FCM held while we were offline —
+  // must not put it back on screen. See [markCallRetired].
+  await markCallRetired(callId);
   try {
     // Cancel from native notification (custom filled buttons)
     const nativeChannel =
@@ -859,6 +931,18 @@ class AppNotificationHandler {
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
 
+  /// True when that launch notification was an INCOMING CALL — the Accept /
+  /// Decline action or a body tap on the call card.
+  ///
+  /// A call launch is the one notification launch with no screen to deep-link
+  /// to: main()'s pre-runApp checks already accepted the call, and the
+  /// cold-start router below deliberately does nothing for `incoming_call`
+  /// payloads. SplashScreen must therefore boot the app normally instead of
+  /// holding its UI for a navigation that is never coming — otherwise the
+  /// navigator's only page for the whole call is the splash screen, and
+  /// backing out of the call room lands the user on a dead branded page.
+  static bool launchedFromIncomingCall = false;
+
   /// iOS-only: set once firebaseNotificationSetup()'s cold-start block has
   /// routed the launch notification. onMsgOpen()'s iOS getInitialMessage path
   /// (which runs later, after the bottom nav mounts) checks this to avoid
@@ -971,6 +1055,9 @@ class AppNotificationHandler {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
           pendingDeepLink = PendingDeepLink.fromData(data) ?? pendingDeepLink;
+          launchedFromIncomingCall =
+              (data['operation'] ?? '').toString().toLowerCase() ==
+                  'incoming_call';
         } catch (_) {}
         return;
       }
@@ -994,6 +1081,11 @@ class AppNotificationHandler {
           notificationNavigationCompleter = Completer<void>();
           pendingDeepLink =
               PendingDeepLink.fromData(initial.data) ?? pendingDeepLink;
+          launchedFromIncomingCall =
+              (initial.data['operation'] ?? initial.data['type'] ?? '')
+                      .toString()
+                      .toLowerCase() ==
+                  'incoming_call';
         }
       } catch (e) {
         print('[iOS-checkNotificationLaunch] getInitialMessage error: $e');
@@ -2642,9 +2734,15 @@ class AppNotificationHandler {
   /// caller payload and shows CallKit. showFlutterCallNotification already
   /// guards against duplicate UI when the socket path has a call in progress.
   void _handleIncomingCallPush(RemoteMessage message) {
+    // Same TTL guard as the background handler: a push FCM held while the
+    // device was offline can arrive minutes late, and ringing for a call that
+    // is already over is worse than missing it. See [isStaleCallPush].
+    if (isStaleCallPush(message)) {
+      print('[CALL_DEBUG] incoming_call push is stale, ignoring');
+      return;
+    }
     try {
       final data = message.data;
-      final callerImage = (data['senderProfileImage'] ?? '').toString();
 
       final payloadRaw = data['payload'];
       final Map<String, dynamic> payload = payloadRaw is String
@@ -2657,8 +2755,11 @@ class AppNotificationHandler {
           : Map<String, dynamic>.from(callerRaw ?? {});
 
       // Resolve the caller name from the push, then the caller profile, so the
-      // notification never displays a raw "Unknown".
+      // notification never displays a raw "Unknown". A business caller is
+      // announced by its business name and logo, matching the socket's
+      // `caller_info` — see [resolveCallerName] / [resolveCallerImage].
       final callerName = resolveCallerName(data, callerData);
+      final callerImage = resolveCallerImage(data, callerData);
 
       final callType = (payload['call_type'] ?? 'audio_call').toString();
       final callId = (payload['call_id'] ?? '').toString();
@@ -3413,9 +3514,10 @@ class AppNotificationHandler {
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
-      // Forced-logout signal — NOT a tap target. Intentionally no navigation.
-      case 'session_displaced':
-        break;
+      // NOTE: `session_displaced` used to appear here as a no-op case as well.
+      // It is handled far earlier in this method, together with `force_logout`,
+      // where it actually signs the user out — so this second case was
+      // unreachable and only served to suggest the signal was ignored.
 
       // Business go-live reminder — deep-link to the business own profile
       // (which hosts the Go Live button) and ask it to auto-prompt go-live.
