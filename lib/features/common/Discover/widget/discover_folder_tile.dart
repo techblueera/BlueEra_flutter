@@ -88,10 +88,25 @@ class DiscoverSheetScope extends InheritedWidget {
 /// configuration, and each mount gets its own Element/State (there are no
 /// GlobalKeys on these sections).
 class DiscoverFolderHost extends InheritedWidget {
-  DiscoverFolderHost({super.key, required this.section, this.index = 0})
-      : super(child: section);
+  DiscoverFolderHost({
+    super.key,
+    required this.section,
+    this.index = 0,
+    this.title,
+  }) : super(child: section);
 
   final Widget section;
+
+  /// Caption for the tile, when the section's own title is not what the grid
+  /// should say. Discover v2 uses it for the two sections whose full names run
+  /// past a half-width tile and ellipsise ("Automotive Showroom & Services",
+  /// "Education, Training & Sectors"); the SHEET still opens under the
+  /// section's own title, which is where the longer name belongs.
+  final String? title;
+
+  static String? titleOf(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()
+      ?.title;
 
   /// Position of this folder in the landing grid, which is what picks its
   /// colour — see [discoverFolderThemeFor].
@@ -114,7 +129,9 @@ class DiscoverFolderHost extends InheritedWidget {
 
   @override
   bool updateShouldNotify(DiscoverFolderHost oldWidget) =>
-      section != oldWidget.section || index != oldWidget.index;
+      section != oldWidget.section ||
+      index != oldWidget.index ||
+      title != oldWidget.title;
 }
 
 /// One launcher-style folder: a translucent rounded square holding a 2x2
@@ -165,11 +182,10 @@ class DiscoverFolderTile extends StatelessWidget {
   /// the recent-orders rail paint themselves with the same one. It used to be
   /// copied per call site, which is how two panels on one page end up a shade
   /// apart after someone tunes one of them.
-  static const Color _kTileFill = kDiscoverGlassFill;
-  static const double _kTileBlur = kDiscoverGlassBlur;
-  static const Color _kTileBorder = kDiscoverGlassBorder;
+  /// Fill, blur, rim and radius are now read per-subtree from
+  /// [DiscoverSurfaceTheme] — v1 finds no scope and gets these same constants
+  /// back, v2 hands down its own. The lift is shared by both looks.
   static const List<BoxShadow> _kTileShadow = kDiscoverGlassShadow;
-  static const double _kTileRadius = kDiscoverGlassRadius;
 
   /// Plate behind each icon — a brighter white than the tile it sits on, so the
   /// illustrated icons keep a clean base and the 2x2 reads as four slots rather
@@ -178,6 +194,14 @@ class DiscoverFolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // v2 hands its own fill / stroke / blur down the tree; v1 finds no scope
+    // and reads the constants — see [DiscoverSurfaceTheme].
+    final fill = DiscoverSurfaceTheme.fillOf(context);
+    final border = DiscoverSurfaceTheme.borderOf(context);
+    final blur = DiscoverSurfaceTheme.blurOf(context);
+    final radius = DiscoverSurfaceTheme.radiusOf(context);
+    final label = DiscoverFolderHost.titleOf(context) ?? title;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap ??
@@ -192,25 +216,22 @@ class DiscoverFolderTile extends StatelessWidget {
             // past the rounded edge.
             child: DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_kTileRadius),
+                borderRadius: BorderRadius.circular(radius),
                 boxShadow: _kTileShadow,
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(_kTileRadius),
+                borderRadius: BorderRadius.circular(radius),
                 child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(
-                    sigmaX: _kTileBlur,
-                    sigmaY: _kTileBlur,
-                  ),
+                  filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       // Translucent, so the folder keeps picking up whatever it
                       // sits on — the background is unchanged, only the tile
                       // over it is.
-                      color: _kTileFill,
-                      borderRadius: BorderRadius.circular(_kTileRadius),
-                      border: Border.all(color: _kTileBorder, width: 1),
+                      color: fill,
+                      borderRadius: BorderRadius.circular(radius),
+                      border: Border.all(color: border, width: 1),
                     ),
                     child: _preview(),
                   ),
@@ -218,7 +239,7 @@ class DiscoverFolderTile extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: SizeConfig.size8),
+          SizedBox(height: SizeConfig.size6),
           // The label sits on the app background, not on the tile, so it has no
           // plate of its own to borrow contrast from — and the page no longer
           // dims that background. It therefore draws itself OUTLINED (see
@@ -226,7 +247,7 @@ class DiscoverFolderTile extends StatelessWidget {
           // calls for, which covers the pale swatches, the dark ones, and an
           // arbitrary gallery photo alike. Obx: repaints the moment a new
           // background is applied.
-          Obx(() => _FolderCaption(title: title, onDark: _folderLabelOnDark())),
+          Obx(() => _FolderCaption(title: label, onDark: _folderLabelOnDark())),
         ],
       ),
     );
@@ -344,7 +365,7 @@ class _FolderCaption extends StatelessWidget {
   /// passes lay out identically — only the paint differs between them.
   TextStyle get _style => TextStyle(
         fontFamily: AppConstants.OpenSans,
-        fontSize: SizeConfig.medium,
+        fontSize: SizeConfig.small,
         fontWeight: FontWeight.w700,
         overflow: TextOverflow.ellipsis,
       );

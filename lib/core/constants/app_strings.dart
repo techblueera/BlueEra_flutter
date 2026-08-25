@@ -4173,6 +4173,18 @@ class AppStrings {
   static const String restaurantNearby = "restaurant_nearby";
   static const String findDreamJob = "find_dream_job";
 
+  // Discover v2 — titles for the merged folders and the two chip-row CTAs.
+  // The merged folders hold sections that already have their own titles
+  // (Grocery & General Store, Restaurant & Food Service, Home Made Food); these
+  // name the FOLDER over them, which is a thing v1 had no need to say.
+  static const String discoverGroceryAndFood = "discoverGroceryAndFood";
+  static const String discoverShopping = "discoverShopping";
+  static const String discoverBusinessServices = "discoverBusinessServices";
+  static const String needMoney = "needMoney";
+  static const String quickApplyForLoan = "quickApplyForLoan";
+  static const String discoverAutomotiveAndServices = "discoverAutomotiveAndServices";
+  static const String discoverEducationAndTraining = "discoverEducationAndTraining";
+
   // Greeting & Search Section
   static const String hi = "hi";
   static const String mayI = "may_i";

@@ -153,12 +153,25 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    // Only wrap in Obx when a gate applies, so the Contribute card disappears
-    // the instant the deposit is paid. Businesses (no gate) render statically.
-    if (_hasDepositGate) {
-      return Obx(() => _buildDeck(hideContribution: _depositGateSatisfied));
-    }
-    return _buildDeck(hideContribution: false);
+    // Registered here rather than inside the card, because whether the card is
+    // in the deck AT ALL now depends on this controller's state — the deck can
+    // no longer wait until it builds the slide to ask.
+    final contribution = getOrPut(() => ContributionController());
+
+    // Always an Obx, and always safe: `hasActiveRecharge` is read on every
+    // path, so the builder can never be the observable-free one GetX rejects.
+    return Obx(() {
+      // Two independent ways to be "done", and either one drops the card:
+      //
+      //  * a live subscription — the user has already contributed, so a card
+      //    asking them to contribute is at best noise and at worst reads as
+      //    though the payment did not land;
+      //  * the security-deposit / go-live gate being satisfied, which is what
+      //    this deck already keyed off.
+      final subscribed = contribution.hasActiveRecharge.value;
+      final depositSettled = _hasDepositGate && _depositGateSatisfied;
+      return _buildDeck(hideContribution: subscribed || depositSettled);
+    });
   }
 
   Widget _buildDeck({required bool hideContribution}) {
@@ -240,10 +253,14 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
   // All four share the same silhouette; only the hue changes: lavender
   // (contribution), teal (payments), indigo (catalog), coral (referrals).
 
-  /// Contribution card — reactive to [ContributionController]. Shows the
-  /// active plan + perks left when the merchant has one, otherwise the
-  /// "Contribute now" CTA. Registering the controller here fires its
-  /// /recharge APIs only when the Order tab (and thus this deck) is built.
+  /// Contribution card — the "Contribute now" CTA.
+  ///
+  /// It still renders an active-plan state (plan name + perks left) even though
+  /// [build] now drops the whole card once a subscription exists. That is not
+  /// dead weight: the two Obx blocks rebuild independently, so this one can
+  /// paint a frame with the new plan before the outer one removes the slide,
+  /// and "Contribute now" flashing over a plan the user just bought is exactly
+  /// the wrong thing to show them.
   Widget _contributionCard() {
     final controller = getOrPut(() => ContributionController());
     return Obx(() {

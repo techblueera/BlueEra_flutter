@@ -204,6 +204,26 @@ class _DiscoverSheetTileState extends State<DiscoverSheetTile> {
   }
 }
 
+/// Overrides how many columns [DiscoverSheetGrid] runs, for the subtree under
+/// it. Absent — the v1 folder sheet — means [kDiscoverSheetColumns].
+class DiscoverSheetColumnsScope extends InheritedWidget {
+  const DiscoverSheetColumnsScope({
+    super.key,
+    required this.columns,
+    required super.child,
+  });
+
+  final int columns;
+
+  static int? of(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<DiscoverSheetColumnsScope>()
+      ?.columns;
+
+  @override
+  bool updateShouldNotify(DiscoverSheetColumnsScope oldWidget) =>
+      columns != oldWidget.columns;
+}
+
 /// The picker grid inside an opened folder: [kDiscoverSheetColumns] per row.
 ///
 /// Plain rows rather than a GridView — the sheet already scrolls, and rows of
@@ -213,6 +233,17 @@ class DiscoverSheetGrid extends StatelessWidget {
   const DiscoverSheetGrid({super.key, required this.tiles});
 
   final List<Widget> tiles;
+
+  /// Columns for THIS grid: whatever an enclosing [DiscoverSheetColumnsScope]
+  /// asks for, else the shared default.
+  ///
+  /// Discover v2's group sheet packs three sub-sections into one sheet
+  /// (Grocery / Restaurants & Food / Home Made Food), so it runs four across to
+  /// keep each section to a row or two — see `discover_group_sheet_v2.dart`.
+  /// The v1 folder sheet shows one section with the screen to itself and stays
+  /// at three.
+  int _columns(BuildContext context) =>
+      DiscoverSheetColumnsScope.of(context) ?? kDiscoverSheetColumns;
 
   static const double _gap = 12;
 
@@ -224,12 +255,13 @@ class DiscoverSheetGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (tiles.isEmpty) return const SizedBox.shrink();
+    final columns = _columns(context);
     final rows = <Widget>[];
-    for (var i = 0; i < tiles.length; i += kDiscoverSheetColumns) {
+    for (var i = 0; i < tiles.length; i += columns) {
       rows.add(Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var c = 0; c < kDiscoverSheetColumns; c++) ...[
+          for (var c = 0; c < columns; c++) ...[
             if (c > 0) const SizedBox(width: _gap),
             Expanded(
               child: i + c < tiles.length

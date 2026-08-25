@@ -163,3 +163,51 @@ class DiscoverGlassPanel extends StatelessWidget {
     );
   }
 }
+
+/// Per-subtree overrides for the glass tokens above.
+///
+/// Discover v2 was specified with its own surface — a lighter ink, a solid
+/// stroke and a deeper blur — and it shares [DiscoverFolderTile] with v1, so
+/// the two looks cannot both live in the constants. A scope keeps v1 exactly as
+/// it was: anything that does not find one of these reads the constants.
+class DiscoverSurfaceTheme extends InheritedWidget {
+  const DiscoverSurfaceTheme({
+    super.key,
+    required this.fill,
+    required this.border,
+    required this.blur,
+    required this.radius,
+    required super.child,
+  });
+
+  final Color fill;
+  final Color border;
+  final double blur;
+  final double radius;
+
+  /// v2's surface: `#10192233` over `#DDE2EE`, blurred 20.
+  static const DiscoverSurfaceTheme? _none = null;
+
+  static DiscoverSurfaceTheme? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverSurfaceTheme>() ??
+      _none;
+
+  static Color fillOf(BuildContext context) =>
+      maybeOf(context)?.fill ?? kDiscoverGlassFill;
+
+  static Color borderOf(BuildContext context) =>
+      maybeOf(context)?.border ?? kDiscoverGlassBorder;
+
+  static double blurOf(BuildContext context) =>
+      maybeOf(context)?.blur ?? kDiscoverGlassBlur;
+
+  static double radiusOf(BuildContext context) =>
+      maybeOf(context)?.radius ?? kDiscoverGlassRadius;
+
+  @override
+  bool updateShouldNotify(DiscoverSurfaceTheme oldWidget) =>
+      fill != oldWidget.fill ||
+      border != oldWidget.border ||
+      blur != oldWidget.blur ||
+      radius != oldWidget.radius;
+}

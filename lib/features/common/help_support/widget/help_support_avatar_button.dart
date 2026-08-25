@@ -25,11 +25,19 @@ import 'package:get/get.dart';
 /// ([HelpQuestionsPanel]) — presented in a bottom sheet here, because a header
 /// button has nothing to anchor a popover to.
 class HelpSupportAvatarButton extends StatefulWidget {
-  const HelpSupportAvatarButton({super.key, this.size = 44});
+  const HelpSupportAvatarButton({
+    super.key,
+    this.size = 44,
+    this.alwaysShow = false,
+  });
 
   /// Outer diameter, including the ring. Sized to sit level with the header's
   /// other circular chips by default.
   final double size;
+
+  /// Draw the button even before the server-tailored question list has arrived
+  /// (or when it comes back empty). Off by default, which is v1's behaviour.
+  final bool alwaysShow;
 
   @override
   State<HelpSupportAvatarButton> createState() =>
@@ -127,9 +135,16 @@ class _HelpSupportAvatarButtonState extends State<HelpSupportAvatarButton>
     return Obx(() {
       // Nothing to offer and no thread to reopen — stay out of the way entirely
       // rather than opening an empty sheet. Same rule as the floating bubble.
+      //
+      // This is why the header can look as though it has no support button at
+      // all: the questions arrive from the server, so until that lands (or on a
+      // device that cannot reach it) there is nothing to draw. [alwaysShow]
+      // keeps the button on screen through that window — tapping it re-runs the
+      // prefetch and opens the panel, which offers a free-text inquiry even
+      // when the tailored list came back empty.
       final hasSomething = _controller.questions.isNotEmpty ||
           (_controller.existingConversationId.value?.isNotEmpty ?? false);
-      if (!hasSomething) return const SizedBox.shrink();
+      if (!hasSomething && !widget.alwaysShow) return const SizedBox.shrink();
 
       return InkWell(
         onTap: _onTap,

@@ -18,7 +18,7 @@ import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart'
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/social_main_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/discover_screen_v2.dart';
 import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -918,7 +918,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // screens in their own PopScope here registered a *second*
         // canPop:false handler on the same route, so a single back press
         // fired both callbacks and produced erratic navigation.
-        return const DiscoverScreen();
+        // Discover — the layout in `assets/Discover.png`. The "v2" in the name
+        // is history: the page it replaced (`discover_screen.dart`) has been
+        // deleted, so this is simply Discover now.
+        return const DiscoverScreenV2();
       case 2:
         return const ConnectMainPage();
       case 3:

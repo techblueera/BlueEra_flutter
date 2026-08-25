@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
@@ -197,4 +196,35 @@ class TransportServiceWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The dotted rule between the pickup and drop dots on the transport card.
+///
+/// Lived in `discover_screen.dart` (Discover v1) until that page was deleted.
+/// It moved here rather than into a shared file because this card is, and has
+/// always been, its only caller.
+class DottedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = AppColors.secondaryTextColor
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    double dashHeight = 2;
+    double dashSpace = 3;
+    double startY = 0;
+
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(0, startY),
+        Offset(0, startY + dashHeight),
+        paint,
+      );
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
