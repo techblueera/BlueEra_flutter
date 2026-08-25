@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -210,9 +211,37 @@ class HmfCartController extends GetxController {
       'items': linesOf(key)
           .map((item) => {idKey: item.id, 'quantity': qty(item.id)})
           .toList(),
-      'deliveryType': 'self-pickup',
+      'deliveryType': OrderDeliveryType.selfPickup,
       'discount': 0,
+      // Cash is what this cart offers today; sending it explicitly keeps the
+      // order out of the UPI submit/verify flow.
+      'paymentMethod': OrderPaymentMethod.cash,
+      // One key per store, so a response lost mid-loop and then retried
+      // resolves each store to the order it already created instead of
+      // duplicating every order the loop had already placed.
+      'idempotencyKey': _attemptFor(key).key,
     };
+  }
+
+  /// One idempotency key per store cart, held until that store's order is
+  /// created. See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+  final Map<String, CheckoutAttempt> _attempts = {};
+
+  CheckoutAttempt _attemptFor(String key) =>
+      _attempts.putIfAbsent(key, () => CheckoutAttempt());
+
+  /// Call when the cart screen opens, so each store starts a fresh attempt.
+  void beginCheckoutAttempts() {
+    _attempts.clear();
+    for (final key in storeKeys) {
+      _attemptFor(key).begin();
+    }
+  }
+
+  /// Called once a store's order is created (201 or 200) — a NEW order needs
+  /// a NEW key.
+  void _completeAttempt(String key) {
+    _attempts.remove(key)?.complete();
   }
 
   /// Snapshot a placed kitchen order into the on-device order history (chat-list
@@ -274,6 +303,9 @@ class HmfCartController extends GetxController {
         return;
       }
 
+      // 201 = created, 200 = already created under this key. Both succeed.
+      _completeAttempt(key);
+
       await _saveLocalOrder(key, kitchen);
       clearStore(key);
 
@@ -311,6 +343,7 @@ class HmfCartController extends GetxController {
         final store = _storeById[key];
         final response = await _placeOrder(key);
         if (response.isSuccess) {
+          _completeAttempt(key);
           placed++;
           // Cart is cleared only after the loop, so lines are still live here.
           if (store != null) await _saveLocalOrder(key, store);

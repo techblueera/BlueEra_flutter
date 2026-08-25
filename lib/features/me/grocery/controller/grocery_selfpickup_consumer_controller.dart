@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -15,6 +16,17 @@ import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class GrocerySelfPickupConsumerController extends GetxController {
+  // One idempotency key per checkout ATTEMPT. The `isPlacing…` guard already
+  // in this controller stops a double-tap inside one session, but it cannot
+  // survive a lost response — the request lands, the reply doesn't come back,
+  // the user taps again, and the shop gets two orders. This key is what makes
+  // that retry safe: the second POST resolves to the SAME order with a 200.
+  // See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+  final CheckoutAttempt _checkoutAttempt = CheckoutAttempt();
+
+  /// Call when the checkout sheet OPENS — not on every tap.
+  void beginCheckoutAttempt() => _checkoutAttempt.begin();
+
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> userGroceryCategoryResponse =
@@ -203,8 +215,13 @@ class GrocerySelfPickupConsumerController extends GetxController {
 
       final Map<String, dynamic> requestBody = {
         "items": itemsList,
-        "deliveryType": "self-pickup",
+        "deliveryType": OrderDeliveryType.selfPickup,
         "discount": totalSavings,
+        // Cash is what this cart offers today. Sending it explicitly keeps the
+        // order out of the UPI submit/verify flow rather than leaning on a
+        // server-side default that could change.
+        "paymentMethod": OrderPaymentMethod.cash,
+        "idempotencyKey": _checkoutAttempt.key,
       };
 
       final response =
@@ -229,6 +246,9 @@ class GrocerySelfPickupConsumerController extends GetxController {
 
       placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
+      // 201 = created, 200 = already created under this key. Both are success,
+      // and both finish the attempt — a NEW order needs a NEW key.
+      _checkoutAttempt.complete();
       selectedGroceriesVariants.clear();
       cartQuantities.clear();
       cartBusinessInfo.clear();

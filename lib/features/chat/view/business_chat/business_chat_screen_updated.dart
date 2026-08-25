@@ -101,6 +101,12 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
+      // Re-read `/actions` for every order card on screen. A socket event
+      // missed while backgrounded is the difference between a shop staring at
+      // a stale "Accept" button and a shop that knows the order was
+      // auto-cancelled ten minutes ago (guide §5.2).
+      chatViewController.refreshVisibleOrderActions();
+
       final id = widget.conversationId ?? '';
       if (id.isEmpty) return;
       chatViewController.emitEvent(ChatEmitEvents.messageReceived, {

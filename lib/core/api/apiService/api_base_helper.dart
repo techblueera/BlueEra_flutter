@@ -214,7 +214,7 @@ class ApiBaseHelper {
             return handler.next(response);
           },
           onError: (DioException err, handler) async {
-            logs("err====1  ${err.response}");
+            logs("err====1 ${err.requestOptions.uri} ${err.response}");
             numberOfReq--;
             if (numberOfReq == 0) {
               ProgressDialog.showProgressDialog(false);

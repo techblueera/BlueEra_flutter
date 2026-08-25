@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/chat_media_compression_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/Generate_Upload_Ulr_Model.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
@@ -52,6 +53,13 @@ class PaymentQrController extends GetxController {
 
   /// Compresses [file] then uploads it through the presigned-URL flow.
   /// Returns the resulting [Files] (publicUrl + fileKey) or null on failure.
+  ///
+  /// Public so the order-payment sheet can reuse the exact same pipeline for
+  /// the UPI payment screenshot it posts to
+  /// `POST /api/orders/:id/payment/submit` — one upload path, one place to fix
+  /// if the presigned flow changes.
+  Future<Files?> uploadImageToS3(File file) => _uploadToS3(file);
+
   Future<Files?> _uploadToS3(File file) async {
     final File toSend =
         (await ChatMediaCompressionService.compressImage(file)) ?? file;
@@ -295,6 +303,50 @@ class PaymentQrController extends GetxController {
       receivedTransactions.insert(0, txn);
     } catch (_) {
       // Best-effort: the received list remains the source of truth.
+    }
+  }
+
+  /// Handles `payment:verified` / `payment:rejected` for the **payer**.
+  ///
+  /// Until these existed the payer was never told the outcome: they submitted
+  /// a screenshot and the card sat on "waiting for the shop" indefinitely,
+  /// whichever way the shop went. The event carries the transaction plus, for
+  /// an order-linked payment, `order_id` — which lets the order card refresh
+  /// itself so the Pay button comes back on a rejection.
+  void handlePaymentResolved(dynamic data, {required bool verified}) {
+    try {
+      if (data is! Map) return;
+      final json = Map<String, dynamic>.from(data);
+
+      final orderId = (json['order_id'] ??
+              json['orderId'] ??
+              json['order_ref'] ??
+              json['orderRef'])
+          ?.toString();
+      if (orderId != null && orderId.isNotEmpty) {
+        // Authoritative: the order service, not this event, decides which
+        // buttons the payer now gets.
+        OrderLifecycleController.instance.refreshActions(orderId);
+      }
+
+      // Keep the payee's received list in step when the same session owns both
+      // sides (a shop verifying from another device).
+      final txnId = (json['_id'] ?? json['id'])?.toString();
+      if (txnId != null) {
+        final idx = receivedTransactions.indexWhere((t) => t.id == txnId);
+        if (idx >= 0) receivedTransactions.removeAt(idx);
+      }
+
+      final reason = (json['reason'] ?? json['rejection_reason'])?.toString();
+      commonSnackBar(
+        message: verified
+            ? 'Payment verified ✓'
+            : (reason != null && reason.isNotEmpty
+                ? 'Payment not confirmed: $reason'
+                : 'Payment not confirmed'),
+      );
+    } catch (_) {
+      // Best-effort: the order card's own /actions refresh is the fallback.
     }
   }
 

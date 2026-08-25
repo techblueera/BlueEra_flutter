@@ -8,6 +8,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/order_history/service/local_order_store.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -224,6 +225,32 @@ class HmpCartController extends GetxController {
     } catch (_) {}
   }
 
+  /// One idempotency key **per store**, held until that store's order is
+  /// created.
+  ///
+  /// [placeAllOrders] loops one POST per store. Without a key, a response lost
+  /// mid-loop and then retried duplicates every order the loop had already
+  /// placed. Keying per store — not per loop — means a retry re-sends each
+  /// store's own key and each one resolves to the order it already created.
+  final Map<String, CheckoutAttempt> _attempts = {};
+
+  CheckoutAttempt _attemptFor(String key) =>
+      _attempts.putIfAbsent(key, () => CheckoutAttempt());
+
+  /// Call when the cart screen opens, so each store starts a fresh attempt.
+  void beginCheckoutAttempts() {
+    _attempts.clear();
+    for (final key in storeKeys) {
+      _attemptFor(key).begin();
+    }
+  }
+
+  /// Called once a store's order is created (201 or 200) — a NEW order needs
+  /// a NEW key.
+  void _completeAttempt(String key) {
+    _attempts.remove(key)?.complete();
+  }
+
   Map<String, dynamic> _payloadFor(String key) => {
         'items': linesOf(key).map((item) {
           final v = _variantOf(item);
@@ -235,8 +262,13 @@ class HmpCartController extends GetxController {
             'sellingPrice': sellingPriceOf(item),
           };
         }).toList(),
-        'deliveryType': 'self-pickup',
+        'deliveryType': OrderDeliveryType.selfPickup,
         'discount': 0,
+        // Cash is the default and the only method this home-products cart
+        // offers today; sending it explicitly keeps the order out of the UPI
+        // submit/verify flow rather than relying on a server default.
+        'paymentMethod': OrderPaymentMethod.cash,
+        'idempotencyKey': _attemptFor(key).key,
       };
 
   /// Place the order for one seller, drop its cart, return to the home shell,
@@ -265,6 +297,10 @@ class HmpCartController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
         return;
       }
+
+      // 201 = created, 200 = already created under this key. Both succeed, and
+      // both finish this attempt — a new order needs a new key.
+      _completeAttempt(key);
 
       await _saveLocalOrder(key, seller);
       clearStore(key);
@@ -307,6 +343,7 @@ class HmpCartController extends GetxController {
             await _repo.placeProductOrderRepo(params: _payloadFor(key));
         if (response.isSuccess) {
           placed++;
+          _completeAttempt(key);
           // Cart is cleared only after the loop, so lines are still live here.
           if (store != null) await _saveLocalOrder(key, store);
         }

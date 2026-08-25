@@ -8,7 +8,10 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
@@ -26,6 +29,65 @@ import 'package:get/get.dart';
 class ProductSelfPickupController extends GetxController {
   RxBool isPlaceProductOrderLoading = false.obs;
   Rx<ApiResponse> placeProductOrderResponse = ApiResponse.initial('Initial').obs;
+
+  // ── Checkout attempt ──────────────────────────────────────────────────
+  //
+  // One idempotency key per checkout ATTEMPT. `isPlaceProductOrderLoading`
+  // below already guards a double-tap within one session, but it cannot
+  // survive a lost response — the request reaches the server, the reply never
+  // comes back, the user taps again, and the shop gets two orders. The key is
+  // what makes that retry safe. See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+  final CheckoutAttempt _checkoutAttempt = CheckoutAttempt();
+
+  /// Call when the checkout sheet OPENS — not on every tap.
+  void beginCheckoutAttempt() => _checkoutAttempt.begin();
+
+  // ── Delivery & payment choice (set by the checkout sheet) ─────────────
+
+  /// `self-pickup` (default) or `rider`.
+  final RxString deliveryType = OrderDeliveryType.selfPickup.obs;
+
+  /// `cash` (default) or `upi`. With `upi` the customer is asked for money
+  /// only AFTER the shop accepts — if the shop turns out to be closed, nobody
+  /// has to be refunded.
+  final RxString paymentMethod = OrderPaymentMethod.cash.obs;
+
+  /// Address + quote details for a rider order. Required when
+  /// [deliveryType] is `rider`, sent whenever it is known.
+  final Rxn<OrderDeliveryDetails> deliveryDetails =
+      Rxn<OrderDeliveryDetails>();
+
+  /// The quote the customer was actually shown. Kept so the checkout sheet can
+  /// render the fee / ETA / economics note and so the order records it.
+  final Rxn<DeliveryQuote> deliveryQuote = Rxn<DeliveryQuote>();
+
+  bool get isDelivery => deliveryType.value == OrderDeliveryType.rider;
+
+  /// Fetch a delivery quote for the current address. Debounce the caller ~400
+  /// ms on address change. An out-of-radius address answers `feasible:false`
+  /// — a UI state, not an error: the sheet disables the delivery option and
+  /// falls back to self-pickup.
+  Future<DeliveryQuote?> refreshDeliveryQuote({
+    required double shopLat,
+    required double shopLng,
+    required double dropLat,
+    required double dropLng,
+    num? orderValue,
+  }) async {
+    final quote = await OrderLifecycleController.instance.fetchDeliveryQuote(
+      shopLat: shopLat,
+      shopLng: shopLng,
+      dropLat: dropLat,
+      dropLng: dropLng,
+      orderValue: orderValue ?? totalSellingPrice,
+    );
+    deliveryQuote.value = quote;
+    if (quote != null && !quote.feasible) {
+      // Never leave the user on an option that cannot be fulfilled.
+      deliveryType.value = OrderDeliveryType.selfPickup;
+    }
+    return quote;
+  }
 
   /// Flat list of products currently in the cart.
   RxList<GetProductData> selectedProductVariants = <GetProductData>[].obs;
@@ -251,10 +313,28 @@ class ProductSelfPickupController extends GetxController {
         return;
       }
 
+      // The three new fields are all backwards compatible — the old
+      // three-field payload still creates an order — but sending them is what
+      // makes the delivery path reachable, the UPI flow reachable, and a
+      // retry safe.
+      final delivery = deliveryDetails.value;
+      final quote = deliveryQuote.value;
       final Map<String, dynamic> requestBody = {
         "items": itemsList,
-        "deliveryType": "self-pickup",
+        "deliveryType": deliveryType.value,
         "discount": totalSavings,
+        if (delivery != null && !delivery.isEmpty)
+          "delivery": {
+            ...delivery.toJson(),
+            // Record what the customer was shown, not what we can recompute.
+            if (quote != null) ...{
+              if (quote.distanceKm != null) 'distanceKm': quote.distanceKm,
+              if (quote.deliveryFee != null) 'feeEstimate': quote.deliveryFee,
+              if (quote.etaMinutes != null) 'etaMinutes': quote.etaMinutes,
+            },
+          },
+        "paymentMethod": paymentMethod.value,
+        "idempotencyKey": _checkoutAttempt.key,
       };
 
       logs('placeProductOrderApi request: $requestBody');
@@ -273,9 +353,18 @@ class ProductSelfPickupController extends GetxController {
         return;
       }
 
+      // 201 = created, 200 = you already created this one (the idempotency key
+      // matched an earlier attempt). Both are success, and both mean this
+      // attempt is finished — a NEW order needs a NEW key.
+      _checkoutAttempt.complete();
+
       placeProductOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
       clearCart();
+      deliveryDetails.value = null;
+      deliveryQuote.value = null;
+      deliveryType.value = OrderDeliveryType.selfPickup;
+      paymentMethod.value = OrderPaymentMethod.cash;
 
       // Land on Discover (index 1) instead of the chat screen — the placed
       // order surfaces there in the "Orders in 12 Hrs." rail. The business

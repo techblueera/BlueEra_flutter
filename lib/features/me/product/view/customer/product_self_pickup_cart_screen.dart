@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_options_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/discount_ribbon.dart';
@@ -44,6 +45,17 @@ class _ProductSelfPickUpCartScreenState
   final RxSet<String> selectedVariantIds = <String>{}.obs;
 
   bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // One idempotency key per checkout ATTEMPT — started when the cart screen
+    // (the checkout surface) opens, not on every Place-order tap. A key
+    // regenerated per tap would defeat the point; this one is what makes a
+    // retry after a lost response resolve to the SAME order instead of a
+    // second one. See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.1.
+    Get.find<ProductSelfPickupController>().beginCheckoutAttempt();
+  }
 
   String? _variantIdOf(GetProductData product) {
     final variants = product.product.sellerClassification?.variants;
@@ -128,8 +140,8 @@ class _ProductSelfPickUpCartScreenState
   /// from the controller's cart, then place the order. Without this
   /// the API would receive every variant in the cart regardless of
   /// checkbox state. Same approach as the grocery cart.
-  void _placeOrder(ProductSelfPickupController controller,
-      Map<String, List<GetProductData>> grouped) {
+  Future<void> _placeOrder(ProductSelfPickupController controller,
+      Map<String, List<GetProductData>> grouped) async {
     final toDrop = <GetProductData>[];
     for (final entry in grouped.entries) {
       final shopChecked = selectedBusinessIds.contains(entry.key);
@@ -149,7 +161,58 @@ class _ProductSelfPickUpCartScreenState
       }
     }
 
+    // Ask how they want it and how they'll pay BEFORE placing the order.
+    // Both are new fields on `POST /api/orders`; without them the rider path
+    // and the whole UPI verification flow are unreachable from the app.
+    // The quote inside the sheet is fetched before the customer commits, so
+    // the fee they saw is the fee the order records.
+    final itemsTotal = grouped.entries.fold<double>(
+        0, (sum, e) => sum + _calcTotal(e.value, controller));
+
+    // Coordinates of the (single) shop being ordered from — a multi-store cart
+    // can't be quoted as one delivery, so delivery is offered only when the
+    // cart is down to one shop.
+    final businessIds =
+        grouped.keys.where((k) => selectedBusinessIds.contains(k)).toList();
+    final singleShop = businessIds.length == 1;
+
+    if (!mounted) return;
+    final choice = await showOrderCheckoutSheet(
+      context,
+      itemsTotal: itemsTotal,
+      shopLat: singleShop ? _shopLatOf(controller, businessIds.first) : null,
+      shopLng: singleShop ? _shopLngOf(controller, businessIds.first) : null,
+      shopName: singleShop
+          ? controller.cartBusinessInfo.values
+              .firstWhere(
+                (info) => info['businessId'] == businessIds.first,
+                orElse: () => const {},
+              )['businessName']
+          : null,
+      allowDelivery: singleShop,
+    );
+    if (choice == null) return;
+
+    controller.deliveryType.value = choice.deliveryType;
+    controller.paymentMethod.value = choice.paymentMethod;
+    controller.deliveryDetails.value = choice.delivery;
+    controller.deliveryQuote.value = choice.quote;
+
     controller.placeProductOrderApi();
+  }
+
+  /// Shop coordinates are not carried on the cart's business info map today,
+  /// so delivery quoting is only offered where the app already knows them.
+  /// Returning null simply means the sheet shows "this shop has not set a
+  /// location yet" and keeps self-pickup — never a broken quote.
+  double? _shopLatOf(ProductSelfPickupController controller, String businessId) {
+    final info = controller.storeInfoOf(businessId);
+    return double.tryParse(info['lat'] ?? '');
+  }
+
+  double? _shopLngOf(ProductSelfPickupController controller, String businessId) {
+    final info = controller.storeInfoOf(businessId);
+    return double.tryParse(info['lng'] ?? '');
   }
 
   @override

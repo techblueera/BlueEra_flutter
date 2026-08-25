@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/property_enquiry_model.dart';
@@ -480,6 +481,17 @@ class MessageMetadata {
   String? medicalPickupOrderId;
   SelfPickupOrderModel? medicalPickupOrder;
 
+  /// Server-computed order state machine, written onto every order card by the
+  /// chat service from the order service's events. Carries the same action
+  /// lists as `GET /api/orders/:id/actions`, so a card renders its buttons,
+  /// its banner and its countdowns with **no network call at all**.
+  ///
+  /// Null on orders created before the lifecycle rollout, and on verticals
+  /// whose service is not yet ported — those cards fall back to their legacy
+  /// `order_status` / `is_cancelled` rendering.
+  /// See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §1.2.
+  OrderLifecycle? lifecycle;
+
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
@@ -568,6 +580,27 @@ class MessageMetadata {
   String? utrNo;
   num? amount;
 
+  /// Server-side state of a recorded payment: `pending` | `verified` |
+  /// `rejected`. Until this existed the card could only say "Payment Sent",
+  /// which reads as settled — a `pending` payment is a CLAIM, and the card
+  /// must say so.
+  String? paymentTxnStatus;
+
+  /// Order this payment belongs to, when it was recorded against one. Lets the
+  /// payee's verify/reject go through the order service (which advances the
+  /// order state machine) instead of the bare transaction endpoint.
+  String? paymentOrderRef;
+
+  /// Which vertical's order service owns [paymentOrderRef].
+  String? paymentOrderService;
+
+  /// What the order actually costs, so the card can put paid-vs-due side by
+  /// side rather than showing one number with nothing to compare it to.
+  num? paymentExpectedAmount;
+
+  /// Server's own verdict on the comparison above.
+  bool? paymentAmountMismatch;
+
   // Admin broadcast / BlueEra announcement fields (see
   // BROADCAST_AND_PAYMENT_NOTIFICATIONS_INTEGRATION.md §6.1). Populated from
   // `metadata.*` on both live socket payloads and REST history — read these
@@ -614,6 +647,7 @@ class MessageMetadata {
     this.tiffinPickupOrder,
     this.medicalPickupOrderId,
     this.medicalPickupOrder,
+    this.lifecycle,
     this.riderAssociationId,
     this.riderAssociation,
     this.rideOrderId,
@@ -648,6 +682,11 @@ class MessageMetadata {
     this.paymentQrId,
     this.payeeUserId,
     this.utrNo,
+    this.paymentTxnStatus,
+    this.paymentOrderRef,
+    this.paymentOrderService,
+    this.paymentExpectedAmount,
+    this.paymentAmountMismatch,
     this.amount,
     this.isAnnouncement,
     this.broadcastId,
@@ -712,6 +751,10 @@ class MessageMetadata {
           (json['order'] != null && json['medicalPickupOrderId'] != null)
               ? SelfPickupOrderModel.fromJson(json['order'])
               : null,
+      lifecycle: json['lifecycle'] is Map
+          ? OrderLifecycle.fromJson(
+              Map<String, dynamic>.from(json['lifecycle']))
+          : null,
       riderAssociationId: json['riderAssociationId']?.toString(),
       riderAssociation: json['riderAssociation'] != null
           ? RiderAssociationMetadata.fromJson(
@@ -823,6 +866,19 @@ class MessageMetadata {
       amount: json['amount'] is num
           ? json['amount']
           : num.tryParse('${json['amount']}'),
+      paymentTxnStatus:
+          (json['status'] ?? json['payment_status'])?.toString(),
+      paymentOrderRef:
+          (json['order_ref'] ?? json['order_id'] ?? json['orderRef'])
+              ?.toString(),
+      paymentOrderService:
+          (json['order_service'] ?? json['orderService'])?.toString(),
+      paymentExpectedAmount: json['expected_amount'] is num
+          ? json['expected_amount']
+          : num.tryParse('${json['expected_amount']}'),
+      paymentAmountMismatch: json['amount_mismatch'] is bool
+          ? json['amount_mismatch']
+          : null,
       isAnnouncement: json['is_announcement'] == true,
       broadcastId: json['broadcast_id']?.toString(),
       link: json['link']?.toString(),
@@ -858,6 +914,7 @@ class MessageMetadata {
       'rider': rider?.toJson(),
       'selfpickupOrderId': selfpickupOrderId,
       'foodPickupOrderId': foodPickupOrderId,
+      'lifecycle': lifecycle?.toJson(),
       'productPickupOrderId': productPickupOrderId,
       'homeMadeFoodPickupOrderId': homeMadeFoodPickupOrderId,
       'tiffinPickupOrderId': tiffinPickupOrderId,
@@ -896,6 +953,11 @@ class MessageMetadata {
       'approval_status': approvalStatus,
       'payment_qr_id': paymentQrId,
       'payee_user_id': payeeUserId,
+      'status': paymentTxnStatus,
+      'order_ref': paymentOrderRef,
+      'order_service': paymentOrderService,
+      'expected_amount': paymentExpectedAmount,
+      'amount_mismatch': paymentAmountMismatch,
       'utr_no': utrNo,
       'amount': amount,
       'is_announcement': isAnnouncement,

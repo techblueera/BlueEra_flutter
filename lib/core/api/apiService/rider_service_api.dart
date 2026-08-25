@@ -162,6 +162,18 @@ mixin RiderServiceApi {
   // OTPs. See docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
   final String chatDispatchOrders = 'rider-service/fare/chat-dispatch/orders';
 
+  // Delivery FARE QUOTE for a chat self-pickup order — called BEFORE the
+  // customer commits, so the checkout sheet can show the real fee, the ETA
+  // range and the "delivery costs more than the order" economics note.
+  //
+  // `GET rider-service/fare/chat-dispatch/quote
+  //      ?shopLat=&shopLng=&dropLat=&dropLng=&distance_in_km=&orderValue=`
+  //
+  // An out-of-radius address answers **200 with `feasible:false`**, not an
+  // error — the UI disables the delivery radio and shows `message`.
+  // See lib/docs/FLUTTER_ORDER_FLOW_UI_GUIDE.md §4.2.
+  final String chatDispatchQuote = 'rider-service/fare/chat-dispatch/quote';
+
   // Multi-shop (multi-stop) orders. Additive — single-stop flow is unchanged.
   // 1) Sort shops furthest→nearest + find riders near the furthest shop.
   final String multiShopRiders = 'rider-service/fare/multi-shop/riders';
