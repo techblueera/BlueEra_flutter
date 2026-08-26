@@ -193,8 +193,6 @@ class AuthController extends GetxController {
             if (data.data?.accountType?.toUpperCase() == AppConstants.business) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.accountType, AppConstants.business);
-              await SharedPreferenceUtils.setSecureValue(
-                  SharedPreferenceUtils.userBusinessId, data.data?.business);
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
               // Mark the session logged in HERE, at the moment we actually
               // hold a token — not later as a side effect of the profile
@@ -208,6 +206,11 @@ class AuthController extends GetxController {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.isUserLogin, "true");
               isUserLoginGlobal = "true";
+              // Persist `data._id` and `data.business` NOW, from the response
+              // that carried the token — not later, as a side effect of a
+              // profile fetch that may never succeed. Every products screen in
+              // the Me section is keyed on businessId.
+              await _persistLoginIdentity(data);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               // Populate the in-memory globals directly from `data` instead of
@@ -220,9 +223,6 @@ class AuthController extends GetxController {
               // not safe under concurrent access, and this is the auth-token
               // path.) Mirrors the guards in those helpers: businessId only
               // adopts a non-empty value; accountType/mobile fall back to "".
-              if ((data.data?.business ?? '').trim().isNotEmpty) {
-                businessId = data.data!.business!;
-              }
               authTokenGlobal = data.token;
               accountTypeGlobal = AppConstants.business;
               userMobileGlobal = data.data?.contactNo ?? "";
@@ -235,6 +235,9 @@ class AuthController extends GetxController {
               // full refresh on every login was redundant churn (it re-synced
               // the token 2-3× and janked the home-screen build).
               unawaited(AppNotificationHandler.flushPendingTokenSync());
+              // Mirror the token to native prefs so the incoming-call
+              // notification's Decline can POST with the app killed.
+              unawaited(syncCallAuthToNative());
               // iOS: also (re)register the VoIP/PushKit token now that we're
               // authenticated. The one-shot launch sync bailed while logged
               // out, so without this first-login devices never deliver their
@@ -288,6 +291,10 @@ class AuthController extends GetxController {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.isUserLogin, "true");
               isUserLoginGlobal = "true";
+              // Both ids from the SAME response that gave us the token — see
+              // [_persistLoginIdentity]. An individual can carry a business id
+              // too, so this branch writes whatever arrived rather than assuming.
+              await _persistLoginIdentity(data);
               // Set the globals directly from `data` instead of re-reading the
               // three keys we just wrote (getMobileNo/getUserLoginAccountType/
               // getUserAuthToken) — those were redundant secure-storage
@@ -299,6 +306,9 @@ class AuthController extends GetxController {
               // pre-login window (see business branch above). No extra FCM
               // refresh here — flushPendingTokenSync already sends a live token.
               unawaited(AppNotificationHandler.flushPendingTokenSync());
+              // Mirror the token to native prefs so the incoming-call
+              // notification's Decline can POST with the app killed.
+              unawaited(syncCallAuthToNative());
               // iOS: (re)register the VoIP/PushKit token now we're authed —
               // see business branch above.
               unawaited(AppNotificationHandler.syncVoipToken(force: true));
@@ -426,6 +436,49 @@ class AuthController extends GetxController {
       commonSnackBar(message: e.toString());
       // Get.dialog(CustomText(e.toString()));
     }
+  }
+
+  /// Persists the two ids the verify-otp response carries — `data._id` (the
+  /// user) and `data.business` (the shop) — into secure storage AND the
+  /// in-memory globals, in one place for every account type.
+  ///
+  /// ## Why this is not left to the profile fetch
+  ///
+  /// `userId` used to be written only by `SharedPreferenceUtils
+  /// .userLoggedInBusiness()`, which runs from `_applyBusinessProfileData()` —
+  /// i.e. only if the business-profile fetch SUCCEEDS. Exactly the trap
+  /// `isUserLogin` was pulled out of above: a login whose profile fetch failed
+  /// or never ran kept a valid token and an empty id for the rest of the
+  /// session. `businessId` had the same shape of hole, and every products
+  /// screen in the Me section is keyed on it — an empty one is why the Food
+  /// Products tab sat on its loader with nothing to fetch.
+  ///
+  /// verify-otp already returns both. Writing them at the moment the token
+  /// lands means the ids are as durable as the session itself, and no later
+  /// request has to succeed first.
+  ///
+  /// Logged either way: an id that did not arrive is the thing you want to see
+  /// in the log, not a silent no-op — and `setSecureValue` treats null as a
+  /// no-op precisely so a null cannot WIPE a good stored value, which also
+  /// means a null write leaves no trace of its own.
+  Future<void> _persistLoginIdentity(OtpVerifyModel data) async {
+    final loginUserId = (data.data?.id ?? '').trim();
+    final loginBusinessId = (data.data?.business ?? '').trim();
+
+    if (loginUserId.isNotEmpty) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.loginUserId, loginUserId);
+      userId = loginUserId;
+    }
+    if (loginBusinessId.isNotEmpty) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.userBusinessId, loginBusinessId);
+      businessId = loginBusinessId;
+    }
+
+    logs('LOGIN IDENTITY === accountType=${data.data?.accountType} '
+        'userId=${loginUserId.isEmpty ? '<missing>' : loginUserId} '
+        'businessId=${loginBusinessId.isEmpty ? '<missing>' : loginBusinessId}');
   }
 
   Future<void> addIndividualUser({required Map<String, dynamic>? reqData}) async {

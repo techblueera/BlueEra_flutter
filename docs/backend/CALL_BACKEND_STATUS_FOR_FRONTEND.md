@@ -1,201 +1,347 @@
-# Calls — backend status, item by item
+# Calls — backend status (rev 3): everything you asked for is built
 
-**Reply to:** `CALL_BACKEND_REQUIREMENTS.md`
-**Verified against:** `be_call_service` on `prod-staging`, read line by line — not from memory.
+**Reply to:** `CALL_NOTIFICATION_REQUIREMENTS.md`
+**Supersedes:** rev 2
+**Status:** implemented on `prod-staging` working trees, **not yet committed or
+deployed** — review the diff before it ships.
 
-**Headline: §2, §5 and §6 are already built and merged.** They were the whole of
-the old `CALL_SIGNALLING_BACKEND_UPDATES.md`. If they look absent in testing,
-check the deploy on `call.beapp.in` before filing anything — the code is on
-`prod-staging`.
+Your §1 and §2 asks are done, and all four decisions in your §3 are implemented.
+One extra section at the end, §7, is the UI spec for the busy-call flow.
 
-## Checklist status
+| Your item | Status |
+|---|---|
+| §1 `call_ended` push | ✅ **Built** — all four `end_reason` values, silent, own channel |
+| §1 `call_status: "network_error"` + "Call disconnected" | ✅ **Built** — enum widened, both teardown paths |
+| §2 400 vs 404 stay distinguishable, ended-call carries `call_id` | ✅ **Built** — plus typed `code` on both |
+| §3 drop the 2000 ms cancel suppression | ✅ **Removed** |
+| §3 ring window → 30 s | ✅ **Changed** (was 20 s) |
+| §3 `connected_at` on accept + `call:accepted` | ✅ **Built** — not on `call:answer`, per your decision |
+| §3 device-aware `call/active` | ⏸ deferred with §1's reshape, as you asked |
 
-| # | Item | Status |
+**One bug found while doing this — see §6.** `call_status: "busy"` was already
+being written by `call/decline` but was **not in the chat schema's enum**. It
+survived only because the gRPC bridge updates without validators; any later
+`.save()` on that message would have thrown. Fixed in the same change.
+
+---
+
+## 1. `call_ended` — the new push
+
+Fires when a call that was **answered** ends, on both teardown paths:
+a normal hang-up (`POST call/end`) and the 10 s network-drop timeout.
+
+```jsonc
+{
+  "operation": "call_ended",
+  "data": {
+    "call_id": "…", "room_id": "…", "conversation_id": "…", "message_id": "…",
+    "call_type": "audio_call" | "video_call",
+    "is_group": false,
+    "end_reason": "completed" | "network_error",
+    "duration_seconds": 143,
+    "title": "Call ended",
+    "message": "Voice call ended · 2:23",     // or "Voice call disconnected"
+    "ttl_seconds": 30
+  },
+  "callerData": { /* the §7 shape, unchanged */ }
+}
+```
+
+Same envelope as everything else: `data.payload = JSON.stringify(data)`, so your
+existing `payload.call_id` read works untouched.
+
+**Sent to both participants, and each receipt names the other person.** For a
+1-to-1 call it is published twice with the sender swapped, so A's notification
+reads *"Call with Bhupinder"* and B's reads *"Call with Anjali"*. Group calls name
+the initiator. `callerData` is therefore the **other party**, not always the caller.
+
+**It is deliberately the quietest notification in the system:**
+
+| | |
+|---|---|
+| Android channel | `call_updates` — **new**, importance `low` |
+| Sound | none (no `sound` key at all) |
+| Priority | `normal` (Android) / `apns-priority: 5` (iOS) |
+| `fullScreenIntent` | no |
+| APNs `category` | **none** — a call category would put CallKit affordances on a dead call |
+| VoIP / PushKit | **never** — see the note below |
+| Mutable | **yes**, under the `chat` preference category |
+
+> **Why it is not in `CALL_OPERATIONS`.** That set also switches on the iOS
+> VoIP/PushKit path, gated on `isCallOp && hasRealCall`. `call_ended` carries a
+> real `call_id`, so adding it there would have rung a CallKit incoming-call UI
+> for a call that had just finished. It is in a new `DEDUPED_OPERATIONS` set
+> instead, which gives it Kafka retry-dedupe without the ring.
+
+**All four `end_reason` values are emitted**, and the audience differs by design:
+
+| `end_reason` | Fires on | Sent to | `duration_seconds` |
+|---|---|---|---|
+| `completed` | `POST call/end` | both participants | real duration |
+| `network_error` | the 10 s disconnect teardown | both participants | duration up to the drop |
+| `declined` | `POST call/decline` | **the caller only** | `0` |
+| `busy` | `POST call/decline` with `reason: "busy"` | **the caller only** | `0` |
+
+**Why decline notifies only one side.** The person who pressed Decline performed
+the action deliberately — a "call ended" banner for something you just did reads
+as a bug. The caller is the one who needs telling, and until now got nothing at
+all: **no push of any kind was published on the decline path**, so a caller whose
+app had been killed simply watched the call go silent with nothing to tap. That
+was a real hole and your enum closed it.
+
+Titles differ so the notification is readable without opening it: *"Call
+declined"*, *"User was busy"*, *"Call ended"*.
+
+**Dedupe fix that came with it.** The producer's `dedupe_key` was
+`${call_id}:${operation}` — with two `call_ended` publishes per call, the
+notification service's 60 s window swallowed the second one and only one of the
+two people got a receipt. The key now includes the sorted receiver set, so
+retry-dedupe still works and legitimate second publishes get through.
+
+---
+
+## 2. Dead-call responses — now typed, and they carry `call_id`
+
+`POST call/accept`, unchanged status codes, richer bodies:
+
+```jsonc
+// 404 — no such call
+{ "success": false, "code": "CALL_NOT_FOUND", "message": "Call not found",
+  "call_id": "<the id you sent>" }
+
+// 400 — the call existed and is over
+{ "success": false, "code": "CALL_NO_LONGER_ACTIVE",
+  "message": "Call is no longer active",
+  "call_id": "…", "status": "ended", "end_reason": "completed" }
+```
+
+The two stay distinct, as you asked. `call_id` is echoed on both so a
+cold-booted process can match the refusal to the notification that launched it
+rather than guessing. `end_reason` is a bonus — it tells you *why* the call is
+gone, which is the difference between "they hung up" and "you were too slow".
+
+---
+
+## 3. `connected_at`
+
+Places 1 and 2 only, per your decision. Nothing was wired into `call:answer`.
+
+```jsonc
+// POST call/accept — response
+{ "success": true, "ice_servers": { … }, "connected_at": 1756118220000, "call": { … } }
+
+// socket call:accepted
+{ "call_id": "…", "room_id": "…", "accepted_by": "…",
+  "connected_at": 1756118220000, "metadata": null }
+```
+
+Epoch **milliseconds**, server clock, taken from the same `started_at` the
+call-log duration is computed from — so both ends now agree. `null` for a call
+that somehow has no `started_at`; keep your local anchor as the fallback.
+
+Place 4 (`GET call/active`) still waits for that endpoint's reshape.
+
+---
+
+## 4. Ring window is now 30 seconds
+
+`RINGING_TIMEOUT_MS` 20 s → **30 s**, and the Redis `RINGING_TTL` 20 s → 30 s to
+match (an expired ringing key meant a receiver coming back online mid-ring had
+nothing to recover from). The sweeper polls every 5 s, so a call is actually
+missed at **30–35 s**. Your UI, your copy and the push TTL now agree with the
+server.
+
+---
+
+## 5. The cancel-race suppression is gone
+
+The 2000 ms skip in `call/cancel` is deleted. A `missed_call` push now goes out
+**every** time the caller cancels, including inside the accept → app-launch
+window. Your `call_id` de-duplication is what absorbs the flicker on a warm
+device, exactly as you proposed.
+
+---
+
+## 6. Dropped calls in the chat bubble — and a latent bug
+
+**Your decision implemented:** a call torn down by the network-drop path now
+writes `call_status: "network_error"` with the text **"Call disconnected"**, on
+both the message and the conversation preview. A normal hang-up is unchanged —
+`"completed"` / `"Call ended - 2:23"`.
+
+Both paths were fixed: `POST call/end` with `end_reason: "network_error"`, and
+the server-side 10 s disconnect teardown, which previously wrote
+`"completed"` / *"Call ended - 0:00"* for every dropped call.
+
+**The bug.** Widening the enum in `message.schema.js` exposed that
+`call_status: "busy"` — written by `call/decline` since the busy-signal work —
+was **never in the enum**. It only ever persisted because the gRPC bridge uses
+`findByIdAndUpdate` without validators; any code path that later loaded that
+message and called `.save()` would have thrown a ValidationError on it. Both
+`"network_error"` and `"busy"` are now declared.
+
+So the enum your bubble can receive is:
+
+```
+ringing · connecting · completed · missed · declined · network_error · busy · failed · null
+```
+
+---
+
+## 7. Busy calls — do not show an error, show the call UI
+
+This is the UI spec for the flow you raised. **A busy callee is a call outcome,
+not a request failure**, and it must never surface as a toast, snackbar or
+dialog. The caller taps Call, gets a call screen, and the call screen tells them
+what happened — the same way a phone does.
+
+### 7.1 Two paths that must look identical
+
+| Path | When | What arrives |
 |---|---|---|
-| 1 | `GET call/active` restorable | ⚠️ **Endpoint exists, response is thin** |
-| 2 | Participant-drop timeout (10s) | ✅ **Done** |
-| 3 | `connected_at` | ❌ Not exposed — but the value exists |
-| 4 | Terminal push to terminated devices | ⚠️ **Partly** — see below, one part works against you |
-| 5 | `reason: "busy"` on decline | ✅ **Done** |
-| 6 | `end_reason` + idempotent `call/end` | ✅ **Done** |
-| 7 | One shape for caller name / image | ✅ **Both channels already send it** |
-| 8 | TTL on `incoming_call` push | ❌ Not in this service |
+| **A — pre-flight** | the server already knows the callee is on a call | `POST call/initiate` → **409** `code: "RECEIVER_BUSY"` |
+| **B — race** | both calls start at once; the callee's app auto-declines the second | call goes out, then `call:ringing` → `{ state: "busy", reason: "receiver_busy" }` |
 
----
+The caller cannot tell these apart and should not be able to. **Both render the
+same screen.** Path B already lands in the call UI; path A is the one that
+currently shows an error, and that is the change.
 
-## ✅ §2 — Participant-drop timeout: done
+The 409 now carries everything path B does:
 
-All three requirements are live:
-
-- **10 seconds**, matching your client exactly (`index.js`, `DISCONNECT_GRACE_MS = 10000`).
-- Marked `end_reason: "network_error"` on the call record.
-- `call:ended` emitted to everyone remaining with `reason: "network_error"` and the real `duration_seconds`.
-
-**Your open question #3 — yes, there is a presence signal, and it already drives this.**
-The chat service publishes `call:user:disconnected` / `call:user:connected` over
-Redis pub/sub. The timer starts on disconnect and is **cancelled the moment the
-user reconnects**. A transport upgrade or cell handover will not end a healthy
-call — the exact case you were worried about.
-
-## ✅ §5 — Busy signal: done
-
-`POST call/decline` reads your optional `reason`. When it is `"busy"`:
-
-- the caller receives `call:ringing` with `state: "busy"`, `reason: "receiver_busy"`
-- the call is recorded with `end_reason: "busy"`, not missed
-- the chat entry reads **"User is busy"**
-
-Nothing further needed from you — `CallRingingState.busy` will fire.
-
-## ✅ §6 — `end_reason` + idempotency: done
-
-- `POST call/end` accepts and persists your `end_reason`.
-- A late or duplicate `call/end` for an already-ended call short-circuits: it
-  returns success, writes no second entry, and **will not overwrite** a real
-  `end_reason` such as `network_error` with `completed`.
-- The call record distinguishes dropped from completed.
-
-⚠️ One known gap on §6.3: the **chat bubble** for a dropped call still says
-`call_status: "completed"` and *"Call ended - 0:00"*. The call record is correct;
-the message text is not. Fixing it needs a new value in the chat service's
-`call_status` enum, which changes what your bubble renders — tell us which you
-want and we will do it together rather than guess.
-
----
-
-## ⚠️ §1 — `GET call/active` exists, but returns too little
-
-**Answer to your open question #1: yes it exists, and this is a delta, not a new endpoint.**
-
-Today it returns the Redis active-call hash plus the room and participant list:
-
-```json
-{
-  "success": true,
-  "active_call": {
-    "call_id": "…", "conversation_id": "…", "initiated_by": "…",
-    "call_type": "audio_call", "status": "ringing", "is_group_call": "false",
-    "room_id": "…", "participants": ["user_1", "user_2"]
-  }
-}
+```jsonc
+{ "success": false, "code": "RECEIVER_BUSY", "message": "User is on another call",
+  "busy": true, "reason": "receiver_busy",
+  "busy_users": ["user_123"], "target_user_id": "user_123" }
 ```
 
-`{ "active_call": null }` with `200` when nothing is live — already the shape you asked for.
+### 7.2 The sequence
 
-**Missing against your §1 contract:** `i_am_caller`, `peer.name`,
-`peer.profile_image`, `connected_at`, `ice_servers`, `metadata`.
+```
+t = 0        user taps Call
+             → push OutgoingCallScreen IMMEDIATELY (name, avatar, "Calling…")
+             → start the ring-back tone
+             → the network request has not returned yet, and that is fine
 
-**One behavioural gap worth knowing:** a **ringing receiver gets `null`**. The
-`user_active_call` key is written when a user *initiates*, *accepts* or *joins* —
-never while merely being rung. So your §1 rule *"ringing counts as active"* is not
-satisfied today: a receiver killed while the phone was ringing cannot recover the
-incoming call. That is a separate fix from widening the response.
+t ≈ 0.3 s    409 RECEIVER_BUSY arrives
+             → DO NOT pop the screen
+             → hold "Calling…" until a minimum dwell of 700 ms has passed
 
-Note the Redis hash stringifies everything — `is_group_call` comes back as
-`"false"`, not `false`. If you consume the endpoint before it is reshaped, parse
-defensively.
+t = 0.7 s    → cross-fade the status line to "Anjali is on another call"
+             → stop ring-back, start the busy tone
+             → surface [ Call again ] and [ Message ]
 
-## ❌ §3 — `connected_at` not exposed, but the value exists
-
-**Answer to your open question #2: yes.** `call/accept` already stamps
-`started_at` on the call record at the moment the accept succeeds — which is
-exactly the definition you proposed. So §3 is *exposing an existing value*, not
-computing a new one.
-
-Not currently returned in any of the four places you listed: the `call/accept`
-response returns `{ success, ice_servers, call }`, and `call:accepted` carries
-`{ call_id, room_id, accepted_by, metadata }`.
-
-Keep your local anchor until this ships.
-
-## ⚠️ §4 — Terminal push: partly there, and one part works against you
-
-**What works:** `missed_call` is published to the notification service on both
-caller-cancel and ring-timeout. `POST call/accept` returns **404** for a call
-that no longer exists, which is the behaviour you asked to keep.
-
-**Three gaps:**
-
-1. **`call_cancelled` is never sent.** Only `missed_call` exists. If your handler
-   keys on `operation == "call_cancelled"`, it will never fire — treat
-   `missed_call` as the cancel signal for now, or ask us to add the second
-   operation.
-
-2. **The cancel race is deliberately suppressed.** If the caller cancels within
-   **2 seconds** of initiating, the push is skipped on purpose — the reasoning
-   was that the incoming banner had not landed yet and replacing it caused a
-   pop-and-replace flicker. That is precisely the accept → launch window in your
-   §4, so for a very fast cancel a terminated device gets **no** terminal push.
-   These two intentions are in direct conflict and it needs a joint decision:
-   suppress the flicker, or guarantee the cancel reaches a cold-booting device.
-   We would rather you pick.
-
-3. **A call that has *ended* returns `400`, not `404`.** 404 is only for
-   "call not found". If your "Call is no longer available" path keys on 404 alone,
-   handle **400 with `message: "Call is no longer active"`** the same way.
-
-## ✅ §7 — Both channels already send the shape you want
-
-`call:incoming` carries `caller_info.name` and `caller_info.profile_image`,
-resolved over gRPC, with the business name and logo preferred for business
-accounts. That is the shape you asked for.
-
-The **FCM** side already sends the shape you asked for too. The notification
-service builds `data.callerData` for every call operation:
-
-```json
-{
-  "id": "…", "name": "…", "profile_image": "…",
-  "contact_no": "…", "account_type": "…", "username": "…",
-  "businessData": { "business_name": "…", "logo": "…" }
-}
+t = 2.7 s    → busy tone ends → auto-dismiss back to the chat
+             (unless the user has touched the screen — then it stays)
 ```
 
-So `callerData.name` and `callerData.profile_image` are both there. **You can drop
-`data.senderName` and `callerData.username` from your fallback chain**, and all
-six socket-side aliases.
+**The 700 ms minimum dwell is the whole trick.** A 409 can return in 200 ms; if
+you switch the moment it lands, the screen flashes and reads as a crash. Holding
+"Calling…" briefly makes it read as a call that was placed and answered by a busy
+line — which is exactly what happened.
 
-Two caveats:
+### 7.3 The screen
 
-- On the socket side `caller_info` is **omitted entirely** when the gRPC lookup
-  fails, rather than sent empty. Keep one fallback for a missing `caller_info`.
-- For a **business caller**, `callerData.name` is the sender's own name while the
-  business name sits separately under `callerData.businessData.business_name`.
-  The notification service re-fetches the sender for call operations, so which of
-  the two lands in `name` is worth one spot-check with a business account before
-  you rely on it. `caller_info.name` on the socket already prefers the business
-  name.
+```
+┌──────────────────────────────────────┐
+│                                      │
+│              ( avatar )              │
+│                                      │
+│           Anjali Thakur              │
+│                                      │
+│      ● Anjali is on another call     │   ← was "Calling…" 700 ms ago
+│                                      │
+│         ♪ busy tone (2 s)            │
+│                                      │
+│   [ Call again ]      [ Message ]    │
+│                                      │
+│                 ✕                    │
+└──────────────────────────────────────┘
+```
 
-## ❌ §8 — TTL: not this service
+- Status line uses the **name** when you have it (`caller_info.name` from the
+  conversation), falling back to *"User is busy"* — the existing
+  `CallRingingState.busy` label.
+- **Do not turn the screen red or show a warning icon.** Busy is a normal
+  outcome. Neutral surface, muted status colour.
+- **Do not vibrate.** The user is holding the phone and looking at it.
+- `Call again` re-fires `initiate`; a second busy just replays this screen.
+- `Message` drops straight into the conversation — usually what the caller
+  actually wants.
 
-`android.ttl` / `apns-expiration` are set where the FCM message is built, in the
-notification service. Not something we can change here. You have already noted it
-is belt-and-braces since the client drops pushes older than 45s.
+### 7.4 `CALLER_ALREADY_IN_CALL` is a different screen
+
+`POST call/initiate` also returns 409 when **you** are the one already on a call.
+That is not a busy callee and must not look like one:
+
+```jsonc
+{ "success": false, "code": "CALLER_ALREADY_IN_CALL",
+  "message": "You are already in a call", "room_id": "room_51a…" }
+```
+
+**Never open an outgoing-call screen for this.** Show an inline prompt —
+*"You're already on a call"* with **[ Return to call ]** — and use the returned
+`room_id` to restore the live call. Rendering "User is busy" here blames the
+wrong person, which is why these two 409s now carry different codes instead of
+different message strings.
+
+### 7.5 Group calls
+
+`initiate` does **not** fail when some invitees are busy — it filters them out
+and rings the rest, returning `busy_users` in the 200 response. The
+caller-facing `call:ringing` then carries a per-participant list with
+`state: "busy"`. Render those as a muted **"busy"** chip next to the person in
+the participant list; do not treat the call as failed.
+
+### 7.6 One thing to know
+
+A **path A** busy produces **no call record and no chat bubble** — the call was
+refused before anything was created, so nothing appears in call history. A
+**path B** busy does create one, logged as `end_reason: "busy"` with the bubble
+*"User is busy"*. If you want path A to leave a history entry too, that is a
+backend change and we should discuss whether an un-placed call belongs in
+history at all.
 
 ---
 
-## Your open question #4 — multi-device
+## 8. Files changed
 
-**Today `call/active` would return the call on *both* devices.** The lookup key is
-`user_active_call:{userId}` — per user, not per device — so the service cannot
-tell the device that answered from the one that did not. `call:answered-elsewhere`
-*is* emitted, so the socket path is correct; the REST endpoint simply has no
-device identity to work with.
+**be_call_service**
 
-Making it per-device means threading a device id through the call session. Worth
-deciding when §1 is reshaped, not after.
+| File | Change |
+|---|---|
+| `src/controllers/call.controller.js` | `sendCallEndedNotification()` helper; wired into `endCall`, `handleCallDisconnect` and `declineCall` (caller-only); `connected_at` on accept + `call:accepted`; typed codes on the two 409s and the accept 400/404; `network_error` bubble copy; cancel-race suppression removed |
+| `src/utils/notificationHelper.js` | `dedupe_key` now includes the receiver set |
+| `src/utils/ringingTimeout.js` | ring window 20 s → 30 s |
+| `src/utils/callStateManager.js` | `RINGING_TTL` 20 s → 30 s |
+
+**be_notification_service**
+
+| File | Change |
+|---|---|
+| `src/utils/firebaseNotification.js` | `call_ended` FCM config (silent, low priority); `call_updates` channel; APNs alert copy; `callerData` for `call_ended` |
+| `src/utils/consumer.js` | `DEDUPED_OPERATIONS` so `call_ended` dedupes **without** entering the VoIP path |
+| `src/utils/notificationCategories.js` | `call_ended` under `chat`, deliberately **not** a bypass operation |
+| `public/notification-templates.json` | `call_ended` template |
+| `public/in-app-notifications.json` | `call_ended` in-app entry |
+
+**be_chat_service**
+
+| File | Change |
+|---|---|
+| `src/models/schema/message.schema.js` | `call_status` enum + `network_error`, + `busy` |
+
+All files parse clean. The notification service's jest suite could not be run
+here — `jest` is not installed in that repo — so these changes are **unverified
+by tests**; the `call_ended` path wants one manual round-trip on staging before
+it ships.
 
 ---
 
-## Summary — what to build against
+## 9. Still open
 
-**Use now:** the §2 drop timeout, §5 busy state, §6 `end_reason` and idempotent
-`call/end`. All live on `prod-staging`.
-
-**Do not build against yet:** §1's rich response, §3's `connected_at`, §4's
-`call_cancelled` operation.
-
-**Needs a decision from you before we code it:**
-- §4.2 — cancel-race suppression vs guaranteed terminal push
-- §6.3 — what a dropped call should read as in the chat bubble
-- open #4 — whether `call/active` should become device-aware
+| Item | Status |
+|---|---|
+| `GET call/active` rich response (rev 2 §1) | not started — `i_am_caller`, `peer.*`, `ice_servers`, `metadata`, `connected_at`, and "ringing counts as active" |
+| Device-aware `call/active` | deferred with the above, per your decision |
+| `call_cancelled` operation | not adding it — you confirmed `missed_call` is enough |
+| `connected_at` on `call:answer` | not adding it — you confirmed places 1, 2, 4 are enough |

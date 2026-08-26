@@ -292,6 +292,40 @@ class MainActivity: FlutterActivity() {
                         IncomingCallNotificationHelper.cancel(applicationContext, notifId)
                         result.success(null)
                     }
+                    "startRingService" -> {
+                        // The non-dismissible CallStyle ring (Android 12+).
+                        // Dart still posts its own notification either way —
+                        // this one supersedes it where the platform allows.
+                        @Suppress("UNCHECKED_CAST")
+                        val args = call.arguments as? Map<String, Any?> ?: emptyMap()
+                        IncomingCallService.start(applicationContext, args)
+                        result.success(IncomingCallService.isSupported())
+                    }
+                    "stopRingService" -> {
+                        IncomingCallService.stop(applicationContext)
+                        result.success(null)
+                    }
+                    "syncCallAuth" -> {
+                        // Mirror the token + call base URL into PLAIN prefs so
+                        // CallActionReceiver can POST a decline without the app
+                        // running. A BroadcastReceiver cannot read Dart's
+                        // secure storage, and waiting for the app to open is
+                        // what made Decline a no-op in the first place.
+                        val prefs = applicationContext.getSharedPreferences(
+                            CallActionReceiver.PREFS_NAME, Context.MODE_PRIVATE
+                        )
+                        prefs.edit()
+                            .putString(
+                                CallActionReceiver.KEY_AUTH_TOKEN,
+                                call.argument<String>("authToken") ?: ""
+                            )
+                            .putString(
+                                CallActionReceiver.KEY_CALL_BASE_URL,
+                                call.argument<String>("callBaseUrl") ?: ""
+                            )
+                            .apply()
+                        result.success(null)
+                    }
                     "readPendingAction" -> {
                         val prefs = applicationContext.getSharedPreferences("call_action_prefs", Context.MODE_PRIVATE)
                         val action = prefs.getString("pending_call_action", null)

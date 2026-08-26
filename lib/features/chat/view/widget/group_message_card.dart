@@ -764,9 +764,8 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
       userName: userName,
       userImage: userImage,
     );
-    if (success) {
-      Get.toNamed('/CallRoomScreen');
-    }
+    // Navigation is handled by [CallController.initiateCall] (t=0 push).
+    if (success) {}
   }
 
   /// Normalize a raw phone string to Indian E.164 format (`+91XXXXXXXXXX`) so

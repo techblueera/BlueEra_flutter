@@ -176,6 +176,10 @@ class ApiBaseHelper {
                   "Bearer $authTokenGlobal";
             }
             options.headers[ApiKeys.contentType] = "application/json";
+            // Logged AFTER the header is set, so what prints is what actually
+            // goes out rather than what the global happened to hold.
+            logAuthToken(options.method, options.uri,
+                options.headers[ApiKeys.authorization]?.toString());
             return requestInterceptor(options, handler);
           },
           onResponse: (response, handler) {
@@ -243,6 +247,24 @@ class ApiBaseHelper {
   static dynamic requestInterceptor(
       RequestOptions options, RequestInterceptorHandler handler) async {
     return handler.next(options);
+  }
+
+  /// Logs the bearer credential a request is going out with.
+  ///
+  /// **Debug builds only.** The body and response logs around it are noisy but
+  /// harmless; a bearer token is not a payload, it is a working session key, and
+  /// writing one into logcat on a release build hands it to anything that can
+  /// read logs on a rooted device. `kDebugMode` is compile-time, so this call
+  /// and the string it builds are tree-shaken out of release entirely.
+  ///
+  /// Prints the token in FULL, deliberately: the whole point is to paste it into
+  /// Postman or curl, which a masked one cannot do. It also prints `<none>`
+  /// rather than staying silent when there is no token — "the request went out
+  /// unauthenticated" is the answer you are usually looking for.
+  static void logAuthToken(String method, dynamic uri, String? authHeader) {
+    if (!kDebugMode) return;
+    final token = (authHeader ?? '').replaceFirst('Bearer ', '').trim();
+    log('🔑 $method $uri\n   token: ${token.isEmpty ? '<none>' : token}');
   }
 
   ///POST...
@@ -335,6 +357,7 @@ class ApiBaseHelper {
           receiveTimeout: Duration(minutes: 5),
           headers: {ApiKeys.authorization: 'Bearer $authToken'});
       final dio = Dio(opts);
+      logAuthToken('POST', url, 'Bearer $authToken');
       logs("------URL----$url");
       Response response;
       response = await dio.post(
@@ -723,6 +746,7 @@ class ApiBaseHelper {
           receiveTimeout: Duration(minutes: 5),
           headers: {ApiKeys.authorization: 'Bearer $authToken'});
       final dio = Dio(opts);
+      logAuthToken('GET', url, 'Bearer $authToken');
 
       Response response = await dio.get(
         url,

@@ -793,6 +793,10 @@ Future<void> main() async {
     }(),
   ]);
 
+  // Token is in memory now — mirror it to native prefs so the incoming-call
+  // notification's Decline button can reach the server with the app killed.
+  unawaited(syncCallAuthToNative());
+
   final locale = Locale(savedLangCode);
 
   /// Controllers needed at first frame

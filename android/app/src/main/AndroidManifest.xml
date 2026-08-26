@@ -259,6 +259,16 @@
             android:exported="false"
             android:foregroundServiceType="location" />
         <!--
+          The ringing incoming call, as a `phoneCall` foreground service.
+          Android 14 made ongoing notifications swipeable; only a CallStyle
+          notification posted by a service of THIS type stays put while the
+          phone is ringing. See IncomingCallService.
+        -->
+        <service
+            android:name=".IncomingCallService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
+        <!--
           Restores the rider's live-location service after a reboot, but ONLY if
           they were live when the device went down (the service's own active flag
           decides). A rider who ended their shift is never resurrected.

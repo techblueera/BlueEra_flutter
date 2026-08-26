@@ -19,6 +19,7 @@ import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
 import 'package:BlueEra/features/chat/notification_chat/view/blueera_notification_screen.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
@@ -146,11 +147,20 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     }
 
     // Incoming call: Decline
+    //
+    // Hydrate from the payload and hand the ids down explicitly. This used to
+    // call `declineCall()` bare, so when the socket had not populated the
+    // controller — a backgrounded app, a socket still reconnecting — its
+    // `callStatus` was `idle`, the decline returned immediately and the server
+    // never heard it. The button looked dead and the caller went on ringing.
     if (actionId.startsWith('incoming_call_decline_')) {
       final callId = (data['callId'] ?? '').toString();
+      final roomId = (data['roomId'] ?? '').toString();
       cancelIncomingCallLocalNotification(callId);
       if (Get.isRegistered<CallController>()) {
-        Get.find<CallController>().declineCall();
+        final ctrl = Get.find<CallController>();
+        ctrl.initStateFromCallKitExtra(data);
+        ctrl.declineCall(callIdParams: callId, roomIdParams: roomId);
       }
       return;
     }
@@ -756,15 +766,67 @@ Future<void> showIncomingCallLocalNotification({
     NotificationDetails(android: details),
     payload: payload,
   );
+
+  // The non-dismissible ring, where the platform supports it.
+  //
+  // Android 14 made ongoing notifications swipeable, so the one above can be
+  // wiped off the screen while the phone is still ringing. `IncomingCallService`
+  // posts a CallStyle notification from a `phoneCall` foreground service, which
+  // is the one combination Android still refuses to let the user dismiss.
+  //
+  // Started AFTER the plugin notification, not instead of it: the service can be
+  // refused a foreground start from the background on Android 12+, and if it is,
+  // the notification above is what the user answers from. Both are keyed to the
+  // same call and both are taken down by
+  // [cancelIncomingCallLocalNotification].
+  try {
+    const nativeChannel =
+        MethodChannel('com.bluehr.incoming_call_notification');
+    await nativeChannel.invokeMethod('startRingService', {
+      'callId': callId,
+      'roomId': roomId,
+      'callType': callType,
+      'callerName': callerName,
+    });
+  } catch (_) {}
 }
 
 /// Cancel the incoming-call notification once the call is accepted, declined,
+
+/// Mirror the auth token and call base URL into plain Android prefs, so the
+/// notification's Decline button can POST without the app running.
+///
+/// `CallActionReceiver` is a BroadcastReceiver: it has no Flutter engine and
+/// cannot read `flutter_secure_storage`. Before this, a decline from a
+/// backgrounded or killed app only stashed a flag and waited for the next app
+/// open — which is why the button did nothing and the caller kept ringing.
+///
+/// Called after login and on every app start that already holds a token. Cheap,
+/// idempotent, and a no-op off Android. Clearing the token (logout) writes empty
+/// strings, which the receiver treats as "no credentials" and skips the POST.
+Future<void> syncCallAuthToNative() async {
+  if (!Platform.isAndroid) return;
+  try {
+    const channel = MethodChannel('com.bluehr.incoming_call_notification');
+    await channel.invokeMethod('syncCallAuth', {
+      'authToken': authTokenGlobal ?? '',
+      'callBaseUrl': callBaseUrl ?? '',
+    });
+  } catch (_) {}
+}
 /// cancelled by the caller, or otherwise ended.
 Future<void> cancelIncomingCallLocalNotification(String callId) async {
   // Taking the ringing UI down also retires the call: whatever arrives for it
   // afterwards — a duplicate push, a message FCM held while we were offline —
   // must not put it back on screen. See [markCallRetired].
   await markCallRetired(callId);
+  try {
+    // Stop the CallStyle foreground-service ring (Android 12+). Harmless when
+    // it never started.
+    const nativeChannel =
+        MethodChannel('com.bluehr.incoming_call_notification');
+    await nativeChannel.invokeMethod('stopRingService');
+  } catch (_) {}
   try {
     // Cancel from native notification (custom filled buttons)
     const nativeChannel =
@@ -1292,6 +1354,24 @@ class AppNotificationHandler {
       importance: Importance.defaultImportance,
     );
 
+    /// Receipts for a call that is OVER — `call_ended`, per the backend's
+    /// rev 3 §1. Deliberately the quietest channel in the app: LOW importance,
+    /// no sound, no vibration. It is a record, not an alert, and the call it
+    /// describes has already finished.
+    ///
+    /// It has to exist HERE or the push is dropped: the notification service
+    /// sends `android_channel_id: call_updates`, and Android discards a
+    /// notification addressed to a channel the app never created.
+    const AndroidNotificationChannel callUpdatesChannel =
+        AndroidNotificationChannel(
+      'call_updates',
+      'Call Updates',
+      description: 'Call ended, declined and busy receipts',
+      importance: Importance.low,
+      playSound: false,
+      enableVibration: false,
+    );
+
     const AndroidNotificationChannel messagesChannel =
         AndroidNotificationChannel(
       'messages',
@@ -1344,6 +1424,7 @@ class AppNotificationHandler {
     await androidPlugin?.createNotificationChannel(defaultChannel);
     await androidPlugin?.createNotificationChannel(incomingCallChannel);
     await androidPlugin?.createNotificationChannel(missedCallChannel);
+    await androidPlugin?.createNotificationChannel(callUpdatesChannel);
     await androidPlugin?.createNotificationChannel(messagesChannel);
     await androidPlugin?.createNotificationChannel(ridesChannel);
     await androidPlugin?.createNotificationChannel(announcementsChannel);
@@ -3194,9 +3275,17 @@ class AppNotificationHandler {
         _openIncomingCallScreen(data);
         break;
       case 'missed_call':
-        if (data['senderId'] != null) {
-          _openChatWithUser(data['senderId']!);
-        }
+      case 'call_cancelled':
+      case 'call_ended':
+        // A call that is OVER routes to Call History, not to the chat and not
+        // to the call UI. Tapping it used to open the conversation, which put
+        // the user one screen away from the thing the notification was about;
+        // on the terminated-app path it could also land on the call screen for
+        // a call that no longer exists — the black screen.
+        //
+        // "call_ended" is listed for when the backend adds it; it is NOT sent
+        // today — see docs/backend/CALL_NOTIFICATION_REQUIREMENTS.md.
+        Get.to(() => const CallHistoryScreen(showAppBar: true));
         break;
 
       // Chat / Message operations
@@ -4026,22 +4115,35 @@ class AppNotificationHandler {
     }
   }
 
-  /// Open the incoming-call receiving screen from a notification body tap.
-  /// Hydrates CallController state from the notification payload (the same
-  /// shape `showIncomingCallLocalNotification` writes) so the screen can
-  /// render the caller name/image and so Accept/Decline buttons can fire
-  /// the correct API calls. Skips opening if a call for the same id is
-  /// already being handled (avoids stomping on auto-accept paths).
-  static void _openIncomingCallScreen(Map<String, dynamic> data) {
+  /// Open the ringing screen for an incoming-call notification — but only if the
+  /// call is still ringing.
+  ///
+  /// ## The black screen
+  ///
+  /// This used to open `/IncomingCallScreen` unconditionally. A push for a call
+  /// that is already OVER — one FCM held while the device was offline, a stale
+  /// banner the user taps minutes later, a cold start on a notification that
+  /// outlived its call — put the ringing screen up for a call with no state
+  /// behind it: no caller, no room, nothing to accept. It rendered as a black
+  /// screen the user could only back out of.
+  ///
+  /// Note the ordering trap it also had: line one CANCELLED the notification,
+  /// and `cancelIncomingCallLocalNotification` **retires the call** — so it
+  /// marked the call dead and then opened a live-call screen for it a line
+  /// later. The retirement check has to come first, and now does.
+  ///
+  /// A dead call routes to Call History instead: the user tapped a call
+  /// notification, so calls are what they want to see — just the record of one,
+  /// not an answer screen for it.
+  static Future<void> _openIncomingCallScreen(Map<String, dynamic> data) async {
     final callId = (data['callId'] ?? '').toString();
     if (callId.isEmpty) return;
 
-    cancelIncomingCallLocalNotification(callId);
-
     final ctrl = getOrPut(() => CallController());
-
     final activeStatus = ctrl.callStatus.value;
     final activeId = ctrl.callId.value;
+
+    // Already on this call — the screen is up, nothing to do.
     if (activeId == callId &&
         (activeStatus == CallStatus.accepting ||
             activeStatus == CallStatus.connecting ||
@@ -4049,7 +4151,25 @@ class AppNotificationHandler {
       return;
     }
 
+    // Retired = accepted, declined, cancelled or ended already. Checked BEFORE
+    // the cancel below, which is itself what retires it.
+    if (await isCallRetired(callId)) {
+      await cancelIncomingCallLocalNotification(callId);
+      Get.to(() => const CallHistoryScreen(showAppBar: true));
+      return;
+    }
+
+    await cancelIncomingCallLocalNotification(callId);
+
     ctrl.initStateFromCallKitExtra(data);
+
+    // The payload told us nothing usable and we have no live call of our own —
+    // there is no ringing call to show. Same dead end as a retired one.
+    if (ctrl.callId.value.isEmpty ||
+        ctrl.callStatus.value == CallStatus.idle) {
+      Get.to(() => const CallHistoryScreen(showAppBar: true));
+      return;
+    }
 
     // Start the in-app ringtone as soon as the incoming screen opens.
     // iOS terminated-state banners now play APNs `sound: default` when they

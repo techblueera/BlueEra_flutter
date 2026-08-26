@@ -56,6 +56,11 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
     // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
     // window instead of hitting the network again.
     foodServiceController.fetchFoodProductsByRootCategoryIfNeeded();
+    // Which variants the merchant ALREADY stocks, so the rails and the variant
+    // sheet can mark them and refuse a second add. Cache-first and
+    // TTL-guarded like the rails above; a publish or a delete invalidates it
+    // (see [markStockedVariantsChanged]).
+    foodServiceController.fetchStockedVariantIdsIfNeeded();
   }
 
   @override

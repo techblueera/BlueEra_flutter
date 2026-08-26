@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -152,6 +153,170 @@ class FoodServiceController extends GetxController {
   RxMap<String, List<FoodVariants>> selectedVariantsMap =
       <String, List<FoodVariants>>{}.obs;
 
+  /// The PRODUCT each cart entry was picked from, captured at the moment it was
+  /// ticked.
+  ///
+  /// [selectedVariantsMap] holds VARIANTS, and a food variant carries no
+  /// artwork of its own — the photo and the name belong to the product. The
+  /// cart used to re-find that product in [categoryFoundProductDataList], which
+  /// only ever holds what the product-SELECTION screen or snap-search loaded. A
+  /// dish ticked off a Quick Upload rail on `FoodCategoryMenuScreen` lives in
+  /// [foodRootCategoryList] instead and was never in there, so its cart card
+  /// fell back to "Product" over a placeholder image.
+  ///
+  /// Snapshotting at pick time rather than widening the search also survives
+  /// the source list being cleared between picking and reviewing — which
+  /// [resetControllerFields] and several fetches do.
+  final RxMap<String, CategoryFoodProductData> selectedProductsMap =
+      <String, CategoryFoodProductData>{}.obs;
+
+  /// The product behind a cart entry: the snapshot first, then every list that
+  /// could hold it.
+  ///
+  /// The fallback search is not dead weight — it resolves entries picked before
+  /// the snapshot existed, and anything that writes [selectedVariantsMap]
+  /// without going through the variant sheet.
+  CategoryFoodProductData? productById(String productId) {
+    if (productId.isEmpty) return null;
+    final remembered = selectedProductsMap[productId];
+    if (remembered != null) return remembered;
+    final found =
+        categoryFoundProductDataList.firstWhereOrNull((p) => p.id == productId);
+    if (found != null) return found;
+    for (final section in foodRootCategoryList) {
+      final hit = section.products.firstWhereOrNull((p) => p.id == productId);
+      if (hit != null) return hit;
+    }
+    return foodShowcaseList.firstWhereOrNull((p) => p.id == productId);
+  }
+
+  /// Remember / forget the product behind one cart entry. Called wherever
+  /// [selectedVariantsMap] is written so the two never disagree.
+  void rememberSelectedProduct(CategoryFoodProductData product) {
+    final id = product.id ?? '';
+    if (id.isEmpty) return;
+    selectedProductsMap[id] = product;
+  }
+
+  void forgetSelectedProduct(String productId) =>
+      selectedProductsMap.remove(productId);
+
+  // ─── Already-stocked variants ──────────────────────────────────────────────
+
+  /// productVariant ids this restaurant ALREADY has in its kitchen inventory.
+  ///
+  /// A set, and observable, because every selection surface asks the same
+  /// question of it per row: "is this one already mine?" — [isVariantStocked].
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per business like [_homeCache] in
+  /// `RestaurantController`, so re-entering the add flow reuses the answer.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  /// Load the stocked-variant set, cheapest source first — the same three-layer
+  /// discipline the Products tab uses:
+  ///
+  /// 1. in-memory, same business, fetched < 5 min ago;
+  /// 2. the saved snapshot on disk;
+  /// 3. the network.
+  ///
+  /// The snapshot REPLACES the request rather than racing it, and stays honest
+  /// for the same reason the menu snapshot does: the only thing that changes
+  /// this set on this device is the merchant publishing or deleting a variant,
+  /// and both call [markStockedVariantsChanged].
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = businessId;
+    if (id.isEmpty) return;
+
+    final signature = 'foodStockedVariants|$id';
+    if (_stockedVariantIdsCache.isFresh(signature,
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+
+    try {
+      final entry = await FoodLocalStore.readStockedVariantIds(id);
+      if (entry != null && !entry.isEmpty) {
+        stockedVariantIds
+          ..clear()
+          ..addAll(entry.items.map((e) => e.toString()));
+        _stockedVariantIdsCache.mark(signature);
+        return;
+      }
+    } catch (e) {
+      log('food: stocked-variant cache hydrate failed — $e');
+    }
+
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = businessId;
+    if (id.isEmpty) return;
+    try {
+      final response =
+          await FoodRepo().getInventoryProductVariantIdsRepo(businessId: id);
+      if (!response.isSuccess) return;
+
+      final raw = response.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('foodStockedVariants|$id');
+      unawaited(FoodLocalStore.writeStockedVariantIds(id, ids: ids));
+    } catch (e, s) {
+      log('fetchStockedVariantIds error: $e\n$s');
+    }
+  }
+
+  /// Whether [variantId] is a catalogue variant the restaurant already stocks.
+  ///
+  /// An EMPTY set means "not loaded / this restaurant has nothing", and both
+  /// answer false — the selection screens stay fully usable when the lookup
+  /// fails rather than locking every row on a request that did not come back.
+  bool isVariantStocked(String? variantId) {
+    final id = (variantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every variant of [product] is already stocked — the card can say so
+  /// instead of offering an add that would pick nothing.
+  bool isProductFullyStocked(CategoryFoodProductData product) {
+    final variants = product.variants ?? const <FoodVariants>[];
+    if (variants.isEmpty) return false;
+    return variants.every((v) => isVariantStocked(v.id));
+  }
+
+  /// How many of [product]'s variants are already stocked.
+  int stockedVariantCount(CategoryFoodProductData product) {
+    final variants = product.variants ?? const <FoodVariants>[];
+    return variants.where((v) => isVariantStocked(v.id)).length;
+  }
+
+  /// The set changed under us — a publish added variants, a delete removed one.
+  ///
+  /// Drops the guard AND the snapshot, then refetches, mirroring
+  /// `RestaurantController.markMenuChanged()`. Without the snapshot delete a
+  /// re-entry would paint the pre-publish set straight off disk and keep
+  /// offering a variant the merchant just added.
+  void markStockedVariantsChanged() {
+    final id = businessId;
+    _stockedVariantIdsCache.invalidate();
+    if (id.isEmpty) return;
+    unawaited(
+      FoodLocalStore.writeStockedVariantIds(id, ids: const [])
+          .then((_) => fetchStockedVariantIds()),
+    );
+  }
+
 // Check if a specific variant is selected for a product
   bool isVariantSelected(String pId, String variantId) {
     return selectedVariantsMap[pId]?.any((v) => v.id == variantId) ?? false;
@@ -227,6 +392,7 @@ class FoodServiceController extends GetxController {
     subCategoryTabs.clear();
     foodSnapSearchImagesMap.clear();
     selectedVariantsMap.clear();
+    selectedProductsMap.clear();
 
     // 2. Reset Strings & IDs
     selectedSubFoodTypeIDCat.value = "";
@@ -732,6 +898,11 @@ class FoodServiceController extends GetxController {
             businessId.isNotEmpty) {
           Get.find<RestaurantController>().markMenuChanged();
         }
+        // The published variants are now stocked, so the add screens must stop
+        // offering them. Same invalidate-and-refetch shape as the menu above.
+        if (businessId.isNotEmpty) {
+          markStockedVariantsChanged();
+        }
 
         final bool hasNoMissingProducts =
             (productSnapSearchData?.missingProducts ?? []).isEmpty;
@@ -893,6 +1064,11 @@ class FoodServiceController extends GetxController {
             businessId.isNotEmpty) {
           Get.find<RestaurantController>().markMenuChanged();
         }
+        // The published variants are now stocked, so the add screens must stop
+        // offering them. Same invalidate-and-refetch shape as the menu above.
+        if (businessId.isNotEmpty) {
+          markStockedVariantsChanged();
+        }
 
         if (createMissingProductIndex == null) {
           Get.until((route) =>
@@ -971,12 +1147,47 @@ class FoodServiceController extends GetxController {
         var myFoodProductResponseModel =
             FoodProductResponseModel.fromJson(response.response?.data);
 
+        // Give every variant its kitchen-inventory id, which is what the owner
+        // sheet keys price-edit, stock-flip and delete on. Without it all three
+        // bailed with "this variant can't be changed" on the category
+        // drilldown, while the same actions worked on the rails.
+        //
+        // Verified against the live payload rather than assumed — the shape
+        // here is NOT the one [MyFoodProductData.inventoryId] documents:
+        //
+        //   * the row carries `productDetails` ONLY — no outer `inventoryId`
+        //     and no outer `_id`, so that field is null on this endpoint;
+        //   * each variant carries its OWN `_id`, and that id IS the
+        //     kitchen-inventory record — `6a7d7f18c54c3674b281f74c` appears as
+        //     a variant `_id` here and as the inventory record `_id` in
+        //     `home/{businessId}`, for the same dish;
+        //   * one row can hold several variants (a 2-variant dish came back as
+        //     one row), so an outer id could not have identified any single one
+        //     even if it were sent.
+        //
+        // Read the variant's own id first for that reason, and keep the outer
+        // one as a fallback for the payload shape that does carry it there.
+        // Scoped to THIS method deliberately: the pre-publish catalogue flows
+        // parse the same model, and there a variant `_id` is a product-variant
+        // id with no inventory record behind it yet — the fallback belongs
+        // where the endpoint is known, not in `FoodVariants.fromJson`.
         List<CategoryFoodProductData> newItems =
             (myFoodProductResponseModel.data ?? [])
-                .where((item) =>
-                    item.productDetails != null) // Filter out nulls for safety
-                .map((item) =>
-                    item.productDetails!) // Extract the internal productDetails
+                .where((item) => item.productDetails != null)
+                .map((item) {
+                  final pd = item.productDetails!;
+                  final outerInv = (item.inventoryId ?? '').trim();
+                  for (final v in pd.variants ?? const <FoodVariants>[]) {
+                    if ((v.inventoryId ?? '').trim().isNotEmpty) continue;
+                    final own = (v.id ?? '').trim();
+                    if (own.isNotEmpty) {
+                      v.inventoryId = own;
+                    } else if (outerInv.isNotEmpty) {
+                      v.inventoryId = outerInv;
+                    }
+                  }
+                  return pd;
+                })
                 .toList();
 
         if (newItems.isNotEmpty) {

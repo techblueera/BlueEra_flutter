@@ -82,6 +82,11 @@ class FoodLocalStore {
 
   static const String _kHome = 'home';
   static const String _kDiscount = 'discount';
+
+  /// The productVariant ids already in this restaurant's inventory. Per-store
+  /// like [_kHome] / [_kDiscount], and invalidated by exactly the same writes:
+  /// adding or deleting a variant is what changes this set.
+  static const String _kStockedVariantIds = 'stockedVariantIds';
   static const String _kCatalog = 'catalog:foodCategories';
 
   /// Every category-tree key starts with this, so [_prune] can hold the whole
@@ -134,6 +139,20 @@ class FoodLocalStore {
   }) =>
       _write(_storeKey(_kDiscount, businessId), items);
 
+  /// The productVariant ids this restaurant already stocks.
+  ///
+  /// Cached like the rest of the admin data, and correct for exactly as long:
+  /// the merchant's own publishes and deletes are the only thing that moves the
+  /// set on this device, and both go through [clearStore].
+  static Future<FoodCacheEntry?> readStockedVariantIds(String businessId) =>
+      _read(_storeKey(_kStockedVariantIds, businessId));
+
+  static Future<void> writeStockedVariantIds(
+    String businessId, {
+    required List<dynamic> ids,
+  }) =>
+      _write(_storeKey(_kStockedVariantIds, businessId), ids);
+
   // ─── Add-food category tree (global) ─────────────────────────────
 
   static Future<FoodCacheEntry?> readCatalogCategories() => _read(_kCatalog);
@@ -167,7 +186,7 @@ class FoodLocalStore {
     if (box == null) return;
     try {
       await box.deleteAll([
-        for (final kind in const [_kHome, _kDiscount])
+        for (final kind in const [_kHome, _kDiscount, _kStockedVariantIds])
           _storeKey(kind, businessId),
       ]);
     } catch (e) {

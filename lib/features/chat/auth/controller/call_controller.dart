@@ -28,6 +28,10 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/app_notification.dart';
 import '../../../../core/services/notifications/default_ringtone.dart';
 import '../model/call_models.dart';
+import 'package:flutter/material.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import '../../view/call_screen/call_busy_screen.dart';
 import '../repo/call_repo.dart';
 import '../repo/make_order_repo.dart';
 import '../service/call_audio_route_service.dart';
@@ -858,19 +862,64 @@ class CallController extends GetxController with WidgetsBindingObserver {
       // print('[CALL_DEBUG] initiateCall → socket wait done, isConnected=${_socket.isConnected}');
     }
 
+    // The call screen goes up NOW, before the request — t = 0 in rev 3 §7.2.
+    //
+    // Navigation used to live in all eight call sites as
+    // `if (success) Get.toNamed('/CallRoomScreen')`, which meant a busy callee
+    // produced no screen at all: the user tapped Call, waited, and got a
+    // snackbar. A placed call is owed a call screen whatever the outcome, so
+    // this is pushed unconditionally and the outcome is rendered INTO it —
+    // replaced by the real call screen on success, turned into the busy screen
+    // on a 409, popped on anything else.
+    //
+    // `ringingState` is reset first so a terminal state left over from the
+    // PREVIOUS call cannot be read by the new screen as this call's outcome.
+    _attachRingingState();
+    Get.to(() => CallBusyScreen(
+          peerName: userName,
+          peerImage: userImage,
+          otherUserId: otherUserId,
+          conversationId: existingConversationId,
+          callType: type,
+        ));
+
     // print('[CALL_DEBUG] initiateCall → API call starting, type=$type');
     ResponseModel response = await _callRepo.initiateCall(params);
 
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
-      // print('[CALL_DEBUG] initiateCall → API FAILED, statusCode=$statusCode');
-      // Surface a terminal ringing state locally — the server cannot emit
-      // `call:ringing` for a request that never reached the call pipeline.
-      // The outgoing screen (if shown) reads this and auto-dismisses.
+      // The attempt screen is ALREADY up (pushed above). Every branch here
+      // decides what it becomes, rather than whether it appears.
       if (statusCode == 409) {
-        markRingingFailedLocally(CallRingingState.busy);
-        commonSnackBar(message: AppStrings.userBusyOnAnotherCall.tr);
+        // TWO different 409s, and rev 3 §7.4 is explicit that they must not
+        // look alike. `CALLER_ALREADY_IN_CALL` means WE are on a call — showing
+        // "user is busy" there blames the person we just tried to ring. The
+        // typed `code` is what tells them apart; the message string used to be
+        // the only difference and was never read.
+        final body = response.response?.data;
+        final code =
+            (body is Map ? (body['code'] ?? '').toString() : '').toUpperCase();
+
+        if (code == 'CALLER_ALREADY_IN_CALL') {
+          // Not a new call at all — there is a live one to go back to. Close
+          // the attempt screen; an outgoing UI here would be inventing a second
+          // call that does not exist.
+          _closeAttemptScreen();
+          markRingingFailedLocally(CallRingingState.failed);
+          _promptReturnToCall(
+            body is Map ? (body['room_id'] ?? '').toString() : '',
+          );
+        } else {
+          // RECEIVER_BUSY, or an older build with no `code` at all. The screen
+          // STAYS and turns into the outcome — it is watching `ringingState`
+          // and honours the 700 ms dwell from the tap. No snackbar: a busy
+          // callee is a call outcome, not a request failure.
+          markRingingFailedLocally(CallRingingState.busy);
+        }
       } else {
+        // A genuine failure. Nothing to show on a call screen, so take it down
+        // and say what went wrong.
+        _closeAttemptScreen();
         markRingingFailedLocally(CallRingingState.failed);
         commonSnackBar(message: response.message ?? AppStrings.failedToInitiateCall.tr);
       }
@@ -878,7 +927,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
     }
 
     final data = response.response?.data;
-    if (data == null) return false;
+    if (data == null) {
+      _closeAttemptScreen();
+      return false;
+    }
 
     // Set state
     callType.value = type;
@@ -893,6 +945,12 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // Reset ringing state once we have a callId — subsequent `call:ringing`
     // events with this callId will drive the outgoing-call label.
     _attachRingingState();
+
+    // The call exists — swap the attempt screen for the real one. `offNamed`
+    // rather than `toNamed`: the attempt screen has served its purpose and must
+    // not sit behind the call, or ending the call lands the user back on
+    // "Calling…".
+    _replaceAttemptScreenWithCall();
 
     // Caller-side ringback: loops until the receiver accepts/declines, the
     // caller cancels, or the 30s ring timer expires. Stopped by either
@@ -939,6 +997,82 @@ class CallController extends GetxController with WidgetsBindingObserver {
     SocketKeepAliveService.start();
 
     return true;
+  }
+
+  /// Whether the pre-request attempt screen ([CallBusyScreen]) is on top.
+  ///
+  /// Matched by TYPE rather than by a route name — it is pushed with `Get.to`,
+  /// which gives it no name, and popping blind would take down whatever else
+  /// happened to be there (a sheet the user opened, a deep link that landed
+  /// mid-request).
+  bool get _attemptScreenIsUp =>
+      Get.currentRoute.contains('CallBusyScreen') ||
+      (Get.rawRoute?.settings.name?.contains('CallBusyScreen') ?? false);
+
+  /// Take the attempt screen down, for an outcome that has nothing to show on
+  /// a call screen.
+  void _closeAttemptScreen() {
+    if (_attemptScreenIsUp && Get.key.currentState?.canPop() == true) {
+      Get.back();
+    }
+  }
+
+  /// Swap the attempt screen for the live call screen.
+  ///
+  /// Falls back to a plain push when the attempt screen is not the current
+  /// route — the user may have navigated during the request, and a call that
+  /// succeeded must still open.
+  void _replaceAttemptScreenWithCall() {
+    if (Get.currentRoute == '/CallRoomScreen') return;
+    if (_attemptScreenIsUp) {
+      Get.offNamed('/CallRoomScreen');
+    } else {
+      Get.toNamed('/CallRoomScreen');
+    }
+  }
+
+  /// "You're already on a call" — with a way back to it.
+  ///
+  /// The 409 for [CALLER_ALREADY_IN_CALL] used to render as "User is busy on
+  /// another call", which blames the person we just tried to ring for something
+  /// we are doing. It is not a failed call at all: there is a live one, and the
+  /// only useful action is returning to it.
+  ///
+  /// An inline prompt rather than a screen, per rev 3 §7.4 — opening an
+  /// outgoing-call UI here would be inventing a second call that does not exist.
+  void _promptReturnToCall(String roomId) {
+    Get.snackbar(
+      '',
+      '',
+      titleText: CustomText(
+        AppStrings.youAreAlreadyOnACall.tr,
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.white,
+      ),
+      messageText: const SizedBox.shrink(),
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(12),
+      backgroundColor: AppColors.mainTextColor,
+      duration: const Duration(seconds: 4),
+      mainButton: TextButton(
+        onPressed: () {
+          if (Get.isSnackbarOpen) Get.closeCurrentSnackbar();
+          // Only restore what is genuinely still live. The room id is echoed
+          // back for exactly this, but a call that ended between the 409 and
+          // the tap must not open an empty room.
+          if (isCallLive && Get.currentRoute != '/CallRoomScreen') {
+            Get.toNamed('/CallRoomScreen');
+          }
+        },
+        child: CustomText(
+          AppStrings.returnToCall.tr,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: AppColors.white,
+        ),
+      ),
+    );
   }
 
   // ==================== INCOMING CALL HANDLING ====================
@@ -1551,28 +1685,60 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (kDebugMode) print('Socket connection timed out after 10s');
   }
 
-  /// Decline an incoming call
-  Future<void> declineCall() async {
+  /// Decline the ringing call.
+  ///
+  /// [callIdParams] / [roomIdParams] let a caller that KNOWS the ids — a
+  /// notification action, a CallKit event — decline a call this controller was
+  /// never told about. Without them the notification's Decline button was a
+  /// no-op whenever the socket had not hydrated us first (backgrounded app,
+  /// socket still reconnecting): `callStatus` was `idle`, the guard below
+  /// returned, and the server never heard a thing.
+  Future<void> declineCall({
+    String? callIdParams,
+    String? roomIdParams,
+  }) async {
     stopRingtone();
+
+    // Prefer what the caller handed us; fall back to our own state.
+    final targetCallId =
+        (callIdParams ?? '').trim().isNotEmpty ? callIdParams!.trim() : callId.value;
+    final targetRoomId =
+        (roomIdParams ?? '').trim().isNotEmpty ? roomIdParams!.trim() : roomId.value;
+
     // Cancel Android local notification (background/terminated path)
-    if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
-    isIncomingCall.value=false;
+    if (targetCallId.isNotEmpty) cancelIncomingCallLocalNotification(targetCallId);
+    isIncomingCall.value = false;
 
-    if (callStatus.value == CallStatus.idle) return;
+    // Idle AND nothing was handed in — there is genuinely nothing to decline.
+    // With ids in hand we carry on regardless of local status: the ring may be
+    // owned by the notification, not by this engine's state.
+    if (callStatus.value == CallStatus.idle && targetCallId.isEmpty) return;
 
-    final savedCallId = callId.value;
-    final savedRoomId = roomId.value;
-
-    // Notify server first, then cleanup
-    if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
-      await _callRepo.declineCall({
-        'call_id': savedCallId,
-        'room_id': savedRoomId,
-      });
+    // Notify the server first, then cleanup.
+    //
+    // WRAPPED, and cleanup moved to `finally`. This used to be a bare `await`:
+    // any throw — a timeout, no connectivity, the 400 an already-ended call
+    // returns — skipped `_cleanup()` and left `callStatus` stuck at `ringing`
+    // FOREVER. From then on every incoming call hit the "already on a call"
+    // branch in [_handleIncomingCall] and was auto-declined as busy, so the
+    // caller's phone reported an instant reject and this device never rang
+    // again until the app was restarted. That is the auto-reject loop.
+    try {
+      if (targetCallId.isNotEmpty && targetRoomId.isNotEmpty) {
+        await _callRepo.declineCall({
+          'call_id': targetCallId,
+          'room_id': targetRoomId,
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) print('declineCall: server decline failed: $e');
+      // Swallowed on purpose. The ring must stop and the state must reset
+      // whether or not the server heard us — the server's own 20s ring timeout
+      // is the backstop for a decline that never landed.
+    } finally {
+      _cleanup();
+      _navigateBackFromCallScreen();
     }
-
-    _cleanup();
-    _navigateBackFromCallScreen();
   }
 
   /// Decline the call AND send [message] to the caller as a chat message —
@@ -3524,12 +3690,22 @@ class CallController extends GetxController with WidgetsBindingObserver {
     final bool isOutgoing = call.initiatedBy == currentUserId;
     final String direction = isOutgoing ? 'Outgoing' : 'Incoming';
 
+    // The status values the chat service can now send, per the backend's rev 3
+    // §6: the enum gained `network_error` and `busy`. Anything not handled here
+    // falls through to a bare "Outgoing call", which is what a dropped call and
+    // a busy line both used to read as.
     switch (call.status) {
       case 'ended':
         if (call.endReason == 'missed') {
           return isOutgoing ? 'No answer' : 'Missed call';
         } else if (call.endReason == 'declined') {
           return isOutgoing ? 'Declined' : 'You declined';
+        } else if (call.endReason == 'network_error') {
+          // The copy we asked for and they shipped — one string on both sides,
+          // because a dropped call is nobody's action.
+          return 'Call disconnected';
+        } else if (call.endReason == 'busy') {
+          return isOutgoing ? 'User is busy' : 'You were busy';
         } else {
           return '$direction call - ${_formatDuration(call.durationSeconds)}';
         }
@@ -3537,6 +3713,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
         return isOutgoing ? 'No answer' : 'Missed call';
       case 'declined':
         return isOutgoing ? 'Declined' : 'You declined';
+      case 'network_error':
+        return 'Call disconnected';
+      case 'busy':
+        return isOutgoing ? 'User is busy' : 'You were busy';
       default:
         return '$direction call';
     }
@@ -4290,7 +4470,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
           break;
         case Event.actionCallDecline:
           initStateFromCallKitExtra(extra);
-          declineCall();
+          // Ids from the CallKit payload, not from our own state:
+          // [initStateFromCallKitExtra] deliberately bails when a DIFFERENT
+          // call is already past ringing, and a decline that silently retargets
+          // the live call — or targets nothing — is worse than either.
+          declineCall(
+            callIdParams: (extra['callId'] ?? '').toString(),
+            roomIdParams: (extra['roomId'] ?? '').toString(),
+          );
           Future.delayed(Duration(seconds: 1), () {
             FlutterCallkitIncoming.endCall(event.body['id']);
           });

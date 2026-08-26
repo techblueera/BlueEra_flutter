@@ -52,7 +52,6 @@ class AppImageAssets {
   static const String bookingDiscover = '${imgPath}booking_discover.png';
   static const String professionalDiscover = '${imgPath}professional_discover.png';
   static const String shoppingDiscover = '${imgPath}shopping_discover.png';
-  static const String servicesDiscover = '${imgPath}services_discover.png';
   static const String listCardBoard = '${imgPath}list_cardboard.png';
   static const String dummyScratch = "${imgPath}dummy_scratch.png";
   static const String coinIcon = "${imgPath}coin_icon.png";
@@ -60,6 +59,11 @@ class AppImageAssets {
   static const String completeProfileBanner = "${imgPath}complete_profile_banner.jpeg";
   static const String groceryBanner = "${imgPath}grocery_banner.jpeg";
   static const String franchiseBanner = "${imgPath}franchise_banner.jpeg";
+  static const String gpsDiscover = "${imgPath}gps_discover.png";
+  static const String servicesDiscover = "${imgPath}services_discover.png";
+  static const String professionalsDiscover = "${imgPath}professionals_discover.png";
+  static const String financialDiscover = "${imgPath}financial_discover.png";
+  static const String jobsDiscover = "${imgPath}jobs_discover.png";
 
   /// Coin Wallet dashboard (earn-coin) artwork.
   static const String coinHeaderBg = "${imgPath}coin_header_bg.png";
@@ -79,8 +83,6 @@ class AppImageAssets {
   static String farmingLawnGarden = "${imgPath}farming_lawn_garden.png";
   static String industrialWholesale = "${imgPath}industrial_wholesale.png";
   static String sportsFitnessStore = "${imgPath}sports_fitness_store_icon.png";
-
-
 
   /// Home Service
   static String tutor = "${imgPath}tutor.png";

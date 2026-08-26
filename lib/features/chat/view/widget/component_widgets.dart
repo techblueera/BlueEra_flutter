@@ -1376,8 +1376,8 @@ void _initiateCallInApp({
   );
 
   if (success) {
+    // Navigation moved into [CallController.initiateCall] — see there.
     _refreshChatAfterOutgoingCall(conversationId);
-    Get.toNamed('/CallRoomScreen');
   }
 }
 

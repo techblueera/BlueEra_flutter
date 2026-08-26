@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -78,25 +79,95 @@ class FoodRepo extends BaseService {
   }
 
   /// Bulk-flip the manual out-of-stock flag on one or more kitchen-inventory
-  /// records. `PATCH food-service/api/kitchen-inventory/stock/toggle-out-of-stock`.
+  /// records. `PATCH food-service/api/kitchen-inventory/stock/flip-out-of-stock`.
   ///
-  /// This writes `isOutOfStock` only — it does NOT change batch quantity.
-  Future<ResponseModel> toggleOutOfStockRepo({
+  /// Touches `isOutOfStock` only — batch quantity is not changed.
+  ///
+  /// No value is sent: the endpoint INVERTS each id rather than setting it (see
+  /// [foodFlipOutOfStock]). Callers that need to know the resulting state read
+  /// it back off the response, or rely on having asked for the inverse of what
+  /// they were already showing.
+  Future<ResponseModel> flipOutOfStockRepo({
     required List<String> inventoryIds,
-    required bool isOutOfStock,
   }) async {
-    final response = await ApiBaseHelper().patchHTTP(
-      foodToggleOutOfStock,
-      params: {
-        'inventoryIds': inventoryIds,
-        'isOutOfStock': isOutOfStock,
-      },
+    final response = await ApiBaseHelper().putHTTP(
+      foodFlipOutOfStock,
+      params: {'inventoryIds': inventoryIds},
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
+
+  /// Update one kitchen-inventory record (a published variant) by its id.
+  /// `PUT food-service/api/kitchen-inventory/{inventoryId}`.
+  ///
+  /// **PUT, not PATCH** — the server answers PATCH with `Cannot PATCH
+  /// /api/kitchen-inventory/{id}`; that route is registered for PUT only,
+  /// unlike `stock/flip-out-of-stock`, which is a PATCH.
+  ///
+  /// **Prices live under `price`, and the block is REPLACED.** Verified against
+  /// the live service:
+  ///
+  ///   * a top-level `{"baseSellingPrice": 84, "mrp": 85}` returns
+  ///     `success: true` and changes NOTHING — those keys are silently ignored;
+  ///   * `{"price": {"mrp": 85, "sellingPrice": 84}}` does apply — and reset
+  ///     `packingCharges` from 20 to 0, because the omitted keys of the
+  ///     subdocument fall back to their defaults.
+  ///
+  /// So a price edit MUST send the whole `price` block, `currency` and
+  /// `packingCharges` included. [getKitchenInventoryByIdRepo] is how the caller
+  /// gets the values it is not editing.
+  Future<ResponseModel> updateKitchenInventoryVariantRepo({
+    required String inventoryId,
+    required Map<String, dynamic> params,
+  }) async {
+    final response = await ApiBaseHelper().putHTTP(
+      kitchenInventoryById(inventoryId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// One kitchen-inventory record in full.
+  /// `GET food-service/api/kitchen-inventory/{inventoryId}`.
+  ///
+  /// Read before a price write, so the fields the edit does not touch can be
+  /// sent back unchanged — see [updateKitchenInventoryVariantRepo].
+  Future<ResponseModel> getKitchenInventoryByIdRepo({
+    required String inventoryId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      kitchenInventoryById(inventoryId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// The productVariant ids already stocked by this restaurant.
+  /// `GET food-service/api/kitchen-inventory/product-variant-ids?businessId=`.
+  ///
+  /// Read before the pre-publish selection screens render, so a variant the
+  /// merchant already has cannot be picked and published twice.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      foodInventoryProductVariantIds,
+      params: {ApiKeys.businessId: businessId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   /// Delete a single kitchen-inventory entry (a product variant) by its id.
   /// `DELETE food-service/api/kitchen-inventory/{inventoryId}`.
@@ -306,7 +377,7 @@ class FoodRepo extends BaseService {
 
   Future<ResponseModel> updateHomeMadeFood(
       {required String id, required Map<String, dynamic> data}) async {
-    final response = await ApiBaseHelper().patchHTTP(
+    final response = await ApiBaseHelper().putHTTP(
       '$homeFood/$id',
       showProgress: false,
       params: data,

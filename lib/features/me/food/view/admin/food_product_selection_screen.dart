@@ -44,6 +44,9 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       controller.resetControllerFields();
+      // The already-stocked set, so a variant the merchant has cannot be
+      // ticked here either — same guard the Quick Upload rails apply.
+      controller.fetchStockedVariantIdsIfNeeded();
 
       final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
 

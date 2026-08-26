@@ -283,9 +283,10 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
       userName: _order.user?.name ?? 'Customer',
       userImage: _order.user?.profileImage ?? '',
     );
-    if (!ok) {
-      commonSnackBar(message: 'Could not start the call');
-    }
+    // No snackbar here: [CallController.initiateCall] now owns every outcome —
+    // the busy screen for a busy callee, its own message for a real failure.
+    // Adding one would stack "Could not start the call" over the busy screen.
+    if (!ok) return;
   }
 
   bool get _isPending =>

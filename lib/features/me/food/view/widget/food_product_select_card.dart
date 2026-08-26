@@ -85,6 +85,13 @@ class FoodProductSelectCard extends StatelessWidget {
                 child: Obx(() {
                   final count =
                       (controller.selectedVariantsMap[product.id] ?? []).length;
+                  // Every variant of this dish is already on the merchant's own
+                  // menu, so the plus would open a sheet with nothing tickable.
+                  // Say so on the card instead — the merchant can see it without
+                  // opening anything.
+                  if (controller.isProductFullyStocked(product)) {
+                    return const _InMenuBadge();
+                  }
                   return ProductSelectPlusButton(
                     added: count > 0,
                     count: count,
@@ -144,10 +151,76 @@ class FoodProductSelectCard extends StatelessWidget {
                   mrp: '₹${mrp.toStringAsFixed(0)}',
                   discount: '$discount% off',
                 ),
+                // "2 of 5 already added" — the PARTIAL case, which the corner
+                // badge cannot show: that only appears once every variant is
+                // stocked. Without this the merchant opens the sheet, finds two
+                // rows greyed out and no explanation on the card that sent them
+                // there.
+                Obx(() {
+                  final total = product.variants?.length ?? 0;
+                  final stocked = controller.stockedVariantCount(product);
+                  if (stocked == 0 || stocked >= total) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle,
+                            size: 12, color: Colors.green.shade600),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: CustomText(
+                            '$stocked of $total already added',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green.shade700,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
           ),
           SizedBox(height: SizeConfig.size4),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Already added" — the corner badge on a dish whose every variant the
+/// merchant already stocks.
+///
+/// Occupies the same corner the add button would, at the same size, so a rail
+/// of cards keeps one alignment whichever state each card is in.
+class _InMenuBadge extends StatelessWidget {
+  const _InMenuBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.green.shade600,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check, size: 12, color: Colors.white),
+          const SizedBox(width: 3),
+          CustomText(
+            'Already added',
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ],
       ),
     );

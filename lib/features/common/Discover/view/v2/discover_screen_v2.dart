@@ -429,6 +429,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
   Widget _transportRow() {
     return DiscoverBannerRowV2(
       title: AppStrings.bookYourTransport.tr,
+      leadingIcon: AppImageAssets.gpsDiscover,
       // Every transport type opens the same ride screen — the type is picked
       // there, on the map, next to the fare. Same as v1's folder tap.
       chips: [
@@ -460,6 +461,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         ));
     return DiscoverBannerRowV2(
       title: AppStrings.bookHomeServices.tr,
+      leadingIcon: AppImageAssets.servicesDiscover,
       chips: [
         for (final item in categories)
           DiscoverBannerChip(
@@ -489,6 +491,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         ));
     return DiscoverBannerRowV2(
       title: AppStrings.professionalsConsultant.tr,
+      leadingIcon: AppImageAssets.professionalsDiscover,
       chips: [
         for (final item in categories)
           DiscoverBannerChip(
@@ -512,6 +515,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
           api.businessOnboardingFinancialSectorsCategories.toList();
       return DiscoverBannerRowV2(
         title: AppStrings.financialSectors.tr,
+        leadingIcon: AppImageAssets.financialDiscover,
         chips: [
           for (final item in financeCategories)
             DiscoverBannerChip(
@@ -551,6 +555,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         () => isGuestUser() ? GuestDashBoardScreen() : JobsScreen());
     return DiscoverBannerRowV2(
       title: AppStrings.jobNearMe.tr,
+      leadingIcon: AppImageAssets.jobsDiscover,
       chips: [
         for (final item in jobCategories)
           DiscoverBannerChip(

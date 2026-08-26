@@ -604,6 +604,19 @@ Future<String> getUserServiceExistsKey() async {
 //       BusinessType.Product.name;
 // }
 
+
+/// A stored identity value, or the one already in memory when the read gave
+/// nothing.
+///
+/// `getSecureValue` returns null both for "never written" and for "the keystore
+/// read failed" — the two are indistinguishable here, and only one of them
+/// means the value is really gone. Treating both as gone let a transient read
+/// failure blank a live session's ids.
+String _adoptId(dynamic stored, String current) {
+  final value = stored is String ? stored.trim() : '';
+  return value.isNotEmpty ? value : current;
+}
+
 ///GET USER DATA....
 getUserLoginData() async {
   // Every getSecureValue is a full platform-channel round trip (Android
@@ -631,10 +644,25 @@ getUserLoginData() async {
     SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessType),
   ]);
 
-  authTokenGlobal = values[0];
+  // Identity values are ADOPTED, never blanked; the rest of the batch is
+  // overwritten freely, because a missing display name or avatar is cosmetic.
+  //
+  // `authToken`, `userId` and `businessId` are what every authenticated request
+  // is built from, and this runs at the END of `_applyBusinessProfileData` —
+  // immediately after ~12 sequential secure-storage WRITES. flutter_secure_
+  // storage + Android EncryptedSharedPreferences is not safe under concurrent
+  // access (see the note above on firing these ~18 reads in parallel) and
+  // `getSecureValue` swallows a failed read into null, so one unlucky key came
+  // back empty and `businessId = values[3] ?? ""` WIPED an id written seconds
+  // earlier at verify-otp. That is why a fresh login reached the Food Products
+  // tab with nothing to fetch.
+  //
+  // Same guard [getUserLoginBusinessId] already carries. A genuine clear goes
+  // through clearPreference() / logout, which zeroes these globals explicitly.
+  authTokenGlobal = _adoptId(values[0], authTokenGlobal ?? "");
   accountTypeGlobal = values[1] ?? '';
-  userId = values[2] ?? "";
-  businessId = values[3] ?? "";
+  userId = _adoptId(values[2], userId);
+  businessId = _adoptId(values[3], businessId);
   userMobileGlobal = values[4] ?? "";
   userProfileGlobal = values[5] ?? "";
   userNameGlobal = values[6] ?? "";

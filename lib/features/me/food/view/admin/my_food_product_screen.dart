@@ -5,16 +5,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
-import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_sheet.dart';
+import 'package:BlueEra/features/me/food/view/admin/widget/admin_food_card.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -83,9 +78,6 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
     super.dispose();
   }
 
-  void _showVariantSheet(CategoryFoodProductData product) {
-    showFoodProductVariantSheet(context, product: product);
-  }
 
   void callFoodProductBySubSubCatAPi({bool isLoadMore = false}){
     controller.getMyFoodProductByCategoryIdApi(
@@ -217,65 +209,9 @@ class _MyFoodProductScreenState extends State<MyFoodProductScreen> {
   }
 
   Widget _foodProductCard(CategoryFoodProductData product) {
-    return InkWell(
-      onTap: ()=> _showVariantSheet(product),
-      child: Card(
-        elevation: 0,
-        margin: const EdgeInsets.only(bottom: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image
-                  ProductImageWidget(
-                    imageUrl: product.images?.firstOrNull,
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Product Details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          product.name,
-                          fontWeight: FontWeight.w600,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        ProductDescriptionWidget(
-                          description: product.description,
-                        ),
-                        const SizedBox(height: 8),
-                        FoodDietaryAndTagRow(
-                          dietaryType: product.dietaryType,
-                          cookingMethods: product.cookingMethod,
-                        ),
-                        // Stock state at a glance, without opening the variant
-                        // sheet where the switch lives. Both states, so the
-                        // absence of a badge never has to be interpreted.
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: StockStatusPill(
-                            inStock: !isFoodProductOutOfStock(product),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-
-            ],
-          ),
-        ),
-      ),
-    );
+    // Horizontal shape of the shared card — the same widget the Products tab
+    // and the Offer Dish grid render, in its list form.
+    return AdminFoodCard(product: product, isGridShow: false);
   }
 
 }

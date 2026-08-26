@@ -41,10 +41,14 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
     return (((mrp - selling) / mrp) * 100).round();
   }
 
-  CategoryFoodProductData? _productFor(String productId) {
-    return controller.categoryFoundProductDataList
-        .firstWhereOrNull((p) => p.id == productId);
-  }
+  /// The product a cart entry belongs to — its name and its PHOTO. Resolved
+  /// through the controller, which checks the snapshot taken when the variant
+  /// was ticked before falling back to searching the loaded lists: a dish
+  /// picked off a Quick Upload rail is not in `categoryFoundProductDataList`,
+  /// which is all this used to look at, so those cards rendered as "Product"
+  /// over a placeholder.
+  CategoryFoodProductData? _productFor(String productId) =>
+      controller.productById(productId);
 
   String _variantLabel(FoodVariants v) {
     return [v.variantName, v.quantityLabel]
@@ -59,6 +63,7 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
     list.removeWhere((v) => v.id == variant.id);
     if (list.isEmpty) {
       controller.selectedVariantsMap.remove(productId);
+      controller.forgetSelectedProduct(productId);
     } else {
       controller.selectedVariantsMap[productId] = list;
     }

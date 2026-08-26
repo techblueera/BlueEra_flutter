@@ -535,7 +535,6 @@ void _startBlueEraCallInApp(
     userName: userName,
     userImage: userImage,
   );
-  if (success) {
-    Get.toNamed('/CallRoomScreen');
-  }
+  // Navigation is handled by [CallController.initiateCall] (t=0 push).
+  if (success) {}
 }

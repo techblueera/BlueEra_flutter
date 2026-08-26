@@ -7124,6 +7124,8 @@
   "usedVehicleOption": "Used Vehicle",
   "usedVehicleOptionDesc": "List a pre-owned vehicle for sale",
   "userBusyOnAnotherCall": "User is busy on another call",
+  "returnToCall": "Return to call",
+  "youAreAlreadyOnACall": "You're already on a call",
   "userGuidance": "User guidance",
   "userGuide": "User Guide",
   "user_fallback": "User",

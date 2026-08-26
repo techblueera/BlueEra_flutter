@@ -247,6 +247,17 @@ class RideVehicleOption {
   /// Distance to the closest one, in km.
   final double? nearestRiderKm;
 
+  /// Fare per trip type (`InCity` / `Parcel` / `OutStation` / …), from the
+  /// catalog's `serviceFares` block.
+  ///
+  /// The SAME vehicle is priced differently by what it is carrying — the live
+  /// catalog quotes `twoWheelerRider` at ₹30 InCity and ₹50 Parcel for one
+  /// trip. [fare] is only the price for the `orderFor` the catalog was
+  /// requested with, so a screen that lists one vehicle under several services
+  /// must read this instead — see [forService]. Empty when the server sent no
+  /// breakdown, and [forService] then falls back to [fare].
+  final Map<String, double> serviceFares;
+
   const RideVehicleOption({
     required this.code,
     required this.name,
@@ -261,6 +272,7 @@ class RideVehicleOption {
     this.ridersAvailable,
     this.riderCount,
     this.nearestRiderKm,
+    this.serviceFares = const {},
   });
 
   factory RideVehicleOption.fromJson(Map<dynamic, dynamic> json) {
@@ -280,8 +292,62 @@ class RideVehicleOption {
           json['ridersAvailable'] is bool ? json['ridersAvailable'] as bool : null,
       riderCount: _toInt(json['riderCount']),
       nearestRiderKm: _toDouble(json['nearestRiderKm']),
+      serviceFares: parseServiceFares(json['serviceFares']),
     );
   }
+
+  /// `{"InCity": {"fare": 30, …}, "Parcel": {"fare": 50, …}}` → `{InCity: 30,
+  /// Parcel: 50}`.
+  ///
+  /// Also accepts a bare number per key, for a leaner payload. Zero and
+  /// negative fares are dropped for the same reason the catalog drops a ₹0 row:
+  /// pricing failed, and a free ride is not bookable.
+  static Map<String, double> parseServiceFares(dynamic raw) {
+    if (raw is! Map) return const {};
+    final out = <String, double>{};
+    for (final entry in raw.entries) {
+      final value = entry.value;
+      final fare = _toDouble(value is Map ? value['fare'] : value);
+      if (fare != null && fare > 0) out[entry.key.toString()] = fare;
+    }
+    return out;
+  }
+
+  /// This option priced for [orderFor].
+  ///
+  /// Returns `this` unchanged when the server sent no fare for that service —
+  /// so a type the catalog prices only one way behaves exactly as before, and
+  /// the tile shows the one number there is rather than a dash.
+  ///
+  /// Why this exists: the vehicle-select grid lists `twoWheelerRider` twice,
+  /// once under Passenger and once under Parcel/Goods. Keying the fare by
+  /// `code` alone made those two tiles the SAME entry, so tapping the parcel
+  /// bike re-quoted the trip and both tiles jumped to the parcel price.
+  RideVehicleOption forService(String? orderFor) {
+    final serviceFare = orderFor == null ? null : serviceFares[orderFor];
+    if (serviceFare == null || serviceFare == fare) return this;
+    return RideVehicleOption(
+      code: code,
+      name: name,
+      fare: serviceFare,
+      quoteId: quoteId,
+      description: description,
+      badge: badge,
+      seats: seats,
+      dropEtaMinutes: dropEtaMinutes,
+      pickupEtaMinutes: pickupEtaMinutes,
+      distanceKm: distanceKm,
+      ridersAvailable: ridersAvailable,
+      riderCount: riderCount,
+      nearestRiderKm: nearestRiderKm,
+      serviceFares: serviceFares,
+    );
+  }
+
+  /// Whether this option already knows what it costs under [orderFor], so the
+  /// screen can skip a re-quote it does not need.
+  bool hasFareFor(String? orderFor) =>
+      orderFor != null && serviceFares.containsKey(orderFor);
 
   /// True only when the server has actually said nobody is driving this type
   /// nearby. Absent availability is NOT "unavailable".

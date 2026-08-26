@@ -37,17 +37,37 @@ mixin FoodServiceApi {
   // Delete a single kitchen-inventory entry (a product variant) by its id.
   String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';
 
-  /// Bulk mark inventory records in / out of stock — the manual `isOutOfStock`
-  /// flag, independent of batch quantity.
-  /// `PATCH food-service/api/kitchen-inventory/stock/toggle-out-of-stock` with
-  /// `{ "inventoryIds": [...], "isOutOfStock": bool }`.
+  /// Invert the manual `isOutOfStock` flag on one or more kitchen-inventory
+  /// records — independent of batch quantity.
+  /// `PATCH food-service/api/kitchen-inventory/stock/flip-out-of-stock` with
+  /// `{ "inventoryIds": [...] }` (or `{ "inventoryId": "..." }`).
+  ///
+  /// A FLIP, not a set: no value is sent, each id moves to the opposite of
+  /// whatever it currently is. The pill that drives this only ever asks for the
+  /// inverse of what it is showing (`onToggle(!currentFlag)`), so the two agree
+  /// — but a caller that wants to force a specific value cannot use this.
   ///
   /// Note the `kitchen-inventory` segment: the stock-management doc writes the
   /// path as `/api/inventory/stock/...`, but food keeps its inventory under its
   /// own collection (same divergence as [foodBusinessProductStats]).
+  ///
+  /// The sibling services expose the IDENTICAL sub-path under their own prefix;
+  /// pointing one at another marks the wrong catalogue sold out with no error
+  /// at all (the request succeeds and the ids land in `notFound`).
   /// See docs/backend/STOCK_MANAGEMENT_FRONTEND_INTEGRATION.md.
-  final String foodToggleOutOfStock =
-      'food-service/api/kitchen-inventory/stock/toggle-out-of-stock';
+  final String foodFlipOutOfStock =
+      'food-service/api/kitchen-inventory/stock/flip-out-of-stock';
+
+  /// The productVariant ids this restaurant ALREADY has in its kitchen
+  /// inventory.
+  /// `GET food-service/api/kitchen-inventory/product-variant-ids?businessId=`
+  ///
+  /// These are ids of the CATALOGUE variant (`productVariant`), not of the
+  /// inventory record — so they compare directly against `FoodVariants.id` on
+  /// the pre-publish selection screens, which is the point: a variant already
+  /// stocked must not be offered for adding a second time.
+  final String foodInventoryProductVariantIds =
+      'food-service/api/kitchen-inventory/product-variant-ids';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
   final String home = 'food-service/api/home/';
   String discountFoodProducts(String businessId) => 'food-service/api/home/$businessId/discountProducts';

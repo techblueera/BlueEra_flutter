@@ -37,6 +37,9 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
   initState(){
     super.initState();
     controller.resetControllerFields();
+    // Snap-search results feed the same variant sheet, so it needs the same
+    // already-stocked set to grey rows out with.
+    controller.fetchStockedVariantIdsIfNeeded();
   }
 
   @override

@@ -2193,9 +2193,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
       userName: userName,
       userImage: userImage,
     );
-    if (success) {
-      Get.toNamed('/CallRoomScreen');
-    }
+    // Navigation is handled by [CallController.initiateCall] (t=0 push).
+    if (success) {}
   }
 
   String formatChatHistoryTime(String isoDateString) {

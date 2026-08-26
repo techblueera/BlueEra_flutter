@@ -86,9 +86,11 @@ class DiscoverBannerRowV2 extends StatelessWidget {
   Widget build(BuildContext context) {
     if (chips.isEmpty) return const SizedBox.shrink();
 
-    final plateIcon = leadingIcon?.trim().isNotEmpty == true
-        ? leadingIcon!.trim()
-        : chips.first.icon;
+    // An explicit [leadingIcon] is purpose-drawn plate artwork; the fallback is
+    // a category icon borrowed off the first chip. They are framed differently
+    // — see [_LeadingPlate.fullBleed].
+    final hasPlateArt = leadingIcon?.trim().isNotEmpty == true;
+    final plateIcon = hasPlateArt ? leadingIcon!.trim() : chips.first.icon;
     final fill = DiscoverSurfaceTheme.fillOf(context);
     final border = DiscoverSurfaceTheme.borderOf(context);
     final blur = DiscoverSurfaceTheme.blurOf(context);
@@ -115,7 +117,8 @@ class DiscoverBannerRowV2 extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _LeadingPlate(icon: plateIcon, onTap: onTap),
+                _LeadingPlate(
+                    icon: plateIcon, fullBleed: hasPlateArt, onTap: onTap),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -169,16 +172,28 @@ class _ChipMetrics {
   static const double iconGap = 4;
   static const double radius = 7;
 
-  /// A step up from 10, and a weight lighter than the row's title — the chips
-  /// are the readable part of the card, not a caption on it, but they must not
-  /// compete with the heading above them.
-  static double fontSize() => SizeConfig.small11;
+  /// "More" is a word, not a chip: no fill, no border, and a far tighter pad
+  /// than [hPad] so it takes only the width of the word itself. It is the tail
+  /// of the line, so every px it holds is a px a real category could have had.
+  static const double moreHPad = 2;
+
+  /// 10 / regular, in secondary ink — the chips are the row's category LIST,
+  /// not its headline, so they sit a clear step under the 16 / w600 title. At
+  /// this size more of them fit per line, so fewer fall behind "More".
+  static double fontSize() => SizeConfig.extraSmall;
 
   static TextStyle labelStyle() => TextStyle(
         fontFamily: AppConstants.OpenSans,
         fontSize: fontSize(),
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
       );
+
+  /// "More" is [labelStyle] one step up — same family, same regular weight,
+  /// 11 instead of 10. [moreWidth] and [_MoreChip] MUST both read this: a
+  /// measurement taken in a different size reserves a width the chip never
+  /// draws, and that gap is exactly the bug this file already had once.
+  static TextStyle moreStyle() =>
+      labelStyle().copyWith(fontSize: SizeConfig.small11);
 
   /// Rendered width of one chip, including its padding and icon.
   static double width(DiscoverBannerChip chip) {
@@ -192,17 +207,20 @@ class _ChipMetrics {
     return painter.width + icon + hPad * 2 + 2; // +2 for the 1px border
   }
 
-  /// Width of the trailing "More" affordance.
+  /// Width of the trailing "More" affordance. Measured in the EXACT style
+  /// _MoreChip renders — same face, same pad — because measuring wider than it
+  /// draws reserves room the chip never uses, and that is empty space on the
+  /// end of the line.
   static double moreWidth() {
     final painter = TextPainter(
       text: TextSpan(
         text: AppStrings.more.tr,
-        style: labelStyle().copyWith(fontWeight: FontWeight.w700),
+        style: moreStyle(),
       ),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
-    return painter.width + hPad * 2;
+    return painter.width + moreHPad * 2;
   }
 }
 
@@ -298,9 +316,25 @@ class _ChipLines extends StatelessWidget {
 
 /// The round illustration at the head of the row.
 class _LeadingPlate extends StatelessWidget {
-  const _LeadingPlate({required this.icon, this.onTap});
+  const _LeadingPlate({
+    required this.icon,
+    required this.fullBleed,
+    this.onTap,
+  });
 
   final String icon;
+
+  /// True when the row supplied its OWN plate artwork ([leadingIcon]) rather
+  /// than falling back to a category icon.
+  ///
+  /// The two want opposite treatment. A category icon is a small mark on
+  /// nothing, so it needs the plate's grey ground and a pad to breathe inside
+  /// it. The plate artwork is already a finished round badge WITH its own
+  /// ground baked in, so padding it and fitting it `contain` draws the plate's
+  /// circle, a ring of gap, then the image's circle — two rings where the
+  /// design has one. Full-bleed `cover` lands the badge exactly on the plate.
+  final bool fullBleed;
+
   final VoidCallback? onTap;
 
   /// 60x60, round — the specified size for the card's leading artwork.
@@ -314,14 +348,16 @@ class _LeadingPlate extends StatelessWidget {
       child: Container(
         width: _size,
         height: _size,
-        padding: const EdgeInsets.all(7),
+        padding: fullBleed ? EdgeInsets.zero : const EdgeInsets.all(7),
         decoration: const BoxDecoration(
           color: kDiscoverGlassPlateFill,
           shape: BoxShape.circle,
         ),
         // Clipped to the circle so a square illustration takes the plate's
         // shape instead of poking out of it at this size.
-        child: ClipOval(child: _icon(icon)),
+        child: ClipOval(
+          child: _icon(icon, fit: fullBleed ? BoxFit.cover : BoxFit.contain),
+        ),
       ),
     );
   }
@@ -363,7 +399,7 @@ class _Chip extends StatelessWidget {
             Text(
               chip.label.tr,
               style: _ChipMetrics.labelStyle()
-                  .copyWith(color: AppColors.mainTextColor),
+                  .copyWith(color: AppColors.secondaryTextColor),
               maxLines: 1,
             ),
           ],
@@ -386,15 +422,16 @@ class _MoreChip extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: _ChipMetrics.hPad,
+          horizontal: _ChipMetrics.moreHPad,
           vertical: _ChipMetrics.vPad,
         ),
         child: Text(
           AppStrings.more.tr,
-          style: _ChipMetrics.labelStyle().copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.primaryColor,
-          ),
+          // Same face and weight as the categories beside it, one size up and
+          // in primary ink — enough to find at the end of a line of 10px
+          // labels without turning into a button.
+          style: _ChipMetrics.moreStyle()
+              .copyWith(color: AppColors.primaryColor),
           maxLines: 1,
         ),
       ),
@@ -447,7 +484,11 @@ class _Cta extends StatelessWidget {
 }
 
 /// Category artwork, from the bundle or the API — Discover mixes both.
-Widget _icon(String path) {
+///
+/// [fit] is `contain` for a category icon, which must sit whole inside whatever
+/// slot it is given; the leading plate passes `cover` for its own purpose-drawn
+/// artwork, which is meant to fill the circle edge to edge.
+Widget _icon(String path, {BoxFit fit = BoxFit.contain}) {
   if (path.trim().isEmpty) {
     return const Icon(Icons.category_outlined,
         size: 14, color: AppColors.secondaryTextColor);
@@ -455,7 +496,7 @@ Widget _icon(String path) {
   if (path.startsWith('http')) {
     return CachedNetworkImage(
       imageUrl: path,
-      fit: BoxFit.contain,
+      fit: fit,
       errorWidget: (_, __, ___) => const Icon(
         Icons.image_not_supported_outlined,
         size: 12,
@@ -463,5 +504,5 @@ Widget _icon(String path) {
       ),
     );
   }
-  return LocalAssets(imagePath: path, boxFix: BoxFit.contain);
+  return LocalAssets(imagePath: path, boxFix: fit);
 }

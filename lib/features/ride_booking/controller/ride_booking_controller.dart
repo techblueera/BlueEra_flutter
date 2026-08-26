@@ -1376,6 +1376,9 @@ class RideBookingController extends GetxController {
         ridersAvailable: ridersAvailable,
         riderCount: riderCount,
         nearestRiderKm: nearestRiderKm,
+        // Per-trip-type prices, so the grid can show the SAME vehicle at its
+        // real price under each service it is listed beneath.
+        serviceFares: RideVehicleOption.parseServiceFares(group['serviceFares']),
       ));
     }
     return options;

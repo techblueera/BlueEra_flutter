@@ -319,8 +319,10 @@ class DiscoverCircleTile extends StatelessWidget {
           CustomText(
             item.name,
             textAlign: TextAlign.center,
-            fontSize: SizeConfig.small11,
-            color: AppColors.mainTextColor,
+            // Same 10 / regular / secondary as the chip rows and
+            // [DiscoverIconTile] — one label style for every category.
+            fontSize: SizeConfig.extraSmall,
+            color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -483,9 +485,12 @@ class DiscoverIconTile extends StatelessWidget {
           CustomText(
             name,
             textAlign: TextAlign.center,
-            fontSize: SizeConfig.small,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w500,
+            // 10 / regular / secondary — the SAME label style the chip rows
+            // use, so a category reads identically whether it is a chip on the
+            // page or a tile inside a folder.
+            fontSize: SizeConfig.extraSmall,
+            color: AppColors.secondaryTextColor,
+            fontWeight: FontWeight.w400,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

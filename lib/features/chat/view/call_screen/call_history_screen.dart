@@ -173,8 +173,10 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       userImage: userImage,
     );
     if (success) {
+      // Navigation is [CallController.initiateCall]'s job now: it opens the
+      // call screen at t=0, before the request, so a busy callee gets a
+      // screen too. Pushing again here would stack a second one.
       _refreshChatAfterOutgoingCall(conversationId);
-      Get.toNamed('/CallRoomScreen');
     }
   }
 

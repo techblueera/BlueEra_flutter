@@ -2114,9 +2114,8 @@ class _OrderCardState extends State<OrderCard> {
           userName: widget.order.user?.name ?? '',
           userImage: widget.order.user?.profileImage ?? '',
         );
-        if (success) {
-          Get.toNamed('/CallRoomScreen');
-        }
+        // Navigation handled by [CallController.initiateCall] (t=0 push).
+        if (success) {}
         return;
       }
     }

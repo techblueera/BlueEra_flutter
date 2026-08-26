@@ -147,48 +147,81 @@ class ProductVariantBottomSheet extends StatelessWidget {
     return Column(
       children: displayVariants.map((item) {
         final isSelected = selected.any((v) => v.id == item.id);
+        // Already in the merchant's kitchen inventory. Not selectable: adding
+        // it again would publish a second inventory record for the same
+        // catalogue variant, which is a duplicate row on their own menu and a
+        // second price for one dish.
+        final alreadyStocked = controller.isVariantStocked(item.id);
+
         return InkWell(
-          onTap: () => _toggleVariantInCart(pId, item),
+          onTap: alreadyStocked ? null : () => _toggleVariantInCart(pId, item),
           borderRadius: BorderRadius.circular(10),
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding:
                 const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              // Tinted rather than white, so a stocked row reads as settled
+              // instead of merely unticked.
+              color: alreadyStocked ? AppColors.fillColor : Colors.white,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color:
-                    isSelected ? AppColors.primaryColor : AppColors.greyE5,
-                width: isSelected ? 1.5 : 1,
+                color: alreadyStocked
+                    ? AppColors.greyE5
+                    : (isSelected ? AppColors.primaryColor : AppColors.greyE5),
+                width: isSelected && !alreadyStocked ? 1.5 : 1,
               ),
             ),
             child: Row(
               children: [
-                Checkbox(
-                  value: isSelected,
-                  side: BorderSide(
-                    color: isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.greyE5,
-                    width: 1.5,
+                if (alreadyStocked)
+                  // A tick in a circle, not a checkbox: this is a STATE, not a
+                  // control, and a ticked checkbox invites a tap to untick it.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Icon(
+                      Icons.check_circle,
+                      size: 22,
+                      color: Colors.green.shade600,
+                    ),
+                  )
+                else
+                  Checkbox(
+                    value: isSelected,
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : AppColors.greyE5,
+                      width: 1.5,
+                    ),
+                    activeColor: AppColors.primaryColor,
+                    checkColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: (_) => _toggleVariantInCart(pId, item),
                   ),
-                  activeColor: AppColors.primaryColor,
-                  checkColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (_) => _toggleVariantInCart(pId, item),
-                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                        "${item.variantName} - ${item.quantityLabel}",
-                        fontSize: 16,
-                        color: AppColors.secondaryTextColor,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: CustomText(
+                              "${item.variantName} - ${item.quantityLabel}",
+                              fontSize: 16,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (alreadyStocked) ...[
+                            const SizedBox(width: 8),
+                            _addedChip(),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -211,6 +244,10 @@ class ProductVariantBottomSheet extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (alreadyStocked) ...[
+                        const SizedBox(height: 6),
+                        _alreadyAddedNote(),
+                      ],
                     ],
                   ),
                 ),
@@ -219,6 +256,52 @@ class ProductVariantBottomSheet extends StatelessWidget {
           ),
         );
       }).toList(),
+    );
+  }
+
+  /// "Already added" — why this row cannot be ticked.
+  ///
+  /// The chip labels the row; [_alreadyAddedNote] under it says what to do
+  /// about it, because the merchant's next question is "then where do I change
+  /// its price?" and the answer is their own Products tab, not this screen.
+  Widget _addedChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.green.shade100),
+      ),
+      child: CustomText(
+        'Already added',
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: Colors.green.shade700,
+      ),
+    );
+  }
+
+  /// The sentence under an already-added row.
+  ///
+  /// The chip alone says the row is spoken for; this says WHY it cannot be
+  /// ticked and where the merchant goes instead, which is the question a
+  /// disabled control always raises.
+  Widget _alreadyAddedNote() {
+    return Row(
+      children: [
+        Icon(Icons.info_outline, size: 12, color: Colors.green.shade700),
+        const SizedBox(width: 4),
+        Expanded(
+          child: CustomText(
+            'This variant is already in your menu — edit its price from the '
+            'Products tab.',
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Colors.green.shade700,
+            maxLines: 2,
+          ),
+        ),
+      ],
     );
   }
 
@@ -267,8 +350,13 @@ class ProductVariantBottomSheet extends StatelessWidget {
     }
     if (current.isEmpty) {
       controller.selectedVariantsMap.remove(productId);
+      controller.forgetSelectedProduct(productId);
     } else {
       controller.selectedVariantsMap[productId] = current;
+      // Remember what this entry is a variant OF. A variant has no photo or
+      // name of its own, and the cart cannot re-find a Quick Upload rail
+      // product in the selection list — see [selectedProductsMap].
+      controller.rememberSelectedProduct(product);
     }
     controller.selectedVariantsMap.refresh();
   }

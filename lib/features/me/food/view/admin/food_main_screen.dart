@@ -1,9 +1,11 @@
 ﻿import 'dart:ui';
+import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -166,7 +168,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Products â€” popular dishes (Offer Dish) + food menu.
+        // Products — popular dishes (Offer Dish) + food menu.
         //
         // *IfNeeded* so returning to this tab reuses data that's already
         // loaded and still fresh. Every tab switch AND every swipe between
@@ -174,9 +176,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // requests each time. Pull-to-refresh still forces a real reload, and
         // publishing a dish refetches explicitly. Mirrors grocery's
         // `fetchAllGroceryDataIfNeeded`.
-        final id = businessId;
-        if (id.isEmpty) return;
-        _foodController.fetchHomeAndDiscountIfNeeded(businessId: id);
+        unawaited(_fetchProductsTab());
         break;
       case 1:
         // Overview â€” the joined-profile / contact / QR / share-banner
@@ -193,6 +193,62 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // Statistics â€” ProfileStatisticsScreen owns its own data.
         break;
     }
+  }
+
+  /// The Products tab's fetch, with the business id RESOLVED first.
+  ///
+  /// This used to be `final id = businessId; if (id.isEmpty) return;` inline,
+  /// and that early return was silent and terminal: nothing re-runs the
+  /// dispatcher, so [RestaurantController.foodHomeDataResponse] never left
+  /// INITIAL, `menuResolved` in [FoodProductsTab] stayed false, and the tab sat
+  /// on its loader for good — no error, no empty state, no retry.
+  ///
+  /// An empty [businessId] with a RESTORED `businessTypeGlobal` is a real
+  /// state, not a can't-happen: they are two separate secure-storage keys read
+  /// in the same boot batch, and `SharedPreferenceUtils.getSecureValue`
+  /// deliberately swallows a keystore read failure into null. So the Me tab can
+  /// route to Food (type restored) while the id it needs to fetch with is still
+  /// empty.
+  Future<void> _fetchProductsTab() async {
+    final id = await _resolveBusinessId();
+    if (!mounted) return;
+    if (id.isEmpty) {
+      // Out of ways to get an id. RESOLVE the tab's state anyway so it renders
+      // its empty / "Add Food" surface instead of shimmering forever — a dead
+      // end the merchant can see and act on beats one they cannot.
+      logs('FOOD: businessId unresolved — Products tab has nothing to fetch');
+      _foodController.foodHomeDataResponse.value = ApiResponse.error('error');
+      return;
+    }
+    _foodController.fetchHomeAndDiscountIfNeeded(businessId: id);
+  }
+
+  /// [businessId] or the best attempt at recovering one.
+  ///
+  /// Three escalating recoveries, each a no-op once the global is set:
+  ///
+  /// 1. Re-read the stored key. It only ever ADOPTS a non-empty value, so a
+  ///    second failed read cannot make things worse.
+  /// 2. Fetch the business profile — request-coalesced, so a boot fetch already
+  ///    in flight is joined rather than duplicated.
+  /// 3. Read the id straight off THAT profile. Step 2 can leave the global
+  ///    empty even on success, because it ends in a bulk secure-storage re-read
+  ///    whose result it trusts over what it just wrote. That is fixed at the
+  ///    source (see `getUserLoginData`), and this stays as the belt: the object
+  ///    in memory is the one thing here that cannot be lost to a keystore hiccup.
+  Future<String> _resolveBusinessId() async {
+    if (businessId.isNotEmpty) return businessId;
+    await getUserLoginBusinessId();
+    if (businessId.isNotEmpty) return businessId;
+    await _businessController.viewBusinessProfile();
+    if (businessId.isNotEmpty) return businessId;
+    final fromProfile =
+        _businessController.businessProfileDetails.value?.data?.id?.trim() ?? '';
+    if (fromProfile.isNotEmpty) {
+      businessId = fromProfile;
+      logs('FOOD: businessId recovered from the fetched profile');
+    }
+    return businessId;
   }
 
   /// Keep [_selectedTab] (the content source-of-truth for FAB/go-live state)
@@ -251,7 +307,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   Future<void> _onRefreshCurrentTab() async {
     switch (_selectedTab) {
       case 0:
-        final id = businessId;
+        final id = await _resolveBusinessId();
         if (id.isEmpty) return;
         _foodController.fetchHomeData(businessId: id);
         await _foodController.fetchDiscountFoodProducts(businessId: id);

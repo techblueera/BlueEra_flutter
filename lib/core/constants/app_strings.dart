@@ -5650,6 +5650,8 @@ class AppStrings {
   static const String orderTotalLabel = "orderTotalLabel";
   static const String cameraMicrophonePermissionRequired = "cameraMicrophonePermissionRequired";
   static const String userBusyOnAnotherCall = "userBusyOnAnotherCall";
+  static const String returnToCall = "returnToCall";
+  static const String youAreAlreadyOnACall = "youAreAlreadyOnACall";
   static const String failedToInitiateCall = "failedToInitiateCall";
   static const String callNoLongerAvailable = "callNoLongerAvailable";
   static const String failedToAcceptCall = "failedToAcceptCall";

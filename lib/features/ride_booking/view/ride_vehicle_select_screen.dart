@@ -513,23 +513,39 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
     controller.setTripType(vehicleType: vehicleType, orderFor: orderFor);
 
     // Selecting a vehicle no longer re-quotes. The catalog call made on entry
-    // already carries a fare for EVERY type, so the price for the tapped tile
-    // is in hand — re-fetching it blanked the whole grid behind a spinner and
-    // came back with the same numbers.
+    // already carries a fare for every type it prices, so the price for the
+    // tapped tile is usually in hand — re-fetching it blanked the whole grid
+    // behind a spinner and came back with the same numbers.
     //
-    // A trip-type change is different: "Bike" and "Parcel on Bike" are the same
-    // vehicle priced two ways, and only the server knows the second. That still
-    // re-quotes.
-    for (final option in controller.vehicleOptions) {
-      if (option.code == vehicleType) {
-        controller.selectVehicle(option);
-        break;
-      }
-    }
+    // The SELECTED option is priced for the section that was tapped, not for
+    // whatever `orderFor` the catalog was fetched under: it is what the Book
+    // button prints, and booking a parcel run at the passenger fare is the same
+    // bug the grid had.
+    var picked = _optionFor(vehicleType, orderFor);
+    if (picked != null) controller.selectVehicle(picked);
 
-    if (tripChanged) {
+    // A trip-type change USED to always re-quote, on the reasoning that "Bike"
+    // and "Parcel on Bike" are the same vehicle priced two ways and only the
+    // server knows the second. It does — and it already told us, in
+    // `serviceFares`. Re-quoting when that block already answers for this trip
+    // type replaces the whole catalog with one fetched under a different
+    // `orderFor`, which is what made the Passenger bike's price jump to the
+    // parcel fare the moment the parcel bike was tapped.
+    //
+    // Still re-quotes for a type the server priced only one way, and for one it
+    // did not price at all — there the fetch is the only way to learn the fare.
+    if (tripChanged && !(picked?.hasFareFor(orderFor) ?? false)) {
       await controller.fetchQuotes();
       if (!mounted) return;
+      // Re-read the tapped type from the REPLACED catalog.
+      //
+      // Without this, tapping a tile the first catalog did not price left
+      // `selectedVehicle` on the PREVIOUS vehicle: the tile lit up (that runs
+      // off `preselectedVehicleCode`) while the Book button went on naming and
+      // charging for the one before it. The goods classes are exactly this case
+      // today — they render from the vehicle enum but `fares` omits them.
+      picked = _optionFor(vehicleType, orderFor);
+      if (picked != null) controller.selectVehicle(picked);
     }
 
     // Always: the map shows who is out there in the SELECTED family, which is
@@ -537,6 +553,15 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
     await controller.fetchLiveRiders(
       vehicleType: controller.preselectedVehicleCode.value,
     );
+  }
+
+  /// The catalog entry for [vehicleType], priced for [orderFor]. Null when this
+  /// trip's catalog does not carry that type at all.
+  RideVehicleOption? _optionFor(String vehicleType, String orderFor) {
+    for (final option in controller.vehicleOptions) {
+      if (option.code == vehicleType) return option.forService(orderFor);
+    }
+    return null;
   }
 
   /// The quote, then the live riders — the screen's opening load.
@@ -597,13 +622,27 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
       // values (or at '—') until some unrelated rebuild happened to refresh
       // them.
       //
-      // EVERY section reads the same catalog. `allVehicleTypes=true` prices all
-      // twelve types in one answer — the goods classes and the out-station cars
-      // among them — whatever `orderFor` the call was made with. This used to be
-      // gated on the section matching the trip currently being quoted, on the
-      // assumption that a fare fetched for InCity said nothing about Parcel;
-      // the response says otherwise, and the gate cost Parcel/Goods and Out
-      // Station a dash on prices the server had already sent.
+      // EVERY section reads the same catalog: `allVehicleTypes=true` prices
+      // types beyond the `orderFor` the call was made with, so a fare fetched
+      // for InCity does say something about Parcel. This used to be gated on
+      // the section matching the trip currently being quoted, which cost
+      // Parcel/Goods and Out Station a dash on prices the server had already
+      // sent.
+      //
+      // Handed down raw and re-priced per tile with `forService`, NOT read as
+      // one fare per code: the same `twoWheelerRider` appears under Passenger
+      // and under Parcel/Goods, and keying by code alone made those two tiles
+      // literally the same entry.
+      //
+      // Two limits, both server-side and both tracked in
+      // docs/backend/OPEN_BACKEND_QUESTIONS.md — measured against a live
+      // response, not assumed:
+      //
+      //   * `fares` returned 8 of the 12 types; the four goods classes were
+      //     absent, so those tiles resolve from the vehicle enum and show '—';
+      //   * only `twoWheelerRider` carried more than one entry in
+      //     `serviceFares`, so every other type still falls back to its
+      //     top-level fare for the section it is listed under.
       final quotes = {
         for (final option in controller.vehicleOptions) option.code: option,
       };
@@ -651,7 +690,11 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
                             tile.type.code,
                             orderFor: section.orderFor,
                           ),
-                          quote: quotes[tile.type.code],
+                          // Priced for THIS section's trip type. Keying by code
+                          // alone made the bike's Passenger and Parcel tiles one
+                          // and the same entry — see [forService].
+                          quote: quotes[tile.type.code]
+                              ?.forService(section.orderFor),
                           selected: tile.spec.covers(selectedCode),
                           onTap: () => _selectService(
                             vehicleType: tile.type.code,
@@ -962,22 +1005,24 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The server has explicitly said nobody is driving this type in range.
+    // Nobody is driving this type in range right now. It is a NOTE, not a gate:
+    // the server prices every type in one answer (`allVehicleTypes=true`), so
+    // the fare below is real, and dispatch is a broadcast that a rider coming
+    // on shift can still answer. Blocking the tap hid a price the customer had
+    // already been quoted and left seven of the eight tiles dead on a grid
+    // where only bikes happened to be online.
+    //
     // Absent availability is NOT unavailable — see [RideVehicleOption
-    // .isUnavailable] — so an older response still prices and books normally.
-    final bool unavailable = quote?.isUnavailable == true;
+    // .isUnavailable] — so an older response with no flag reads as fine.
+    final bool noRidersNearby = quote?.isUnavailable == true;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      // Dead tile while nobody is nearby: booking it would broadcast to an
-      // empty radius and leave the customer waiting on a ride that was never
-      // going to be answered.
-      onTap: unavailable ? null : onTap,
-      child: Opacity(
-        // Non-interactive tiles read as non-interactive. The red line below
-        // says why; this says "don't bother tapping" at a glance.
-        opacity: unavailable ? 0.55 : 1,
-        child: Column(
+      // Always live. Tapping is what re-prices the trip for this class AND
+      // re-queries `riders/live-in-radius` for it, which is how the map fills
+      // with the vehicles that would actually come — see [_selectService].
+      onTap: onTap,
+      child: Column(
         // Stretch, otherwise the tinted box shrink-wraps its artwork and tiles
         // end up different widths (the rider SVG is near-square while the
         // vehicle SVGs are wide).
@@ -1027,56 +1072,45 @@ class _ServiceTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          // With no rider in range the fare, distance and ETA are all quoting
-          // a trip that can't be dispatched, so none of them are shown — the
-          // tile says only that the vehicle isn't bookable here. Red, because
-          // this is the one state on the grid the customer must not miss.
+          // The price, on EVERY tile the server priced — which is all of them.
+          // An em dash means the vehicle exists but this trip isn't priced for
+          // it, a different thing from the tile being missing.
+          CustomText(
+            quote == null ? '—' : '₹${quote!.fare.toStringAsFixed(0)}',
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: quote == null ? RideStyle.inkMuted : RideStyle.ink,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+          ),
+          // ONE line under the price, either way, so every tile is the same
+          // height and the grid rows stay level.
           //
-          // The catalog call returns EVERY vehicle type, including ones nobody
-          // is driving here — before it, those simply weren't in the list. So
-          // the tile has to say so, or the customer picks a bike, books, and
-          // waits out a broadcast that was never going to be answered.
-          if (unavailable)
+          // Normally it says what the fare buys: the distance the server priced
+          // this row over and how long the drive takes. A bare number is a
+          // number; "₹40" next to "2.0 km · 3 min" is a price the customer can
+          // judge. When nobody is online for this class it says that instead —
+          // the more useful thing to know at that moment, and it still lets
+          // them book and wait if they want to.
+          if (noRidersNearby)
             CustomText(
-              'Riders not available',
+              'None nearby',
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: RideStyle.danger,
               textAlign: TextAlign.center,
-              // Two lines: the label has to fit four-to-a-row on a small
-              // phone, where it won't sit on one.
-              maxLines: 2,
+              maxLines: 1,
             )
-          else ...[
-            // Always rendered, so a priced tile and an unpriced one keep the
-            // same height and the grid rows stay level. An em dash means the
-            // vehicle exists but this trip isn't priced for it — a different
-            // thing from the tile being missing.
+          else if (quote?.tripSummary case final summary?)
             CustomText(
-              quote == null ? '—' : '₹${quote!.fare.toStringAsFixed(0)}',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: quote == null ? RideStyle.inkMuted : RideStyle.ink,
+              summary,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: RideStyle.inkMuted,
               textAlign: TextAlign.center,
               maxLines: 1,
             ),
-            // What the fare buys: the distance the server priced this row over
-            // and how long the drive takes. A bare number is a number; "₹40"
-            // next to "2.0 km · 3 min" is a price the customer can judge —
-            // which is the whole reason to show a catalogue rather than one
-            // quote.
-            if (quote?.tripSummary case final summary?)
-              CustomText(
-                summary,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: RideStyle.inkMuted,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-              ),
-          ],
         ],
-        ),
       ),
     );
   }
