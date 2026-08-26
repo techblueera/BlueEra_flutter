@@ -15,6 +15,7 @@ import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
@@ -109,6 +110,10 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
         shopName: widget.message.seller?.name,
         shopAddress: widget.message.seller?.location,
         orderTotal: widget.message.metadata?.selfPickupOrder?.grandTotal,
+        businessId: widget.message.metadata?.selfPickupOrder?.businessId ??
+            widget.message.sender?.id,
+        selfpickupType: widget.message.messageType ?? 'grocery_selfpickup',
+        orderFor: 'grocery',
         onFindRider: _isMyMessage ? _findRiderFromCard : null,
         onChanged: _onLifecycleChanged,
       );
@@ -134,12 +139,15 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     if (mounted) setState(() {});
   }
 
-  /// `FIND_RIDER` reuses the existing chat-dispatch flow untouched — the rider
-  /// leg is unchanged (guide §7).
+  /// `FIND_RIDER` runs **in the card** now (guide §5.5).
+  ///
+  /// The old button left the chat for a full-screen rider-booking flow and
+  /// re-asked for a drop address — on an order that, for doorstep delivery,
+  /// already carries one. A doorstep order never reaches this at all: it
+  /// dispatches itself the moment it turns `ready` (§7.2). This is only the
+  /// self-pickup customer who changed their mind.
   Future<void> _findRiderFromCard() async {
-    final drop = await showRideDropLocationSheet(context);
-    if (drop == null || !mounted) return;
-    Get.to(() => GoodsMultiOrderBookingMain(dropAddress: drop));
+    await showFindRiderSheet(context, ctx: _cardContext);
   }
 
   /// Business taps "Mark as Ready" → show product selection bottom sheet

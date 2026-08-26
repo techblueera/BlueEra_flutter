@@ -238,6 +238,12 @@ class HmpCartController extends GetxController {
       _attempts.putIfAbsent(key, () => CheckoutAttempt());
 
   /// Call when the cart screen opens, so each store starts a fresh attempt.
+
+  /// `cash` (default) or `upi`, chosen in the checkout sheet before each
+  /// store's order is placed. These carts are self-pickup only until their
+  /// service takes doorstep orders, so the sheet skips the delivery steps.
+  final RxString paymentMethod = OrderPaymentMethod.cash.obs;
+
   void beginCheckoutAttempts() {
     _attempts.clear();
     for (final key in storeKeys) {
@@ -267,7 +273,7 @@ class HmpCartController extends GetxController {
         // Cash is the default and the only method this home-products cart
         // offers today; sending it explicitly keeps the order out of the UPI
         // submit/verify flow rather than relying on a server default.
-        'paymentMethod': OrderPaymentMethod.cash,
+        'paymentMethod': paymentMethod.value,
         'idempotencyKey': _attemptFor(key).key,
       };
 

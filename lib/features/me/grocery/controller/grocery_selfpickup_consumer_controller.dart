@@ -27,6 +27,15 @@ class GrocerySelfPickupConsumerController extends GetxController {
   /// Call when the checkout sheet OPENS — not on every tap.
   void beginCheckoutAttempt() => _checkoutAttempt.begin();
 
+  /// `cash` (default) or `upi`, chosen in the checkout sheet. With `upi` the
+  /// customer is asked for money only AFTER the shop accepts — if the shop
+  /// turns out to be closed, nobody has to be refunded (guide §5, §6.1).
+  ///
+  /// This vertical's service does not take doorstep orders yet, so the sheet
+  /// offers no delivery step and `deliveryType` stays `self-pickup`.
+  final RxString paymentMethod = OrderPaymentMethod.cash.obs;
+
+
   Rx<ApiResponse> groceryCategoryOfChildrenResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> userGroceryCategoryResponse =
@@ -220,7 +229,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
         // Cash is what this cart offers today. Sending it explicitly keeps the
         // order out of the UPI submit/verify flow rather than leaning on a
         // server-side default that could change.
-        "paymentMethod": OrderPaymentMethod.cash,
+        "paymentMethod": paymentMethod.value,
         "idempotencyKey": _checkoutAttempt.key,
       };
 

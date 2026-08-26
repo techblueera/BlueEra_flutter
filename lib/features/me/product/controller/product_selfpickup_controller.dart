@@ -288,7 +288,11 @@ class ProductSelfPickupController extends GetxController {
   }
 
   /// Place a bulk product self-pickup order.
-  Future<void> placeProductOrderApi() async {
+  /// Returns the server's error `code` when the order was NOT created, so the
+  /// cart can act on it — `DELIVERY_LOCATION_REQUIRED` sends the customer back
+  /// to the address step rather than showing a dead-end toast (guide §5.4).
+  /// Null means the order was placed.
+  Future<String?> placeProductOrderApi() async {
     try {
       isPlaceProductOrderLoading.value = true;
       AppLoader.show();
@@ -310,7 +314,7 @@ class ProductSelfPickupController extends GetxController {
         commonSnackBar(
           message: AppStrings.somethingWentWrong,
         );
-        return;
+        return 'INVALID_ITEMS';
       }
 
       // The three new fields are all backwards compatible — the old
@@ -347,10 +351,19 @@ class ProductSelfPickupController extends GetxController {
         logs('placeProductOrderApi failed: '
             'status=${response.response?.statusCode} '
             'message=${response.message} body=${response.response?.data}');
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
+        final body = response.response?.data;
+        final code = body is Map
+            ? (body['code'] ?? body['errorCode'])?.toString()
+            : null;
+        // A missing coordinate is a checkout bug, not something to toast at
+        // the customer — the caller reopens the address step. Everything else
+        // says what the server said.
+        if (code != OrderErrorCode.deliveryLocationRequired) {
+          commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong,
+          );
+        }
+        return code;
       }
 
       // 201 = created, 200 = you already created this one (the idempotency key
@@ -379,11 +392,13 @@ class ProductSelfPickupController extends GetxController {
 
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
+      return null;
     } catch (e) {
       AppLoader.hide();
       logs('placeProductOrderApi exception: $e');
       placeProductOrderResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return OrderErrorCode.network;
     } finally {
       isPlaceProductOrderLoading.value = false;
     }

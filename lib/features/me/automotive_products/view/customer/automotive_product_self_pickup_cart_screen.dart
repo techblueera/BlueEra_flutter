@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -141,8 +142,18 @@ class _AutomotiveProductSelfPickUpCartScreenState
   /// from the controller's cart, then place the order. Without this
   /// the API would receive every variant in the cart regardless of
   /// checkbox state. Same approach as the grocery cart.
-  void _placeOrder(AutomotiveProductSelfPickupController controller,
+
+  /// What the checkout sheet shows as the items total: only the shops and
+  /// variants still ticked, priced the same way the cart footer prices them.
+  double _checkoutTotal(AutomotiveProductSelfPickupController controller,
       Map<String, List<GetProductData>> grouped) {
+    return grouped.entries
+        .where((e) => selectedBusinessIds.contains(e.key))
+        .fold<double>(0, (sum, e) => sum + _calcTotal(e.value, controller));
+  }
+
+  Future<void> _placeOrder(AutomotiveProductSelfPickupController controller,
+      Map<String, List<GetProductData>> grouped) async {
     final toDrop = <GetProductData>[];
     for (final entry in grouped.entries) {
       final shopChecked = selectedBusinessIds.contains(entry.key);
@@ -162,6 +173,18 @@ class _AutomotiveProductSelfPickUpCartScreenState
         controller.removeFromCart(p);
       }
     }
+
+    // Ask how they'll pay before the order exists. This vertical's service
+    // does not take doorstep orders yet, so the sheet skips the delivery steps
+    // entirely (`allowDelivery: false`) and asks only what it can honour.
+    if (!mounted) return;
+    final choice = await showOrderCheckoutSheet(
+      context,
+      itemsTotal: _checkoutTotal(controller, grouped),
+      allowDelivery: false,
+    );
+    if (choice == null) return;
+    controller.paymentMethod.value = choice.paymentMethod;
 
     controller.placeProductOrderApi();
   }

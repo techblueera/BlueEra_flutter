@@ -15,9 +15,13 @@ Future<void> _pump(
   OrderPaymentSummary? paymentSummary,
   Widget? legacyFallback,
 }) async {
-  if (lifecycle != null && paymentSummary != null) {
+  // Seed the store the way `/actions` would, including **`actor`** — the
+  // server's own answer to "whose buttons are these" (guide §2.2). Without it
+  // the section asks the server on mount, exactly as it does in the app.
+  if (lifecycle != null) {
     OrderLifecycleController.instance.orders['o1'] = OrderActionsModel(
       orderId: 'o1',
+      actor: isOwner ? OrderActor.owner : OrderActor.customer,
       availableActions: const [],
       lifecycle: lifecycle,
       deadlines: lifecycle.deadlines,

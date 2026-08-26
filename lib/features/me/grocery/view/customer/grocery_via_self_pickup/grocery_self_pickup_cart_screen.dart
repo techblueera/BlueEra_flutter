@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -828,7 +829,19 @@ class _PlaceOrderBar extends StatelessWidget {
                   flex: 2,
                   child: GrocerySelfPickUpCartScreen.checkoutButton(
                     label: AppStrings.groceryViewPlaceOrder.tr,
-                    onTap: controller.placeBulkGroceryOrderApi,
+                    // Ask how they'll pay before the order exists. Grocery
+                    // orders are self-pickup only until that service takes
+                    // doorstep orders, so the sheet skips the delivery steps.
+                    onTap: () async {
+                      final choice = await showOrderCheckoutSheet(
+                        context,
+                        itemsTotal: total,
+                        allowDelivery: false,
+                      );
+                      if (choice == null) return;
+                      controller.paymentMethod.value = choice.paymentMethod;
+                      controller.placeBulkGroceryOrderApi();
+                    },
                   ),
                 ),
               ],

@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -63,7 +64,7 @@ class HmpCartScreen extends StatelessWidget {
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                 itemCount: keys.length,
-                itemBuilder: (_, i) => _storeCart(controller, keys[i]),
+                itemBuilder: (_, i) => _storeCart(context, controller, keys[i]),
               ),
             ),
             if (controller.storeCount > 1) _checkoutAllBar(controller),
@@ -93,7 +94,7 @@ class HmpCartScreen extends StatelessWidget {
   }
 
   // ── One seller's cart card ─────────────────────────────────────────────────
-  Widget _storeCart(HmpCartController c, String key) {
+  Widget _storeCart(BuildContext context, HmpCartController c, String key) {
     final store = c.storeOf(key);
     final lines = c.linesOf(key);
     final subtotal = c.priceOf(key);
@@ -229,7 +230,18 @@ class HmpCartScreen extends StatelessWidget {
                     _checkoutButton(
                       label: 'Checkout',
                       loading: placing,
-                      onTap: () => c.placeOrderForStore(key),
+                      onTap: () async {
+                        // How they'll pay is asked once per store's order,
+                        // before that order exists.
+                        final choice = await showOrderCheckoutSheet(
+                          context,
+                          itemsTotal: c.priceOf(key),
+                          allowDelivery: false,
+                        );
+                        if (choice == null) return;
+                        c.paymentMethod.value = choice.paymentMethod;
+                        c.placeOrderForStore(key);
+                      },
                     ),
                   ],
                 ),

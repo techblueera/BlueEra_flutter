@@ -1,5 +1,11 @@
 # Order Flow — What Was Built
 
+> **⚠ SUPERSEDED.** This records the v1/v2 round of the order work. The v3 guide
+> then changed the contract in several places — `actor` instead of `isOwner`,
+> `data.payment.*` instead of `paymentSummary`, GeoJSON coordinates at checkout,
+> automatic dispatch instead of a manual ride button. **Current state:
+> `ORDER_FLOW_V3_FRONTEND_DONE.md` (same folder).**
+
 > **Companion:** `FLUTTER_ORDER_FLOW_UI_GUIDE.md` (same folder) — the contract this
 > implements. Section numbers below refer to it.
 > **Scope built:** the full client side of the server-driven order lifecycle, plus

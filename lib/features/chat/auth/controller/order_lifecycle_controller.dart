@@ -32,11 +32,11 @@ class OrderCallResult {
 
   /// A conflict that simply means the other party moved first. Normal, not
   /// exceptional — the caller refreshes and carries on.
-  bool get isStaleState =>
-      code == OrderErrorCode.actionNotAvailable ||
-      code == OrderErrorCode.concurrentModification ||
-      code == OrderErrorCode.paymentConflict ||
-      code == OrderErrorCode.orderTerminal;
+  bool get isStaleState => OrderErrorCode.isStaleState(code);
+
+  /// A success carrying a caveat — e.g. the customer typed an amount that
+  /// doesn't match the total. Amber note, never an error (guide §2.3).
+  String? get warning => model?.warning;
 }
 
 /// Single owner of order-lifecycle state for every open order in the app.
@@ -122,13 +122,24 @@ class OrderLifecycleController extends GetxController {
     if (orderId.isEmpty) return;
     _serviceOf[orderId] = service;
     if (!force && orders.containsKey(orderId)) return;
+    final existing = orders[orderId];
     orders[orderId] = OrderActionsModel(
       orderId: orderId,
+      orderNumber: existing?.orderNumber,
       availableActions: const [],
+      actor: existing?.actor,
       lifecycle: lifecycle,
       deadlines: lifecycle.deadlines,
-      paymentSummary: orders[orderId]?.paymentSummary,
-      cancellationReasons: orders[orderId]?.cancellationReasons ?? const [],
+      paymentSummary: existing?.paymentSummary,
+      cancellation: existing?.cancellation,
+      cancellationReasons: existing?.cancellationReasons ?? const [],
+      deliveryType: existing?.deliveryType,
+      delivery: existing?.delivery,
+      rideOrderId: existing?.rideOrderId,
+      grandTotal: existing?.grandTotal,
+      totalItems: existing?.totalItems,
+      needsAttention: existing?.needsAttention ?? false,
+      pickupCode: existing?.pickupCode,
     );
   }
 
@@ -226,9 +237,7 @@ class OrderLifecycleController extends GetxController {
   /// shakes the field and lets the shop retype. `handled: false` is passed so
   /// no toast fires over the open dialog.
   Future<OrderCallResult> confirmHandover(String orderId,
-          {required String pickupCode,
-          bool? collectedCash,
-          String? service}) =>
+          {required String pickupCode, bool? collectedCash, String? service}) =>
       _run(
         orderId: orderId,
         action: OrderAction.confirmHandover,
@@ -290,8 +299,8 @@ class OrderLifecycleController extends GetxController {
       _run(
         orderId: orderId,
         action: OrderAction.viewPickupCode,
-        call: () => _repo.pickupCode(orderId,
-            service: service ?? serviceOf(orderId)),
+        call: () =>
+            _repo.pickupCode(orderId, service: service ?? serviceOf(orderId)),
       );
 
   Future<OrderCallResult> confirmRefundReceived(String orderId,
@@ -382,13 +391,22 @@ class OrderLifecycleController extends GetxController {
         networkFailedOrders.remove(orderId);
         OrderActionsModel? model;
         if (json != null) {
-          model = OrderActionsModel.fromJson(json, fallbackOrderId: orderId);
-          // Only replace state when the server actually described the order.
-          // A bare `{success:true}` must not wipe the buttons off the card.
-          if (model.availableActions.isNotEmpty ||
-              model.lifecycle.orderStatus != null ||
-              model.lifecycle.customerActions.isNotEmpty ||
-              model.lifecycle.ownerActions.isNotEmpty) {
+          final parsed =
+              OrderActionsModel.fromJson(json, fallbackOrderId: orderId);
+          // Only apply when the server actually described the order. A bare
+          // `{success:true}` must not wipe the buttons off the card.
+          final describesOrder = parsed.availableActions.isNotEmpty ||
+              parsed.lifecycle.orderStatus != null ||
+              parsed.lifecycle.customerActions.isNotEmpty ||
+              parsed.lifecycle.ownerActions.isNotEmpty ||
+              parsed.paymentSummary != null ||
+              (parsed.pickupCode ?? '').isNotEmpty;
+          if (describesOrder) {
+            // MERGE, don't replace. `/actions` carries no money at all
+            // (guide §2.2), so a plain refresh must not erase the
+            // `data.payment.*` block an action response just delivered.
+            final existing = orders[orderId];
+            model = existing == null ? parsed : existing.mergedWith(parsed);
             orders[orderId] = model;
           } else {
             model = orders[orderId];
@@ -461,24 +479,44 @@ class OrderLifecycleController extends GetxController {
   /// the other party moved first, so it is a refresh cue.
   Future<void> handleError(String orderId, OrderCallResult result,
       {bool toast = true}) async {
-    switch (result.code) {
+    final code = result.code;
+
+    // Field-level codes are rendered inline by the sheet/dialog that raised
+    // them — a toast on top would just cover the field.
+    if (OrderErrorCode.isFieldLevel(code)) return;
+
+    switch (code) {
+      case OrderErrorCode.orderTerminal:
+        // Silent: the order really is finished, the card just needs to say so.
+        await _silentRefresh(orderId);
+        break;
+
       case OrderErrorCode.actionNotAvailable:
       case OrderErrorCode.concurrentModification:
       case OrderErrorCode.paymentConflict:
+      case OrderErrorCode.invalidSellerTransition:
+      case OrderErrorCode.invalidPaymentTransition:
+        // NORMAL, not exceptional — the other party moved first. A refresh
+        // cue, never a red banner (guide §10.1).
         await _silentRefresh(orderId);
         if (toast) {
           commonSnackBar(
-              message: 'This order has changed. Please check the updated details.');
+              message:
+                  'This order has changed. Please check the updated details.');
         }
         break;
 
-      case OrderErrorCode.orderTerminal:
-        await _silentRefresh(orderId);
-        break;
-
       case OrderErrorCode.notAPartyToOrder:
+      case OrderErrorCode.notOrderCustomer:
         if (toast) {
           commonSnackBar(message: 'You no longer have access to this order.');
+        }
+        break;
+
+      case OrderErrorCode.orderNotFound:
+      case OrderErrorCode.invalidOrderId:
+        if (toast) {
+          commonSnackBar(message: 'This order could not be found.');
         }
         break;
 
@@ -494,18 +532,6 @@ class OrderLifecycleController extends GetxController {
         if (toast) {
           commonSnackBar(message: 'Please contact the shop.');
         }
-        break;
-
-      // Field-level codes are rendered inline by the sheet/dialog that raised
-      // them — a toast on top would just cover the field.
-      case OrderErrorCode.utrAlreadyUsed:
-      case OrderErrorCode.utrRequired:
-      case OrderErrorCode.screenshotRequired:
-      case OrderErrorCode.invalidAmount:
-      case OrderErrorCode.pickupCodeMismatch:
-      case OrderErrorCode.cashNotCollected:
-      case OrderErrorCode.refundReferenceRequired:
-      case OrderErrorCode.invalidReason:
         break;
 
       default:
@@ -527,9 +553,12 @@ class OrderLifecycleController extends GetxController {
       final res = await _repo.getActions(orderId, service: serviceOf(orderId));
       final body = res.response?.data;
       if (res.isSuccess && body is Map) {
-        orders[orderId] = OrderActionsModel.fromJson(
+        final parsed = OrderActionsModel.fromJson(
             Map<String, dynamic>.from(body),
             fallbackOrderId: orderId);
+        final existing = orders[orderId];
+        orders[orderId] =
+            existing == null ? parsed : existing.mergedWith(parsed);
       }
     } catch (_) {
       // Best-effort — the card keeps whatever it had and offers Retry.
@@ -538,6 +567,42 @@ class OrderLifecycleController extends GetxController {
       busyKeys.refresh();
     }
   }
+
+  /// `GET /track` — the **only** read that returns money and the stored
+  /// delivery address, because `/actions` carries neither (guide §2.4).
+  ///
+  /// Called when a flow needs Plane C data on a card that has so far only been
+  /// rendered from `metadata.lifecycle`: the pay sheet's amount due, the
+  /// shop's verification card, and the coordinates auto-dispatch reuses.
+  Future<OrderCallResult> refreshTrack(String orderId, {String? service}) {
+    if (orderId.isEmpty) {
+      return Future.value(
+          const OrderCallResult(ok: false, code: 'MISSING_ORDER_ID'));
+    }
+    final svc = service ?? serviceOf(orderId);
+    _serviceOf[orderId] = svc;
+    return _run(
+      orderId: orderId,
+      action: 'TRACK',
+      toastOnError: false,
+      call: () => _repo.track(orderId, service: svc),
+    );
+  }
+
+  /// Make sure this order's money block is loaded, fetching it only if it is
+  /// missing. Cheap to call before opening a sheet that shows amounts.
+  Future<OrderPaymentSummary?> ensurePayment(String orderId,
+      {String? service}) async {
+    final cached = orders[orderId]?.paymentSummary;
+    if (cached != null) return cached;
+    await refreshTrack(orderId, service: service);
+    return orders[orderId]?.paymentSummary;
+  }
+
+  /// The viewer's role **as the server reports it**. Null until `/actions` or
+  /// an action response has answered for this order — the caller then falls
+  /// back to its own heuristic, which is a guess and says so.
+  bool? actorIsOwner(String orderId) => orders[orderId]?.isOwnerOrNull;
 
   /// Apply a `productOrderLifecycle` socket payload. Called by
   /// [ChatViewController] after it patches the message's metadata.
@@ -554,9 +619,12 @@ class OrderLifecycleController extends GetxController {
     existing.lifecycle.applyFrom(lifecycle);
     orders[orderId] = OrderActionsModel(
       orderId: orderId,
+      orderNumber: existing.orderNumber,
       // The socket payload is role-split; drop the stale flat list so the
-      // action bar reads the role list that just arrived.
+      // action bar reads the role list that just arrived. Action lists
+      // REPLACE, never merge — the payload always carries the complete set.
       availableActions: const [],
+      actor: existing.actor,
       lifecycle: existing.lifecycle,
       deadlines: lifecycle.deadlines.isEmpty
           ? existing.deadlines
@@ -564,7 +632,13 @@ class OrderLifecycleController extends GetxController {
       paymentSummary: existing.paymentSummary,
       cancellation: existing.cancellation,
       cancellationReasons: existing.cancellationReasons,
-      isOwner: existing.isOwner,
+      deliveryType: existing.deliveryType,
+      delivery: existing.delivery,
+      rideOrderId: existing.rideOrderId,
+      grandTotal: existing.grandTotal,
+      totalItems: existing.totalItems,
+      needsAttention: existing.needsAttention,
+      pickupCode: existing.pickupCode,
     );
   }
 }

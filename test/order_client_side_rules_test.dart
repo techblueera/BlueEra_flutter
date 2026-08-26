@@ -65,17 +65,30 @@ void main() {
   });
 
   group('countdown formatting', () {
+    // The bands are the guide's, not ours (§8.1): hours above an hour,
+    // whole minutes from 10 to 60, and seconds only in the last ten minutes —
+    // where the customer is actually watching the clock.
     test('reads naturally at every scale', () {
-      String f(Duration d) => OrderDeadlineCountdownFormat.remaining(d);
+      String f(Duration d) => OrderCountdownFormat.remaining(d);
 
-      expect(f(const Duration(hours: 1, minutes: 4)), '1h 04m');
+      expect(f(const Duration(hours: 2, minutes: 14)), '2h 14m');
       expect(f(const Duration(hours: 2)), '2h 00m');
-      expect(f(const Duration(minutes: 4, seconds: 31)), '4:31');
-      expect(f(const Duration(minutes: 1)), '1:00');
-      expect(f(const Duration(seconds: 45)), '< 1 min');
-      expect(f(Duration.zero), '0:00');
-      // A negative remainder is clamped, never rendered as "-3:00".
-      expect(f(const Duration(seconds: -180)), '0:00');
+      expect(f(const Duration(minutes: 18)), '18m');
+      expect(f(const Duration(minutes: 10)), '10m');
+      // Under ten minutes the seconds appear and tick.
+      expect(f(const Duration(minutes: 4, seconds: 31)), '4m 31s');
+      expect(f(const Duration(seconds: 45)), '0m 45s');
+      expect(f(Duration.zero), '0m 00s');
+      // A negative remainder is clamped, never rendered as "-3m".
+      expect(f(const Duration(seconds: -180)), '0m 00s');
+    });
+
+    test('past the deadline it counts UP, and never says cancelled', () {
+      String f(Duration d) => OrderCountdownFormat.overdue(d);
+
+      expect(f(const Duration(minutes: 12)), '12m');
+      expect(f(const Duration(hours: 1, minutes: 4)), '1h 04m');
+      expect(f(const Duration(seconds: 20)), '<1m');
     });
   });
 }

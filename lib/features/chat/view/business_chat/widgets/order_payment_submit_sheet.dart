@@ -100,8 +100,9 @@ class _OrderPaymentSheetState extends State<_OrderPaymentSheet> {
   String? _amountError;
   String? _screenshotError;
 
-  /// The order total. Prefers the authoritative `/actions` payment summary
-  /// over whatever the card passed in.
+  /// The order total, from `data.payment.amountDue` — the only place money
+  /// lives (guide §2.3). `/actions` carries none, so [_hydrateAmount] pulls it
+  /// from `/track` when the card has never seen an action response.
   num? get _amountDue {
     final summary =
         OrderLifecycleController.instance.stateOf(widget.orderId)?.paymentSummary;
@@ -113,7 +114,22 @@ class _OrderPaymentSheetState extends State<_OrderPaymentSheet> {
     super.initState();
     final due = _amountDue;
     if (due != null && due > 0) _amount.text = _money(due);
+    _hydrateAmount();
     _loadPayeeQr();
+  }
+
+  /// Never show the customer a blank or guessed figure to pay against.
+  Future<void> _hydrateAmount() async {
+    if (_amountDue != null) return;
+    await OrderLifecycleController.instance
+        .ensurePayment(widget.orderId, service: widget.service);
+    if (!mounted) return;
+    final due = _amountDue;
+    // Don't stamp over a figure the customer has already edited.
+    if (due != null && due > 0 && _amount.text.trim().isEmpty) {
+      _amount.text = _money(due);
+    }
+    setState(() {});
   }
 
   @override
