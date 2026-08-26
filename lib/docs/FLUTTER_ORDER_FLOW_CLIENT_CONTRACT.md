@@ -10,8 +10,9 @@
 > — and this edition is rewritten against the source rather than against the old text.
 >
 > **Companions:** `FLUTTER_ORDER_FLOW_UI_GUIDE.md` (v3, the spec) ·
-> `ORDER_FLOW_V3_FRONTEND_DONE.md` (what shipped) ·
-> `ORDER_FLOW_CLIENT_CONTRACT_REVIEW.md` (the review this answers).
+> `ORDER_FLOW_V3_FRONTEND_DONE.md` (the v3 round) ·
+> `ORDER_FLOW_CLIENT_CONTRACT_REVIEW.md` (the review this answers) ·
+> `ORDER_FLOW_REVIEW_FIXES_DONE.md` (what that review changed here).
 >
 > **Status:** `flutter analyze lib` → 0 errors. `flutter test` → 263 passing.
 

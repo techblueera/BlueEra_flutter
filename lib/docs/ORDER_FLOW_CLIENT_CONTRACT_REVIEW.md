@@ -33,7 +33,9 @@ small client-side misses.
 >   `refundDue` is now only taken from a payload that actually stated it.
 >
 > 17 new tests in `test/order_track_contract_test.dart`. `flutter analyze lib` → 0 errors;
-> `flutter test` → 263 passing (was 246). Details in `ORDER_FLOW_V3_FRONTEND_DONE.md` §9.
+> `flutter test` → 263 passing (was 246). **Full write-up:
+> `ORDER_FLOW_REVIEW_FIXES_DONE.md` (same folder)**, summarised in
+> `ORDER_FLOW_V3_FRONTEND_DONE.md` §9.
 
 Your §9 open questions are all answered in §4 below. Short version: **#1 yes the
 prefix is right, #2 here is the key-for-key answer, #5 already satisfied, #7 the

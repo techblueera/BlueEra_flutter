@@ -268,6 +268,9 @@ flutter test test/order_v3_contract_test.dart \
 
 ## 9. Round two — the client-contract review
 
+> **Full write-up: `ORDER_FLOW_REVIEW_FIXES_DONE.md` (same folder).** What follows is the
+> summary.
+
 `ORDER_FLOW_CLIENT_CONTRACT_REVIEW.md` read both codebases line by line after this work
 landed. It found one P0 (backend, fixed there) and three client-side misses. All three are
 done, and implementing them surfaced two more bugs of the same family.
