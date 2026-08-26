@@ -387,6 +387,44 @@ class OrderPaymentSummary {
       (utrNo ?? '').isEmpty &&
       (screenshotUrl ?? '').isEmpty &&
       state == null;
+
+  /// This summary laid over [base], field by field.
+  ///
+  /// **`/track`'s `paymentSummary` carries no refund fields at all** — not
+  /// `refundOwedBy`, `refundRequestedAt`, `refundInitiatedAt`,
+  /// `refundReference` or `refundedAt`. Replacing wholesale on a track refresh
+  /// would therefore erase the refund state an action response had already
+  /// delivered, and the card would drop from *"the shop says it sent ₹500"*
+  /// back to *"the shop owes you ₹500"* — the exact distinction
+  /// `refundInitiatedAt` carries.
+  ///
+  /// So a key the newer payload did not mention keeps the value we already
+  /// had. That makes reading refunds from Plane A / Plane C (the normal path,
+  /// since the refund UI is only reachable from a card just acted on or
+  /// patched by socket) safe even when a cold `/track` lands on top.
+  OrderPaymentSummary mergedOver(OrderPaymentSummary base) {
+    return OrderPaymentSummary(
+      method: method ?? base.method,
+      state: state ?? base.state,
+      amountDue: amountDue ?? base.amountDue,
+      amountPaid: amountPaid ?? base.amountPaid,
+      utrNo: utrNo ?? base.utrNo,
+      screenshotUrl: screenshotUrl ?? base.screenshotUrl,
+      upiId: upiId ?? base.upiId,
+      paymentQrId: paymentQrId ?? base.paymentQrId,
+      submittedAt: submittedAt ?? base.submittedAt,
+      verifiedAt: verifiedAt ?? base.verifiedAt,
+      rejectedAt: rejectedAt ?? base.rejectedAt,
+      rejectionReason: rejectionReason ?? base.rejectionReason,
+      submissionCount: submissionCount ?? base.submissionCount,
+      dueBy: dueBy ?? base.dueBy,
+      refundOwedBy: refundOwedBy ?? base.refundOwedBy,
+      refundRequestedAt: refundRequestedAt ?? base.refundRequestedAt,
+      refundInitiatedAt: refundInitiatedAt ?? base.refundInitiatedAt,
+      refundReference: refundReference ?? base.refundReference,
+      refundedAt: refundedAt ?? base.refundedAt,
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -579,6 +617,13 @@ class OrderLifecycle {
 
   num? refundAmount;
 
+  /// Whether the payload this came from actually mentioned `refundDue`.
+  ///
+  /// `/actions` does not send it, and a plain `false` from a payload that never
+  /// spoke about refunds must not clear a `true` the socket delivered — that
+  /// would make the refund block vanish on the next app resume.
+  final bool refundDueStated;
+
   OrderLifecycle({
     this.orderStatus,
     this.sellerStatus,
@@ -597,6 +642,7 @@ class OrderLifecycle {
     this.refundInitiatedAt,
     this.refundReference,
     this.refundAmount,
+    this.refundDueStated = true,
   })  : customerActions = customerActions ?? const [],
         ownerActions = ownerActions ?? const [],
         deadlines = deadlines ?? const OrderDeadlines();
@@ -631,6 +677,7 @@ class OrderLifecycle {
       refundInitiatedAt: json['refundInitiatedAt']?.toString(),
       refundReference: json['refundReference']?.toString(),
       refundAmount: _parseNum(json['refundAmount']),
+      refundDueStated: json.containsKey('refundDue'),
       // `seenEvents` is the server's own dedupe ledger — never read, never
       // rendered.
     );
@@ -692,6 +739,41 @@ class OrderLifecycle {
   bool get needsPickupDecision =>
       (lastEvent ?? '').contains('PICKUP_OWNER_ACTION');
 
+  /// This lifecycle laid over [base], field by field, as a **new** instance.
+  ///
+  /// The case that matters is `/actions`, which the service documents as
+  /// carrying no `lifecycle` and **no `banner`** — only the flat status fields.
+  /// Replacing wholesale on a refresh therefore blanked the card's status line
+  /// and it fell back to the neutral "Order update" placeholder. A field the
+  /// newer payload did not mention keeps the value we already had.
+  ///
+  /// Action lists are the deliberate exception: they **replace**, never merge,
+  /// because every payload that carries them carries the complete set, and a
+  /// merge would leave a button the server had just withdrawn.
+  OrderLifecycle mergedOver(OrderLifecycle base) {
+    return OrderLifecycle(
+      orderStatus: orderStatus ?? base.orderStatus,
+      sellerStatus: sellerStatus ?? base.sellerStatus,
+      paymentMethod: paymentMethod ?? base.paymentMethod,
+      paymentState: paymentState ?? base.paymentState,
+      customerActions:
+          customerActions.isNotEmpty ? customerActions : base.customerActions,
+      ownerActions: ownerActions.isNotEmpty ? ownerActions : base.ownerActions,
+      deadlines: deadlines.isEmpty ? base.deadlines : deadlines,
+      lastEvent: lastEvent ?? base.lastEvent,
+      lastEventAt: lastEventAt ?? base.lastEventAt,
+      banner: banner ?? base.banner,
+      reasonCode: reasonCode ?? base.reasonCode,
+      refundDue: refundDueStated ? refundDue : base.refundDue,
+      refundDueStated: refundDueStated || base.refundDueStated,
+      suggestion: suggestion ?? base.suggestion,
+      refundOwedBy: refundOwedBy ?? base.refundOwedBy,
+      refundInitiatedAt: refundInitiatedAt ?? base.refundInitiatedAt,
+      refundReference: refundReference ?? base.refundReference,
+      refundAmount: refundAmount ?? base.refundAmount,
+    );
+  }
+
   /// Copy the server's fields onto this instance, in place. Used by the socket
   /// patch so an existing card object updates without being rebuilt.
   ///
@@ -709,7 +791,10 @@ class OrderLifecycle {
     lastEventAt = other.lastEventAt ?? lastEventAt;
     banner = other.banner ?? banner;
     reasonCode = other.reasonCode ?? reasonCode;
-    refundDue = other.refundDue;
+    // A socket payload always carries the whole block, so its `refundDue` is
+    // authoritative — but a payload that never mentioned the key must not
+    // clear a refund we already know about.
+    if (other.refundDueStated) refundDue = other.refundDue;
     suggestion = other.suggestion ?? suggestion;
     refundOwedBy = other.refundOwedBy ?? refundOwedBy;
     refundInitiatedAt = other.refundInitiatedAt ?? refundInitiatedAt;
@@ -823,8 +908,15 @@ class OrderActionsModel {
         : lifecycle.deadlines;
 
     // ── The role ────────────────────────────────────────────────────────
+    //
+    // `/actions` and the action responses call it `actor`; **`/track` calls the
+    // same thing `viewerRole`** and will keep doing so — the admin panel reads
+    // that key — so both are accepted. Without this a model built from a track
+    // response has a null role and everything downstream falls back to the
+    // card's own `myMessage` guess.
     final actor = json['actor']?.toString() ??
-        // Tolerated legacy spellings; the service sends `actor`.
+        json['viewerRole']?.toString() ??
+        // Tolerated legacy spellings; no service sends these today.
         (json['role']?.toString() == 'business'
             ? OrderActor.owner
             : json['role']?.toString()) ??
@@ -862,12 +954,26 @@ class OrderActionsModel {
             .toList(growable: false)
         : const <OrderCancellationReason>[];
 
-    // `needsAttention` is a bool on Plane B and `{flagged, reason}` on C.
+    // `needsAttention` has three shapes, and only reading two of them left the
+    // strip permanently invisible on a track refresh:
+    //
+    //   /actions          → a bare bool
+    //   action responses  → { flagged: true, reason, flaggedAt, note }
+    //   /track            → { reason, flaggedAt }   ← NO `flagged` key,
+    //                       and `null` when it is not flagged
+    //
+    // So on `/track` **the presence of the object is the flag**.
     bool attention = json['needsAttention'] == true;
     if (json['needsAttention'] is Map) {
-      attention =
-          Map<String, dynamic>.from(json['needsAttention'])['flagged'] == true;
+      final m = Map<String, dynamic>.from(json['needsAttention']);
+      attention = m['flagged'] == true ||
+          (m['flagged'] == null && m.isNotEmpty);
     }
+    // NOTE: `needsAttention.reason` is deliberately never parsed onto the
+    // model. `/track` sends it to every party including the customer, but the
+    // values are an internal ops taxonomy — PAYMENT_REVIEW, CUSTOMER_NO_SHOW,
+    // DISPUTED, RIDER_LATE — and half of them accuse somebody. The card shows
+    // one neutral strip and nothing else (guide §9.3).
 
     final deliveryJson = json['delivery'] is Map
         ? Map<String, dynamic>.from(json['delivery'])
@@ -938,15 +1044,28 @@ class OrderActionsModel {
   /// actually carries a status.
   OrderActionsModel mergedWith(OrderActionsModel fresh) {
     final describesState = fresh.lifecycle.orderStatus != null;
+    // `/track` is authoritative about the buttons even in the shape where it
+    // leads with the role and the action list rather than the status, so a
+    // non-empty list is always taken. An EMPTY list is only honoured from a
+    // payload that described the state — "no actions available" is a real
+    // answer, but a bare acknowledgement must not strip the card.
+    final takesActions = describesState || fresh.availableActions.isNotEmpty;
+    final base = paymentSummary;
+    final incoming = fresh.paymentSummary;
     return OrderActionsModel(
       orderId: fresh.orderId.isNotEmpty ? fresh.orderId : orderId,
       orderNumber: fresh.orderNumber ?? orderNumber,
       actor: fresh.actor ?? actor,
       availableActions:
-          describesState ? fresh.availableActions : availableActions,
-      lifecycle: describesState ? fresh.lifecycle : lifecycle,
+          takesActions ? fresh.availableActions : availableActions,
+      // Field-wise, not wholesale: `/actions` describes the state but carries
+      // no banner, and a bare acknowledgement describes nothing at all.
+      lifecycle:
+          describesState ? fresh.lifecycle.mergedOver(lifecycle) : lifecycle,
       deadlines: fresh.deadlines.isEmpty ? deadlines : fresh.deadlines,
-      paymentSummary: fresh.paymentSummary ?? paymentSummary,
+      paymentSummary: incoming == null
+          ? base
+          : (base == null ? incoming : incoming.mergedOver(base)),
       cancellation: fresh.cancellation ?? cancellation,
       cancellationReasons: fresh.cancellationReasons.isNotEmpty
           ? fresh.cancellationReasons
@@ -958,7 +1077,7 @@ class OrderActionsModel {
           : rideOrderId,
       grandTotal: fresh.grandTotal ?? grandTotal,
       totalItems: fresh.totalItems ?? totalItems,
-      needsAttention: describesState ? fresh.needsAttention : needsAttention,
+      needsAttention: takesActions ? fresh.needsAttention : needsAttention,
       isTerminalFlag: fresh.isTerminalFlag ?? isTerminalFlag,
       warning: fresh.warning,
       pickupCode: fresh.pickupCode ?? pickupCode,

@@ -263,3 +263,37 @@ flutter test test/order_v3_contract_test.dart \
 4. **Watch the `/actions`-on-mount call.** One request per server-driven card on screen.
    Deduped per order and skipped once `actor` is known, but a chat with many open orders
    will fan out on first open.
+
+---
+
+## 9. Round two — the client-contract review
+
+`ORDER_FLOW_CLIENT_CONTRACT_REVIEW.md` read both codebases line by line after this work
+landed. It found one P0 (backend, fixed there) and three client-side misses. All three are
+done, and implementing them surfaced two more bugs of the same family.
+
+**The family:** `/track` and `/actions` each answer a *subset* of what an action response
+answers, under partly different names. The store keeps a union of the three planes, and it
+was treating "this payload did not mention the key" as "the key is now empty".
+
+| What was wrong | Now |
+|---|---|
+| `/track` answers **`viewerRole`**, not `actor` — so a model built from a track response had no role and everything downstream fell back to the card's `myMessage` guess | both keys accepted; `actor` wins where both appear |
+| `/track`'s `needsAttention` object has **no `flagged` key** (it is `null` when not flagged), so the test for `flagged == true` was always false and the *"We're looking into this order."* strip never appeared from a track refresh | on `/track` the object's **presence** is the flag; an explicit `flagged: false` is still honoured as "no" |
+| `/track`'s `paymentSummary` carries **no refund fields**, so a cold refresh dropped a card from *"the shop says it sent ₹500"* back to *"the shop owes you ₹500"* — that distinction is `refundInitiatedAt` | payment summaries merge **field-wise**; a key the newer payload did not mention keeps the value we had |
+| **`/actions` carries no `banner`** — a refresh blanked the card's server-authored status line and fell back to the "Order update" placeholder | lifecycles merge field-wise too; action lists still **replace**, since every payload that carries them carries the complete set |
+| **`/actions` never mentions `refundDue`** — its silent `false` cleared a `true` the socket had delivered, so the refund block vanished on the next app resume | `refundDue` is only taken from a payload that actually stated it (`refundDueStated`) |
+
+The P0 was backend-side — `cancellationReasons` came back `[]` for a shop looking at a
+brand-new order, the one state where `REJECT_ORDER` is the entire point. The app already
+degraded correctly (an empty list becomes a required free-text note submitted as `OTHER`,
+which is in the server's `OWNER` list), so nothing needed changing here — but that
+behaviour is now pinned by a widget test rather than left to luck.
+
+**Tests:** `test/order_track_contract_test.dart`, 17 of them, one per finding plus the
+merge cases. Suite: **263 passing**, up from 246; `flutter analyze lib` → 0 errors.
+
+**Still open, and both are cheap:** shop `lat`/`lng` on the cart's business block — the
+review confirms the data already exists in `business.proto` / `inventory.proto` and just
+needs threading through, and it is the one thing gating the delivery half of checkout in
+practice; and a smoke test of *shop declines a new order* once the backend fix deploys.
