@@ -3,11 +3,13 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_track_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
 import 'package:BlueEra/features/chat/auth/model/business_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.dart';
@@ -1492,6 +1494,35 @@ class ChatViewController extends GetxController {
               ApiResponse.complete(currentMessages);
         }
       });
+
+      // Grocery: dispatched / completed.
+      //
+      // The older audit recorded that grocery emits no socket events at all;
+      // live verification found four (ORDER_UI_CONDITIONAL_FLOW_GUIDE.md §12
+      // fact 2). These two are the tail of the lifecycle, and they are pure
+      // **re-read cues** — §13: "treat every event as *something changed, go
+      // re-read* — never patch state from the event body". The card owns an
+      // `OrderTrackController`, so the refresh lands on `/track`, which is the
+      // only thing that can be trusted about a grocery order.
+      void reReadGroceryOrder(dynamic data) {
+        final map = data is Map ? data : const {};
+        final orderId = (map['orderId'] ??
+                map['groceryOrderId'] ??
+                map['selfpickupOrderId'] ??
+                map['order_id'] ??
+                '')
+            .toString();
+        if (orderId.isEmpty) return;
+        OrderTrackController.refreshIfAttached(
+          orderId: orderId,
+          service: OrderServiceApi.groceryOrderService,
+        );
+      }
+
+      chatSocket.listenEvent(
+          ChatEmitEvents.groceryOrderDispatched, reReadGroceryOrder);
+      chatSocket.listenEvent(
+          ChatEmitEvents.groceryOrderCompleted, reReadGroceryOrder);
 
       // Service Enquiry: New enquiry received (provider side)
       chatSocket.listenEvent(ChatEmitEvents.newServiceEnquiryReceived, (data) {

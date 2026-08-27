@@ -429,7 +429,7 @@ class OrderLifecycleController extends GetxController {
         statusCode: res.response?.statusCode,
         raw: json,
       );
-      await handleError(orderId, result, toast: toastOnError);
+      await handleError(orderId, result, toast: toastOnError, action: action);
       return result;
     } catch (e) {
       // `ApiBaseHelper.handleError` rethrows a plain String for transport
@@ -478,7 +478,7 @@ class OrderLifecycleController extends GetxController {
   /// (guide §6). `ACTION_NOT_AVAILABLE` is normal, not exceptional: it means
   /// the other party moved first, so it is a refresh cue.
   Future<void> handleError(String orderId, OrderCallResult result,
-      {bool toast = true}) async {
+      {bool toast = true, String? action}) async {
     final code = result.code;
 
     // Field-level codes are rendered inline by the sheet/dialog that raised
@@ -487,7 +487,30 @@ class OrderLifecycleController extends GetxController {
 
     switch (code) {
       case OrderErrorCode.orderTerminal:
-        // Silent: the order really is finished, the card just needs to say so.
+        // **A refund action is the one place `ORDER_TERMINAL` is not the
+        // truth.** A refund exists precisely *because* the order is dead: the
+        // money conversation outlives it (guide §7). `availableActionsFor`
+        // offers the refund actions on a terminal order on purpose, so a
+        // `409 ORDER_TERMINAL` here means the server's own `guardAction` is
+        // still checking terminality before it checks whether the action was
+        // allowed — a backend deploy that has not landed, not something the
+        // user did.
+        //
+        // Refreshing silently would be the worst answer: `/actions` re-offers
+        // the same button, so the button would simply appear to do nothing,
+        // forever. Say so instead, and leave the button standing.
+        if (isRefundAction(action)) {
+          log('refund action $action rejected as ORDER_TERMINAL on $orderId — '
+              'guardAction ordering fix not deployed');
+          if (toast) {
+            commonSnackBar(
+                message: "We couldn't record that yet. Support has been "
+                    'notified — please try again shortly.');
+          }
+          break;
+        }
+        // Otherwise the order really is finished; the card just needs to
+        // catch up and say so.
         await _silentRefresh(orderId);
         break;
 
@@ -543,6 +566,13 @@ class OrderLifecycleController extends GetxController {
         }
     }
   }
+
+  /// The two halves of the refund handshake (guide §7). Both legitimately run
+  /// on an order that is already `cancelled` — which is why `ORDER_TERMINAL`
+  /// means something different for them than for every other action.
+  static bool isRefundAction(String? action) =>
+      action == OrderAction.markRefundSent ||
+      action == OrderAction.confirmRefundReceived;
 
   /// Refresh without recursing back into [handleError] — used from inside it.
   Future<void> _silentRefresh(String orderId) async {

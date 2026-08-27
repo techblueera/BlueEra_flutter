@@ -265,15 +265,22 @@ class OrderTrackRider {
   /// Built from whichever of `rider` / `riderLeg` / `rideOrder` the service
   /// sent. Returns null when none of them carries anything renderable — a
   /// `{}` or a block with no name and no id is *not* a rider.
+  ///
+  /// **Every argument is `dynamic` on purpose.** `riderLeg` is a **String** on
+  /// the wire — `"accepted"`, `"picked-up"`, … — not an object (guide §18.1).
+  /// Passing it through a map-only coercion returned null for every doorstep
+  /// order, so the leg the customer's copy is chosen from was permanently
+  /// absent (guide §14 item 12). [_asBlock] normalises a bare status string
+  /// into `{status: …}` so it merges like any other block.
   static OrderTrackRider? fromAny(
-    Map<String, dynamic>? rider,
-    Map<String, dynamic>? riderLeg,
-    Map<String, dynamic>? rideOrder,
+    dynamic rider,
+    dynamic riderLeg,
+    dynamic rideOrder,
   ) {
     final merged = <String, dynamic>{
-      ...?rideOrder,
-      ...?riderLeg,
-      ...?rider,
+      ...?_asBlock(rideOrder),
+      ...?_asBlock(riderLeg),
+      ...?_asBlock(rider),
     };
     if (merged.isEmpty) return null;
 
@@ -323,6 +330,75 @@ class OrderTrackRider {
   }
 
   bool get hasLocation => latitude != null && longitude != null;
+
+  /// A rider block as the services actually send it.
+  ///
+  /// `rider` and `rideOrder` are objects; `riderLeg` is a bare status string.
+  /// A string that is empty carries nothing and is dropped, so it can never
+  /// resurrect a rider block for a self-pickup order.
+  static Map<String, dynamic>? _asBlock(dynamic v) {
+    if (v is Map) return Map<String, dynamic>.from(v);
+    if (v is String) {
+      final s = v.trim();
+      if (s.isEmpty) return null;
+      return <String, dynamic>{'status': s};
+    }
+    return null;
+  }
+}
+
+/// `riderLeg` / `rider.status` — the rider order's own vocabulary, which is
+/// **not** the order's (guide §18.1):
+///
+/// ```
+/// pending → accepted → payment-pending → confirmed → in-progress
+///         → picked-up → completed
+///                    ↘ rejected   ↘ cancelled
+/// ```
+class RiderLegStatus {
+  static const notStarted = 'not-started';
+  static const pending = 'pending';
+  static const accepted = 'accepted';
+  static const paymentPending = 'payment-pending';
+  static const confirmed = 'confirmed';
+  static const inProgress = 'in-progress';
+  static const pickedUp = 'picked-up';
+  static const completed = 'completed';
+  static const rejected = 'rejected';
+  static const cancelled = 'cancelled';
+
+  /// What the **customer** is told at each leg (guide §18.5).
+  ///
+  /// `cancelled` and `rejected` deliberately read differently: *"no rider
+  /// accepted this order"* is not *"your order was cancelled"*, and collapsing
+  /// them tells the customer their order is dead when it is still fulfillable.
+  ///
+  /// Returns null for a leg this build does not know — the caller then draws
+  /// no status line at all rather than echoing a raw code.
+  static String? customerCopy(String? leg) {
+    switch (leg?.trim().toLowerCase()) {
+      case notStarted:
+      case pending:
+        return 'Finding a delivery partner';
+      case accepted:
+        return 'Delivery partner assigned';
+      case paymentPending:
+        return 'Delivery partner assigned — payment pending';
+      case confirmed:
+        return 'Delivery partner confirmed';
+      case inProgress:
+      case pickedUp:
+        return 'On the way to you';
+      case completed:
+        return 'Delivered';
+      case rejected:
+        return 'No rider accepted this order';
+      case cancelled:
+        return 'The delivery was cancelled';
+      default:
+        return null;
+    }
+  }
 }
 
 /// One line of the order.
@@ -493,10 +569,12 @@ class OrderTrackModel {
 
     final paymentRaw = _map(pick('payment'));
 
+    // Raw, not `_map`-ed: `riderLeg` arrives as a bare status String and a
+    // map-only coercion silently discarded it (guide §14 item 12).
     final rider = OrderTrackRider.fromAny(
-      _map(pick('rider')),
-      _map(pick('riderLeg')),
-      _map(pick('rideOrder')),
+      pick('rider'),
+      pick('riderLeg'),
+      pick('rideOrder'),
     );
 
     final cancellation = _map(pick('cancellation'));

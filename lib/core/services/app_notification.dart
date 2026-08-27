@@ -3434,14 +3434,23 @@ class AppNotificationHandler {
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
-      // Grocery orders. This vertical has no order thread and no order card
-      // (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §0), so a tap that only opened
-      // "the conversation" would open the ordinary personal thread and show
-      // nothing about the order. `/track` DOES work, so when the push names an
-      // order the tap lands on the steps screen — the one surface that can
-      // actually answer "what is happening to my order" (T11, §7). With no
-      // order id it falls back to the sender's chat, which is what the other
-      // verticals do.
+      // Grocery self-pickup orders → the steps screen, not a chat thread.
+      //
+      // **The labels matter and the app had the wrong ones.**
+      // `ORDER_UI_CONDITIONAL_FLOW_GUIDE.md` §13 is explicit: the backend
+      // sends `selfpickup_order` (→ the shop), `selfpickup_order_ready` (→ the
+      // customer) and `grocery_order_dispatched`. It never sends
+      // `grocery_order` / `grocery_order_ready`, so those two cases below were
+      // a dead deep link — the working labels were falling through to the
+      // generic "open the conversation" group instead.
+      //
+      // The steps screen is the right destination because `/track` is the one
+      // route grocery answers richly; the thread's card is a snapshot (§11).
+      // `grocery_order` / `grocery_order_ready` are kept purely as aliases so
+      // an older backend, or a queued push, still lands somewhere sensible.
+      case 'selfpickup_order':
+      case 'selfpickup_order_ready':
+      case 'grocery_order_dispatched':
       case 'grocery_order':
       case 'grocery_order_ready':
         final groceryOrderId = _orderIdFromNotification(data);
@@ -3452,19 +3461,22 @@ class AppNotificationHandler {
               orderId: groceryOrderId,
               service: OrderServiceApi.groceryOrderService,
               // The shop is the party that receives a "new order" push; the
-              // customer is the one that receives "ready". `/track`'s `actor`
-              // corrects either guess the moment it lands.
-              isOwner: operation == 'grocery_order',
+              // customer is the one that receives "ready" or "dispatched".
+              // `/track`'s `actor` corrects either guess the moment it lands,
+              // so this is only what to draw for the first frame.
+              isOwner: operation == 'grocery_order' ||
+                  operation == 'selfpickup_order',
             ),
           );
         } else if (data['senderId'] != null) {
+          // No order id — the push cannot name a screen, so fall back to the
+          // conversation, which is what every other vertical does.
           _openChatWithUser(data['senderId']!);
         }
         break;
 
-      // Self-pickup order operations
-      case 'selfpickup_order':
-      case 'selfpickup_order_ready':
+      // Self-pickup order operations for the verticals that DO have a rich
+      // chat card of their own.
       case 'homemade_food_pickup_order':
       case 'homemade_food_pickup_order_ready':
       // Enquiry-card pushes — new card + status change, per

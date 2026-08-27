@@ -1205,6 +1205,12 @@ class ChatEmitEvents {
   static const update_data = "update_data";
   static const newSelfPickupOrderReceived = "newSelfPickupOrderReceived";
   static const selfPickupOrderReady = "selfPickupOrderReady";
+  // The other two thirds of grocery's realtime surface. The older audit
+  // recorded that grocery emits nothing; live verification found four events,
+  // not two (ORDER_UI_CONDITIONAL_FLOW_GUIDE.md §12 fact 2, §13). Both are
+  // "something changed, go re-read" cues — never patch state from the body.
+  static const groceryOrderDispatched = "groceryOrderDispatched";
+  static const groceryOrderCompleted = "groceryOrderCompleted";
   static const newFoodPickupOrderReceived = "newFoodPickupOrderReceived";
   static const foodPickupOrderReady = "foodPickupOrderReady";
   static const newProductPickupOrderReceived = "newProductPickupOrderReceived";

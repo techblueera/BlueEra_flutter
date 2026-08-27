@@ -593,10 +593,21 @@ void main() {
           isFalse);
     });
 
-    test('grocery has no socket updates — refresh on focus instead', () {
+    // **This assertion used to be the opposite, and it was wrong.**
+    // `ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md` §7 recorded that grocery emits
+    // no socket event at all; `ORDER_UI_CONDITIONAL_FLOW_GUIDE.md` §12 fact 2
+    // corrects that against production — four events fire, and the app now
+    // subscribes to all four. Focus-refresh survives as the fallback (§13),
+    // which is why nothing else in this file changed.
+    test('grocery DOES emit socket updates — four of them (§12 fact 2)', () {
       expect(
           OrderVerticalCapabilities.hasSocketUpdates(
               OrderServiceApi.groceryOrderService),
+          isTrue);
+      // Still nothing for a vertical genuinely nobody has ported.
+      expect(
+          OrderVerticalCapabilities.hasSocketUpdates(
+              OrderServiceApi.medicalOrderService),
           isFalse);
     });
 

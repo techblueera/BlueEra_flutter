@@ -1,14 +1,32 @@
 /// **What each vertical's order service can actually do today.**
 ///
-/// `ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md` §7 states the gate:
-///
 /// ```
 /// lifecycle available  → product-service only
 /// /actions available   → product-service only
 /// /track available     → product-service, grocery-service, food-service
-/// chat order card      → nowhere for grocery
-/// socket updates       → nowhere for grocery
+/// chat order card      → every vertical, grocery included
+/// socket updates       → product-service, and grocery's own four events
 /// ```
+///
+/// **The last two lines were wrong until 27 Aug 2026.** They came from
+/// `ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md` §7, which recorded that grocery has
+/// no chat card and no socket event; `ORDER_UI_CONDITIONAL_FLOW_GUIDE.md` §12
+/// corrects that against production on four counts, two of which this table
+/// encoded:
+///
+///  1. *"No grocery chat card is ever created."* — **false**, 977 exist. The
+///     audit called `latest-chat` without `?type=business`, and that endpoint
+///     defaults to `personal` and only returns threads carrying unread
+///     messages from someone else.
+///  2. *"No grocery socket event exists."* — **false**, four fire:
+///     `newSelfPickupOrderReceived`, `selfPickupOrderReady`,
+///     `groceryOrderDispatched`, `groceryOrderCompleted`.
+///  3. *"No grocery order list."* — **false**, `GET /api/orders/business/me`
+///     and `/me` both work.
+///  4. *"`chat/order-status` is dead."* — **false**, it is `PUT`, not `POST`.
+///
+/// Facts 3 and 4 are about endpoints this table does not gate; they are
+/// recorded here so the next reader does not re-import them from the old doc.
 ///
 /// Two separate things live here, and they are separate on purpose:
 ///
@@ -43,11 +61,15 @@ class OrderVerticalCapabilities {
     OrderServiceApi.foodOrderService,
   };
 
-  /// Verticals that emit `productOrderLifecycle` (or any per-vertical order
-  /// socket event). Grocery emits nothing — its cards never update live, so
-  /// the screen refreshes on focus and on pull-to-refresh instead (T7).
+  /// Verticals that emit **any** order socket event.
+  ///
+  /// Product emits the one generic `productOrderLifecycle` channel. Grocery
+  /// emits four narrower events instead (§12 fact 2) — so it belongs here too,
+  /// even though it has no lifecycle payload and every event is only a cue to
+  /// re-read `/track`. Focus-refresh stays as the fallback either way (§13).
   static const Set<String> _socketServices = {
     OrderServiceApi.productOrderService,
+    OrderServiceApi.groceryOrderService,
   };
 
   /// Lifecycle routes grocery-service **does** serve, despite having no
@@ -83,6 +105,45 @@ class OrderVerticalCapabilities {
     }
     // A vertical nobody has verified: trust the server's own action list.
     return true;
+  }
+
+  // ── Derived clocks ───────────────────────────────────────────────────
+
+  /// Grocery's server-side auto-expiry window for a `placed` self-pickup
+  /// order (§12). Swept every 15 minutes, so the wall clock is a guide, not a
+  /// deadline any client may act on.
+  static const Duration groceryPlacedWindow = Duration(hours: 1);
+
+  /// **The one deadline a client is allowed to derive**, and only because the
+  /// service that owns it sends no `deadlines` block at all.
+  ///
+  /// Grocery self-pickup orders auto-expire one hour after they are placed —
+  /// **978 of 1,099 production orders are `expired`** (§12), so this is the
+  /// *common* ending, not an edge case. With no server clock to render, a
+  /// customer watching a grocery order sees nothing at all until it silently
+  /// dies, which is exactly the invisible waiting the guide is about.
+  ///
+  /// Three things keep this honest:
+  ///
+  ///  * callers reach it **only** when the server sent no deadlines, so a
+  ///    ported vertical's real clock can never be shadowed by this one;
+  ///  * it answers only for **grocery**, and only at **`placed`** — the one
+  ///    stage the sweep applies to. Everything else gets null, and null draws
+  ///    nothing (§8.1 rule 2);
+  ///  * reaching zero still changes nothing. The sweeper runs on its own
+  ///    15-minute cadence, so an order is frequently alive well past the hour;
+  ///    the countdown re-reads and lets the server say (§8.1 rule 1).
+  ///
+  /// Returns null whenever any of that does not hold.
+  static DateTime? derivedPlacedExpiry({
+    required String service,
+    required String? orderStatus,
+    required DateTime? createdAt,
+  }) {
+    if (service != OrderServiceApi.groceryOrderService) return null;
+    if (orderStatus != 'placed') return null;
+    if (createdAt == null) return null;
+    return createdAt.add(groceryPlacedWindow);
   }
 
   // ── Learned 404s (B8) ────────────────────────────────────────────────

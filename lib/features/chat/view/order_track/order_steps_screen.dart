@@ -360,7 +360,7 @@ class _OrderStepsScreenState extends State<OrderStepsScreen>
   /// resuming a paused tick (D5), and closing the screen leaks no timer (D6).
   List<Widget> _deadline(OrderTrackModel order) {
     final deadlines = order.lifecycle?.deadlines;
-    if (deadlines == null) return const [];
+    if (deadlines == null) return _derivedDeadline(order);
 
     final isOwner = _controller.isOwner;
     DateTime? at;
@@ -398,6 +398,34 @@ class _OrderStepsScreenState extends State<OrderStepsScreen>
         label: label,
         pulse: pulse,
         // Exactly once, and it re-reads rather than concluding anything.
+        onElapsed: _controller.silentRefresh,
+      ),
+    ];
+  }
+
+  /// The fallback for a vertical that sends no `deadlines` at all.
+  ///
+  /// Reached **only** when the server sent nothing, so a ported vertical's own
+  /// clock can never be shadowed by this one. The rule itself — which vertical,
+  /// which stage, how long — lives in [OrderVerticalCapabilities], because it
+  /// is a fact about that service rather than about this screen.
+  List<Widget> _derivedDeadline(OrderTrackModel order) {
+    final at = OrderVerticalCapabilities.derivedPlacedExpiry(
+      service: widget.args.service,
+      orderStatus: order.orderStatus,
+      createdAt: order.createdAt,
+    );
+    if (at == null) return const [];
+
+    final isOwner = _controller.isOwner;
+    return [
+      const SizedBox(height: OrderSpace.m),
+      OrderDeadlineCountdown(
+        deadline: at,
+        label: isOwner ? 'Confirm within' : 'Shop confirms within',
+        // Past the hour the countdown reads "Nm over", amber — the sweep has
+        // not necessarily run yet, so it must not read as a verdict.
+        pulse: isOwner,
         onElapsed: _controller.silentRefresh,
       ),
     ];
@@ -471,6 +499,15 @@ class _OrderStepsScreenState extends State<OrderStepsScreen>
                               color: AppColors.mainTextColor)),
                       if ((rider.vehicleNumber ?? '').isNotEmpty)
                         Text(rider.vehicleNumber!,
+                            style: OrderType.label
+                                .copyWith(color: AppColors.grayText)),
+                      // The leg's own copy (guide §18.5). `cancelled` and
+                      // `rejected` read differently on purpose: "no rider
+                      // accepted this order" is not "your order was
+                      // cancelled". A leg this build does not know draws
+                      // nothing rather than echoing a raw code.
+                      if (RiderLegStatus.customerCopy(rider.status) != null)
+                        Text(RiderLegStatus.customerCopy(rider.status)!,
                             style: OrderType.label
                                 .copyWith(color: AppColors.grayText)),
                     ],

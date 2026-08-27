@@ -83,6 +83,22 @@ class OrderTrackController extends GetxController {
     );
   }
 
+  /// **The socket's only job: "something changed, go re-read"** (guide §13).
+  ///
+  /// A realtime event never patches state from its own body — it asks whoever
+  /// is showing this order to fetch `/track` again. When nothing is showing
+  /// it, there is nothing to refresh and the next mount loads fresh anyway, so
+  /// this deliberately does **not** create a controller.
+  static Future<void> refreshIfAttached({
+    required String orderId,
+    required String service,
+  }) async {
+    if (orderId.isEmpty) return;
+    final tag = tagFor(orderId, service);
+    if (!Get.isRegistered<OrderTrackController>(tag: tag)) return;
+    await Get.find<OrderTrackController>(tag: tag).silentRefresh();
+  }
+
   static void detach({required String orderId, required String service}) {
     final tag = tagFor(orderId, service);
     final left = (_refCounts[tag] ?? 1) - 1;
