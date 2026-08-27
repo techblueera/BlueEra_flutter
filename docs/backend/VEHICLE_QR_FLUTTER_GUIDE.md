@@ -29,9 +29,15 @@ handler, around line 212.
 
 ## Why the app is involved at all
 
-The sticker on a windscreen encodes `https://emergency.beapp.in/v/{code}`. The
-app does **not** claim that host, so a scan opens the **browser**, not the app.
-That is deliberate.
+The sticker on a windscreen encodes `https://emergency.beapp.in/v/{code}`, and
+that page must open in the **browser**.
+
+The app *does* claim that host — an unscoped `autoVerify` filter left over from
+the emergency-profile QR feature — so Android hands the app every path on it,
+sticker URLs included. That filter cannot simply be removed (intent filters
+cannot exclude a path, and dropping it breaks the emergency-profile QR), so the
+app detects `/v/*` and re-launches it externally. Handled; noted here only so
+nobody "fixes" it back.
 
 The one place the app enters the flow: when the person who scanned taps
 **"Report parking issue"**, the web page redirects into a chat with the vehicle
@@ -43,13 +49,22 @@ camera scans sticker
   → browser opens emergency.beapp.in/v/{code}
   → user taps "Report parking issue"
   → browser redirects to:
-      https://blueera.ai/app/chat/new?userId=<ownerId>&chatType=personal
+      https://beapp.in/app/chat/new?userId=<ownerId>&chatType=personal
         &name=<ownerName>&source=vehicle_qr&code=<qrCode>&vehicleNumber=<plate>
   → APP OPENS on the owner's chat        ← the only app involvement
 ```
 
-`blueera.ai/app/...` is already claimed in the manifest, so no App Links work is
-needed.
+**The host is `beapp.in`, not `blueera.ai`.** That matters, and it is verified,
+not assumed:
+
+| | `assetlinks.json` | `apple-app-site-association` |
+|---|---|---|
+| `beapp.in` | ✅ real, `ai.bluecs.app` | ✅ real, `46RN9MXMLM.ai.bluecs.app`, paths include `/app/chat/*` |
+| `blueera.ai` | ❌ returns the SPA shell | ❌ returns the SPA shell |
+
+`blueera.ai` cannot verify App Links at all — a link there opens a browser, not
+the app. `beapp.in/app/chat/*` is already registered on both platforms, so **no
+manifest or entitlement work is needed.**
 
 ---
 
@@ -147,13 +162,16 @@ have, not required.
 
 ---
 
-## ⚠️ Do NOT add App Links for `emergency.beapp.in`
+## ⚠️ Keep `/v/*` on `emergency.beapp.in` going to the browser
 
-The scan URL must stay with the **browser**. If the app claims that host,
-Android hands it the scan URL — and the app has no screen for it, so the user
-gets a blank screen instead of a working page.
+That host is already claimed by an unscoped `autoVerify` filter from the
+emergency-profile QR, so Android routes sticker URLs into the app. The app
+detects `/v/*` and re-launches it externally, which is what makes the scan page
+open in the browser.
 
-The absence of that config is what makes the campaign work. Leave it alone.
+**Do not remove that bounce, and do not add a scoped filter that swallows
+`/v/*`.** The scan page is a full web journey — registration, OTP, terms, SOS —
+and none of it exists in the app. Intercepting it means a blank screen.
 
 ---
 
@@ -162,7 +180,7 @@ The absence of that config is what makes the campaign work. Leave it alone.
 With the app installed, paste this into Chrome on the device:
 
 ```
-https://blueera.ai/app/chat/new?userId=<any real userId>&chatType=personal&name=Test%20Owner&source=vehicle_qr&code=TEST1234&vehicleNumber=MH01AB2020
+https://beapp.in/app/chat/new?userId=<any real userId>&chatType=personal&name=Test%20Owner&source=vehicle_qr&code=TEST1234&vehicleNumber=MH01AB2020
 ```
 
 Expected: the app opens on a chat with that user, empty, ready to type. Sending
