@@ -1,12 +1,15 @@
 import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'dart:async';
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/features/me/grocery/service/grocery_order_local_store.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -243,6 +246,13 @@ class GrocerySelfPickupConsumerController extends GetxController {
         );
         return;
       }
+      // Keep the order ids this device just created. Placing a grocery order
+      // creates no conversation, no chat card and no server-side order list
+      // for either party (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §0, §7), so
+      // without this the customer has no way back to their own order —
+      // `/track` works, but only if you already know the id.
+      await _rememberPlacedOrders(response.response?.data);
+
       // Land on Discover (index 1) instead of the chat screen — the placed
       // order surfaces there in the "Orders in 12 Hrs." rail. The business
       // chat list is still refreshed so that rail has the new row.
@@ -271,6 +281,54 @@ class GrocerySelfPickupConsumerController extends GetxController {
     // } finally {
     //   isPlaceBulkGroceryOrderLoading.value = false;
     // }
+  }
+
+  /// Writes one [LocalOrderRef] per order the create call produced.
+  ///
+  /// A multi-store checkout answers with several orders, a single-store one
+  /// with a bare order, and either can be wrapped in `{data: …}` — all three
+  /// shapes are handled. An order whose id cannot be found is skipped rather
+  /// than guessed at: it was still placed, it just cannot be tracked from this
+  /// device, and a wrong id would send `/track` looking for someone else's
+  /// order.
+  Future<void> _rememberPlacedOrders(dynamic body) async {
+    try {
+      final orders = GroceryOrderLocalStore.ordersFromCreateResponse(body);
+      if (orders.isEmpty) return;
+
+      final refs = <LocalOrderRef>[];
+      for (final order in orders) {
+        final id = GroceryOrderLocalStore.idOf(order);
+        if (id == null) continue;
+
+        final businessId = (order['businessId'] ?? order['business'])?.toString();
+        final store = businessId == null ? const <String, String>{} : storeInfoOf(businessId);
+
+        refs.add(LocalOrderRef(
+          orderId: id,
+          service: OrderServiceApi.groceryOrderService,
+          orderNumber: (order['orderNumber'] ?? order['order_number'])?.toString(),
+          businessId: businessId,
+          // The cart knows the shop's name; the create response often does not.
+          businessName: (store['businessName']?.isNotEmpty ?? false)
+              ? store['businessName']
+              : (order['businessName'])?.toString(),
+          grandTotal: order['grandTotal'] is num
+              ? order['grandTotal'] as num
+              : num.tryParse(order['grandTotal']?.toString() ?? ''),
+          itemCount: order['totalItems'] is int
+              ? order['totalItems'] as int
+              : (order['items'] is List ? (order['items'] as List).length : null),
+          placedAt: DateTime.now(),
+          // This device is the buyer here.
+          isOwner: false,
+        ));
+      }
+      await GroceryOrderLocalStore.rememberAll(refs);
+    } catch (e) {
+      // Never let bookkeeping take down a checkout that already succeeded.
+      log('grocery: could not remember placed order ids — $e');
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════

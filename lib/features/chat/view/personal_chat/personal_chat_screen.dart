@@ -13,6 +13,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/socket/chat_socket.dart';
 import '../widget/broadcast_message_card.dart';
+import 'package:BlueEra/features/chat/view/widget/order_card_dedupe.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
@@ -228,8 +229,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                       children: [
                         // Message list
                         Obx(() {
-                          final messages =
-                              chatViewController.getListOfMessageData ?? [];
+                          // C12 — one card per order id, newest wins. The
+                          // filter runs on the way to the ListView; the
+                          // conversation history itself is left alone. See
+                          // ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §3.
+                          final messages = OrderCardDedupe.apply(
+                              chatViewController.getListOfMessageData ?? []);
                           final status = chatViewController
                               .getListOfMessageResponse.value.status;
                           // Show cached history as soon as it's available.

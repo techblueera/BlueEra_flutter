@@ -52,6 +52,7 @@ import '../business_chat/widgets/business_enquiry_msg_card.dart';
 import '../business_chat/widgets/vehicle_booking_msg_card.dart';
 import '../business_chat/widgets/food_self_pickup_msg_card.dart';
 import '../business_chat/widgets/payment_transaction_msg_card.dart';
+import '../business_chat/widgets/grocery_order_msg_card.dart';
 import '../business_chat/widgets/product_self_pickup_msg_card.dart';
 import '../business_chat/widgets/property_enquiry_msg_card.dart';
 import '../business_chat/widgets/rider_association_msg_card.dart';
@@ -352,6 +353,35 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
             time: time,
             conversationId: widget.conversationId,
             isMedical: true);
+
+      // Grocery order card. Everything about this vertical is documented in
+      // lib/docs/ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §3:
+      //
+      //  * C11 — a deleted message is "This message was deleted", never the
+      //    card, and never the original text.
+      //  * C1 / C2 — a message with no order object AND no order id is an
+      //    orphan. It renders as the plain text bubble it really is; a card
+      //    with no data in it is worse than no card.
+      //  * C3 — `metadata.order` arrives as a bare id STRING on this vertical,
+      //    which `canRender` accepts as an id and the card hydrates through
+      //    `/track`. Nothing ever property-accesses the string.
+      case "grocery_order":
+        if (widget.message.deleteFromEveryone == true) {
+          messageWidget = _buildReceivedMessage(
+            widget.message,
+            AppStrings.orderCardDeleted.tr,
+            time,
+            isReceive,
+          );
+        } else if (GroceryOrderMsgCard.canRender(widget.message)) {
+          messageWidget = GroceryOrderMsgCard(
+              message: widget.message,
+              time: time,
+              conversationId: widget.conversationId);
+        } else {
+          messageWidget =
+              _buildReceivedMessage(widget.message, text, time, isReceive);
+        }
 
       case "service_enquiry":
         messageWidget =

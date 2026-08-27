@@ -47,6 +47,20 @@ class OrderLifecycleRepo extends BaseService {
 
   // ── Owner ──────────────────────────────────────────────────────────────
 
+  /// `PUT /:orderId` — the direct status write, for a vertical that has no
+  /// lifecycle route for the transition. Grocery's "Mark Collected" is the
+  /// only caller today (§7 of the chat/steps edge-case doc).
+  Future<ResponseModel> updateOrderStatus(String orderId,
+      {required String orderStatus, String service = _defaultService}) {
+    return ApiBaseHelper().putHTTP(
+      orderUpdate(orderId, service: service),
+      params: {'orderStatus': orderStatus},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
   Future<ResponseModel> accept(String orderId,
       {int? prepEtaMinutes, String service = _defaultService}) {
     return ApiBaseHelper().postHTTP(

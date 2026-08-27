@@ -966,11 +966,18 @@ class ChatViewController extends GetxController {
       } catch (_) {}
     }
 
-    if (messageId.isEmpty) return;
+    if (messageId.isEmpty && orderId.isEmpty) return;
     final currentMessages =
         getListOfMessageResponse.value.data as List<Messages>? ?? [];
     for (final msg in currentMessages) {
-      if (msg.id != messageId) continue;
+      // T4 — find the card by `messageId`, and fall back to `orderId` when the
+      // payload carries no message id (or names a message this thread has
+      // never seen). A socket for an order that is not in the list simply
+      // matches nothing and is dropped — never a crash (T5).
+      final matches = messageId.isNotEmpty
+          ? msg.id == messageId
+          : _messageCarriesOrder(msg, orderId);
+      if (!matches) continue;
       final meta = msg.metadata;
       if (meta == null) break;
 
@@ -986,6 +993,10 @@ class ChatViewController extends GetxController {
             status == OrderStatusValue.dispatched ||
             status == OrderStatusValue.completed;
         meta.orderStatus = isReady;
+        // The legacy card reads `order_status` as a STRING; keep both in step
+        // so the status chip follows the socket rather than the stale snapshot
+        // (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §2.2).
+        meta.orderStatusText = status;
         meta.is_cancelled = status == OrderStatusValue.cancelled ||
             status == OrderStatusValue.expired;
         if (isReady) {
@@ -995,11 +1006,32 @@ class ChatViewController extends GetxController {
           meta.medicalPickupOrder?.isReady = true;
           meta.homeMadeFoodPickupOrder?.isReady = true;
           meta.tiffinPickupOrder?.isReady = true;
+          meta.groceryOrder?.isReady = true;
         }
       }
       break;
     }
     getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+  }
+
+  /// Whether [msg] is the card for [orderId], across every vertical's id key.
+  ///
+  /// Used only as T4's fallback: a lifecycle socket with no `messageId` still
+  /// has to find its card, and an id that matches nothing here is simply
+  /// dropped.
+  bool _messageCarriesOrder(Messages msg, String orderId) {
+    if (orderId.isEmpty) return false;
+    final meta = msg.metadata;
+    if (meta == null) return false;
+    return meta.productPickupOrderId == orderId ||
+        meta.foodPickupOrderId == orderId ||
+        meta.selfpickupOrderId == orderId ||
+        meta.medicalPickupOrderId == orderId ||
+        meta.homeMadeFoodPickupOrderId == orderId ||
+        meta.tiffinPickupOrderId == orderId ||
+        meta.groceryOrderId == orderId ||
+        meta.orderRefId == orderId ||
+        meta.orderId == orderId;
   }
 
   Future<void> connectSocket() async {

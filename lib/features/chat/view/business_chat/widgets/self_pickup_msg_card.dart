@@ -17,6 +17,7 @@ import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
+import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
@@ -1197,6 +1198,23 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          // The steps screen. For grocery this is the only surface that shows
+          // the real, server-driven order state: `/track` works for this
+          // vertical, nothing else does, and there is no socket to update this
+          // card with (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7).
+          if (_lifecycleOrderId.isNotEmpty)
+            _orderActionButton(
+              icon: Icons.list_alt_outlined,
+              label: AppStrings.orderStepsViewOrder.tr,
+              color: AppColors.primaryColor,
+              onTap: () => Get.to(() => OrderStepsScreen(
+                    args: OrderStepsArgs(
+                      orderId: _lifecycleOrderId,
+                      service: OrderServiceApi.groceryOrderService,
+                      isOwner: _isOwnerView,
+                    ),
+                  )),
+            ),
           _orderActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Payment',
