@@ -249,8 +249,18 @@ class AutomotiveInventoryController extends GetxController {
             visitUserId: visitUserId, silent: silent),
         fetchBusinessProducts(visitUserId: visitUserId, silent: silent),
       ]);
-      // Stamp freshness once the category list actually loaded.
-      if (fetchProductCategoryResponse.value.status == Status.COMPLETE) {
+      // Stamp freshness only once BOTH lists actually loaded.
+      //
+      // Categories alone used to be enough, and that is what stranded the tab:
+      // `hasData` on the guard is an OR across the two lists, so a run where
+      // the categories landed and the top-selling request did not stamped the
+      // guard anyway — and every later entry then took the early return and
+      // never retried the half that failed, leaving its shimmer running.
+      //
+      // COMPLETE means the REQUEST succeeded, not that rows came back, so an
+      // empty catalogue still stamps and still gets its 5-minute reuse.
+      if (fetchProductCategoryResponse.value.status == Status.COMPLETE &&
+          ownDraftAndPublicProductResponse.value.status == Status.COMPLETE) {
         _allProductCache.mark('allProduct|${visitUserId ?? 'self'}');
       }
     } catch (e) {
@@ -335,7 +345,15 @@ class AutomotiveInventoryController extends GetxController {
   /// safe: the merchant can be back on the tab before the refetch resolves, and
   /// with the old snapshot still on disk that re-entry would hydrate the
   /// pre-mutation list and stamp it fresh.
+  /// Also refreshes the add flow's already-stocked set — the write that got us
+  /// here changed which catalogue variants this shop holds, and the selection
+  /// screens badge off that set. Done here rather than at each call site so a
+  /// new write path cannot forget it; guarded because the add flow's controller
+  /// is not always registered.
   void markInventoryChanged() {
+    if (Get.isRegistered<AutomotiveProductController>()) {
+      Get.find<AutomotiveProductController>().markStockedVariantsChanged();
+    }
     productDataNeedsRefresh = true;
     _allProductCache.invalidate();
     allProducts.refresh();
@@ -402,15 +420,43 @@ class AutomotiveInventoryController extends GetxController {
         }
 
         log("Loaded ${productNestedCategoryList.length} product categories");
-      } else if (!silent) {
+      } else {
         // A failed SILENT refresh must not replace what the user is reading
         // with an error — the hydrated list stays, and the guard was already
-        // left un-stamped so the next entry retries.
-        fetchProductCategoryResponse.value = ApiResponse.error('error');
+        // left un-stamped so the next entry retries. The exception is a status
+        // that never resolved; see [_resolveCategoryFailure].
+        _resolveCategoryFailure(silent: silent);
       }
     } catch (e) {
-      if (!silent) fetchProductCategoryResponse.value = ApiResponse.error('error');
+      _resolveCategoryFailure(silent: silent);
       log("ERROR fetching product categories: $e");
+    }
+  }
+
+  /// Records a failed category fetch.
+  ///
+  /// A silent refresh normally leaves the status alone — that is the point of
+  /// `silent`: keep the rendered rows and their COMPLETE state while
+  /// replacements are fetched, so the tab doesn't blink. **But a status that
+  /// has never resolved is not worth protecting.** The Products tab renders
+  /// its shimmer on `Status.INITIAL`, so a silent failure over an unresolved
+  /// status left that shimmer running with nothing scheduled to stop it. Same
+  /// failure mode the food tab was fixed for; see
+  /// `FoodMainScreen._fetchProductsTab`.
+  void _resolveCategoryFailure({required bool silent}) {
+    final unresolved =
+        fetchProductCategoryResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      fetchProductCategoryResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Top-selling counterpart of [_resolveCategoryFailure].
+  void _resolveBusinessProductsFailure({required bool silent}) {
+    final unresolved =
+        ownDraftAndPublicProductResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     }
   }
 
@@ -705,13 +751,13 @@ class AutomotiveInventoryController extends GetxController {
             _allProductsHasMore = false;
           }
 
-      } else if (!silent) {
+      } else {
         print("API failed with status: ${response.statusCode}");
-        ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
+        _resolveBusinessProductsFailure(silent: silent);
       }
     } catch (e, s) {
-      print("stack trace: $s");
-      if (!silent) ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
+        print("stack trace: $s");
+        _resolveBusinessProductsFailure(silent: silent);
     } finally {
       if (isLoadMore) {
         isAllProductsLoadingMore.value = false;

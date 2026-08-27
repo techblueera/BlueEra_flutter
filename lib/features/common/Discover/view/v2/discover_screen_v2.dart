@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_restorer.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
@@ -41,6 +40,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/help_support/widget/help_support_avatar_button.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/loan/view/quick_loan_apply_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
@@ -92,19 +92,34 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
   /// side padding, so a folder edge lines up with the chip row above it.
   static const double _gap = 12.0;
 
-  /// The v2 surface, as specified: `#10192233` fill, `#DDE2EE` stroke, blur 20.
+  /// The v2 surface: [kDiscoverGlassFill] over a `#DDE2EE` stroke, blurred 20.
   ///
-  /// `#10192233` is the CSS eight-digit form — ink `#101922` at `33` alpha, or
-  /// 20%. Flutter writes alpha FIRST, so it lands here as `0x33101922`. Read
-  /// literally as `0x10192233` it becomes a blue-grey at 6% alpha, which is the
-  /// washed-out card in the first pass at this. `#101922` is already the ink
-  /// every glass panel on Discover uses (see [kDiscoverGlassFill], which is the
-  /// same colour at 12%), which is the giveaway.
+  /// Lightened twice. The spec's `0x33` (20%) read as dark slabs rather than as
+  /// glass; `0x26` (15%) was better but still heavier than the rest of the app.
+  /// This is now the SHARED glass fill — ink `#101922` at `0x1F`, 12% — so v2's
+  /// panels and every other glass panel on Discover sit at one weight instead
+  /// of two near-identical greys.
+  ///
+  /// Written as the shared constant rather than a copy of its literal, so the
+  /// two cannot drift apart the next time either is retuned. To take v2 lighter
+  /// again, give it its own `Color(0xXX101922)` here rather than editing
+  /// [kDiscoverGlassFill] — that one is v1's surface too. **Tune the ALPHA byte
+  /// only**: the ink is shared, and changing it puts v2 on a different grey
+  /// from the rest of Discover.
+  ///
+  /// The floor is around `0x1A` (10%). At `0x10` (6%) the panels wash out
+  /// against the page and stop reading as surfaces at all — that was the first
+  /// pass at this screen, and it came from a real trap worth recording:
+  /// **alpha comes FIRST in a Dart colour literal.** The spec wrote the CSS
+  /// eight-digit `#101922XX`, with the alpha trailing; copied literally as
+  /// `0x10192233` it becomes a blue-grey at 6% instead of ink at 20%.
   ///
   /// Handed down as a scope rather than written into `discover_glass.dart`,
   /// because [DiscoverFolderTile] is shared with v1 and the constants there are
-  /// v1's look — see [DiscoverSurfaceTheme].
-  static const Color _cardFill = Color(0x33101922);
+  /// v1's look — see [DiscoverSurfaceTheme]. Every section container on this
+  /// page reads it from there, so this one value moves the banner rows and the
+  /// folder tiles together.
+  static const Color _cardFill = kDiscoverGlassFill;
   static const Color _cardStroke = Color(0xFFDDE2EE);
   static const double _cardBlur = 20;
   static const double _cardRadius = 20;
@@ -533,21 +548,13 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         maxLines: 1,
         ctaHint: AppStrings.needMoney.tr,
         ctaLabel: AppStrings.quickApplyForLoan.tr,
-        // The loan category, not the first one — the CTA names it.
-        onCta: () => Get.to(
-          () => FinanceListingScreen(selectedCategory: _loanCategory()),
-        ),
+        // The CTA now does what it says: it opens the loan APPLICATION form
+        // rather than a list of lenders to go and read. The chips above and
+        // the row itself still browse the finance listings, so nothing lost
+        // the way into them.
+        onCta: openQuickLoanApply,
       );
     });
-  }
-
-  /// The Loan category if the bundled list carries one, else the first — the
-  /// listing dereferences whatever it is given in its initState.
-  OnboardingCategoryModel _loanCategory() {
-    for (final category in financeCategories) {
-      if (category.name.toLowerCase().contains('loan')) return category;
-    }
-    return financeCategories.first;
   }
 
   Widget _jobsRow() {

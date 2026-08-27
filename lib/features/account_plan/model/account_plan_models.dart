@@ -8,6 +8,10 @@
 /// never re-computed on the client.
 library;
 
+// The one Flutter type this file needs: [DiscountTheme] parses admin-authored
+// hex into a real [Color] so no caller has to repeat the fallback rules.
+import 'dart:ui' show Color;
+
 /// Lenient int parse — the API sends num-or-string depending on the field, and
 /// a price that silently became 0 would be charged as 0.
 int _asInt(dynamic v, [int d = 0]) => v == null
@@ -30,6 +34,11 @@ int? _asDays(dynamic v) {
   if (n == null || n <= 0) return null;
   return n;
 }
+
+/// A list of non-empty strings — feature bullets, plan T&C, campaign terms.
+List<String> _asStrList(dynamic v) => (v is List)
+    ? v.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList()
+    : const <String>[];
 
 String? _asStr(dynamic v) {
   if (v == null) return null;
@@ -60,6 +69,241 @@ abstract class PlanArchetype {
   static const String socialFree = 'A0_SOCIAL_FREE';
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DISCOUNTS — admin-created campaigns (festive / flash / launch /
+// coupon), layered onto the same catalog.
+//
+// See docs/backend/ACCOUNT_PLAN_DISCOUNT_FLUTTER_GUIDE.md.
+//
+// **The one rule:** `price_base` / `gst_amount` / `price_total` are always the
+// LIST price; `final_price_*` is always what will be charged and always exists
+// (equal to the list values when nothing is running). Every live price the user
+// is shown reads `final_*`; the list values survive only as the struck-through
+// "was" number. Nothing here is computed — caps, clamps, rounding and the
+// sub-₹1 rule all live server-side.
+// ═══════════════════════════════════════════════════════════════
+
+/// A campaign's colours and icon, all admin-authored and all optional.
+///
+/// Every field can be null and every colour can be a typo — a campaign created
+/// without a theme, or with `"red"` in a hex field, must fall back to the app
+/// palette rather than render null or crash a screen that sells things.
+class DiscountTheme {
+  final String? accentColor;
+  final String? textColor;
+  final String? backgroundColor;
+
+  /// An EMOJI string from the DB (🪔, ⚡), not an asset name — rendered as text.
+  final String? icon;
+
+  final String? imageUrl;
+
+  const DiscountTheme({
+    this.accentColor,
+    this.textColor,
+    this.backgroundColor,
+    this.icon,
+    this.imageUrl,
+  });
+
+  factory DiscountTheme.fromJson(dynamic raw) {
+    final j = raw is Map ? Map<String, dynamic>.from(raw) : const {};
+    return DiscountTheme(
+      accentColor: _asStr(j['accent_color']),
+      textColor: _asStr(j['text_color']),
+      backgroundColor: _asStr(j['background_color']),
+      icon: _asStr(j['icon']),
+      imageUrl: _asStr(j['image_url']),
+    );
+  }
+
+  /// `#RRGGBB` / `#AARRGGBB` → a colour, or [fallback] on anything else.
+  ///
+  /// Deliberately total: an admin typing a colour name into a hex field is a
+  /// content mistake, and it must cost a wrong tint, never the plans screen.
+  static Color colorOf(String? hex, Color fallback) {
+    if (hex == null || hex.isEmpty) return fallback;
+    var h = hex.replaceAll('#', '').trim();
+    if (h.length == 6) h = 'FF$h';
+    if (h.length != 8) return fallback;
+    final v = int.tryParse(h, radix: 16);
+    return v == null ? fallback : Color(v);
+  }
+
+  Color accent(Color fallback) => colorOf(accentColor, fallback);
+  Color text(Color fallback) => colorOf(textColor, fallback);
+  Color background(Color fallback) => colorOf(backgroundColor, fallback);
+}
+
+/// The campaign banner above the catalog. Null on the catalog ⇒ render nothing.
+class PlanCampaign {
+  final String code;
+  final String name;
+
+  /// `FESTIVE | FLASH | LAUNCH | PROMO | …` — free-form, never branched on by
+  /// name. A new festival must never need an app release.
+  final String kind;
+
+  final String bannerText;
+  final String bannerSubtext;
+  final String badgeText;
+  final DiscountTheme theme;
+  final DateTime? startsAt;
+  final DateTime? endsAt;
+
+  /// Seconds left **as counted by the SERVER**. The countdown ticks down from
+  /// this rather than diffing [endsAt] against the device clock, which the user
+  /// can set to anything.
+  final int? endsInSeconds;
+
+  final bool showCountdown;
+
+  /// The campaign's OWN terms — separate from any plan's, and rendered
+  /// verbatim like every other piece of admin copy.
+  final List<String> termsAndConditions;
+
+  const PlanCampaign({
+    required this.code,
+    required this.name,
+    required this.kind,
+    required this.bannerText,
+    required this.bannerSubtext,
+    required this.badgeText,
+    required this.theme,
+    required this.startsAt,
+    required this.endsAt,
+    required this.endsInSeconds,
+    required this.showCountdown,
+    required this.termsAndConditions,
+  });
+
+  factory PlanCampaign.fromJson(Map<String, dynamic> j) => PlanCampaign(
+        code: j['code']?.toString() ?? '',
+        name: j['name']?.toString() ?? '',
+        kind: j['kind']?.toString() ?? 'PROMO',
+        bannerText: _asStr(j['banner_text']) ?? _asStr(j['name']) ?? '',
+        bannerSubtext: _asStr(j['banner_subtext']) ?? '',
+        badgeText: _asStr(j['badge_text']) ?? '',
+        theme: DiscountTheme.fromJson(j['theme']),
+        startsAt: DateTime.tryParse(j['starts_at']?.toString() ?? ''),
+        endsAt: DateTime.tryParse(j['ends_at']?.toString() ?? ''),
+        endsInSeconds:
+            j['ends_in_seconds'] == null ? null : _asInt(j['ends_in_seconds']),
+        showCountdown: j['show_countdown'] == true,
+        termsAndConditions: _asStrList(j['terms_and_conditions']),
+      );
+
+  /// Only run a timer when the server actually gave us a remaining time. An
+  /// open-ended campaign (`ends_at: null`) still applies — it just has no clock.
+  bool get hasCountdown =>
+      showCountdown && endsInSeconds != null && endsInSeconds! > 0;
+}
+
+/// The discount block on one plan card — what THIS card saves, which is not
+/// necessarily what the banner advertises: a campaign can be scoped to some
+/// tiers only, and a cap can make the realised percentage smaller.
+class CardDiscount {
+  final String code;
+  final String name;
+  final String kind;
+
+  /// `PERCENT | FLAT` — display only; the app never applies either.
+  final String discountType;
+
+  final String badgeText;
+
+  /// The campaign's headline value (e.g. 30 for "30%"). **Never shown** — see
+  /// [percentOff].
+  final num value;
+
+  /// The REALISED percentage, after any cap. The only percentage the UI may
+  /// print: a "30% off, max ₹1,000" campaign on a ₹6,999 plan realises 14%,
+  /// and saying 30% there is a promise the price does not keep.
+  final num percentOff;
+
+  /// PAISE.
+  final int discountAmount;
+  final int finalPriceBase;
+  final int finalGstAmount;
+  final int finalPriceTotal;
+
+  /// RUPEES — the convenience values the display reads.
+  final num discountAmountInr;
+  final num finalPriceBaseInr;
+  final num finalGstAmountInr;
+  final num finalPriceTotalInr;
+
+  final DateTime? endsAt;
+  final int? endsInSeconds;
+  final bool showCountdown;
+
+  /// True when this discount exists only because a coupon code unlocked it.
+  final bool requiresCoupon;
+
+  final DiscountTheme theme;
+  final List<String> termsAndConditions;
+
+  const CardDiscount({
+    required this.code,
+    required this.name,
+    required this.kind,
+    required this.discountType,
+    required this.badgeText,
+    required this.value,
+    required this.percentOff,
+    required this.discountAmount,
+    required this.finalPriceBase,
+    required this.finalGstAmount,
+    required this.finalPriceTotal,
+    required this.discountAmountInr,
+    required this.finalPriceBaseInr,
+    required this.finalGstAmountInr,
+    required this.finalPriceTotalInr,
+    required this.endsAt,
+    required this.endsInSeconds,
+    required this.showCountdown,
+    required this.requiresCoupon,
+    required this.theme,
+    required this.termsAndConditions,
+  });
+
+  factory CardDiscount.fromJson(Map<String, dynamic> j) => CardDiscount(
+        code: j['code']?.toString() ?? '',
+        name: j['name']?.toString() ?? '',
+        kind: j['kind']?.toString() ?? 'PROMO',
+        discountType: j['discount_type']?.toString() ?? 'PERCENT',
+        badgeText: _asStr(j['badge_text']) ?? '',
+        value: _asNum(j['value']),
+        percentOff: _asNum(j['percent_off']),
+        discountAmount: _asInt(j['discount_amount']),
+        finalPriceBase: _asInt(j['final_price_base']),
+        finalGstAmount: _asInt(j['final_gst_amount']),
+        finalPriceTotal: _asInt(j['final_price_total']),
+        discountAmountInr: _asNum(j['discount_amount_inr']),
+        finalPriceBaseInr: _asNum(j['final_price_base_inr']),
+        finalGstAmountInr: _asNum(j['final_gst_amount_inr']),
+        finalPriceTotalInr: _asNum(j['final_price_total_inr']),
+        endsAt: DateTime.tryParse(j['ends_at']?.toString() ?? ''),
+        endsInSeconds:
+            j['ends_in_seconds'] == null ? null : _asInt(j['ends_in_seconds']),
+        showCountdown: j['show_countdown'] == true,
+        requiresCoupon: j['requires_coupon'] == true,
+        theme: DiscountTheme.fromJson(j['theme']),
+        termsAndConditions: _asStrList(j['terms_and_conditions']),
+      );
+
+  bool get hasCountdown =>
+      showCountdown && endsInSeconds != null && endsInSeconds! > 0;
+
+  /// The ribbon's number: the admin's own copy when there is any, otherwise the
+  /// REALISED percentage. Callers append the localised "OFF".
+  String get badgeOrPercent {
+    if (badgeText.isNotEmpty) return badgeText;
+    final p = percentOff;
+    return '${p == p.truncateToDouble() ? p.toInt() : p}%';
+  }
+}
+
 /// `GET /account-plan/plans` → `data`.
 class PlanCatalog {
   final String accountType;
@@ -73,6 +317,18 @@ class PlanCatalog {
   final int gstPercent;
   final List<PlanCard> plans;
 
+  /// The server's kill-switch for the whole discount system. When false there
+  /// is no banner, no ribbon, no strike-through anywhere — see [showCampaign].
+  final bool discountEnabled;
+
+  /// The campaign running right now, or null when nothing is.
+  final PlanCampaign? campaign;
+
+  /// When the server produced this catalog. Countdowns are anchored to the
+  /// server's own `ends_in_seconds` rather than to this, but it is what makes a
+  /// device-clock discrepancy diagnosable.
+  final DateTime? serverTime;
+
   const PlanCatalog({
     required this.accountType,
     required this.tagId,
@@ -84,7 +340,17 @@ class PlanCatalog {
     required this.hasGst,
     required this.gstPercent,
     required this.plans,
+    required this.discountEnabled,
+    required this.campaign,
+    required this.serverTime,
   });
+
+  /// The single gate for every discount affordance on the screen: the system is
+  /// on AND something is actually running.
+  ///
+  /// The banner shows whenever a campaign is live, even if only some cards are
+  /// in its scope — per-card eligibility is [PlanCard.showsOffer]'s business.
+  bool get showCampaign => discountEnabled && campaign != null;
 
   factory PlanCatalog.fromJson(Map<String, dynamic> j) => PlanCatalog(
         accountType: j['account_type']?.toString() ?? '',
@@ -100,6 +366,15 @@ class PlanCatalog {
             .whereType<Map>()
             .map((e) => PlanCard.fromJson(Map<String, dynamic>.from(e)))
             .toList(),
+        // Default TRUE: a backend that predates the flag is not a backend with
+        // discounts switched off, and reading its absence as "off" would hide a
+        // live sale.
+        discountEnabled: j['discount_enabled'] != false,
+        campaign: j['campaign'] is Map
+            ? PlanCampaign.fromJson(
+                Map<String, dynamic>.from(j['campaign'] as Map))
+            : null,
+        serverTime: DateTime.tryParse(j['server_time']?.toString() ?? ''),
       );
 }
 
@@ -116,7 +391,26 @@ class PlanCard {
 
   /// `-1` means all-India, not "unset" — see [isAllIndia].
   final int? radiusKm;
+
+  /// How many days the plan runs for, or null when it does not expire on a
+  /// date at all.
+  ///
+  /// Read from `validity_days_count`. The older `validity_days` is a
+  /// **display string** now (`"Life Time"`, and days as text elsewhere), so
+  /// parsing it as a number is what produced "Valid for 0 days" on a lifetime
+  /// plan: `_asInt` falls back to 0 on an unparseable string, and 0 is not
+  /// null, so the chip rendered. [_asDays] is used instead precisely because
+  /// it answers null for both a non-numeric label and a zero.
   final int? validityDays;
+
+  /// The backend's own words for the validity — `"Life Time"`. Rendered
+  /// verbatim wherever it exists, in preference to anything computed here:
+  /// it is the one statement about duration the server actually authored.
+  final String? validityLabel;
+
+  /// Whether the plan simply never expires.
+  final bool isLifetime;
+
   final List<String>? jobTypes;
 
   /// The sales cap an A1 plan is valid up to, in RUPEES — the one money field
@@ -124,16 +418,44 @@ class PlanCard {
   /// (`sale_limit: 600000` = ₹6 Lakh). Null for every other archetype.
   final int? saleLimit;
 
+  /// The LIST price, in paise — what the plan costs with no campaign running.
+  ///
+  /// **Not the live price.** During a sale this is the struck-through "was"
+  /// number and nothing else; [finalPriceBase] is what the buyer pays. Showing
+  /// this as the price is the single easiest way to quote the wrong figure for
+  /// the whole length of a campaign.
   final int priceBase;
+
   final int gstPercent;
+
+  /// GST on the LIST price. See [finalGstAmount] for the charged tax — GST is
+  /// levied on the DISCOUNTED base, so during a sale these differ.
   final int gstAmount;
 
-  /// Base + GST, in paise. **This is the charged amount.**
+  /// List base + list GST, in paise. See [finalPriceTotal].
   final int priceTotal;
 
   final num priceBaseInr;
   final num gstAmountInr;
   final num priceTotalInr;
+
+  /// Whether a campaign applies to THIS card. A campaign can be live and this
+  /// card still be out of its scope.
+  final bool hasDiscount;
+
+  /// The winning campaign as it lands on this card, or null. Carries the badge,
+  /// the theme, the countdown and the campaign's own terms.
+  final CardDiscount? discount;
+
+  /// **What will actually be charged.** Always present: with no discount these
+  /// equal the list values exactly, so reading only `final*` is always right.
+  final int finalPriceBase;
+  final int finalGstAmount;
+  final int finalPriceTotal;
+  final num finalPriceBaseInr;
+  final num finalGstAmountInr;
+  final num finalPriceTotalInr;
+
   final bool isFree;
 
   /// The backend's one recommended pick per group (e.g. the 3 km radius plan).
@@ -164,6 +486,8 @@ class PlanCard {
     required this.tier,
     required this.radiusKm,
     required this.validityDays,
+    required this.validityLabel,
+    required this.isLifetime,
     required this.jobTypes,
     required this.saleLimit,
     required this.priceBase,
@@ -173,15 +497,19 @@ class PlanCard {
     required this.priceBaseInr,
     required this.gstAmountInr,
     required this.priceTotalInr,
+    required this.hasDiscount,
+    required this.discount,
+    required this.finalPriceBase,
+    required this.finalGstAmount,
+    required this.finalPriceTotal,
+    required this.finalPriceBaseInr,
+    required this.finalGstAmountInr,
+    required this.finalPriceTotalInr,
     required this.isFree,
     required this.popular,
     required this.features,
     required this.termsAndConditions,
   });
-
-  static List<String> _asStrList(dynamic v) => (v is List)
-      ? v.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList()
-      : const <String>[];
 
   factory PlanCard.fromJson(Map<String, dynamic> j) {
     final attrs = j['attributes'];
@@ -197,8 +525,17 @@ class PlanCard {
       tier: _asStr(attributes['tier']),
       radiusKm:
           attributes['radius_km'] == null ? null : _asInt(attributes['radius_km']),
-      validityDays:
-          j['validity_days'] == null ? null : _asInt(j['validity_days']),
+      // `validity_days_count` is the number; `validity_days` is the label. The
+      // legacy numeric `validity_days` is kept as a fallback so a backend that
+      // still sends days-as-a-number keeps working.
+      validityDays: _asDays(j['validity_days_count'] ?? j['validity_days']),
+      // Only a NON-numeric `validity_days` is a label — "30" is a day count
+      // that [validityDays] already carries, and echoing it here would print
+      // a bare "30" next to the price.
+      validityLabel: _asDays(j['validity_days']) == null
+          ? _asStr(j['validity_days'])
+          : null,
+      isLifetime: j['is_lifetime'] == true,
       jobTypes: (attributes['job_types'] as List?)
           ?.map((e) => e.toString())
           .where((e) => e.isNotEmpty)
@@ -215,6 +552,23 @@ class PlanCard {
       priceBaseInr: _asNum(j['price_base_inr']),
       gstAmountInr: _asNum(j['gst_amount_inr']),
       priceTotalInr: _asNum(j['price_total_inr']),
+      hasDiscount: j['has_discount'] == true,
+      discount: j['discount'] is Map
+          ? CardDiscount.fromJson(Map<String, dynamic>.from(j['discount'] as Map))
+          : null,
+      // Every `final_*` falls back to its LIST counterpart. A backend that
+      // predates discounts — or a cached response from one — then reads as
+      // "full price", which is the truth there; without the fallback the card
+      // would offer the plan at ₹0 and the pay bar would say so.
+      finalPriceBase: _asInt(j['final_price_base'], _asInt(j['price_base'])),
+      finalGstAmount: _asInt(j['final_gst_amount'], _asInt(j['gst_amount'])),
+      finalPriceTotal: _asInt(j['final_price_total'], _asInt(j['price_total'])),
+      finalPriceBaseInr:
+          _asNum(j['final_price_base_inr'], _asNum(j['price_base_inr'])),
+      finalGstAmountInr:
+          _asNum(j['final_gst_amount_inr'], _asNum(j['gst_amount_inr'])),
+      finalPriceTotalInr:
+          _asNum(j['final_price_total_inr'], _asNum(j['price_total_inr'])),
       isFree: j['is_free'] == true,
       popular: j['popular'] == true,
       features: _asStrList(j['features']),
@@ -237,7 +591,18 @@ class PlanCard {
 
   /// Nothing to charge for — a free entitlement, or a card the backend priced
   /// at zero. Either way checkout must not open.
+  ///
+  /// Deliberately on the LIST total: a card discounted to nothing is still a
+  /// plan the user has to *buy* (the backend activates it free at `initiate`),
+  /// not a free entitlement, and rendering it as "Free" would hide the offer
+  /// that made it free.
   bool get isPurchasable => !isFree && priceTotal > 0;
+
+  /// Whether this card has a real saving to display. Guards every discount
+  /// affordance on the card: a `has_discount` with a zero amount buys the buyer
+  /// nothing and must not draw a ribbon or a strike-through.
+  bool get showsOffer =>
+      hasDiscount && discount != null && discount!.discountAmount > 0;
 }
 
 /// `POST /account-plan/initiate` → `data`.
@@ -253,10 +618,32 @@ class InitiatePlanResponse {
   final String optionLabel;
   final String accountPlanId;
   final String status;
+  /// The taxable base AFTER any discount and any upgrade credit — paise.
   final int baseAmount;
+
   final int gstAmount;
+
+  /// The rate the tax was levied at, for the receipt's "GST (18%)" row.
+  final int gstPercent;
+
+  /// **The only amount Razorpay may be opened with.** Discount- and
+  /// GST-inclusive, computed server-side.
   final int totalAmount;
+
   final bool resumed;
+
+  /// What the plan would have cost with no campaign — paise. Falls back to
+  /// [baseAmount] when the backend sends none, so the receipt never invents a
+  /// discount out of a missing field.
+  final int listBaseAmount;
+
+  /// The campaign that applied to this order, frozen onto it. Null/0 when none
+  /// did.
+  final String? discountCode;
+  final String? discountLabel;
+  final int discountAmount;
+  final num discountAmountInr;
+  final DateTime? discountEndsAt;
 
   const InitiatePlanResponse({
     required this.orderId,
@@ -268,8 +655,15 @@ class InitiatePlanResponse {
     required this.status,
     required this.baseAmount,
     required this.gstAmount,
+    required this.gstPercent,
     required this.totalAmount,
     required this.resumed,
+    required this.listBaseAmount,
+    required this.discountCode,
+    required this.discountLabel,
+    required this.discountAmount,
+    required this.discountAmountInr,
+    required this.discountEndsAt,
   });
 
   factory InitiatePlanResponse.fromJson(Map<String, dynamic> j) =>
@@ -283,14 +677,31 @@ class InitiatePlanResponse {
         status: j['status']?.toString() ?? 'created',
         baseAmount: _asInt(j['base_amount']),
         gstAmount: _asInt(j['gst_amount']),
+        gstPercent: _asInt(j['gst_percent'], 18),
         totalAmount: _asInt(j['total_amount']),
         resumed: j['resumed'] == true,
+        listBaseAmount: _asInt(j['list_base_amount'], _asInt(j['base_amount'])),
+        discountCode: _asStr(j['discount_code']),
+        discountLabel: _asStr(j['discount_label']),
+        discountAmount: _asInt(j['discount_amount']),
+        discountAmountInr: _asNum(j['discount_amount_inr']),
+        discountEndsAt:
+            DateTime.tryParse(j['discount_ends_at']?.toString() ?? ''),
       );
 
   /// Nothing to pay — the backend already activated it, so checkout must NOT
   /// open. True for free options and for a resumed order that was in fact
   /// already paid.
   bool get isAlreadyActive => status == 'active' || orderId.isEmpty;
+
+  /// A campaign applied to THIS order. The receipt's discount rows hang off it.
+  bool get hasDiscount =>
+      (discountCode ?? '').isNotEmpty && discountAmount > 0;
+
+  /// The campaign covered the entire price — the backend has activated the plan
+  /// outright. **Razorpay must not be opened**: a gateway order of ₹0 fails,
+  /// and there is nothing to collect anyway.
+  bool get isFreeAfterDiscount => totalAmount <= 0;
 }
 
 /// `GET /account-plan/my-plans` → one row.
@@ -305,6 +716,20 @@ class UserAccountPlan {
   final List<String>? jobTypes;
   final int totalAmount;
   final DateTime? activatedAt;
+
+  /// The campaign this plan was BOUGHT under, frozen onto the purchase.
+  ///
+  /// Frozen is the whole point: the campaign ending — or being deleted — never
+  /// rewrites what the user paid, so "Bought in Diwali Dhamaka — you saved
+  /// ₹1,079" stays true forever. Null on a purchase made at list price, and on
+  /// every purchase made before discounts existed.
+  final String? discountCode;
+  final String? discountLabel;
+  final int discountAmount;
+
+  /// The list price at the time of purchase, paise. Null (parsed as 0) on
+  /// pre-discount purchases — do not present it as ₹0.
+  final int listBaseAmount;
 
   /// The refund window on this purchase — see [PlanRefund]. Never absent in
   /// practice, but parsed leniently: a backend that has not shipped the block
@@ -322,6 +747,10 @@ class UserAccountPlan {
     required this.jobTypes,
     required this.totalAmount,
     required this.activatedAt,
+    required this.discountCode,
+    required this.discountLabel,
+    required this.discountAmount,
+    required this.listBaseAmount,
     required this.refund,
   });
 
@@ -336,10 +765,23 @@ class UserAccountPlan {
         jobTypes: (j['job_types'] as List?)?.map((e) => e.toString()).toList(),
         totalAmount: _asInt(j['total_amount']),
         activatedAt: DateTime.tryParse(j['activated_at']?.toString() ?? ''),
+        discountCode: _asStr(j['discount_code']),
+        discountLabel: _asStr(j['discount_label']),
+        discountAmount: _asInt(j['discount_amount']),
+        listBaseAmount: _asInt(j['list_base_amount']),
         refund: PlanRefund.fromJson(j['refund']),
       );
 
   bool get isActive => status == 'active';
+
+  /// Whether this purchase has a saving worth stating. Needs BOTH a campaign
+  /// and an amount — a code with nothing behind it says nothing to the user.
+  bool get boughtOnOffer =>
+      (discountCode ?? '').isNotEmpty && discountAmount > 0;
+
+  /// What to call the campaign on the saved-line: the admin's label, falling
+  /// back to the raw code, which is at least identifiable.
+  String get discountTitle => discountLabel ?? discountCode ?? '';
 
   /// Whether this purchase is a sales-capped shop plan — the gate on calling
   /// `sales/usage` at all. See [PlanArchetype.salesShop].

@@ -4,10 +4,6 @@
 mixin GroceryServiceApi {
   final String searchGroceryViaCategory = 'grocery-service/api/products/search';
 
-  /// Cross-category product showcase shown at the bottom of the grocery
-  /// super-category screen. `GET grocery-service/api/products/category-showcase`.
-  final String groceryCategoryShowcase =
-      'grocery-service/api/products/category-showcase';
 
   /// Products grouped by root category — one section per root category, each
   /// with a capped product list — powering the "Quick Upload" rails on the
@@ -44,6 +40,18 @@ mixin GroceryServiceApi {
   final String globalGroceryProducts =
       'grocery-service/api/inventory/public/global-grocery-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
+
+  /// The productVariant ids this store ALREADY has in its inventory.
+  /// `GET grocery-service/api/inventory/product-variant-ids?businessId=`
+  ///
+  /// Grocery mirror of [FoodServiceApi.foodInventoryProductVariantIds] — same
+  /// contract, same `data.productVariantIds` shape. These are ids of the
+  /// CATALOGUE variant (`productVariant`), not of the inventory record, so they
+  /// compare directly against `ProductVariants.sId` on the pre-publish
+  /// selection screens. That is the point: a variant already stocked must not
+  /// be offered for adding a second time.
+  final String groceryInventoryProductVariantIds =
+      'grocery-service/api/inventory/product-variant-ids';
 
   /// Update / delete a single inventory record (one variant) by its inventory
   /// id. `PUT|DELETE grocery-service/api/inventory/{id}` (grocery mirror of the

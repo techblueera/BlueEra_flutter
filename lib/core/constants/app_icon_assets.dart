@@ -439,6 +439,27 @@ class AppIconAssets {
   static const String checkInCalendarIcon =
       "${iconPath}check_in_calendar.svg";
 
+  // ── Quick Loan Apply — section header glyphs ────────────────────
+  /// The three illustrated headers on the loan application form, one per
+  /// section card. See `lib/features/loan/`.
+  ///
+  /// **Two-tone artwork: render WITHOUT `LocalAssets(imgColor:)`.** Each file
+  /// carries both the app blue (`#0085FE`) and the dark ink (`#101922`), and
+  /// passing a tint flattens the whole glyph to a single colour — the same
+  /// trap the social tab glyphs above document. They are authored on a 32x32
+  /// viewBox, which is the size the comp draws them at.
+  ///
+  /// All three are `loan_`-prefixed on disk: `assets/svg/` is one flat folder
+  /// shared by the whole app, and the names they shipped under
+  /// (`personal_details`, `professional_details`) would sit there next to the
+  /// personal-profile and professional-consultant artwork meaning something
+  /// else entirely.
+  static const String loanPersonalDetailsIcon =
+      "${iconPath}loan_personal_details.svg";
+  static const String loanProfessionalDetailsIcon =
+      "${iconPath}loan_professional_details.svg";
+  static const String loanDetailsIcon = "${iconPath}loan_details.svg";
+
   // ── Discover education-service quick-info icons ─────────────────
   // College/University
   static const String affiliatedUniversityIcon =

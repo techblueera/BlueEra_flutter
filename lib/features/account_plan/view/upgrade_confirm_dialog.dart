@@ -139,6 +139,24 @@ class _UpgradeConfirmDialogState extends State<_UpgradeConfirmDialog> {
               label: AppStrings.upgradePlanPriceLabel.tr,
               value: _money(b.planPriceInr),
             ),
+            // A campaign's cut, when one applies. It comes BEFORE the credit
+            // because that is the order the server applies them in — list minus
+            // discount minus credit, then GST on what is left — and stating
+            // them the other way round would describe a different tax base and
+            // therefore a total that does not match the button.
+            if (b.hasDiscount) ...[
+              _Row(
+                // The campaign's own name, verbatim; the generic label only
+                // when the payload carried none.
+                label: b.discountLabel ?? AppStrings.youSave.tr,
+                value: '- ${_money(b.discountInr)}',
+                valueColor: AccountPlanPalette.tick,
+              ),
+              _Row(
+                label: AppStrings.priceAfterOffer.tr,
+                value: _money(b.priceAfterDiscountInr),
+              ),
+            ],
             _Row(
               label: b.fromDeposit
                   ? AppStrings.upgradeCreditDepositLabel.tr

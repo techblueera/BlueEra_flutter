@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -84,6 +85,14 @@ class GroceryProductSelectCard extends StatelessWidget {
                 top: SizeConfig.size8,
                 right: SizeConfig.size8,
                 child: Obx(() {
+                  // Every variant of this product is already in the store's own
+                  // inventory, so adding it again would publish a duplicate row
+                  // for the same catalogue variant — a second price for one
+                  // item on the merchant's own shelf. Say so on the card
+                  // instead of offering a "+" that should not be pressed.
+                  if (controller.isProductFullyStocked(product)) {
+                    return const AlreadyAddedBadge();
+                  }
                   final bool isSelected =
                       controller.selectedGroceries.contains(product);
                   return ProductSelectPlusButton(
@@ -156,6 +165,13 @@ class GroceryProductSelectCard extends StatelessWidget {
                   mrp: "${price.mrpRange}",
                   discount: "${price.discountRange}",
                 ),
+                // The partly-stocked case. The corner badge only appears once
+                // EVERY variant is stocked, so without this a product the
+                // merchant has half-added looks untouched.
+                Obx(() => AlreadyAddedCountLine(
+                      stocked: controller.stockedVariantCount(product),
+                      total: product.variants?.length ?? 0,
+                    )),
               ],
             ),
           ),

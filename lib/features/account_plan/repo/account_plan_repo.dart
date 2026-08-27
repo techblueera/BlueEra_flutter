@@ -13,16 +13,25 @@ class AccountPlanRepo extends BaseService {
   /// selects the GST vs no-GST radius track, and a no-GST shop that omits it
   /// would be offered plans it cannot buy. INDIVIDUAL may omit [tagId]; the
   /// backend falls back to the profile's profession.
+  ///
+  /// [couponCode] unlocks campaigns the admin marked coupon-only
+  /// (`auto_apply: false`); without it they are invisible. Auto-applied
+  /// campaigns need nothing — the response carries them either way. The server
+  /// decides validity: a wrong code simply comes back with no campaign, never
+  /// an error, so the app writes no validity rules of its own.
   Future<ResponseModel> getPlans({
     String? tagId,
     bool? hasGst,
     String? accountType,
+    String? couponCode,
   }) {
     final query = <String, dynamic>{
       if (tagId != null && tagId.isNotEmpty) 'tag_id': tagId,
       if (hasGst != null) 'has_gst': hasGst.toString(),
       if (accountType != null && accountType.isNotEmpty)
         'account_type': accountType,
+      if (couponCode != null && couponCode.isNotEmpty)
+        'coupon_code': couponCode,
     };
     return ApiBaseHelper().getHTTP(
       accountPlanPlans,
@@ -64,12 +73,20 @@ class AccountPlanRepo extends BaseService {
   /// [buyerGstin] is **required for a `gst_track: "GST"` option** (every radius
   /// tier above 3 km, and all wide-reach). Without it the backend creates no
   /// order and answers 400 with `data.requires_gst: true` — see the guide §2.3.
+  ///
+  /// [expectedTotalAmount] is the **overcharge guard** and must always be sent:
+  /// it is the total the card promised, in paise, and the server refuses with
+  /// 409 `price_changed` rather than charging more when a campaign ended while
+  /// the buyer was deciding. Paying *less* than expected never errors. Omitting
+  /// it means an expired offer silently charges the list price instead.
   Future<ResponseModel> initiate({
     required String optionCode,
     String? tagId,
     bool? hasGst,
     String? buyerState,
     String? buyerGstin,
+    String? couponCode,
+    int? expectedTotalAmount,
   }) {
     return ApiBaseHelper().postHTTP(
       accountPlanInitiate,
@@ -81,6 +98,10 @@ class AccountPlanRepo extends BaseService {
           'buyer_state': buyerState,
         if (buyerGstin != null && buyerGstin.isNotEmpty)
           'buyer_gstin': buyerGstin,
+        if (couponCode != null && couponCode.isNotEmpty)
+          'coupon_code': couponCode,
+        if (expectedTotalAmount != null)
+          'expected_total_amount': expectedTotalAmount,
       },
       showProgress: false,
     );

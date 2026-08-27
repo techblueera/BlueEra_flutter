@@ -5,9 +5,6 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -28,7 +25,6 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
-import '../model/manufacturer_sub_category_root_category_response.dart';
 
 class ManufacturerAddProductViaAiRequest {
   final String? productName;
@@ -124,8 +120,6 @@ class ManufacturerProductMoreDetails {
 
 class ManufacturerProductController extends GetxController{
   Rx<ApiResponse> generateAiProductContentResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getSubChildORRootCategoryResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> searchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addProductToInventoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addUpdateProductVariantApiResponse = ApiResponse.initial('Initial').obs;
@@ -167,26 +161,12 @@ class ManufacturerProductController extends GetxController{
   final TextEditingController mrpController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController availableStockController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
   final TextEditingController materialController = TextEditingController();
 
   RxList<ManufacturerSelectedColor> selectedColors = <ManufacturerSelectedColor>[].obs;
 
   Map<String, TextEditingController> dynamicControllers = {}; // key -> controller
   RxMap<String, RxList<String>> dynamicAttributes = <String, RxList<String>>{}.obs; // key -> list of values
-
-  var loading = false.obs;
-
-  final searchController = TextEditingController();
-
-  /// Search results
-  var searchResults = <CategoryData>[].obs;
-
-  /// Is search active
-  var isSearchActive = false.obs;
-
-  /// Search debounce timer
-  Timer? _searchDebounce;
 
   final formKeyStep1 = GlobalKey<FormState>();
   final formKeyStep2 = GlobalKey<FormState>();
@@ -198,7 +178,6 @@ class ManufacturerProductController extends GetxController{
   String? productId;
 
   final Rxn<String> selectedCategory = Rxn<String>();
-  final RxString selectedCategoryId = ''.obs;
 
   // Home-made product category (flat list, tagId via slugId) — used when
   // providerType == user.
@@ -225,38 +204,12 @@ class ManufacturerProductController extends GetxController{
   /// generate step, used to build the create + variant request bodies.
   List<AiVariantData> aiVariantData = <AiVariantData>[];
 
-  final String otherCategoryId = '68d4e332455cad1af87fac05';
-
   RxString selectedProductOrVariantPrice = '00,000'.obs;
   RxString selectedProductOrVariantDiscount = '0'.obs;
   RxString selectedProductOrVariantMrp = '00,000'.obs;
 
   /// Images used on Step 2 (second screen, preloaded + new)
   RxList<String> allProductImages = <String>[].obs;
-
-  List<Map<String, String>> get categoryDropdownList =>
-      Get.find<AuthController>().businessOnboardingProductsCategories.map((category) {
-    return {
-      'display': category.name ?? '',
-      'value': category.tagId ?? '',
-    };
-  }).toList();
-  final Rxn<Map<String, String>> selectedProductCategory = Rxn<Map<String, String>>();
-
-  // ManufacturerProduct Snap Search Data
-  // Rxn<ManufacturerProductSnapSearchData> productSnapSearchData = Rxn<ManufacturerProductSnapSearchData>();
-  final List<Map<String, String>> productSnapSearchConfig = [
-    {
-      'title': 'Upload Photo',
-      'icon': AppIconAssets.cameraAddOutlineIcon,
-      'image': AppImageAssets.groceryImageFirst,
-    },
-    {
-      'title': 'Search Manually',
-      'icon': AppIconAssets.search,
-      'image': AppImageAssets.groceryImageSecond,
-    },
-  ];
 
   @override
   void onClose() {
@@ -277,26 +230,9 @@ class ManufacturerProductController extends GetxController{
       c.dispose();
     }
     materialController.dispose();
-    searchController.dispose();
-    _searchDebounce?.cancel();
     super.onClose();
   }
 
-
-  void addColor(Color color, String name) {
-    // if (selectedColors.length == 5) {
-    //   commonSnackBar(message: 'You can\'t add more than 5 colors');
-    //   return;
-    // }
-
-    if (!selectedColors.any((c) => c.color == color)) {
-      selectedColors.add(ManufacturerSelectedColor(color, name));
-    }
-  }
-
-  void removeColor(ManufacturerSelectedColor selectedColor) {
-    selectedColors.remove(selectedColor);
-  }
 
   void addDetail(ManufacturerProductMoreDetails detail) {
     detailsList.add(detail);
@@ -335,12 +271,6 @@ class ManufacturerProductController extends GetxController{
     }
   }
 
-  /// Add images to Step 1
-  void addImagesStep1(List<String> images) {
-    final remaining = maxStep1Images.value - step1Images.length;
-    step1Images.addAll(images.take(remaining));
-  }
-
   /// Remove image from Step 1
   void removeImageStep1(int index) {
     if (index >= 0 && index < step1Images.length) {
@@ -369,16 +299,6 @@ class ManufacturerProductController extends GetxController{
     update();
   }
 
-  void addUserGuideLine() {
-    userGuideLineControllers.add(TextEditingController());
-  }
-
-  void removedUserGuideLine(int index) {
-    if (index >= 0 && index < userGuideLineControllers.length) {
-      final ctrl = userGuideLineControllers.removeAt(index);
-      ctrl.dispose();
-    }
-  }
 
   /// Pick new images for Step 2
   Future<void> pickImagesStep2(BuildContext context) async {
@@ -409,8 +329,6 @@ class ManufacturerProductController extends GetxController{
     }
   }
 
-  bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
-  bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
   void onGenerate(ManufacturerProductController addProductViaAiController, String id, ProviderType providerType) async {
     if (!_validate(providerType)) return;
@@ -525,63 +443,9 @@ class ManufacturerProductController extends GetxController{
     }
   }
 
-  /// Search method
-  void onSearchChanged(String query) {
-    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-
-    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-      if (query.trim().isEmpty) {
-        clearSearch();
-      } else {
-        performSearch(query.trim());
-      }
-    });
-  }
 
   /// Perform search API call
-  Future<void> performSearch(String keyword) async {
-    try {
-      isSearchActive.value = true;
-      loading.value = true;
 
-      Map<String, dynamic> params = {
-        ApiKeys.q: keyword
-      };
-
-      final responseModel = await ManufacturerProductRepo().searchCategoryOfProduct(queryParams: params);
-      if (responseModel.isSuccess) {
-        searchProductCategoryResponse.value = ApiResponse.complete(responseModel);
-        final subChildORRootCategoryResponse = ManufacturerSubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
-        List<CategoryData> categoryData = subChildORRootCategoryResponse.data??[];
-
-        searchResults.clear();
-        searchResults.assignAll(categoryData);
-
-        // /// set initially category id (If user didn't choose category itSelf)
-        // if(searchResults.isNotEmpty){
-        //   selectedCategoryId.value = searchResults[0].sId??'';
-        // }
-        // else{
-        //   selectedCategoryId.value = otherCategoryId;
-        // }
-        // log('category id--> $selectedCategoryId');
-      } else {
-        searchProductCategoryResponse.value = ApiResponse.error('error');
-      }
-
-      loading.value = false;
-    } catch (e) {
-      searchProductCategoryResponse.value = ApiResponse.error('error');
-      loading.value = false;
-    }
-  }
-
-  /// Clear search
-  void clearSearch() {
-    searchController.clear();
-    searchResults.clear();
-    isSearchActive.value = false;
-  }
 
   // // Add dynamic value
   // void addDynamicValue(String key, String value) {
@@ -1385,7 +1249,6 @@ class ManufacturerProductController extends GetxController{
 
   // ── Owner Info (set from route arguments) ─────────────────────────────
   String? ownerID;
-  ProviderType? ownerProviderType;
 
   // ── Inventory ManufacturerProduct Search by Category ─────────────────────────────
   RxList<ManufacturerSelectedVariant> inventoryProductList = <ManufacturerSelectedVariant>[].obs;
@@ -1449,28 +1312,4 @@ class ManufacturerProductController extends GetxController{
     }
   }
 
-  // ── ManufacturerProduct Selection (Cart) ─────────────────────────────────────────
-  RxList<ManufacturerSelectedVariant> selectedProducts = <ManufacturerSelectedVariant>[].obs;
-  int productMaxLimit = 10;
-
-  bool get isProductMaxLimitHit => selectedProducts.length >= productMaxLimit;
-
-  void toggleProductSelection(ManufacturerSelectedVariant product) {
-    final index =
-        selectedProducts.indexWhere((p) => p.id == product.id);
-    if (index >= 0) {
-      selectedProducts.removeAt(index);
-    } else {
-      if (isProductMaxLimitHit) {
-        commonSnackBar(
-            message: 'You can\'t select more than $productMaxLimit products at a time.');
-        return;
-      }
-      selectedProducts.add(product);
-    }
-  }
-
-  bool isProductSelected(String variantId) {
-    return selectedProducts.any((p) => p.id == variantId);
-  }
 }

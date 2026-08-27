@@ -73,6 +73,10 @@ class _ProductSuperCategoryScreenState
     // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
     // window instead of hitting the network again.
     controller.fetchProductsByRootCategoryIfNeeded();
+    // Which catalogue variants this business already stocks, so a product it
+    // already sells is badged rather than offered again. Guarded and
+    // snapshot-backed, so re-entering the add flow usually costs nothing.
+    controller.fetchStockedVariantIdsIfNeeded();
   }
 
   @override

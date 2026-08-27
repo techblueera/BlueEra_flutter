@@ -243,8 +243,12 @@ class _ColourConditionSheetState extends State<_ColourConditionSheet> {
 
   Widget _colourChip(VehicleColorVariantV3 colour) {
     final selected = _colour?.id == colour.id;
+    // Already listed by this seller. Not selectable: a listing is created
+    // against a colour id, so picking it again would publish a second listing
+    // for the same trim and colour.
+    final alreadyListed = widget.controller.isVariantStocked(colour.id);
     return InkWell(
-      onTap: () => setState(() => _colour = colour),
+      onTap: alreadyListed ? null : () => setState(() => _colour = colour),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -252,12 +256,18 @@ class _ColourConditionSheetState extends State<_ColourConditionSheet> {
           vertical: SizeConfig.size6,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primaryColor.withValues(alpha: 0.10)
-              : Colors.transparent,
+          // Tinted rather than transparent, so a listed chip reads as settled
+          // instead of merely unpicked.
+          color: alreadyListed
+              ? AppColors.fillColor
+              : (selected
+                  ? AppColors.primaryColor.withValues(alpha: 0.10)
+                  : Colors.transparent),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primaryColor : AppColors.greyE5,
+            color: alreadyListed
+                ? AppColors.greyE5
+                : (selected ? AppColors.primaryColor : AppColors.greyE5),
           ),
         ),
         child: Row(
@@ -277,10 +287,18 @@ class _ColourConditionSheetState extends State<_ColourConditionSheet> {
               colour.colorName.isEmpty ? 'Colour' : colour.colorName,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
-              color: selected
-                  ? AppColors.primaryColor
-                  : AppColors.mainTextColor,
+              color: alreadyListed
+                  ? AppColors.secondaryTextColor
+                  : (selected
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor),
             ),
+            // A tick, not a checkbox: this is a STATE, not a control.
+            if (alreadyListed) ...[
+              SizedBox(width: SizeConfig.size6),
+              Icon(Icons.check_circle,
+                  size: 14, color: Colors.green.shade600),
+            ],
           ],
         ),
       ),

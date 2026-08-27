@@ -73,6 +73,16 @@ mixin AutomotiveServiceApi {
       "automotive-service/api/inventory/public/global-products";
   final String automotiveAddProductVariant = 'automotive-service/api/inventory';
 
+  /// The productVariant ids this shop ALREADY has in its inventory.
+  /// `GET automotive-service/api/inventory/product-variant-ids?businessId=`
+  ///
+  /// Automotive mirror of [FoodServiceApi.foodInventoryProductVariantIds] —
+  /// same contract, same `data.productVariantIds` shape. These are ids of the
+  /// CATALOGUE variant, not of the inventory record, so a part already stocked
+  /// is not offered for adding a second time.
+  final String automotiveInventoryProductVariantIds =
+      'automotive-service/api/inventory/product-variant-ids';
+
   /// Add product to inventory. `POST automotive-service/api/inventory`.
   final String automotiveAddProductToInventory =
       "automotive-service/api/inventory";

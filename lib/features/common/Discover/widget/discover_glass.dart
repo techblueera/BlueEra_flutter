@@ -28,7 +28,7 @@ import 'package:flutter/material.dart';
 /// a tint over the background and started reading as a grey card painted on top
 /// of it — the panels went heavy and the pale blue no longer came through. The
 /// blur does most of the work; the fill only has to separate panel from page.
-const Color kDiscoverGlassFill = Color(0x1F101922);
+const Color kDiscoverGlassFill = Color(0x1F3E5369);
 
 /// Rim. Solid white at 1px — the panel is darker than the page it sits on, and
 /// the white edge is what gives it a shape.
@@ -185,7 +185,10 @@ class DiscoverSurfaceTheme extends InheritedWidget {
   final double blur;
   final double radius;
 
-  /// v2's surface: `#10192233` over `#DDE2EE`, blurred 20.
+  /// v2 supplies [kDiscoverGlassFill] over `#DDE2EE`, blurred 20 — see
+  /// `discover_screen_v2.dart`, which owns those values. Its fill now matches
+  /// this file's default; the scope still exists for the stroke, blur and
+  /// radius, which do differ from v1.
   static const DiscoverSurfaceTheme? _none = null;
 
   static DiscoverSurfaceTheme? maybeOf(BuildContext context) =>

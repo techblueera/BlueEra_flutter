@@ -90,8 +90,12 @@ class RestaurantController extends GetxController {
         // entry (an empty list is stored as a deletion — "the server had
         // nothing" is re-asked, never pinned), so requiring BOTH sides before
         // hydrating would mean such a restaurant never used the cache at all.
-        await fetchDiscountFoodProducts(businessId: businessId);
-        _homeCache.mark(signature);
+        // Stamped only if that fetch actually landed. Stamping regardless left
+        // the offer rail empty for the whole TTL after a dropped request, with
+        // every re-entry taking the early return and never retrying it.
+        if (await fetchDiscountFoodProducts(businessId: businessId)) {
+          _homeCache.mark(signature);
+        }
         return;
       case _FoodCacheHit.miss:
         break;
@@ -233,18 +237,45 @@ class RestaurantController extends GetxController {
             data: Map<String, dynamic>.from(raw['data'] as Map),
           ));
         }
-      } else if (!silent) {
+      } else {
         // A failed SILENT refresh must not replace what the user is reading
         // with an error — the hydrated menu stays, and the guard was already
-        // left un-stamped so the next entry retries.
-        foodHomeDataResponse.value = ApiResponse.error('error');
+        // left un-stamped so the next entry retries. The exception is a status
+        // that never resolved; see [_resolveHomeFailure].
+        _resolveHomeFailure(silent: silent);
 
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        if (!silent) {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
       }
     } catch (e, s) {
-      if (!silent) foodHomeDataResponse.value = ApiResponse.error('error');
+      _resolveHomeFailure(silent: silent);
       log("Stack Trace===== $s");
+    }
+  }
+
+  /// Records a failed home/menu fetch.
+  ///
+  /// A silent refresh normally leaves the status alone — that is the point of
+  /// `silent`: keep the rendered menu and its COMPLETE state while the
+  /// replacement is fetched, so the tab doesn't blink back to a skeleton it has
+  /// already moved past. **But a status that has never resolved is not worth
+  /// protecting.** [FoodProductsTab] derives `menuResolved` from this, and
+  /// renders its loaders until it is COMPLETE or ERROR — so a silent failure
+  /// over an unresolved status left the menu section shimmering with nothing
+  /// scheduled to stop it.
+  ///
+  /// Reachable in practice: [markMenuChanged] refetches silently, and it runs
+  /// on every publish / price edit / delete / stock toggle. A merchant whose
+  /// very first load had not resolved yet when one of those fired — or whose
+  /// snapshot was cleared by that same call — got the permanent shimmer. Same
+  /// failure this controller's `_fetchProductsTab` counterpart already guards
+  /// against for the empty-businessId path.
+  void _resolveHomeFailure({required bool silent}) {
+    final unresolved = foodHomeDataResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      foodHomeDataResponse.value = ApiResponse.error('error');
     }
   }
 
@@ -258,7 +289,11 @@ class RestaurantController extends GetxController {
   /// [silent] keeps the rendered rail on screen while the call runs (hydrated
   /// from disk, or refreshed after a write) instead of blinking back to the
   /// loader — see [fetchHomeData].
-  Future<void> fetchDiscountFoodProducts({
+  /// Returns whether the request SUCCEEDED — not whether it returned rows.
+  /// An empty offer rail is a successful answer; a dropped connection is not,
+  /// and only the caller that stamps a freshness guard needs to tell them
+  /// apart. See the `homeOnly` branch of [fetchHomeAndDiscountIfNeeded].
+  Future<bool> fetchDiscountFoodProducts({
     required String businessId,
     bool isLoadMore = false,
     bool silent = false,
@@ -268,7 +303,9 @@ class RestaurantController extends GetxController {
         if (!_discountProductsHasMore ||
             isDiscountProductsLoadingMore.value ||
             isDiscountProductsLoading.value) {
-          return;
+          // Nothing was asked for, so nothing failed — a skipped load-more is
+          // not a reason to refuse the caller's freshness stamp.
+          return true;
         }
         isDiscountProductsLoadingMore.value = true;
       } else {
@@ -326,12 +363,16 @@ class RestaurantController extends GetxController {
         if (!isLoadMore && _isOwner(businessId)) {
           unawaited(FoodLocalStore.writeDiscount(businessId, items: rawRows));
         }
-      } else if (!silent) {
+        return true;
+      }
+      if (!silent) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
+      return false;
     } catch (e, s) {
       log('fetchDiscountFoodProducts error: $e\n$s');
+      return false;
     } finally {
       if (isLoadMore) {
         isDiscountProductsLoadingMore.value = false;

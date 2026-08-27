@@ -15,12 +15,22 @@ import 'package:flutter/material.dart';
 class ProductShareButton extends StatelessWidget {
   final String? productId;
   final String? productName;
+
+  /// The store this card belongs to, when the card knows it.
+  ///
+  /// [productId] is the master product record, which every store listing the
+  /// product shares — so the link on its own cannot say whose shop the
+  /// recipient should land on. Passing the seller here puts it in the link and
+  /// gives the landing screen a store card that opens the right profile.
+  final String? sellerUserId;
+
   final double size;
 
   const ProductShareButton({
     super.key,
     required this.productId,
     this.productName,
+    this.sellerUserId,
     this.size = 30,
   });
 
@@ -33,6 +43,7 @@ class ProductShareButton extends StatelessWidget {
       onTap: () => ShareService.instance.shareProduct(
         productId: id,
         productName: productName,
+        sellerUserId: sellerUserId,
       ),
       child: ClipOval(
         child: BackdropFilter(

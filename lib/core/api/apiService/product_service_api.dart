@@ -9,10 +9,6 @@ mixin ProductServiceApi {
   final String createProductAdmin = "product-service/api/products/admin";
   final String searchProductViaCategory = 'product-service/api/products/search';
 
-  /// Cross-category product showcase shown at the bottom of the product
-  /// super-category screen. `GET product-service/api/products/category-showcase`.
-  final String productCategoryShowcase =
-      'product-service/api/products/category-showcase';
 
   /// Products grouped by root category — one section per root category, each
   /// with a capped product list — powering the "Quick Upload" rails on the
@@ -51,6 +47,17 @@ mixin ProductServiceApi {
 
   /// Add product to inventory. `POST product-service/api/inventory`.
   final String addProductToInventory = "product-service/api/inventory";
+
+  /// The productVariant ids this business ALREADY has in its inventory.
+  /// `GET product-service/api/inventory/product-variant-ids?businessId=`
+  ///
+  /// Product mirror of [FoodServiceApi.foodInventoryProductVariantIds] — same
+  /// contract, same `data.productVariantIds` shape. These are ids of the
+  /// CATALOGUE variant, not of the inventory record, so they compare directly
+  /// against `Variant.id` on the pre-publish selection screens: a variant
+  /// already stocked must not be offered for adding a second time.
+  final String productInventoryProductVariantIds =
+      'product-service/api/inventory/product-variant-ids';
 
   /// Batched product / root-category counts per owner, for the PRODUCT
   /// catalogue. `POST { businesses: [{ businessId?, userId? }] }`, max 100.

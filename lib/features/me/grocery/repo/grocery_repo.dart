@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -31,6 +32,29 @@ class GroceryRepo extends BaseService {
     );
   }
 
+  /// `GET grocery-service/api/inventory/product-variant-ids?businessId=` — the
+  /// catalogue-variant ids this store already stocks.
+  ///
+  /// Backs the "already added" state on the pre-publish selection screens; see
+  /// [GroceryController.fetchStockedVariantIdsIfNeeded]. Grocery mirror of
+  /// [FoodRepo.getInventoryProductVariantIdsRepo].
+  ///
+  /// `showProgress: false`: this decorates a screen the merchant is already
+  /// reading, and a blocking overlay for a lookup nobody asked for would be
+  /// worse than the badges arriving a moment later.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      groceryInventoryProductVariantIds,
+      params: {ApiKeys.businessId: businessId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Bulk-flip the manual out-of-stock flag on one or more inventory records.
   /// `PATCH grocery-service/api/inventory/stock/toggle-out-of-stock`.
   ///
@@ -57,20 +81,6 @@ class GroceryRepo extends BaseService {
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
       searchGroceryViaCategory,
-      params: queryParam,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  /// Cross-category product showcase (paginated) shown at the bottom of the
-  /// grocery super-category screen.
-  Future<ResponseModel> fetchGroceryCategoryShowcaseRepo(
-      {Map<String, dynamic>? queryParam}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      groceryCategoryShowcase,
       params: queryParam,
       showProgress: false,
       onError: (error) {},

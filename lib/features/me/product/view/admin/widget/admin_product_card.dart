@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
 class AdminProductCard extends StatelessWidget {
@@ -187,6 +188,9 @@ class AdminProductCard extends StatelessWidget {
                     child: ProductShareButton(
                       productId: productId,
                       productName: details?.name,
+                      // The admin catalogue is the signed-in store's own
+                      // inventory, so the seller in the link is this account.
+                      sellerUserId: userId,
                     ),
                   ),
                   // Stock state on the photo, where the eye lands first when
@@ -342,6 +346,7 @@ class AdminProductCard extends StatelessWidget {
                   child: ProductShareButton(
                     productId: productId,
                     productName: details?.name,
+                    sellerUserId: userId,
                   ),
                 ),
                 Positioned(

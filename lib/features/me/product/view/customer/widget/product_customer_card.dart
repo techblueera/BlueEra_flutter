@@ -223,7 +223,12 @@ class ProductCustomerCard extends StatelessWidget {
   Future<void> _shareProduct() async {
     final productId = product.product.details?.id ?? '';
     final name = product.product.details?.name ?? '';
-    final shareLink = productDeepLink(productId: productId);
+    // The store this tile belongs to — a bare product id names the master
+    // record, not the shop, and the recipient would land with no seller.
+    final shareLink = productDeepLink(
+      productId: productId,
+      sellerUserId: product.product.user_id,
+    );
 
     await ShareService.instance.openShareSheet(
       text: "Check out $name on BlueEra:\n$shareLink",

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_listing_draft_v3.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_v3_models.dart';
+import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -119,6 +120,11 @@ class VehicleTrimSelectCardV3 extends StatelessWidget {
 
   Widget _addButton() {
     return Obx(() {
+      // Every colour of this trim is already listed, so the sheet would open
+      // with nothing selectable. Say so on the card instead.
+      if (controller.isTrimFullyStocked(trim)) {
+        return const AlreadyAddedBadge();
+      }
       // Any colour of this trim already in the basket counts as "added" — the
       // basket is keyed by colour, so a merchant can add two colours of the
       // same trim and the card still reads as selected.

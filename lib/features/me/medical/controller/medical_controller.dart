@@ -56,8 +56,6 @@ class PriceResult {
 class MedicalController extends GetxController {
   Rx<ApiResponse> medicalCategoryResponse =
     ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> medicalCategoryOfChildrenResponse =
-      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createNewMedicalProductNewVariantResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addMedicalProductVariantResponse =
@@ -93,7 +91,6 @@ class MedicalController extends GetxController {
   ];
 
   final RxMap<String, File?> medicalSnapSearchImagesMap = <String, File?>{}.obs;
-  int maxUploadImages = 2;
 
   RxMap<String, List<VariantsData>> selectedSnapSearchProductVariants = <String, List<VariantsData>>{}.obs;
   Rxn<SnapSearchData> productSnapSearchData = Rxn<SnapSearchData>();
@@ -840,8 +837,6 @@ class MedicalController extends GetxController {
   static const int _medicalBusinessProductsLimit = 20;
   static const int medicalBusinessProductsPreviewLimit = 20;
 
-  bool get medicalBusinessProductsHasMore => _medicalBusinessProductsHasMore;
-
   /// Products-tab data: the Top Selling rail + the category-with-inventory
   /// grid. Fires both in parallel, mirroring grocery's [fetchAllGroceryData].
   ///
@@ -890,6 +885,17 @@ class MedicalController extends GetxController {
     required String businessId,
     bool otherStore = false,
   }) async {
+    // No id, nothing to fetch — but RESOLVE the tab's state rather than
+    // returning silently. Nothing re-runs the dispatcher, so a bare `return`
+    // leaves the Products tab shimmering on `Status.INITIAL` for good, with no
+    // error and no retry. See `FoodMainScreen._fetchProductsTab`.
+    if (businessId.isEmpty) {
+      log('medical: businessId unresolved — Products tab has nothing to fetch');
+      _resolveCategoryFailure(silent: false);
+      _resolveBusinessProductsFailure(silent: false);
+      return;
+    }
+
     final signature = 'medical|$businessId|$otherStore';
     final hasData = myMedicalCategoryList.isNotEmpty ||
         medicalBusinessProductsList.isNotEmpty;
@@ -905,8 +911,46 @@ class MedicalController extends GetxController {
       businessId: businessId,
       otherStore: otherStore,
     );
-    if (fetchMyMedicalCategoryResponse.value.status == Status.COMPLETE) {
+    // Stamp only once BOTH lists actually loaded.
+    //
+    // Categories alone used to be enough, and that is what stranded the tab:
+    // `hasData` on the guard is an OR across the two lists, so a run where the
+    // categories landed and the top-selling request did not stamped the guard
+    // anyway — and every later entry then took the early return and never
+    // retried the half that failed, leaving its shimmer running.
+    //
+    // COMPLETE means the REQUEST succeeded, not that rows came back, so an
+    // empty catalogue still stamps and still gets its 5-minute reuse.
+    if (fetchMyMedicalCategoryResponse.value.status == Status.COMPLETE &&
+        fetchMedicalBusinessProductsResponse.value.status == Status.COMPLETE) {
       _medicalProductsTabCache.mark(signature);
+    }
+  }
+
+  /// Records a failed category fetch.
+  ///
+  /// A silent refresh normally leaves the status alone — that is the point of
+  /// `silent`: keep the rendered rows and their COMPLETE state while
+  /// replacements are fetched, so the tab doesn't blink. **But a status that
+  /// has never resolved is not worth protecting.** The Products tab renders
+  /// its shimmer on `Status.INITIAL`, so a silent failure over an unresolved
+  /// status left that shimmer running with nothing scheduled to stop it. Same
+  /// failure mode the food tab was fixed for; see
+  /// `FoodMainScreen._fetchProductsTab`.
+  void _resolveCategoryFailure({required bool silent}) {
+    final unresolved =
+        fetchMyMedicalCategoryResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Top-selling counterpart of [_resolveCategoryFailure].
+  void _resolveBusinessProductsFailure({required bool silent}) {
+    final unresolved =
+        fetchMedicalBusinessProductsResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
     }
   }
 
@@ -1006,6 +1050,10 @@ class MedicalController extends GetxController {
     _medicalProductsTabCache.invalidate();
     medicalBusinessProductsList.refresh();
     myMedicalCategoryList.refresh();
+    // The write that got us here also changed which catalogue variants this
+    // pharmacy holds, and the add flow badges what is already stocked. Done
+    // here rather than at each call site so a new write path cannot forget it.
+    markStockedVariantsChanged(storeId: storeId);
 
     final id = (storeId == null || storeId.isEmpty) ? businessId : storeId;
     if (id.isEmpty) return;
@@ -1014,6 +1062,124 @@ class MedicalController extends GetxController {
     unawaited(MedicalLocalStore.clearStore(id).then(
       (_) => fetchMedicalProductsTabData(businessId: id, silent: true),
     ));
+  }
+
+  // ─── Already-stocked variants ──────────────────────────────────────────────
+  // Medical mirror of the food flow — see
+  // `FoodServiceController.fetchStockedVariantIdsIfNeeded`. The medical add
+  // flow selects a whole PRODUCT, so the gate lands on the card: a product
+  // whose every variant is already stocked is not offerable, and a partly
+  // stocked one says how far along it is.
+
+  /// productVariant ids this pharmacy ALREADY has in its inventory.
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per store, so re-entering the add flow reuses the
+  /// answer instead of refetching.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  /// Load the stocked-variant set, cheapest source first:
+  ///
+  /// 1. in-memory, same store, fetched < 5 min ago;
+  /// 2. the saved snapshot on disk;
+  /// 3. the network.
+  ///
+  /// The snapshot REPLACES the request rather than racing it: the only thing
+  /// that changes this set on this device is the merchant publishing or
+  /// deleting, and both run [markInventoryChanged].
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = businessId;
+    if (id.isEmpty) return;
+
+    final signature = 'medicalStockedVariants|$id';
+    if (_stockedVariantIdsCache.isFresh(signature,
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+
+    try {
+      final entry = await MedicalLocalStore.readStockedVariantIds(id);
+      if (entry != null && !entry.isEmpty) {
+        stockedVariantIds
+          ..clear()
+          ..addAll(entry.items.map((e) => e.toString()));
+        _stockedVariantIdsCache.mark(signature);
+        return;
+      }
+    } catch (e) {
+      log('medical: stocked-variant cache hydrate failed — $e');
+    }
+
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = businessId;
+    if (id.isEmpty) return;
+    try {
+      final response =
+          await MedicalRepo().getInventoryProductVariantIdsRepo(businessId: id);
+      if (!response.isSuccess) return;
+
+      final raw = response.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('medicalStockedVariants|$id');
+      unawaited(MedicalLocalStore.writeStockedVariantIds(id, ids: ids));
+    } catch (e, s) {
+      log('medical fetchStockedVariantIds error: $e\n$s');
+    }
+  }
+
+  /// Whether [variantId] is a catalogue variant the pharmacy already stocks.
+  ///
+  /// An EMPTY set means "not loaded / this store has nothing", and both answer
+  /// false — the selection screens stay fully usable when the lookup fails
+  /// rather than locking every card on a request that did not come back.
+  bool isVariantStocked(String? variantId) {
+    final id = (variantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every variant of [product] is already stocked — the card can say so
+  /// instead of offering an add that would publish duplicates.
+  ///
+  /// A product with NO variants answers false: `every` on an empty list is
+  /// vacuously true, which would wrongly lock the card.
+  bool isProductFullyStocked(MedicalProductData product) {
+    final variants = product.variants ?? const <VariantsData>[];
+    if (variants.isEmpty) return false;
+    return variants.every((v) => isVariantStocked(v.sId));
+  }
+
+  /// How many of [product]'s variants are already stocked.
+  int stockedVariantCount(MedicalProductData product) {
+    final variants = product.variants ?? const <VariantsData>[];
+    return variants.where((v) => isVariantStocked(v.sId)).length;
+  }
+
+  /// The set changed under us — a publish added variants, a delete removed one.
+  ///
+  /// Drops the guard AND the snapshot, then refetches. Without the snapshot
+  /// delete a re-entry would paint the pre-publish set straight off disk and
+  /// keep offering a variant the merchant just added.
+  void markStockedVariantsChanged({String? storeId}) {
+    final id = (storeId == null || storeId.isEmpty) ? businessId : storeId;
+    _stockedVariantIdsCache.invalidate();
+    if (id.isEmpty) return;
+    unawaited(
+      MedicalLocalStore.writeStockedVariantIds(id, ids: const [])
+          .then((_) => fetchStockedVariantIds()),
+    );
   }
 
   /// [silent] keeps the rendered list on screen while the call runs (hydrated
@@ -1105,9 +1271,7 @@ class MedicalController extends GetxController {
           ApiResponse.complete(responseModel);
       log("Loaded ${medicalBusinessProductsList.length} medical business products");
     } catch (e, s) {
-      if (!silent) {
-        fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
-      }
+      _resolveBusinessProductsFailure(silent: silent);
       log("fetchMedicalBusinessProducts failed: $e\n$s");
     } finally {
       if (isLoadMore) isMedicalBusinessProductsLoadingMore.value = false;
@@ -1144,11 +1308,11 @@ class MedicalController extends GetxController {
         }
 
         log("Loaded ${myMedicalCategoryList.length}");
-      } else if (!silent) {
-        fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+      } else {
+        _resolveCategoryFailure(silent: silent);
       }
     } catch (e) {
-      if (!silent) fetchMyMedicalCategoryResponse.value = ApiResponse.error('error');
+      _resolveCategoryFailure(silent: silent);
       log("ERROR===== 2 $e");
     } finally{
       if (!silent) myMedicalCategoryLoading.value = false;

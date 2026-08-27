@@ -4,6 +4,28 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class AutomotiveProductRepo extends BaseService {
+  /// `GET automotive-service/api/inventory/product-variant-ids?businessId=` —
+  /// the catalogue-variant ids this shop already stocks.
+  ///
+  /// Backs the "already added" state on the pre-publish selection screens; see
+  /// [AutomotiveProductController.fetchStockedVariantIdsIfNeeded]. Automotive
+  /// mirror of [FoodRepo.getInventoryProductVariantIdsRepo].
+  ///
+  /// `showProgress: false`: this decorates a screen the merchant is already
+  /// reading, so it must not put a blocking overlay over it.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      automotiveInventoryProductVariantIds,
+      params: {ApiKeys.businessId: businessId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   /// Generate Ai AutomotiveProduct...
   Future<ResponseModel> generateAiProductContentRepo({required Map<String, dynamic> params}) async {

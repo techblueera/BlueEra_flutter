@@ -50,6 +50,18 @@ mixin VehicleServiceApi {
   /// upload step and no presigned URL any more.
   final String vehicleV3Inventory = 'vehicle-service/inventory';
   final String vehicleV3InventoryMine = 'vehicle-service/inventory/my';
+
+  /// The productVariant ids this seller ALREADY has listed.
+  /// `GET vehicle-service/inventory/product-variant-ids?businessId=`
+  ///
+  /// Vehicle mirror of [FoodServiceApi.foodInventoryProductVariantIds] — same
+  /// contract, same `data.productVariantIds` shape. For vehicles a
+  /// `productVariant` is the **colour**, not the trim (a listing is created
+  /// against a colour id), so these compare against
+  /// `VehicleColorVariantV3.id` — which is exactly what the colour sheet
+  /// offers. Path has no `/api` segment, like the rest of vehicle-service.
+  final String vehicleV3InventoryProductVariantIds =
+      'vehicle-service/inventory/product-variant-ids';
   final String vehicleV3InventorySummary = 'vehicle-service/inventory/summary';
   final String vehicleV3InventoryBrowse = 'vehicle-service/inventory/browse';
   String vehicleV3InventoryById(String id) => 'vehicle-service/inventory/$id';

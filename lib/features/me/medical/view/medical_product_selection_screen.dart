@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/widget/medical_selection_floating_cart.dart';
+import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -66,6 +67,10 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
       if (widget.arrLevel3Category.isEmpty) return;
       controller.selectedMedicalData.value = widget.arrLevel3Category.first;
       controller.fetchGroceryCategoryProducts();
+      // Which catalogue variants this pharmacy already stocks, so a product it
+      // already sells is badged rather than offered again. Guarded and
+      // snapshot-backed, so re-entering the add flow usually costs nothing.
+      controller.fetchStockedVariantIdsIfNeeded();
     });
   }
 
@@ -292,6 +297,8 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
   Widget medicalCard(MedicalProductData medicalProductData) {
     final bool isSelected =
         controller.selectedMedicalProducts.contains(medicalProductData);
+    final bool alreadyStocked =
+        controller.isProductFullyStocked(medicalProductData);
     final price =
         controller.getPriceDetails(medicalProductData.variants?.firstOrNull?.pricing);
 
@@ -399,14 +406,35 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
                     SizedBox(height: 2),
                     _priceRow(AppStrings.discount.tr, price.discountRange, AppColors.green00, isBold: true),
                     SizedBox(height: 3),
-                    CustomBtn(
-                      height: SizeConfig.size30,
-                      onTap: () => controller.toggleSelection(medicalProductData),
-                      title: isSelected ? AppStrings.medicalAddedLabel.tr : AppStrings.medicalAddBtnLabel.tr,
-                      textColor: isSelected ? AppColors.white : AppColors.primaryColor,
-                      bgColor: isSelected ? AppColors.primaryColor : AppColors.white,
-                      radius: 6.0,
-                      borderColor: AppColors.primaryColor,
+                    // Already in this pharmacy's own inventory: adding it again
+                    // would publish a duplicate record against the same
+                    // catalogue variant. The button becomes a statement rather
+                    // than a control, and the partial case gets its own line
+                    // beneath.
+                    if (alreadyStocked)
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: AlreadyAddedBadge(),
+                      )
+                    else
+                      CustomBtn(
+                        height: SizeConfig.size30,
+                        onTap: () =>
+                            controller.toggleSelection(medicalProductData),
+                        title: isSelected
+                            ? AppStrings.medicalAddedLabel.tr
+                            : AppStrings.medicalAddBtnLabel.tr,
+                        textColor:
+                            isSelected ? AppColors.white : AppColors.primaryColor,
+                        bgColor:
+                            isSelected ? AppColors.primaryColor : AppColors.white,
+                        radius: 6.0,
+                        borderColor: AppColors.primaryColor,
+                      ),
+                    AlreadyAddedCountLine(
+                      stocked:
+                          controller.stockedVariantCount(medicalProductData),
+                      total: medicalProductData.variants?.length ?? 0,
                     ),
                   ],
                 ),

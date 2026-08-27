@@ -58,6 +58,10 @@ class _VehicleProductsSelectionScreenV3State
   void initState() {
     super.initState();
     _loadCategories();
+    // Which colours this seller already has listed, so a trim they already sell
+    // is badged rather than offered again. TTL-guarded, so re-entering the add
+    // flow usually costs nothing.
+    controller.fetchStockedVariantIdsIfNeeded();
   }
 
   Future<void> _loadCategories() async {

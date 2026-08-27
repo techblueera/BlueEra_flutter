@@ -41,6 +41,9 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedGroceryData.value = widget.arrGroceries.first;
       controller.fetchBoth();
+      // Same set the rails use — this grid shows the same cards, so it needs
+      // the same "already added" answer.
+      controller.fetchStockedVariantIdsIfNeeded();
     });
   }
 

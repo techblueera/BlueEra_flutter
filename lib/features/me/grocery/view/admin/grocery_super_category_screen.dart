@@ -65,6 +65,10 @@ class _GrocerySuperCategoryScreenState
     // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
     // window instead of hitting the network again.
     controller.fetchGroceryProductsByRootCategoryIfNeeded();
+    // Which catalogue variants this store already stocks, so a product it
+    // already sells is badged rather than offered again. Guarded and
+    // snapshot-backed, so re-entering the add flow usually costs nothing.
+    controller.fetchStockedVariantIdsIfNeeded();
   }
 
   @override

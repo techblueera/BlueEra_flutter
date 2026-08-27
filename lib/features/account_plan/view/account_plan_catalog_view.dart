@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -190,8 +192,24 @@ class AccountPlanCatalogView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // The campaign, above everything it discounts. Shown whenever one
+            // is live — even if only some of the cards below are in its scope,
+            // which is what `has_discount` decides per card.
+            if (catalog.showCampaign)
+              _CampaignBanner(
+                campaign: catalog.campaign!,
+                onExpired: controller.onOfferExpired,
+              ),
             if (showHeader) ...[
               const _CatalogHeader(),
+              SizedBox(height: SizeConfig.size14),
+            ],
+            // Coupon-only campaigns are invisible until the code is sent, so
+            // the field is the only way to reach them. Hidden entirely when
+            // discounts are switched off backend-side — there would be nothing
+            // for a code to unlock.
+            if (catalog.discountEnabled) ...[
+              _CouponField(controller: controller),
               SizedBox(height: SizeConfig.size14),
             ],
             // Owned plans lead. What the merchant already has is the one thing
@@ -227,6 +245,13 @@ class AccountPlanCatalogView extends StatelessWidget {
                   isBusy: controller.isProcessing.value &&
                       controller.purchasingCode.value == plan.optionCode,
                   onTap: () => controller.select(plan),
+                  // The clock belongs to the banner when there is one. Only
+                  // when the banner is absent or silent does each card carry
+                  // its own — otherwise the same deadline would tick in six
+                  // places at once.
+                  showOfferCountdown:
+                      catalog.campaign?.hasCountdown != true,
+                  onOfferExpired: controller.onOfferExpired,
                 ),
           ],
         ),
@@ -264,6 +289,391 @@ class _CatalogHeader extends StatelessWidget {
       ],
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DISCOUNTS — the campaign banner, its countdown, and the coupon field.
+//
+// See docs/backend/ACCOUNT_PLAN_DISCOUNT_FLUTTER_GUIDE.md. Every colour, every
+// word and every number below comes off the payload: a new festival is a row in
+// the admin console, never a release of this app.
+// ═══════════════════════════════════════════════════════════════
+
+/// "Offer ends in 2d 21h 5m", ticking down from the SERVER's count.
+///
+/// It counts down from `ends_in_seconds` rather than diffing `ends_at` against
+/// `DateTime.now()`, because a device clock a day out would otherwise either
+/// hide a live sale or leave an expired one on screen. Every refetch delivers a
+/// fresh server value and restarts the clock from it.
+///
+/// [onExpired] fires exactly once, when the count reaches zero — the offer is
+/// over and the prices on screen have stopped being true.
+class OfferCountdown extends StatefulWidget {
+  const OfferCountdown({
+    super.key,
+    required this.endsInSeconds,
+    required this.color,
+    this.onExpired,
+    this.fontSize,
+  });
+
+  /// Seconds remaining as the SERVER counted them.
+  final int endsInSeconds;
+
+  final Color color;
+  final VoidCallback? onExpired;
+  final double? fontSize;
+
+  @override
+  State<OfferCountdown> createState() => _OfferCountdownState();
+}
+
+class _OfferCountdownState extends State<OfferCountdown> {
+  late int _left;
+  Timer? _timer;
+
+  /// [OfferCountdown.onExpired] refetches; the refetch rebuilds this widget.
+  /// Without this latch a rebuild that arrives before the timer is torn down
+  /// could fire a second refetch off the same expiry.
+  bool _fired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  @override
+  void didUpdateWidget(covariant OfferCountdown old) {
+    super.didUpdateWidget(old);
+    // A refetch brought a fresh server count — restart from it rather than
+    // carrying on from the local one, which has been drifting since it started.
+    if (old.endsInSeconds != widget.endsInSeconds) _start();
+  }
+
+  void _start() {
+    _timer?.cancel();
+    _fired = false;
+    _left = widget.endsInSeconds;
+    if (_left <= 0) return;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _left = _left > 0 ? _left - 1 : 0);
+      if (_left == 0 && !_fired) {
+        _fired = true;
+        _timer?.cancel();
+        widget.onExpired?.call();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // A one-second timer left running behind a closed plans screen is a battery
+    // cost and a stream of rebuilds nobody sees.
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// Drops the units that no longer matter: days hide seconds, hours hide days.
+  String get _label {
+    final d = _left ~/ 86400;
+    final h = (_left % 86400) ~/ 3600;
+    final m = (_left % 3600) ~/ 60;
+    final s = _left % 60;
+    if (d > 0) return '${d}d ${h}h ${m}m';
+    if (h > 0) return '${h}h ${m}m ${s}s';
+    return '${m}m ${s}s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_left <= 0) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.timer_outlined, size: SizeConfig.size14, color: widget.color),
+        SizedBox(width: SizeConfig.size4),
+        CustomText(
+          '${AppStrings.offerEndsIn.tr} $_label',
+          fontSize: widget.fontSize ?? SizeConfig.size11,
+          fontWeight: FontWeight.w700,
+          color: widget.color,
+        ),
+      ],
+    );
+  }
+}
+
+/// The campaign banner above the catalog.
+///
+/// Wears the campaign's OWN colours and icon, with an app-palette fallback
+/// behind every one of them: `theme` is admin-authored and every field in it
+/// can be null or a typo, and a mis-typed colour must cost a wrong tint, never
+/// the screen the user buys from.
+class _CampaignBanner extends StatelessWidget {
+  const _CampaignBanner({required this.campaign, required this.onExpired});
+
+  final PlanCampaign campaign;
+
+  /// Fired when the countdown runs out — the controller refetches, the prices
+  /// go back to list, and this banner disappears with them.
+  final VoidCallback onExpired;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = campaign.theme.accent(AppColors.primaryColor);
+    final bg = campaign.theme
+        .background(AppColors.primaryColor.withValues(alpha: 0.08));
+    final fg = campaign.theme.text(AppColors.mainTextColor);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size14),
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(SizeConfig.size14),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The icon is an EMOJI string from the DB, not an asset name — so it
+          // renders as text, and a campaign that sent none gets a generic tag.
+          CustomText(
+            campaign.theme.icon ?? '🏷️',
+            fontSize: SizeConfig.size22,
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Admin copy, rendered verbatim — never run through `.tr`.
+                CustomText(
+                  campaign.bannerText,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w800,
+                  color: fg,
+                  height: 1.25,
+                  maxLines: 2,
+                ),
+                if (campaign.bannerSubtext.isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size2),
+                  CustomText(
+                    campaign.bannerSubtext,
+                    fontSize: SizeConfig.size11,
+                    fontWeight: FontWeight.w500,
+                    color: fg.withValues(alpha: 0.75),
+                    height: 1.3,
+                    maxLines: 2,
+                  ),
+                ],
+                // Only when the server both asked for a clock and sent a
+                // remaining time — an open-ended campaign still applies, it
+                // just has no deadline to show.
+                if (campaign.hasCountdown) ...[
+                  SizedBox(height: SizeConfig.size8),
+                  OfferCountdown(
+                    endsInSeconds: campaign.endsInSeconds!,
+                    color: accent,
+                    onExpired: onExpired,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (campaign.termsAndConditions.isNotEmpty) ...[
+            SizedBox(width: SizeConfig.size6),
+            GestureDetector(
+              onTap: () => showCampaignTermsSheet(context, campaign),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
+                child: CustomText(
+                  AppStrings.offerTerms.tr,
+                  fontSize: SizeConfig.size10,
+                  fontWeight: FontWeight.w700,
+                  color: accent,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The coupon field — the only way to reach a campaign the admin marked
+/// coupon-only, which is invisible until the code is sent.
+///
+/// It applies nothing itself: the code goes to `GET /plans`, the server decides
+/// whether anything comes back under it, and "invalid" here means only that
+/// nothing did.
+class _CouponField extends StatefulWidget {
+  const _CouponField({required this.controller});
+
+  final AccountPlanController controller;
+
+  @override
+  State<_CouponField> createState() => _CouponFieldState();
+}
+
+class _CouponFieldState extends State<_CouponField> {
+  late final TextEditingController _input =
+      TextEditingController(text: widget.controller.couponCode.value);
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  Future<void> _apply() async {
+    FocusScope.of(context).unfocus();
+    final code = _input.text.trim();
+    if (code.isEmpty) return;
+    await widget.controller.applyCoupon(code);
+  }
+
+  Future<void> _clear() async {
+    FocusScope.of(context).unfocus();
+    _input.clear();
+    await widget.controller.clearCoupon();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final applied = widget.controller.couponCode.value;
+      final invalid = widget.controller.couponInvalid.value;
+      final busy = widget.controller.isApplyingCoupon.value;
+      // "Applied" means a code is live AND the catalog came back carrying it.
+      final isLive = applied.isNotEmpty && !invalid;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size12,
+              vertical: SizeConfig.size4,
+            ),
+            decoration: BoxDecoration(
+              color: AccountPlanPalette.cardSurface,
+              borderRadius: BorderRadius.circular(SizeConfig.size12),
+              border: Border.all(
+                color: isLive
+                    ? AccountPlanPalette.tick.withValues(alpha: 0.55)
+                    : (invalid
+                        ? AccountPlanPalette.gstWarning.withValues(alpha: 0.45)
+                        : AccountPlanPalette.cardBorder),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.local_offer_outlined,
+                  size: SizeConfig.size16,
+                  color: isLive
+                      ? AccountPlanPalette.tick
+                      : AccountPlanPalette.muted,
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(
+                  child: TextField(
+                    controller: _input,
+                    enabled: !busy && !isLive,
+                    textCapitalization: TextCapitalization.characters,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _apply(),
+                    style: TextStyle(
+                      fontSize: SizeConfig.size13,
+                      fontWeight: FontWeight.w700,
+                      color: AccountPlanPalette.heading,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: AppStrings.couponHint.tr,
+                      hintStyle: TextStyle(
+                        fontSize: SizeConfig.size12,
+                        fontWeight: FontWeight.w500,
+                        color: AccountPlanPalette.muted,
+                      ),
+                    ),
+                  ),
+                ),
+                if (busy)
+                  SizedBox(
+                    height: SizeConfig.size16,
+                    width: SizeConfig.size16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.8,
+                      valueColor:
+                          AlwaysStoppedAnimation(AppColors.primaryColor),
+                    ),
+                  )
+                else
+                  GestureDetector(
+                    onTap: isLive ? _clear : _apply,
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size6,
+                        vertical: SizeConfig.size8,
+                      ),
+                      child: CustomText(
+                        isLive
+                            ? AppStrings.couponRemove.tr
+                            : AppStrings.couponApply.tr,
+                        fontSize: SizeConfig.size12,
+                        fontWeight: FontWeight.w800,
+                        color: isLive
+                            ? AccountPlanPalette.gstWarning
+                            : AccountPlanPalette.link,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // The server's verdict, in both directions. Never our own rule about
+          // what a valid code looks like.
+          if (invalid) ...[
+            SizedBox(height: SizeConfig.size6),
+            CustomText(
+              AppStrings.couponInvalid.tr,
+              fontSize: SizeConfig.size11,
+              fontWeight: FontWeight.w600,
+              color: AccountPlanPalette.gstWarning,
+              maxLines: 2,
+            ),
+          ] else if (isLive) ...[
+            SizedBox(height: SizeConfig.size6),
+            CustomText(
+              AppStrings.couponAppliedFmt.trParams({'code': applied}),
+              fontSize: SizeConfig.size11,
+              fontWeight: FontWeight.w700,
+              color: AccountPlanPalette.tick,
+              maxLines: 2,
+            ),
+          ],
+        ],
+      );
+    });
+  }
+}
+
+/// The CAMPAIGN's terms, rendered verbatim — separate from any plan's own.
+void showCampaignTermsSheet(BuildContext context, PlanCampaign campaign) {
+  _showTermsSheet(
+    context,
+    title: AppStrings.termsConditions.tr,
+    subtitle: campaign.name,
+    terms: campaign.termsAndConditions,
+  );
 }
 
 /// The big headline, split into a number and its unit.
@@ -337,9 +747,22 @@ class _PlanCardTile extends StatelessWidget {
     required this.isSelected,
     required this.isBusy,
     required this.onTap,
+    this.showOfferCountdown = false,
+    this.onOfferExpired,
   });
 
   final PlanCard card;
+
+  /// Whether this card carries the offer's clock.
+  ///
+  /// False whenever the campaign banner above is already counting the same
+  /// deadline down: one page-level clock says it once, and a copy on every card
+  /// would be the same sentence repeated five times — and five one-second
+  /// timers rebuilding five cards.
+  final bool showOfferCountdown;
+
+  /// Fired when this card's own countdown runs out.
+  final VoidCallback? onOfferExpired;
 
   /// Position in the catalog — picks the price pill's gradient.
   final int index;
@@ -395,8 +818,12 @@ class _PlanCardTile extends StatelessWidget {
     // instead of on a line of its own.
     final rowCount = bullets.length + (card.requiresGst ? 1 : 0);
     // A plan with no terms gets no link — and then no empty slot reserved for
-    // one either.
-    final terms = card.termsAndConditions.isEmpty ? null : _TermsLink(card: card);
+    // one either. During a sale there can be TWO: the plan's terms and the
+    // campaign's are separate documents, so they get separate links rather than
+    // one that quietly concatenates them.
+    final hasTerms = card.termsAndConditions.isNotEmpty ||
+        (card.showsOffer && card.discount!.termsAndConditions.isNotEmpty);
+    final terms = hasTerms ? _TermsLinks(card: card) : null;
 
     return Padding(
       padding: EdgeInsets.only(bottom: SizeConfig.size14),
@@ -445,12 +872,24 @@ class _PlanCardTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // The backend's recommended pick. Sits above the headline
-                // rather than over the card's corner because the corner is
-                // already the price pill's, and a ribbon crossing it would
-                // obscure the one number the card exists to show.
-                if (_showPopular) ...[
-                  const _PopularBadge(),
+                // The offer ribbon and the backend's recommended pick, side by
+                // side above the headline rather than over the card's corner:
+                // the corner is already the price pill's, and a ribbon crossing
+                // it would obscure the one number the card exists to show.
+                //
+                // A Wrap, not a Row — a long `badge_text` ("FLAT ₹2,000 OFF")
+                // beside POPULAR overflows a narrow card, and admin copy has no
+                // length limit.
+                if (card.showsOffer || _showPopular) ...[
+                  Wrap(
+                    spacing: SizeConfig.size8,
+                    runSpacing: SizeConfig.size6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (card.showsOffer) _OfferRibbon(discount: card.discount!),
+                      if (_showPopular) const _PopularBadge(),
+                    ],
+                  ),
                   SizedBox(height: SizeConfig.size10),
                 ],
                 Row(
@@ -474,6 +913,18 @@ class _PlanCardTile extends StatelessWidget {
                 if (isOwned) ...[
                   SizedBox(height: SizeConfig.size10),
                   const _ActiveBadge(),
+                ],
+                // The offer's own deadline, when no banner above is already
+                // counting it down (a coupon-scoped offer has no banner).
+                if (showOfferCountdown &&
+                    card.showsOffer &&
+                    card.discount!.hasCountdown) ...[
+                  SizedBox(height: SizeConfig.size10),
+                  OfferCountdown(
+                    endsInSeconds: card.discount!.endsInSeconds!,
+                    color: card.discount!.theme.accent(AppColors.primaryColor),
+                    onExpired: onOfferExpired,
+                  ),
                 ],
                 if (promise != null) ...[
                   SizedBox(height: SizeConfig.size12),
@@ -500,6 +951,56 @@ class _PlanCardTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The offer ribbon — "30% OFF", or whatever copy the admin wrote.
+///
+/// Wears the campaign's accent as a filled chip, which is the loudest thing on
+/// a white card and is meant to be: it is the reason the price beside it is
+/// lower than the one struck through above it.
+class _OfferRibbon extends StatelessWidget {
+  const _OfferRibbon({required this.discount});
+
+  final CardDiscount discount;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = discount.theme.accent(AppColors.primaryColor);
+    // `badge_text` is admin copy and stands alone; the fallback is built from
+    // the REALISED percentage (`percent_off`), never the campaign's headline
+    // `value` — a capped campaign realises less than it advertises, and the
+    // card must promise only what the price delivers.
+    final label = discount.badgeText.isNotEmpty
+        ? discount.badgeText
+        : '${discount.badgeOrPercent} ${AppStrings.offSuffix.tr}';
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size4,
+      ),
+      decoration: BoxDecoration(
+        color: accent,
+        borderRadius: BorderRadius.circular(SizeConfig.size6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (discount.theme.icon != null) ...[
+            CustomText(discount.theme.icon!, fontSize: SizeConfig.size12),
+            SizedBox(width: SizeConfig.size4),
+          ],
+          CustomText(
+            label,
+            fontSize: SizeConfig.size10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+            maxLines: 1,
+          ),
+        ],
       ),
     );
   }
@@ -627,6 +1128,16 @@ class _Headline extends StatelessWidget {
 /// shows price + GST so the tax is never a surprise, and the total is stated
 /// once, at payment time, in [_PayBarSummary] — which is also the only figure
 /// that gets charged, and the backend owns it.
+///
+/// ## During a sale
+///
+/// Every live figure here reads `final_*`, which is what the buyer will be
+/// charged and which equals the list price exactly when nothing is running.
+/// The LIST price survives only above the capsule, struck through, and only
+/// when there is a real saving to strike it for. GST follows the discount —
+/// tax is levied on the reduced base — so the line beneath quotes
+/// `final_gst_amount` too, and "You save ₹X" states the difference the server
+/// computed rather than one worked out here.
 class _PricePill extends StatelessWidget {
   const _PricePill({
     required this.card,
@@ -646,17 +1157,40 @@ class _PricePill extends StatelessWidget {
         : v.toStringAsFixed(2);
   }
 
-  /// What the payment covers, read off the plan itself.
+  /// What the payment covers — how LONG it lasts, said in the backend's own
+  /// words.
   ///
-  /// Gig plans buy call types, so the caption counts them — one is a single job
-  /// stream, two is a pairing, three or more is the lot. Everything else is a
-  /// one-time purchase, which is what `billing: "lifetime"` means to a buyer.
+  /// The caption sits immediately after the price, so it is read as the unit
+  /// the price is charged in. That is why the job-type count that used to live
+  /// here was wrong: a one-job-type gig plan rendered "₹ 200 Per Job", which
+  /// states per-job billing for what is a one-time, lifetime purchase. The
+  /// plan's `validity_days` ("Life Time") is the honest thing to put next to a
+  /// price, and it needs no app release when the backend changes the wording.
+  ///
+  /// The job-type counts remain only as a fallback for a plan that carries no
+  /// validity at all, and [AppStrings.perJobLabel] is deliberately no longer
+  /// among them — see [_jobBundleCaption].
   String get _caption {
+    final label = card.validityLabel;
+    if (label != null && label.isNotEmpty) return label;
+    if (card.isLifetime) return AppStrings.lifeTimeLabel.tr;
+    if (card.validityDays != null) {
+      return AppStrings.planValidDaysFmt
+          .trParams({'days': '${card.validityDays}'});
+    }
+    return _jobBundleCaption;
+  }
+
+  /// The old caption, kept for a plan with no validity of any kind.
+  ///
+  /// "Per Job" is gone from it: whatever it was meant to say about a
+  /// single-job-type plan, beside a price it only ever read as a billing rate.
+  /// One job type now says the same "One Time" every other unbounded plan does.
+  String get _jobBundleCaption {
     final jobs = card.jobTypes ?? const <String>[];
-    if (jobs.isEmpty) return AppStrings.oneTimeLabel.tr;
-    if (jobs.length == 1) return AppStrings.perJobLabel.tr;
     if (jobs.length == 2) return AppStrings.combinationLabel.tr;
-    return AppStrings.fullCombinationLabel.tr;
+    if (jobs.length > 2) return AppStrings.fullCombinationLabel.tr;
+    return AppStrings.oneTimeLabel.tr;
   }
 
   @override
@@ -681,10 +1215,28 @@ class _PricePill extends StatelessWidget {
       );
     }
 
+    final offer = card.showsOffer ? card.discount! : null;
+    final accent = offer?.theme.accent(AppColors.primaryColor) ??
+        AppColors.primaryColor;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // What it used to cost. Struck through, muted, and only ever drawn when
+        // there is a saving — this is the one place the LIST price still
+        // appears on a card during a sale.
+        if (offer != null) ...[
+          CustomText(
+            '${AppConstants.rupeeSymbol}${_rupees(card.priceBase)}',
+            fontSize: SizeConfig.size12,
+            fontWeight: FontWeight.w600,
+            color: AccountPlanPalette.muted,
+            decoration: TextDecoration.lineThrough,
+            decorationColor: AccountPlanPalette.muted,
+          ),
+          SizedBox(height: SizeConfig.size2),
+        ],
         Container(
           padding: EdgeInsets.symmetric(
             horizontal: SizeConfig.size14,
@@ -719,8 +1271,10 @@ class _PricePill extends StatelessWidget {
                 ),
                 SizedBox(width: SizeConfig.size8),
               ],
+              // The LIVE price — `final_*`, always. Equal to the list price
+              // when no campaign is running, so this is correct either way.
               CustomText(
-                '${AppConstants.rupeeSymbol} ${_rupees(card.priceBase)}',
+                '${AppConstants.rupeeSymbol} ${_rupees(card.finalPriceBase)}',
                 fontSize: SizeConfig.size16,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -735,16 +1289,30 @@ class _PricePill extends StatelessWidget {
             ],
           ),
         ),
-        // "+ ₹27 (18% GST)". Skipped when the backend priced the tax at zero,
+        // "+ ₹27 (18% GST)" — on the DISCOUNTED base, because that is what the
+        // tax is levied on. Skipped when the backend priced the tax at zero,
         // rather than printing a "+ ₹0" that only raises a question.
-        if (card.gstAmount > 0) ...[
+        if (card.finalGstAmount > 0) ...[
           SizedBox(height: SizeConfig.size4),
           CustomText(
-            '+ ${AppConstants.rupeeSymbol}${_rupees(card.gstAmount)}'
+            '+ ${AppConstants.rupeeSymbol}${_rupees(card.finalGstAmount)}'
             ' (${card.gstPercent}${AppStrings.gstSuffix.tr})',
             fontSize: SizeConfig.size11,
             fontWeight: FontWeight.w600,
             color: AccountPlanPalette.muted,
+          ),
+        ],
+        // The saving, as the server computed it — never `list - final` worked
+        // out here, which would disagree with the server the moment a cap or a
+        // rounding rule applied.
+        if (offer != null) ...[
+          SizedBox(height: SizeConfig.size4),
+          CustomText(
+            '${AppStrings.youSave.tr} '
+            '${AppConstants.rupeeSymbol}${_rupees(offer.discountAmount)}',
+            fontSize: SizeConfig.size11,
+            fontWeight: FontWeight.w800,
+            color: accent,
           ),
         ],
       ],
@@ -1099,6 +1667,17 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                     SizedBox(height: SizeConfig.size14),
                     _SalesUsageMeter(usage: widget.usage!),
                   ],
+                  // "Bought in Diwali Dhamaka — you saved ₹1,079".
+                  //
+                  // Read from the purchase's FROZEN snapshot, not from any live
+                  // campaign: the offer that bought this plan may have ended
+                  // months ago, and what the merchant paid does not change when
+                  // it does. That is exactly why the line is worth keeping —
+                  // it is the one place the saving survives.
+                  if (widget.purchase?.boughtOnOffer == true) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    _BoughtOnOfferLine(purchase: widget.purchase!),
+                  ],
                   // Refund on this purchase. Drawn from the server's `refund`
                   // object alone — see [_RefundControl].
                   if (widget.purchase != null && widget.controller != null)
@@ -1110,7 +1689,7 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                   // migrated plan was activated free, and stamping an amount
                   // on a card the user may never have paid would be a claim
                   // this screen cannot make.
-                  if (card.validityDays != null) ...[
+                  if (_validityChipLabel(card) != null) ...[
                     SizedBox(height: SizeConfig.size4),
                     Container(
                       padding: EdgeInsets.symmetric(
@@ -1122,8 +1701,7 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
                         borderRadius: BorderRadius.circular(SizeConfig.size20),
                       ),
                       child: CustomText(
-                        AppStrings.planValidDaysFmt
-                            .trParams({'days': '${card.validityDays}'}),
+                        _validityChipLabel(card)!,
                         fontSize: SizeConfig.size11,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -1135,6 +1713,81 @@ class _ActivePlanCardState extends State<_ActivePlanCard>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The validity chip on the active plan panel — "Life Time", or "Valid for 30
+/// days" — or null when the plan states no validity and the chip is skipped.
+///
+/// Shared by the gate and the label so the two cannot disagree: the chip used
+/// to be gated on `validityDays != null` while a lifetime plan parsed to `0`,
+/// which is not null, so it rendered "Valid for 0 days".
+String? _validityChipLabel(PlanCard card) {
+  final label = card.validityLabel;
+  if (label != null && label.isNotEmpty) return label;
+  if (card.isLifetime) return AppStrings.lifeTimeLabel.tr;
+  final days = card.validityDays;
+  if (days != null) {
+    return AppStrings.planValidDaysFmt.trParams({'days': '$days'});
+  }
+  return null;
+}
+
+/// "🏷️ Bought in Diwali Dhamaka — you saved ₹1,079" on the active plan panel.
+///
+/// A permanent receipt line, not an advertisement: it states what this purchase
+/// cost against what the tier lists at, and it stays true after the campaign is
+/// gone, because the purchase carries its own frozen copy of the campaign.
+class _BoughtOnOfferLine extends StatelessWidget {
+  const _BoughtOnOfferLine({required this.purchase});
+
+  final UserAccountPlan purchase;
+
+  /// PAISE → rupees, the same rule as every other price on this surface.
+  String _rupees(int paise) {
+    final v = paise / 100;
+    return v == v.truncateToDouble()
+        ? v.toInt().toString()
+        : v.toStringAsFixed(2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size6,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(SizeConfig.size8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.local_offer_outlined,
+            size: SizeConfig.size14,
+            color: Colors.white.withValues(alpha: 0.92),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: CustomText(
+              // The campaign's name is admin copy and goes in verbatim; only
+              // the words around it are translated.
+              '${AppStrings.boughtInOffer.tr} ${purchase.discountTitle} — '
+              '${AppStrings.youSaved.tr} ${AppConstants.rupeeSymbol}'
+              '${_rupees(purchase.discountAmount)}',
+              fontSize: SizeConfig.size11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white.withValues(alpha: 0.95),
+              height: 1.3,
+              maxLines: 2,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1740,26 +2393,78 @@ class _ActiveBadge extends StatelessWidget {
 
 /// `*T&C` — opens the plan's own terms. Rendered only when the API sent some,
 /// so a plan without terms doesn't advertise an empty sheet.
-class _TermsLink extends StatelessWidget {
-  const _TermsLink({required this.card});
+/// The card's terms links, tucked against its bottom-right corner.
+///
+/// Up to two, and deliberately not merged: the plan's terms describe what the
+/// plan is, the campaign's describe what the offer is, and they have different
+/// lifetimes — the offer's stop applying when the campaign ends while the
+/// plan's do not. Concatenating them into one sheet would present a temporary
+/// document as part of a permanent one.
+class _TermsLinks extends StatelessWidget {
+  const _TermsLinks({required this.card});
 
   final PlanCard card;
 
   @override
   Widget build(BuildContext context) {
-    if (card.termsAndConditions.isEmpty) return const SizedBox.shrink();
+    final offer = card.showsOffer ? card.discount! : null;
+    final offerTerms = offer?.termsAndConditions ?? const <String>[];
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (card.termsAndConditions.isNotEmpty)
+          _TermsLink(
+            label: AppStrings.tcStar.tr,
+            color: AccountPlanPalette.link,
+            onTap: () => showAccountPlanTermsSheet(context, card),
+          ),
+        if (offerTerms.isNotEmpty) ...[
+          if (card.termsAndConditions.isNotEmpty)
+            SizedBox(width: SizeConfig.size10),
+          _TermsLink(
+            label: AppStrings.offerTerms.tr,
+            // The campaign's own accent, so the link reads as belonging to the
+            // ribbon and the banner rather than to the plan.
+            color: offer!.theme.accent(AccountPlanPalette.link),
+            onTap: () => _showTermsSheet(
+              context,
+              title: AppStrings.termsConditions.tr,
+              subtitle: offer.name,
+              terms: offerTerms,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _TermsLink extends StatelessWidget {
+  const _TermsLink({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => showAccountPlanTermsSheet(context, card),
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
         // Widens the tap target without moving the text off the comp's
         // bottom-right corner.
         padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
         child: CustomText(
-          AppStrings.tcStar.tr,
+          label,
           fontSize: SizeConfig.size11,
           fontWeight: FontWeight.w600,
-          color: AccountPlanPalette.link,
+          color: color,
         ),
       ),
     );
@@ -1768,6 +2473,26 @@ class _TermsLink extends StatelessWidget {
 
 /// The plan's `terms_and_conditions`, rendered verbatim.
 void showAccountPlanTermsSheet(BuildContext context, PlanCard card) {
+  _showTermsSheet(
+    context,
+    title: AppStrings.termsConditions.tr,
+    subtitle: card.label,
+    terms: card.termsAndConditions,
+  );
+}
+
+/// One sheet for both kinds of terms — a plan's and a campaign's.
+///
+/// They are genuinely separate documents (a card during a sale can carry both,
+/// behind two links), but they are read the same way, so they are presented the
+/// same way. [terms] is admin-authored in either case and is never translated.
+void _showTermsSheet(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required List<String> terms,
+}) {
+  if (terms.isEmpty) return;
   showModalBottomSheet(
     context: context,
     backgroundColor: AppColors.white,
@@ -1803,21 +2528,21 @@ void showAccountPlanTermsSheet(BuildContext context, PlanCard card) {
               ),
               SizedBox(height: SizeConfig.size16),
               CustomText(
-                AppStrings.termsConditions.tr,
+                title,
                 fontSize: SizeConfig.size16,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(height: SizeConfig.size4),
               CustomText(
-                card.label,
+                subtitle,
                 fontSize: SizeConfig.size13,
                 fontWeight: FontWeight.w600,
                 color: AccountPlanPalette.muted,
                 maxLines: 2,
               ),
               SizedBox(height: SizeConfig.size16),
-              for (final term in card.termsAndConditions)
+              for (final term in terms)
                 Padding(
                   padding: EdgeInsets.only(bottom: SizeConfig.size10),
                   child: Row(
@@ -1989,8 +2714,22 @@ class _PayBarSummary extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // What it would have cost. Only when there is a saving, and
+                // only ever struck through — the number beside it is the one
+                // the button charges.
+                if (card.showsOffer) ...[
+                  CustomText(
+                    '${AppConstants.rupeeSymbol}${_rupees(card.priceTotal)}',
+                    fontSize: SizeConfig.size11,
+                    fontWeight: FontWeight.w600,
+                    color: AccountPlanPalette.muted,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: AccountPlanPalette.muted,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                ],
                 CustomText(
-                  '${AppConstants.rupeeSymbol}${_rupees(card.priceTotal)}',
+                  '${AppConstants.rupeeSymbol}${_rupees(card.finalPriceTotal)}',
                   fontSize: SizeConfig.size14,
                   fontWeight: FontWeight.w800,
                   color: AccountPlanPalette.heading,
@@ -2005,15 +2744,27 @@ class _PayBarSummary extends StatelessWidget {
                 ),
               ],
             ),
-            if (card.gstAmount > 0) ...[
+            if (card.finalGstAmount > 0) ...[
               SizedBox(height: SizeConfig.size2),
               CustomText(
-                '${AppConstants.rupeeSymbol}${_rupees(card.priceBase)}'
-                ' + ${AppConstants.rupeeSymbol}${_rupees(card.gstAmount)}'
+                '${AppConstants.rupeeSymbol}${_rupees(card.finalPriceBase)}'
+                ' + ${AppConstants.rupeeSymbol}${_rupees(card.finalGstAmount)}'
                 ' ${AppStrings.gstShort.tr}',
                 fontSize: SizeConfig.size10,
                 fontWeight: FontWeight.w500,
                 color: AccountPlanPalette.muted,
+              ),
+            ],
+            // The saving restated at the moment of paying — the card that
+            // advertised it may be scrolled far off screen by now.
+            if (card.showsOffer) ...[
+              SizedBox(height: SizeConfig.size2),
+              CustomText(
+                '${AppStrings.youSave.tr} ${AppConstants.rupeeSymbol}'
+                '${_rupees(card.discount!.discountAmount)}',
+                fontSize: SizeConfig.size10,
+                fontWeight: FontWeight.w800,
+                color: card.discount!.theme.accent(AppColors.primaryColor),
               ),
             ],
           ],

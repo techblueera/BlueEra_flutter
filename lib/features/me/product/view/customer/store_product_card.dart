@@ -200,6 +200,10 @@ class StoreProductCard extends StatelessWidget {
                       child: ProductShareButton(
                         productId: productId,
                         productName: details.name,
+                        // The store whose shelf this card is on — without it
+                        // the recipient lands on the product with no shop
+                        // attached to it.
+                        sellerUserId: product?.user_id,
                       ),
                     ),
                   ],

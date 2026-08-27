@@ -592,8 +592,23 @@ class _SplashScreenState extends State<SplashScreen> {
         final type = segments[1]; // post | video | product | profile | …
         final id = segments[2];
 print("type==== ${type}");
+
+        // `chat/new` is the one id slot that is NOT an ObjectId.
+        //
+        // A vehicle-QR parking report opens a chat between two strangers, who
+        // by definition have no conversation yet, so the backend sends the
+        // literal `new` and chat-service creates the conversation when the
+        // first message is sent. See docs/backend/VEHICLE_QR_FRONTEND_GUIDE.md
+        // §2a-app.
+        //
+        // Scoped to `chat` deliberately, rather than waved through for every
+        // type: `app/post/new` or `app/product/new` would otherwise pass this
+        // gate and open a detail screen for a record whose id is the word
+        // "new" — a broken screen instead of a rejected link.
+        final isNewChat = type == 'chat' && id == 'new';
+
         // Validate that the ID follows the expected MongoDB ObjectID format (24 hex characters)
-        if (!_isValidMongoId(id)) {
+        if (!isNewChat && !_isValidMongoId(id)) {
           logs('Invalid ID format in deep link: $id');
           return;
         }
@@ -612,7 +627,18 @@ print("type==== ${type}");
             deepLinkNetworkResources.navigateToVideoDetail(id);
             break;
           case 'product':
-            Get.to(() => ShareProductScreen(productId: id));
+            // `?seller=<userId>` is optional and carries the STORE the link
+            // was shared from. The path id is the master product record, which
+            // every store listing the product shares, so without the seller
+            // the landing screen has to fall back to whoever created the
+            // record — see [ShareProductScreen]. Links minted before the
+            // parameter existed simply arrive without it.
+            final sellerUserId = uri.queryParameters['seller']?.trim() ?? '';
+            Get.to(() => ShareProductScreen(
+                  productId: id,
+                  sellerUserId:
+                      _isValidMongoId(sellerUserId) ? sellerUserId : null,
+                ));
             break;
           case 'vehicle':
             // Public vehicle share/QR landing
@@ -649,13 +675,26 @@ print("type==== ${type}");
             Get.to(() => FoodProductSharePreviewScreen(foodId: id));
             break;
           case 'chat':
-            final conversationId = id;
+            // A `new` chat has no conversation yet, so it opens in
+            // initial-message mode with an EMPTY conversationId — chat-service
+            // mints the conversation when the first message is sent. Anything
+            // else is an existing conversation, opened as before.
+            final conversationId = isNewChat ? '' : id;
             final queryParams = uri.queryParameters;
             final chatUserId = queryParams['userId'] ?? '';
             final chatType = queryParams['chatType'] ?? 'personal';
             final chatName = queryParams['name'] ?? '';
 
-            // Validate chatUserId if it's provided
+            // Validate chatUserId if it's provided.
+            //
+            // For a NEW chat it is not optional: with no conversation to open,
+            // the other party's id is the only thing that says who the chat is
+            // with, and an empty one would land the reporter in a chat with
+            // nobody.
+            if (chatUserId.isEmpty && isNewChat) {
+              logs('Deep link chat/new carried no userId — nothing to open');
+              return;
+            }
             if (chatUserId.isNotEmpty && !_isValidMongoId(chatUserId)) {
               logs('Invalid chat user ID in deep link: $chatUserId');
               return;
@@ -667,7 +706,7 @@ print("type==== ${type}");
                     userId: chatUserId,
                     type: chatType,
                     name: chatName,
-                    isInitialMessage: false,
+                    isInitialMessage: isNewChat,
                   ));
             } else {
               Get.to(() => PersonalChatScreen(
@@ -675,7 +714,7 @@ print("type==== ${type}");
                     userId: chatUserId,
                     type: chatType,
                     name: chatName,
-                    isInitialMessage: false,
+                    isInitialMessage: isNewChat,
                   ));
             }
             break;

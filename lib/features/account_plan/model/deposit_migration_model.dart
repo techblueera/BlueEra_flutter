@@ -150,7 +150,10 @@ class UpgradeOption {
       label: json['label']?.toString() ?? '',
       requiresTnc: json['requires_tnc'] == true,
       breakdown: b is Map
-          ? UpgradePriceBreakdown.fromJson(Map<String, dynamic>.from(b))
+          ? UpgradePriceBreakdown.fromJson(
+              Map<String, dynamic>.from(b),
+              discount: json['discount'],
+            )
           : null,
     );
   }
@@ -174,6 +177,22 @@ class UpgradePriceBreakdown {
   final num gstInr;
   final num payTotalInr;
 
+  /// A campaign's cut of the tier price, RUPEES. Zero when none applies.
+  ///
+  /// The order the receipt must state is the order the server applies them in:
+  /// **list → minus discount → minus credit → GST**. Swapping the discount and
+  /// the credit produces a different tax base and therefore a different total.
+  final num discountInr;
+
+  /// The tier price after the discount but BEFORE the credit — the row between
+  /// the two subtractions.
+  final num priceAfterDiscountInr;
+
+  /// The campaign's name, for the discount row's label. Read from the sibling
+  /// `discount` block when the breakdown itself doesn't carry one; null leaves
+  /// the row with a generic label rather than no row.
+  final String? discountLabel;
+
   const UpgradePriceBreakdown({
     required this.planPriceInr,
     required this.creditAppliedInr,
@@ -182,14 +201,29 @@ class UpgradePriceBreakdown {
     required this.gstPercent,
     required this.gstInr,
     required this.payTotalInr,
+    this.discountInr = 0,
+    this.priceAfterDiscountInr = 0,
+    this.discountLabel,
   });
+
+  /// Whether to draw the discount rows at all.
+  bool get hasDiscount => discountInr > 0;
 
   /// True when the credit came from the refundable security deposit — the one
   /// case where upgrading spends money that would otherwise have come back.
   bool get fromDeposit => creditSource == 'deposit';
 
-  factory UpgradePriceBreakdown.fromJson(Map<String, dynamic> json) {
+  /// [discount] is the row's sibling `discount` block, passed in so the
+  /// discount row can be labelled with the campaign's own name.
+  factory UpgradePriceBreakdown.fromJson(
+    Map<String, dynamic> json, {
+    dynamic discount,
+  }) {
     num n(String key) => (json[key] as num?) ?? 0;
+    final d = discount is Map ? Map<String, dynamic>.from(discount) : null;
+    final label = (json['discount_label'] ?? d?['name'] ?? d?['code'])
+        ?.toString()
+        .trim();
     return UpgradePriceBreakdown(
       planPriceInr: n('plan_price_inr'),
       creditAppliedInr: n('credit_applied_inr'),
@@ -198,6 +232,9 @@ class UpgradePriceBreakdown {
       gstPercent: n('gst_percent'),
       gstInr: n('gst_inr'),
       payTotalInr: n('pay_total_inr'),
+      discountInr: n('discount_inr'),
+      priceAfterDiscountInr: n('price_after_discount_inr'),
+      discountLabel: (label == null || label.isEmpty) ? null : label,
     );
   }
 }
@@ -242,7 +279,10 @@ class UpgradeOrder {
       totalAmount: (json['total_amount'] as num?)?.toInt() ?? 0,
       currency: json['currency']?.toString() ?? 'INR',
       breakdown: b is Map
-          ? UpgradePriceBreakdown.fromJson(Map<String, dynamic>.from(b))
+          ? UpgradePriceBreakdown.fromJson(
+              Map<String, dynamic>.from(b),
+              discount: json['discount'],
+            )
           : null,
     );
   }

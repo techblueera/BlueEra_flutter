@@ -1,9 +1,32 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class MedicalRepo extends BaseService {
+  /// `GET medical-service/inventory/product-variant-ids?businessId=` — the
+  /// catalogue-variant ids this pharmacy already stocks.
+  ///
+  /// Backs the "already added" state on the pre-publish selection screens; see
+  /// [MedicalController.fetchStockedVariantIdsIfNeeded]. Medical mirror of
+  /// [FoodRepo.getInventoryProductVariantIdsRepo].
+  ///
+  /// `showProgress: false`: this decorates a screen the merchant is already
+  /// reading, so it must not put a blocking overlay over it.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      medicalInventoryProductVariantIds,
+      params: {ApiKeys.businessId: businessId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   // ─────────────────────────────────────────────
   // PRODUCT SEARCH

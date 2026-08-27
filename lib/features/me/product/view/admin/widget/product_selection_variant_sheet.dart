@@ -129,39 +129,60 @@ class ProductSelectionVariantSheet extends StatelessWidget {
 
   Widget _variantRow(Variant variant) {
     final isSelected = controller.isProductSelected(variant.id);
+    // Already in this business's own inventory. Not selectable: adding it
+    // again would publish a second inventory record against the same catalogue
+    // variant — a duplicate row on the merchant's own catalogue and a second
+    // price for one item.
+    final alreadyStocked = controller.isVariantStocked(variant.id);
     final discount = variant.mrp > 0
         ? ((variant.mrp - variant.sellingPrice) / variant.mrp * 100).round()
         : 0;
     return InkWell(
-      onTap: () => _toggle(variant),
+      onTap: alreadyStocked ? null : () => _toggle(variant),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
+          // Tinted rather than white, so a stocked row reads as settled
+          // instead of merely unticked.
+          color: alreadyStocked ? AppColors.fillColor : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
-            width: isSelected ? 1.5 : 1,
+            color: alreadyStocked
+                ? AppColors.greyE5
+                : (isSelected ? AppColors.primaryColor : AppColors.greyE5),
+            width: isSelected && !alreadyStocked ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
-            Checkbox(
-              value: isSelected,
-              side: BorderSide(
-                color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
-                width: 1.5,
+            if (alreadyStocked)
+              // A tick in a circle, not a checkbox: this is a STATE, not a
+              // control, and a ticked checkbox invites a tap to untick it.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  Icons.check_circle,
+                  size: 22,
+                  color: Colors.green.shade600,
+                ),
+              )
+            else
+              Checkbox(
+                value: isSelected,
+                side: BorderSide(
+                  color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                  width: 1.5,
+                ),
+                activeColor: AppColors.primaryColor,
+                checkColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                onChanged: (_) => _toggle(variant),
               ),
-              activeColor: AppColors.primaryColor,
-              checkColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: (_) => _toggle(variant),
-            ),
             const SizedBox(width: 4),
             Expanded(
               child: Column(

@@ -9,10 +9,12 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/me/product/model/product_seller.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/serper_image_search_service.dart';
@@ -145,7 +147,6 @@ List<ProductNestedCategoryResponse> _parseProductNestedCategories(
 
 class ProductController extends GetxController{
   Rx<ApiResponse> generateAiProductContentResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getSubChildORRootCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addProductToInventoryResponse = ApiResponse.initial('Initial').obs;
@@ -188,7 +189,6 @@ class ProductController extends GetxController{
   final TextEditingController mrpController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController availableStockController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
   final TextEditingController materialController = TextEditingController();
 
   RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
@@ -254,15 +254,6 @@ class ProductController extends GetxController{
 
   /// Images used on Step 2 (second screen, preloaded + new)
   RxList<String> allProductImages = <String>[].obs;
-
-  List<Map<String, String>> get categoryDropdownList =>
-      Get.find<AuthController>().businessOnboardingProductsCategories.map((category) {
-    return {
-      'display': category.name ?? '',
-      'value': category.tagId ?? '',
-    };
-  }).toList();
-  final Rxn<Map<String, String>> selectedProductCategory = Rxn<Map<String, String>>();
 
   // Product Snap Search Data
   // Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
@@ -354,12 +345,6 @@ class ProductController extends GetxController{
       final ctrl = featureControllers.removeAt(index);
       ctrl.dispose();
     }
-  }
-
-  /// Add images to Step 1
-  void addImagesStep1(List<String> images) {
-    final remaining = maxStep1Images.value - step1Images.length;
-    step1Images.addAll(images.take(remaining));
   }
 
   /// Remove image from Step 1
@@ -472,17 +457,6 @@ class ProductController extends GetxController{
     update();
   }
 
-  void addUserGuideLine() {
-    userGuideLineControllers.add(TextEditingController());
-  }
-
-  void removedUserGuideLine(int index) {
-    if (index >= 0 && index < userGuideLineControllers.length) {
-      final ctrl = userGuideLineControllers.removeAt(index);
-      ctrl.dispose();
-    }
-  }
-
   /// Pick new images for Step 2
   Future<void> pickImagesStep2(BuildContext context) async {
     try {
@@ -512,8 +486,6 @@ class ProductController extends GetxController{
     }
   }
 
-  bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
-  bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
   void onGenerate(ProductController addProductViaAiController, String id, ProviderType providerType) async {
     if (!_validate(providerType)) return;
@@ -1408,24 +1380,204 @@ class ProductController extends GetxController{
   RxBool isSingleProductLoading = false.obs;
   Rxn<SingleProductData> singleProductData = Rxn<SingleProductData>();
 
+  // ─── Already-stocked variants ──────────────────────────────────────────────
+  // Product mirror of the food flow — see
+  // `FoodServiceController.fetchStockedVariantIdsIfNeeded`. Same three-layer
+  // load, same fail-open rule, same two gates: a fully-stocked product is
+  // badged on the card, and an individual stocked variant is not tickable in
+  // the sheet.
+
+  /// productVariant ids this business ALREADY has in its inventory.
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per business so re-entering the add flow reuses
+  /// the answer instead of refetching.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  /// Load the stocked-variant set, cheapest source first:
+  ///
+  /// 1. in-memory, same business, fetched < 5 min ago;
+  /// 2. the saved snapshot on disk;
+  /// 3. the network.
+  ///
+  /// The snapshot REPLACES the request rather than racing it: the only thing
+  /// that changes this set on this device is the merchant publishing or
+  /// deleting, and that runs [InventoryController.markInventoryChanged] →
+  /// [markStockedVariantsChanged].
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = userId;
+    if (id.isEmpty) return;
+
+    final signature = 'productStockedVariants|$id';
+    if (_stockedVariantIdsCache.isFresh(signature,
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+
+    try {
+      final entry = await ProductLocalStore.readStockedVariantIds(id);
+      if (entry != null && !entry.isEmpty) {
+        stockedVariantIds
+          ..clear()
+          ..addAll(entry.items.map((e) => e.toString()));
+        _stockedVariantIdsCache.mark(signature);
+        return;
+      }
+    } catch (e) {
+      log('product: stocked-variant cache hydrate failed — $e');
+    }
+
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = userId;
+    if (id.isEmpty) return;
+    try {
+      final response =
+          await ProductRepo().getInventoryProductVariantIdsRepo(businessId: id);
+      if (!response.isSuccess) return;
+
+      final raw = response.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('productStockedVariants|$id');
+      unawaited(ProductLocalStore.writeStockedVariantIds(id, ids: ids));
+    } catch (e, s) {
+      log('product fetchStockedVariantIds error: $e\n$s');
+    }
+  }
+
+  /// Whether [variantId] is a catalogue variant the business already stocks.
+  ///
+  /// An EMPTY set means "not loaded / this business has nothing", and both
+  /// answer false — the selection screens stay fully usable when the lookup
+  /// fails rather than locking every row on a request that did not come back.
+  bool isVariantStocked(String? variantId) {
+    final id = (variantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every variant of [product] is already stocked — the card can say so
+  /// instead of opening a sheet with nothing tickable in it.
+  ///
+  /// A product with NO variants answers false: `every` on an empty list is
+  /// vacuously true, which would wrongly lock the card.
+  bool isProductFullyStocked(Product product) {
+    if (product.variants.isEmpty) return false;
+    return product.variants.every((v) => isVariantStocked(v.id));
+  }
+
+  /// How many of [product]'s variants are already stocked.
+  int stockedVariantCount(Product product) =>
+      product.variants.where((v) => isVariantStocked(v.id)).length;
+
+  /// The set changed under us — a publish added variants, a delete removed one.
+  ///
+  /// Drops the guard AND the snapshot, then refetches. Without the snapshot
+  /// delete a re-entry would paint the pre-publish set straight off disk and
+  /// keep offering a variant the merchant just added.
+  void markStockedVariantsChanged() {
+    final id = userId;
+    _stockedVariantIdsCache.invalidate();
+    if (id.isEmpty) return;
+    unawaited(
+      ProductLocalStore.writeStockedVariantIds(id, ids: const [])
+          .then((_) => fetchStockedVariantIds()),
+    );
+  }
+
+  // ── Seller behind a shared product ──────────────────────────────
+  /// The store to show on the product share landing, or null when there is
+  /// none to show.
+  ///
+  /// `GET products/{id}` answers with the MASTER product record — name, media,
+  /// variants — and no seller at all, because the same record is listed by
+  /// every store that sells the product. That is why a shared link used to
+  /// land on a product with no shop attached to it. See
+  /// [resolveProductSeller] for where the store actually comes from.
+  final Rxn<ProductSeller> productSeller = Rxn<ProductSeller>();
+  final RxBool isProductSellerLoading = false.obs;
+
+  /// Resolves the store to credit on a shared product, best source first.
+  ///
+  /// 1. [sellerUserId] — the store the link was shared FROM, carried as
+  ///    `?seller=` by [productDeepLink]. Exact, because the sharing surface
+  ///    knew whose shelf the product was on.
+  /// 2. `created_by_business` on the product record — the business that
+  ///    created it. A fair fallback for older links and for products with one
+  ///    seller, but it is the CREATOR, not necessarily the sharer.
+  ///
+  /// Fail-quiet: any failure leaves [productSeller] null and the landing
+  /// screen simply omits the store card. A product that renders without a shop
+  /// is worth more than an error over one.
+  Future<void> resolveProductSeller({String? sellerUserId}) async {
+    final direct = sellerUserId?.trim() ?? '';
+    final businessId = singleProductData.value?.createdByBusiness.trim() ?? '';
+    if (direct.isEmpty && businessId.isEmpty) {
+      productSeller.value = null;
+      return;
+    }
+
+    isProductSellerLoading.value = true;
+    try {
+      // The link's own seller wins, and is looked up by USER id — the same id
+      // the visit-store and visit-profile screens take, so the card can open
+      // either without a second translation step. A failed lookup still leaves
+      // a routable id, which is worth a card on its own: a shop the user can
+      // open beats no way to reach it.
+      if (direct.isNotEmpty) {
+        final res = await BusinessProfileRepo().viewBusinessProfileById(direct);
+        productSeller.value =
+            ProductSeller.fromBusinessProfile(res, fallbackUserId: direct) ??
+                ProductSeller(userId: direct);
+        return;
+      }
+
+      final res = await ProductRepo().getBusinessProfileFullRepo(businessId);
+      productSeller.value = ProductSeller.fromFullBusinessProfile(res);
+    } catch (e) {
+      logs('resolveProductSeller failed: $e');
+      productSeller.value = direct.isEmpty ? null : ProductSeller(userId: direct);
+    } finally {
+      isProductSellerLoading.value = false;
+    }
+  }
+
   Future<void> fetchSingleProductDataApi({required String productId}) async {
     try {
       isSingleProductLoading.value = true;
 
       final response = await ProductRepo().fetchSingleProductApi(productId: productId);
       if (response.isSuccess) {
-        singleProductDetailsResponse.value = ApiResponse.complete(response);
         final singleProductModel = SingleProductModel.fromJson(response.response!.data);
         singleProductData.value = singleProductModel.data;
+        singleProductDetailsResponse.value = ApiResponse.complete(response);
       } else {
         print("API failed with status: ${response.statusCode}");
+        singleProductData.value = null;
         singleProductDetailsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       print("stack trace: $s");
-    } finally {
-      isSingleProductLoading.value = false;
+      singleProductData.value = null;
       singleProductDetailsResponse.value = ApiResponse.error('error');
+    } finally {
+      // Only the loading flag belongs here. This used to also stamp
+      // `ApiResponse.error` unconditionally, which overwrote the success set a
+      // few lines above — every successful fetch reported as a failure, so any
+      // screen driving its empty/error state off this status showed one over a
+      // product that had loaded perfectly well.
+      isSingleProductLoading.value = false;
     }
   }
 
@@ -1793,87 +1945,6 @@ class ProductController extends GetxController{
       if (productRootCategoryList.isEmpty) {
         productRootCategoryResponse.value = ApiResponse.error('error');
       }
-    }
-  }
-
-  /// ─── Category showcase (product-service/api/products/category-showcase) ───
-  /// Cross-category product list rendered as "Suggested Products" at the bottom
-  /// of the product super-category screen. TTL-guarded via
-  /// [_productShowcaseCache] so re-entering the screen within the cache window
-  /// reuses the loaded list instead of refetching.
-  Rx<ApiResponse> productShowcaseResponse = ApiResponse.initial('Initial').obs;
-  RxList<Product> productShowcaseList = <Product>[].obs;
-  RxBool isProductShowcaseLoadingMore = false.obs;
-  int _productShowcasePage = 1;
-  bool _productShowcaseHasMore = true;
-  static const int _productShowcaseLimit = 10;
-  bool get productShowcaseHasMore => _productShowcaseHasMore;
-
-  final FetchCache _productShowcaseCache = FetchCache();
-
-  /// Fetch the showcase only when it isn't already loaded & fresh (TTL). Use on
-  /// screen (re)entry; call [fetchProductCategoryShowcase] for explicit refreshes.
-  Future<void> fetchProductCategoryShowcaseIfNeeded() async {
-    if (_productShowcaseCache.isFresh('product-showcase',
-        hasData: productShowcaseList.isNotEmpty)) {
-      return;
-    }
-    await fetchProductCategoryShowcase();
-  }
-
-  Future<void> fetchProductCategoryShowcase({bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        if (!_productShowcaseHasMore || isProductShowcaseLoadingMore.value) {
-          return;
-        }
-        isProductShowcaseLoadingMore.value = true;
-      } else {
-        productShowcaseResponse.value = ApiResponse.loading('loading');
-        _productShowcasePage = 1;
-        _productShowcaseHasMore = true;
-      }
-
-      final Map<String, dynamic> params = {
-        ApiKeys.page: _productShowcasePage,
-        ApiKeys.limit: _productShowcaseLimit,
-      };
-
-      final responseModel = await ProductRepo()
-          .fetchProductCategoryShowcaseRepo(queryParams: params);
-
-      if (!responseModel.isSuccess) {
-        if (!isLoadMore && productShowcaseList.isEmpty) {
-          productShowcaseResponse.value = ApiResponse.error('error');
-        }
-        return;
-      }
-
-      final response =
-          ProductCatalogResponse.fromJson(responseModel.response?.data);
-      final newData = response.data;
-
-      if (isLoadMore) {
-        productShowcaseList.addAll(newData);
-      } else {
-        productShowcaseList.assignAll(newData);
-      }
-      if (newData.isNotEmpty) _productShowcasePage++;
-
-      final pg = response.pagination;
-      _productShowcaseHasMore =
-          pg != null ? pg.page < pg.totalPages : newData.isNotEmpty;
-
-      productShowcaseResponse.value = ApiResponse.complete(responseModel);
-      _productShowcaseCache.mark('product-showcase');
-      log('product showcase loaded -- ${productShowcaseList.length}');
-    } catch (e, s) {
-      log('product showcase stack trace -- $s');
-      if (!isLoadMore && productShowcaseList.isEmpty) {
-        productShowcaseResponse.value = ApiResponse.error('error');
-      }
-    } finally {
-      if (isLoadMore) isProductShowcaseLoadingMore.value = false;
     }
   }
 }

@@ -23,6 +23,16 @@ mixin MedicalServiceApi {
   final String myMedicalProducts = 'medical-service/inventory/my-products';
   final String addMedicalProductVariant = 'medical-service/inventory';
 
+  /// The productVariant ids this pharmacy ALREADY has in its inventory.
+  /// `GET medical-service/inventory/product-variant-ids?businessId=`
+  ///
+  /// Medical mirror of [FoodServiceApi.foodInventoryProductVariantIds] — same
+  /// contract, same `data.productVariantIds` shape. Note the path has NO `/api`
+  /// segment: medical-service is one of the services that omits it (see the
+  /// endpoints above), so this is not a copy/paste slip.
+  final String medicalInventoryProductVariantIds =
+      'medical-service/inventory/product-variant-ids';
+
   /// The merchant's own store-wide product list, backing the "Top Selling"
   /// rail on the Products tab. `myMedicalProducts` above can't do this — it's
   /// scoped to one categoryId.

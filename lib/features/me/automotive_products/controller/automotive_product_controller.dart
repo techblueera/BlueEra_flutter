@@ -9,7 +9,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -20,6 +19,7 @@ import 'package:BlueEra/features/me/automotive_products/service/automotive_local
 import 'package:BlueEra/features/me/automotive_products/model/automotive_generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_by_root_category_model.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 // `AutomotiveProduct` here refers to the catalog model
 // (automotive_product_catalog_response); the nested-category response also
@@ -145,7 +145,6 @@ List<AutomotiveProductNestedCategoryResponse> _parseProductNestedCategories(
 
 class AutomotiveProductController extends GetxController{
   Rx<ApiResponse> generateAiProductContentResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getSubChildORRootCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addProductToInventoryResponse = ApiResponse.initial('Initial').obs;
@@ -188,7 +187,6 @@ class AutomotiveProductController extends GetxController{
   final TextEditingController mrpController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController availableStockController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
   final TextEditingController materialController = TextEditingController();
 
   RxList<AutomotiveSelectedColor> selectedColors = <AutomotiveSelectedColor>[].obs;
@@ -255,15 +253,6 @@ class AutomotiveProductController extends GetxController{
   /// Images used on Step 2 (second screen, preloaded + new)
   RxList<String> allProductImages = <String>[].obs;
 
-  List<Map<String, String>> get categoryDropdownList =>
-      Get.find<AuthController>().businessOnboardingProductsCategories.map((category) {
-    return {
-      'display': category.name ?? '',
-      'value': category.tagId ?? '',
-    };
-  }).toList();
-  final Rxn<Map<String, String>> selectedProductCategory = Rxn<Map<String, String>>();
-
   // AutomotiveProduct Snap Search Data
   // Rxn<AutomotiveProductSnapSearchData> productSnapSearchData = Rxn<AutomotiveProductSnapSearchData>();
   final List<Map<String, String>> productSnapSearchConfig = [
@@ -319,10 +308,6 @@ class AutomotiveProductController extends GetxController{
     selectedColors.remove(selectedColor);
   }
 
-  void addDetail(AutomotiveProductMoreDetails detail) {
-    detailsList.add(detail);
-  }
-
   void removeDetail(int index) {
     detailsList.removeAt(index);
   }
@@ -354,12 +339,6 @@ class AutomotiveProductController extends GetxController{
       final ctrl = featureControllers.removeAt(index);
       ctrl.dispose();
     }
-  }
-
-  /// Add images to Step 1
-  void addImagesStep1(List<String> images) {
-    final remaining = maxStep1Images.value - step1Images.length;
-    step1Images.addAll(images.take(remaining));
   }
 
   /// Remove image from Step 1
@@ -472,17 +451,6 @@ class AutomotiveProductController extends GetxController{
     update();
   }
 
-  void addUserGuideLine() {
-    userGuideLineControllers.add(TextEditingController());
-  }
-
-  void removedUserGuideLine(int index) {
-    if (index >= 0 && index < userGuideLineControllers.length) {
-      final ctrl = userGuideLineControllers.removeAt(index);
-      ctrl.dispose();
-    }
-  }
-
   /// Pick new images for Step 2
   Future<void> pickImagesStep2(BuildContext context) async {
     try {
@@ -512,8 +480,6 @@ class AutomotiveProductController extends GetxController{
     }
   }
 
-  bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
-  bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
   void onGenerate(AutomotiveProductController addProductViaAiController, String id, ProviderType providerType) async {
     if (!_validate(providerType)) return;
@@ -1821,5 +1787,122 @@ class AutomotiveProductController extends GetxController{
   /// per-product "N in cart" badge in the product card + variant sheet.
   int selectedVariantCountForProduct(String productId) {
     return selectedProducts.where((p) => p.product.id == productId).length;
+  }
+
+  // ─── Already-stocked variants ──────────────────────────────────────────────
+  // Automotive mirror of the food flow — see
+  // `FoodServiceController.fetchStockedVariantIdsIfNeeded`. Same three-layer
+  // load, same fail-open rule, same two gates: a fully-stocked product is
+  // badged on the card, and an individual stocked variant is not tickable in
+  // the sheet.
+
+  /// productVariant ids this shop ALREADY has in its inventory.
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per shop, so re-entering the add flow reuses the
+  /// answer instead of refetching.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  /// Load the stocked-variant set, cheapest source first:
+  ///
+  /// 1. in-memory, same shop, fetched < 5 min ago;
+  /// 2. the saved snapshot on disk;
+  /// 3. the network.
+  ///
+  /// The snapshot REPLACES the request rather than racing it: the only thing
+  /// that changes this set on this device is the merchant publishing or
+  /// deleting, and that runs
+  /// [AutomotiveInventoryController.markInventoryChanged] →
+  /// [markStockedVariantsChanged].
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = userId;
+    if (id.isEmpty) return;
+
+    final signature = 'automotiveStockedVariants|$id';
+    if (_stockedVariantIdsCache.isFresh(signature,
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+
+    try {
+      final entry = await AutomotiveLocalStore.readStockedVariantIds(id);
+      if (entry != null && !entry.isEmpty) {
+        stockedVariantIds
+          ..clear()
+          ..addAll(entry.items.map((e) => e.toString()));
+        _stockedVariantIdsCache.mark(signature);
+        return;
+      }
+    } catch (e) {
+      log('automotive: stocked-variant cache hydrate failed — $e');
+    }
+
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = userId;
+    if (id.isEmpty) return;
+    try {
+      final response = await AutomotiveProductRepo()
+          .getInventoryProductVariantIdsRepo(businessId: id);
+      if (!response.isSuccess) return;
+
+      final raw = response.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('automotiveStockedVariants|$id');
+      unawaited(AutomotiveLocalStore.writeStockedVariantIds(id, ids: ids));
+    } catch (e, s) {
+      log('automotive fetchStockedVariantIds error: $e\n$s');
+    }
+  }
+
+  /// Whether [variantId] is a catalogue variant the shop already stocks.
+  ///
+  /// An EMPTY set means "not loaded / this shop has nothing", and both answer
+  /// false — the selection screens stay fully usable when the lookup fails
+  /// rather than locking every row on a request that did not come back.
+  bool isVariantStocked(String? variantId) {
+    final id = (variantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every variant of [product] is already stocked — the card can say so
+  /// instead of opening a sheet with nothing tickable in it.
+  ///
+  /// A product with NO variants answers false: `every` on an empty list is
+  /// vacuously true, which would wrongly lock the card.
+  bool isProductFullyStocked(AutomotiveProduct product) {
+    if (product.variants.isEmpty) return false;
+    return product.variants.every((v) => isVariantStocked(v.id));
+  }
+
+  /// How many of [product]'s variants are already stocked.
+  int stockedVariantCount(AutomotiveProduct product) =>
+      product.variants.where((v) => isVariantStocked(v.id)).length;
+
+  /// The set changed under us — a publish added variants, a delete removed one.
+  ///
+  /// Drops the guard AND the snapshot, then refetches. Without the snapshot
+  /// delete a re-entry would paint the pre-publish set straight off disk and
+  /// keep offering a variant the merchant just added.
+  void markStockedVariantsChanged() {
+    final id = userId;
+    _stockedVariantIdsCache.invalidate();
+    if (id.isEmpty) return;
+    unawaited(
+      AutomotiveLocalStore.writeStockedVariantIds(id, ids: const [])
+          .then((_) => fetchStockedVariantIds()),
+    );
   }
 }

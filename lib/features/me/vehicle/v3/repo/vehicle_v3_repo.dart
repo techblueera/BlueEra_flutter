@@ -18,6 +18,25 @@ import 'package:path/path.dart' as p;
 /// outcomes — 409 on a duplicate enquiry, 400 on enquiring against your own
 /// listing — not failures to surface as errors.
 class VehicleV3Repo extends BaseService {
+  /// `GET vehicle-service/inventory/product-variant-ids?businessId=` — the
+  /// productVariant (colour) ids this seller already has listed.
+  ///
+  /// Backs the "already added" state on the trim / colour selection screens;
+  /// see [VehicleV3Controller.fetchStockedVariantIdsIfNeeded]. Vehicle mirror
+  /// of [FoodRepo.getInventoryProductVariantIdsRepo].
+  ///
+  /// `showProgress: false`: this decorates a screen the seller is already
+  /// reading, so it must not put a blocking overlay over it.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) {
+    return ApiBaseHelper().getHTTP(
+      vehicleV3InventoryProductVariantIds,
+      params: {'businessId': businessId},
+      showProgress: false,
+    );
+  }
+
   // ───── Catalog (all public) ───────────────────────────────────────
 
   /// Flat category read. `level` 0/1/2 with `parentId` drives the

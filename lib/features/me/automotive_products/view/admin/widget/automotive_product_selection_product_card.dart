@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
+import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -82,6 +83,12 @@ class AutomotiveProductSelectionProductCard extends StatelessWidget {
                 top: SizeConfig.size8,
                 right: SizeConfig.size8,
                 child: Obx(() {
+                  // Every variant is already in this shop's own inventory, so
+                  // the plus would open a sheet with nothing tickable. Say so
+                  // on the card instead.
+                  if (controller.isProductFullyStocked(product)) {
+                    return const AlreadyAddedBadge();
+                  }
                   final count =
                       controller.selectedVariantCountForProduct(product.id);
                   return ProductSelectPlusButton(
@@ -132,6 +139,12 @@ class AutomotiveProductSelectionProductCard extends StatelessWidget {
                   mrp: '₹${mrp.toStringAsFixed(0)}',
                   discount: '$discount% ${AppStrings.off.tr}',
                 ),
+                // The partly-stocked case, which the corner badge cannot show:
+                // that only appears once every variant is stocked.
+                Obx(() => AlreadyAddedCountLine(
+                      stocked: controller.stockedVariantCount(product),
+                      total: product.variants.length,
+                    )),
               ],
             ),
           ),

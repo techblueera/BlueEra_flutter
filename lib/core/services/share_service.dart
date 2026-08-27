@@ -171,13 +171,23 @@ class ShareService {
   /// param when eligible). [productName], when supplied, is woven into
   /// the body and used as the default subject so the share preview reads
   /// naturally on apps that surface it.
+  ///
+  /// [sellerUserId] is the store the sharer was looking at. A product id is
+  /// the MASTER record and is shared by every store that lists it, so without
+  /// this the landing screen has no way to know whose shop to show — pass it
+  /// wherever the surface has it.
   Future<void> shareProduct({
     required String productId,
     String? productName,
     String? subject,
+    String? sellerUserId,
   }) {
     return openShareSheet(
-      text: _productShareMessage(productId: productId, productName: productName),
+      text: _productShareMessage(
+        productId: productId,
+        productName: productName,
+        sellerUserId: sellerUserId,
+      ),
       subject: subject ??
           ((productName != null && productName.isNotEmpty)
               ? productName
@@ -192,6 +202,7 @@ class ShareService {
   String _productShareMessage({
     required String productId,
     String? productName,
+    String? sellerUserId,
   }) {
     final buffer = StringBuffer();
     if (productName != null && productName.isNotEmpty) {
@@ -199,7 +210,8 @@ class ShareService {
     } else {
       buffer.writeln('Check out this product on BlueEra:');
     }
-    buffer.writeln(productDeepLink(productId: productId));
+    buffer.writeln(
+        productDeepLink(productId: productId, sellerUserId: sellerUserId));
     final code = currentBdmReferralCode();
     if (code != null && code.isNotEmpty) {
       buffer

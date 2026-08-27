@@ -50,6 +50,10 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
         _selectedCategory.value = widget.arrProducts.first;
         _fetchProducts();
       }
+      // Which catalogue variants this shop already stocks, so a part it already
+      // sells is badged rather than offered again. Guarded and snapshot-backed,
+      // so re-entering the add flow usually costs nothing.
+      controller.fetchStockedVariantIdsIfNeeded();
     });
   }
 

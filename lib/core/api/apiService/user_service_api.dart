@@ -377,4 +377,28 @@ mixin UserServiceApi {
   /// current status when the message metadata's local latch is empty.
   String businessEnquiryById(String enquiryId) =>
       'user-service/business-enquiries/$enquiryId';
+
+  // ──────────────────────────────────────────────────────────────────────
+  // 12. Loan applications ("Quick Apply For Loan", Discover → Financial)
+  // ──────────────────────────────────────────────────────────────────────
+  /// `POST` submits a new application (always lands as `pending`) and the
+  /// applicant is taken from the token — **there is no `userId` in the body**.
+  /// `GET /me` lists the caller's own applications.
+  ///
+  /// The app never touches `/loan-applications/admin/*`, and never sends
+  /// `applicationStatus`: only an admin moves the status and the backend drops
+  /// the field from user payloads. See
+  /// docs/backend/FLUTTER_LOAN_APPLICATION_GUIDE.md.
+  final String loanApplications = 'user-service/loan-applications';
+
+  /// Enum lists for the form's dropdowns (`professionTypes`,
+  /// `residenceTypes`, `applicationStatuses`). Optional — the values are
+  /// stable enough to hardcode, so the form opens on bundled defaults and only
+  /// upgrades if this answers.
+  final String loanApplicationOptions =
+      'user-service/loan-applications/options';
+
+  String loanApplicationById(String id) => 'user-service/loan-applications/$id';
+
+  final String myLoanApplications = 'user-service/loan-applications/me';
 }

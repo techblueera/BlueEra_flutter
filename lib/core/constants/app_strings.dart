@@ -2313,6 +2313,13 @@ class AppStrings {
   static const String tagsKeywords = 'tagsKeywords';
   static const String productFeatures = 'productFeatures';
   static const String pricingWarranty = 'pricingWarranty';
+
+  /// Product share landing (`https://beapp.in/app/product/{id}`) — the seller
+  /// card's fallback line, the return window row, and the state shown when the
+  /// product could not be loaded at all.
+  static const String visitStore = 'visitStore';
+  static const String returnPolicy = 'returnPolicy';
+  static const String productNotAvailable = 'productNotAvailable';
   static const String mrp = 'mrp';
   static const String productWarranty = 'productWarranty';
   static const String expiryTime = 'expiryTime';
@@ -4182,6 +4189,95 @@ class AppStrings {
   static const String discoverBusinessServices = "discoverBusinessServices";
   static const String needMoney = "needMoney";
   static const String quickApplyForLoan = "quickApplyForLoan";
+
+  /// QUICK LOAN APPLY — the two-step application form behind the Discover
+  /// "Quick Apply For Loan" CTA. lib/features/loan/...
+  /// See docs/backend/FLUTTER_LOAN_APPLICATION_GUIDE.md.
+  static const String quickLoanApply = "quickLoanApply";
+  static const String loanPersonalDetails = "loanPersonalDetails";
+  static const String loanPersonalDetailsSub = "loanPersonalDetailsSub";
+  static const String loanProfessionalDetails = "loanProfessionalDetails";
+  static const String loanProfessionalDetailsSub =
+      "loanProfessionalDetailsSub";
+  static const String loanDetails = "loanDetails";
+  static const String loanDetailsSub = "loanDetailsSub";
+
+  // Personal
+  static const String loanName = "loanName";
+  static const String loanNameHint = "loanNameHint";
+  static const String loanDob = "loanDob";
+  static const String loanDd = "loanDd";
+  static const String loanMm = "loanMm";
+  static const String loanYyyy = "loanYyyy";
+  static const String loanMobileNumber = "loanMobileNumber";
+  static const String loanMobileHint = "loanMobileHint";
+  static const String loanAddress = "loanAddress";
+  static const String loanAddressHint = "loanAddressHint";
+  static const String loanPanNumber = "loanPanNumber";
+  static const String loanPanHint = "loanPanHint";
+
+  // Professional — `Salaried` / `Business` on the wire; the right-hand card is
+  // labelled "Self-Employed" for the user and maps to `Business`.
+  static const String loanSalaried = "loanSalaried";
+  static const String loanSalariedSub = "loanSalariedSub";
+  static const String loanSelfEmployed = "loanSelfEmployed";
+  static const String loanSelfEmployedSub = "loanSelfEmployedSub";
+  static const String loanAnnualIncome = "loanAnnualIncome";
+  static const String loanAnnualIncomeHint = "loanAnnualIncomeHint";
+  static const String loanCompanyName = "loanCompanyName";
+  static const String loanCompanyHint = "loanCompanyHint";
+  static const String loanJobRole = "loanJobRole";
+  static const String loanJobRoleHint = "loanJobRoleHint";
+  static const String loanBusinessName = "loanBusinessName";
+  static const String loanBusinessNameHint = "loanBusinessNameHint";
+  static const String loanNatureOfBusiness = "loanNatureOfBusiness";
+  static const String loanNatureHint = "loanNatureHint";
+  /// YEARS — deliberately worded apart from [loanTenure], which is months.
+  static const String loanBusinessExperience = "loanBusinessExperience";
+  static const String loanExperienceHint = "loanExperienceHint";
+  static const String loanYearsFmt = "loanYearsFmt";
+  static const String loanBusinessAddress = "loanBusinessAddress";
+  static const String loanBusinessAddressHint = "loanBusinessAddressHint";
+
+  // Loan
+  static const String loanRequiredAmount = "loanRequiredAmount";
+  static const String loanAmountHint = "loanAmountHint";
+  static const String loanPurpose = "loanPurpose";
+  static const String loanPurposeHint = "loanPurposeHint";
+  static const String loanPreferredTenure = "loanPreferredTenure";
+  /// MONTHS.
+  static const String loanTenure = "loanTenure";
+  static const String loanMonthsFmt = "loanMonthsFmt";
+  static const String loanExistingEmi = "loanExistingEmi";
+  static const String loanNoExistingEmi = "loanNoExistingEmi";
+  static const String loanEmiHint = "loanEmiHint";
+  static const String loanPincode = "loanPincode";
+  static const String loanPincodeHint = "loanPincodeHint";
+  static const String loanCurrentResidence = "loanCurrentResidence";
+  static const String loanResidenceHint = "loanResidenceHint";
+  static const String loanTermsPrefix = "loanTermsPrefix";
+  static const String loanTermsSuffix = "loanTermsSuffix";
+
+  // CTAs + outcome
+  static const String loanContinueCta = "loanContinueCta";
+  static const String loanApplyCta = "loanApplyCta";
+  static const String loanSubmittedTitle = "loanSubmittedTitle";
+  static const String loanSubmittedBody = "loanSubmittedBody";
+  static const String loanFormIncomplete = "loanFormIncomplete";
+
+  // Validation — mirrors the server's own rules so the applicant is corrected
+  // in place rather than by a round trip.
+  static const String loanFieldRequiredFmt = "loanFieldRequiredFmt";
+  static const String loanMustBePositiveFmt = "loanMustBePositiveFmt";
+  static const String loanPanRequired = "loanPanRequired";
+  static const String loanPanInvalid = "loanPanInvalid";
+  static const String loanMobileRequired = "loanMobileRequired";
+  static const String loanMobileInvalid = "loanMobileInvalid";
+  static const String loanPincodeRequired = "loanPincodeRequired";
+  static const String loanPincodeInvalid = "loanPincodeInvalid";
+  static const String loanDobRequired = "loanDobRequired";
+  static const String loanDobInvalid = "loanDobInvalid";
+  static const String loanDobFuture = "loanDobFuture";
   static const String discoverAutomotiveAndServices = "discoverAutomotiveAndServices";
   static const String discoverEducationAndTraining = "discoverEducationAndTraining";
 
@@ -6683,6 +6779,12 @@ class AppStrings {
   static const String yourPlanLabel = "yourPlanLabel";
   static const String planValidDaysFmt = "planValidDaysFmt";
 
+  /// Fallback wording for a plan that never expires. Only used when the
+  /// backend sends `is_lifetime` WITHOUT its own `validity_days` label — the
+  /// label is preferred wherever it exists, so this stays out of the way of
+  /// server-authored copy.
+  static const String lifeTimeLabel = "lifeTimeLabel";
+
   // Refund on a paid account plan — guide §2.2.2.
   static const String requestRefund = "requestRefund";
   // The disabled button's wording, quoting the SERVER's day count. Singular is
@@ -6707,6 +6809,42 @@ class AppStrings {
   static const String refundConfirmBody = "refundConfirmBody";
   static const String refundConfirmAmountFmt = "refundConfirmAmountFmt";
   static const String refundCloseByFmt = "refundCloseByFmt";
+
+  /// ACCOUNT-PLAN DISCOUNTS — admin-created campaigns (festive / flash /
+  /// launch / coupon). See docs/backend/ACCOUNT_PLAN_DISCOUNT_FLUTTER_GUIDE.md.
+  ///
+  /// These are the LABELS ONLY. A campaign's own `banner_text`, `badge_text`,
+  /// `name` and `terms_and_conditions` are admin-authored content and are
+  /// rendered verbatim — never translated, never keyed.
+  static const String offerEndsIn = "offerEndsIn";
+  static const String youSave = "youSave";
+  static const String youSaved = "youSaved";
+  static const String offSuffix = "offSuffix";
+  static const String offerTerms = "offerTerms";
+  static const String boughtInOffer = "boughtInOffer";
+
+  /// A campaign covered the whole price — activated with no payment at all.
+  static const String planActivatedFreeOffer = "planActivatedFreeOffer";
+
+  /// The checkout receipt shown for a discounted purchase, built from
+  /// `initiate`'s own figures.
+  static const String confirmYourPlan = "confirmYourPlan";
+  static const String priceAfterOffer = "priceAfterOffer";
+  static const String totalPayable = "totalPayable";
+  static const String payLabel = "payLabel";
+
+  /// The 409 `price_changed` re-confirm — the offer ended mid-decision.
+  static const String offerChangedTitle = "offerChangedTitle";
+  static const String offerChangedBody = "offerChangedBody";
+  static const String newTotal = "newTotal";
+  static const String continueAtNewPrice = "continueAtNewPrice";
+
+  /// Coupon-only campaigns, which are invisible until the code is sent.
+  static const String couponHint = "couponHint";
+  static const String couponApply = "couponApply";
+  static const String couponRemove = "couponRemove";
+  static const String couponInvalid = "couponInvalid";
+  static const String couponAppliedFmt = "couponAppliedFmt";
 
   /// A1 SALES-SHOP usage meter on the active plan card. A sales plan ends when
   /// the shop sells through its cap, not on a date, so the card shows how much

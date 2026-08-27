@@ -81,6 +81,11 @@ class GroceryLocalStore {
 
   static const String _kTopSelling = 'topSelling';
   static const String _kCategories = 'categories';
+
+  /// Catalogue-variant ids the store already stocks — see
+  /// [GroceryController.fetchStockedVariantIdsIfNeeded]. Per store, like the
+  /// two above, because it answers a question about THIS store's inventory.
+  static const String _kStockedVariantIds = 'stockedVariantIds';
   static const String _kCatalog = 'catalog:superCategories';
 
   /// Every category-tree key starts with this, so [_prune] can hold the whole
@@ -140,6 +145,20 @@ class GroceryLocalStore {
   }) =>
       _write(_storeKey(_kCategories, storeId, otherStore), items);
 
+  // ─── Already-stocked catalogue variants ──────────────────────────
+
+  /// Always `otherStore: false` — this is the SIGNED-IN store's own inventory,
+  /// which is the only store the add flow can publish into. Passing another
+  /// store's id would answer a question nobody on that flow is asking.
+  static Future<GroceryCacheEntry?> readStockedVariantIds(String storeId) =>
+      _read(_storeKey(_kStockedVariantIds, storeId, false));
+
+  static Future<void> writeStockedVariantIds(
+    String storeId, {
+    required List<dynamic> ids,
+  }) =>
+      _write(_storeKey(_kStockedVariantIds, storeId, false), ids);
+
   // ─── Add-grocery catalog tree (global) ───────────────────────────
 
   static Future<GroceryCacheEntry?> readCatalogCategories() =>
@@ -176,6 +195,8 @@ class GroceryLocalStore {
       await box.deleteAll([
         for (final kind in const [_kTopSelling, _kCategories])
           for (final other in const [true, false]) _storeKey(kind, storeId, other),
+        // Own-store only — see [readStockedVariantIds].
+        _storeKey(_kStockedVariantIds, storeId, false),
       ]);
     } catch (e) {
       log('GroceryLocalStore.clearStore error: $e');

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_basket_entry_v3.dart';
 import 'package:BlueEra/features/me/vehicle/v3/model/vehicle_listing_draft_v3.dart';
@@ -122,6 +123,98 @@ class VehicleV3Controller extends GetxController {
 
   void clearBasket() => basket.clear();
 
+  // ─── Already-listed variants ───────────────────────────────────────────────
+  // Vehicle mirror of the food flow — see
+  // `FoodServiceController.fetchStockedVariantIdsIfNeeded`.
+  //
+  // Two differences from the other verticals, both deliberate:
+  //  * a vehicle `productVariant` is the **colour**, not the trim, because a
+  //    listing is created against a colour id — so the gate lands on the colour
+  //    sheet, and a trim card is only "already added" when EVERY colour of it
+  //    is listed;
+  //  * the load is two-layer (memory + network) rather than three. This
+  //    feature's local store holds the global catalogue only — it has no
+  //    per-seller keys — and bolting them on for one set is more machinery than
+  //    a single cold-start request is worth. The FetchCache TTL still covers
+  //    re-entry, which is the case that mattered.
+
+  /// productVariant (colour) ids this seller ALREADY has listed.
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per seller, so re-entering the add flow reuses the
+  /// answer instead of refetching.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = userId;
+    if (id.isEmpty) return;
+    if (_stockedVariantIdsCache.isFresh('vehicleStockedVariants|$id',
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = userId;
+    if (id.isEmpty) return;
+    try {
+      final res =
+          await _repo.getInventoryProductVariantIdsRepo(businessId: id);
+      if (!res.isSuccess) return;
+
+      final raw = res.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('vehicleStockedVariants|$id');
+    } catch (e, s) {
+      logs('VEHICLE_V3: fetchStockedVariantIds failed — $e\n$s');
+    }
+  }
+
+  /// Whether [productVariantId] (a COLOUR id) is already listed by this seller.
+  ///
+  /// An EMPTY set means "not loaded / this seller has nothing", and both answer
+  /// false — the selection screens stay fully usable when the lookup fails
+  /// rather than locking every row on a request that did not come back.
+  bool isVariantStocked(String? productVariantId) {
+    final id = (productVariantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every colour of [trim] is already listed — the card can say so instead of
+  /// opening a sheet with nothing selectable in it.
+  ///
+  /// A trim with NO colours answers false: `every` on an empty list is
+  /// vacuously true, which would wrongly lock the card.
+  bool isTrimFullyStocked(VehicleTrimV3 trim) {
+    if (trim.variants.isEmpty) return false;
+    return trim.variants.every((v) => isVariantStocked(v.id));
+  }
+
+  /// How many of [trim]'s colours are already listed.
+  int stockedVariantCount(VehicleTrimV3 trim) =>
+      trim.variants.where((v) => isVariantStocked(v.id)).length;
+
+  /// The set changed under us — a publish added listings, a delete removed one.
+  ///
+  /// Only the in-memory guard to drop, since there is no snapshot on disk for
+  /// this set; the next read goes to the network.
+  void markStockedVariantsChanged() {
+    _stockedVariantIdsCache.invalidate();
+    if (userId.isEmpty) return;
+    unawaited(fetchStockedVariantIds());
+  }
+
   /// Rails, skipped while still fresh — same TTL guard grocery's add screen
   /// uses so re-entering doesn't refetch.
   Future<void> fetchRootSectionsIfNeeded() async {
@@ -191,6 +284,10 @@ class VehicleV3Controller extends GetxController {
         listingsNeedRefresh = true;
         _listingsCache.invalidate();
         basket.clear();
+        // Those colours are now listed, so the add flow must stop offering
+        // them. Refreshed here rather than by the screen that popped, so every
+        // route out of a publish gets it.
+        markStockedVariantsChanged();
       }
       return published;
     } catch (e) {
@@ -227,6 +324,21 @@ class VehicleV3Controller extends GetxController {
       fetchSummary(),
       fetchMyStockedCategories(sellerId),
     ]);
+
+    // Stamp only once BOTH halves the guard vouches for actually loaded.
+    //
+    // `loadDashboardIfNeeded` reads `hasData` as
+    // `myListings.isNotEmpty || myStockedCategories.isNotEmpty` — an OR — so a
+    // run where the listings landed and the categories request did not would
+    // otherwise leave the guard stamped, and every later entry would take the
+    // early return and never retry the half that failed. The categories rail
+    // then stayed empty for the whole TTL.
+    //
+    // COMPLETE means the REQUEST succeeded, not that rows came back, so a
+    // showroom with nothing listed still stamps and still gets its reuse.
+    final bothLoaded = listingsStatus.value == Status.COMPLETE &&
+        stockedCategoriesStatus.value == Status.COMPLETE;
+    if (bothLoaded) _listingsCache.mark(_listingsSignature);
   }
 
   Future<void> fetchMyListings({String? condition}) async {
@@ -242,9 +354,11 @@ class VehicleV3Controller extends GetxController {
       myListings.assignAll(VehicleListingV3.listFrom(body));
       _listingsPage = VehiclePaginationV3.of(body);
       listingsStatus.value = Status.COMPLETE;
-      if (_listingsSignature.isNotEmpty) {
-        _listingsCache.mark(_listingsSignature);
-      }
+      // The freshness stamp is NOT set here. This method is also called on its
+      // own — the My Listings screen's condition filter and pull-to-refresh —
+      // and stamping from there would vouch for the stocked-categories rail
+      // that this call never fetched. [loadDashboard] owns the stamp, because
+      // it is the only caller that loads everything the guard checks.
     } catch (e) {
       logs('VEHICLE_V3: fetchMyListings failed — $e');
       listingsStatus.value = Status.ERROR;

@@ -118,7 +118,6 @@ class GroceryController extends GetxController {
 
 // 2. Reactive Map to store captured files by their Title
   final RxMap<String, File?> grocerySnapSearchImagesMap = <String, File?>{}.obs;
-  int maxUploadImages = 2;
 
   RxBool isSearchOpen = false.obs;
 
@@ -688,7 +687,6 @@ class GroceryController extends GetxController {
   static const int _businessProductsLimit = 20;
   static const int businessProductsPreviewLimit = 20;
 
-  bool get businessProductsHasMore => _businessProductsHasMore;
 
   /// Freshness guard for [fetchAllGroceryData], keyed per store so visiting
   /// store A → B → back to A re-fetches A only if its data went stale.
@@ -712,6 +710,18 @@ class GroceryController extends GetxController {
   /// tab is the escape hatch for that.
   Future<void> fetchAllGroceryDataIfNeeded(String userId,
       {required bool otherStore}) async {
+    // No id, nothing to fetch — but RESOLVE the tab's state rather than
+    // returning silently. Nothing re-runs the dispatcher, so a bare `return`
+    // here leaves the Products tab shimmering on `Status.INITIAL` for good,
+    // with no error and no retry. The same terminal early return is what the
+    // food tab was fixed for; see `FoodMainScreen._fetchProductsTab`.
+    if (userId.isEmpty) {
+      log('grocery: businessId unresolved — Products tab has nothing to fetch');
+      _resolveCategoryFailure(silent: false);
+      _resolveBusinessProductsFailure(silent: false);
+      return;
+    }
+
     final signature = 'grocery|$userId|$otherStore';
     final hasData = groceryCategoryList.isNotEmpty ||
         groceryBusinessProductsList.isNotEmpty;
@@ -739,9 +749,23 @@ class GroceryController extends GetxController {
         fetchGroceryBusinessProductsRepo(userId, otherStore, silent: silent),
       ]);
 
-      // Stamp the freshness cache once the category list actually loaded so a
-      // re-entry for the same store reuses it instead of refetching.
-      if (fetchMyGroceryCategoryResponse.value.status == Status.COMPLETE) {
+      // Stamp the freshness cache only once BOTH lists actually loaded.
+      //
+      // Categories alone used to be enough, and that is what stranded the tab:
+      // `fetchAllGroceryDataIfNeeded` reads `hasData` as
+      // `categories.isNotEmpty || products.isNotEmpty`, so a run where the
+      // categories landed and the top-selling request did not stamped the
+      // guard anyway — and every later entry then took the early return and
+      // never retried the half that failed. The Products tab renders its
+      // shimmer off that unresolved status, so it shimmered for good.
+      //
+      // COMPLETE means the REQUEST succeeded, not that rows came back, so a
+      // store with an empty shelf still stamps and still gets its 5-minute
+      // reuse.
+      final bothLoaded = fetchMyGroceryCategoryResponse.value.status ==
+              Status.COMPLETE &&
+          fetchGroceryBusinessProductsResponse.value.status == Status.COMPLETE;
+      if (bothLoaded) {
         _allGroceryCache.mark('grocery|$userId|$otherStore');
       }
     } catch (e) {
@@ -844,6 +868,11 @@ class GroceryController extends GetxController {
     _allGroceryCache.invalidate();
     groceryBusinessProductsList.refresh();
     groceryCategoryList.refresh();
+    // The publish/delete that got us here also changed which catalogue
+    // variants this store holds, and the add flow reads that set to grey out
+    // what is already stocked. Refreshed here rather than by each caller so a
+    // new write path cannot forget it.
+    markStockedVariantsChanged(storeId: storeId);
 
     final id = (storeId == null || storeId.isEmpty) ? userId : storeId;
     if (id.isEmpty) return;
@@ -852,6 +881,131 @@ class GroceryController extends GetxController {
     unawaited(GroceryLocalStore.clearStore(id).then(
       (_) => fetchAllGroceryData(id, otherStore: false, silent: true),
     ));
+  }
+
+  // ─── Already-stocked variants ──────────────────────────────────────────────
+  // Grocery mirror of the food flow — see
+  // `FoodServiceController.fetchStockedVariantIdsIfNeeded`. The grocery add
+  // flow selects a whole PRODUCT rather than picking variants in a sheet, so
+  // the gate lands on the card: a product whose every variant is already
+  // stocked is not offerable, and a partly-stocked one says how far along it
+  // is.
+
+  /// productVariant ids this store ALREADY has in its inventory.
+  ///
+  /// A set, and observable, because every card on the selection rails asks the
+  /// same question of it — [isVariantStocked].
+  final RxSet<String> stockedVariantIds = <String>{}.obs;
+
+  /// Freshness guard, keyed per store like [_allGroceryCache], so re-entering
+  /// the add flow reuses the answer instead of refetching.
+  final FetchCache _stockedVariantIdsCache = FetchCache();
+
+  /// Load the stocked-variant set, cheapest source first — the same three-layer
+  /// discipline the Products tab uses:
+  ///
+  /// 1. in-memory, same store, fetched < 5 min ago;
+  /// 2. the saved snapshot on disk;
+  /// 3. the network.
+  ///
+  /// The snapshot REPLACES the request rather than racing it, and stays honest
+  /// for the same reason the catalogue snapshot does: the only thing that
+  /// changes this set on this device is the merchant publishing or deleting,
+  /// and both run [markInventoryChanged] → [markStockedVariantsChanged].
+  Future<void> fetchStockedVariantIdsIfNeeded() async {
+    final id = userId;
+    if (id.isEmpty) return;
+
+    final signature = 'groceryStockedVariants|$id';
+    if (_stockedVariantIdsCache.isFresh(signature,
+        hasData: stockedVariantIds.isNotEmpty)) {
+      return;
+    }
+
+    try {
+      final entry = await GroceryLocalStore.readStockedVariantIds(id);
+      if (entry != null && !entry.isEmpty) {
+        stockedVariantIds
+          ..clear()
+          ..addAll(entry.items.map((e) => e.toString()));
+        _stockedVariantIdsCache.mark(signature);
+        return;
+      }
+    } catch (e) {
+      log('grocery: stocked-variant cache hydrate failed — $e');
+    }
+
+    await fetchStockedVariantIds();
+  }
+
+  /// Unguarded fetch. Use for an explicit refresh; screen entry should go
+  /// through [fetchStockedVariantIdsIfNeeded].
+  Future<void> fetchStockedVariantIds() async {
+    final id = userId;
+    if (id.isEmpty) return;
+    try {
+      final response =
+          await GroceryRepo().getInventoryProductVariantIdsRepo(businessId: id);
+      if (!response.isSuccess) return;
+
+      final raw = response.response?.data?['data']?['productVariantIds'];
+      if (raw is! List) return;
+      final ids = [
+        for (final value in raw)
+          if ((value?.toString() ?? '').trim().isNotEmpty) value.toString(),
+      ];
+
+      stockedVariantIds
+        ..clear()
+        ..addAll(ids);
+      _stockedVariantIdsCache.mark('groceryStockedVariants|$id');
+      unawaited(GroceryLocalStore.writeStockedVariantIds(id, ids: ids));
+    } catch (e, s) {
+      log('grocery fetchStockedVariantIds error: $e\n$s');
+    }
+  }
+
+  /// Whether [variantId] is a catalogue variant the store already stocks.
+  ///
+  /// An EMPTY set means "not loaded / this store has nothing", and both answer
+  /// false — the selection screens stay fully usable when the lookup fails
+  /// rather than locking every card on a request that did not come back.
+  bool isVariantStocked(String? variantId) {
+    final id = (variantId ?? '').trim();
+    return id.isNotEmpty && stockedVariantIds.contains(id);
+  }
+
+  /// Every variant of [product] is already stocked — the card can say so
+  /// instead of offering an add that would publish duplicates.
+  ///
+  /// A product with NO variants answers false: there is nothing to have
+  /// stocked, and `every` on an empty list is vacuously true, which would
+  /// wrongly lock the card.
+  bool isProductFullyStocked(GroceryProductData product) {
+    final variants = product.variants ?? const <ProductVariants>[];
+    if (variants.isEmpty) return false;
+    return variants.every((v) => isVariantStocked(v.sId));
+  }
+
+  /// How many of [product]'s variants are already stocked.
+  int stockedVariantCount(GroceryProductData product) {
+    final variants = product.variants ?? const <ProductVariants>[];
+    return variants.where((v) => isVariantStocked(v.sId)).length;
+  }
+
+  /// The set changed under us — a publish added variants, a delete removed one.
+  ///
+  /// Drops the guard AND the snapshot, then refetches. Without the snapshot
+  /// delete a re-entry would paint the pre-publish set straight off disk and
+  /// keep offering a variant the merchant just added.
+  void markStockedVariantsChanged({String? storeId}) {
+    final id = (storeId == null || storeId.isEmpty) ? userId : storeId;
+    _stockedVariantIdsCache.invalidate();
+    if (id.isEmpty) return;
+    unawaited(
+      GroceryLocalStore.writeStockedVariantIds(id, ids: const [])
+          .then((_) => fetchStockedVariantIds()),
+    );
   }
 
   /// [silent] keeps the currently rendered list on screen while the call runs —
@@ -901,16 +1055,45 @@ class GroceryController extends GetxController {
         }
 
         log("Loaded ${groceryCategoryList.length}");
-      } else if (!silent) {
+      } else {
         // A failed SILENT refresh must not replace what the user is reading
         // with an error — the hydrated list stays, and the guard was already
-        // left un-stamped so the next entry retries.
-        fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+        // left un-stamped so the next entry retries. The exception is a status
+        // that never resolved; see [_resolveCategoryFailure].
+        _resolveCategoryFailure(silent: silent);
       }
     } catch (e) {
-      if (!silent) fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+      _resolveCategoryFailure(silent: silent);
       log("ERROR===== $e");
      }
+  }
+
+  /// Records a failed top-selling fetch.
+  ///
+  /// A silent refresh normally leaves the status alone — that is the whole
+  /// point of `silent`: keep the rendered rows and their COMPLETE state while
+  /// replacements are fetched, so the tab doesn't blink. **But a status that
+  /// has never resolved is not something worth protecting.** The Products tab
+  /// renders its shimmer on `Status.INITIAL`, so a silent failure over an
+  /// unresolved status left that shimmer running with nothing scheduled to
+  /// stop it — the tab shimmered for good, with no error and no retry. Same
+  /// failure mode the food tab was fixed for; see
+  /// `FoodMainScreen._fetchProductsTab`.
+  void _resolveBusinessProductsFailure({required bool silent}) {
+    final unresolved =
+        fetchGroceryBusinessProductsResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Category-list counterpart of [_resolveBusinessProductsFailure].
+  void _resolveCategoryFailure({required bool silent}) {
+    final unresolved =
+        fetchMyGroceryCategoryResponse.value.status == Status.INITIAL;
+    if (!silent || unresolved) {
+      fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+    }
   }
 
   Future<void> fetchGroceryBusinessProductsRepo(
@@ -995,13 +1178,11 @@ class GroceryController extends GetxController {
         fetchGroceryBusinessProductsResponse.value =
             ApiResponse.complete(responseModel);
         log("Loaded ${groceryBusinessProductsList.length}");
-      } else if (!silent) {
-        fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
+      } else {
+        _resolveBusinessProductsFailure(silent: silent);
       }
     } catch (e, s) {
-      if (!silent) {
-        fetchGroceryBusinessProductsResponse.value = ApiResponse.error('error');
-      }
+      _resolveBusinessProductsFailure(silent: silent);
       log("Stack Trace===== $s");
     } finally {
       if (isLoadMore) {
@@ -1279,92 +1460,6 @@ class GroceryController extends GetxController {
           fetchNestedGroceryCategoryResponse.value = ApiResponse.error('error');
         } catch (_) {}
       }
-    }
-  }
-
-  /// ─── Category showcase (grocery-service/api/products/category-showcase) ───
-  /// Cross-category product list rendered at the bottom of the grocery
-  /// super-category screen. TTL-guarded via [_showcaseCache] so re-entering the
-  /// screen within the cache window reuses the loaded list instead of
-  /// refetching.
-  Rx<ApiResponse> groceryCategoryShowcaseResponse =
-      ApiResponse.initial('Initial').obs;
-  RxList<GroceryProductData> groceryCategoryShowcaseList =
-      <GroceryProductData>[].obs;
-  RxBool isGroceryShowcaseLoadingMore = false.obs;
-  int _showcasePage = 1;
-  bool _showcaseHasMore = true;
-  static const int _showcaseLimit = 10;
-  bool get groceryShowcaseHasMore => _showcaseHasMore;
-
-  final FetchCache _showcaseCache = FetchCache();
-
-  /// Fetch the showcase only when it isn't already loaded & fresh (within the
-  /// [FetchCache] TTL). Call on screen (re)entry; use [fetchGroceryCategoryShowcase]
-  /// for explicit refreshes.
-  Future<void> fetchGroceryCategoryShowcaseIfNeeded() async {
-    if (_showcaseCache.isFresh('grocery-showcase',
-        hasData: groceryCategoryShowcaseList.isNotEmpty)) {
-      return;
-    }
-    await fetchGroceryCategoryShowcase();
-  }
-
-  Future<void> fetchGroceryCategoryShowcase({bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        if (!_showcaseHasMore || isGroceryShowcaseLoadingMore.value) return;
-        isGroceryShowcaseLoadingMore.value = true;
-      } else {
-        groceryCategoryShowcaseResponse.value = ApiResponse.loading('loading');
-        _showcasePage = 1;
-        _showcaseHasMore = true;
-      }
-
-      final Map<String, dynamic> params = {
-        ApiKeys.page: _showcasePage,
-        ApiKeys.limit: _showcaseLimit,
-      };
-
-      final response =
-          await GroceryRepo().fetchGroceryCategoryShowcaseRepo(queryParam: params);
-
-      if (!response.isSuccess) {
-        if (!isLoadMore && groceryCategoryShowcaseList.isEmpty) {
-          groceryCategoryShowcaseResponse.value = ApiResponse.error('error');
-        }
-        return;
-      }
-
-      final model = GroceryProductModel.fromJson(response.response?.data);
-      final List<GroceryProductData> newItems =
-          model.data ?? <GroceryProductData>[];
-
-      if (isLoadMore) {
-        groceryCategoryShowcaseList.addAll(newItems);
-      } else {
-        groceryCategoryShowcaseList.assignAll(newItems);
-      }
-
-      if (newItems.isNotEmpty) _showcasePage++;
-
-      final pagination = model.pagination;
-      _showcaseHasMore = pagination != null
-          ? (pagination.page ?? 1) < (pagination.totalPages ?? 1)
-          : newItems.isNotEmpty;
-
-      groceryCategoryShowcaseResponse.value = ApiResponse.complete(response);
-      // Stamp freshness only after the list is populated so a re-entry reuses
-      // it instead of refetching.
-      _showcaseCache.mark('grocery-showcase');
-      log('showcase loaded -- ${groceryCategoryShowcaseList.length}');
-    } catch (e, s) {
-      log('showcase stack trace -- $s');
-      if (!isLoadMore && groceryCategoryShowcaseList.isEmpty) {
-        groceryCategoryShowcaseResponse.value = ApiResponse.error('error');
-      }
-    } finally {
-      if (isLoadMore) isGroceryShowcaseLoadingMore.value = false;
     }
   }
 

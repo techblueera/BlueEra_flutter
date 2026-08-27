@@ -86,6 +86,11 @@ class ProductLocalStore {
 
   static const String _kTopSelling = 'topSelling';
   static const String _kCategories = 'categories';
+
+  /// Catalogue-variant ids the business already stocks — see
+  /// [ProductController.fetchStockedVariantIdsIfNeeded]. Per store, like the
+  /// two above, because it answers a question about THIS store's inventory.
+  static const String _kStockedVariantIds = 'stockedVariantIds';
   static const String _kCatalog = 'catalog:superCategories';
 
   /// Every category-tree key starts with this, so [_prune] can hold the whole
@@ -145,6 +150,19 @@ class ProductLocalStore {
   }) =>
       _write(_storeKey(storeId, _kCategories, otherStore), items);
 
+  // ─── Already-stocked catalogue variants ──────────────────────────
+
+  /// Always `otherStore: false` — this is the SIGNED-IN store's own inventory,
+  /// the only store the add flow can publish into.
+  static Future<ProductCacheEntry?> readStockedVariantIds(String storeId) =>
+      _read(_storeKey(storeId, _kStockedVariantIds, false));
+
+  static Future<void> writeStockedVariantIds(
+    String storeId, {
+    required List<dynamic> ids,
+  }) =>
+      _write(_storeKey(storeId, _kStockedVariantIds, false), ids);
+
   // ─── Add-product super categories (global) ───────────────────────
 
   static Future<ProductCacheEntry?> readCatalogCategories() => _read(_kCatalog);
@@ -181,6 +199,8 @@ class ProductLocalStore {
         for (final kind in const [_kTopSelling, _kCategories])
           for (final other in const [true, false])
             _storeKey(storeId, kind, other),
+        // Own-store only — see [readStockedVariantIds].
+        _storeKey(storeId, _kStockedVariantIds, false),
       ]);
     } catch (e) {
       log('ProductLocalStore.clearStore error: $e');

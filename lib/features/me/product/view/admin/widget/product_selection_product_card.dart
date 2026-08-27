@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
+import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -81,6 +82,13 @@ class ProductSelectionProductCard extends StatelessWidget {
                 top: SizeConfig.size8,
                 right: SizeConfig.size8,
                 child: Obx(() {
+                  // Every variant is already in this business's own inventory,
+                  // so the plus would open a sheet with nothing tickable. Say
+                  // so on the card instead — the merchant sees it without
+                  // opening anything.
+                  if (controller.isProductFullyStocked(product)) {
+                    return const AlreadyAddedBadge();
+                  }
                   final count =
                       controller.selectedVariantCountForProduct(product.id);
                   return ProductSelectPlusButton(
@@ -131,6 +139,14 @@ class ProductSelectionProductCard extends StatelessWidget {
                   mrp: '₹${mrp.toStringAsFixed(0)}',
                   discount: '$discount% off',
                 ),
+                // The partly-stocked case, which the corner badge cannot show:
+                // that only appears once every variant is stocked. Without it
+                // the merchant opens the sheet, finds rows greyed out and no
+                // explanation on the card that sent them there.
+                Obx(() => AlreadyAddedCountLine(
+                      stocked: controller.stockedVariantCount(product),
+                      total: product.variants.length,
+                    )),
               ],
             ),
           ),

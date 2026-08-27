@@ -111,9 +111,24 @@ String businessProfileDeepLink({String? userId}) =>
 String educationProfileDeepLink({String? userId}) =>
     _withBdmReferral('https://beapp.in/app/business/education/${userId ?? ""}');
 
-/// Generate deep link for a Product item
-String productDeepLink({String? productId}) =>
-    _withBdmReferral('https://beapp.in/app/product/${productId ?? ""}');
+/// Generate deep link for a Product item.
+///
+/// [productId] is the **master product** id — the same record for every store
+/// that lists the product — so the link alone cannot say WHICH store the
+/// sharer was looking at. [sellerUserId] carries that: when the sharing
+/// surface knows the seller (a store card, an own-inventory card), it is
+/// appended as `?seller=…` and the landing screen shows that store's card
+/// instead of falling back to whoever created the product record.
+///
+/// Optional on purpose — links minted before this, and links shared from
+/// surfaces with no seller in hand, stay valid and simply land without it.
+String productDeepLink({String? productId, String? sellerUserId}) {
+  final base = 'https://beapp.in/app/product/${productId ?? ""}';
+  final seller = sellerUserId?.trim() ?? '';
+  return _withBdmReferral(
+    seller.isEmpty ? base : '$base?seller=${Uri.encodeQueryComponent(seller)}',
+  );
+}
 
 /// Generate deep link for a Grocery item
 String groceryDeepLink({String? productId}) =>
@@ -208,7 +223,13 @@ String? currentBdmReferralCode() => _currentUserReferralCode();
 String _withBdmReferral(String base) {
   final code = _currentUserReferralCode();
   if (code == null || code.isEmpty) return base;
-  return '$base?referralCode=${Uri.encodeQueryComponent(code)}';
+  // A few links already carry a query of their own (see [productDeepLink]),
+  // so the separator has to be chosen rather than assumed — a second `?`
+  // would fold the referral code into the previous parameter's value and
+  // lose both.
+  final separator = base.contains('?') ? '&' : '?';
+  return '$base$separator'
+      'referralCode=${Uri.encodeQueryComponent(code)}';
 }
 
 /// Returns the signed-in user's referral code. Every account is issued a

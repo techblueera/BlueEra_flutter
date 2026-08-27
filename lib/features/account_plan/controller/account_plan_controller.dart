@@ -13,6 +13,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../model/account_plan_models.dart';
 import '../model/deposit_migration_model.dart';
 import '../repo/account_plan_repo.dart';
+import '../view/account_plan_checkout_sheet.dart';
 import '../view/account_plan_gst_sheet.dart';
 import '../view/upgrade_confirm_dialog.dart';
 import 'account_plan_entitlement.dart';
@@ -54,6 +55,64 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
   final Rx<Status> plansStatus = Status.INITIAL.obs;
   final RxString plansError = ''.obs;
   final Rxn<PlanCatalog> catalog = Rxn<PlanCatalog>();
+
+  // ─── Discounts ──────────────────────────────────────────────────
+  // See docs/backend/ACCOUNT_PLAN_DISCOUNT_FLUTTER_GUIDE.md. Nothing here
+  // computes a discount: the catalog arrives priced, `initiate` arrives priced,
+  // and both are shown as sent.
+
+  /// A coupon the user typed. Sent on `plans` (to unlock a coupon-only
+  /// campaign, which is invisible without it) and again on `initiate` (so the
+  /// order is created under the same campaign the card promised).
+  final RxString couponCode = ''.obs;
+
+  /// True when a code was applied and the catalog came back with nothing
+  /// matching it. **The server decides validity** — this is only the result of
+  /// asking, never a rule of our own.
+  final RxBool couponInvalid = false.obs;
+
+  /// True while a coupon is being applied, so the field can show a spinner
+  /// without blanking the catalog underneath it.
+  final RxBool isApplyingCoupon = false.obs;
+
+  /// Set when the server refuses a stale price (409 `price_changed`) — the
+  /// campaign ended while the buyer was deciding. Drives the re-confirm
+  /// dialog; **never** an automatic retry, because the buyer has to see and
+  /// accept the new price.
+  final Rxn<Map<String, dynamic>> priceChanged = Rxn<Map<String, dynamic>>();
+
+  /// The campaign running over this catalog, or null when the system is off or
+  /// nothing is live. The single gate for every discount affordance.
+  PlanCampaign? get activeCampaign =>
+      catalog.value?.showCampaign == true ? catalog.value!.campaign : null;
+
+  /// Applies (or clears) a coupon and re-reads the catalog under it.
+  Future<void> applyCoupon(String code) async {
+    final next = code.trim().toUpperCase();
+    if (isApplyingCoupon.value) return;
+    isApplyingCoupon.value = true;
+    couponCode.value = next;
+    couponInvalid.value = false;
+    try {
+      await fetchPlans();
+    } finally {
+      isApplyingCoupon.value = false;
+    }
+  }
+
+  Future<void> clearCoupon() => applyCoupon('');
+
+  /// A countdown hit zero with the screen open — the offer is over, so go and
+  /// get honest prices.
+  ///
+  /// Skipped while a checkout is open: re-pricing the cards under a buyer who
+  /// is mid-payment would change the plan behind the sheet they are looking at.
+  /// That case is not unguarded — `expected_total_amount` makes the server
+  /// refuse the stale price with a 409 instead.
+  Future<void> onOfferExpired() async {
+    if (isProcessing.value) return;
+    await fetchPlans();
+  }
 
   // ─── What the user already owns ─────────────────────────────────
   final RxList<UserAccountPlan> myPlans = <UserAccountPlan>[].obs;
@@ -354,10 +413,28 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
       tagId: tagId,
       hasGst: hasGst,
       accountType: accountType,
+      couponCode: couponCode.value.isEmpty ? null : couponCode.value,
     );
     final data = _dataOf(res);
     if (data != null) {
-      catalog.value = PlanCatalog.fromJson(data);
+      final parsed = PlanCatalog.fromJson(data);
+      catalog.value = parsed;
+      // A code that unlocked nothing. Read off the RESULT rather than from any
+      // rule of ours: the server owns validity, scope and exhaustion, and the
+      // only honest question the client can ask is "did anything come back
+      // under it".
+      //
+      // Either kind of evidence counts — a discount whose code IS the one that
+      // was typed, or any coupon-gated discount at all. The two are usually the
+      // same campaign, but a code that unlocks a differently-named campaign is
+      // the server's business, and treating that as invalid would call a
+      // working coupon a typo.
+      couponInvalid.value = couponCode.value.isNotEmpty &&
+          !parsed.plans.any((p) =>
+              p.showsOffer &&
+              (p.discount!.requiresCoupon ||
+                  p.discount!.code.toUpperCase() ==
+                      couponCode.value.toUpperCase()));
       plansStatus.value = Status.COMPLETE;
       // Owned plans decide how each card renders, so they are loaded
       // alongside — but a failure there must not blank the catalog.
@@ -428,14 +505,9 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
 
     isProcessing.value = true;
     purchasingCode.value = card.optionCode;
+    priceChanged.value = null;
 
-    var res = await _repo.initiate(
-      optionCode: card.optionCode,
-      tagId: tagId,
-      hasGst: hasGst,
-      buyerState: buyerState,
-      buyerGstin: card.requiresGst ? buyerGstin.value : null,
-    );
+    var res = await _initiate(card, gstin: card.requiresGst ? buyerGstin.value : null);
 
     // The backend is the authority on whether the GSTIN is acceptable, and it
     // can reject one this client was perfectly happy with — stale, cancelled,
@@ -448,14 +520,12 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
       if (gstin == null) return;
       isProcessing.value = true;
       purchasingCode.value = card.optionCode;
-      res = await _repo.initiate(
-        optionCode: card.optionCode,
-        tagId: tagId,
-        hasGst: hasGst,
-        buyerState: buyerState,
-        buyerGstin: gstin,
-      );
+      res = await _initiate(card, gstin: gstin);
     }
+
+    // The offer moved under the buyer. Handled entirely by [_handlePriceChanged]
+    // — refresh, re-confirm, and never a silent retry at the higher price.
+    if (await _handlePriceChanged(res)) return;
 
     final data = _dataOf(res);
     if (data == null) {
@@ -470,13 +540,42 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
 
     final order = InitiatePlanResponse.fromJson(data);
 
-    // Free option, or a resumed order that turned out to be already paid: the
-    // backend has activated it and there is no order to pay.
-    if (order.isAlreadyActive) {
+    // Nothing to collect. Three roads here and one destination: a free option,
+    // a resumed order that turned out to be already paid, and a campaign that
+    // covered the entire price (a ≥99.9% discount is settled the same way,
+    // because Razorpay cannot take less than ₹1). Opening checkout on a zero
+    // order fails at the gateway, so it must not be attempted.
+    if (order.isAlreadyActive || order.isFreeAfterDiscount) {
       _reset();
-      commonSnackBar(message: AppStrings.planActivated.tr);
+      commonSnackBar(
+        message: order.hasDiscount
+            ? AppStrings.planActivatedFreeOffer.tr
+            : AppStrings.planActivated.tr,
+      );
       await fetchPlans();
       return;
+    }
+
+    // The receipt, before the money. Shown only when a campaign applied: that
+    // is the case where the arithmetic between the plan's list price and the
+    // amount about to be charged is worth stating, and it is the authoritative
+    // price — `initiate`'s, not the card's. An ordinary full-price purchase
+    // keeps going straight to checkout as it always has.
+    if (order.hasDiscount) {
+      final context = Get.context;
+      if (context != null) {
+        final confirmed = await showAccountPlanCheckoutSheet(
+          context,
+          planLabel: card.label,
+          order: order,
+        );
+        // Backed out at the receipt. The order stays unpaid server-side and
+        // `initiate` will resume it, so this costs nothing but the tap.
+        if (!confirmed) {
+          _reset();
+          return;
+        }
+      }
     }
 
     _pendingOptionCode = card.optionCode;
@@ -496,6 +595,77 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
       onPaymentSuccess: _onPaymentSuccess,
       onPaymentError: _onPaymentError,
     );
+  }
+
+  /// One place that builds an `initiate` call, so the two attempts in
+  /// [buyPlan] (the second after a GSTIN re-ask) cannot drift apart — and, in
+  /// particular, so both carry the overcharge guard.
+  ///
+  /// `expected_total_amount` is **what the card promised**, in paise, and it is
+  /// always [PlanCard.finalPriceTotal] — the discounted total, or the list
+  /// total when nothing is running, which is the same number either way.
+  /// Without it the server would quietly charge the list price when a campaign
+  /// expired between the catalog and the tap.
+  Future<ResponseModel> _initiate(PlanCard card, {String? gstin}) {
+    return _repo.initiate(
+      optionCode: card.optionCode,
+      tagId: tagId,
+      hasGst: hasGst,
+      buyerState: buyerState,
+      buyerGstin: gstin,
+      couponCode: couponCode.value.isEmpty ? null : couponCode.value,
+      expectedTotalAmount: card.finalPriceTotal,
+    );
+  }
+
+  /// The 409 the overcharge guard exists to produce: the price went UP between
+  /// the catalog and the tap, because the campaign ended while the buyer was
+  /// deciding. (Paying *less* than expected never errors.)
+  ///
+  /// Returns true when it has taken responsibility for the response. The rule
+  /// it enforces is that there is **no automatic retry** — the buyer is shown
+  /// the new total and re-buys from the REFRESHED card, so the amount they
+  /// approve is the amount the next order is created for.
+  Future<bool> _handlePriceChanged(ResponseModel res) async {
+    if (res.statusCode != 409) return false;
+    final body = res.response?.data;
+    final raw = body is Map ? body['data'] : null;
+    _reset();
+    if (raw is Map && raw['reason']?.toString() == 'price_changed') {
+      final detail = Map<String, dynamic>.from(raw);
+      priceChanged.value = detail;
+      // Honest prices first — the dialog offers to continue at the new one, and
+      // that has to buy the card as it now stands.
+      await fetchPlans();
+      await _confirmNewPrice(detail);
+      return true;
+    }
+    // Some other conflict. The server's wording is more specific than anything
+    // this screen could invent.
+    commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+    return true;
+  }
+
+  /// Shows the re-confirm dialog and, if accepted, re-buys the plan at the
+  /// price the catalog now carries.
+  Future<void> _confirmNewPrice(Map<String, dynamic> detail) async {
+    final context = Get.context;
+    if (context == null) return;
+    final accepted = await showAccountPlanPriceChangedDialog(context, detail);
+    priceChanged.value = null;
+    if (!accepted) return;
+
+    // The REFRESHED card, never the one that was tapped: its `finalPriceTotal`
+    // is the stale figure the server just refused, and replaying it would only
+    // earn the same 409.
+    final code = detail['option_code']?.toString() ?? '';
+    final fresh = catalog.value?.plans
+        .firstWhereOrNull((p) => p.optionCode == code && p.isPurchasable);
+    if (fresh == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    await buyPlan(fresh);
   }
 
   // ─── 3b. Upgrade with credit ────────────────────────────────────

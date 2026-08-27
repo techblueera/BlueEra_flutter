@@ -130,19 +130,6 @@ class ProductRepo extends BaseService {
     return response;
   }
 
-  /// Cross-category product showcase (paginated) for the super-category
-  /// screen's "Suggested Products" section.
-  Future<ResponseModel> fetchProductCategoryShowcaseRepo({required Map<String, dynamic> queryParams}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      productCategoryShowcase,
-      params: queryParams,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   /// Product Snap Search...
   Future<ResponseModel> fetchProductSnapSearchRepo({Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
@@ -427,6 +414,28 @@ class ProductRepo extends BaseService {
   Future<ResponseModel> fetchSingleProductApi({required String productId}) async {
     final response = await ApiBaseHelper().getHTTP(
       getProductById(productId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// `GET product-service/api/inventory/product-variant-ids?businessId=` — the
+  /// catalogue-variant ids this business already stocks.
+  ///
+  /// Backs the "already added" state on the pre-publish selection screens; see
+  /// [ProductController.fetchStockedVariantIdsIfNeeded]. Product mirror of
+  /// [FoodRepo.getInventoryProductVariantIdsRepo].
+  ///
+  /// `showProgress: false`: this decorates a screen the merchant is already
+  /// reading, so it must not put a blocking overlay over it.
+  Future<ResponseModel> getInventoryProductVariantIdsRepo({
+    required String businessId,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productInventoryProductVariantIds,
+      params: {ApiKeys.businessId: businessId},
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
