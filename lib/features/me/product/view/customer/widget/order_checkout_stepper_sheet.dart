@@ -45,16 +45,28 @@ class CheckoutChoice {
 /// because distance, feasibility, fee, ETA and rider matching all depend on the
 /// address — and the backend **refuses** a doorstep order without coordinates.
 ///
-/// Five steps, one visible at a time, each a **gate**:
+/// Four steps, one visible at a time, each a **gate**:
 ///
 /// ```
-/// ①───②───③───④───⑤
-/// Method  Address  Quote  Payment  Review
+/// ①────────②───────③────────④
+/// Address  Method  Payment  Review
 /// ```
 ///
-/// The gate that matters is ②: `Continue` stays disabled until latitude **and**
+/// **Address comes first, and it did not used to.** The old order asked
+/// "pick it up or have it delivered?" on step ① — before any address existed
+/// — so the delivery card could only advertise a hardcoded `from ₹40`, and
+/// §17.2's rule that self-pickup becomes the *default* when the fee exceeds
+/// the basket was unreachable: the customer had already chosen. Now the quote
+/// fires the moment a coordinate lands and is rendered **on the delivery card
+/// itself**, so the price and the choice are the same screen. Someone who
+/// never wanted delivery skips ① in one tap.
+///
+/// The gate that matters is ①: `Continue` stays disabled until latitude **and**
 /// longitude both exist. Text alone is not an address here — neither the order
 /// gate nor the rider search can use it.
+///
+/// The step order is [kOrderCheckoutSteps], named so the sequence itself can be
+/// pinned by a test rather than living only inside a private getter.
 Future<CheckoutChoice?> showOrderCheckoutSheet(
   BuildContext context, {
   required num itemsTotal,
@@ -80,7 +92,49 @@ Future<CheckoutChoice?> showOrderCheckoutSheet(
   );
 }
 
-enum _Step { method, address, quote, payment, review }
+/// The checkout steps, in the order guide §17.3 puts them.
+///
+/// **`address` comes before `method` on purpose, and this used to be wrong.**
+/// The sheet asked "pick it up or have it delivered?" first, which meant the
+/// delivery card could only advertise a made-up "from ₹40" — the real fee
+/// cannot be known until there is a drop point to quote against. Two rules in
+/// §17.2 are unreachable in that order: the fee has to be visible *at the
+/// moment of choosing*, and when it exceeds the basket self-pickup has to be
+/// the **default** selection, which is meaningless once the customer has
+/// already chosen.
+///
+/// There is no separate `quote` step any more. The quote fires the moment a
+/// coordinate exists and lands **on the delivery card itself**, so the choice
+/// and the price are one screen rather than two.
+enum _Step { address, method, payment, review }
+
+/// The full checkout sequence, in the order guide §17.3 puts it:
+/// address → quote → choose fulfilment → choose payment → place.
+///
+/// The quote is not a step of its own — it fires on the address and renders on
+/// the delivery card — so §17.3's five lines are four screens. What matters,
+/// and what this constant exists to pin, is that **`address` precedes
+/// `method`**: the fee cannot be shown at the moment of choosing otherwise.
+const List<_Step> kOrderCheckoutSteps = [
+  _Step.address,
+  _Step.method,
+  _Step.payment,
+  _Step.review,
+];
+
+/// A shop with no location, or a vertical whose service cannot take a doorstep
+/// order, has nothing to choose between and nothing to price. Asking for a
+/// delivery address there would be a dead step.
+const List<_Step> kOrderCheckoutStepsNoDelivery = [
+  _Step.payment,
+  _Step.review,
+];
+
+/// Whether the checkout asks where to deliver **before** it asks how the order
+/// should be fulfilled. Both must be true for §17.2 to be renderable at all.
+bool get orderCheckoutAsksAddressFirst =>
+    kOrderCheckoutSteps.indexOf(_Step.address) <
+    kOrderCheckoutSteps.indexOf(_Step.method);
 
 class _CheckoutStepper extends StatefulWidget {
   final num itemsTotal;
@@ -104,7 +158,15 @@ class _CheckoutStepper extends StatefulWidget {
 }
 
 class _CheckoutStepperState extends State<_CheckoutStepper> {
-  _Step _step = _Step.method;
+  _Step _step = _Step.address;
+
+  /// Whether the customer has actually touched the fulfilment choice.
+  ///
+  /// Until they have, §17.2 is allowed to pre-select self-pickup for them when
+  /// the quote comes back saying delivery costs more than the basket. After
+  /// they have, it never moves under them again — a warning that silently
+  /// changes a choice you just made is worse than no warning.
+  bool _methodChosen = false;
 
   String _deliveryType = OrderDeliveryType.selfPickup;
   String _paymentMethod = OrderPaymentMethod.cash;
@@ -156,39 +218,37 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
 
   // ── Flow ─────────────────────────────────────────────────────────────
 
+  /// One shape, whichever fulfilment wins.
+  ///
+  /// The old flow branched here — pickup got three steps, delivery five — so
+  /// the progress rail changed length under the customer the instant they
+  /// tapped a card. Address first means the rail is honest from the first
+  /// frame, and a customer who wants to collect can skip the address in one
+  /// tap (see [_skipAddressForPickup]) rather than being marched through it.
   List<_Step> get _steps {
     if (!_deliveryOffered) {
       // Nothing to decide about delivery: two steps, and the rail says two.
-      return const [_Step.payment, _Step.review];
+      return kOrderCheckoutStepsNoDelivery;
     }
-    if (_isDelivery) {
-      return const [
-        _Step.method,
-        _Step.address,
-        _Step.quote,
-        _Step.payment,
-        _Step.review
-      ];
-    }
-    // Pickup skips address and quote entirely — there is nothing to ask.
-    return const [_Step.method, _Step.payment, _Step.review];
+    return kOrderCheckoutSteps;
   }
 
   int get _index => _steps.indexOf(_step);
 
   bool get _canContinue {
     switch (_step) {
-      case _Step.method:
-        return true;
       case _Step.address:
-        // ⚠ THE GATE. A typed address with no coordinate does not pass.
+        // ⚠ THE GATE. A typed address with no coordinate does not pass — a
+        // rider order with no drop point is one nobody can fulfil (§17.3).
         return _address?.lat != null &&
             _address?.lng != null &&
             _receiverPhone.text.trim().length >= 10;
-      case _Step.quote:
-        // An infeasible address cannot go forward as a delivery; the step
-        // itself offers the switch back to pickup.
-        return !_quoteLoading && (_quote?.feasible ?? true);
+      case _Step.method:
+        // Pickup is always allowed. Delivery waits for a quote, and an
+        // infeasible address cannot go forward as one — the card itself
+        // offers the switch back (§17.2 "out of range").
+        if (!_isDelivery) return true;
+        return !_quoteLoading && (_quote?.feasible ?? false);
       case _Step.payment:
         return true;
       case _Step.review:
@@ -204,7 +264,20 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
     final at = _index;
     if (at < 0 || at + 1 >= _steps.length) return;
     setState(() => _step = _steps[at + 1]);
-    if (_step == _Step.quote) _fetchQuote();
+  }
+
+  /// "I'll collect it myself", from the address step.
+  ///
+  /// Address-first is right for pricing and wrong for a customer who was never
+  /// going to want delivery, so they get one tap past it. It sets the choice
+  /// explicitly, which also means §17.2 will not later move it back.
+  void _skipAddressForPickup() {
+    setState(() {
+      _deliveryType = OrderDeliveryType.selfPickup;
+      _methodChosen = true;
+      _quote = null;
+      _step = _Step.payment;
+    });
   }
 
   void _back() {
@@ -219,10 +292,15 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
   void _chooseMethod(String type) {
     setState(() {
       _deliveryType = type;
+      // From here on the choice is theirs and §17.2 must not move it.
+      _methodChosen = true;
       if (type == OrderDeliveryType.selfPickup) {
-        // Going back to pickup clears nothing — coming forward again must
-        // restore the address the customer already chose.
+        // Going back to pickup clears the fee, not the address — coming
+        // forward again must restore the address they already chose.
         _quote = null;
+      } else {
+        // Re-quote if the address was picked while pickup was selected.
+        if (_quote == null) _fetchQuote();
       }
     });
   }
@@ -276,6 +354,14 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
     setState(() {
       _quote = q;
       _quoteLoading = false;
+      // §17.2, "fee exceeds basket": *"make self-pickup the default
+      // selection. Never let this be a silent surprise."* Only ever before the
+      // customer has chosen for themselves — after that the choice is theirs
+      // and the warning stays a warning. The suggestion is still rendered
+      // verbatim beside the cards either way, so the default is never silent.
+      if (!_methodChosen && (q?.feeExceedsOrderValue ?? false)) {
+        _deliveryType = OrderDeliveryType.selfPickup;
+      }
     });
   }
 
@@ -371,12 +457,10 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
 
   Widget _body() {
     switch (_step) {
-      case _Step.method:
-        return _methodStep();
       case _Step.address:
         return _addressStep();
-      case _Step.quote:
-        return _quoteStep();
+      case _Step.method:
+        return _methodStep();
       case _Step.payment:
         return _paymentStep();
       case _Step.review:
@@ -384,9 +468,16 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
     }
   }
 
-  // ① Method — two large cards, not radio buttons, each showing the
+  // ② Method — two large cards, not radio buttons, each showing the
   //    consequence of the choice so the decision is informed before it is made.
+  //
+  //    Everything §17.2 asks for lands HERE, because this is the moment of
+  //    choosing: the real quoted fee, the ETA range, the economics suggestion
+  //    verbatim, the out-of-range message, and the breakdown disclosure.
   Widget _methodStep() {
+    final q = _quote;
+    final outOfRange = q != null && !q.feasible;
+
     return Column(
       key: const ValueKey('method'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,7 +491,7 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
               child: _choiceCard(
                 icon: Icons.storefront,
                 title: 'Pick it up',
-                subtitle: 'Free · ready in ~20 min',
+                subtitle: 'Free · from the shop',
                 selected: !_isDelivery,
                 onTap: () => _chooseMethod(OrderDeliveryType.selfPickup),
               ),
@@ -410,14 +501,103 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
               child: _choiceCard(
                 icon: Icons.delivery_dining,
                 title: 'Deliver to me',
-                subtitle: _deliveryOffered ? 'from ₹40' : 'not available here',
+                // Never a made-up price. Until the quote lands this says so;
+                // it never guesses a number the server has not sent (§17.1:
+                // "never send a fee the user did not see").
+                subtitle: _deliveryCardSubtitle(),
                 selected: _isDelivery,
-                enabled: _deliveryOffered,
+                enabled: _deliveryOffered && !outOfRange,
                 onTap: () => _chooseMethod(OrderDeliveryType.rider),
               ),
             ),
           ],
         ),
+
+        // Out of range is a 200 carrying a reason, not an error (§17.2). The
+        // delivery card is disabled above; pickup stays selectable.
+        if (outOfRange) ...[
+          const SizedBox(height: OrderSpace.m),
+          _note(
+            tone: OrderTone.warning,
+            text: q.message ??
+                'Delivery is only available near the shop'
+                    '${q.maxDistanceKm != null ? ' (within ${q.maxDistanceKm} km)' : ''}.',
+          ),
+        ],
+
+        // The quote could not be fetched at all — offer the retry rather than
+        // pretending delivery is impossible.
+        if (!_quoteLoading && q == null && _address != null) ...[
+          const SizedBox(height: OrderSpace.m),
+          _note(
+            tone: OrderTone.muted,
+            text: "We couldn't get a delivery price just now. "
+                'You can retry, or collect the order from the shop.',
+          ),
+          TextButton(
+            onPressed: _fetchQuoteNow,
+            child: Text('Retry',
+                style: OrderType.label.copyWith(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+
+        if (q != null && q.feasible) ...[
+          if (q.peak) ...[
+            const SizedBox(height: OrderSpace.s),
+            _note(
+              tone: OrderTone.muted,
+              text: 'Busy right now, so fares are higher than usual.',
+            ),
+          ],
+
+          // "Delivery costs a lot compared to this order…" — the server's own
+          // sentence, verbatim, never paraphrased.
+          if (q.shouldWarnAboutFee) ...[
+            const SizedBox(height: OrderSpace.s),
+            _note(
+              tone: OrderTone.warning,
+              text: q.suggestion ??
+                  'Delivery costs a lot compared to this order. '
+                      'Picking it up is cheaper.',
+            ),
+          ],
+
+          // An unexplained delivery fee is the commonest cause of checkout
+          // abandonment, so the arithmetic is one tap away (§17.2).
+          if (q.breakdownRows.isNotEmpty)
+            Theme(
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: OrderSpace.s),
+                title: Text('How is this calculated?',
+                    style: OrderType.label
+                        .copyWith(color: AppColors.primaryColor)),
+                children: [
+                  for (final row in q.breakdownRows)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(row.key,
+                              style: OrderType.label
+                                  .copyWith(color: AppColors.grayText)),
+                          Text(row.value,
+                              style: OrderType.label.copyWith(
+                                  color: AppColors.mainTextColor,
+                                  fontFeatures: OrderType.tabular)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+
         if (!_shopLocated && widget.allowDelivery) ...[
           const SizedBox(height: OrderSpace.m),
           _note(
@@ -428,6 +608,23 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
         ],
       ],
     );
+  }
+
+  /// What the delivery card says under its title.
+  ///
+  /// Four honest answers and **no fifth invented one**. This used to read
+  /// `from ₹40` — a number nothing had computed, shown before any address
+  /// existed to compute it from.
+  String _deliveryCardSubtitle() {
+    if (!_deliveryOffered) return 'not available here';
+    if (_quoteLoading) return 'checking…';
+    final q = _quote;
+    if (q == null) return 'price unavailable';
+    if (!q.feasible) return 'too far to deliver';
+    return [
+      '₹${OrderMoneyRow.money(q.deliveryFee ?? 0)}',
+      if (q.etaLabel.isNotEmpty) q.etaLabel,
+    ].join(' · ');
   }
 
   Widget _choiceCard({
@@ -489,7 +686,27 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
       children: [
         Text('Where should we deliver?',
             style: OrderType.title.copyWith(color: AppColors.mainTextColor)),
-        const SizedBox(height: OrderSpace.m),
+        const SizedBox(height: 2),
+        // Address-first is right for *pricing* delivery and wrong for someone
+        // who was never going to want it. One tap out, rather than marching
+        // them through a step they do not need (§17.3 puts the address first
+        // because the fee depends on it — not to make collection harder).
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: _skipAddressForPickup,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 0),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text("I'll collect it from the shop",
+                style: OrderType.label.copyWith(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ),
+        const SizedBox(height: OrderSpace.s),
         Obx(() {
           final saved = controller.addresses;
           if (a == null && saved.isEmpty) {
@@ -614,110 +831,6 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
           ],
         ),
       ),
-    );
-  }
-
-  // ③ Quote — automatic, skeletoned while in flight.
-  Widget _quoteStep() {
-    final q = _quote;
-
-    return Column(
-      key: const ValueKey('quote'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Delivery',
-            style: OrderType.title.copyWith(color: AppColors.mainTextColor)),
-        const SizedBox(height: OrderSpace.m),
-        if (_quoteLoading)
-          // Skeleton, never ₹0 corrected a moment later.
-          const OrderCardSkeleton(lines: 2)
-        else if (q == null)
-          _note(
-            tone: OrderTone.muted,
-            text: "We couldn't get a delivery price just now. "
-                'You can retry, or collect the order from the shop.',
-          )
-        else if (!q.feasible) ...[
-          _note(
-            tone: OrderTone.warning,
-            text: q.message ??
-                'Delivery is only available near the shop'
-                    '${q.maxDistanceKm != null ? ' (within ${q.maxDistanceKm} km)' : ''}.',
-          ),
-          const SizedBox(height: OrderSpace.s),
-          _pickupInsteadButton(),
-        ] else ...[
-          Text(
-            [
-              '₹${OrderMoneyRow.money(q.deliveryFee ?? 0)}',
-              if (q.etaLabel.isNotEmpty) q.etaLabel,
-              if (q.distanceKm != null) '${q.distanceKm} km',
-            ].join(' · '),
-            style: OrderType.mono(size: 18)
-                .copyWith(color: AppColors.mainTextColor),
-          ),
-          if (q.breakdownRows.isNotEmpty)
-            Theme(
-              data:
-                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(bottom: OrderSpace.s),
-                title: Text('How is this calculated?',
-                    style: OrderType.label
-                        .copyWith(color: AppColors.primaryColor)),
-                children: [
-                  for (final row in q.breakdownRows)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(row.key,
-                              style: OrderType.label
-                                  .copyWith(color: AppColors.grayText)),
-                          Text(row.value,
-                              style: OrderType.label.copyWith(
-                                  color: AppColors.mainTextColor,
-                                  fontFeatures: OrderType.tabular)),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          if (q.shouldWarnAboutFee) ...[
-            const SizedBox(height: OrderSpace.s),
-            _note(
-              tone: OrderTone.warning,
-              text: q.suggestion ??
-                  'Delivery costs a lot compared to this order. '
-                      'Picking it up is cheaper.',
-            ),
-            const SizedBox(height: OrderSpace.s),
-            // Warns, never blocks: a customer may pay ₹84 to have a ₹10 item
-            // delivered — they must only not be surprised.
-            _pickupInsteadButton(),
-          ],
-        ],
-      ],
-    );
-  }
-
-  Widget _pickupInsteadButton() {
-    return OutlinedButton(
-      onPressed: () {
-        _chooseMethod(OrderDeliveryType.selfPickup);
-        setState(() => _step = _Step.payment);
-      },
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: AppColors.primaryColor),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(OrderRadius.inner)),
-      ),
-      child: Text('Pick it up instead',
-          style: OrderType.label.copyWith(
-              color: AppColors.primaryColor, fontWeight: FontWeight.w700)),
     );
   }
 

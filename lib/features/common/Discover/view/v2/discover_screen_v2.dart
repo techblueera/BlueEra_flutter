@@ -35,6 +35,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dar
 import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
+import 'package:BlueEra/features/common/Discover/widget/pending_order_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -228,6 +229,12 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
                     slivers: [
                       SliverToBoxAdapter(child: _header(context)),
                       const SliverToBoxAdapter(child: OngoingBookingChip()),
+                      // Orders waiting on the customer, with their clocks.
+                      // Directly under the ride chip because they answer the
+                      // same question — "what of mine is in flight" — and a
+                      // ready order that expires unseen is the single most
+                      // common bad ending in production (guide §12).
+                      const SliverToBoxAdapter(child: PendingOrderChip()),
                       SliverToBoxAdapter(
                           child: SizedBox(height: SizeConfig.size12)),
                       const SliverToBoxAdapter(child: RecentOrdersSection()),
