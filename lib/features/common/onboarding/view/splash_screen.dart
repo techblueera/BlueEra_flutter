@@ -334,6 +334,24 @@ class _SplashScreenState extends State<SplashScreen> {
       // The viewer is typically a responder, not the owner, so open the
       // read-only profile view for that explicit id.
       if (uri.host == 'emergency.beapp.in') {
+        // Vehicle-safety stickers encode `https://emergency.beapp.in/v/{code}`
+        // on the SAME host, and that URL belongs to the browser — the whole
+        // scan / register / OTP-claim / parking-report page is web-only and
+        // the app has no screen for it. We can't simply not claim the host:
+        // the intent filter above is unscoped (it exists for the older
+        // `/<profileId>` emergency QR) and Android hands us every path on it,
+        // so hand `/v/*` straight back to the browser instead of dead-ending
+        // on "invalid id". The web page then deep-links back in via
+        // `/app/chat/new` when the reporter taps "Report parking issue".
+        if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'v') {
+          try {
+            await launchURL(uri.toString());
+          } catch (e) {
+            logs('Could not hand vehicle QR link to the browser: $e');
+          }
+          return;
+        }
+
         final emergencyId = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
         if (emergencyId.isNotEmpty && _isValidMongoId(emergencyId)) {
           Get.to(() => EmergencyProfileScreen1(profileId: emergencyId));
@@ -685,6 +703,18 @@ print("type==== ${type}");
             final chatType = queryParams['chatType'] ?? 'personal';
             final chatName = queryParams['name'] ?? '';
 
+            // A vehicle-QR parking report (`&source=vehicle_qr`) also carries
+            // the plate, so seed the first message with it: the owner is a
+            // stranger to the reporter and would otherwise get a blank chat
+            // with no idea why. Scoped to that source so no other `chat/new`
+            // link inherits vehicle wording, and to a non-empty plate so the
+            // sentence never renders with a hole in it.
+            final vehicleNumber = queryParams['vehicleNumber']?.trim() ?? '';
+            final prefilledMessage = queryParams['source'] == 'vehicle_qr' &&
+                    vehicleNumber.isNotEmpty
+                ? 'Regarding your vehicle $vehicleNumber - '
+                : null;
+
             // Validate chatUserId if it's provided.
             //
             // For a NEW chat it is not optional: with no conversation to open,
@@ -707,6 +737,7 @@ print("type==== ${type}");
                     type: chatType,
                     name: chatName,
                     isInitialMessage: isNewChat,
+                    prefilledMessage: prefilledMessage,
                   ));
             } else {
               Get.to(() => PersonalChatScreen(
@@ -715,6 +746,7 @@ print("type==== ${type}");
                     type: chatType,
                     name: chatName,
                     isInitialMessage: isNewChat,
+                    prefilledMessage: prefilledMessage,
                   ));
             }
             break;

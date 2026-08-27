@@ -4175,7 +4175,17 @@ class AppStrings {
   static const String bookYourTransport = "book_your_transport";
   static const String rentalService = "rental_service";
   static const String findServices = "find_services";
-  static const String financialSectors = "financialSectors";
+  /// The Discover finance row's title — "Financial, Banks & Loans".
+  ///
+  /// Replaces a `financialSectors` key that read as the SECTOR name; this one
+  /// names what is actually inside the row. The old key's Dart constant went
+  /// with the orphaned `FinancialSectors` widget that was its last consumer.
+  /// Its entries survive in the locale JSON, which is bulk-managed — harmless
+  /// data, and not worth an eight-file edit.
+  ///
+  /// Locales without this key fall back to English, which is intended until the
+  /// copy is translated.
+  static const String financialBanksAndLoans = "financialBanksAndLoans";
   static const String automotiveShowroom = "automotive_showroom";
   static const String restaurantNearby = "restaurant_nearby";
   static const String findDreamJob = "find_dream_job";

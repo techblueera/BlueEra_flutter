@@ -529,7 +529,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
       final apiCategories =
           api.businessOnboardingFinancialSectorsCategories.toList();
       return DiscoverBannerRowV2(
-        title: AppStrings.financialSectors.tr,
+        title: AppStrings.financialBanksAndLoans.tr,
         leadingIcon: AppImageAssets.financialDiscover,
         chips: [
           for (final item in financeCategories)
