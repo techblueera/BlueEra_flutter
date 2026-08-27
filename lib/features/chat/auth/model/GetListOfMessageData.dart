@@ -423,6 +423,36 @@ class BuyerDetails {
   }
 }
 
+/// `metadata.order_status` reduced to the boolean the app has always used:
+/// "is this order ready to collect".
+///
+/// The key is a bool on the verticals that grew up with it and a string on the
+/// legacy order card. `'ready'` is the only string that means ready; `'placed'`
+/// and `'cancelled'` are not, and an unknown string means nothing at all
+/// rather than `false`, so a state this build has never seen does not silently
+/// read as "not ready".
+bool? _orderStatusBool(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is bool) return raw;
+  if (raw is num) return raw != 0;
+  if (raw is String) {
+    switch (raw.toLowerCase()) {
+      case 'ready':
+      case 'true':
+      case 'completed':
+        return true;
+      case 'placed':
+      case 'pending':
+      case 'false':
+      case 'cancelled':
+        return false;
+      default:
+        return null;
+    }
+  }
+  return null;
+}
+
 class MessageMetadata {
   String? foodId;
   String? productId;
@@ -435,6 +465,28 @@ class MessageMetadata {
   bool? is_cancelled;
   bool? callAccept;
   bool? callDecline;
+
+  /// `metadata.order_status` as the server actually sends it:
+  /// `'placed' | 'ready' | 'cancelled' | null` on a legacy order card
+  /// (`ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md` §2.2).
+  ///
+  /// [orderStatus] above is the app's own long-standing **boolean** reading of
+  /// the same key — "is this order ready" — and dozens of call sites depend on
+  /// it. Both are kept: the boolean for those call sites, this for anything
+  /// that needs the actual state. Parsing is defensive in both directions,
+  /// because the key arrives as a bool on some verticals and a string on
+  /// others, and assigning a String to a `bool?` field throws at parse time —
+  /// which would take the whole message list down, not just one card.
+  String? orderStatusText;
+
+  /// `metadata.order` when it arrives as a **bare id string** rather than an
+  /// order object — which is exactly what `grocery-order/send-message`
+  /// produces today (§2.3).
+  ///
+  /// A String here is never property-accessed. It is an id, and the card
+  /// either hydrates it through `/track` or falls back to a plain text bubble
+  /// (C3).
+  String? orderRefId;
 
   String? title;
   String? vegType;
@@ -480,6 +532,16 @@ class MessageMetadata {
   /// key differs. See docs/backend/PHARMACY_CUSTOMER_FLOW_INTEGRATION.md.
   String? medicalPickupOrderId;
   SelfPickupOrderModel? medicalPickupOrder;
+
+  /// Grocery order card (`message_type: grocery_order`). The vertical had no
+  /// slot at all until now, which is why a grocery order could never render as
+  /// a card even once the backend started producing one (§0).
+  ///
+  /// The id is read from `groceryOrderId`, from `orderId`, or from
+  /// `metadata.order` when that is a bare string; the snapshot is parsed only
+  /// when `order` is genuinely an object.
+  String? groceryOrderId;
+  SelfPickupOrderModel? groceryOrder;
 
   /// Server-computed order state machine, written onto every order card by the
   /// chat service from the order service's events. Carries the same action
@@ -647,6 +709,10 @@ class MessageMetadata {
     this.tiffinPickupOrder,
     this.medicalPickupOrderId,
     this.medicalPickupOrder,
+    this.groceryOrderId,
+    this.groceryOrder,
+    this.orderStatusText,
+    this.orderRefId,
     this.lifecycle,
     this.riderAssociationId,
     this.riderAssociation,
@@ -705,7 +771,15 @@ class MessageMetadata {
       orderId: json['orderId']?.toString(),
       price: json['price']?.toString(),
       discount: json['discount']?.toString(),
-      orderStatus: json['order_status'],
+      // `order_status` is a bool on the verticals this app grew up with and a
+      // STRING ('placed' | 'ready' | 'cancelled') on the legacy order card
+      // (§2.2). Assigning the string straight into a `bool?` threw and took
+      // the entire message list down with it, so both shapes are normalised
+      // here and the raw value is kept alongside.
+      orderStatus: _orderStatusBool(json['order_status']),
+      orderStatusText: json['order_status'] is String
+          ? json['order_status'] as String
+          : null,
       is_cancelled: json['is_cancelled'] ?? false,
       missedCall: json['missed_call'] ?? false,
       callAccept: json['call_accept'] ?? false,
@@ -718,39 +792,69 @@ class MessageMetadata {
       mrp: json['mrp']?.toString(),
       category: json['category']?.toString(),
       enquiryStatus: json['enquiry_status']?.toString(),
-      order: json['order'] != null
-          ? PaymentResponseModel.fromJson(json['order'])
+      // C3 — `metadata.order` is a bare id STRING on every grocery order the
+      // current `grocery-order/send-message` produces. Property-accessing it
+      // throws, so it is only ever parsed when it is genuinely an object; the
+      // string form is kept as an id in [orderRefId] instead.
+      order: json['order'] is Map
+          ? PaymentResponseModel.fromJson(
+              Map<String, dynamic>.from(json['order']))
+          : null,
+      orderRefId: json['order'] is String && (json['order'] as String).isNotEmpty
+          ? json['order'] as String
           : null,
       rider: json['rider'] != null
           ? Rider.fromJson(json['rider'])
           : null,
       selfpickupOrderId: json['selfpickupOrderId']?.toString(),
-      selfPickupOrder: (json['order'] != null && json['selfpickupOrderId'] != null)
-          ? SelfPickupOrderModel.fromJson(json['order'])
+      selfPickupOrder: (json['order'] is Map && json['selfpickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(
+              Map<String, dynamic>.from(json['order']))
           : null,
       foodPickupOrderId: json['foodPickupOrderId']?.toString(),
-      foodPickupOrder: (json['order'] != null && json['foodPickupOrderId'] != null)
-          ? SelfPickupOrderModel.fromJson(json['order'])
+      foodPickupOrder: (json['order'] is Map && json['foodPickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(
+              Map<String, dynamic>.from(json['order']))
           : null,
       productPickupOrderId: json['productPickupOrderId']?.toString(),
-      productPickupOrder: (json['order'] != null && json['productPickupOrderId'] != null)
-          ? SelfPickupOrderModel.fromJson(json['order'])
+      productPickupOrder: (json['order'] is Map && json['productPickupOrderId'] != null)
+          ? SelfPickupOrderModel.fromJson(
+              Map<String, dynamic>.from(json['order']))
           : null,
       homeMadeFoodPickupOrderId: json['homeMadeFoodPickupOrderId']?.toString(),
       homeMadeFoodPickupOrder:
-          (json['order'] != null && json['homeMadeFoodPickupOrderId'] != null)
-              ? SelfPickupOrderModel.fromJson(json['order'])
+          (json['order'] is Map && json['homeMadeFoodPickupOrderId'] != null)
+              ? SelfPickupOrderModel.fromJson(
+                  Map<String, dynamic>.from(json['order']))
               : null,
       tiffinPickupOrderId: json['tiffinPickupOrderId']?.toString(),
       tiffinPickupOrder:
-          (json['order'] != null && json['tiffinPickupOrderId'] != null)
-              ? SelfPickupOrderModel.fromJson(json['order'])
+          (json['order'] is Map && json['tiffinPickupOrderId'] != null)
+              ? SelfPickupOrderModel.fromJson(
+                  Map<String, dynamic>.from(json['order']))
               : null,
       medicalPickupOrderId: json['medicalPickupOrderId']?.toString(),
       medicalPickupOrder:
-          (json['order'] != null && json['medicalPickupOrderId'] != null)
-              ? SelfPickupOrderModel.fromJson(json['order'])
+          (json['order'] is Map && json['medicalPickupOrderId'] != null)
+              ? SelfPickupOrderModel.fromJson(
+                  Map<String, dynamic>.from(json['order']))
               : null,
+      // Grocery. The id may come from its own key, from the generic `orderId`,
+      // or from `metadata.order` when that is the bare string this vertical
+      // sends today — all three are the same id (§2.3).
+      groceryOrderId: (json['groceryOrderId'] ??
+              json['grocery_order_id'] ??
+              // The bare-string form of `metadata.order` IS the grocery order
+              // id (§2.3). The generic `orderId` is deliberately NOT read
+              // here — it is set on messages from every vertical, and the card
+              // falls back to it on its own when it needs to.
+              (json['order'] is String ? json['order'] : null))
+          ?.toString(),
+      groceryOrder: (json['order'] is Map &&
+              (json['groceryOrderId'] ?? json['grocery_order_id']) != null)
+          ? SelfPickupOrderModel.fromJson(
+              Map<String, dynamic>.from(json['order']))
+          : null,
       lifecycle: json['lifecycle'] is Map
           ? OrderLifecycle.fromJson(
               Map<String, dynamic>.from(json['lifecycle']))
@@ -900,7 +1004,10 @@ class MessageMetadata {
       'missed_call': missedCall,
       'call_accept': callAccept,
       'call_decline': callDecline,
-      'order_status': orderStatus,
+      // Round-trips whichever shape arrived: the string when the server sent
+      // one, the boolean otherwise. Writing the boolean back over a string
+      // would silently rewrite the card's state on the next read.
+      'order_status': orderStatusText ?? orderStatus,
       'is_cancelled': is_cancelled,
       'title': title,
       'veg_type': vegType,
@@ -918,6 +1025,7 @@ class MessageMetadata {
       'productPickupOrderId': productPickupOrderId,
       'homeMadeFoodPickupOrderId': homeMadeFoodPickupOrderId,
       'tiffinPickupOrderId': tiffinPickupOrderId,
+      'groceryOrderId': groceryOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
       'rideOrderId': rideOrderId,

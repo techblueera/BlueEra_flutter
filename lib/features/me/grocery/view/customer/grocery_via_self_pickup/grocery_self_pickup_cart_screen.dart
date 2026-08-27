@@ -6,11 +6,13 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/my_self_pickup_orders_screen.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -58,6 +60,19 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
             color: AppColors.mainTextColor,
           );
         }),
+        actions: [
+          // The way back to an order already placed. There is no server-side
+          // order list for self-pickup and no chat thread either
+          // (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7), so this — and the ids
+          // this device wrote down at checkout — is how a customer reaches
+          // their own order.
+          IconButton(
+            tooltip: 'My orders',
+            icon: const Icon(Icons.receipt_long_outlined,
+                color: AppColors.mainTextColor, size: 22),
+            onPressed: () => Get.to(() => const MySelfPickupOrdersScreen()),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.appBackgroundColor, height: 1),
@@ -104,6 +119,12 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
             AppStrings.groceryViewNoItemsSelfPickup.tr,
             fontSize: SizeConfig.large,
             color: AppColors.secondaryTextColor,
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => Get.to(() => const MySelfPickupOrdersScreen()),
+            icon: const Icon(Icons.receipt_long_outlined, size: 18),
+            label: CustomText('My orders', fontSize: SizeConfig.medium),
           ),
         ],
       ),
@@ -828,7 +849,19 @@ class _PlaceOrderBar extends StatelessWidget {
                   flex: 2,
                   child: GrocerySelfPickUpCartScreen.checkoutButton(
                     label: AppStrings.groceryViewPlaceOrder.tr,
-                    onTap: controller.placeBulkGroceryOrderApi,
+                    // Ask how they'll pay before the order exists. Grocery
+                    // orders are self-pickup only until that service takes
+                    // doorstep orders, so the sheet skips the delivery steps.
+                    onTap: () async {
+                      final choice = await showOrderCheckoutSheet(
+                        context,
+                        itemsTotal: total,
+                        allowDelivery: false,
+                      );
+                      if (choice == null) return;
+                      controller.paymentMethod.value = choice.paymentMethod;
+                      controller.placeBulkGroceryOrderApi();
+                    },
                   ),
                 ),
               ],

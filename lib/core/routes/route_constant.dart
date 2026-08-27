@@ -267,4 +267,13 @@ class RouteConstant {
   // Saved addresses (user-service/addresses)
   static const String savedAddressListScreen = "/SavedAddressListScreen";
   static const String addEditAddressScreen = "/AddEditAddressScreen";
+
+  // Order steps / tracker, driven by `<service>/api/orders/:id/track`.
+  // Vertical-agnostic: the service prefix travels in the arguments. See
+  // lib/docs/ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §6.
+  static const String orderStepsScreen = "/OrderStepsScreen";
+
+  // The locally-persisted self-pickup order list — the only order list either
+  // party has for grocery today (§7).
+  static const String mySelfPickupOrdersScreen = "/MySelfPickupOrdersScreen";
 }

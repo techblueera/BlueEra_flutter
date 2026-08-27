@@ -1,4 +1,7 @@
 ﻿import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
+import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/my_self_pickup_orders_screen.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
@@ -815,6 +818,11 @@ class RouteHelper {
 
   static String getAddEditAddressScreenRoute() =>
       RouteConstant.addEditAddressScreen;
+
+  static String getOrderStepsScreenRoute() => RouteConstant.orderStepsScreen;
+
+  static String getMySelfPickupOrdersScreenRoute() =>
+      RouteConstant.mySelfPickupOrdersScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -2672,6 +2680,33 @@ class RouteHelper {
           ),
           settings:
               RouteSettings(name: RouteHelper.getAddEditAddressScreenRoute()),
+        );
+
+      // The order steps screen. Reached from a chat order card, from the
+      // locally-persisted order list, and from an order push notification —
+      // all of which know the id and the vertical and nothing else, which is
+      // exactly what [OrderStepsArgs] carries.
+      case RouteConstant.orderStepsScreen:
+        final args = settings.arguments;
+        final resolved = args is OrderStepsArgs
+            ? args
+            : OrderStepsArgs(
+                orderId: (args is Map ? args['orderId'] : null)?.toString() ?? '',
+                service: (args is Map ? args['service'] : null)?.toString() ??
+                    OrderServiceApi.groceryOrderService,
+                isOwner: args is Map && args['isOwner'] == true,
+              );
+        return MaterialPageRoute(
+          builder: (_) => OrderStepsScreen(args: resolved),
+          settings:
+              RouteSettings(name: RouteHelper.getOrderStepsScreenRoute()),
+        );
+
+      case RouteConstant.mySelfPickupOrdersScreen:
+        return MaterialPageRoute(
+          builder: (_) => const MySelfPickupOrdersScreen(),
+          settings: RouteSettings(
+              name: RouteHelper.getMySelfPickupOrdersScreenRoute()),
         );
 
       default:

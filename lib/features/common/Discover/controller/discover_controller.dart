@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -1860,6 +1861,13 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:broadcast:searching', (data) {
       print('[BROADCAST] ride:broadcast:searching → $data');
+      // Fan out FIRST. `ChatSocketService.listenEvent` replaces any existing
+      // handler for an event name, so an order card cannot register its own
+      // `ride:broadcast:*` listener without silently killing this one. These
+      // three handlers are therefore the single subscription, and the chat
+      // cards read the same payload through OrderBroadcastController
+      // (guide §11).
+      OrderBroadcastController.instance.onSearching(data);
       if (_isStaleFareCallEvent(data)) return;
       if (data is! Map) return;
       multiShopBroadcastWave.value =
@@ -1881,6 +1889,7 @@ class DiscoverController extends GetxController {
     // card renders if the full payload never lands.
     socket.listenEvent('ride:broadcast:accepted', (data) {
       print('[BROADCAST] ride:broadcast:accepted → $data');
+      OrderBroadcastController.instance.onAccepted(data);
       if (_isStaleFareCallEvent(data)) return;
       final riderId = (data is Map ? data['riderId'] : null)?.toString() ?? '';
       if (riderId.isNotEmpty) fareCallAcceptedRiderId.value = riderId;
@@ -1892,6 +1901,7 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:broadcast:exhausted', (data) {
       print('[BROADCAST] ride:broadcast:exhausted → $data');
+      OrderBroadcastController.instance.onExhausted(data);
       if (_isStaleFareCallEvent(data)) return;
       _markMultiShopBroadcastExhausted();
     });
@@ -2132,10 +2142,6 @@ class DiscoverController extends GetxController {
   }) async {
     final ctx = chatDispatchContext;
     if (ctx == null) return false;
-    if (selectedRiders.isEmpty) {
-      commonSnackBar(message: AppStrings.noRidersAvailable.tr);
-      return false;
-    }
     bookRiderBtnLoading.value = true;
     try {
       // `POST /fare/chat-dispatch/orders` recomputes the fare server-side. The
@@ -2160,7 +2166,11 @@ class DiscoverController extends GetxController {
           ApiKeys.longitude: selectedToLong?.value,
         },
         ApiKeys.orderFor: ctx['orderFor'],
-        ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
+        // ⚠ `broadcast` with NO `selectedRiders`. The default, "standard",
+        // *requires* a hand-picked list — that is the manual flow this
+        // replaces. Broadcast rings up to 15 eligible partners per round
+        // across 3 expanding rounds and the first accept wins (guide §7.1).
+        'orderType': 'broadcast',
         ApiKeys.modeOfPayment: "prepaid",
         ApiKeys.fare: displayedFare,
         if (chatDispatchDistanceKm != null)

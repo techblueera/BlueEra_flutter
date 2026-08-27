@@ -145,6 +145,9 @@ class _PickupHandoverDialogState extends State<_PickupHandoverDialog>
       _error = message;
       _submitting = false;
     });
+    // Shake plus a heavy haptic (guide §3.5). A shop counter is loud and the
+    // phone is often not being looked at — the wrong code has to be felt.
+    HapticFeedback.heavyImpact();
     _shakeController.forward(from: 0);
     _focus.requestFocus();
   }

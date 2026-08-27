@@ -13,6 +13,7 @@ import 'package:BlueEra/features/chat/view/business_chat/widgets/order_refund_di
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 /// Everything an action needs that the action string itself doesn't carry.
@@ -41,9 +42,21 @@ class OrderCardContext {
   /// Order total, used to pre-fill the payment sheet and the cash checkbox.
   final num? orderTotal;
 
-  /// Opens the existing rider-dispatch flow. The rider leg is unchanged
-  /// (guide §7) so the card supplies it rather than this file re-implementing
-  /// it.
+  /// The shop's business id — the dispatch call resolves the pickup point from
+  /// it, so delivery never re-asks for an address the order already has.
+  final String? businessId;
+
+  /// The chat `message_type` (`product_selfpickup`, `food_selfpickup`, …),
+  /// sent as `selfpickupType` on dispatch.
+  final String? selfpickupType;
+
+  /// `product` | `grocery` | `food` | `medical` — the rider service's
+  /// `orderFor`.
+  final String orderFor;
+
+  /// Opens the in-card "get it delivered" flow for a **self-pickup** order the
+  /// customer changed their mind about (guide §5.5). A doorstep order never
+  /// uses this: it dispatches automatically at `ready`.
   final Future<void> Function()? onFindRider;
 
   /// Existing support flow.
@@ -65,6 +78,9 @@ class OrderCardContext {
     this.shopName,
     this.shopAddress,
     this.orderTotal,
+    this.businessId,
+    this.selfpickupType,
+    this.orderFor = 'product',
     this.onFindRider,
     this.onRaiseIssue,
     this.onChanged,
@@ -110,17 +126,205 @@ class OrderActionBar extends StatelessWidget {
       // ignore: unnecessary_statements
       busy.length;
 
+      // Order: primary → secondary → destructive → icon (guide §3.3). The
+      // server sends what is *allowed*; the ranking decides what reads first.
+      final ranked = [...actions]..sort((a, b) => _rank(a).compareTo(_rank(b)));
+
+      // Icons never count against the cap — a call button that disappears into
+      // an overflow menu is a call that does not get made.
+      final icons = ranked.where(_isIcon).toList();
+      final buttons = ranked.where((a) => !_isIcon(a)).toList();
+
+      final visible = buttons.take(_maxVisible).toList();
+      final overflow = buttons.skip(_maxVisible).toList();
+
       final widgets = <Widget>[];
-      for (final a in actions) {
+      for (final a in [...visible, ...icons]) {
         final w = _widgetFor(context, a);
         if (w != null) widgets.add(w);
       }
+      // Only offer the ⋯ for actions this build actually knows how to run.
+      final knownOverflow =
+          overflow.where((a) => _labelFor(a) != null).toList();
+      if (knownOverflow.isNotEmpty) {
+        widgets.add(_overflowButton(context, knownOverflow));
+      }
+
       if (widgets.isEmpty) return const SizedBox.shrink();
       return Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Wrap(spacing: 8, runSpacing: 8, children: widgets),
       );
     });
+  }
+
+  /// At most three buttons stay on the card; the rest fold into `⋯`.
+  static const int _maxVisible = 3;
+
+  static bool _isIcon(String a) =>
+      a == OrderAction.contactShop || a == OrderAction.contactCustomer;
+
+  /// Lower sorts earlier. Primary work first, then the ways out.
+  static int _rank(String a) {
+    switch (a) {
+      case OrderAction.acceptOrder:
+      case OrderAction.markReady:
+      case OrderAction.verifyPayment:
+      case OrderAction.confirmHandover:
+      case OrderAction.submitPayment:
+      case OrderAction.viewPickupCode:
+      case OrderAction.markRefundSent:
+      case OrderAction.confirmRefundReceived:
+        return 0; // primary
+      case OrderAction.setPrepEta:
+        return 1; // secondary
+      case OrderAction.findRider:
+        return 2; // low-emphasis link
+      case OrderAction.rejectOrder:
+      case OrderAction.rejectPayment:
+      case OrderAction.reportNoShow:
+      case OrderAction.cancelOrder:
+        return 3; // destructive
+      case OrderAction.raiseIssue:
+        return 4;
+      case OrderAction.contactShop:
+      case OrderAction.contactCustomer:
+        return 5; // icon
+      default:
+        // An unknown action from a newer backend sorts last and renders
+        // nothing anyway.
+        return 9;
+    }
+  }
+
+  /// The overflow menu's wording. Null for anything this build cannot run —
+  /// an unknown action is never offered, not even in a menu.
+  static String? _labelFor(String a) {
+    switch (a) {
+      case OrderAction.acceptOrder:
+        return 'Accept';
+      case OrderAction.rejectOrder:
+        return "Can't take it";
+      case OrderAction.setPrepEta:
+        return 'Update time';
+      case OrderAction.markReady:
+        return 'Order packed';
+      case OrderAction.verifyPayment:
+        return 'Payment received';
+      case OrderAction.rejectPayment:
+        return 'Not received';
+      case OrderAction.confirmHandover:
+        return 'Handed over';
+      case OrderAction.reportNoShow:
+        return "Customer didn't come";
+      case OrderAction.markRefundSent:
+        return 'I sent the refund';
+      case OrderAction.submitPayment:
+        return 'Pay now';
+      case OrderAction.viewPickupCode:
+        return 'Show pickup code';
+      case OrderAction.findRider:
+        return 'Get it delivered';
+      case OrderAction.confirmRefundReceived:
+        return 'I received the refund';
+      case OrderAction.cancelOrder:
+        return 'Cancel order';
+      case OrderAction.raiseIssue:
+        return 'Report a problem';
+      default:
+        return null;
+    }
+  }
+
+  Widget _overflowButton(BuildContext context, List<String> actions) {
+    return SizedBox(
+      height: 38,
+      width: 44,
+      child: PopupMenuButton<String>(
+        tooltip: 'More',
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        itemBuilder: (_) => [
+          for (final a in actions)
+            PopupMenuItem<String>(
+              value: a,
+              child: CustomText(
+                _labelFor(a) ?? a,
+                fontSize: SizeConfig.size13,
+                fontWeight: FontWeight.w600,
+                color: a == OrderAction.cancelOrder ||
+                        a == OrderAction.rejectOrder ||
+                        a == OrderAction.rejectPayment
+                    ? Colors.red
+                    : AppColors.mainTextColor,
+              ),
+            ),
+        ],
+        onSelected: (a) => _runAction(context, a),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.greyE5),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.more_horiz,
+              size: 18, color: AppColors.secondaryTextColor),
+        ),
+      ),
+    );
+  }
+
+  /// Runs an action chosen from the overflow menu. Same flows, same guards —
+  /// the menu is only a different way to reach them.
+  void _runAction(BuildContext context, String action) {
+    switch (action) {
+      case OrderAction.acceptOrder:
+        _acceptFlow(context);
+        break;
+      case OrderAction.rejectOrder:
+        _rejectFlow(context);
+        break;
+      case OrderAction.setPrepEta:
+        _etaSheet(context);
+        break;
+      case OrderAction.markReady:
+        _markReady();
+        break;
+      case OrderAction.verifyPayment:
+        _verifyPayment();
+        break;
+      case OrderAction.rejectPayment:
+        _rejectPaymentFlow(context);
+        break;
+      case OrderAction.confirmHandover:
+        _handoverFlow(context);
+        break;
+      case OrderAction.reportNoShow:
+        _noShow();
+        break;
+      case OrderAction.markRefundSent:
+        _refundSentFlow(context);
+        break;
+      case OrderAction.submitPayment:
+        _payFlow(context);
+        break;
+      case OrderAction.viewPickupCode:
+        _showPickupCode(context);
+        break;
+      case OrderAction.findRider:
+        _findRider();
+        break;
+      case OrderAction.confirmRefundReceived:
+        _confirmRefundReceived();
+        break;
+      case OrderAction.cancelOrder:
+        _cancelFlow(context);
+        break;
+      case OrderAction.raiseIssue:
+        _raiseIssue();
+        break;
+      default:
+        break;
+    }
   }
 
   Widget? _widgetFor(BuildContext context, String action) {
@@ -158,7 +362,10 @@ class OrderActionBar extends StatelessWidget {
         return _primary(action, 'Show pickup code',
             onTap: () => _showPickupCode(context));
       case OrderAction.findRider:
-        return _secondary(action, 'Get it delivered', onTap: _findRider);
+        // A text link under the pickup code — never a primary button, and
+        // never a navigation away from chat (guide §5.5). Delivery was already
+        // offered at checkout; this is the "changed my mind" path.
+        return _text(action, "Can't come? Get it delivered", onTap: _findRider);
       case OrderAction.confirmRefundReceived:
         return _primary(action, 'I received the refund',
             onTap: _confirmRefundReceived);
@@ -189,8 +396,8 @@ class OrderActionBar extends StatelessWidget {
   Future<List<OrderCancellationReason>> _reasons() async {
     final cached = _controller.stateOf(ctx.orderId)?.cancellationReasons;
     if (cached != null && cached.isNotEmpty) return cached;
-    final res = await _controller.refreshActions(ctx.orderId,
-        service: ctx.service);
+    final res =
+        await _controller.refreshActions(ctx.orderId, service: ctx.service);
     return res.model?.cancellationReasons ??
         _controller.stateOf(ctx.orderId)?.cancellationReasons ??
         const [];
@@ -297,7 +504,8 @@ class OrderActionBar extends StatelessWidget {
   }
 
   Future<void> _noShow() async {
-    final res = await _controller.reportNoShow(ctx.orderId, service: ctx.service);
+    final res =
+        await _controller.reportNoShow(ctx.orderId, service: ctx.service);
     _after(res);
   }
 
@@ -316,18 +524,17 @@ class OrderActionBar extends StatelessWidget {
   }
 
   Future<void> _payFlow(BuildContext context) async {
-    // The sheet needs the authoritative amount due; a card rendered from
-    // metadata alone may not have it yet.
-    if (_controller.stateOf(ctx.orderId)?.paymentSummary == null) {
-      await _controller.refreshActions(ctx.orderId, service: ctx.service);
-    }
+    // The sheet needs the authoritative amount due, and `/actions` carries no
+    // money at all — so hydrate from `/track`, which does (guide §2.4).
+    final payment =
+        await _controller.ensurePayment(ctx.orderId, service: ctx.service);
     if (!context.mounted) return;
     final ok = await showOrderPaymentSheet(
       context,
       orderId: ctx.orderId,
       service: ctx.service,
       payeeUserId: ctx.otherUserId,
-      amountDue: ctx.orderTotal,
+      amountDue: payment?.amountDue ?? ctx.orderTotal,
       shopName: ctx.shopName ?? ctx.otherUserName,
     );
     if (ok) {
@@ -337,8 +544,8 @@ class OrderActionBar extends StatelessWidget {
   }
 
   Future<void> _showPickupCode(BuildContext context) async {
-    final res = await _controller.fetchPickupCode(ctx.orderId,
-        service: ctx.service);
+    final res =
+        await _controller.fetchPickupCode(ctx.orderId, service: ctx.service);
     if (!res.ok) return;
     final code = res.model?.pickupCode ??
         res.raw?['pickupCode']?.toString() ??
@@ -406,7 +613,18 @@ class OrderActionBar extends StatelessWidget {
   }
 
   void _after(OrderCallResult res) {
-    if (res.ok) ctx.onChanged?.call(res.model);
+    if (!res.ok) return;
+    // A light tap on a successful action (guide §3.5) — the shop is often
+    // holding the phone rather than watching it.
+    HapticFeedback.lightImpact();
+    ctx.onChanged?.call(res.model);
+
+    // A success can still carry a caveat: an amount that doesn't match, for
+    // instance. Amber note, never an error.
+    final warning = res.warning;
+    if (warning != null && warning.isNotEmpty) {
+      commonSnackBar(message: warning);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────

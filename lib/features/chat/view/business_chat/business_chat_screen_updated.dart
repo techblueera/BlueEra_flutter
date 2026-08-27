@@ -19,6 +19,7 @@ import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/call_customer_button.dart';
 import '../widget/message_card.dart';
+import 'package:BlueEra/features/chat/view/widget/order_card_dedupe.dart';
 import 'widgets/payment_qr_bottom_sheet.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
@@ -199,6 +200,11 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
 
                 return dateA.compareTo(dateB); // descending
               });
+              // C12 — one card per order. A duplicate order (server-side) or a
+              // replayed socket card would otherwise show the same order
+              // twice; the newest `created_at` wins and the history list stays
+              // untouched. See ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §3.
+              messages = OrderCardDedupe.apply(messages);
               return SafeArea(
                 child: Stack(
                   fit: StackFit.expand,

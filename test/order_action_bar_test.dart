@@ -68,9 +68,35 @@ void main() {
         isOwner: false,
       );
 
+      // Primaries first, then the low-emphasis ways out. Only three buttons
+      // stay on the card; the rest fold into the ⋯ menu (guide §3.3).
       expect(find.text('Pay now'), findsOneWidget);
       expect(find.text('Show pickup code'), findsOneWidget);
-      expect(find.text('Get it delivered'), findsOneWidget);
+      // FIND_RIDER is a text link now, never a button that leaves the chat
+      // (guide §5.5).
+      expect(find.text("Can't come? Get it delivered"), findsOneWidget);
+      expect(find.byIcon(Icons.more_horiz), findsOneWidget);
+      // Cancel and Report are in the overflow, not gone.
+      expect(find.text('Cancel order'), findsNothing);
+    });
+
+    testWidgets('the overflow menu carries what the cap pushed off',
+        (tester) async {
+      await _pump(
+        tester,
+        [
+          'SUBMIT_PAYMENT',
+          'VIEW_PICKUP_CODE',
+          'FIND_RIDER',
+          'CANCEL_ORDER',
+          'RAISE_ISSUE',
+        ],
+        isOwner: false,
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
       expect(find.text('Cancel order'), findsOneWidget);
       expect(find.text('Report a problem'), findsOneWidget);
     });
@@ -86,10 +112,17 @@ void main() {
         'MARK_REFUND_SENT',
       ]);
 
+      // Three primaries are visible; the destructive and low-priority ones
+      // are one tap away rather than crowding the card.
       expect(find.text('Order packed'), findsOneWidget);
       expect(find.text('Payment received'), findsOneWidget);
-      expect(find.text('Not received'), findsOneWidget);
       expect(find.text('Handed over'), findsOneWidget);
+      expect(find.byIcon(Icons.more_horiz), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Not received'), findsOneWidget);
       expect(find.text("Customer didn't come"), findsOneWidget);
       expect(find.text('I sent the refund'), findsOneWidget);
     });

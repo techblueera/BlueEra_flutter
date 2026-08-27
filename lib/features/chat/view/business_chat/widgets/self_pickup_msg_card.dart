@@ -15,7 +15,9 @@ import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
+import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
@@ -109,6 +111,10 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
         shopName: widget.message.seller?.name,
         shopAddress: widget.message.seller?.location,
         orderTotal: widget.message.metadata?.selfPickupOrder?.grandTotal,
+        businessId: widget.message.metadata?.selfPickupOrder?.businessId ??
+            widget.message.sender?.id,
+        selfpickupType: widget.message.messageType ?? 'grocery_selfpickup',
+        orderFor: 'grocery',
         onFindRider: _isMyMessage ? _findRiderFromCard : null,
         onChanged: _onLifecycleChanged,
       );
@@ -134,12 +140,15 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     if (mounted) setState(() {});
   }
 
-  /// `FIND_RIDER` reuses the existing chat-dispatch flow untouched — the rider
-  /// leg is unchanged (guide §7).
+  /// `FIND_RIDER` runs **in the card** now (guide §5.5).
+  ///
+  /// The old button left the chat for a full-screen rider-booking flow and
+  /// re-asked for a drop address — on an order that, for doorstep delivery,
+  /// already carries one. A doorstep order never reaches this at all: it
+  /// dispatches itself the moment it turns `ready` (§7.2). This is only the
+  /// self-pickup customer who changed their mind.
   Future<void> _findRiderFromCard() async {
-    final drop = await showRideDropLocationSheet(context);
-    if (drop == null || !mounted) return;
-    Get.to(() => GoodsMultiOrderBookingMain(dropAddress: drop));
+    await showFindRiderSheet(context, ctx: _cardContext);
   }
 
   /// Business taps "Mark as Ready" → show product selection bottom sheet
@@ -1189,6 +1198,23 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          // The steps screen. For grocery this is the only surface that shows
+          // the real, server-driven order state: `/track` works for this
+          // vertical, nothing else does, and there is no socket to update this
+          // card with (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7).
+          if (_lifecycleOrderId.isNotEmpty)
+            _orderActionButton(
+              icon: Icons.list_alt_outlined,
+              label: AppStrings.orderStepsViewOrder.tr,
+              color: AppColors.primaryColor,
+              onTap: () => Get.to(() => OrderStepsScreen(
+                    args: OrderStepsArgs(
+                      orderId: _lifecycleOrderId,
+                      service: OrderServiceApi.groceryOrderService,
+                      isOwner: _isOwnerView,
+                    ),
+                  )),
+            ),
           _orderActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Payment',

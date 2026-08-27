@@ -65,8 +65,15 @@ class PendingDeepLink {
       case 'commented_on_message':
       case 'liked_message':
       case 'rider_otp':
+      // These three now ROUTE to the order steps screen, not a chat thread
+      // (ORDER_UI_CONDITIONAL_FLOW_GUIDE.md §13). They stay mapped to `chat`
+      // here on purpose: this target only decides boot work, and `needsSocket`
+      // must stay true for them — grocery's four socket events (§12 fact 2)
+      // are what keep that screen's card live once it opens. Routing itself is
+      // decided by the `operation` switch in `AppNotificationHandler`.
       case 'selfpickup_order':
       case 'selfpickup_order_ready':
+      case 'grocery_order_dispatched':
       case 'homemade_food_pickup_order':
       case 'homemade_food_pickup_order_ready':
       case 'send_morning_greeting':

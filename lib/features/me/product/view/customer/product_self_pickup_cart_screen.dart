@@ -4,7 +4,9 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_options_sheet.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/discount_ribbon.dart';
@@ -198,7 +200,19 @@ class _ProductSelfPickUpCartScreenState
     controller.deliveryDetails.value = choice.delivery;
     controller.deliveryQuote.value = choice.quote;
 
-    controller.placeProductOrderApi();
+    final code = await controller.placeProductOrderApi();
+
+    // `DELIVERY_LOCATION_REQUIRED` means the delivery block reached the server
+    // without a usable coordinate. The address gate makes that unreachable, so
+    // if it ever fires, send the customer straight back to the step that fixes
+    // it rather than leaving them on a cart with a dead toast (guide §5.4).
+    if (code == OrderErrorCode.deliveryLocationRequired && mounted) {
+      commonSnackBar(
+        message: 'We need a map location for that address. '
+            'Please pick it again from the suggestions.',
+      );
+      _placeOrder(controller, grouped);
+    }
   }
 
   /// Shop coordinates are not carried on the cart's business info map today,

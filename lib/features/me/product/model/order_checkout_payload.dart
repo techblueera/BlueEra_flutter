@@ -37,12 +37,21 @@ class CheckoutAttempt {
   bool get isActive => _attemptId != null;
 }
 
-/// The optional `delivery` block on `POST /api/orders`.
+/// The `delivery` block on `POST /api/orders`.
 ///
-/// Required when `deliveryType == 'rider'`, recommended always — it records
-/// what the customer was actually shown at checkout (`distanceKm`,
-/// `feeEstimate`, `etaMinutes` come straight from the quote), so a later
-/// dispute has the quoted numbers rather than a recomputed guess.
+/// **Required when `deliveryType == 'rider'`**, and it must carry a real
+/// coordinate: the rider-order gate reads **only** `delivery.location.
+/// coordinates` or `delivery.coordinates`, as GeoJSON **`[longitude,
+/// latitude]` — lng first**. A flat `latitude` / `longitude` pair alone is
+/// rejected with `400 DELIVERY_LOCATION_REQUIRED`, which is why every doorstep
+/// order used to fail even with a complete address (guide §0 cause 6, §5.4).
+///
+/// It also records what the customer was actually shown at checkout —
+/// `distanceKm`, `feeEstimate`, `etaMinutes` come straight from the quote — so
+/// a later dispute has the quoted numbers rather than a recomputed guess.
+/// **There is no endpoint to attach the quote later**: no
+/// `PATCH /:orderId/delivery-quote` exists, so anything not sent here is lost
+/// forever (guide §0 cause 7).
 class OrderDeliveryDetails {
   final String? addressLine;
   final String? landmark;
@@ -74,6 +83,11 @@ class OrderDeliveryDetails {
     this.etaMinutes,
   });
 
+  /// True once there is a real point to deliver to. **The checkout gate is
+  /// this getter** — a typed address with no coordinate does not pass, because
+  /// neither the order gate nor the rider search can use it.
+  bool get hasCoordinates => latitude != null && longitude != null;
+
   /// Null keys are omitted rather than sent as null — the backend treats the
   /// whole block as optional and a half-null address is worse than none.
   Map<String, dynamic> toJson() => {
@@ -82,19 +96,51 @@ class OrderDeliveryDetails {
         if (landmark != null && landmark!.isNotEmpty) 'landmark': landmark,
         if (city != null && city!.isNotEmpty) 'city': city,
         if (pincode != null && pincode!.isNotEmpty) 'pincode': pincode,
+
+        // ⚠ THE SHAPE THAT MATTERS. GeoJSON, [lng, lat], lng first.
+        if (hasCoordinates)
+          'location': {
+            'type': 'Point',
+            'coordinates': [longitude, latitude],
+          },
+        // Sent alongside for anything that reads the flat pair for display.
+        // It is NOT a substitute: the gate above ignores these two.
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
+
         if (contactName != null && contactName!.isNotEmpty)
           'contactName': contactName,
         if (contactNo != null && contactNo!.isNotEmpty) 'contactNo': contactNo,
         if (instructions != null && instructions!.isNotEmpty)
           'instructions': instructions,
+
+        // The quote the customer was shown. Nowhere else to put it later.
         if (distanceKm != null) 'distanceKm': distanceKm,
         if (feeEstimate != null) 'feeEstimate': feeEstimate,
         if (etaMinutes != null) 'etaMinutes': etaMinutes,
       };
 
   bool get isEmpty => toJson().isEmpty;
+
+  OrderDeliveryDetails copyWithQuote({
+    double? distanceKm,
+    num? feeEstimate,
+    int? etaMinutes,
+  }) =>
+      OrderDeliveryDetails(
+        addressLine: addressLine,
+        landmark: landmark,
+        city: city,
+        pincode: pincode,
+        latitude: latitude,
+        longitude: longitude,
+        contactName: contactName,
+        contactNo: contactNo,
+        instructions: instructions,
+        distanceKm: distanceKm ?? this.distanceKm,
+        feeEstimate: feeEstimate ?? this.feeEstimate,
+        etaMinutes: etaMinutes ?? this.etaMinutes,
+      );
 }
 
 /// How the customer will pay. `cash` is the default; `upi` switches the order

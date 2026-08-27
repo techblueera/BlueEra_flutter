@@ -35,6 +35,7 @@ import 'package:BlueEra/features/me/manufacturer/service/manufacturer_local_stor
 import 'package:BlueEra/features/me/product/service/product_local_store.dart';
 import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
+import 'package:BlueEra/features/me/grocery/service/grocery_order_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
@@ -255,6 +256,11 @@ class LogoutHelper {
       // the place that drops account data names it, and a new vertical's box
       // going missing from this list is an obvious omission.
       GroceryLocalStore.clearAll,
+      // The locally-persisted order ids. There is no server order list for
+      // self-pickup (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7), so this box is
+      // the only record the device has — and for exactly that reason it must
+      // not survive into the next account.
+      GroceryOrderLocalStore.clearAll,
       FoodLocalStore.clearAll,
       ProductLocalStore.clearAll,
       MedicalLocalStore.clearAll,

@@ -1,4 +1,6 @@
 // ignore_for_file: avoid_print
+import 'package:BlueEra/core/api/apiService/order_service_api.dart';
+import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -2148,6 +2150,53 @@ class AppNotificationHandler {
   ///     \"ridefare\":54.488
   ///   }}" }
   /// ```
+  /// The order id an order push names, from wherever the sending service put
+  /// it.
+  ///
+  /// Order pushes are produced by five different services and the id key has
+  /// never been agreed: some send it flat, some inside `payload` (which itself
+  /// arrives as a JSON string or as a Map), some under `metadata`. Returns
+  /// null when the push genuinely names no order — the caller then falls back
+  /// to opening the chat, rather than sending `/track` after an empty id.
+  static String? _orderIdFromNotification(Map<String, dynamic> data) {
+    String? pick(Map source) {
+      for (final key in const [
+        'orderId',
+        'order_id',
+        'groceryOrderId',
+        'selfpickupOrderId',
+      ]) {
+        final v = source[key]?.toString();
+        if (v != null && v.isNotEmpty && v != 'null') return v;
+      }
+      return null;
+    }
+
+    final flat = pick(data);
+    if (flat != null) return flat;
+
+    Map<String, dynamic>? payload;
+    final raw = data['payload'];
+    try {
+      if (raw is String && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) payload = Map<String, dynamic>.from(decoded);
+      } else if (raw is Map) {
+        payload = Map<String, dynamic>.from(raw);
+      }
+    } catch (_) {
+      // A payload that will not decode simply carries no id.
+    }
+    if (payload == null) return null;
+
+    final fromPayload = pick(payload);
+    if (fromPayload != null) return fromPayload;
+
+    final metadata = payload['metadata'];
+    if (metadata is Map) return pick(metadata);
+    return null;
+  }
+
   Future<void> _showRiderOrderScreen(Map<String, dynamic> data) async {
     try {
       // Parse the payload JSON string
@@ -3474,9 +3523,49 @@ class AppNotificationHandler {
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
-      // Self-pickup order operations
+      // Grocery self-pickup orders → the steps screen, not a chat thread.
+      //
+      // **The labels matter and the app had the wrong ones.**
+      // `ORDER_UI_CONDITIONAL_FLOW_GUIDE.md` §13 is explicit: the backend
+      // sends `selfpickup_order` (→ the shop), `selfpickup_order_ready` (→ the
+      // customer) and `grocery_order_dispatched`. It never sends
+      // `grocery_order` / `grocery_order_ready`, so those two cases below were
+      // a dead deep link — the working labels were falling through to the
+      // generic "open the conversation" group instead.
+      //
+      // The steps screen is the right destination because `/track` is the one
+      // route grocery answers richly; the thread's card is a snapshot (§11).
+      // `grocery_order` / `grocery_order_ready` are kept purely as aliases so
+      // an older backend, or a queued push, still lands somewhere sensible.
       case 'selfpickup_order':
       case 'selfpickup_order_ready':
+      case 'grocery_order_dispatched':
+      case 'grocery_order':
+      case 'grocery_order_ready':
+        final groceryOrderId = _orderIdFromNotification(data);
+        if (groceryOrderId != null && groceryOrderId.isNotEmpty) {
+          Get.toNamed(
+            RouteHelper.getOrderStepsScreenRoute(),
+            arguments: OrderStepsArgs(
+              orderId: groceryOrderId,
+              service: OrderServiceApi.groceryOrderService,
+              // The shop is the party that receives a "new order" push; the
+              // customer is the one that receives "ready" or "dispatched".
+              // `/track`'s `actor` corrects either guess the moment it lands,
+              // so this is only what to draw for the first frame.
+              isOwner: operation == 'grocery_order' ||
+                  operation == 'selfpickup_order',
+            ),
+          );
+        } else if (data['senderId'] != null) {
+          // No order id — the push cannot name a screen, so fall back to the
+          // conversation, which is what every other vertical does.
+          _openChatWithUser(data['senderId']!);
+        }
+        break;
+
+      // Self-pickup order operations for the verticals that DO have a rich
+      // chat card of their own.
       case 'homemade_food_pickup_order':
       case 'homemade_food_pickup_order_ready':
       // Enquiry-card pushes — new card + status change, per

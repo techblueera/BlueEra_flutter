@@ -117,4 +117,14 @@ mixin OrderServiceApi {
   /// `availableActions`, `paymentSummary`, `cancellation` and `deadlines`.
   String orderTrack(String orderId, {String service = defaultOrderService}) =>
       '${_orderBase(service, orderId)}/track';
+
+  /// `PUT  <service>/api/orders/:orderId` — the direct status write.
+  ///
+  /// The blunt instrument that predates the lifecycle routes and is still the
+  /// only way to close a grocery order: `{ orderStatus: 'completed' }`. Use a
+  /// lifecycle route wherever one exists — this bypasses the state machine, so
+  /// it is offered only for the verticals verified to have nothing better
+  /// (`ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md` §7).
+  String orderUpdate(String orderId, {String service = defaultOrderService}) =>
+      _orderBase(service, orderId);
 }

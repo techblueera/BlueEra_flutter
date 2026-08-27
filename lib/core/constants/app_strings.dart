@@ -8703,4 +8703,99 @@ class AppStrings {
   static const String accountTypeNoCategory = "accountTypeNoCategory";
   static const String accountTypeNoProfession = "accountTypeNoProfession";
   static const String accountTypeNoSubCategory = "accountTypeNoSubCategory";
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Order chat card + order steps (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §8)
+  //
+  //  The §8 copy table, verbatim. These are the ONLY sentences these two
+  //  surfaces are allowed to invent — everything else (banners, stage labels,
+  //  the payment note) is server copy, rendered as it arrives.
+  //
+  //  Never show: raw `error` text, Mongoose validation strings, "Invalid order
+  //  ID", `ACTION_NOT_AVAILABLE`, or an action key as a button label.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /// Order placed, waiting on the shop.
+  static const String orderWaitingShopConfirm = "orderWaitingShopConfirm";
+
+  /// Ready for pickup, customer side.
+  static const String orderReadyCollectIt = "orderReadyCollectIt";
+
+  /// Ready for pickup, seller side.
+  static const String orderWaitingCustomerCollect =
+      "orderWaitingCustomerCollect";
+
+  static const String orderCompletedCopy = "orderCompletedCopy";
+  static const String orderCancelledCopy = "orderCancelledCopy";
+
+  /// Tapped an action on an order that is already finished (B6).
+  static const String orderAlreadyClosed = "orderAlreadyClosed";
+
+  /// `NOT_A_PARTY_TO_ORDER` / `NOT_ORDER_CUSTOMER` (B7).
+  static const String orderNotAParty = "orderNotAParty";
+
+  /// `/track` 404 mid-view — the order was deleted (S14).
+  static const String orderNoLongerExists = "orderNoLongerExists";
+
+  /// Route not deployed for this vertical, or any unmapped failure (B8).
+  static const String orderGenericError = "orderGenericError";
+
+  /// Offline (B10, T8).
+  static const String orderOfflineCopy = "orderOfflineCopy";
+
+  // ── Status chip (§6.1) ────────────────────────────────────────────────
+
+  static const String orderStatusPlaced = "orderStatusPlaced";
+  static const String orderStatusAccepted = "orderStatusAccepted";
+  static const String orderStatusInProgress = "orderStatusInProgress";
+  static const String orderStatusReadyForPickup = "orderStatusReadyForPickup";
+  static const String orderStatusOnTheWay = "orderStatusOnTheWay";
+  static const String orderStatusCompleted = "orderStatusCompleted";
+  static const String orderStatusCancelled = "orderStatusCancelled";
+  static const String orderStatusExpired = "orderStatusExpired";
+
+  // ── Steps screen ──────────────────────────────────────────────────────
+
+  static const String orderStepsTitle = "orderStepsTitle";
+  static const String orderStepsItemsHeading = "orderStepsItemsHeading";
+  static const String orderStepsTotal = "orderStepsTotal";
+
+  /// `@count` — resolve with `.trParams({'count': '2'})`.
+  static const String orderStepsMoreItems = "orderStepsMoreItems";
+
+  static const String orderStepsShopHeading = "orderStepsShopHeading";
+  static const String orderStepsCustomerHeading = "orderStepsCustomerHeading";
+  static const String orderStepsRiderHeading = "orderStepsRiderHeading";
+  static const String orderStepsPaymentHeading = "orderStepsPaymentHeading";
+  static const String orderStepsPickupCode = "orderStepsPickupCode";
+  static const String orderStepsViewOrder = "orderStepsViewOrder";
+  static const String orderStepsRetry = "orderStepsRetry";
+  static const String orderStepsEmptyStages = "orderStepsEmptyStages";
+
+  // ── Seller controls (§7) ──────────────────────────────────────────────
+
+  static const String orderMarkReady = "orderMarkReady";
+  static const String orderMarkCollected = "orderMarkCollected";
+  static const String orderMarkCollectedTitle = "orderMarkCollectedTitle";
+  static const String orderMarkCollectedBody = "orderMarkCollectedBody";
+  static const String orderMarkedReadyToast = "orderMarkedReadyToast";
+  static const String orderMarkedCollectedToast = "orderMarkedCollectedToast";
+
+  // ── Payment row (§6.4) ────────────────────────────────────────────────
+
+  static const String orderPaymentSubmittedWaiting =
+      "orderPaymentSubmittedWaiting";
+  static const String orderPaymentRejected = "orderPaymentRejected";
+
+  /// Always names the **shop** as the payer of a refund. The platform never
+  /// held the money (P6).
+  static const String orderRefundPendingFromShop = "orderRefundPendingFromShop";
+  static const String orderRefundReceivedCopy = "orderRefundReceivedCopy";
+
+  // ── Chat card (§3) ────────────────────────────────────────────────────
+
+  static const String orderCardNewOrder = "orderCardNewOrder";
+  static const String orderCardDeleted = "orderCardDeleted";
+  static const String orderCardCollectFromShop = "orderCardCollectFromShop";
+  static const String orderCardDoorstep = "orderCardDoorstep";
 }

@@ -215,7 +215,7 @@ class HmfCartController extends GetxController {
       'discount': 0,
       // Cash is what this cart offers today; sending it explicitly keeps the
       // order out of the UPI submit/verify flow.
-      'paymentMethod': OrderPaymentMethod.cash,
+      'paymentMethod': paymentMethod.value,
       // One key per store, so a response lost mid-loop and then retried
       // resolves each store to the order it already created instead of
       // duplicating every order the loop had already placed.
@@ -231,6 +231,12 @@ class HmfCartController extends GetxController {
       _attempts.putIfAbsent(key, () => CheckoutAttempt());
 
   /// Call when the cart screen opens, so each store starts a fresh attempt.
+
+  /// `cash` (default) or `upi`, chosen in the checkout sheet before each
+  /// store's order is placed. These carts are self-pickup only until their
+  /// service takes doorstep orders, so the sheet skips the delivery steps.
+  final RxString paymentMethod = OrderPaymentMethod.cash.obs;
+
   void beginCheckoutAttempts() {
     _attempts.clear();
     for (final key in storeKeys) {
