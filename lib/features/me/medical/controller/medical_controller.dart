@@ -73,7 +73,11 @@ class MedicalController extends GetxController {
 
   bool get isMaxLimitHit => selectedMedicalProducts.length == maxLimit;
 
-  Map<String, List<VariantsData>> selectedProductVariants = {};
+  /// Reactive, so the catalogue cards can show a live per-product variant
+  /// count from inside their own Obx. The pre-publish variant screen still
+  /// repaints through `update()` / GetBuilder — both notifications are sent.
+  RxMap<String, List<VariantsData>> selectedProductVariants =
+      <String, List<VariantsData>>{}.obs;
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SNAP SEARCH IMAGE SLOT SYSTEM
@@ -96,6 +100,11 @@ class MedicalController extends GetxController {
   Rxn<SnapSearchData> productSnapSearchData = Rxn<SnapSearchData>();
 
   void toggleSnapSearchVariant(String productId, VariantsData variant) {
+    // Never selectable: already in this pharmacy's own inventory. The snap
+    // rows paint it locked; this is the guard behind them, so a stocked
+    // variant cannot enter the cart however the row was tapped.
+    if (isVariantStocked(variant.sId)) return;
+
     selectedSnapSearchProductVariants.putIfAbsent(productId, () => []);
     final selectedList = selectedSnapSearchProductVariants[productId]!;
 
@@ -338,6 +347,7 @@ class MedicalController extends GetxController {
       selectedList.add(variant);
     }
 
+    selectedProductVariants.refresh();
     update(); // refresh UI
   }
 
@@ -346,7 +356,68 @@ class MedicalController extends GetxController {
         false;
   }
 
+  /// Variant-level selection, the way food does it: ticking the FIRST variant
+  /// of a product is what puts the product in the cart, unticking the LAST one
+  /// is what takes it out.
+  ///
+  /// So [selectedMedicalProducts] always means "products with at least one
+  /// variant chosen" — which is what the floating cart counts and what the
+  /// publish payload is built from. Selecting a whole product (the old Add
+  /// button) published every pack the catalogue carries; a pharmacy stocking
+  /// only the strip of 10 had no way to say so.
+  void toggleVariantSelection(MedicalProductData product, VariantsData variant) {
+    final productId = product.sId ?? '';
+    final variantId = variant.sId ?? '';
+    if (productId.isEmpty || variantId.isEmpty) return;
+
+    // Never selectable: already in this pharmacy's own inventory, and a second
+    // record against one catalogue variant is a duplicate row with a second
+    // price. The sheet paints it locked; this is the guard behind it.
+    if (isVariantStocked(variantId)) return;
+
+    final current = List<VariantsData>.from(
+        selectedProductVariants[productId] ?? const <VariantsData>[]);
+    final idx = current.indexWhere((v) => v.sId == variantId);
+
+    if (idx != -1) {
+      current.removeAt(idx);
+    } else {
+      // The cap counts PRODUCTS, not variants, so it can only bite on the
+      // first variant of a product that isn't in the cart yet.
+      final bool isNewProduct =
+          !selectedMedicalProducts.any((p) => p.sId == productId);
+      if (isNewProduct && selectedMedicalProducts.length >= maxLimit) {
+        commonSnackBar(message: AppStrings.medicalCannotSelectMore10);
+        return;
+      }
+      current.add(variant);
+    }
+
+    if (current.isEmpty) {
+      selectedProductVariants.remove(productId);
+      selectedMedicalProducts.removeWhere((p) => p.sId == productId);
+    } else {
+      selectedProductVariants[productId] = current;
+      if (!selectedMedicalProducts.any((p) => p.sId == productId)) {
+        selectedMedicalProducts.add(product);
+      }
+    }
+
+    selectedProductVariants.refresh();
+    selectedMedicalProducts.refresh();
+    update();
+  }
+
+  /// How many variants of [productId] are in the cart — the number the card's
+  /// Add button shows.
+  int selectedVariantCount(String? productId) =>
+      selectedProductVariants[productId ?? '']?.length ?? 0;
+
   bool get canSubmitProducts {
+    // An empty cart used to pass this loop vacuously, so Publish stayed lit
+    // with nothing to send. Reachable now that unticking the last variant on
+    // the variant screen empties the cart in place.
+    if (selectedMedicalProducts.isEmpty) return false;
     for (final p in selectedMedicalProducts) {
       final variants = selectedProductVariants[p.sId];
 
@@ -515,6 +586,11 @@ class MedicalController extends GetxController {
           onSubmit: (mrp, sellingPrice) {
             target?.mrp = int.tryParse(mrp);
             target?.sellingPrice = int.tryParse(sellingPrice);
+            // The edit lands in-place on a model object, which notifies
+            // nothing. `update()` covers the GetBuilder screens; the cart rows
+            // are an Obx over this map, so it needs poking too or the row
+            // keeps showing the old price.
+            selectedProductVariants.refresh();
             update();
             Get.back();
           },
@@ -691,6 +767,14 @@ class MedicalController extends GetxController {
         medicalItem.variants!.length,
         newVariant,
       );
+      // Put it straight in the cart. The merchant created this pack in order
+      // to publish it, and the review card now lists only what's picked — an
+      // unticked new variant would simply vanish.
+      toggleVariantSelection(medicalItem, newVariant);
+      // The variant list is a plain List on the model, so nothing above
+      // notifies the pickers. The variant sheet's Obx watches this map — poke
+      // it so the row the merchant just created appears without reopening.
+      selectedProductVariants.refresh();
       update();
       Get.back();
     } catch (e) {

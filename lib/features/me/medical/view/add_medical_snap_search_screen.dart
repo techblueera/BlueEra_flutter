@@ -12,7 +12,9 @@ import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_level2_category_screen.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_variant_picker_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/selected_variant_rows.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -39,6 +41,12 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
     // Level-0 roots only — the subtree for a root is pulled when it's tapped.
     // See docs/backend/MEDICAL_CATEGORIES_FLUTTER_GUIDE.md §3.
     controller.fetchMedicalRootCategories();
+    // The same stocked-variant set the catalogue screens use. A photo can just
+    // as easily surface something already on this pharmacy's shelf, and it
+    // publishes through the same inventory endpoint — without this the camera
+    // route would be the way around the duplicate guard. Guarded and
+    // snapshot-backed, so it usually costs nothing.
+    controller.fetchStockedVariantIdsIfNeeded();
   }
 
   @override
@@ -549,112 +557,103 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      /// --- Product Title ---
+                      /// --- Product Title + picker ---
                       Padding(
                         padding: EdgeInsets.only(left: SizeConfig.size10),
-                        child: CustomText(
-                          medicalItem.name,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CustomText(
+                                medicalItem.name,
+                                fontSize: SizeConfig.medium,
+                                color: AppColors.mainTextColor,
+                                fontWeight: FontWeight.w600,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            // The same picker the catalogue cards open, so a
+                            // photo result is picked exactly the way a browsed
+                            // one is — including the locked rows for packs
+                            // already on the shelf.
+                            Obx(() => PickVariantsButton(
+                                  count: controller
+                                          .selectedSnapSearchProductVariants[
+                                              medicalItem.sId ?? '']
+                                          ?.length ??
+                                      0,
+                                  onTap: () => showMedicalVariantPickerSheet(
+                                    context: context,
+                                    product: medicalItem,
+                                    controller: controller,
+                                    // Snap search publishes from its OWN map,
+                                    // not the catalogue cart — both the tick
+                                    // state and the toggle have to come from
+                                    // there or the two carts would cross.
+                                    isSelected: (variantId) =>
+                                        controller.isSnapSearchVariantSelected(
+                                            medicalItem.sId ?? '', variantId),
+                                    onToggle: (v) =>
+                                        controller.toggleSnapSearchVariant(
+                                            medicalItem.sId ?? '', v),
+                                    showAddMore: false,
+                                  ),
+                                )),
+                          ],
                         ),
                       ),
 
                       SizedBox(height: SizeConfig.size8),
 
-                      /// --- Variant Column ---
-                      Obx(() {
-                        final medicalVariants = medicalItem.variants ?? [];
-
-                        return Column(
-                          children: List.generate(medicalVariants.length, (variantIndex) {
-                            final v = medicalVariants[variantIndex];
-
-                            return Padding(
-                              padding: EdgeInsets.zero,
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    value: controller.isSnapSearchVariantSelected(
-                                      medicalItem.sId ?? '',
-                                      v.sId ?? '',
-                                    ),
-                                    onChanged: (_) {
-                                      controller.toggleSnapSearchVariant(
-                                        medicalItem.sId ?? '',
-                                        v,
-                                      );
-                                    },
-                                    checkColor: Colors.white,
-                                    activeColor: AppColors.primaryColor,
-                                    side: const BorderSide(
-                                      color: AppColors.secondaryTextColor,
-                                      width: 1.5,
-                                    ),
-                                  ),
-
-                                  CustomText(
-                                    '${v.weight ?? ''}${v.unit ?? ''}',
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  Container(
-                                    width: 2.0,
-                                    height: SizeConfig.size16,
-                                    color: AppColors.greyLite,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  CustomText(
-                                    "₹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].mrp : '0'}",
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  Container(
-                                    width: 2.0,
-                                    height: SizeConfig.size16,
-                                    color: AppColors.greyLite,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  CustomText(
-                                    "${AppStrings.medicalSellingRupeePrefix.tr} ${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].sellingPrice : '0'}",
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const Spacer(),
-
-                                  InkWell(
-                                    onTap: () {
-                                      controller.openSnapSearchEditVariantDialog(
-                                        context: context,
-                                        title: medicalItem.name ?? AppStrings.medicalEditVariant.tr,
-                                        variant: v,
-                                      );
-                                    },
-                                    child: LocalAssets(
-                                      imagePath: AppIconAssets.pen_line,
-                                      imgColor: AppColors.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        );
-                      })
+                      /// --- Picked packs, with price and remove on each ---
+                      SelectedVariantList(
+                        rowsBuilder: () =>
+                            (controller.selectedSnapSearchProductVariants[
+                                        medicalItem.sId ?? ''] ??
+                                    const <VariantsData>[])
+                                .map((v) => SelectedVariantRow(
+                                      id: v.sId ?? '',
+                                      title: medicalPackLabel(v),
+                                      mrp: controller
+                                                  .resolvePublishPricing(v.pricing)
+                                                  ?.mrp !=
+                                              null
+                                          ? controller.formatMoney(controller
+                                              .resolvePublishPricing(v.pricing)!
+                                              .mrp)
+                                          : null,
+                                      sellingPrice: controller
+                                                  .resolvePublishPricing(v.pricing)
+                                                  ?.sellingPrice !=
+                                              null
+                                          ? controller.formatMoney(controller
+                                              .resolvePublishPricing(v.pricing)!
+                                              .sellingPrice)
+                                          : null,
+                                    ))
+                                .toList(),
+                        onEdit: (id) {
+                          final v =
+                              (medicalItem.variants ?? const <VariantsData>[])
+                                  .firstWhereOrNull((e) => e.sId == id);
+                          if (v == null) return;
+                          controller.openSnapSearchEditVariantDialog(
+                            context: context,
+                            title: medicalItem.name ??
+                                AppStrings.medicalEditVariant.tr,
+                            variant: v,
+                          );
+                        },
+                        onRemove: (id) {
+                          final v =
+                              (medicalItem.variants ?? const <VariantsData>[])
+                                  .firstWhereOrNull((e) => e.sId == id);
+                          if (v == null) return;
+                          controller.toggleSnapSearchVariant(
+                              medicalItem.sId ?? '', v);
+                        },
+                      )
 
                     ],
                   ),

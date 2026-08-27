@@ -200,6 +200,13 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
+                      // Both figures carry their name on a pre-publish row —
+                      // this is where the merchant decides what goes live.
+                      CustomText(
+                        'Selling: ',
+                        fontSize: 12,
+                        color: AppColors.secondaryTextColor,
+                      ),
                       CustomText(
                         '₹${variant.sellingPrice.toStringAsFixed(0)}',
                         fontSize: 14,
@@ -208,6 +215,12 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
                       ),
                       if (discount > 0) ...[
                         const SizedBox(width: 8),
+                        // Label upright, figure struck through.
+                        CustomText(
+                          '${AppStrings.mrp.tr}: ',
+                          fontSize: 12,
+                          color: AppColors.secondaryTextColor,
+                        ),
                         CustomText(
                           '₹${variant.mrp.toStringAsFixed(0)}',
                           fontSize: 13,

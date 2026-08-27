@@ -393,6 +393,13 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
                                     EdgeInsets.only(top: SizeConfig.size12),
                                 child: Row(
                                   children: [
+                                    // Both figures carry their name — this is
+                                    // the price about to be published.
+                                    CustomText(
+                                      'Selling: ',
+                                      fontSize: 14.0,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
                                     CustomText(
                                       '₹${controller.selectedProductOrVariantPrice.value}',
                                       fontSize: 24.0,
@@ -401,6 +408,12 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
                                     ),
                                     SizedBox(
                                       width: SizeConfig.size8,
+                                    ),
+                                    // Label upright, figure struck through.
+                                    CustomText(
+                                      '${AppStrings.mrp.tr}: ',
+                                      fontSize: 14.0,
+                                      color: AppColors.secondaryTextColor,
                                     ),
                                     CustomText(
                                       '₹${controller.selectedProductOrVariantMrp.value}',

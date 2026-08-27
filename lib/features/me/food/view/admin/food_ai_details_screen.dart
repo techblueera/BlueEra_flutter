@@ -305,7 +305,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                       children: [
                         Flexible(
                           child: CustomText(
-                            "Selling-₹${item.baseSellingPrice}",
+                            "Selling: ₹${item.baseSellingPrice}",
                             fontSize: 15,
                             color:
                             AppColors.secondaryTextColor,
@@ -318,6 +318,12 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                           color: Colors.grey.shade300,
                         ),
                         const SizedBox(width: 8),
+                        // Label upright, figure struck through.
+                        CustomText(
+                          "MRP: ",
+                          fontSize: 15,
+                          color: AppColors.secondaryTextColor,
+                        ),
                         CustomText(
                           "₹${item.mrp}",
                           fontSize: 15,

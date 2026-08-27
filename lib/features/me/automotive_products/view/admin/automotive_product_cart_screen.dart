@@ -281,6 +281,8 @@ class _AutomotiveProductCartScreenState extends State<AutomotiveProductCartScree
                         sellingPrice: '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
                         mrp: '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
                         discount: '$discount% ${AppStrings.offCaps.tr}',
+                        // Pre-publish: name both figures.
+                        showLabels: true,
                       ),
                     ],
                   ),

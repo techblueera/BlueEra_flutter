@@ -270,6 +270,8 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                         sellingPrice: '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
                         mrp: '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
                         discount: '$discount% off',
+                        // Pre-publish: name both figures.
+                        showLabels: true,
                       ),
                     ],
                   ),

@@ -299,6 +299,16 @@ class _ManufacturerCreateVariantScreenState
                                           SizedBox(height: 8),
                                           Row(
                                             children: [
+                                              // Both figures carry their name
+                                              // on a pre-publish row — this is
+                                              // the last read before the price
+                                              // goes live.
+                                              CustomText(
+                                                'Selling: ',
+                                                fontSize: SizeConfig.small,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                              ),
                                               CustomText(
                                                 '₹${product.price}',
                                                 fontWeight: FontWeight.bold,
@@ -306,6 +316,14 @@ class _ManufacturerCreateVariantScreenState
                                                 color: AppColors.mainTextColor,
                                               ),
                                               SizedBox(width: 8),
+                                              // Label upright, figure struck
+                                              // through.
+                                              CustomText(
+                                                '${AppStrings.mrp.tr}: ',
+                                                fontSize: SizeConfig.small,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                              ),
                                               CustomText(
                                                 '₹${product.mrp}',
                                                 fontWeight: FontWeight.bold,

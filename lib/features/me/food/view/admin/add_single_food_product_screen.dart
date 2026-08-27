@@ -214,7 +214,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
                     children: [
                       Flexible(
                         child: CustomText(
-                          "Selling-₹${item.baseSellingPrice}",
+                          "Selling: ₹${item.baseSellingPrice}",
                           fontSize: 14,
                           color: AppColors.secondaryTextColor,
                         ),
@@ -222,6 +222,12 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
                       const SizedBox(width: 8),
                       Container(height: 15, width: 1.5, color: Colors.grey.shade300),
                       const SizedBox(width: 8),
+                      // Label upright, figure struck through.
+                      CustomText(
+                        "MRP: ",
+                        fontSize: 14,
+                        color: AppColors.secondaryTextColor,
+                      ),
                       CustomText(
                         "₹${item.mrp}",
                         fontSize: 14,

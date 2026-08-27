@@ -228,7 +228,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
                         children: [
                           Flexible(
                             child: CustomText(
-                              "Selling-₹${item.baseSellingPrice}",
+                              "Selling: ₹${item.baseSellingPrice}",
                               fontSize: 14,
                               color: AppColors.secondaryTextColor,
                             ),
@@ -236,6 +236,13 @@ class ProductVariantBottomSheet extends StatelessWidget {
                           const SizedBox(width: 8),
                           _buildPriceDivider(),
                           const SizedBox(width: 8),
+                          // Label upright, figure struck through — "MRP" is a
+                          // heading, not something that was cancelled.
+                          CustomText(
+                            "MRP: ",
+                            fontSize: 14,
+                            color: AppColors.secondaryTextColor,
+                          ),
                           CustomText(
                             "₹${item.mrp}",
                             fontSize: 14,

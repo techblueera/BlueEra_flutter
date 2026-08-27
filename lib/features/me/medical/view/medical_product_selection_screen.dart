@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/widget/medical_selection_floating_cart.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_variant_picker_sheet.dart';
 import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -295,10 +296,6 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
   }
 
   Widget medicalCard(MedicalProductData medicalProductData) {
-    final bool isSelected =
-        controller.selectedMedicalProducts.contains(medicalProductData);
-    final bool alreadyStocked =
-        controller.isProductFullyStocked(medicalProductData);
     final price =
         controller.getPriceDetails(medicalProductData.variants?.firstOrNull?.pricing);
 
@@ -406,36 +403,64 @@ class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionS
                     SizedBox(height: 2),
                     _priceRow(AppStrings.discount.tr, price.discountRange, AppColors.green00, isBold: true),
                     SizedBox(height: 3),
-                    // Already in this pharmacy's own inventory: adding it again
-                    // would publish a duplicate record against the same
-                    // catalogue variant. The button becomes a statement rather
-                    // than a control, and the partial case gets its own line
-                    // beneath.
-                    if (alreadyStocked)
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: AlreadyAddedBadge(),
-                      )
-                    else
-                      CustomBtn(
-                        height: SizeConfig.size30,
-                        onTap: () =>
-                            controller.toggleSelection(medicalProductData),
-                        title: isSelected
-                            ? AppStrings.medicalAddedLabel.tr
-                            : AppStrings.medicalAddBtnLabel.tr,
-                        textColor:
-                            isSelected ? AppColors.white : AppColors.primaryColor,
-                        bgColor:
-                            isSelected ? AppColors.primaryColor : AppColors.white,
-                        radius: 6.0,
-                        borderColor: AppColors.primaryColor,
-                      ),
-                    AlreadyAddedCountLine(
-                      stocked:
-                          controller.stockedVariantCount(medicalProductData),
-                      total: medicalProductData.variants?.length ?? 0,
-                    ),
+                    // Its own Obx, like the grocery and food cards: the grid's
+                    // itemBuilder runs during layout, outside the enclosing
+                    // Obx's collection window, so a read up there would never
+                    // be subscribed to and the button would not repaint on a
+                    // selection change.
+                    Obx(() {
+                      // Already in this pharmacy's own inventory: adding it
+                      // again would publish a duplicate record against the
+                      // same catalogue variant. The button becomes a statement
+                      // rather than a control, and the partial case gets its
+                      // own line beneath.
+                      final bool alreadyStocked =
+                          controller.isProductFullyStocked(medicalProductData);
+                      // How many packs of this product are in the cart. The
+                      // button used to be a whole-product toggle, which
+                      // published every pack the catalogue carries; it now
+                      // opens the variant picker and reports what was picked.
+                      final int selectedVariants =
+                          controller.selectedVariantCount(medicalProductData.sId);
+                      final bool isSelected = selectedVariants > 0;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (alreadyStocked)
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: AlreadyAddedBadge(),
+                            )
+                          else
+                            CustomBtn(
+                              height: SizeConfig.size30,
+                              onTap: () => showMedicalVariantPickerSheet(
+                                context: context,
+                                product: medicalProductData,
+                                controller: controller,
+                              ),
+                              title: isSelected
+                                  ? '${AppStrings.medicalAddedLabel.tr} ($selectedVariants)'
+                                  : AppStrings.medicalAddBtnLabel.tr,
+                              textColor: isSelected
+                                  ? AppColors.white
+                                  : AppColors.primaryColor,
+                              bgColor: isSelected
+                                  ? AppColors.primaryColor
+                                  : AppColors.white,
+                              radius: 6.0,
+                              borderColor: AppColors.primaryColor,
+                            ),
+                          AlreadyAddedCountLine(
+                            stocked: controller
+                                .stockedVariantCount(medicalProductData),
+                            total: medicalProductData.variants?.length ?? 0,
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
               ),

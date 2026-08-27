@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_variant_picker_sheet.dart';
 import 'package:BlueEra/widgets/already_added_badge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -13,7 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Shared grocery product card with an "Add / Added" toggle button, used by
+/// Shared grocery product card whose "+" opens the variant picker, used by
 /// both the products-selection grid ([GroceryProductsSelectionScreen]) and the
 /// "Quick Upload" rails ([GrocerySuperCategoryScreen]) so the two stay
 /// pixel-identical.
@@ -89,15 +90,23 @@ class GroceryProductSelectCard extends StatelessWidget {
                   // inventory, so adding it again would publish a duplicate row
                   // for the same catalogue variant — a second price for one
                   // item on the merchant's own shelf. Say so on the card
-                  // instead of offering a "+" that should not be pressed.
+                  // instead of offering a "+" that opens a sheet with nothing
+                  // tickable in it.
                   if (controller.isProductFullyStocked(product)) {
                     return const AlreadyAddedBadge();
                   }
-                  final bool isSelected =
-                      controller.selectedGroceries.contains(product);
+                  // The "+" opens the variant picker rather than selecting the
+                  // whole product: a store stocking only the 500 g pack had no
+                  // way to say so, and publishing all of them was the default.
+                  final count = controller.selectedVariantCount(product.sId);
                   return ProductSelectPlusButton(
-                    added: isSelected,
-                    onTap: () => controller.toggleSelection(product),
+                    added: count > 0,
+                    count: count > 0 ? count : null,
+                    onTap: () => showGroceryVariantPickerSheet(
+                      context: context,
+                      product: product,
+                      controller: controller,
+                    ),
                   );
                 }),
               ),

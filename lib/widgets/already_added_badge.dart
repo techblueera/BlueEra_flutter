@@ -43,6 +43,36 @@ class AlreadyAddedBadge extends StatelessWidget {
   }
 }
 
+/// "Already added" as an inline chip, for a variant ROW rather than a product
+/// card — the variant pickers and the pre-publish variant screens both label
+/// a locked row with it.
+///
+/// Flat and small where [AlreadyAddedBadge] is a filled pill: it sits inside a
+/// dense list row, not on top of a photo.
+class AlreadyAddedChip extends StatelessWidget {
+  const AlreadyAddedChip({super.key, this.label = 'Already added'});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.green.shade100),
+      ),
+      child: CustomText(
+        label,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: Colors.green.shade700,
+      ),
+    );
+  }
+}
+
 /// "2 of 5 already added" — the PARTIAL case, which [AlreadyAddedBadge] cannot
 /// show: that only appears once EVERY variant is stocked.
 ///

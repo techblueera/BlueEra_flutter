@@ -134,7 +134,15 @@ class GroceryController extends GetxController {
     }
   }
 
+  /// Variant-only toggle, used by the snap-search screen — it keeps its own
+  /// product list rather than [selectedGroceries], so this deliberately does
+  /// not touch the product cart. The catalogue screens go through
+  /// [toggleVariantSelection] instead.
   void toggleVariant(String productId, ProductVariants variant) {
+    // Never selectable: already on this store's own shelf. The rows paint it
+    // locked; this is the guard behind them.
+    if (isVariantStocked(variant.sId)) return;
+
     selectedProductVariants.putIfAbsent(productId, () => []);
     final selectedList = selectedProductVariants[productId]!;
 
@@ -155,6 +163,75 @@ class GroceryController extends GetxController {
   bool isVariantSelected(String productId, String variantId) {
     return selectedProductVariants[productId]?.any((v) => v.sId == variantId) ??
         false;
+  }
+
+  /// Variant-level selection, the way food does it: ticking the FIRST variant
+  /// of a product is what puts the product in the cart, unticking the LAST one
+  /// is what takes it out.
+  ///
+  /// So [selectedGroceries] always means "products with at least one variant
+  /// chosen" — which is exactly what the floating cart counts, and what the
+  /// publish payload is built from. Selecting a whole product (the old `+`
+  /// behaviour) published every pack size the catalogue carries; a store
+  /// stocking only the 500 g had no way to say so.
+  void toggleVariantSelection(
+      GroceryProductData product, ProductVariants variant) {
+    final productId = product.sId ?? '';
+    final variantId = variant.sId ?? '';
+    if (productId.isEmpty || variantId.isEmpty) return;
+
+    // Never selectable: it is already on this store's own shelf, and a second
+    // inventory record against one catalogue variant is a duplicate row with a
+    // second price. The sheet paints it locked; this is the guard behind it.
+    if (isVariantStocked(variantId)) return;
+
+    final current = List<ProductVariants>.from(
+        selectedProductVariants[productId] ?? const <ProductVariants>[]);
+    final idx = current.indexWhere((v) => v.sId == variantId);
+
+    if (idx != -1) {
+      current.removeAt(idx);
+    } else {
+      // The cap counts PRODUCTS, not variants, so it can only bite on the
+      // first variant of a product that isn't in the cart yet.
+      final bool isNewProduct = !selectedGroceries.any((p) => p.sId == productId);
+      if (isNewProduct && selectedGroceries.length >= maxLimit) {
+        commonSnackBar(message: AppStrings.groceryMaxSelectWarning.tr);
+        return;
+      }
+      current.add(variant);
+    }
+
+    if (current.isEmpty) {
+      selectedProductVariants.remove(productId);
+      selectedGroceries.removeWhere((p) => p.sId == productId);
+    } else {
+      selectedProductVariants[productId] = current;
+      if (!selectedGroceries.any((p) => p.sId == productId)) {
+        selectedGroceries.add(product);
+      }
+    }
+
+    selectedProductVariants.refresh();
+    selectedGroceries.refresh();
+  }
+
+  /// How many variants of [productId] are in the cart — the number the card's
+  /// "+" badge shows.
+  int selectedVariantCount(String? productId) =>
+      selectedProductVariants[productId ?? '']?.length ?? 0;
+
+  /// Empties the add-product basket after a successful publish.
+  ///
+  /// The controller survives the flow (`getOrPut`, never deleted, so the
+  /// Products tab can reuse its cached lists), which means the basket has to
+  /// be cleared on purpose — otherwise re-entering "Add product" shows the
+  /// items that were just published still sitting in the cart, now badged
+  /// "already added" and un-publishable.
+  void clearGrocerySelection() {
+    selectedGroceries.clear();
+    selectedProductVariants.clear();
+    selectedProductVariants.refresh();
   }
 
   bool get canSubmitProducts {
@@ -512,6 +589,14 @@ class GroceryController extends GetxController {
         newVariant,
       );
       selectedGroceries.refresh();
+      // Put it straight in the cart. The merchant created this pack in order
+      // to publish it, and the review card now lists only what's picked — an
+      // unticked new variant would simply vanish.
+      toggleVariantSelection(groceryItem, newVariant);
+      // The variant list itself is a plain List on the model, so nothing above
+      // notifies the pickers. The variant sheet's Obx watches this map — poke
+      // it so the row the merchant just created appears without reopening.
+      selectedProductVariants.refresh();
       // update();
       Get.back();
     } catch (e) {
@@ -544,6 +629,10 @@ class GroceryController extends GetxController {
       }
 
       addGroceryProductVariantResponse.value = ApiResponse.complete(response);
+      // State work first. The cart has to be emptied here — the controller
+      // outlives this flow, so anything left in it comes back on the next
+      // "Add product" as items that are now already stocked.
+      clearGrocerySelection();
       // Products just entered the store's inventory: drop the freshness guard,
       // refetch, and rewrite the saved snapshot. Without this the tab would
       // serve the pre-publish cache and the new items would be invisible.

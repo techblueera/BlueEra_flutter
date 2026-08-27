@@ -6,7 +6,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_variant_picker_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/selected_variant_rows.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -35,6 +37,19 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
   Pricing? _localPricing(VariantsData variant) =>
       controller.resolvePublishPricing(variant.pricing);
 
+  /// The packs of [product] in the cart, in catalogue order.
+  ///
+  /// Read off the selection map rather than the product's own variant list:
+  /// the map is what the publish payload is built from, so anything this
+  /// screen shows is by definition something that will be sent.
+  List<VariantsData> _pickedVariants(MedicalProductData product) =>
+      controller.selectedProductVariants[product.sId ?? ''] ??
+      const <VariantsData>[];
+
+  VariantsData? _variantById(MedicalProductData product, String id) =>
+      (product.variants ?? const <VariantsData>[])
+          .firstWhereOrNull((v) => v.sId == id);
+
   @override
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
@@ -58,8 +73,10 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                   title: AppStrings.medicalPublishProductsVariants.trParams({
                     'productCount':
                         '${controller.selectedMedicalProducts.length}',
-                    'variantCount':
-                        '${controller.selectedProductVariants.length}',
+                    // Variants, not map keys — `.length` on the map is the
+                    // number of PRODUCTS, so the label read "3 products, 3
+                    // variants" for a cart holding seven packs.
+                    'variantCount': '${controller.selectedProductVariants.values.fold(0, (sum, list) => sum + list.length)}',
                   }),
                   isLoading: controller.isAddMedicalProductsLoading.value,
                 );
@@ -125,162 +142,83 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  /// --- Product Title ---
+                                  /// --- Product Title + picker ---
                                   Padding(
                                     padding: EdgeInsets.only(
                                         left: SizeConfig.size10),
-                                    child: CustomText(
-                                      groceryItem.name,
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w600,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: CustomText(
+                                            groceryItem.name,
+                                            fontSize: SizeConfig.medium,
+                                            color: AppColors.mainTextColor,
+                                            fontWeight: FontWeight.w600,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        SizedBox(width: SizeConfig.size8),
+                                        // One picker, reachable from here as
+                                        // well as from the product card. This
+                                        // screen used to be a second,
+                                        // differently-shaped picker (a checkbox
+                                        // against every catalogue variant) that
+                                        // never showed which rows were actually
+                                        // in the cart.
+                                        Obx(() => PickVariantsButton(
+                                              count: controller
+                                                  .selectedVariantCount(
+                                                      groceryItem.sId),
+                                              onTap: () =>
+                                                  showMedicalVariantPickerSheet(
+                                                context: context,
+                                                product: groceryItem,
+                                                controller: controller,
+                                              ),
+                                            )),
+                                      ],
                                     ),
                                   ),
 
                                   SizedBox(height: SizeConfig.size8),
 
-                                  /// --- Variant Column ---
-                                  GetBuilder<MedicalController>(
-                                    builder: (controller) {
-                                      final groceryVariants =
-                                          groceryItem.variants ?? [];
-
-                                      return Column(
-                                        children: List.generate(
-                                            groceryVariants.length,
-                                            (variantIndex) {
-                                          final v =
-                                              groceryVariants[variantIndex];
-
-                                          return Padding(
-                                            padding: EdgeInsets.zero,
-                                            // padding: EdgeInsets.only(bottom: SizeConfig.size2),
-                                            child: Row(
-                                              children: [
-                                                Checkbox(
-                                                  visualDensity: VisualDensity.compact,
-                                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                  value: controller
-                                                      .isVariantSelected(
-                                                    groceryItem.sId!,
-                                                    groceryItem
-                                                        .variants![variantIndex]
-                                                        .sId!,
-                                                  ),
-                                                  onChanged: (_) {
-                                                    controller.toggleVariant(
-                                                      groceryItem.sId!,
-                                                      groceryItem.variants![
-                                                          variantIndex],
-                                                    );
-                                                  },
-                                                  checkColor: Colors.white,
-                                                  activeColor:
-                                                      AppColors.primaryColor,
-                                                  side: const BorderSide(
-                                                    color: AppColors
-                                                        .secondaryTextColor,
-                                                    width: 1.5,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                // Weight / MRP / price share
-                                                // whatever's left, so the edit
-                                                // pen always lands flush at the
-                                                // row's end. A Spacer wouldn't
-                                                // do it: against three Flexible
-                                                // siblings it only claims a
-                                                // quarter of the free space,
-                                                // and MainAxisAlignment.start
-                                                // leaves the rest AFTER the pen.
-                                                Expanded(
-                                                  child: Row(
-                                                    children: [
-                                                Flexible(
-                                                  child: CustomText(
-                                                    (v.weight != null || v.unit != null)
-                                                        ? '${v.weight ?? '-'} ${v.unit ?? ''}'
-                                                        : AppStrings.medicalWeightNotSet.tr,
-                                                    fontSize: SizeConfig.small,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: AppColors.mainTextColor,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Container(
-                                                  width: 2.0,
-                                                  height: SizeConfig.size16,
-                                                  color: AppColors.greyLite,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Flexible(
-                                                  child: CustomText(
-                                                    // The row for THIS shop's
-                                                    // pincode, not pricing[0]
-                                                    // — that was whichever
-                                                    // city the catalog listed
-                                                    // first.
-                                                    _localPricing(v)?.mrp != null
-                                                        ? controller.formatMoney(
-                                                            _localPricing(v)!.mrp)
-                                                        : AppStrings.medicalMrpNotSet.tr,
-                                                    fontSize: SizeConfig.small,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: AppColors.mainTextColor,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Container(
-                                                  width: 2.0,
-                                                  height: SizeConfig.size16,
-                                                  color: AppColors.greyLite,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Flexible(
-                                                  child: CustomText(
-                                                    _localPricing(v)?.sellingPrice != null
-                                                        ? controller.formatMoney(
-                                                            _localPricing(v)!.sellingPrice)
-                                                        : AppStrings.medicalPriceNotSet.tr,
-                                                    fontSize: SizeConfig.small,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: AppColors.mainTextColor,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                  ),
-                                                ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                InkWell(
-                                                  onTap: () {
-                                                    controller
-                                                        .openEditVariantDialog(
-                                                      context: context,
-                                                      title: groceryItem.name ??
-                                                          AppStrings.medicalEditVariant.tr,
-                                                      variant:
-                                                          groceryItem.variants![
-                                                              variantIndex],
-                                                    );
-                                                  },
-                                                  child: LocalAssets(
-                                                    imagePath:
-                                                        AppIconAssets.pen_line,
-                                                    imgColor:
-                                                        AppColors.primaryColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
+                                  /// --- Picked packs (the cart), with price
+                                  /// and remove on each ---
+                                  SelectedVariantList(
+                                    rowsBuilder: () => _pickedVariants(
+                                            groceryItem)
+                                        .map((v) => SelectedVariantRow(
+                                              id: v.sId ?? '',
+                                              title: medicalPackLabel(v),
+                                              mrp: _localPricing(v)?.mrp != null
+                                                  ? controller.formatMoney(
+                                                      _localPricing(v)!.mrp)
+                                                  : null,
+                                              sellingPrice: _localPricing(v)
+                                                          ?.sellingPrice !=
+                                                      null
+                                                  ? controller.formatMoney(
+                                                      _localPricing(v)!
+                                                          .sellingPrice)
+                                                  : null,
+                                            ))
+                                        .toList(),
+                                    onEdit: (id) {
+                                      final v = _variantById(groceryItem, id);
+                                      if (v == null) return;
+                                      controller.openEditVariantDialog(
+                                        context: context,
+                                        title: groceryItem.name ??
+                                            AppStrings.medicalEditVariant.tr,
+                                        variant: v,
                                       );
+                                    },
+                                    onRemove: (id) {
+                                      final v = _variantById(groceryItem, id);
+                                      if (v == null) return;
+                                      controller.toggleVariantSelection(
+                                          groceryItem, v);
                                     },
                                   )
                                 ],

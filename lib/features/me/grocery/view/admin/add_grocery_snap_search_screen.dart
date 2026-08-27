@@ -12,7 +12,9 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_variant_picker_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/selected_variant_rows.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -32,6 +34,16 @@ class AddGrocerySnapSearchScreen extends StatefulWidget {
 
 class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen> {
   final controller = getOrPut(() => GroceryController());
+
+  @override
+  void initState() {
+    super.initState();
+    // The same stocked-variant set the catalogue screens use — a photo can
+    // just as easily surface something already on this store's shelf, and it
+    // publishes through the same endpoint. Guarded and snapshot-backed, so it
+    // usually costs nothing.
+    controller.fetchStockedVariantIdsIfNeeded();
+  }
 
   @override
   dispose(){
@@ -466,113 +478,85 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      /// --- Product Title ---
+                      /// --- Product Title + picker ---
                       Padding(
                         padding: EdgeInsets.only(left: SizeConfig.size10),
-                        child: CustomText(
-                          groceryItem.name,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CustomText(
+                                groceryItem.name,
+                                fontSize: SizeConfig.medium,
+                                color: AppColors.mainTextColor,
+                                fontWeight: FontWeight.w600,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            // The same picker the catalogue cards open, so a
+                            // photo result is picked exactly the way a browsed
+                            // one is — including the locked rows for packs
+                            // already on the shelf.
+                            Obx(() => PickVariantsButton(
+                                  count: controller
+                                      .selectedVariantCount(groceryItem.sId),
+                                  onTap: () => showGroceryVariantPickerSheet(
+                                    context: context,
+                                    product: groceryItem,
+                                    controller: controller,
+                                    // Snap search keeps its own product list
+                                    // rather than the product cart, so picking
+                                    // here must not touch selectedGroceries.
+                                    onToggle: (v) => controller.toggleVariant(
+                                        groceryItem.sId ?? '', v),
+                                    showAddMore: false,
+                                  ),
+                                )),
+                          ],
                         ),
                       ),
 
                       SizedBox(height: SizeConfig.size8),
 
-                      /// --- Variant Column ---
-                      Builder(builder: (_) {
-                        final groceryVariants = groceryItem.variants ?? [];
-
-                        return Column(
-                          children: List.generate(groceryVariants.length, (variantIndex) {
-                            final v = groceryVariants[variantIndex];
-
-                            return Padding(
-                              padding: EdgeInsets.zero,
-                              child: Row(
-                                children: [
-                                  Obx(() => Checkbox(
-                                    value: controller.isVariantSelected(
-                                      groceryItem.sId ?? '',
-                                      v.sId ?? '',
-                                    ),
-                                    onChanged: (_) {
-                                      controller.toggleVariant(
-                                        groceryItem.sId ?? '',
-                                        v,
-                                      );
-                                    },
-                                    checkColor: Colors.white,
-                                    activeColor: AppColors.primaryColor,
-                                    side: const BorderSide(
-                                      color: AppColors.secondaryTextColor,
-                                      width: 1.5,
-                                    ),
-                                  )),
-
-                                  CustomText(
-                                    '${v.quantity}',
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  Container(
-                                    width: 2.0,
-                                    height: SizeConfig.size16,
-                                    color: AppColors.greyLite,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  // Safe access for pricing array
-                                  CustomText(
-                                    "₹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].mrp : '0'}",
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  Container(
-                                    width: 2.0,
-                                    height: SizeConfig.size16,
-                                    color: AppColors.greyLite,
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  CustomText(
-                                    "Selling- ₹${(v.pricing != null && v.pricing!.isNotEmpty) ? v.pricing![0].sellingPrice : '0'}",
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
-                                  const Spacer(),
-
-                                  InkWell(
-                                    onTap: () {
-                                      controller.openEditVariantDialog(
-                                        context: context,
-                                        title: groceryItem.name ?? AppStrings.groceryViewEditVariant.tr,
-                                        variant: v,
-                                      );
-                                    },
-                                    child: LocalAssets(
-                                      imagePath: AppIconAssets.pen_line,
-                                      imgColor: AppColors.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        );
-                      })
+                      /// --- Picked packs, with price and remove on each ---
+                      SelectedVariantList(
+                        rowsBuilder: () => (controller.selectedProductVariants[
+                                    groceryItem.sId ?? ''] ??
+                                const <ProductVariants>[])
+                            .map((v) => SelectedVariantRow(
+                                  id: v.sId ?? '',
+                                  title: (v.quantity?.trim().isNotEmpty ?? false)
+                                      ? v.quantity!
+                                      : (v.variantName ?? ''),
+                                  mrp: v.pricing?.isNotEmpty == true
+                                      ? '₹${v.pricing![0].mrp}'
+                                      : null,
+                                  sellingPrice: v.pricing?.isNotEmpty == true
+                                      ? '₹${v.pricing![0].sellingPrice}'
+                                      : null,
+                                ))
+                            .toList(),
+                        onEdit: (id) {
+                          final v =
+                              (groceryItem.variants ?? const <ProductVariants>[])
+                                  .firstWhereOrNull((e) => e.sId == id);
+                          if (v == null) return;
+                          controller.openEditVariantDialog(
+                            context: context,
+                            title: groceryItem.name ??
+                                AppStrings.groceryViewEditVariant.tr,
+                            variant: v,
+                          );
+                        },
+                        onRemove: (id) {
+                          final v =
+                              (groceryItem.variants ?? const <ProductVariants>[])
+                                  .firstWhereOrNull((e) => e.sId == id);
+                          if (v == null) return;
+                          controller.toggleVariant(groceryItem.sId ?? '', v);
+                        },
+                      )
 
                     ],
                   ),

@@ -437,6 +437,16 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Both figures carry their name. This row is the last thing the
+              // merchant reads before publishing a price, and a bare number
+              // next to a struck-through one leaves which-is-which to
+              // inference.
+              CustomText(
+                'Selling: ',
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
               CustomText(
                 '${AppConstants.rupeeSymbol}$selling',
                 fontSize: SizeConfig.large18,
@@ -445,6 +455,12 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
               ),
               if (showStrike) ...[
                 SizedBox(width: SizeConfig.size8),
+                CustomText(
+                  '${AppStrings.mrp.tr}: ',
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w500,
+                ),
                 CustomText(
                   '${AppConstants.rupeeSymbol}$mrp',
                   fontSize: SizeConfig.small,
