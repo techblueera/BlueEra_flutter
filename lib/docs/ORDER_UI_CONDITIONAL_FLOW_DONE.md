@@ -80,3 +80,90 @@ engagement forbid. `OrderTrackRider.hasLocation` is in place for whoever builds 
 `§14 item 3` (rider-search coverage) and `§14 item 13` (grocery never publishing
 `GROCERY_ORDER_COMPLETED`) are unchanged: the first was verified already-covered by the v3 round,
 the second is backend work.
+
+---
+
+## 4. Second round — the three flows, walked end to end
+
+The first round corrected facts. This one walked the product's actual journeys —
+**checkout → self-pickup (cash) · self-pickup (UPI) · delivery** — from the customer's end, the
+shop's end and the rider's end, and closed what the walk exposed.
+
+### 4.1 The customer could not see their own clock
+
+Every deadline was server-authored and rendered correctly — **inside the chat thread carrying the
+order's card**. Close that conversation and there was no surface anywhere in the app that said
+"your order is ready, collect it by 8:15". For grocery, whose self-pickup orders expire an hour
+after they are placed, that is how **978 of 1,099 production orders died** (§12). The countdown was
+never the problem. Nobody was on the screen it was drawn on.
+
+**`PendingOrderChip` now sits on Discover, directly under the ongoing-ride chip.** Same
+`OngoingStyleCard` surface, same `OrderClock` ticker, same `OrderDeadlineCountdown` — no new design
+system, one new question answered: *is something of mine waiting on me right now?*
+
+| State | What it says | Clock |
+|---|---|---|
+| `ready` + self-pickup | **Ready — go and collect it** | `pickupBy` |
+| UPI unpaid / expired | **Pay to confirm your order** | `payBy` |
+| payment `rejected` | **Payment wasn't confirmed** — tap to try again | `payBy` |
+| payment `submitted` | Waiting for the shop to confirm — **never "paid"** | — |
+| `placed` | Waiting for the shop to accept | `acceptBy`, or grocery's derived hour |
+| `accepted` / `in-progress` | Being prepared | `readyBy` |
+| `ready` + delivery | Finding a delivery partner → *collecting your order* | `dispatchBy` |
+| `dispatched` | On the way to you | `deliverBy` |
+| `cancelled` + refund owed | **Refund pending** — §7, money outlives the order | — |
+
+Three rules it keeps that look like omissions:
+
+- **No action buttons, ever.** `/orders/me` returns no `availableActions` and no `actor`, so any
+  button here would be the app deciding legality for itself — the one thing §0 forbids. Every tap
+  opens the order screen, which asks `/actions` and knows.
+- **A countdown reaching zero changes nothing.** It re-reads. The sweeper owns expiry (§8.1 rule 1),
+  and it runs every 15 minutes, so an order is routinely alive well past its hour.
+- **Only what the customer can act on is loud.** An order the shop is still packing is not their
+  problem to solve.
+
+`/orders/me` is verified in §12 fact 3 **for grocery**. Rather than assume parity, every vertical is
+asked once and a route-missing 404 is recorded through the app's existing learned-404 gate — a
+vertical without the route costs one failed request per process, then disappears.
+
+### 4.2 Checkout asked for the choice before it could price it
+
+The sheet's first step was *"pick it up or have it delivered?"* — **before any address existed**. Two
+consequences, both live:
+
+1. The delivery card advertised **`from ₹40`**, a number nothing had computed, in direct conflict
+   with §17.1: *"never send a fee the user did not see."*
+2. §17.2's rule that self-pickup becomes the **default selection** when the fee exceeds the basket
+   was unreachable. The customer had already chosen, two steps earlier.
+
+**The order is now §17.3's:** `address → method → payment → review`. The quote fires the moment a
+coordinate lands and renders **on the delivery card itself**, so the price and the choice are one
+screen rather than two — the separate quote step is gone. Everything §17.2 asks for lands at the
+moment of choosing: real fee, ETA range, the economics `suggestion` **verbatim**, the out-of-range
+message (a 200, not an error — the card disables, pickup stays selectable), peak-pricing note, and
+the breakdown behind *"How is this calculated?"*.
+
+`feeExceedsOrderValue` now pre-selects self-pickup — but **only before the customer has chosen for
+themselves**. After that it stays a warning and never moves under them. Someone who never wanted
+delivery skips the address in one tap (*"I'll collect it from the shop"*), so address-first costs
+them nothing.
+
+### 4.3 Verified, not changed
+
+- **Flows A and B** are already fully server-driven: `SUBMIT_PAYMENT` withheld on cash and before
+  acceptance on UPI, `CONFIRM_HANDOVER` withheld until `verified`, pickup-code handshake, reason
+  sheets from `cancellationReasons`, refund block surviving terminal.
+- **The rider end (§18)** is coverage-complete: `auto-golive`, `orders/requested`, `claim`, per-shop
+  pickup OTP, delivery OTP, `confirm-payment`, multi-shop per-stop progress, and both distances on
+  the offer card. Per the handoff prompt, the task there was to check, not to construct.
+- **The rider search UI** already exists in three places and covers each dispatch entry point.
+
+### 4.4 Tests
+
+`test/order_end_to_end_flow_test.dart` — 35 tests replaying each flow as the sequence of server
+states it actually passes through. The button lists were already pinned elsewhere; what had never
+been testable is the question the flows are really about — *does the person who has to act know they
+have to act, and by when?*
+
+Order suite: **282 passing, 0 failing** (226 → 247 → 282).

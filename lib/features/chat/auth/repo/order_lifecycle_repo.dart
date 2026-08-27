@@ -254,6 +254,21 @@ class OrderLifecycleRepo extends BaseService {
     );
   }
 
+  // ── Lists ──────────────────────────────────────────────────────────────
+
+  /// `GET /orders/me` — every order this user placed, as a customer.
+  ///
+  /// Used by the Discover pending-order chip, which needs to answer "what of
+  /// mine is still in flight" without a chat thread being open. §12 fact 3.
+  Future<ResponseModel> myOrders({String service = _defaultService}) {
+    return ApiBaseHelper().getHTTP(
+      ordersMine(service: service),
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
   // ── Rider leg ──────────────────────────────────────────────────────────
 
   /// `GET /fare/chat-dispatch/quote`. Called before the customer commits, so

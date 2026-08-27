@@ -118,6 +118,22 @@ mixin OrderServiceApi {
   String orderTrack(String orderId, {String service = defaultOrderService}) =>
       '${_orderBase(service, orderId)}/track';
 
+  /// `GET  <service>/api/orders/me` — the caller's own orders, as a customer.
+  ///
+  /// Verified working in `ORDER_UI_CONDITIONAL_FLOW_GUIDE.md` §12 fact 3,
+  /// which corrects the older audit's *"there is no grocery order list"*. The
+  /// guide verifies it **for grocery**; every caller therefore goes through
+  /// [OrderVerticalCapabilities.allowsAction]'s learned-404 gate, so a vertical
+  /// that has not deployed it answers `Cannot GET /…` once and is never asked
+  /// again this process.
+  String ordersMine({String service = defaultOrderService}) =>
+      '$service/api/orders/me';
+
+  /// `GET  <service>/api/orders/business/me` — the caller's own orders, as a
+  /// shop. Same §12 fact 3, same learned-404 gate.
+  String ordersForMyBusiness({String service = defaultOrderService}) =>
+      '$service/api/orders/business/me';
+
   /// `PUT  <service>/api/orders/:orderId` — the direct status write.
   ///
   /// The blunt instrument that predates the lifecycle routes and is still the
