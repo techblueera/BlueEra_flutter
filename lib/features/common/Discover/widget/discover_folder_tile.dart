@@ -104,9 +104,8 @@ class DiscoverFolderHost extends InheritedWidget {
   /// section's own title, which is where the longer name belongs.
   final String? title;
 
-  static String? titleOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()
-      ?.title;
+  static String? titleOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()?.title;
 
   /// Position of this folder in the landing grid, which is what picks its
   /// colour — see [discoverFolderThemeFor].
@@ -118,9 +117,8 @@ class DiscoverFolderHost extends InheritedWidget {
   final int index;
 
   /// The section widget wrapping the caller, if the landing grid put one there.
-  static Widget? sectionOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()
-      ?.section;
+  static Widget? sectionOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DiscoverFolderHost>()?.section;
 
   /// Grid position of the folder wrapping the caller; 0 outside the grid.
   static int indexOf(BuildContext context) =>
@@ -182,10 +180,10 @@ class DiscoverFolderTile extends StatelessWidget {
   /// the recent-orders rail paint themselves with the same one. It used to be
   /// copied per call site, which is how two panels on one page end up a shade
   /// apart after someone tunes one of them.
-  /// Fill, blur, rim and radius are now read per-subtree from
-  /// [DiscoverSurfaceTheme] — v1 finds no scope and gets these same constants
-  /// back, v2 hands down its own. The lift is shared by both looks.
-  static const List<BoxShadow> _kTileShadow = kDiscoverGlassShadow;
+  ///
+  /// Fill, blur, rim, radius, stroke weight and lift are all read per-subtree
+  /// from [DiscoverSurfaceTheme]: a tile outside any scope falls back to those
+  /// constants, and the Discover landing page hands down its own.
 
   /// Plate behind each icon — a brighter white than the tile it sits on, so the
   /// illustrated icons keep a clean base and the 2x2 reads as four slots rather
@@ -200,6 +198,8 @@ class DiscoverFolderTile extends StatelessWidget {
     final border = DiscoverSurfaceTheme.borderOf(context);
     final blur = DiscoverSurfaceTheme.blurOf(context);
     final radius = DiscoverSurfaceTheme.radiusOf(context);
+    final strokeWidth = DiscoverSurfaceTheme.strokeWidthOf(context);
+    final shadow = DiscoverSurfaceTheme.shadowOf(context);
     final label = DiscoverFolderHost.titleOf(context) ?? title;
 
     return GestureDetector(
@@ -217,7 +217,7 @@ class DiscoverFolderTile extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(radius),
-                boxShadow: _kTileShadow,
+                boxShadow: shadow,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(radius),
@@ -231,7 +231,7 @@ class DiscoverFolderTile extends StatelessWidget {
                       // over it is.
                       color: fill,
                       borderRadius: BorderRadius.circular(radius),
-                      border: Border.all(color: border, width: 1),
+                      border: Border.all(color: border, width: strokeWidth),
                     ),
                     child: _preview(),
                   ),
@@ -395,7 +395,8 @@ class _FolderCaption extends StatelessWidget {
             // gives it an edge, this gives it depth.
             shadows: [
               Shadow(
-                color: onDark ? const Color(0x73000000) : const Color(0x40000000),
+                color:
+                    onDark ? const Color(0x73000000) : const Color(0x40000000),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -731,7 +732,8 @@ class DiscoverFolderSheet {
                   shape: BoxShape.circle,
                   color: Color(0xFFE8EEF7),
                 ),
-                child: const Icon(Icons.close_rounded, size: 18, color: _inkSoft),
+                child:
+                    const Icon(Icons.close_rounded, size: 18, color: _inkSoft),
               ),
             ),
           ),

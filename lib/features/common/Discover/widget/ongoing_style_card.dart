@@ -1,8 +1,18 @@
+import 'dart:ui' as ui;
+
+import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:flutter/material.dart';
 
-/// The pill surface the Discover "Your Ongoing Ride/Booking" chip is made of:
-/// a soft left-to-right gradient, a hairline border in the accent colour, a
-/// 14pt radius and a low lift.
+/// The pill surface the Discover "Your Ongoing Ride/Booking" chip is made of.
+///
+/// Two looks, one object:
+///
+///   * Under a [DiscoverSurfaceTheme] — which is every in-flight card on the
+///     Discover landing page — it paints that page's section surface, so the
+///     ride, the pending order and the recent orders are the same material as
+///     the panels around them.
+///   * With no scope, its own look: a soft left-to-right gradient, a hairline
+///     border in [accent], a 14pt radius and a low lift.
 ///
 /// Extracted so the recent-order cards can be the same object rather than a
 /// copy of its decoration — the two sit directly above and below each other on
@@ -57,20 +67,25 @@ class OngoingStyleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
-          decoration: BoxDecoration(
+    // Under a [DiscoverSurfaceTheme] the card wears that page's section
+    // surface instead of its own gradient, so the in-flight stack (ride,
+    // pending order, recent orders) reads as the same material as the panels
+    // it sits among rather than as a strip of coloured pills laid over them.
+    //
+    // [accent] is unchanged either way: it was always the key for the CONTENT
+    // — the icons, the OTP pill, the action buttons — and that is what still
+    // tells a live ride apart from a finished one once the fill is shared.
+    final surface = DiscoverSurfaceTheme.maybeOf(context);
+    final radius = BorderRadius.circular(surface == null ? 14 : surface.radius);
+
+    final decoration = surface == null
+        ? BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: gradient,
             ),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: radius,
             border: Border.all(color: accent.withValues(alpha: 0.55)),
             boxShadow: const [
               BoxShadow(
@@ -79,8 +94,51 @@ class OngoingStyleCard extends StatelessWidget {
                 offset: Offset(0, 3),
               ),
             ],
+          )
+        : BoxDecoration(
+            color: surface.fill,
+            borderRadius: radius,
+            border: Border.all(
+              color: surface.border,
+              width: surface.strokeWidth ?? 1,
+            ),
+          );
+
+    Widget card = Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+      decoration: decoration,
+      child: child,
+    );
+
+    // The scoped surface is translucent and specified with a blur, so it needs
+    // the same clip + BackdropFilter the other panels use. Skipped entirely in
+    // the gradient case, which is opaque and must not pay for a saveLayer.
+    if (surface != null) {
+      card = ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(
+            sigmaX: surface.blur,
+            sigmaY: surface.blur,
           ),
-          child: child,
+          child: card,
+        ),
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: DecoratedBox(
+        // Shadow OUTSIDE the clip — a ClipRRect crops its child, so a shadow
+        // declared inside it is cropped away with the rest.
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: surface == null ? const [] : surface.shadow ?? const [],
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: card,
         ),
       ),
     );

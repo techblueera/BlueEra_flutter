@@ -57,32 +57,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-/// Discover, v2 — the layout in `assets/Discover.png`.
+/// Discover — the layout in `assets/Discover.png`.
 ///
 /// The page is a fixed alternation: a full-width CHIP ROW, then a pair of
-/// FOLDER TILES, repeated. Nothing about the data changed — every tile and chip
-/// mounts the same section widget the v1 page does, so every category id,
-/// every piece of artwork and every destination is unchanged. What changed is
-/// which sections are browsed by name and which by picture, and that three
-/// pairs of related sections now share one folder instead of holding four
-/// separate ones:
+/// FOLDER TILES, repeated. Every tile and chip mounts the same section widget
+/// the page it replaced did, so every category id, every piece of artwork and
+/// every destination is unchanged. What differs is which sections are browsed
+/// by name and which by picture, and that three pairs of related sections
+/// share one folder instead of holding four separate ones:
 ///
 ///   * **Grocery & Food** — Grocery, Restaurants & Food, Home Made Food
 ///   * **Shopping** — Home Made Product, Shopping
 ///   * **Find Services** — Home Services, Business Services
 ///
-/// This is now the ONLY Discover: the page it was built alongside
-/// (`discover_screen.dart`) has been deleted, and the bottom nav mounts this
-/// one. The "v2" in the name is history rather than a variant — the section
-/// widgets it composes are shared with nothing else now.
-class DiscoverScreenV2 extends StatefulWidget {
-  const DiscoverScreenV2({super.key});
+/// This is the ONLY Discover — the page it was built alongside has been
+/// deleted and the bottom nav mounts this one. It was called `DiscoverScreenV2`
+/// while both existed; the suffix is gone now that there is nothing to
+/// distinguish it from.
+class DiscoverScreen extends StatefulWidget {
+  const DiscoverScreen({super.key});
 
   @override
-  State<DiscoverScreenV2> createState() => _DiscoverScreenV2State();
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
+class _DiscoverScreenState extends State<DiscoverScreen> {
   late final EmergencyProfileController _emergencyController;
 
   /// Owned by the page rather than left implicit so the scroll position is
@@ -93,41 +92,53 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
   /// side padding, so a folder edge lines up with the chip row above it.
   static const double _gap = 12.0;
 
-  /// The v2 surface: [kDiscoverGlassFill] over a `#DDE2EE` stroke, blurred 20.
+  /// The section-container surface: white at 60% behind a solid white rim.
   ///
-  /// Lightened twice. The spec's `0x33` (20%) read as dark slabs rather than as
-  /// glass; `0x26` (15%) was better but still heavier than the rest of the app.
-  /// This is now the SHARED glass fill — ink `#101922` at `0x1F`, 12% — so v2's
-  /// panels and every other glass panel on Discover sit at one weight instead
-  /// of two near-identical greys.
+  /// **Alpha comes FIRST in a Dart colour literal.** The spec is written the
+  /// CSS way — a colour plus a separate opacity — so `#ffffff` at 60% is
+  /// `0x99FFFFFF`, not `0xFFFFFF99`. Getting this backwards is what produced a
+  /// near-transparent blue-grey on an earlier pass at this screen.
   ///
-  /// Written as the shared constant rather than a copy of its literal, so the
-  /// two cannot drift apart the next time either is retuned. To take v2 lighter
-  /// again, give it its own `Color(0xXX101922)` here rather than editing
-  /// [kDiscoverGlassFill] — that one is v1's surface too. **Tune the ALPHA byte
-  /// only**: the ink is shared, and changing it puts v2 on a different grey
-  /// from the rest of Discover.
+  /// A white wash rather than the dark ink in [kDiscoverGlassFill]: that ink
+  /// sits a step darker than the pale-blue page so a panel gains an edge, and
+  /// it is still what every OTHER Discover page paints. This page is specified
+  /// the other way round — lighter than the background, with the rim doing the
+  /// separating — which is why these values are handed down as a scope instead
+  /// of being written into `discover_glass.dart`. [DiscoverFolderTile] is
+  /// shared, so changing the constants there would repaint pages this spec
+  /// does not cover.
   ///
-  /// The floor is around `0x1A` (10%). At `0x10` (6%) the panels wash out
-  /// against the page and stop reading as surfaces at all — that was the first
-  /// pass at this screen, and it came from a real trap worth recording:
-  /// **alpha comes FIRST in a Dart colour literal.** The spec wrote the CSS
-  /// eight-digit `#101922XX`, with the alpha trailing; copied literally as
-  /// `0x10192233` it becomes a blue-grey at 6% instead of ink at 20%.
-  ///
-  /// Handed down as a scope rather than written into `discover_glass.dart`,
-  /// because [DiscoverFolderTile] is shared with v1 and the constants there are
-  /// v1's look — see [DiscoverSurfaceTheme]. Every section container on this
-  /// page reads it from there, so this one value moves the banner rows and the
-  /// folder tiles together.
-  static const Color _cardFill = kDiscoverGlassFill;
-  static const Color _cardStroke = Color(0xFFDDE2EE);
-  static const double _cardBlur = 20;
+  /// Every section container on this page reads all five from
+  /// [DiscoverSurfaceTheme], so they move the banner rows and the folder tiles
+  /// together.
+  static const Color _cardFill = Color(0x99FFFFFF); // #ffffff @ 60%
+  static const Color _cardStroke = Color(0xFFFFFFFF); // #ffffff @ 100%
+  static const double _cardStrokeWidth = 1.5;
+  static const double _cardBlur = 5;
   static const double _cardRadius = 20;
+
+  /// Drop shadow: y+1, blur 10, `#194557` at 10% (`0x1A` = 26/255).
+  ///
+  /// One shadow, not the two in [kDiscoverGlassShadow] — the spec gives a
+  /// single soft lift, and stacking the shared pair under it would double the
+  /// darkness at the panel's edge.
+  static const List<BoxShadow> _cardShadow = [
+    BoxShadow(
+      color: Color(0x1A194557),
+      blurRadius: 10,
+      offset: Offset(0, 1),
+    ),
+  ];
 
   /// The header panel: solid white, blurred 4.
   static const Color _headerFill = Color(0xFFFFFFFF);
   static const double _headerBlur = 4;
+
+  /// Rim for the search field. Grey, not [_cardStroke]: the field is the one
+  /// bordered thing on this page sitting on the WHITE header rather than on the
+  /// page background, so the section cards' white stroke would be invisible on
+  /// it.
+  static const Color _searchFieldStroke = Color(0xFFDDE2EE);
 
   /// The sections fetch against the user's lat/lng, so the content is held
   /// behind a shimmer until the location attempt resolves — otherwise the
@@ -223,6 +234,8 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
                   border: _cardStroke,
                   blur: _cardBlur,
                   radius: _cardRadius,
+                  strokeWidth: _cardStrokeWidth,
+                  shadow: _cardShadow,
                   child: CustomScrollView(
                     controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -277,7 +290,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
             children: [
               _locationRow(),
               SizedBox(height: SizeConfig.size10),
-              const DiscoverProfileBannerV2(),
+              const DiscoverProfileBanner(),
               SizedBox(height: SizeConfig.size10),
               _searchBar(context),
             ],
@@ -345,11 +358,13 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(28),
-          // The header sits on a white panel now, so a white rim left the field
-          // with no edge at all. `#DDE2EE` is the same stroke the cards below
-          // use, which is what makes the field read as part of the same set.
-          border: Border.all(color: _cardStroke),
-          boxShadow: kDiscoverGlassShadow,
+          // NOT [_cardStroke]: the section cards below are stroked pure white
+          // because they sit on the page background, but this field sits on the
+          // white HEADER panel, where a white rim leaves it with no edge at
+          // all. Its own grey, deliberately — the two are on different grounds
+          // and cannot share a stroke.
+          border: Border.all(color: _searchFieldStroke),
+          boxShadow: _cardShadow,
         ),
         child: Row(
           children: [
@@ -391,7 +406,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
         final auth = Get.find<AuthController>();
         auth.onboardingBucketsWatch;
         if (auth.isInitialCategoriesLoading.value || !_locationResolved) {
-          return const _DiscoverV2Shimmer();
+          return const _DiscoverShimmer();
         }
         return _sectionsColumn(context);
       }),
@@ -565,8 +580,8 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
   }
 
   Widget _jobsRow() {
-    void openJobs() => Get.to(
-        () => isGuestUser() ? GuestDashBoardScreen() : JobsScreen());
+    void openJobs() =>
+        Get.to(() => isGuestUser() ? GuestDashBoardScreen() : JobsScreen());
     return DiscoverBannerRowV2(
       title: AppStrings.jobNearMe.tr,
       leadingIcon: AppImageAssets.jobsDiscover,
@@ -776,7 +791,7 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(_gap, 0, _gap, _gap),
-              child: const DiscoverProfileBannerV2(),
+              child: const DiscoverProfileBanner(),
             ),
             // The QR is deliberately PLAIN: no scroll-linked scale, no width
             // override — exactly the card the rest of the app renders. Growing
@@ -812,8 +827,8 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
 /// also what a guest sees, so the header measures the same before and after
 /// sign-up and nothing shifts under the user at the moment they create a
 /// profile.
-class DiscoverProfileBannerV2 extends StatelessWidget {
-  const DiscoverProfileBannerV2({super.key});
+class DiscoverProfileBanner extends StatelessWidget {
+  const DiscoverProfileBanner({super.key});
 
   /// The design's card is close to 2:1 — measured off `assets/Discover.png`,
   /// where it runs 308 x 150 inside a 324-wide frame. Sized by ratio rather
@@ -871,17 +886,28 @@ class DiscoverProfileBannerV2 extends StatelessWidget {
 
 /// Placeholder while location and the first category load resolve — the same
 /// alternation the real page uses, so nothing jumps when the content lands.
-class _DiscoverV2Shimmer extends StatelessWidget {
-  const _DiscoverV2Shimmer();
+class _DiscoverShimmer extends StatelessWidget {
+  const _DiscoverShimmer();
 
   @override
   Widget build(BuildContext context) {
+    // The page's own surface, read from the scope rather than the constants:
+    // the placeholder has to be the same colour and radius as the cards that
+    // replace it, or the page changes shade the moment the content lands.
+    final fill = DiscoverSurfaceTheme.fillOf(context);
+    final border = DiscoverSurfaceTheme.borderOf(context);
+    final strokeWidth = DiscoverSurfaceTheme.strokeWidthOf(context);
+    final radius = DiscoverSurfaceTheme.radiusOf(context);
+    final shadow = DiscoverSurfaceTheme.shadowOf(context);
+
     Widget block(double height) => Container(
           height: height,
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            color: kDiscoverGlassFill,
-            borderRadius: BorderRadius.circular(kDiscoverGlassRadius),
+            color: fill,
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(color: border, width: strokeWidth),
+            boxShadow: shadow,
           ),
         );
 

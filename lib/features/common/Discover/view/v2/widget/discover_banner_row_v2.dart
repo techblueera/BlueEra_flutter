@@ -95,13 +95,15 @@ class DiscoverBannerRowV2 extends StatelessWidget {
     final border = DiscoverSurfaceTheme.borderOf(context);
     final blur = DiscoverSurfaceTheme.blurOf(context);
     final radius = DiscoverSurfaceTheme.radiusOf(context);
+    final strokeWidth = DiscoverSurfaceTheme.strokeWidthOf(context);
+    final shadow = DiscoverSurfaceTheme.shadowOf(context);
 
     // Same surface as the folder tiles — the row has to read as a sibling of
     // the grid it is interleaved with, not as a different component.
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: kDiscoverGlassShadow,
+        boxShadow: shadow,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
@@ -112,7 +114,7 @@ class DiscoverBannerRowV2 extends StatelessWidget {
             decoration: BoxDecoration(
               color: fill,
               borderRadius: BorderRadius.circular(radius),
-              border: Border.all(color: border, width: 1),
+              border: Border.all(color: border, width: strokeWidth),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -202,8 +204,7 @@ class _ChipMetrics {
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
-    final icon =
-        chip.icon.trim().isEmpty ? 0.0 : (iconSize + iconGap);
+    final icon = chip.icon.trim().isEmpty ? 0.0 : (iconSize + iconGap);
     return painter.width + icon + hPad * 2 + 2; // +2 for the 1px border
   }
 
@@ -263,9 +264,8 @@ class _ChipLines extends StatelessWidget {
           // On the final line, keep room for "More" whenever chips are still
           // waiting behind this one — otherwise the row fills to the edge and
           // the way to the rest of the section disappears.
-          final budget = (isLastLine && remaining > 0)
-              ? maxWidth - moreWidth
-              : maxWidth;
+          final budget =
+              (isLastLine && remaining > 0) ? maxWidth - moreWidth : maxWidth;
 
           if (used + needed <= budget || current.isEmpty) {
             current.add(i);
@@ -430,8 +430,8 @@ class _MoreChip extends StatelessWidget {
           // Same face and weight as the categories beside it, one size up and
           // in primary ink — enough to find at the end of a line of 10px
           // labels without turning into a button.
-          style: _ChipMetrics.moreStyle()
-              .copyWith(color: AppColors.primaryColor),
+          style:
+              _ChipMetrics.moreStyle().copyWith(color: AppColors.primaryColor),
           maxLines: 1,
         ),
       ),

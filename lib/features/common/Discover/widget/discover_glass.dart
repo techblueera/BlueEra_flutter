@@ -134,27 +134,40 @@ class DiscoverGlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Read per-subtree, exactly like the folder tiles and banner rows: a panel
+    // under a [DiscoverSurfaceTheme] wears that page's surface, and one outside
+    // any scope falls back to the constants above. Without this the panel was
+    // the one section container on the landing page still painting itself from
+    // the constants, so it stayed on the old glass while everything beside it
+    // moved.
+    //
+    // [radius] is still the constructor's, not the scope's — callers pass it to
+    // line a panel up with a specific neighbour, and that is a layout decision
+    // rather than part of the surface.
     final borderRadius = BorderRadius.circular(radius);
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        boxShadow: kDiscoverGlassShadow,
+        boxShadow: DiscoverSurfaceTheme.shadowOf(context),
       ),
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(
-            sigmaX: kDiscoverGlassBlur,
-            sigmaY: kDiscoverGlassBlur,
+            sigmaX: DiscoverSurfaceTheme.blurOf(context),
+            sigmaY: DiscoverSurfaceTheme.blurOf(context),
           ),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
               // Translucent, so the panel keeps picking up whatever it sits on
               // — the background is unchanged, only the panel over it is.
-              color: kDiscoverGlassFill,
+              color: DiscoverSurfaceTheme.fillOf(context),
               borderRadius: borderRadius,
-              border: Border.all(color: kDiscoverGlassBorder, width: 1),
+              border: Border.all(
+                color: DiscoverSurfaceTheme.borderOf(context),
+                width: DiscoverSurfaceTheme.strokeWidthOf(context),
+              ),
             ),
             child: child,
           ),
@@ -177,6 +190,8 @@ class DiscoverSurfaceTheme extends InheritedWidget {
     required this.border,
     required this.blur,
     required this.radius,
+    this.strokeWidth,
+    this.shadow,
     required super.child,
   });
 
@@ -185,10 +200,19 @@ class DiscoverSurfaceTheme extends InheritedWidget {
   final double blur;
   final double radius;
 
-  /// v2 supplies [kDiscoverGlassFill] over `#DDE2EE`, blurred 20 — see
-  /// `discover_screen_v2.dart`, which owns those values. Its fill now matches
-  /// this file's default; the scope still exists for the stroke, blur and
-  /// radius, which do differ from v1.
+  /// Stroke weight for the rim. Null falls back to the 1px the constants draw.
+  final double? strokeWidth;
+
+  /// Lift under the panel. Null falls back to [kDiscoverGlassShadow].
+  ///
+  /// Here rather than at the call sites because a panel's shadow is painted
+  /// OUTSIDE its clip, so every consumer declares it separately and they drift
+  /// apart exactly the way the fill and blur did before this scope existed.
+  final List<BoxShadow>? shadow;
+
+  /// The Discover landing page owns the values it supplies — see
+  /// `discover_screen.dart`. Anything outside that scope reads the constants
+  /// above, which are still the surface every other Discover page paints.
   static const DiscoverSurfaceTheme? _none = null;
 
   static DiscoverSurfaceTheme? maybeOf(BuildContext context) =>
@@ -207,10 +231,18 @@ class DiscoverSurfaceTheme extends InheritedWidget {
   static double radiusOf(BuildContext context) =>
       maybeOf(context)?.radius ?? kDiscoverGlassRadius;
 
+  static double strokeWidthOf(BuildContext context) =>
+      maybeOf(context)?.strokeWidth ?? 1;
+
+  static List<BoxShadow> shadowOf(BuildContext context) =>
+      maybeOf(context)?.shadow ?? kDiscoverGlassShadow;
+
   @override
   bool updateShouldNotify(DiscoverSurfaceTheme oldWidget) =>
       fill != oldWidget.fill ||
       border != oldWidget.border ||
       blur != oldWidget.blur ||
-      radius != oldWidget.radius;
+      radius != oldWidget.radius ||
+      strokeWidth != oldWidget.strokeWidth ||
+      shadow != oldWidget.shadow;
 }
