@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 class OtherPrivacyConditionScreen extends StatelessWidget {
   OtherPrivacyConditionScreen({super.key});
 
-  final controller = Get.put(OtherPrivacyConditionController());
+  final controller = Get.find<OtherPrivacyConditionController>();
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +43,14 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                       },
                     )
                   : Center(
-                      child: CustomText(
-                          AppStrings.otherNoPrivacyTncFound.tr)),
+                      child: CustomText(AppStrings.otherNoPrivacyTncFound.tr)),
             ),
             SafeArea(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherPrivacyConditionFormScreen());
+                  Get.to(() => OtherPrivacyConditionFormScreen());
                 }),
               ),
             ),
@@ -92,9 +91,10 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherPrivacyConditionFormScreen(
-                      item: item,
-                    )),
+                    onPressed: () =>
+                        Get.to(() => OtherPrivacyConditionFormScreen(
+                              item: item,
+                            )),
                   ),
                   IconButton(
                     icon: const LocalAssets(
@@ -104,8 +104,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text:
-                              AppStrings.otherConfirmDeletePrivacyTnc.tr,
+                          text: AppStrings.otherConfirmDeletePrivacyTnc.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller

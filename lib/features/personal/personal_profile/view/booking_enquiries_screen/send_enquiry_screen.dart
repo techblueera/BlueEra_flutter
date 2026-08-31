@@ -12,40 +12,33 @@ import '../../../../../widgets/custom_text_cm.dart';
 import 'controller/booking_controller.dart';
 import 'model/appointment_booking_model.dart';
 
-
-
 class SendEnquiryScreen extends StatefulWidget {
   final String channelId;
   final String videoId;
 
-  const SendEnquiryScreen({super.key, required this.channelId,  required this.videoId});
+  const SendEnquiryScreen(
+      {super.key, required this.channelId, required this.videoId});
   @override
-  State<SendEnquiryScreen> createState() =>
-      _SendEnquiryScreenState();
+  State<SendEnquiryScreen> createState() => _SendEnquiryScreenState();
 }
 
-
-
-
-
 class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
-
   final nameController = TextEditingController();
   final mobileController = TextEditingController();
   final emailController = TextEditingController();
   final enquiryController = TextEditingController();
-  final BookingController bookingController = Get.put(BookingController());
+  final BookingController bookingController = Get.find<BookingController>();
 
   @override
   void initState() {
     super.initState();
-
-
-
   }
+
   @override
   Widget build(BuildContext context) {
-    print("userchannelId:$channelId",);
+    print(
+      "userchannelId:$channelId",
+    );
     print("userVideoId:${widget.videoId}");
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -129,24 +122,22 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
                   final msg = enquiryController.text.trim();
                   enquiryController.text.trim();
 
-
                   final customer = CustomerDetails(
                     name: name,
                     mobileNumber: mobile,
                     email: email,
                   );
-                  Map<String,dynamic> params = {
+                  Map<String, dynamic> params = {
                     ApiKeys.serviceProvider_channelId: "${widget.channelId}",
-                    ApiKeys.message : msg,
+                    ApiKeys.message: msg,
                     ApiKeys.videoId: "${widget.videoId}",
-                   ApiKeys.user_email:email,
-                   ApiKeys.user_phone:mobile,
-                   ApiKeys.user_name:name
+                    ApiKeys.user_email: email,
+                    ApiKeys.user_phone: mobile,
+                    ApiKeys.user_name: name
                   };
                   print("giugg ${widget.videoId}");
                   print("sgf ${customer}");
                   bookingController.addEnquiry(params: params);
-
                 },
                 title: "Send Enquiry",
                 textColor: AppColors.white,
@@ -158,11 +149,5 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
     );
   }
 
-
-
   // Helper Widgets
-
-
-
-
 }

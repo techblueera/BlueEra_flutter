@@ -15,7 +15,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart' as gpm;
+import 'package:BlueEra/features/me/product/model/get_product_model.dart'
+    as gpm;
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
@@ -50,8 +51,9 @@ class AutomotiveAddProductTextOrSnapSearchScreen extends StatefulWidget {
 class _AutomotiveAddProductTextOrSnapSearchScreenState
     extends State<AutomotiveAddProductTextOrSnapSearchScreen> {
   final scrollController = ScrollController();
-  final controller = Get.put(AutomotiveInventoryController());
-  final Rx<_AutomotiveAddProductMode> _selectedMode = _AutomotiveAddProductMode.textSearch.obs;
+  final controller = Get.find<AutomotiveInventoryController>();
+  final Rx<_AutomotiveAddProductMode> _selectedMode =
+      _AutomotiveAddProductMode.textSearch.obs;
 
   /// Live keystroke mirror — `controller.searchProduct` only updates
   /// after the debounce AND the 3-character gate, so binding the UI
@@ -88,10 +90,10 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                 _buildQuickAddRail(),
                 _buildModeSelector(),
                 Expanded(
-                  child: Obx(() =>
-                      _selectedMode.value == _AutomotiveAddProductMode.textSearch
-                          ? _buildTextSearchContent()
-                          : _buildSnapSearchContent()),
+                  child: Obx(() => _selectedMode.value ==
+                          _AutomotiveAddProductMode.textSearch
+                      ? _buildTextSearchContent()
+                      : _buildSnapSearchContent()),
                 ),
               ],
             ),
@@ -267,13 +269,11 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
   Widget _buildTextSearchContent() {
     return NotificationListener<ScrollNotification>(
       onNotification: (scrollInfo) {
-        if (scrollInfo.metrics.pixels ==
-                scrollInfo.metrics.maxScrollExtent &&
+        if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
             controller.searchProduct.isNotEmpty &&
             controller.hasMoreData &&
             !controller.isLoadingMore) {
-          controller.fetchListOfSearchProductApi(
-              controller.searchProduct.value,
+          controller.fetchListOfSearchProductApi(controller.searchProduct.value,
               isLoadMore: true);
         }
         return false;
@@ -318,8 +318,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                           _liveInput.value = value;
                           controller.onSearchChanged(value);
                         },
-                        hintText: AppStrings
-                            .typeAtLeastThreeCharForSearchProducts,
+                        hintText:
+                            AppStrings.typeAtLeastThreeCharForSearchProducts,
                         showClearIcon: _liveInput.value.isNotEmpty,
                         onClearTap: () {
                           controller.searchController.clear();
@@ -344,7 +344,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
               final length = _liveInput.value.trim().length;
               if (length == 0) return const SizedBox.shrink();
               if (length < _minSearchChars) {
-                return _AutomotiveSearchTypingHint(typed: length, required: _minSearchChars);
+                return _AutomotiveSearchTypingHint(
+                    typed: length, required: _minSearchChars);
               }
               return _buildSearchResults();
             }),
@@ -362,8 +363,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
     // be `ERROR` — without this gate the error UI flashes for a frame
     // before the skeleton appears.
     final typed = _liveInput.value.trim();
-    final searchPending =
-        typed.length >= _minSearchChars && typed != controller.searchProduct.value;
+    final searchPending = typed.length >= _minSearchChars &&
+        typed != controller.searchProduct.value;
 
     // Initial fetch — paint a placeholder grid that mirrors the real
     // variant card layout instead of a centered spinner. Gives the
@@ -380,8 +381,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
     // instead of leaving the area blank.
     if (controller.searchProductResponse.value.status == Status.ERROR) {
       return _AutomotiveSearchErrorState(
-        onRetry: () => controller.fetchListOfSearchProductApi(
-            controller.searchProduct.value),
+        onRetry: () => controller
+            .fetchListOfSearchProductApi(controller.searchProduct.value),
       );
     }
 
@@ -450,8 +451,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
               child: Row(
                 children: [
                   const Icon(
@@ -485,19 +485,16 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
               height: SizeConfig.size220,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size15),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                 itemCount: list.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(width: SizeConfig.size10),
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
                 itemBuilder: (_, index) {
                   final variant = list[index];
                   return SizedBox(
                     width: SizeConfig.size140,
                     child: Obx(() => AutomotiveProductVariantGridCard(
                           variantData: variant,
-                          isSelected:
-                              controller.isVariantSelected(variant.id),
+                          isSelected: controller.isVariantSelected(variant.id),
                           onTap: () =>
                               controller.toggleVariantWithData(variant),
                           onPreviewTap: () => _openPreview(variant),
@@ -615,8 +612,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                                       initialIndex: 0,
                                     ),
                                   )
-                              : () =>
-                                  controller.addProductImagesBySlot(title),
+                              : () => controller.addProductImagesBySlot(title),
                       child: Opacity(
                         opacity: isBlocked ? 0.5 : 1.0,
                         child: ClipRRect(
@@ -633,8 +629,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                                         fit: BoxFit.cover),
                                 Container(
                                   decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
                                       color: hasImage
                                           ? AppColors.primaryColor
@@ -646,8 +641,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                                 if (!hasImage) ...[
                                   Positioned.fill(
                                     child: ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(10),
                                       child: BackdropFilter(
                                         filter: ImageFilter.blur(
                                             sigmaX: 2, sigmaY: 2),
@@ -665,52 +659,41 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                                   Align(
                                     alignment: Alignment.center,
                                     child: Padding(
-                                      padding:
-                                          const EdgeInsets.all(10.0),
+                                      padding: const EdgeInsets.all(10.0),
                                       child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(10),
                                         child: BackdropFilter(
                                           filter: ImageFilter.blur(
                                               sigmaX: 8, sigmaY: 8),
                                           child: Container(
-                                            padding:
-                                                const EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
                                               color: AppColors.white
-                                                  .withValues(
-                                                      alpha: 0.1),
+                                                  .withValues(alpha: 0.1),
                                               borderRadius:
-                                                  BorderRadius.circular(
-                                                      10),
+                                                  BorderRadius.circular(10),
                                               border: Border.all(
                                                 color: AppColors.white
-                                                    .withValues(
-                                                        alpha: 0.1),
+                                                    .withValues(alpha: 0.1),
                                               ),
                                             ),
                                             child: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .center,
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 LocalAssets(
                                                   imagePath: icon,
                                                   height: 18,
                                                   width: 18,
-                                                  boxFix:
-                                                      BoxFit.scaleDown,
-                                                  imgColor:
-                                                      AppColors.white,
+                                                  boxFix: BoxFit.scaleDown,
+                                                  imgColor: AppColors.white,
                                                 ),
                                                 const SizedBox(width: 6),
                                                 CustomText(
                                                   title,
-                                                  fontSize:
-                                                      SizeConfig.small,
+                                                  fontSize: SizeConfig.small,
                                                   color: AppColors.white,
-                                                  fontWeight:
-                                                      FontWeight.w400,
+                                                  fontWeight: FontWeight.w400,
                                                 ),
                                               ],
                                             ),
@@ -726,15 +709,13 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                                     right: 8,
                                     child: GestureDetector(
                                       onTap: () => controller
-                                          .removeProductImageBySlot(
-                                              title),
+                                          .removeProductImageBySlot(title),
                                       child: CircleAvatar(
                                         radius: 12,
-                                        backgroundColor: Colors.red
-                                            .withValues(alpha: 0.8),
+                                        backgroundColor:
+                                            Colors.red.withValues(alpha: 0.8),
                                         child: const Icon(Icons.close,
-                                            size: 14,
-                                            color: Colors.white),
+                                            size: 14, color: Colors.white),
                                       ),
                                     ),
                                   ),
@@ -753,8 +734,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                           : isBlocked
                               ? AppColors.greyE5
                               : AppColors.secondaryTextColor,
-                      fontWeight:
-                          hasImage ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: hasImage ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ],
                 );
@@ -818,9 +798,8 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  AppStrings.automotiveItemsFoundFmt.trParams({
-                    'count': '${searchData.foundCount ?? products.length}'
-                  }),
+                  AppStrings.automotiveItemsFoundFmt.trParams(
+                      {'count': '${searchData.foundCount ?? products.length}'}),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -893,25 +872,22 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
     }
 
     return CustomFormCard(
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-          margin: EdgeInsets.only(bottom: SizeConfig.size10),
-          child: InkWell(
-            onTap: () => controller.toggleVariantWithData(variantData),
-            borderRadius: BorderRadius.circular(10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Checkbox
-                Obx(() => Checkbox(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+      margin: EdgeInsets.only(bottom: SizeConfig.size10),
+      child: InkWell(
+        onTap: () => controller.toggleVariantWithData(variantData),
+        borderRadius: BorderRadius.circular(10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Checkbox
+            Obx(() => Checkbox(
                   value: controller.isVariantSelected(variant.id),
                   onChanged: (_) =>
                       controller.toggleVariantWithData(variantData),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4.0),
-                    side: BorderSide(
-                      color: AppColors.secondaryTextColor
-                    )
-                  ),
+                      borderRadius: BorderRadius.circular(4.0),
+                      side: BorderSide(color: AppColors.secondaryTextColor)),
                   checkColor: Colors.white,
                   activeColor: AppColors.primaryColor,
                   fillColor: WidgetStateProperty.resolveWith((states) {
@@ -922,79 +898,79 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
                   }),
                 )),
 
-                // AutomotiveProduct image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child: imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          height: SizeConfig.size80,
-                          width: SizeConfig.size80,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey.shade200,
-                            height: SizeConfig.size80,
-                            width: SizeConfig.size80,
-                            child: const Center(
-                              child:
-                                  CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.cover,
-                            height: SizeConfig.size80,
-                            width: SizeConfig.size80,
-                          ),
-                        )
-                      : LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image,
-                          boxFix: BoxFit.cover,
-                          height: SizeConfig.size80,
-                          width: SizeConfig.size80,
+            // AutomotiveProduct image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: imageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      height: SizeConfig.size80,
+                      width: SizeConfig.size80,
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.shade200,
+                        height: SizeConfig.size80,
+                        width: SizeConfig.size80,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                ),
-
-                SizedBox(width: SizeConfig.size10),
-
-                // AutomotiveProduct info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        product.name,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.mainTextColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: SizeConfig.size5),
-                      PriceRow(
-                        sellingPrice: '\u20B9${variant.sellingPrice.toStringAsFixed(0)}',
-                        mrp: '\u20B9${variant.mrp.toStringAsFixed(0)}',
-                        discount:
-                            "${calculateDiscount('${variant.sellingPrice}', '${variant.mrp}')}% ${AppStrings.offCaps.tr}",
+                      errorWidget: (context, url, error) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
+                        height: SizeConfig.size80,
+                        width: SizeConfig.size80,
                       ),
-                      AutomotiveAttributeRows(attributeMap: uniqueAttributes),
-                    ],
-                  ),
-                ),
-
-                // Preview button
-                IconButton(
-                  onPressed: () => _openPreview(variantData),
-                  icon: const Icon(
-                    Icons.visibility_outlined,
-                    size: 20,
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-              ],
+                    )
+                  : LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.cover,
+                      height: SizeConfig.size80,
+                      width: SizeConfig.size80,
+                    ),
             ),
-          ),
-        );
+
+            SizedBox(width: SizeConfig.size10),
+
+            // AutomotiveProduct info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    product.name,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: SizeConfig.size5),
+                  PriceRow(
+                    sellingPrice:
+                        '\u20B9${variant.sellingPrice.toStringAsFixed(0)}',
+                    mrp: '\u20B9${variant.mrp.toStringAsFixed(0)}',
+                    discount:
+                        "${calculateDiscount('${variant.sellingPrice}', '${variant.mrp}')}% ${AppStrings.offCaps.tr}",
+                  ),
+                  AutomotiveAttributeRows(attributeMap: uniqueAttributes),
+                ],
+              ),
+            ),
+
+            // Preview button
+            IconButton(
+              onPressed: () => _openPreview(variantData),
+              icon: const Icon(
+                Icons.visibility_outlined,
+                size: 20,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1057,8 +1033,7 @@ class _AutomotiveAddProductTextOrSnapSearchScreenState
           ),
           GestureDetector(
             onTap: controller.dismissErrorBanner,
-            child:
-                const Icon(Icons.close, color: AppColors.red, size: 20),
+            child: const Icon(Icons.close, color: AppColors.red, size: 20),
           ),
         ],
       ),
@@ -1079,13 +1054,16 @@ class _AutomotiveSearchTypingHint extends StatefulWidget {
   final int typed;
   final int required;
 
-  const _AutomotiveSearchTypingHint({required this.typed, required this.required});
+  const _AutomotiveSearchTypingHint(
+      {required this.typed, required this.required});
 
   @override
-  State<_AutomotiveSearchTypingHint> createState() => _AutomotiveSearchTypingHintState();
+  State<_AutomotiveSearchTypingHint> createState() =>
+      _AutomotiveSearchTypingHintState();
 }
 
-class _AutomotiveSearchTypingHintState extends State<_AutomotiveSearchTypingHint>
+class _AutomotiveSearchTypingHintState
+    extends State<_AutomotiveSearchTypingHint>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
 
@@ -1184,8 +1162,8 @@ class _AutomotiveSearchTypingHintState extends State<_AutomotiveSearchTypingHint
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.28),
+                            color:
+                                AppColors.primaryColor.withValues(alpha: 0.28),
                             blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
@@ -1230,17 +1208,14 @@ class _AutomotiveSearchTypingHintState extends State<_AutomotiveSearchTypingHint
             children: List.generate(widget.required, (i) {
               final filled = i < widget.typed;
               return Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size4),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 240),
                   curve: Curves.easeOutCubic,
                   width: filled ? 22 : 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: filled
-                        ? AppColors.primaryColor
-                        : Colors.transparent,
+                    color: filled ? AppColors.primaryColor : Colors.transparent,
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
                       color: filled
@@ -1273,10 +1248,12 @@ class _AutomotiveVariantGridSkeleton extends StatefulWidget {
   const _AutomotiveVariantGridSkeleton({this.count = 4});
 
   @override
-  State<_AutomotiveVariantGridSkeleton> createState() => _AutomotiveVariantGridSkeletonState();
+  State<_AutomotiveVariantGridSkeleton> createState() =>
+      _AutomotiveVariantGridSkeletonState();
 }
 
-class _AutomotiveVariantGridSkeletonState extends State<_AutomotiveVariantGridSkeleton>
+class _AutomotiveVariantGridSkeletonState
+    extends State<_AutomotiveVariantGridSkeleton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _shimmer;
 
@@ -1305,7 +1282,8 @@ class _AutomotiveVariantGridSkeletonState extends State<_AutomotiveVariantGridSk
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
       itemCount: widget.count,
-      itemBuilder: (_, i) => _AutomotiveSkeletonVariantCard(animation: _shimmer),
+      itemBuilder: (_, i) =>
+          _AutomotiveSkeletonVariantCard(animation: _shimmer),
     );
   }
 }
@@ -1390,7 +1368,8 @@ class _AutomotiveSearchEmptyState extends StatelessWidget {
   final String keyword;
   final VoidCallback onClear;
 
-  const _AutomotiveSearchEmptyState({required this.keyword, required this.onClear});
+  const _AutomotiveSearchEmptyState(
+      {required this.keyword, required this.onClear});
 
   @override
   Widget build(BuildContext context) {

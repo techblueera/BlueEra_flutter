@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/ott/binding/search_channel_binding.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/ott/view/search_channel_screen.dart';
@@ -60,10 +61,11 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
                   controller: TextEditingController(),
                   isShowCursor: false,
                   onSearchTap: () {
-                    Get.to(SearchChannelScreen());
+                    Get.to(() => SearchChannelScreen(),
+                        binding: SearchChannelBinding());
                   },
                   onClearCallback: null,
-                  hintText:AppStrings.searchByChannelName),
+                  hintText: AppStrings.searchByChannelName),
             ),
             Expanded(
               child: RefreshIndicator(

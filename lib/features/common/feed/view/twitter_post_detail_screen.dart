@@ -62,12 +62,11 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
   void initState() {
     super.initState();
     _post = widget.post;
-    commentController = Get.put(CommentController());
+    commentController = Get.find<CommentController>();
     commentController.clearAiContent();
     commentController.replyingToUser.value = null;
     commentController.parentCommentId = null;
-    commentController.getAllPostComments(
-        postId: _post.id, isInitialized: true);
+    commentController.getAllPostComments(postId: _post.id, isInitialized: true);
   }
 
   @override
@@ -347,8 +346,8 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                     // Title + subtitle
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -536,8 +535,8 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
         return Dialog(
           insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
           backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
@@ -568,11 +567,9 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                               .value = true;
                           Get.until((route) =>
                               route.settings.name ==
-                              RouteHelper
-                                  .getBottomNavigationBarScreenRoute());
+                              RouteHelper.getBottomNavigationBarScreenRoute());
                         } else {
-                          commonSnackBar(
-                              message: AppStrings.alreadyReposted);
+                          commonSnackBar(message: AppStrings.alreadyReposted);
                         }
                       },
                       child: Row(
@@ -589,8 +586,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                           ),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
                                   padding: EdgeInsets.symmetric(
@@ -608,8 +604,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                                   child: CustomText(
                                     AppStrings.sharePostWithFollowers,
                                     textAlign: TextAlign.left,
-                                    color:
-                                        AppColors.secondaryTextColor,
+                                    color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size13,
                                   ),
                                 ),
@@ -621,19 +616,17 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                     ),
                     Padding(
                       padding: EdgeInsets.only(
-                          top: SizeConfig.size10,
-                          bottom: SizeConfig.size10),
-                      child: Divider(
-                          color: AppColors.secondaryTextColor),
+                          top: SizeConfig.size10, bottom: SizeConfig.size10),
+                      child: Divider(color: AppColors.secondaryTextColor),
                     ),
                     // Quote Repost
                     InkWell(
                       onTap: () {
                         Get.back();
-                        Get.to(CreateMessagePostScreenRepost(
-                          isEdit: false,
-                          post: _post,
-                        ));
+                        Get.to(() => CreateMessagePostScreenRepost(
+                              isEdit: false,
+                              post: _post,
+                            ));
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -650,8 +643,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                           Flexible(
                             flex: 2,
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
                                   padding: EdgeInsets.symmetric(
@@ -669,8 +661,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                                   child: CustomText(
                                     AppStrings.addCommentBeforeShare,
                                     textAlign: TextAlign.left,
-                                    color:
-                                        AppColors.secondaryTextColor,
+                                    color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size13,
                                   ),
                                 ),
@@ -893,8 +884,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      CustomText(
-                                          reply.createdBy?.name ?? '',
+                                      CustomText(reply.createdBy?.name ?? '',
                                           fontWeight: FontWeight.w600,
                                           fontSize: 12),
                                       SizedBox(width: 4),
@@ -982,8 +972,8 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                           return;
                         }
                         Get.to(() => PostAiCommentScreen(
-                              dataId: commentController.parentCommentId ??
-                                  _post.id,
+                              dataId:
+                                  commentController.parentCommentId ?? _post.id,
                               commentType:
                                   commentController.parentCommentId != null
                                       ? "comment_reply"
@@ -1054,8 +1044,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
       children: [
         CustomText(count, fontWeight: FontWeight.w700, fontSize: 14),
         SizedBox(width: 4),
-        CustomText(label,
-            fontSize: 14, color: AppColors.secondaryTextColor),
+        CustomText(label, fontSize: 14, color: AppColors.secondaryTextColor),
       ],
     );
   }
@@ -1091,8 +1080,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
           child: Container(
             color: Colors.grey[300],
             alignment: Alignment.center,
-            child:
-                const Icon(Icons.broken_image_outlined, color: Colors.grey),
+            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
           ),
         ),
       ),

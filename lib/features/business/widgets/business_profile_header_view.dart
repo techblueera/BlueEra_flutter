@@ -401,9 +401,8 @@ class BusinessProfileHeaderView extends StatelessWidget {
     if (address.trim().isEmpty) return '';
     final parts = address.split(',').map((e) => e.trim()).toList();
     if (parts.length >= 3) {
-      final statePart = parts[parts.length - 2]
-          .replaceAll(RegExp(r'\d{5,6}'), '')
-          .trim();
+      final statePart =
+          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
       final city = parts[parts.length - 3].trim();
       if (city.isNotEmpty && statePart.isNotEmpty) return '$city, $statePart';
       return city.isNotEmpty ? city : statePart;
@@ -479,8 +478,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
               letterSpacing: 0.1,
             ),
             const SizedBox(width: 6),
-            Icon(Icons.add_rounded,
-                size: 13, color: AppColors.primaryColor),
+            Icon(Icons.add_rounded, size: 13, color: AppColors.primaryColor),
           ],
         ),
       ),
@@ -740,7 +738,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
         TextEditingController(text: details?.cityStatePincode ?? '');
     final pincodeController =
         TextEditingController(text: details?.pincode?.toString() ?? '');
-    final locationController = Get.put(LocationController());
+    final locationController = Get.find<LocationController>();
 
     showModalBottomSheet(
       context: context,

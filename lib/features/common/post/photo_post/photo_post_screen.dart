@@ -38,9 +38,9 @@ class PhotoPostScreen extends StatefulWidget {
 }
 
 class _PhotoPostScreenState extends State<PhotoPostScreen> {
-  final controller = Get.put(PhotoPostController());
-  final tagUserController = Get.put(TagUserController());
-  final songController = Get.put(SongController());
+  final controller = Get.find<PhotoPostController>();
+  final tagUserController = Get.find<TagUserController>();
+  final songController = Get.find<SongController>();
 
   @override
   void initState() {
@@ -376,8 +376,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                       }
                     } else {
                       commonSnackBar(
-                          message:
-                          AppStrings.cantAddMoreThanOneSong);
+                          message: AppStrings.cantAddMoreThanOneSong);
                     }
                   },
                   child: Row(

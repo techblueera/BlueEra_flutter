@@ -421,11 +421,11 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                 InkWell(
                                                   onTap: () {
                                                     Get.back();
-                                                    Get.to(
+                                                    Get.to(() =>
                                                         CreateMessagePostScreenRepost(
-                                                      isEdit: false,
-                                                      post: widget.post,
-                                                    ));
+                                                          isEdit: false,
+                                                          post: widget.post,
+                                                        ));
                                                   },
                                                   child: Row(
                                                     crossAxisAlignment:

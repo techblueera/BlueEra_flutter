@@ -30,10 +30,10 @@ class FeedPopUpMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'Edit Post') {
           if (post.type?.toUpperCase() == AppConstants.MESSAGE_POST) {
-            Get.to(MessagePostPreviewScreenNew(
-              isEdit: true,
-              post: post,
-            ));
+            Get.to(() => MessagePostPreviewScreenNew(
+                  isEdit: true,
+                  post: post,
+                ));
           }
 
           if (post.type?.toUpperCase() == AppConstants.POLL_POST) {
@@ -60,7 +60,8 @@ class FeedPopUpMenu extends StatelessWidget {
         }
       },
       icon: Icon(Icons.more_vert),
-      itemBuilder: (context) => PopupMenuBuilders.popupPostMenuItems(post.is_reposted),
+      itemBuilder: (context) =>
+          PopupMenuBuilders.popupPostMenuItems(post.is_reposted),
     );
   }
 }

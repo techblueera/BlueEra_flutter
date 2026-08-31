@@ -19,8 +19,7 @@ import 'package:get/get.dart';
 class OtherNewsScreen extends StatelessWidget {
   OtherNewsScreen({super.key});
 
-  final  controller =
-      Get.put(OtherNewsController());
+  final controller = Get.find<OtherNewsController>();
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +50,7 @@ class OtherNewsScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherNewsFormScreen());
+                  Get.to(() => OtherNewsFormScreen());
                 }),
               ),
             ),
@@ -118,9 +117,9 @@ class OtherNewsScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherNewsFormScreen(
-                      item: item,
-                    )),
+                    onPressed: () => Get.to(() => OtherNewsFormScreen(
+                          item: item,
+                        )),
                   ),
                   IconButton(
                     icon: const LocalAssets(
@@ -160,7 +159,6 @@ class OtherNewsScreen extends StatelessWidget {
               fontFamily: AppConstants.OpenSans,
             ),
           ),
-
         ],
       ),
     );

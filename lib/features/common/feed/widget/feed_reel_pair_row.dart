@@ -46,7 +46,8 @@ class FeedReelPairRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _FeedReelTile(post: reels.first, aspect: _tileAspect)),
+          Expanded(
+              child: _FeedReelTile(post: reels.first, aspect: _tileAspect)),
           SizedBox(width: SizeConfig.size8),
           // Keeps a lone trailing reel at half width instead of letting it
           // stretch across the row and read as a different component.
@@ -97,9 +98,7 @@ class _FeedReelTile extends StatelessWidget {
     final item = getVideoData(post);
     if ((item.video?.videoUrl?.isEmpty ?? true)) return;
 
-    final controller = Get.isRegistered<ShortsController>()
-        ? Get.find<ShortsController>()
-        : Get.put(ShortsController());
+    final controller = Get.put(ShortsController());
     controller.primeHomeFeed(isLong: false, initial: [item]);
 
     Navigator.pushNamed(

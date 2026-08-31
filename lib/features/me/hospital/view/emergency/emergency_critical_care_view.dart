@@ -94,7 +94,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
     ];
   }
 
-  void _openEdit() => Get.to(const HospitalEmergencyCareScreen());
+  void _openEdit() => Get.to(() => const HospitalEmergencyCareScreen());
 
   @override
   Widget build(BuildContext context) {
@@ -142,8 +142,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
                 padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: displayItems.length,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,

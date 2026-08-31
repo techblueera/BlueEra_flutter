@@ -20,7 +20,7 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ManagementController());
+    final controller = Get.find<ManagementController>();
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -42,7 +42,8 @@ class ManagementScreen extends StatelessWidget {
                         return _buildManagementCard(context, controller, item);
                       },
                     )
-                  : Center(child: CustomText(AppStrings.otherNoManagementFound.tr)),
+                  : Center(
+                      child: CustomText(AppStrings.otherNoManagementFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -129,8 +130,7 @@ class ManagementScreen extends StatelessWidget {
                               } else if (value == 'Delete') {
                                 commonConformationDialog(
                                   context: context,
-                                  text:
-                                      AppStrings.otherConfirmDeleteMember.tr,
+                                  text: AppStrings.otherConfirmDeleteMember.tr,
                                   confirmCallback: () {
                                     Get.back();
                                     controller.deleteManagement(item.sId ?? "");
@@ -141,9 +141,11 @@ class ManagementScreen extends StatelessWidget {
                             },
                             itemBuilder: (context) => [
                               PopupMenuItem(
-                                  value: 'Edit', child: Text(AppStrings.edit.tr)),
+                                  value: 'Edit',
+                                  child: Text(AppStrings.edit.tr)),
                               PopupMenuItem(
-                                  value: 'Delete', child: Text(AppStrings.delete.tr)),
+                                  value: 'Delete',
+                                  child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )
@@ -172,7 +174,6 @@ class ManagementScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-
                   ],
                 ),
               ),
@@ -181,7 +182,8 @@ class ManagementScreen extends StatelessWidget {
           SizedBox(height: SizeConfig.size15),
           if (item.message != null && item.message!.isNotEmpty)
             ExpandableText(
-              text:"NTo remove the extra padding that PopupMenuButton forces on its surroundings, you have to tackle two things: the Button Padding and the Minimum Hitbox size.",
+              text:
+                  "NTo remove the extra padding that PopupMenuButton forces on its surroundings, you have to tackle two things: the Button Padding and the Minimum Hitbox size.",
               // text: item.message ?? "N/A",
               trimLines: 1,
               isReadMoreNewLine: false,

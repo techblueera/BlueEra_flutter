@@ -12,13 +12,15 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
 class ReceivedEnquiriesScreen extends StatelessWidget {
-final  String channelId;
-   ReceivedEnquiriesScreen({super.key, required this.channelId});
+  final String channelId;
+  ReceivedEnquiriesScreen({super.key, required this.channelId});
 
   @override
   Widget build(BuildContext context) {
-     final controller = Get.put(BookingController());
-    controller.getReceivedEnquiryList(channelId:channelId,);
+    final controller = Get.find<BookingController>();
+    controller.getReceivedEnquiryList(
+      channelId: channelId,
+    );
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -30,17 +32,13 @@ final  String channelId;
           itemCount: controller.receivedenquiryList.length,
           itemBuilder: (context, index) {
             final enquiry = controller.receivedenquiryList[index];
-           
-  int seconds = int.parse(enquiry.createdAt.seconds);
-  int nanos = enquiry.createdAt.nanos;
 
+            int seconds = int.parse(enquiry.createdAt.seconds);
+            int nanos = enquiry.createdAt.nanos;
 
-  DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
-      (seconds * 1000) + (nanos ~/ 1000000),
-      isUtc: true);
-
-
- 
+            DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
+                (seconds * 1000) + (nanos ~/ 1000000),
+                isUtc: true);
 
             return Container(
               margin: EdgeInsets.symmetric(
@@ -49,7 +47,8 @@ final  String channelId;
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 5),
+                  BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.2), blurRadius: 5),
                 ],
               ),
               child: IntrinsicHeight(
@@ -93,7 +92,7 @@ final  String channelId;
                             ),
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              'Posted On: ${ DateFormat("dd MMM yyyy ").format(dateTime)}',
+                              'Posted On: ${DateFormat("dd MMM yyyy ").format(dateTime)}',
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w300,
                               color: Colors.black54,
@@ -104,8 +103,8 @@ final  String channelId;
                             ),
                             SizedBox(height: SizeConfig.size4),
                             _buildDetailRow("Status :", enquiry.status),
-                          //  SizedBox(height: SizeConfig.size4),
-                           // _buildDetailRow("Message :", enquiry.message),
+                            //  SizedBox(height: SizeConfig.size4),
+                            // _buildDetailRow("Message :", enquiry.message),
                             SizedBox(height: SizeConfig.size4),
                             // _buildDetailRow(
                             //     "User :", enquiry.userName ?? 'N/A'),
@@ -114,12 +113,15 @@ final  String channelId;
                             //     "Contact :", enquiry.userPhone ?? enquiry.userEmail ?? 'N/A'),
                             SizedBox(height: SizeConfig.size12),
                             CustomBtn(
-                              height:  SizeConfig.size50,
+                              height: SizeConfig.size50,
                               radius: SizeConfig.size6,
                               bgColor: AppColors.white,
                               borderColor: AppColors.skyBlueDF,
                               onTap: () {
-                                Get.to(()=>VideographyTutorialScreen2(channelId: enquiry.channelId,videoId: enquiry.id,));
+                                Get.to(() => VideographyTutorialScreen2(
+                                      channelId: enquiry.channelId,
+                                      videoId: enquiry.id,
+                                    ));
                                 //Get.toNamed(RouteHelper.getVideographyTutorialScreen2Route());
                               },
                               title: "Enquires (${enquiry.inquiryCount})",

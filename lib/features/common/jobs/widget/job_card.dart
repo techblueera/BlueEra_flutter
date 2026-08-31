@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/jobs/binding/job_applications_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -165,8 +166,8 @@ class JobCard extends StatelessWidget {
                                           jobId: job?.sId ?? "",
                                           params: params,
                                         );
-                                        await jobScreenController
-                                            .getAllJobsApi(postedVIA: 'business');
+                                        await jobScreenController.getAllJobsApi(
+                                            postedVIA: 'business');
 
                                         break;
 
@@ -219,8 +220,8 @@ class JobCard extends StatelessWidget {
                                           jobId: job?.sId ?? "",
                                           params: params,
                                         );
-                                        await jobScreenController
-                                            .getAllJobsApi(postedVIA: 'business');
+                                        await jobScreenController.getAllJobsApi(
+                                            postedVIA: 'business');
 
                                         break;
                                       case 'Share':
@@ -269,7 +270,8 @@ class JobCard extends StatelessWidget {
                               '${job?.jobType ?? "N/A"} - ${job?.workMode ?? "N/A"}'),
                       _buildJobDescriptionContent(
                           title: '${AppStrings.minExperience.tr}: ',
-                          subtitle: '${job?.experience ?? 0} ${AppStrings.years}'),
+                          subtitle:
+                              '${job?.experience ?? 0} ${AppStrings.years}'),
                       _buildJobDescriptionContent(
                           title: '${AppStrings.monthlyPay.tr}: ',
                           subtitle:
@@ -290,10 +292,12 @@ class JobCard extends StatelessWidget {
                               bgColor: AppColors.white,
                               height: SizeConfig.size32,
                               onTap: () {
-                                Get.to(JobApplicationsScreen(
-                                  jobsData: job,
-                                  headerHeight: headerHeight,
-                                ));
+                                Get.to(
+                                    () => JobApplicationsScreen(
+                                          jobsData: job,
+                                          headerHeight: headerHeight,
+                                        ),
+                                    binding: JobApplicationsBinding());
                               },
                               title: (job?.applications?.isNotEmpty ?? false)
                                   ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
@@ -409,7 +413,11 @@ class JobCard extends StatelessWidget {
               'title': AppStrings.edit,
               'slug_id': 'Edit'
             },
-            {'icon': AppIconAssets.hide, 'title': AppStrings.hide, 'slug_id': 'Hide'},
+            {
+              'icon': AppIconAssets.hide,
+              'title': AppStrings.hide,
+              'slug_id': 'Hide'
+            },
             {
               'icon': AppIconAssets.uploadIcon,
               'title': AppStrings.share,

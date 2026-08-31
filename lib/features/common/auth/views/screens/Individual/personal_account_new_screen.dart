@@ -111,7 +111,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final subDivision = TextEditingController();
   final specializationController = TextEditingController();
   final authController = Get.find<AuthController>();
-  final locationController = Get.put(LocationController());
+  final locationController = Get.find<LocationController>();
   final LanguageListController langController =
       getOrPut(() => LanguageListController());
 
@@ -266,434 +266,242 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       // though the email field already advertises AutofillHints.email.
       body: AutofillGroup(
         child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: SizeConfig.size8,
-            right: SizeConfig.size8,
-            top: SizeConfig.size15,
-            bottom: 2 * kBottomNavigationBarHeight,
-          ),
-          child: Column(
-            children: [
-              CustomFormCard(
-                  child: Column(
-                children: [
-                  InkWell(
-                    onTap: () => _selectImage(context),
-                    child: Container(
-                      padding: EdgeInsets.all(SizeConfig.size2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.grey.shade400,
-                          width: 1.0,
-                        ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundColor: AppColors.whiteF3,
-                        child: _imagePath?.isNotEmpty == true
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(40),
-                                child: Image(
-                                  image: FileImage(File(_imagePath!))..evict(),
-                                ),
-                              )
-                            : LocalAssets(
-                                imagePath: AppIconAssets.user_out_line,
-                                imgColor: AppColors.secondaryTextColor,
-                              ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  InkWell(
-                    onTap: () => _selectImage(context),
-                    child: CustomText(
-                      AppStrings.uploadYourPhotoLogo,
-                      color: AppColors.mainTextColor,
-                      textAlign: TextAlign.center,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              )),
-              SizedBox(height: SizeConfig.paddingXSL),
-              CustomFormCard(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(AppStrings.youHaveChosen,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor),
-                  SizedBox(
-                    height: SizeConfig.paddingS,
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10.0)),
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: SizeConfig.size8,
+              right: SizeConfig.size8,
+              top: SizeConfig.size15,
+              bottom: 2 * kBottomNavigationBarHeight,
+            ),
+            child: Column(
+              children: [
+                CustomFormCard(
                     child: Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            CustomText('${langController.tr(AppStrings.profileType)} - ' ,
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w400),
-                            Expanded(
-                              child: CustomText(
-                                  _selectedProfileType?.name,
-                                  color: AppColors.primaryColor,
-                                  fontSize: SizeConfig.small,
-                                  fontWeight: FontWeight.w400),
-                            )
-                          ],
+                  children: [
+                    InkWell(
+                      onTap: () => _selectImage(context),
+                      child: Container(
+                        padding: EdgeInsets.all(SizeConfig.size2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.grey.shade400,
+                            width: 1.0,
+                          ),
                         ),
-
-                        SizedBox(height: SizeConfig.paddingXSmall),
-
-                        // if(_selectedSelfEmployment!=null)
-                        Padding(
-                          padding:
-                              EdgeInsets.only(top: SizeConfig.paddingXSmall),
-                          child: Row(
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppColors.whiteF3,
+                          child: _imagePath?.isNotEmpty == true
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(40),
+                                  child: Image(
+                                    image: FileImage(File(_imagePath!))
+                                      ..evict(),
+                                  ),
+                                )
+                              : LocalAssets(
+                                  imagePath: AppIconAssets.user_out_line,
+                                  imgColor: AppColors.secondaryTextColor,
+                                ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    InkWell(
+                      onTap: () => _selectImage(context),
+                      child: CustomText(
+                        AppStrings.uploadYourPhotoLogo,
+                        color: AppColors.mainTextColor,
+                        textAlign: TextAlign.center,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                )),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CustomFormCard(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(AppStrings.youHaveChosen,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor),
+                    SizedBox(
+                      height: SizeConfig.paddingS,
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10.0),
+                      decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Column(
+                        children: [
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              CustomText("${AppStrings.profession.tr} - ",
+                              CustomText(
+                                  '${langController.tr(AppStrings.profileType)} - ',
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400),
                               Expanded(
-                                child: CustomText(
-                                    _selectedProfession?.replaceAll('\n', ' '),
+                                child: CustomText(_selectedProfileType?.name,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.small,
                                     fontWeight: FontWeight.w400),
                               )
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )),
-              SizedBox(height: SizeConfig.paddingXSL),
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.paddingXSL),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // SizedBox(height: SizeConfig.size10),
-                    CustomText(
-                      langController.tr(AppStrings.yourDetails),
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size10),
 
-                    ///ENTER NAME...
-                    CommonTextField(
-                      textEditController: _nameTextController,
-                      inputLength: AppConstants.inputCharterLimit30,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                          RegularExpressionUtils.alphabetOnlySpacePattern,
-                      title: langController.tr(AppStrings.yourName),
-                      titleColor: Colors.black,
-                      hintText: AppConstants.name,
-                      autoFillType: AutoFillType.name,
-                      autovalidateMode: _autoValidate,
-                      // Read-only once it came off the verified card.
-                      readOnly: _nameFromAadhaar,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return langController.tr(AppStrings.pleaseEnterName);
-                        }
-                        // The 6–30 rule polices what a user TYPES. A name off
-                        // an Aadhaar card is not typed and cannot be edited, so
-                        // applying it here would be a dead end: a genuine short
-                        // name ("Ravi") or a long full one would fail forever
-                        // on a field that can't be corrected.
-                        if (_nameFromAadhaar) return null;
-                        if (value.trim().length < 6) {
-                          return langController.tr(AppStrings.nameMinLength);
-                        } else if (value.trim().length > 30) {
-                          return langController.tr(AppStrings.nameMaxLength);
-                        }
-                        return null;
-                      },
-                    ),
-                    if (_nameFromAadhaar) _aadhaarLockedNote(),
+                          SizedBox(height: SizeConfig.paddingXSmall),
 
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    CommonTextField(
-                      textEditController: _emailTextController,
-                      inputLength: AppConstants.inputCharterLimit50,
-                      keyBoardType: TextInputType.emailAddress,
-                      regularExpression: RegularExpressionUtils.emailPattern,
-                      title: AppStrings.email,
-                      hintText: AppStrings.emailHint,
-                      isValidate: false,
-                      validationType: ValidationTypeEnum.email,
-                      autoFillType: AutoFillType.email,
-                    ),
-
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    ///DOB selection
-                    CustomText(
-                      langController.tr(AppStrings.dateOfBirth),
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    // [NewDatePicker] has no disabled state of its own, so the
-                    // lock is applied from outside: AbsorbPointer swallows the
-                    // taps and the fade says why nothing opens.
-                    AbsorbPointer(
-                      absorbing: _dobFromAadhaar,
-                      child: Opacity(
-                        opacity: _dobFromAadhaar ? 0.6 : 1,
-                        child: NewDatePicker(
-                          selectedDay: _selectedDay,
-                          selectedMonth: _selectedMonth,
-                          selectedYear: _selectedYear,
-                          isAgeValidation15: true,
-                          onDayChanged: (value) {
-                            setState(() {
-                              _selectedDay = value;
-                            });
-                          },
-                          onMonthChanged: (value) {
-                            setState(() {
-                              _selectedMonth = value;
-                            });
-                          },
-                          onYearChanged: (value) {
-                            setState(() {
-                              _selectedYear = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    if (_dobFromAadhaar) _aadhaarLockedNote(),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-                    // Gender
-                    CustomText(
-                      langController.tr(AppStrings.selectGender),
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-
-                    // Locked from outside for the same reason the date picker
-                    // is — the dropdown has no disabled state of its own.
-                    AbsorbPointer(
-                      absorbing: _genderFromAadhaar,
-                      child: Opacity(
-                        opacity: _genderFromAadhaar ? 0.6 : 1,
-                        child: CommonDropdownDialog<GenderType>(
-                          items: GenderType.values,
-                          selectedValue: _selectedGender,
-                          title: langController.tr(AppStrings.selectGender),
-                          hintText: langController.tr(AppStrings.genderHint),
-                          //appLocalizations?.selectGenderHint ?? '',
-                          displayValue: (value) => value.displayName,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedGender = value;
-                            });
-                          },
-                          // validator: (value) {
-                          //   if (value == null) {
-                          //     return 'Please select your gender';
-                          //   }
-                          //   return null;
-                          // },
-                        ),
-                      ),
-                    ),
-                    if (_genderFromAadhaar) _aadhaarLockedNote(),
-
-                    // SizedBox(
-                    //   height: SizeConfig.size20,
-                    // ),
-
-                    if (_selectedProfileTypeTagId == SELF_EMPLOYED) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: specializationController,
-                        // inputLength: 13,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        titleColor: Colors.black,
-                        title: langController.tr(AppStrings.specialization),
-                        hintText: langController.tr(AppStrings.pleaseSpecifyWorkType),
-                      ),
-                    ],
-
-                    if (_selectedProfileTypeTagId == PROFESSIONAL) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CustomText(
-                        langController.tr(AppStrings.expertise),
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size10,
-                      ),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : CommonDropdownDialog<SubCategories>(
-                              items: authController
-                                      .arrIndividualFields[0].subcategories ??
-                                  [],
-                              selectedValue: _selectedProfessionalObj,
-                              title: langController.tr(AppStrings.expertise),
-                              hintText: langController.tr(AppStrings.loanConsultantHint),
-                              displayValue: (s) => s.name ?? "",
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedProfessionalObj = value;
-                                });
-                              },
-                              // validator: (value) {
-                              //   if (value == null) {
-                              //     return 'Please Select Your Art / Skill';
-                              //   }
-                              //   return null;
-                              // },
-                            )),
-                    ],
-
-                    if ((_selectedProfessionTagId == CONTENT_CREATOR)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          // if(_selectedSelfEmployment!=null)
+                          Padding(
+                            padding:
+                                EdgeInsets.only(top: SizeConfig.paddingXSmall),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                CustomText(
-                                  langController.tr(AppStrings.selectYourField),
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size10,
-                                ),
-                                CommonDropdownDialog<IndividualFields>(
-                                  items: authController.arrIndividualFields,
-                                  selectedValue: _selectedContentCreatorField,
-                                  title: langController.tr(AppStrings.selectYourField),
-                                  hintText: langController.tr(AppStrings.mediaCreatorsHint),
-                                  displayValue: (value) => value.name ?? '',
-                                  onChanged: (value) {
-                                    _selectedContentCreatorField = value;
-                                    authController.arrIndividualSubCategories
-                                        .clear();
-                                    authController.arrIndividualSubCategories
-                                        .addAll(_selectedContentCreatorField
-                                                ?.subcategories ??
-                                            []);
-                                    setState(() {});
-                                  },
-                                  // validator: (value) {
-                                  //   if (value == null) {
-                                  //     return 'Enter your Specification';
-                                  //   }
-                                  //   return null;
-                                  // },
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.paddingM,
-                                ),
-                                CustomText(
-                                  langController.tr(AppStrings.selectYourSpecification),
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size10,
-                                ),
-                                CommonDropdownDialog<SubCategories>(
-                                  items:
-                                      authController.arrIndividualSubCategories,
-                                  selectedValue:
-                                      _selectedContentCreatorSpecification,
-                                  title: langController.tr(AppStrings.selectYourSpecification),
-                                  hintText: langController.tr(AppStrings.videoCreatorHint),
-                                  displayValue: (s) => s.name ?? "",
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedContentCreatorSpecification =
-                                          value;
-                                    });
-                                  },
-                                  // validator: (value) {
-                                  //   if (value == null) {
-                                  //     return 'Please select your gender';
-                                  //   }
-                                  //   return null;
-                                  // },
+                                CustomText("${AppStrings.profession.tr} - ",
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: SizeConfig.small,
+                                    fontWeight: FontWeight.w400),
+                                Expanded(
+                                  child: CustomText(
+                                      _selectedProfession?.replaceAll(
+                                          '\n', ' '),
+                                      color: AppColors.primaryColor,
+                                      fontSize: SizeConfig.small,
+                                      fontWeight: FontWeight.w400),
                                 )
                               ],
-                            ))
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CustomFormCard(
+                  padding: EdgeInsets.all(SizeConfig.paddingXSL),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // SizedBox(height: SizeConfig.size10),
+                      CustomText(
+                        langController.tr(AppStrings.yourDetails),
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size10),
 
-                      // CommonTextField(
-                      //   isValidate: false,
-                      //   textEditController: _contentCraterTextController,
-                      //   // inputLength: 13,
-                      //   inputLength: 24,
-                      //   title: "Select Your Specification",
-                      //   keyBoardType: TextInputType.text,
-                      //   regularExpression:
-                      //   RegularExpressionUtils.alphabetSpacePattern,
-                      //   hintText: "eg. Education, Poetry",
-                      // ),
-                    ],
+                      ///ENTER NAME...
+                      CommonTextField(
+                        textEditController: _nameTextController,
+                        inputLength: AppConstants.inputCharterLimit30,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                            RegularExpressionUtils.alphabetOnlySpacePattern,
+                        title: langController.tr(AppStrings.yourName),
+                        titleColor: Colors.black,
+                        hintText: AppConstants.name,
+                        autoFillType: AutoFillType.name,
+                        autovalidateMode: _autoValidate,
+                        // Read-only once it came off the verified card.
+                        readOnly: _nameFromAadhaar,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return langController
+                                .tr(AppStrings.pleaseEnterName);
+                          }
+                          // The 6–30 rule polices what a user TYPES. A name off
+                          // an Aadhaar card is not typed and cannot be edited, so
+                          // applying it here would be a dead end: a genuine short
+                          // name ("Ravi") or a long full one would fail forever
+                          // on a field that can't be corrected.
+                          if (_nameFromAadhaar) return null;
+                          if (value.trim().length < 6) {
+                            return langController.tr(AppStrings.nameMinLength);
+                          } else if (value.trim().length > 30) {
+                            return langController.tr(AppStrings.nameMaxLength);
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_nameFromAadhaar) _aadhaarLockedNote(),
 
-                    if ((_selectedProfessionTagId == ARTIST)) ...[
                       SizedBox(
-                        height: SizeConfig.paddingL,
+                        height: SizeConfig.size20,
                       ),
 
-                      ///selectYourProfession
+                      CommonTextField(
+                        textEditController: _emailTextController,
+                        inputLength: AppConstants.inputCharterLimit50,
+                        keyBoardType: TextInputType.emailAddress,
+                        regularExpression: RegularExpressionUtils.emailPattern,
+                        title: AppStrings.email,
+                        hintText: AppStrings.emailHint,
+                        isValidate: false,
+                        validationType: ValidationTypeEnum.email,
+                        autoFillType: AutoFillType.email,
+                      ),
+
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      ///DOB selection
                       CustomText(
-                        langController.tr(AppStrings.selectArtSkill),
+                        langController.tr(AppStrings.dateOfBirth),
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size10,
+                      ),
+                      // [NewDatePicker] has no disabled state of its own, so the
+                      // lock is applied from outside: AbsorbPointer swallows the
+                      // taps and the fade says why nothing opens.
+                      AbsorbPointer(
+                        absorbing: _dobFromAadhaar,
+                        child: Opacity(
+                          opacity: _dobFromAadhaar ? 0.6 : 1,
+                          child: NewDatePicker(
+                            selectedDay: _selectedDay,
+                            selectedMonth: _selectedMonth,
+                            selectedYear: _selectedYear,
+                            isAgeValidation15: true,
+                            onDayChanged: (value) {
+                              setState(() {
+                                _selectedDay = value;
+                              });
+                            },
+                            onMonthChanged: (value) {
+                              setState(() {
+                                _selectedMonth = value;
+                              });
+                            },
+                            onYearChanged: (value) {
+                              setState(() {
+                                _selectedYear = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      if (_dobFromAadhaar) _aadhaarLockedNote(),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+                      // Gender
+                      CustomText(
+                        langController.tr(AppStrings.selectGender),
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -701,507 +509,732 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.size10,
                       ),
 
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          : Column(
-                        children: [
-                          CommonDropdownDialog<SubCategories>(
-                            items: authController.arrIndividualFields[0]
-                                .subcategories ??
-                                [],
-                            selectedValue: _selectedArtistObj,
-                            title: langController.tr(AppStrings.selectArtSkill),
-                            hintText: langController.tr(AppStrings.actorHint),
-                            displayValue: (s) => s.name ?? "",
+                      // Locked from outside for the same reason the date picker
+                      // is — the dropdown has no disabled state of its own.
+                      AbsorbPointer(
+                        absorbing: _genderFromAadhaar,
+                        child: Opacity(
+                          opacity: _genderFromAadhaar ? 0.6 : 1,
+                          child: CommonDropdownDialog<GenderType>(
+                            items: GenderType.values,
+                            selectedValue: _selectedGender,
+                            title: langController.tr(AppStrings.selectGender),
+                            hintText: langController.tr(AppStrings.genderHint),
+                            //appLocalizations?.selectGenderHint ?? '',
+                            displayValue: (value) => value.displayName,
                             onChanged: (value) {
                               setState(() {
-                                _selectedArtistObj = value;
+                                _selectedGender = value;
                               });
                             },
                             // validator: (value) {
                             //   if (value == null) {
-                            //     return 'Please Select Your Art / Skill';
+                            //     return 'Please select your gender';
                             //   }
                             //   return null;
                             // },
                           ),
-                          if (_selectedArtistObj == OTHER) ...[
-                            SizedBox(
-                              height: SizeConfig.size15,
-                            ),
-                            CommonTextField(
-                              isValidate: false,
-                              textEditController: _artTypeController,
-                              // inputLength: 13,
-                              inputLength: 24,
-                              keyBoardType: TextInputType.text,
-                              regularExpression: RegularExpressionUtils
-                                  .alphabetSpacePattern,
-                              titleColor: Colors.black,
-                              hintText: langController.tr(AppStrings.pleaseSpecifyArtType),
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter art specification';
-                              //   }
-                              //   return null;
-                              // }
-                            ),
-                          ],
-                        ],
-                      )),
-                    ],
+                        ),
+                      ),
+                      if (_genderFromAadhaar) _aadhaarLockedNote(),
 
-                    // if ((_selectedProfessionTagId == SKILLED_WORKER)) ...[
-                    //   SizedBox(
-                    //     height: SizeConfig.paddingL,
-                    //   ),
-                    //   CommonTextField(
-                    //     textEditController: _skillWorkerSpecificationTextController,
-                    //     inputLength: 24,
-                    //     title: "Type Your Work Specification",
-                    //     keyBoardType: TextInputType.text,
-                    //     regularExpression:
-                    //     RegularExpressionUtils.alphabetSpacePattern,
-                    //     hintText: "eg. Helper",
-                    //     isValidate: false,
-                    //     // autovalidateMode: _autoValidate,
-                    //     /*   validator: (value) {
-                    //         if (value == null || value.isEmpty) {
-                    //           return 'Please enter work specification';
-                    //         }
-                    //         return null;
-                    //       }*/
-                    //   ),
-                    // ],
+                      // SizedBox(
+                      //   height: SizeConfig.size20,
+                      // ),
 
-                    if ((_selectedProfessionTagId == REG_UNION ||
-                        _selectedProfessionTagId == NGO)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _ngoNameTextController,
-                        inputLength: 40,
-                        title: langController.tr(AppStrings.typeNGOName),
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: langController.tr(AppStrings.autoUnionExample),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter NGO / Society ';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                    ],
+                      if (_selectedProfileTypeTagId == SELF_EMPLOYED) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: specializationController,
+                          // inputLength: 13,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          titleColor: Colors.black,
+                          title: langController.tr(AppStrings.specialization),
+                          hintText: langController
+                              .tr(AppStrings.pleaseSpecifyWorkType),
+                        ),
+                      ],
 
-                    if ((_selectedProfessionTagId == INDUSTRIALIST ||
-                        _selectedProfessionTagId == DIRECTOR)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-
-                        textEditController: _companyNameTextController,
-                        // inputLength: 13,
-                        inputLength: 24,
-                        title: langController.tr(AppStrings.typeCompanyName),
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: langController.tr(AppStrings.companyExample),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter company name';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                    ],
-
-                    if ((_selectedProfessionTagId == HOMEMAKER)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-
-                        textEditController: _ExpertiseTextController,
-                        // inputLength: 13,
-                        inputLength: 24,
-                        title: langController.tr(AppStrings.typeExpertise),
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: langController.tr(AppStrings.expertiseExample1),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter Expertise';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                    ],
-
-                    if ((_selectedProfessionTagId == SENIOR_CITIZEN)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _SeniorTextController,
-                        inputLength: 24,
-                        title: langController.tr(AppStrings.typeExpertise),
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: langController.tr(AppStrings.expertiseExample2),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter Expertise';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                    ],
-
-                    if ((_selectedProfessionTagId == STUDENT)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _CourseTextController,
-                        inputLength: 24,
-                        title: langController.tr(AppStrings.enterYourEducation),
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: langController.tr(AppStrings.studyExample),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter Expertise';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                    ],
-
-                    if (_selectedProfessionTagId == POLITICIAN) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        title: langController.tr(AppStrings.politicalParty),
-                        hintText: langController.tr(AppStrings.enterPoliticalParty),
-                        textEditController: politicalPartyController,
-                        inputLength: 50,
-                      ),
-                    ],
-
-                    if ((_selectedProfessionTagId == GOVTPSU)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        title: langController.tr(AppStrings.departmentName),
-                        textEditController: departmentNameController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern_,
-                        titleColor: Colors.black,
-                        hintText: langController.tr(AppStrings.departmentExample),
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter your department name';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                      SizedBox(height: SizeConfig.size18),
-                      CommonTextField(
-                        isValidate: false,
-                        title: langController.tr(AppStrings.subDivision),
-                        textEditController: subDivision,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern_,
-                        titleColor: Colors.black,
-                        hintText: langController.tr(AppStrings.subDivisionExample),
-                      ),
-                    ],
-
-                    if (_selectedProfessionTagId == GOVERNMENT_JOB) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _governmentNameController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        title: langController.tr(AppStrings.nameOfGovtPSU),
-                        hintText: langController.tr(AppStrings.govtPSUExample),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return langController.tr(AppStrings.enterNameOfGovtPSU);
-                          }
-                          if (value.trim().length > 24) {
-                            return langController.tr(AppStrings.govtPSUMaxLength);
-                          }
-                          return null;
-                        },
-                        // autovalidateMode: _autoValidate,
-                      ),
-                    ],
-
-                    if (_selectedProfessionTagId == PRIVATE_JOB) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _sectorTextController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        title: langController.tr(AppStrings.sector),
-                        hintText: langController.tr(AppStrings.sectorExample),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return langController.tr(AppStrings.enterSector);
-                          }
-                          if (value.trim().length > 24) {
-                            return langController.tr(AppStrings.sectorMaxLength);
-                          }
-                          return null;
-                        },
-                        // autovalidateMode: _autoValidate,
-                      ),
-                    ],
-
-                    if (_selectedProfessionTagId == OTHERS) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _otherProfessionTextController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        titleColor: Colors.black,
-                        hintText: langController.tr(AppStrings.pleaseSpecifyIfOther),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter other profession name';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _designationTextController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        title: langController.tr(AppStrings.designationExpertise),
-                        hintText: langController.tr(AppStrings.enterDesignationExpertise),
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter your designation or expertise';
-                        //   }
-                        //   return null;
-                        // },
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-                    ],
-
-                    if ((_selectedProfileTypeTagId != SELF_EMPLOYED) &&
-                        (_selectedProfileTypeTagId != GIG_WORKER) &&
-                        (_selectedProfileTypeTagId != PROFESSIONAL) &&
-                        // (_selectedProfessionTagId != SKILLED_WORKER) &&
-                        (_selectedProfessionTagId != ARTIST) &&
-                        (_selectedProfessionTagId != CONTENT_CREATOR) &&
-                        (_selectedProfessionTagId != HOMEMAKER) &&
-                        (_selectedProfessionTagId != SENIOR_CITIZEN) &&
-                        (_selectedProfessionTagId != FARMER) &&
-                        (_selectedProfessionTagId != STUDENT) &&
-                        (_selectedProfessionTagId != OTHERS)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        textEditController: _designationTextController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        title: langController.tr(AppStrings.designation),
-                        hintText: langController.tr(AppStrings.enterDesignation),
-                        isValidate: true,
-                      ),
-                    ],
-
-                    if ((_selectedProfessionTagId == POLITICIAN) ||
-                        (_selectedProfessionTagId == GOVTPSU) ||
-                        (_selectedProfessionTagId == CONTENT_CREATOR) ||
-                        (_selectedProfessionTagId == REG_UNION) ||
-                        (_selectedProfessionTagId == NGO) ||
-                        (_selectedProfessionTagId == MEDIA) ||
-                        (_selectedProfessionTagId == INDUSTRIALIST) ||
-                        (_selectedProfessionTagId == ARTIST) ||
-                        (_selectedProfessionTagId == DIRECTOR)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      Obx(() {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CustomText(langController.tr(AppStrings.createUsername)),
-                            if (authController.isShowCheck.value)
-                              Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 0.0),
-                                    child: InkWell(
-                                      onTap: userNameController.text.isNotEmpty
-                                          ? () {
-                                              authController
-                                                  .getCheckUsernameController(
-                                                      value: userNameController
-                                                          .text);
-                                            }
-                                          : null,
-                                      child: CustomText(
-                                        langController.tr(AppStrings.check),
-                                        color:
-                                            userNameController.text.isNotEmpty
-                                                ? AppColors.primaryColor
-                                                : AppColors.secondaryTextColor,
-                                      ),
-                                    ),
-                                  )),
-                          ],
-                        );
-                      }),
-                      Obx(() {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: List.generate(
-                                authController.userNameList.length, (i) {
-                              final isSelected =
-                                  authController.selectedIndex.value == i;
-                              return GestureDetector(
-                                onTap: () {
-                                  userNameController.text =
-                                      authController.userNameList[i];
-                                  authController.select(i);
+                      if (_selectedProfileTypeTagId == PROFESSIONAL) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CustomText(
+                          langController.tr(AppStrings.expertise),
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+                        Obx(() => authController.isIndividualFieldLoading.value
+                            ? Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : CommonDropdownDialog<SubCategories>(
+                                items: authController
+                                        .arrIndividualFields[0].subcategories ??
+                                    [],
+                                selectedValue: _selectedProfessionalObj,
+                                title: langController.tr(AppStrings.expertise),
+                                hintText: langController
+                                    .tr(AppStrings.loanConsultantHint),
+                                displayValue: (s) => s.name ?? "",
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedProfessionalObj = value;
+                                  });
                                 },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: SizeConfig.size10,
-                                      vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primaryColor
-                                        : Colors.white,
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? Colors.transparent
-                                          : Colors.black,
-                                      width: 1.2,
+                                // validator: (value) {
+                                //   if (value == null) {
+                                //     return 'Please Select Your Art / Skill';
+                                //   }
+                                //   return null;
+                                // },
+                              )),
+                      ],
+
+                      if ((_selectedProfessionTagId == CONTENT_CREATOR)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+
+                        Obx(() => authController.isIndividualFieldLoading.value
+                            ? Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    langController
+                                        .tr(AppStrings.selectYourField),
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
+                                  CommonDropdownDialog<IndividualFields>(
+                                    items: authController.arrIndividualFields,
+                                    selectedValue: _selectedContentCreatorField,
+                                    title: langController
+                                        .tr(AppStrings.selectYourField),
+                                    hintText: langController
+                                        .tr(AppStrings.mediaCreatorsHint),
+                                    displayValue: (value) => value.name ?? '',
+                                    onChanged: (value) {
+                                      _selectedContentCreatorField = value;
+                                      authController.arrIndividualSubCategories
+                                          .clear();
+                                      authController.arrIndividualSubCategories
+                                          .addAll(_selectedContentCreatorField
+                                                  ?.subcategories ??
+                                              []);
+                                      setState(() {});
+                                    },
+                                    // validator: (value) {
+                                    //   if (value == null) {
+                                    //     return 'Enter your Specification';
+                                    //   }
+                                    //   return null;
+                                    // },
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.paddingM,
+                                  ),
+                                  CustomText(
+                                    langController
+                                        .tr(AppStrings.selectYourSpecification),
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
+                                  CommonDropdownDialog<SubCategories>(
+                                    items: authController
+                                        .arrIndividualSubCategories,
+                                    selectedValue:
+                                        _selectedContentCreatorSpecification,
+                                    title: langController
+                                        .tr(AppStrings.selectYourSpecification),
+                                    hintText: langController
+                                        .tr(AppStrings.videoCreatorHint),
+                                    displayValue: (s) => s.name ?? "",
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedContentCreatorSpecification =
+                                            value;
+                                      });
+                                    },
+                                    // validator: (value) {
+                                    //   if (value == null) {
+                                    //     return 'Please select your gender';
+                                    //   }
+                                    //   return null;
+                                    // },
+                                  )
+                                ],
+                              ))
+
+                        // CommonTextField(
+                        //   isValidate: false,
+                        //   textEditController: _contentCraterTextController,
+                        //   // inputLength: 13,
+                        //   inputLength: 24,
+                        //   title: "Select Your Specification",
+                        //   keyBoardType: TextInputType.text,
+                        //   regularExpression:
+                        //   RegularExpressionUtils.alphabetSpacePattern,
+                        //   hintText: "eg. Education, Poetry",
+                        // ),
+                      ],
+
+                      if ((_selectedProfessionTagId == ARTIST)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+
+                        ///selectYourProfession
+                        CustomText(
+                          langController.tr(AppStrings.selectArtSkill),
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+
+                        Obx(() => authController.isIndividualFieldLoading.value
+                            ? Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : Column(
+                                children: [
+                                  CommonDropdownDialog<SubCategories>(
+                                    items: authController.arrIndividualFields[0]
+                                            .subcategories ??
+                                        [],
+                                    selectedValue: _selectedArtistObj,
+                                    title: langController
+                                        .tr(AppStrings.selectArtSkill),
+                                    hintText:
+                                        langController.tr(AppStrings.actorHint),
+                                    displayValue: (s) => s.name ?? "",
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedArtistObj = value;
+                                      });
+                                    },
+                                    // validator: (value) {
+                                    //   if (value == null) {
+                                    //     return 'Please Select Your Art / Skill';
+                                    //   }
+                                    //   return null;
+                                    // },
+                                  ),
+                                  if (_selectedArtistObj == OTHER) ...[
+                                    SizedBox(
+                                      height: SizeConfig.size15,
                                     ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                                blurRadius: 6,
-                                                spreadRadius: 0.5,
-                                                color: Colors.black
-                                                    .withValues(alpha: 0.15))
-                                          ]
-                                        : null,
+                                    CommonTextField(
+                                      isValidate: false,
+                                      textEditController: _artTypeController,
+                                      // inputLength: 13,
+                                      inputLength: 24,
+                                      keyBoardType: TextInputType.text,
+                                      regularExpression: RegularExpressionUtils
+                                          .alphabetSpacePattern,
+                                      titleColor: Colors.black,
+                                      hintText: langController
+                                          .tr(AppStrings.pleaseSpecifyArtType),
+                                      // autovalidateMode: _autoValidate,
+                                      // validator: (value) {
+                                      //   if (value == null || value.isEmpty) {
+                                      //     return 'Please enter art specification';
+                                      //   }
+                                      //   return null;
+                                      // }
+                                    ),
+                                  ],
+                                ],
+                              )),
+                      ],
+
+                      // if ((_selectedProfessionTagId == SKILLED_WORKER)) ...[
+                      //   SizedBox(
+                      //     height: SizeConfig.paddingL,
+                      //   ),
+                      //   CommonTextField(
+                      //     textEditController: _skillWorkerSpecificationTextController,
+                      //     inputLength: 24,
+                      //     title: "Type Your Work Specification",
+                      //     keyBoardType: TextInputType.text,
+                      //     regularExpression:
+                      //     RegularExpressionUtils.alphabetSpacePattern,
+                      //     hintText: "eg. Helper",
+                      //     isValidate: false,
+                      //     // autovalidateMode: _autoValidate,
+                      //     /*   validator: (value) {
+                      //         if (value == null || value.isEmpty) {
+                      //           return 'Please enter work specification';
+                      //         }
+                      //         return null;
+                      //       }*/
+                      //   ),
+                      // ],
+
+                      if ((_selectedProfessionTagId == REG_UNION ||
+                          _selectedProfessionTagId == NGO)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _ngoNameTextController,
+                          inputLength: 40,
+                          title: langController.tr(AppStrings.typeNGOName),
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText:
+                              langController.tr(AppStrings.autoUnionExample),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter NGO / Society ';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == INDUSTRIALIST ||
+                          _selectedProfessionTagId == DIRECTOR)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+
+                          textEditController: _companyNameTextController,
+                          // inputLength: 13,
+                          inputLength: 24,
+                          title: langController.tr(AppStrings.typeCompanyName),
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText:
+                              langController.tr(AppStrings.companyExample),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter company name';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == HOMEMAKER)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+
+                          textEditController: _ExpertiseTextController,
+                          // inputLength: 13,
+                          inputLength: 24,
+                          title: langController.tr(AppStrings.typeExpertise),
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText:
+                              langController.tr(AppStrings.expertiseExample1),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter Expertise';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == SENIOR_CITIZEN)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _SeniorTextController,
+                          inputLength: 24,
+                          title: langController.tr(AppStrings.typeExpertise),
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText:
+                              langController.tr(AppStrings.expertiseExample2),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter Expertise';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == STUDENT)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _CourseTextController,
+                          inputLength: 24,
+                          title:
+                              langController.tr(AppStrings.enterYourEducation),
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText: langController.tr(AppStrings.studyExample),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter Expertise';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                      ],
+
+                      if (_selectedProfessionTagId == POLITICIAN) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          title: langController.tr(AppStrings.politicalParty),
+                          hintText:
+                              langController.tr(AppStrings.enterPoliticalParty),
+                          textEditController: politicalPartyController,
+                          inputLength: 50,
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == GOVTPSU)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          title: langController.tr(AppStrings.departmentName),
+                          textEditController: departmentNameController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern_,
+                          titleColor: Colors.black,
+                          hintText:
+                              langController.tr(AppStrings.departmentExample),
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter your department name';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                        SizedBox(height: SizeConfig.size18),
+                        CommonTextField(
+                          isValidate: false,
+                          title: langController.tr(AppStrings.subDivision),
+                          textEditController: subDivision,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern_,
+                          titleColor: Colors.black,
+                          hintText:
+                              langController.tr(AppStrings.subDivisionExample),
+                        ),
+                      ],
+
+                      if (_selectedProfessionTagId == GOVERNMENT_JOB) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _governmentNameController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          title: langController.tr(AppStrings.nameOfGovtPSU),
+                          hintText:
+                              langController.tr(AppStrings.govtPSUExample),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return langController
+                                  .tr(AppStrings.enterNameOfGovtPSU);
+                            }
+                            if (value.trim().length > 24) {
+                              return langController
+                                  .tr(AppStrings.govtPSUMaxLength);
+                            }
+                            return null;
+                          },
+                          // autovalidateMode: _autoValidate,
+                        ),
+                      ],
+
+                      if (_selectedProfessionTagId == PRIVATE_JOB) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _sectorTextController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          title: langController.tr(AppStrings.sector),
+                          hintText: langController.tr(AppStrings.sectorExample),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return langController.tr(AppStrings.enterSector);
+                            }
+                            if (value.trim().length > 24) {
+                              return langController
+                                  .tr(AppStrings.sectorMaxLength);
+                            }
+                            return null;
+                          },
+                          // autovalidateMode: _autoValidate,
+                        ),
+                      ],
+
+                      if (_selectedProfessionTagId == OTHERS) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _otherProfessionTextController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          titleColor: Colors.black,
+                          hintText: langController
+                              .tr(AppStrings.pleaseSpecifyIfOther),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter other profession name';
+                          //   }
+                          //   return null;
+                          // }
+                        ),
+                        SizedBox(height: SizeConfig.size20),
+                        CommonTextField(
+                          isValidate: false,
+                          textEditController: _designationTextController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          title: langController
+                              .tr(AppStrings.designationExpertise),
+                          hintText: langController
+                              .tr(AppStrings.enterDesignationExpertise),
+                          // autovalidateMode: _autoValidate,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Please enter your designation or expertise';
+                          //   }
+                          //   return null;
+                          // },
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+                      ],
+
+                      if ((_selectedProfileTypeTagId != SELF_EMPLOYED) &&
+                          (_selectedProfileTypeTagId != GIG_WORKER) &&
+                          (_selectedProfileTypeTagId != PROFESSIONAL) &&
+                          // (_selectedProfessionTagId != SKILLED_WORKER) &&
+                          (_selectedProfessionTagId != ARTIST) &&
+                          (_selectedProfessionTagId != CONTENT_CREATOR) &&
+                          (_selectedProfessionTagId != HOMEMAKER) &&
+                          (_selectedProfessionTagId != SENIOR_CITIZEN) &&
+                          (_selectedProfessionTagId != FARMER) &&
+                          (_selectedProfessionTagId != STUDENT) &&
+                          (_selectedProfessionTagId != OTHERS)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        CommonTextField(
+                          textEditController: _designationTextController,
+                          inputLength: 24,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          title: langController.tr(AppStrings.designation),
+                          hintText:
+                              langController.tr(AppStrings.enterDesignation),
+                          isValidate: true,
+                        ),
+                      ],
+
+                      if ((_selectedProfessionTagId == POLITICIAN) ||
+                          (_selectedProfessionTagId == GOVTPSU) ||
+                          (_selectedProfessionTagId == CONTENT_CREATOR) ||
+                          (_selectedProfessionTagId == REG_UNION) ||
+                          (_selectedProfessionTagId == NGO) ||
+                          (_selectedProfessionTagId == MEDIA) ||
+                          (_selectedProfessionTagId == INDUSTRIALIST) ||
+                          (_selectedProfessionTagId == ARTIST) ||
+                          (_selectedProfessionTagId == DIRECTOR)) ...[
+                        SizedBox(
+                          height: SizeConfig.paddingL,
+                        ),
+                        Obx(() {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CustomText(
+                                  langController.tr(AppStrings.createUsername)),
+                              if (authController.isShowCheck.value)
+                                Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 0.0),
+                                      child: InkWell(
+                                        onTap:
+                                            userNameController.text.isNotEmpty
+                                                ? () {
+                                                    authController
+                                                        .getCheckUsernameController(
+                                                            value:
+                                                                userNameController
+                                                                    .text);
+                                                  }
+                                                : null,
+                                        child: CustomText(
+                                          langController.tr(AppStrings.check),
+                                          color: userNameController
+                                                  .text.isNotEmpty
+                                              ? AppColors.primaryColor
+                                              : AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                    )),
+                            ],
+                          );
+                        }),
+                        Obx(() {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: List.generate(
+                                  authController.userNameList.length, (i) {
+                                final isSelected =
+                                    authController.selectedIndex.value == i;
+                                return GestureDetector(
+                                  onTap: () {
+                                    userNameController.text =
+                                        authController.userNameList[i];
+                                    authController.select(i);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: SizeConfig.size10,
+                                        vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primaryColor
+                                          : Colors.white,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.transparent
+                                            : Colors.black,
+                                        width: 1.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                  blurRadius: 6,
+                                                  spreadRadius: 0.5,
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.15))
+                                            ]
+                                          : null,
+                                    ),
+                                    child: CustomText(
+                                      authController.userNameList[i],
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: SizeConfig.small,
+                                    ),
                                   ),
-                                  child: CustomText(
-                                    authController.userNameList[i],
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: SizeConfig.small,
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                        );
-                      }),
-                      CommonTextField(
-                        textEditController: userNameController,
-                        inputLength: 15,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphanumericPattern,
-                        titleColor: Colors.black,
-                        hintText: langController.tr(AppStrings.usernameHint),
-                        isValidate: false,
-                        prefixText:
-                            userNameController.text.isNotEmpty ? "@" : "",
-                        validator: (value) {
-                          if (value == null || value.trim().length < 7) {
-                            return langController.tr(AppStrings.usernameMinLength);
-                          }
-                          return null;
-                        },
-                        onChange: (value) {
-                          authController.isShowCheck.value = true;
-                          setState(() {});
-                        },
+                                );
+                              }),
+                            ),
+                          );
+                        }),
+                        CommonTextField(
+                          textEditController: userNameController,
+                          inputLength: 15,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphanumericPattern,
+                          titleColor: Colors.black,
+                          hintText: langController.tr(AppStrings.usernameHint),
+                          isValidate: false,
+                          prefixText:
+                              userNameController.text.isNotEmpty ? "@" : "",
+                          validator: (value) {
+                            if (value == null || value.trim().length < 7) {
+                              return langController
+                                  .tr(AppStrings.usernameMinLength);
+                            }
+                            return null;
+                          },
+                          onChange: (value) {
+                            authController.isShowCheck.value = true;
+                            setState(() {});
+                          },
+                        ),
+                      ],
+
+                      SizedBox(
+                        height: SizeConfig.paddingL,
                       ),
                     ],
-
-                    SizedBox(
-                      height: SizeConfig.paddingL,
-                    ),
-
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
       bottomNavigationBar: Material(
         elevation: 8.0,
@@ -1232,8 +1265,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation(Colors.white),
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
                         : const SizedBox.shrink(),
@@ -1258,8 +1290,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         horizontal: SizeConfig.size16,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(SizeConfig.size8),
+                        borderRadius: BorderRadius.circular(SizeConfig.size8),
                       ),
                       elevation: 0,
                     ),
@@ -1287,23 +1318,27 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       if (_selectedDay == null ||
           _selectedMonth == null ||
           _selectedYear == null) {
-        commonSnackBar(message: langController.tr(AppStrings.pleaseSelectDateOfBirth));
+        commonSnackBar(
+            message: langController.tr(AppStrings.pleaseSelectDateOfBirth));
         return;
       }
       if (_selectedGender == null) {
-        commonSnackBar(message: langController.tr(AppStrings.pleaseSelectGender));
+        commonSnackBar(
+            message: langController.tr(AppStrings.pleaseSelectGender));
         return;
       }
       if (_selectedProfileTypeTagId == PROFESSIONAL) {
         if (_selectedProfessionalObj?.name?.isEmpty ?? true) {
-          commonSnackBar(message: langController.tr(AppStrings.selectYourProfession));
+          commonSnackBar(
+              message: langController.tr(AppStrings.selectYourProfession));
           return;
         }
       }
 
       if (_selectedProfessionTagId == ARTIST) {
         if (_selectedArtistObj?.name?.isEmpty ?? true) {
-          commonSnackBar(message: langController.tr(AppStrings.selectArtSkillLower));
+          commonSnackBar(
+              message: langController.tr(AppStrings.selectArtSkillLower));
           return;
         }
       }
@@ -1316,18 +1351,21 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       }
       if (_selectedProfessionTagId == CONTENT_CREATOR) {
         if (_selectedContentCreatorField?.name?.isEmpty ?? true) {
-          commonSnackBar(message: langController.tr(AppStrings.selectYourField));
+          commonSnackBar(
+              message: langController.tr(AppStrings.selectYourField));
           return;
         }
         if (_selectedContentCreatorSpecification?.name?.isEmpty ?? true) {
-          commonSnackBar(message: langController.tr(AppStrings.selectYourSpecification));
+          commonSnackBar(
+              message: langController.tr(AppStrings.selectYourSpecification));
           return;
         }
       }
 
       if (_selectedProfessionTagId == OTHERS) {
         if (_otherProfessionTextController.text.isEmpty) {
-          commonSnackBar(message: langController.tr(AppStrings.enterSkillExpertise));
+          commonSnackBar(
+              message: langController.tr(AppStrings.enterSkillExpertise));
           return;
         }
       }
@@ -1348,7 +1386,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           dio.MultipartFile? imageByPart;
           if (imageFile?.path.isNotEmpty ?? false) {
             String fileName = imageFile?.path.split('/').last ?? "";
-            imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
+            imageByPart = await dio.MultipartFile.fromFile(
+                imageFile?.path ?? "",
                 filename: fileName);
           }
           String? designation;
@@ -1403,12 +1442,16 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ApiKeys.profileType: _selectedProfileTypeTagId,
             ApiKeys.profession: _selectedProfessionTagId,
             ApiKeys.designation: designation,
-            if (_selectedProfessionTagId == PRIVATE_JOB) ApiKeys.sector: _sectorTextController.text.trim(),
-            if (_selectedProfileTypeTagId == SELF_EMPLOYED) ApiKeys.specilization: specializationController.text.trim(),
+            if (_selectedProfessionTagId == PRIVATE_JOB)
+              ApiKeys.sector: _sectorTextController.text.trim(),
+            if (_selectedProfileTypeTagId == SELF_EMPLOYED)
+              ApiKeys.specilization: specializationController.text.trim(),
             // if (_selectedProfessionTagId == SKILLED_WORKER)
             //   ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
-            if (_selectedProfessionTagId == CONTENT_CREATOR) ApiKeys.specilization: _selectedContentCreatorField?.name,
-            if (_selectedProfessionTagId == GOVERNMENT_JOB)  ApiKeys.department: _governmentNameController.text.trim(),
+            if (_selectedProfessionTagId == CONTENT_CREATOR)
+              ApiKeys.specilization: _selectedContentCreatorField?.name,
+            if (_selectedProfessionTagId == GOVERNMENT_JOB)
+              ApiKeys.department: _governmentNameController.text.trim(),
 
             ///USER NAME
             if ((_selectedProfessionTagId == CONTENT_CREATOR) ||
@@ -1494,7 +1537,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       setState(() {});
     }
   }
-
 }
 
 class UsernamePicker extends StatelessWidget {

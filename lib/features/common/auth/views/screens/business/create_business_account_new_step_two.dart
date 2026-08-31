@@ -55,7 +55,7 @@ class _CreateBusinessAccountNewStepTwoState
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool isFormValid = false;
-  final locationController = Get.put(LocationController());
+  final locationController = Get.find<LocationController>();
   GoogleMapController? mapController;
   Set<Marker> _markers = {};
   LocationDataModel? locationData;
@@ -247,348 +247,343 @@ class _CreateBusinessAccountNewStepTwoState
         _onBackPressed();
       },
       child: Scaffold(
-          appBar: CommonBackAppBar(
-              isLeading: true,
-              title: AppStrings.businessDetailsTitle,
-              onBackTap: () => _onBackPressed()),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                  left: SizeConfig.size8,
-                  right: SizeConfig.size8,
-                  top: SizeConfig.size15,
-                  bottom: SizeConfig.size40),
-              child: CustomFormCard(
-                padding: EdgeInsets.all(
-                  SizeConfig.size10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                      Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        appBar: CommonBackAppBar(
+            isLeading: true,
+            title: AppStrings.businessDetailsTitle,
+            onBackTap: () => _onBackPressed()),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size15,
+                bottom: SizeConfig.size40),
+            child: CustomFormCard(
+              padding: EdgeInsets.all(
+                SizeConfig.size10,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          AppStrings.yourBusinessLiveLocation,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        SizedBox(width: SizeConfig.size8),
+                        CommonLocationFetcher(
+                          locationController: locationController,
+                          preferNativeGeocoding: true,
+                          onLocationFetched: (locationData) {
+                            _updateLocationData(locationData);
+                          },
+                          childBuilder: (fetchAction) {
+                            return PositiveCustomBtn(
+                              width: SizeConfig.size80,
+                              height: SizeConfig.size30,
+                              onTap: fetchAction,
+                              isLeadingShow: true,
+                              leadingIconPath: AppIconAssets.refreshIcon,
+                              title: AppStrings.refresh,
+                              radius: 8.0,
+                              bgColor: AppColors.primaryColor,
+                            );
+                          },
+                        )
+                      ]),
+                  SizedBox(height: SizeConfig.size10),
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: SizeConfig.size160,
+                        child: Stack(
                           children: [
-                            CustomText(
-                              AppStrings.yourBusinessLiveLocation,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            SizedBox(width: SizeConfig.size8),
-                            CommonLocationFetcher(
-                              locationController: locationController,
-                              preferNativeGeocoding: true,
-                              onLocationFetched: (locationData) {
-                                _updateLocationData(locationData);
-                              },
-                              childBuilder: (fetchAction) {
-                                return PositiveCustomBtn(
-                                  width: SizeConfig.size80,
-                                  height: SizeConfig.size30,
-                                  onTap: fetchAction,
-                                  isLeadingShow: true,
-                                  leadingIconPath: AppIconAssets.refreshIcon,
-                                  title: AppStrings.refresh,
-                                  radius: 8.0,
-                                  bgColor: AppColors.primaryColor,
-                                );
-                              },
-                            )
-                          ]),
-                      SizedBox(height: SizeConfig.size10),
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: SizeConfig.size160,
-                            child: Stack(
-                              children: [
-                                /// Google Map
-                                // A picture, not a live GoogleMap.
-                                //
-                                // This confirms the address the user just
-                                // picked elsewhere — it is read, not operated
-                                // (zoom gestures were already disabled). A live
-                                // map billed a Dynamic Maps load every time
-                                // this form rebuilt, which on a validating
-                                // signup form is often.
-                                //
-                                // Coordinates are parsed defensively: they
-                                // arrive as strings from the API, and a
-                                // malformed pair must fall back to the
-                                // country view rather than throw during build.
-                                StaticMapPreview(
-                                  latitude: double.tryParse(
-                                          locationData?.lat ?? '') ??
+                            /// Google Map
+                            // A picture, not a live GoogleMap.
+                            //
+                            // This confirms the address the user just
+                            // picked elsewhere — it is read, not operated
+                            // (zoom gestures were already disabled). A live
+                            // map billed a Dynamic Maps load every time
+                            // this form rebuilt, which on a validating
+                            // signup form is often.
+                            //
+                            // Coordinates are parsed defensively: they
+                            // arrive as strings from the API, and a
+                            // malformed pair must fall back to the
+                            // country view rather than throw during build.
+                            StaticMapPreview(
+                              latitude:
+                                  double.tryParse(locationData?.lat ?? '') ??
                                       20.5937,
-                                  longitude: double.tryParse(
-                                          locationData?.long ?? '') ??
+                              longitude:
+                                  double.tryParse(locationData?.long ?? '') ??
                                       78.9629, // Centre of India
-                                  width: MediaQuery.of(context).size.width,
-                                  height: SizeConfig.size160,
-                                  zoom: locationData != null ? 14 : 4,
-                                  // Only pin a real address; a pin on the
-                                  // country view would claim a precision the
-                                  // screen does not have yet.
-                                  showMarker: locationData != null,
-                                ),
-                                Positioned(
-                                  right: SizeConfig.size10,
-                                  bottom: SizeConfig.size10,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if (locationData == null) return;
+                              width: MediaQuery.of(context).size.width,
+                              height: SizeConfig.size160,
+                              zoom: locationData != null ? 14 : 4,
+                              // Only pin a real address; a pin on the
+                              // country view would claim a precision the
+                              // screen does not have yet.
+                              showMarker: locationData != null,
+                            ),
+                            Positioned(
+                              right: SizeConfig.size10,
+                              bottom: SizeConfig.size10,
+                              child: InkWell(
+                                onTap: () async {
+                                  if (locationData == null) return;
 
-                                      openGoogleMaps(
-                                          latitude:
-                                              double.parse(locationData!.lat),
-                                          longitude:
-                                              double.parse(locationData!.long));
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(SizeConfig.size8),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: AppColors.skyBlueDF,
-                                            width: 1),
-                                      ),
-                                      child: Transform.rotate(
-                                        angle: -0.6,
-                                        child: const Icon(
-                                          Icons.send_outlined,
-                                          color: AppColors.skyBlueDF,
-                                          size: 20,
-                                        ),
-                                      ),
+                                  openGoogleMaps(
+                                      latitude: double.parse(locationData!.lat),
+                                      longitude:
+                                          double.parse(locationData!.long));
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(SizeConfig.size8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: AppColors.skyBlueDF, width: 1),
+                                  ),
+                                  child: Transform.rotate(
+                                    angle: -0.6,
+                                    child: const Icon(
+                                      Icons.send_outlined,
+                                      color: AppColors.skyBlueDF,
+                                      size: 20,
                                     ),
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
-                          )),
+                          ],
+                        ),
+                      )),
 
-                      SizedBox(height: SizeConfig.size20),
+                  SizedBox(height: SizeConfig.size20),
 
-                      /// Full Business Address
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CommonTextField(
-                            readOnly: true,
-                            maxLine: 3,
-                            textEditController:
-                                fullBusinessAddressTextController,
-                            inputLength: AppConstants.inputCharterLimit50,
-                            keyBoardType: TextInputType.text,
-                            title: AppStrings.fullBusinessAddress,
-                            regularExpression:
-                                RegularExpressionUtils.alphabetSpacePattern,
-                            hintText: AppStrings.addressHint,
-                            isValidate: false,
-                          ),
-                          CommonLocationFetcher(
-                            locationController: locationController,
-                            preferNativeGeocoding: true,
-                            onLocationFetched: (locationData) {
-                              _updateLocationData(locationData);
-                            },
-                            childBuilder: (fetchAction) {
-                              return SizedBox();
-                            },
-                          )
-                          // _buildFetchAddressWidgets(
-                          //     child: SizedBox()
-                          // )
-                        ],
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-
-                      ///ENTER Landmark ......
-                      // CommonTextField(
-                      //   textEditController: landmarkController,
-                      //   inputLength: AppConstants.inputCharterLimit200,
-                      //   keyBoardType: TextInputType.text,
-                      //   regularExpression:
-                      //   RegularExpressionUtils.alphabetSpacePattern,
-                      //   title: 'Floor / Building Name / Landmark',
-                      //   hintText: 'Floor / Building Name / Landmark',
-                      //   isValidate: false,
-                      // ),
-                      // SizedBox(
-                      //   height: SizeConfig.size20,
-                      // ),
-
-                      ///ENTER CITY NAME ......
+                  /// Full Business Address
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       CommonTextField(
-                        textEditController: cityController,
+                        readOnly: true,
+                        maxLine: 3,
+                        textEditController: fullBusinessAddressTextController,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
+                        title: AppStrings.fullBusinessAddress,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: AppStrings.city,
-                        hintText: AppStrings.city,
-                        isValidate: true,
-                        readOnly: true,
+                        hintText: AppStrings.addressHint,
+                        isValidate: false,
                       ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-
-                      ///ENTER PIN CODE NAME ......
-                      CommonTextField(
-                        textEditController: picCodeController,
-                        inputLength: AppConstants.inputCharterLimit6,
-                        keyBoardType: TextInputType.number,
-                        regularExpression: RegularExpressionUtils.digitsPattern,
-                        title: AppStrings.pincodeTitle,
-                        hintText: AppStrings.pincodeHint,
-                        isValidate: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppStrings.pleaseEnterPinCode.tr;
-                          } else if (!RegExp(
-                                  RegularExpressionUtils.pinCodeRegExp)
-                              .hasMatch(value)) {
-                            return AppStrings.enterValidIndianPincode.tr;
-                          }
-                          return null;
+                      CommonLocationFetcher(
+                        locationController: locationController,
+                        preferNativeGeocoding: true,
+                        onLocationFetched: (locationData) {
+                          _updateLocationData(locationData);
                         },
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size28,
-                      ),
-
-                      ///Mobile number
-                      ContactInputField1(
-                        mobileController: mobileController,
-                        landlineCodeController: landlineCodeController,
-                        landlineNumberController: landlineNumberController,
-                        selectedType: selectedType ?? ContactType.Mobile,
-                        onTypeChanged: (type) {
-                          mobileController.clear();
-                          landlineCodeController.clear();
-                          landlineNumberController.clear();
-                          setState(() {
-                            selectedType = type;
-                          });
-
-                          _validateForm();
+                        childBuilder: (fetchAction) {
+                          return SizedBox();
                         },
-                        prefixOnChange: (value) => true,
-                        mobileNumberOnChange: (String) {},
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
+                      )
+                      // _buildFetchAddressWidgets(
+                      //     child: SizedBox()
+                      // )
+                    ],
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size20,
+                  ),
 
-                      ///websiteOptional
-                      CustomText(
-                        AppStrings.websiteOptional,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.black,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size10,
-                      ),
-                      HttpsTextField(
-                        controller: websiteController,
-                        isUrlValidate: true,
-                        hintText: AppStrings.websiteHint,
-                        onChange: (value) => _validateForm(),
-                      ),
+                  ///ENTER Landmark ......
+                  // CommonTextField(
+                  //   textEditController: landmarkController,
+                  //   inputLength: AppConstants.inputCharterLimit200,
+                  //   keyBoardType: TextInputType.text,
+                  //   regularExpression:
+                  //   RegularExpressionUtils.alphabetSpacePattern,
+                  //   title: 'Floor / Building Name / Landmark',
+                  //   hintText: 'Floor / Building Name / Landmark',
+                  //   isValidate: false,
+                  // ),
+                  // SizedBox(
+                  //   height: SizeConfig.size20,
+                  // ),
 
-                      SizedBox(
-                        height: SizeConfig.size28,
+                  ///ENTER CITY NAME ......
+                  CommonTextField(
+                    textEditController: cityController,
+                    inputLength: AppConstants.inputCharterLimit50,
+                    keyBoardType: TextInputType.text,
+                    regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                    title: AppStrings.city,
+                    hintText: AppStrings.city,
+                    isValidate: true,
+                    readOnly: true,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size20,
+                  ),
+
+                  ///ENTER PIN CODE NAME ......
+                  CommonTextField(
+                    textEditController: picCodeController,
+                    inputLength: AppConstants.inputCharterLimit6,
+                    keyBoardType: TextInputType.number,
+                    regularExpression: RegularExpressionUtils.digitsPattern,
+                    title: AppStrings.pincodeTitle,
+                    hintText: AppStrings.pincodeHint,
+                    isValidate: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppStrings.pleaseEnterPinCode.tr;
+                      } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
+                          .hasMatch(value)) {
+                        return AppStrings.enterValidIndianPincode.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size28,
+                  ),
+
+                  ///Mobile number
+                  ContactInputField1(
+                    mobileController: mobileController,
+                    landlineCodeController: landlineCodeController,
+                    landlineNumberController: landlineNumberController,
+                    selectedType: selectedType ?? ContactType.Mobile,
+                    onTypeChanged: (type) {
+                      mobileController.clear();
+                      landlineCodeController.clear();
+                      landlineNumberController.clear();
+                      setState(() {
+                        selectedType = type;
+                      });
+
+                      _validateForm();
+                    },
+                    prefixOnChange: (value) => true,
+                    mobileNumberOnChange: (String) {},
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size20,
+                  ),
+
+                  ///websiteOptional
+                  CustomText(
+                    AppStrings.websiteOptional,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.black,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  HttpsTextField(
+                    controller: websiteController,
+                    isUrlValidate: true,
+                    hintText: AppStrings.websiteHint,
+                    onChange: (value) => _validateForm(),
+                  ),
+
+                  SizedBox(
+                    height: SizeConfig.size28,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomBtn(
+                          radius: 10,
+                          onTap: () {
+                            _onBackPressed();
+                          },
+                          title: AppStrings.previous,
+                          bgColor: Colors.transparent,
+                          textColor: AppColors.primaryColor,
+                          borderColor: AppColors.primaryColor,
+                        ),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomBtn(
-                              radius: 10,
-                              onTap: () {
-                                _onBackPressed();
-                              },
-                              title: AppStrings.previous,
-                              bgColor: Colors.transparent,
-                              textColor: AppColors.primaryColor,
-                              borderColor: AppColors.primaryColor,
-                            ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size10,
-                          ),
-                          Expanded(
-                            child: Obx(() {
-                              final loading = viewBusinessDetailsController
-                                  .isUpdateBusinessDetailsLoading.value;
-                              final canSubmit = isFormValid && !loading;
-                              return SizedBox(
-                                height: SizeConfig.size44,
-                                child: ElevatedButton.icon(
-                                  onPressed: canSubmit ? _onSubmit : null,
-                                  icon: loading
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation(
-                                                Colors.white),
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                  label: Text(
-                                    loading
-                                        ? '${AppStrings.submit.tr}…'
-                                        : AppStrings.submit.tr,
-                                    style: TextStyle(
-                                      fontFamily: AppConstants.OpenSans,
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.white,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                    disabledBackgroundColor: loading
-                                        ? AppColors.primaryColor
-                                            .withValues(alpha: 0.5)
-                                        : AppColors.greyB4,
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: SizeConfig.size12,
-                                      horizontal: SizeConfig.size16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    elevation: 0,
-                                  ),
+                      SizedBox(
+                        width: SizeConfig.size10,
+                      ),
+                      Expanded(
+                        child: Obx(() {
+                          final loading = viewBusinessDetailsController
+                              .isUpdateBusinessDetailsLoading.value;
+                          final canSubmit = isFormValid && !loading;
+                          return SizedBox(
+                            height: SizeConfig.size44,
+                            child: ElevatedButton.icon(
+                              onPressed: canSubmit ? _onSubmit : null,
+                              icon: loading
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Colors.white),
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                              label: Text(
+                                loading
+                                    ? '${AppStrings.submit.tr}…'
+                                    : AppStrings.submit.tr,
+                                style: TextStyle(
+                                  fontFamily: AppConstants.OpenSans,
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
+                                  letterSpacing: 0.2,
                                 ),
-                              );
-                            }),
-                          ),
-                        ],
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                disabledBackgroundColor: loading
+                                    ? AppColors.primaryColor
+                                        .withValues(alpha: 0.5)
+                                    : AppColors.greyB4,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: SizeConfig.size12,
+                                  horizontal: SizeConfig.size16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                elevation: 0,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
   }
 
   Future<void> _onSubmit() async {
     if (selectedType == ContactType.Mobile) {
-      final phoneError =
-          ValidationMethod.validatePhone(mobileController.text);
+      final phoneError = ValidationMethod.validatePhone(mobileController.text);
       if (phoneError != null) {
         commonSnackBar(message: phoneError);
         return;
@@ -596,11 +591,10 @@ class _CreateBusinessAccountNewStepTwoState
     }
 
     if (selectedType == ContactType.Landline) {
-      final landlineError = ValidationMethod.validateLandline(
-          landlineNumberController.text);
+      final landlineError =
+          ValidationMethod.validateLandline(landlineNumberController.text);
       if (landlineError != null) {
-        commonSnackBar(
-            message: AppStrings.pleaseEnterValidLandline.tr);
+        commonSnackBar(message: AppStrings.pleaseEnterValidLandline.tr);
         return;
       }
     }
@@ -622,8 +616,7 @@ class _CreateBusinessAccountNewStepTwoState
       ApiKeys.city_state_pincode: cityController.text,
       ApiKeys.address: fullBusinessAddressTextController.text,
       ApiKeys.business_location: jsonEncode({
-        ApiKeys.lat:
-            viewBusinessDetailsController.addressLat?.value.toString(),
+        ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
         ApiKeys.lon:
             viewBusinessDetailsController.addressLong?.value.toString(),
       }),
@@ -631,8 +624,7 @@ class _CreateBusinessAccountNewStepTwoState
       ApiKeys.website_url: websiteController.text,
     };
 
-    await viewBusinessDetailsController.updateBusinessDetails(
-        reqParam,
+    await viewBusinessDetailsController.updateBusinessDetails(reqParam,
         showProgress: false);
     if (!mounted) return;
     Get.toNamed(

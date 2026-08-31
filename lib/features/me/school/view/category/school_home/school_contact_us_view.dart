@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
+import 'package:BlueEra/features/me/school/binding/school_branch_contact_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -52,7 +53,9 @@ class ContactUsSection extends StatelessWidget {
                 color: AppColors.mainTextColor,
                 fontWeight: FontWeight.w600,
               ),
-              if (isEdit) _updatePill(() => Get.to(SchoolContactUs())),
+              if (isEdit)
+                _updatePill(() => Get.to(() => SchoolContactUs(),
+                    binding: SchoolBranchContactBinding())),
             ],
           ),
           const SizedBox(height: 10),
@@ -222,7 +225,8 @@ class ContactUsSection extends StatelessWidget {
           ),
           if (isEdit) ...[
             const SizedBox(height: 12),
-            _updatePill(() => Get.to(SchoolContactUs())),
+            _updatePill(() => Get.to(() => SchoolContactUs(),
+                binding: SchoolBranchContactBinding())),
           ],
         ],
       ),

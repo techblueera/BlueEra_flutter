@@ -91,9 +91,9 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
                 CustomText(AppStrings.contactUs.tr),
                 InkWell(
                     onTap: () {
-                      Get.to(SocialContactUsScreen(
-                        profile: contact,
-                      ));
+                      Get.to(() => SocialContactUsScreen(
+                            profile: contact,
+                          ));
                     },
                     child:
                         LocalAssets(imagePath: AppIconAssets.tablerEditIcon)),

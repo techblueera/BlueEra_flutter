@@ -197,7 +197,8 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced cache fetch - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    print(
+        '🔄 Enhanced cache fetch - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     // For initial load, try to get cached data first
     if (isInitialLoad && page == 1 && !refresh) {
@@ -213,7 +214,8 @@ class FeedController extends GetxController {
         targetList.value = cachedPosts.take(displayLimit).toList();
         isLoading.value = false;
 
-        print('📦 Enhanced cache: Cached ${_cachedPosts[type]!.length}, Displaying ${targetList.length}');
+        print(
+            '📦 Enhanced cache: Cached ${_cachedPosts[type]!.length}, Displaying ${targetList.length}');
 
         // Fetch fresh data in background and enhance pagination
         _fetchEnhancedDataInBackground(
@@ -270,19 +272,23 @@ class FeedController extends GetxController {
         queryParams[ApiKeys.query] = query;
       }
 
-      ResponseModel response = await FeedRepo().fetchAllPosts(queryParams: queryParams);
+      ResponseModel response =
+          await FeedRepo().fetchAllPosts(queryParams: queryParams);
 
       if (response.isSuccess) {
         final postResponse = PostResponse.fromJson(response.response?.data);
         if (postResponse.data.isNotEmpty) {
-          print('✅ Enhanced background fetch successful: ${postResponse.data.length} items');
+          print(
+              '✅ Enhanced background fetch successful: ${postResponse.data.length} items');
 
           // Update enhanced cache with fresh data
           _cachedPosts[type] = List.from(postResponse.data);
-          _displayedCounts[type] = displayLimit.clamp(0, postResponse.data.length);
+          _displayedCounts[type] =
+              displayLimit.clamp(0, postResponse.data.length);
 
           // Update cache service with first 20 posts
-          await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
+          await HomeCacheService()
+              .cachePosts(postResponse.data.take(displayLimit).toList());
           print('💾 Updated cache service with first ${displayLimit} posts');
 
           // Update the UI with fresh data (first 20 posts)
@@ -320,7 +326,8 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    print(
+        '🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     if (isInitialLoad) {
       page = 1;
@@ -332,7 +339,8 @@ class FeedController extends GetxController {
     }
     print('otherPage $otherPage');
 
-    print('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
+    print(
+        'isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
     print('isInitialLoad: $isInitialLoad');
@@ -343,7 +351,8 @@ class FeedController extends GetxController {
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);
-      print('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
+      print(
+          '_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
     }
 
     // ✅ Only show loader if last id is different
@@ -394,7 +403,8 @@ class FeedController extends GetxController {
           break;
         case PostType.otherPosts:
           if (id != null) queryParams[ApiKeys.authorId] = id;
-          response = await FeedRepo().getAllOtherPosts(queryParams: queryParams);
+          response =
+              await FeedRepo().getAllOtherPosts(queryParams: queryParams);
           break;
         case PostType.otherChannelPosts:
           queryParams[ApiKeys.filter] = 'latest';
@@ -424,7 +434,8 @@ class FeedController extends GetxController {
           targetList.clear();
           // Initial load: cache all data, display first batch
           _cachedPosts[type] = List.from(postResponse.data);
-          _displayedCounts[type] = displayLimit.clamp(0, postResponse.data.length);
+          _displayedCounts[type] =
+              displayLimit.clamp(0, postResponse.data.length);
 
           // Display only first batch
           targetList.value = postResponse.data.take(displayLimit).toList();
@@ -434,8 +445,10 @@ class FeedController extends GetxController {
 
           // Update cache service for All Posts tab
           if (type == PostType.all && postResponse.data.isNotEmpty) {
-            await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
-            print('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+            await HomeCacheService()
+                .cachePosts(postResponse.data.take(displayLimit).toList());
+            print(
+                '💾 Updated cache service with ${displayLimit} posts for All Posts tab');
           }
         } else {
           // Subsequent loads: add new data to cache
@@ -466,7 +479,8 @@ class FeedController extends GetxController {
         }
       } else {
         postsResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       postsResponse.value = ApiResponse.error('error');
@@ -487,7 +501,8 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    print(
+        '🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     if (isInitialLoad) {
       page = 1;
@@ -499,7 +514,8 @@ class FeedController extends GetxController {
     }
     print('otherPage $otherPage');
 
-    print('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
+    print(
+        'isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
     print('isInitialLoad: $isInitialLoad');
@@ -510,7 +526,8 @@ class FeedController extends GetxController {
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);
-      print('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
+      print(
+          '_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
     }
 
     // ✅ Only show loader if last id is different
@@ -543,7 +560,8 @@ class FeedController extends GetxController {
           targetList.clear();
           // Initial load: cache all data, display first batch
           _cachedPosts[type] = List.from(postResponse.data);
-          _displayedCounts[type] = displayLimit.clamp(0, postResponse.data.length);
+          _displayedCounts[type] =
+              displayLimit.clamp(0, postResponse.data.length);
 
           // Display only first batch
           targetList.value = postResponse.data.take(displayLimit).toList();
@@ -553,8 +571,10 @@ class FeedController extends GetxController {
 
           // Update cache service for All Posts tab
           if (type == PostType.all && postResponse.data.isNotEmpty) {
-            await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
-            print('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+            await HomeCacheService()
+                .cachePosts(postResponse.data.take(displayLimit).toList());
+            print(
+                '💾 Updated cache service with ${displayLimit} posts for All Posts tab');
           }
         } else {
           // Subsequent loads: add new data to cache
@@ -585,7 +605,8 @@ class FeedController extends GetxController {
         }
       } else {
         postsResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       postsResponse.value = ApiResponse.error('error');
@@ -605,14 +626,17 @@ class FeedController extends GetxController {
   void _displayMoreCachedData(PostType type, RxList<Post> targetList) {
     final cachedPosts = _cachedPosts[type] ?? [];
     final currentDisplayed = _displayedCounts[type] ?? 0;
-    final nextDisplayCount = (currentDisplayed + displayLimit).clamp(0, cachedPosts.length);
+    final nextDisplayCount =
+        (currentDisplayed + displayLimit).clamp(0, cachedPosts.length);
 
     // Add next batch of cached posts to display
-    final newPosts = cachedPosts.skip(currentDisplayed).take(displayLimit).toList();
+    final newPosts =
+        cachedPosts.skip(currentDisplayed).take(displayLimit).toList();
     targetList.addAll(newPosts);
     _displayedCounts[type] = nextDisplayCount;
 
-    print('📱 Displayed ${newPosts.length} cached posts. Total displayed: ${targetList.length}');
+    print(
+        '📱 Displayed ${newPosts.length} cached posts. Total displayed: ${targetList.length}');
 
     // Update cache service with more posts if it's All Posts tab
     if (nextDisplayCount >= cachedPosts.length && isTargetHasMoreData.isTrue) {
@@ -698,7 +722,8 @@ class FeedController extends GetxController {
       list.assignAll(
         list
             .map(
-              (p) => p.copyWith(isPostSavedLocal: HiveServices().isPostSaved(p.id)),
+              (p) => p.copyWith(
+                  isPostSavedLocal: HiveServices().isPostSaved(p.id)),
             )
             .toList(),
       );
@@ -786,7 +811,8 @@ class FeedController extends GetxController {
         } else {
           // 🔹 Revert optimistic update on API failure
           _revertOptimisticUpdate(postId, list, finalIntendedState);
-          likeDislikeResponse = ApiResponse.error('Failed to update like status');
+          likeDislikeResponse =
+              ApiResponse.error('Failed to update like status');
         }
       }
     } catch (e) {
@@ -803,12 +829,14 @@ class FeedController extends GetxController {
     }
   }
 
-  void _revertOptimisticUpdate(String postId, List<dynamic> list, bool intendedState) {
+  void _revertOptimisticUpdate(
+      String postId, List<dynamic> list, bool intendedState) {
     final currentIndex = list.indexWhere((p) => p.id == postId);
     if (currentIndex != -1) {
       final currentPost = list[currentIndex];
       final revertedLikeState = !intendedState;
-      final revertedCount = (currentPost.likesCount ?? 0) + (intendedState ? -1 : 1);
+      final revertedCount =
+          (currentPost.likesCount ?? 0) + (intendedState ? -1 : 1);
 
       list[currentIndex] = currentPost.copyWith(
         isLiked: revertedLikeState,
@@ -818,7 +846,8 @@ class FeedController extends GetxController {
   }
 
   /// Delete Post
-  Future<void> postDelete({required String postId, required PostType type}) async {
+  Future<void> postDelete(
+      {required String postId, required PostType type}) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
@@ -829,7 +858,8 @@ class FeedController extends GetxController {
         if (response.isSuccess) {
           // If the deleted post is a repost, decrement the original post's repost count
           if (post.is_reposted == true && post.children_post != null) {
-            final originalIndex = list.indexWhere((p) => p.id == post.children_post!.id);
+            final originalIndex =
+                list.indexWhere((p) => p.id == post.children_post!.id);
             if (originalIndex != -1) {
               list[originalIndex] = list[originalIndex].copyWith(
                 repostCount: (list[originalIndex].repostCount ?? 0) - 1,
@@ -850,7 +880,8 @@ class FeedController extends GetxController {
   }
 
   ///USER BLOCK...
-  Future<void> userBlocked({required PostType type, required String otherUserId}) async {
+  Future<void> userBlocked(
+      {required PostType type, required String otherUserId}) async {
     final list = getListByType(type);
 
     try {
@@ -864,7 +895,8 @@ class FeedController extends GetxController {
 
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
-        BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
+        BlockUserResponse blockUser =
+            BlockUserResponse.fromJson(response.response?.data);
         list.removeWhere((p) {
           return p.user?.id == otherUserId;
         });
@@ -872,7 +904,8 @@ class FeedController extends GetxController {
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse = ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       blockUserResponse = ApiResponse.error('error');
@@ -882,7 +915,9 @@ class FeedController extends GetxController {
 
   /// Feed Report
   Future<void> postReport(
-      {required PostType type, required String postId, required Map<String, dynamic> params}) async {
+      {required PostType type,
+      required String postId,
+      required Map<String, dynamic> params}) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
@@ -917,7 +952,10 @@ class FeedController extends GetxController {
   }
 
   /// Poll Answer
-  Future<void> answerPoll({required int optionId, required String postId, required PostType type}) async {
+  Future<void> answerPoll(
+      {required int optionId,
+      required String postId,
+      required PostType type}) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
@@ -946,7 +984,8 @@ class FeedController extends GetxController {
               selectedOption.votes?.add(currentUserId);
 
               // update the poll in the post
-              final updatedPoll = post.poll?.copyWith(options: List.from(options.poll?.options ?? []));
+              final updatedPoll = post.poll
+                  ?.copyWith(options: List.from(options.poll?.options ?? []));
               list[postIndex] = post.copyWith(poll: updatedPoll);
               // list[postIndex] = post.copyWith(poll: Poll(options: options.poll?.options??[],question: post.poll?.question));
             }
@@ -961,7 +1000,8 @@ class FeedController extends GetxController {
   }
 
   /// Save Post To LOCAL DB
-  Future<void> savePostToLocalDB({required String postId, required PostType type, SortBy? sortBy}) async {
+  Future<void> savePostToLocalDB(
+      {required String postId, required PostType type, SortBy? sortBy}) async {
     final list = getListByType(type); // <- RxList<Post>
 
     final index = list.indexWhere((p) => p.id == postId);
@@ -1011,7 +1051,8 @@ class FeedController extends GetxController {
             post.title?.toLowerCase().contains(lower) == true ||
             post.location?.toLowerCase().contains(lower) == true ||
             post.likesCount?.toString().toLowerCase().contains(lower) == true ||
-            post.commentsCount?.toString().toLowerCase().contains(lower) == true ||
+            post.commentsCount?.toString().toLowerCase().contains(lower) ==
+                true ||
             post.repostCount?.toString().toLowerCase().contains(lower) == true)
         .toList();
 
@@ -1059,7 +1100,8 @@ class FeedController extends GetxController {
   // }
 
   /// Like/Unlike
-  Future<void> getAllLikesUser({required String postId, bool isInitialLoading = false}) async {
+  Future<void> getAllLikesUser(
+      {required String postId, bool isInitialLoading = false}) async {
     if (isInitialLoading) {
       allLikeUsersListLoading.value = true;
     }
@@ -1069,7 +1111,8 @@ class FeedController extends GetxController {
       final response = await FeedRepo().allLikesOfPost(postId: postId);
       if (response.isSuccess) {
         allLikeUsersOfPostResponse = ApiResponse.complete(response);
-        AllLikeUsersListModel allLikeUsersListModel = AllLikeUsersListModel.fromJson(response.response?.data);
+        AllLikeUsersListModel allLikeUsersListModel =
+            AllLikeUsersListModel.fromJson(response.response?.data);
         allLikeUsersList.value = allLikeUsersListModel.data ?? [];
       } else {
         allLikeUsersOfPostResponse = ApiResponse.error('error');
@@ -1171,7 +1214,8 @@ class FeedController extends GetxController {
           ? await HomeFeedRepo().mergedHomeFeedRepo(queryParam: queryParam)
           : await HomeFeedRepo().homeFeedRepo(queryParam: queryParam);
       if (responseModel.isSuccess) {
-        final homeFeedResponse = HomeFeedResponse.fromJson(responseModel.response?.data);
+        final homeFeedResponse =
+            HomeFeedResponse.fromJson(responseModel.response?.data);
 
         if (homeFeedResponse.feed.isNotEmpty) {
           // De-duplicate by `_id` (guide §6.4): posts, reels and suggestion

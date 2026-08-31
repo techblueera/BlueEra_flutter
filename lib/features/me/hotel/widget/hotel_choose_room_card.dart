@@ -50,7 +50,7 @@ class HotelChooseRoomCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   _IconPill(
                     icon: Icons.add,
-                    onTap: () => Get.to(RoomSelectionScreen())
+                    onTap: () => Get.to(() => RoomSelectionScreen())
                         ?.then((_) => controller.loadHotelData()),
                   ),
                 ],
@@ -103,7 +103,7 @@ class HotelChooseRoomCard extends StatelessWidget {
                 imageAsset: 'assets/images/other_gallery.png',
                 ctaLabel: AppStrings.hotelNoRoomsAdded.tr,
                 ctaIcon: Icons.hotel_outlined,
-                onTap: () => Get.to(RoomSelectionScreen())
+                onTap: () => Get.to(() => RoomSelectionScreen())
                     ?.then((_) => controller.loadHotelData()),
               );
             }
@@ -160,7 +160,7 @@ class _RoomMoreMenu extends StatelessWidget {
   const _RoomMoreMenu({required this.room, required this.controller});
 
   void _onEdit() {
-    Get.to(RoomAmenitiesScreen(roomID: room.id))
+    Get.to(() => RoomAmenitiesScreen(roomID: room.id))
         ?.then((_) => controller.loadHotelData());
   }
 

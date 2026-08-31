@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/common/rental/binding/property_binding.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/rental/controller/property_dashboard_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
@@ -135,7 +136,10 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: isSelected ? Colors.white : AppColors.secondaryTextColor),
+            Icon(icon,
+                size: 18,
+                color:
+                    isSelected ? Colors.white : AppColors.secondaryTextColor),
             const SizedBox(width: 6),
             CustomText(
               label,
@@ -150,7 +154,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
   }
 
   Widget _buildCategoryChips(PropertyDashboardController ctrl) {
-    final categories = ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
+    final categories =
+        ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
 
     if (categories.isEmpty) return const SizedBox.shrink();
 
@@ -194,7 +199,9 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                       cat.label,
                       fontSize: SizeConfig.extraSmall,
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                      color: selected
+                          ? AppColors.primaryColor
+                          : AppColors.secondaryTextColor,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -210,7 +217,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
   }
 
   Widget _buildPropertyList(PropertyDashboardController ctrl) {
-    final categories = ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
+    final categories =
+        ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
 
     if (categories.isEmpty) return _buildEmpty();
 
@@ -328,7 +336,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                           color: const Color(0xFFF4F6FA),
                           border: Border.all(color: const Color(0xFFDDE2EE)),
                         ),
-                        child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF505050)),
+                        child: const Icon(Icons.close_rounded,
+                            size: 18, color: Color(0xFF505050)),
                       ),
                     ),
                   ],
@@ -352,7 +361,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   bg: const Color(0xFFEBF5FF),
                   onTap: () {
                     Get.back();
-                    Get.to(() => const ListYourPropertyScreen());
+                    Get.to(() => const ListYourPropertyScreen(),
+                        binding: PropertyBinding());
                   },
                 ),
                 SizedBox(height: SizeConfig.size12),
@@ -364,7 +374,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   bg: const Color(0xFFE6FAF3),
                   onTap: () {
                     Get.back();
-                    Get.to(() => const ListYourRentPropertyScreen());
+                    Get.to(() => const ListYourRentPropertyScreen(),
+                        binding: PropertyBinding());
                   },
                 ),
               ],
@@ -389,7 +400,8 @@ class _CategoryIconTile extends StatefulWidget {
   State<_CategoryIconTile> createState() => _CategoryIconTileState();
 }
 
-class _CategoryIconTileState extends State<_CategoryIconTile> with SingleTickerProviderStateMixin {
+class _CategoryIconTileState extends State<_CategoryIconTile>
+    with SingleTickerProviderStateMixin {
   static const List<RadialGradient> _gradients = <RadialGradient>[
     RadialGradient(
       center: Alignment.center,
@@ -532,7 +544,9 @@ Widget _addTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(label,
-                    fontSize: SizeConfig.large, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor),
                 const SizedBox(height: 3),
                 CustomText(subtitle,
                     fontSize: SizeConfig.small,
@@ -549,7 +563,8 @@ Widget _addTile({
               shape: BoxShape.circle,
               color: color.withValues(alpha: 0.1),
             ),
-            child: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+            child:
+                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
           ),
         ],
       ),

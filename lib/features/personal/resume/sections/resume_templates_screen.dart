@@ -15,13 +15,14 @@ class ResumeTemplateScreen extends StatefulWidget {
 }
 
 class _ResumeTemplateScreenState extends State<ResumeTemplateScreen> {
-  final controller = Get.put(ResumeTemplateController());
-@override
+  final controller = Get.find<ResumeTemplateController>();
+  @override
   void initState() {
     // TODO: implement initState
-  controller.fetchTemplates();
-  super.initState();
+    controller.fetchTemplates();
+    super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,8 +105,8 @@ class _ResumeTemplateScreenState extends State<ResumeTemplateScreen> {
                                 SizedBox(height: 4),
                                 CustomText(
                                   AppStrings.template,
-                                    fontSize: 10,
-                                    color: Colors.grey[500],
+                                  fontSize: 10,
+                                  color: Colors.grey[500],
                                 ),
                               ],
                             ),

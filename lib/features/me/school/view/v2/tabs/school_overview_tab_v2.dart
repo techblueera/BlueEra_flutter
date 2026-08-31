@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/me/school/binding/school_branch_contact_binding.dart';
+import 'package:BlueEra/features/me/school/binding/campus_life_binding.dart';
 import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -124,8 +126,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           : null;
       final gateBehindQuickInfo = requiredKeys != null &&
           requiredKeys.isNotEmpty &&
-          requiredKeys
-              .every((k) => _isQuickInfoValueEmpty(quickInfoValues[k]));
+          requiredKeys.every((k) => _isQuickInfoValueEmpty(quickInfoValues[k]));
 
       if (gateBehindQuickInfo) {
         // Pull user-friendly labels from the loaded descriptors when
@@ -146,7 +147,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
             _QuickInfoRequiredBanner(
               category: resolvedCategory,
               fieldLabels: fieldLabels,
-              onTap: () => Get.to(const SchoolQuickInfoFormScreen())
+              onTap: () => Get.to(() => const SchoolQuickInfoFormScreen())
                   ?.then((_) => widget.controller.getSchoolByIdController()),
             ),
             SizedBox(height: SizeConfig.size16),
@@ -177,7 +178,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
               : _SplitEmptyCard(
                   message: 'You Have Not Add Any Principal / Director Message',
                   icon: Icons.person_outline,
-                  onTap: () => Get.to(PrincipalMessageScreen())?.then(
+                  onTap: () => Get.to(() => PrincipalMessageScreen())?.then(
                       (_) => widget.controller.getSchoolByIdController()),
                 ),
           // ),
@@ -189,7 +190,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           //   child:
           SchoolQuickInfoCard(
             controller: widget.controller,
-            onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
+            onEditTap: () => Get.to(() => const SchoolQuickInfoFormScreen())
                 ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
           // ),
@@ -214,9 +215,10 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   message: 'You Have Not Add Any Management / Trust Info',
                   icon: Icons.groups_outlined,
                   showIconPanel: false,
-                  onTap: () => Get.to(ManagementTrustFormScreen(isEdit: false))
-                      ?.then(
-                          (_) => widget.controller.getSchoolByIdController()),
+                  onTap: () =>
+                      Get.to(() => ManagementTrustFormScreen(isEdit: false))
+                          ?.then((_) =>
+                              widget.controller.getSchoolByIdController()),
                 ),
           // ),
 
@@ -230,7 +232,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           //   child:
           SchoolAvailabilityCard(
             controller: widget.controller,
-            onEditTap: () => Get.to(const AvailabilityFormScreen())
+            onEditTap: () => Get.to(() => const AvailabilityFormScreen())
                 ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
           // ),
@@ -254,8 +256,10 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                 : _SectionEmptyCard(
                     title: AppStrings.campusLife.tr,
                     ctaLabel: AppStrings.campusLife.tr,
-                    onTap: () => Get.to(CampusLifeListingScreen())?.then(
-                        (_) => widget.controller.getSchoolByIdController()),
+                    onTap: () => Get.to(() => CampusLifeListingScreen(),
+                            binding: CampusLifeBinding())
+                        ?.then(
+                            (_) => widget.controller.getSchoolByIdController()),
                   ),
           ),
 
@@ -277,8 +281,10 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                     title: AppStrings.contactUs.tr,
                     ctaLabel: AppStrings.contactUs.tr,
                     ctaIcon: Icons.contact_phone_outlined,
-                    onTap: () => Get.to(contact_us.SchoolContactUs())?.then(
-                        (_) => widget.controller.getSchoolByIdController()),
+                    onTap: () => Get.to(() => contact_us.SchoolContactUs(),
+                            binding: SchoolBranchContactBinding())
+                        ?.then(
+                            (_) => widget.controller.getSchoolByIdController()),
                   ),
           ),
 

@@ -172,8 +172,8 @@ class EarnServiceContactMapCard extends StatelessWidget {
           LocalAssets(imagePath: icon, imgColor: iconColor),
           const SizedBox(width: 12),
           Expanded(
-            child: CustomText(label,
-                fontSize: 15, color: AppColors.mainTextColor),
+            child:
+                CustomText(label, fontSize: 15, color: AppColors.mainTextColor),
           ),
         ],
       ),
@@ -196,14 +196,13 @@ class EarnServiceContactMapCard extends StatelessWidget {
   // ── Edit bottom sheet ──────────────────────────────────
   void _openEditSheet(BuildContext context, EarnProfileModel? profile) {
     final addressCtrl = TextEditingController(text: profile?.address ?? '');
-    final houseCtrl =
-        TextEditingController(text: profile?.houseNumber ?? '');
+    final houseCtrl = TextEditingController(text: profile?.houseNumber ?? '');
     final phoneCtrl =
         TextEditingController(text: profile?.alternatePhoneNumber ?? '');
     final emailCtrl = TextEditingController(text: profile?.email ?? '');
     double? lat = profile?.latitude;
     double? lng = profile?.longitude;
-    final locationController = Get.put(LocationController());
+    final locationController = Get.find<LocationController>();
 
     showModalBottomSheet(
       context: context,
@@ -212,8 +211,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       enableDrag: false,
       builder: (ctx) => Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -297,8 +295,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
                   title: AppStrings.save.tr,
                   onTap: () async {
                     if (addressCtrl.text.trim().isEmpty) {
-                      commonSnackBar(
-                          message: AppStrings.noAddressFound.tr);
+                      commonSnackBar(message: AppStrings.noAddressFound.tr);
                       return;
                     }
                     final params = <String, dynamic>{

@@ -25,7 +25,7 @@ class LabContactUsScreen extends StatefulWidget {
 }
 
 class _LabContactUsScreenState extends State<LabContactUsScreen> {
-  final controller = Get.put(LabContactUsController());
+  final controller = Get.find<LabContactUsController>();
 
   // Owned by the State and disposed exactly once. Do NOT re-create inside
   // build() — that would leak controllers every time the Rx data refreshes.
@@ -214,15 +214,16 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
             Obx(() => CustomBtn(
                   // Show spinner during *submit*, not during initial data fetch.
                   isLoading: controller.isSaving.value,
-                  onTap: controller.isFormValid.value && !controller.isSaving.value
-                      ? () => controller.submitBranchDetails(
-                            branchName: branchNameController.text,
-                            website: websiteController.text,
-                            address: addressController.text,
-                            email: emailController.text,
-                            phone: phoneController.text,
-                          )
-                      : null,
+                  onTap:
+                      controller.isFormValid.value && !controller.isSaving.value
+                          ? () => controller.submitBranchDetails(
+                                branchName: branchNameController.text,
+                                website: websiteController.text,
+                                address: addressController.text,
+                                email: emailController.text,
+                                phone: phoneController.text,
+                              )
+                          : null,
                   title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                   isValidate: controller.isFormValid.value,
                 )),

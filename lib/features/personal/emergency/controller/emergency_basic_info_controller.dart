@@ -140,9 +140,10 @@ class EmergencyBasicInfoController extends GetxController {
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.emergencySavedBasicInfo.tr);
-        Get.to(EmergencyMedicalInfoScreen());
+        Get.to(() => EmergencyMedicalInfoScreen());
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
@@ -166,9 +167,10 @@ class EmergencyBasicInfoController extends GetxController {
       final ResponseModel res = await _repo.submitBasicInfo(body: body);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.emergencySavedMedicalInfo.tr);
-        Get.to(EmergencyContactScreen());
+        Get.to(() => EmergencyContactScreen());
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

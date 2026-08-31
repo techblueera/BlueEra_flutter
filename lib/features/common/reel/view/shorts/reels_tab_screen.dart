@@ -62,9 +62,7 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.isRegistered<ShortsController>()
-        ? Get.find<ShortsController>()
-        : Get.put(ShortsController());
+    _controller = Get.put(ShortsController());
     _prefetcher.init();
     // When the grid settles on a preview, warm the next reels (N+1..N+2 in
     // reading order) so tapping in / scrolling on starts instantly. See
@@ -168,8 +166,7 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
               SliverPadding(
                 padding: EdgeInsets.all(SizeConfig.size4),
                 sliver: SliverGrid(
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     // YouTube-Shorts-style 2-up grid of portrait covers.
                     crossAxisCount: 2,
                     // Higher ratio = shorter cards (cover fills the cell, title
@@ -686,8 +683,7 @@ class _ReelPrefetcher {
     Connectivity().checkConnectivity().then(_applyConnectivity).catchError(
           (_) {},
         );
-    _connSub =
-        Connectivity().onConnectivityChanged.listen(_applyConnectivity);
+    _connSub = Connectivity().onConnectivityChanged.listen(_applyConnectivity);
   }
 
   void _applyConnectivity(List<ConnectivityResult> result) {

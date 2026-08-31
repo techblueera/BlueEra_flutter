@@ -47,7 +47,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   EdgeInsets.only(left: 15, right: 15, bottom: 30, top: 10),
               child: AddMoreIconButton(
                 onTapEvent: () {
-                  Get.to(AddMoreCourseScreen());
+                  Get.to(() => AddMoreCourseScreen());
                 },
                 buttonName: AppStrings.addMoreCourse,
               ),
@@ -65,8 +65,10 @@ class _CourseListScreenState extends State<CourseListScreen> {
               controller: scrollController,
               padding: EdgeInsets.all(12),
               itemCount: controller.coursesList.length,
-              itemBuilder: (context, index) =>
-                  CourseCard(data: controller.coursesList[index], isEdit: widget.isEdit,),
+              itemBuilder: (context, index) => CourseCard(
+                data: controller.coursesList[index],
+                isEdit: widget.isEdit,
+              ),
             ),
           );
         }),
@@ -105,7 +107,8 @@ class CourseCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 8),
-          _infoRow("${AppStrings.admission.tr}: ", data.admissionProcess ?? "N/A"),
+          _infoRow(
+              "${AppStrings.admission.tr}: ", data.admissionProcess ?? "N/A"),
           _infoRow("${AppStrings.eligibility.tr}: ", data.eligibility ?? "N/A"),
           if ((data.courseFees?.yearly ?? 0) > 0)
             _infoRow("${AppStrings.courseFee.tr}: ",
@@ -151,7 +154,7 @@ class CourseCard extends StatelessWidget {
         PopupMenuItem(value: 'edit', child: CustomText(AppStrings.edit)),
         PopupMenuItem(
             value: 'delete',
-            child: CustomText(AppStrings.delete,color: Colors.red)),
+            child: CustomText(AppStrings.delete, color: Colors.red)),
       ],
     );
   }

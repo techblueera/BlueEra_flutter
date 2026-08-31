@@ -20,7 +20,7 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ManagementController());
+    final controller = Get.find<ManagementController>();
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -35,17 +35,20 @@ class ManagementScreen extends StatelessWidget {
                   ? ListView.separated(
                       padding: EdgeInsets.all(SizeConfig.size15),
                       itemCount: controller.managementList.length,
-                      separatorBuilder: (context, index) => SizedBox(height: SizeConfig.size15),
+                      separatorBuilder: (context, index) =>
+                          SizedBox(height: SizeConfig.size15),
                       itemBuilder: (context, index) {
                         final item = controller.managementList[index];
                         return _buildManagementCard(context, controller, item);
                       },
                     )
-                  : Center(child: CustomText(AppStrings.otherNoManagementFound.tr)),
+                  : Center(
+                      child: CustomText(AppStrings.otherNoManagementFound.tr)),
             ),
             SafeArea(
               child: Padding(
-                padding: EdgeInsets.only(bottom: SizeConfig.size35, right: 20, left: 20),
+                padding: EdgeInsets.only(
+                    bottom: SizeConfig.size35, right: 20, left: 20),
                 child: AddMoreIconButton(onTapEvent: () {
                   controller.clearForm();
                   // _showFormDialog(context, controller);
@@ -60,7 +63,8 @@ class ManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildManagementCard(BuildContext context, ManagementController controller, ManagementData item) {
+  Widget _buildManagementCard(BuildContext context,
+      ManagementController controller, ManagementData item) {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
@@ -136,8 +140,12 @@ class ManagementScreen extends StatelessWidget {
                               }
                             },
                             itemBuilder: (context) => [
-                              PopupMenuItem(value: 'Edit', child: Text(AppStrings.edit.tr)),
-                              PopupMenuItem(value: 'Delete', child: Text(AppStrings.delete.tr)),
+                              PopupMenuItem(
+                                  value: 'Edit',
+                                  child: Text(AppStrings.edit.tr)),
+                              PopupMenuItem(
+                                  value: 'Delete',
+                                  child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )
@@ -154,7 +162,8 @@ class ManagementScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    if (item.qualification != null && item.qualification!.isNotEmpty)
+                    if (item.qualification != null &&
+                        item.qualification!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: CustomText(

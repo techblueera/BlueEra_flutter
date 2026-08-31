@@ -1,5 +1,6 @@
 // received_bookings_screen.dart
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/booking_binding.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/videography_tutorial_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class ReceivedBookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BookingController());
+    final controller = Get.find<BookingController>();
     controller.getReceivedBookingList(
       channelId: channelId,
     );
@@ -55,7 +56,8 @@ class ReceivedBookingsScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 5),
+                  BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.2), blurRadius: 5),
                 ],
               ),
               child: IntrinsicHeight(
@@ -113,9 +115,11 @@ class ReceivedBookingsScreen extends StatelessWidget {
                             // SizedBox(height: SizeConfig.size4),
                             // _buildDetailRow("Timing :", formatTime(DateTime.now())),
                             // SizedBox(height: SizeConfig.size4),
-                            _buildDetailRow("Charges/Fee :", "${booking.fee} INR"),
+                            _buildDetailRow(
+                                "Charges/Fee :", "${booking.fee} INR"),
                             SizedBox(height: SizeConfig.size4),
-                            _buildDetailRow("Booking Type :", "${booking.bookingType}"),
+                            _buildDetailRow(
+                                "Booking Type :", "${booking.bookingType}"),
                             // SizedBox(height: SizeConfig.size4),
                             // _buildDetailRow("Customer ID :", booking.),
                             SizedBox(height: SizeConfig.size15),
@@ -125,10 +129,12 @@ class ReceivedBookingsScreen extends StatelessWidget {
                               bgColor: AppColors.white,
                               borderColor: AppColors.skyBlueDF,
                               onTap: () {
-                                Get.to(() => VideographyTutorialScreen(
-                                      videoId: booking.id,
-                                      channelId: booking.channelId,
-                                    ));
+                                Get.to(
+                                    () => VideographyTutorialScreen(
+                                          videoId: booking.id,
+                                          channelId: booking.channelId,
+                                        ),
+                                    binding: BookingBinding());
                               },
                               title:
                                   "View Details ${"(${booking.bookingCount})"}",

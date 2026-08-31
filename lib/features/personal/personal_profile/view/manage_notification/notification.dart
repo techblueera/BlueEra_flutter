@@ -15,7 +15,7 @@ class NotificationSettingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(NotificationSettingsController());
+    final controller = Get.find<NotificationSettingsController>();
 
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.notificationSetting.tr),
@@ -68,8 +68,12 @@ class NotificationSettingScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Obx(
                 () => PositiveCustomBtn(
-                  onTap: controller.isUpdating.value ? null : () => controller.submit(),
-                  title: controller.isUpdating.value ? '${AppStrings.submit.tr}...' : AppStrings.submit.tr,
+                  onTap: controller.isUpdating.value
+                      ? null
+                      : () => controller.submit(),
+                  title: controller.isUpdating.value
+                      ? '${AppStrings.submit.tr}...'
+                      : AppStrings.submit.tr,
                 ),
               ),
               const SizedBox(height: 40),

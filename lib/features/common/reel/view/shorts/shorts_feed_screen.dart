@@ -23,12 +23,11 @@ class ShortsFeedScreen extends StatefulWidget {
   final Function(bool isVisible)? onHeaderVisibilityChanged;
   final double? headerHeight;
 
-  ShortsFeedScreen({
-    super.key,
-    this.query,
-    this.onHeaderVisibilityChanged,
-    this.headerHeight
-  });
+  ShortsFeedScreen(
+      {super.key,
+      this.query,
+      this.onHeaderVisibilityChanged,
+      this.headerHeight});
 
   @override
   State<ShortsFeedScreen> createState() => _ShortsFeedScreenState();
@@ -67,7 +66,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
     try {
       // 🔁 Get location and then call nearby feed
       final location =
-      await shortsFeedController.fetchLocation(context: context);
+          await shortsFeedController.fetchLocation(context: context);
 
       if (location.lat != null && location.lng != null) {
         await shortsFeedController.getAllFeedNearBy(
@@ -123,7 +122,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
 
   bool get _allShortsFeedResponseComplete {
     return shortsFeedController.trendingShortsResponse.status ==
-        Status.COMPLETE &&
+            Status.COMPLETE &&
         shortsFeedController.nearByShortsResponse.status == Status.COMPLETE &&
         shortsFeedController.personalizedShortsResponse.status ==
             Status.COMPLETE;
@@ -189,19 +188,24 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                 if (shortsFeedController.trendingShortsResponse.status ==
                     Status.COMPLETE) ...[
                   ShortsSectionTitle(
-                      title: "🔥 Trending", topPadding: 0, onViewAll: () {
-                    Get.to(TrendingShortsViewAll(query: widget.query ?? ""));
-                  }),
+                      title: "🔥 Trending",
+                      topPadding: 0,
+                      onViewAll: () {
+                        Get.to(() =>
+                            TrendingShortsViewAll(query: widget.query ?? ""));
+                      }),
                   _buildTrendingSection(),
                 ]
-              ] else
-                if (shortsFeedController.isFirstLoadTrending.isTrue) ...[
-                  ShortsSectionTitle(
-                      title: "🔥 Trending", topPadding: 0, onViewAll: () {
-                    Get.to(TrendingShortsViewAll(query: widget.query ?? ""));
-                  }),
-                  const ShimmerShortsStrip(),
-                ],
+              ] else if (shortsFeedController.isFirstLoadTrending.isTrue) ...[
+                ShortsSectionTitle(
+                    title: "🔥 Trending",
+                    topPadding: 0,
+                    onViewAll: () {
+                      Get.to(() =>
+                          TrendingShortsViewAll(query: widget.query ?? ""));
+                    }),
+                const ShimmerShortsStrip(),
+              ],
 
               // Near By Section
               if (shortsFeedController.nearByVideoFeedPosts.isNotEmpty) ...[
@@ -211,20 +215,21 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "📍 Near By",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(NearByShortsViewAll(query: widget.query ?? ""));
+                        Get.to(() =>
+                            NearByShortsViewAll(query: widget.query ?? ""));
                       }),
                   _buildNearBySection(),
                 ]
-              ] else
-                if (shortsFeedController.isFirstLoadNearBy.isTrue) ...[
-                  ShortsSectionTitle(
-                      title: "📍 Near By",
-                      topPadding: SizeConfig.size15,
-                      onViewAll: () {
-                        Get.to(NearByShortsViewAll(query: widget.query ?? ""));
-                      }),
-                  const ShimmerShortsStrip(),
-                ],
+              ] else if (shortsFeedController.isFirstLoadNearBy.isTrue) ...[
+                ShortsSectionTitle(
+                    title: "📍 Near By",
+                    topPadding: SizeConfig.size15,
+                    onViewAll: () {
+                      Get.to(
+                          () => NearByShortsViewAll(query: widget.query ?? ""));
+                    }),
+                const ShimmerShortsStrip(),
+              ],
 
               // Personalized Section
               if (shortsFeedController
@@ -235,22 +240,22 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "✨ For You",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(PersonalizationShortsViewAll(
+                        Get.to(() => PersonalizationShortsViewAll(
                             query: widget.query ?? ""));
                       }),
                   _buildPersonalizedSection(),
                 ]
-              ] else
-                if (shortsFeedController
-                    .isFirstLoadPersonalized.isTrue) ...[
-                  ShortsSectionTitle(
-                      title: "✨ For You",
-                      topPadding: SizeConfig.size15,
-                      onViewAll: () {
-                        Get.to(PersonalizationShortsViewAll(query: widget.query ?? ""));
-                      }),
-                  const ShimmerShortsStrip(),
-                ],
+              ] else if (shortsFeedController
+                  .isFirstLoadPersonalized.isTrue) ...[
+                ShortsSectionTitle(
+                    title: "✨ For You",
+                    topPadding: SizeConfig.size15,
+                    onViewAll: () {
+                      Get.to(() => PersonalizationShortsViewAll(
+                          query: widget.query ?? ""));
+                    }),
+                const ShimmerShortsStrip(),
+              ],
 
               SizedBox(height: SizeConfig.size20),
             ],
@@ -454,15 +459,14 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
     // }
   }
 
-
   Widget _buildPersonalizedSection() {
     return SizedBox(
       // height for 2 rows of grid (adjust as per UI)
       // height: SizeConfig.size150,
       // height: SizeConfig.size160 * 2 + 50,
       child: Obx(() {
-        final personalizedShorts = shortsFeedController
-            .personalizedVideoFeedPosts;
+        final personalizedShorts =
+            shortsFeedController.personalizedVideoFeedPosts;
         // final isLoading = shortsFeedController.personalizedVideoIsLoadingMore;
 
         // show max 6 + loader (if needed)

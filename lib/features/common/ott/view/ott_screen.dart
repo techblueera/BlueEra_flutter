@@ -35,7 +35,7 @@ class OttScreen extends StatefulWidget {
 
 class _OttScreenState extends State<OttScreen> {
   final ottHomeController = Get.put(OttHomeController());
-  final channelFeedController = Get.put(ChannelFeedController());
+  final channelFeedController = Get.find<ChannelFeedController>();
 
   Future<void> _refreshChannelContent() async {
     final now = DateTime.now();
@@ -106,7 +106,7 @@ class _OttScreenState extends State<OttScreen> {
                             0) >
                         20,
                     onTap: () {
-                      Get.to(ViewAllJoinedChannelListScreen());
+                      Get.to(() => ViewAllJoinedChannelListScreen());
                     },
                   );
                 }),
@@ -126,7 +126,7 @@ class _OttScreenState extends State<OttScreen> {
                             0) >
                         20,
                     onTap: () {
-                      Get.to(ViewAllChannelScreen());
+                      Get.to(() => ViewAllChannelScreen());
                     },
                   );
                 }),

@@ -95,7 +95,7 @@ class CreateJobPostStep3 extends StatefulWidget {
 class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
   final createJobPostController = Get.find<CreateJobPostController>();
 
-  final controller = Get.put(JobPostStep3Controller());
+  final controller = Get.find<JobPostStep3Controller>();
 
   @override
   void initState() {
@@ -393,7 +393,8 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                                                   borderSide: BorderSide(
                                                       color: AppColors.greyE5),
                                                 ),
-                                                hintText: AppStrings.startTimeHint,
+                                                hintText:
+                                                    AppStrings.startTimeHint,
                                                 // Added space after E.g.
                                                 hintStyle: TextStyle(
                                                     color: AppColors.grey99),
@@ -461,7 +462,8 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                                                   borderSide: BorderSide(
                                                       color: AppColors.greyE5),
                                                 ),
-                                                hintText: AppStrings.endTimeHint,
+                                                hintText:
+                                                    AppStrings.endTimeHint,
                                                 // Added space after E.g.
                                                 hintStyle: TextStyle(
                                                     color: AppColors.grey99),
@@ -501,8 +503,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                                 CustomText(AppStrings.otherInstructions),
                                 SizedBox(height: SizeConfig.size8),
                                 CommonTextField(
-                                  hintText:
-                                  AppStrings.instructionsHint,
+                                  hintText: AppStrings.instructionsHint,
                                   textEditController:
                                       controller.walkInInstructionsController,
                                   maxLine: 4,
@@ -542,13 +543,14 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                     ),
                     SizedBox(height: SizeConfig.size15),
                     const CustomText(
-                     AppStrings.contactViaChatAfterApply,
+                      AppStrings.contactViaChatAfterApply,
                       fontWeight: FontWeight.w500,
                     ),
                     const SizedBox(height: 8),
                     Obx(() {
                       String? activeKey;
-                      for (final e in controller.communicationPreferences.entries) {
+                      for (final e
+                          in controller.communicationPreferences.entries) {
                         if (e.value == true) {
                           activeKey = e.key;
                           break;
@@ -624,8 +626,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                       // Validate communication preference is selected
                       if (!controller.hasCommunicationPreferenceSelected) {
                         commonSnackBar(
-                            message:
-                            AppStrings.pleaseSelectCommunicationPref);
+                            message: AppStrings.pleaseSelectCommunicationPref);
                         return;
                       }
 
@@ -759,4 +760,3 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
     });
   }
 }
-

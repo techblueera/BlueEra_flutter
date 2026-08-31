@@ -20,7 +20,7 @@ class VideoFeedScreen extends StatefulWidget {
 
 class _VideoFeedScreenState extends State<VideoFeedScreen> {
   // Use 'tag' if you want separate feed instances, otherwise standard put is fine
-  final controller = Get.put(VideoFeedController());
+  final controller = Get.find<VideoFeedController>();
   final feedController = Get.put(FeedController());
   final PageController _pageController = PageController();
 

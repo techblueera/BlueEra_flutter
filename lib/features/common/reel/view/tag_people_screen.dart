@@ -16,14 +16,15 @@ import 'package:get/get.dart';
 
 class TagPeopleScreen extends StatefulWidget {
   final Map<String, String>? previouslySelectedItems;
-  const TagPeopleScreen({Key? key, required this.previouslySelectedItems}) : super(key: key);
+  const TagPeopleScreen({Key? key, required this.previouslySelectedItems})
+      : super(key: key);
 
   @override
   State<TagPeopleScreen> createState() => _TagPeopleScreenState();
 }
 
 class _TagPeopleScreenState extends State<TagPeopleScreen> {
-  final tagPeopleController = Get.put(TagPeopleController());
+  final tagPeopleController = Get.find<TagPeopleController>();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
@@ -55,16 +56,17 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
 
     if (query.isEmpty) {
       // Restore original list
-      tagPeopleController.filteredUsers.assignAll(tagPeopleController.usersData);
+      tagPeopleController.filteredUsers
+          .assignAll(tagPeopleController.usersData);
       print("Reset to full list: ${tagPeopleController.filteredUsers.length}");
       return;
     }
 
     final result = tagPeopleController.usersData.where((item) {
-      final isIndividual = item.accountType.toUpperCase() == AppConstants.individual;
-      final targetText = isIndividual
-          ? (item.name ?? '')
-          : (item.businessName ?? '');
+      final isIndividual =
+          item.accountType.toUpperCase() == AppConstants.individual;
+      final targetText =
+          isIndividual ? (item.name ?? '') : (item.businessName ?? '');
       return targetText.toLowerCase().contains(query.toLowerCase());
     }).toList();
 
@@ -76,13 +78,13 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
     if (!_scrollController.hasClients) return;
 
     final position = _scrollController.position;
-    final isAtBottom = position.pixels >= position.maxScrollExtent - 200; // 100px threshold
+    final isAtBottom =
+        position.pixels >= position.maxScrollExtent - 200; // 100px threshold
 
     if (isAtBottom) {
       // Trigger pagination for individual page
-       tagPeopleController.getAllKindOfUsers();
+      tagPeopleController.getAllKindOfUsers();
       // api call
-
     }
   }
 
@@ -119,14 +121,15 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: Obx(() => CustomBtn(
-                    title: "Save",
-                    onTap: tagPeopleController.validate.value
-                        ? () {
-                      Navigator.pop(context, tagPeopleController.selectedItems);
-                    }
-                        : null,
-                    isValidate: tagPeopleController.validate.value,
-                  )),
+                        title: "Save",
+                        onTap: tagPeopleController.validate.value
+                            ? () {
+                                Navigator.pop(
+                                    context, tagPeopleController.selectedItems);
+                              }
+                            : null,
+                        isValidate: tagPeopleController.validate.value,
+                      )),
                 ),
               ],
             ),
@@ -139,12 +142,12 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
               searchController.clear();
             }),
         body: Obx(() {
-
-          if(tagPeopleController.isLoading.isTrue){
+          if (tagPeopleController.isLoading.isTrue) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if(tagPeopleController.allUsersResponse.value.status == Status.COMPLETE){
+          if (tagPeopleController.allUsersResponse.value.status ==
+              Status.COMPLETE) {
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
@@ -163,13 +166,12 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
                           padding: EdgeInsets.only(
                               top: SizeConfig.size8,
                               bottom: SizeConfig.size8,
-                              right: SizeConfig.size15
-                          ),
+                              right: SizeConfig.size15),
                           child: Obx(() => CustomText(
-                            'Only ${tagPeopleController.maxTagLimit - tagPeopleController.selectedItems.length} persons You Can Tag Here',
-                            fontSize: SizeConfig.size12,
-                            color: Colors.grey.shade600,
-                          )),
+                                'Only ${tagPeopleController.maxTagLimit - tagPeopleController.selectedItems.length} persons You Can Tag Here',
+                                fontSize: SizeConfig.size12,
+                                color: Colors.grey.shade600,
+                              )),
                         ),
                       ),
 
@@ -180,50 +182,59 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
                           right: SizeConfig.size15,
                         ),
                         child: Obx(() => Wrap(
-                          spacing: 10,
-                          runSpacing: 2,
-                          children: tagPeopleController.selectedItems.entries.map((entry) {
-                            final id = entry.key;
-                            final name = entry.value;
+                              spacing: 10,
+                              runSpacing: 2,
+                              children: tagPeopleController
+                                  .selectedItems.entries
+                                  .map((entry) {
+                                final id = entry.key;
+                                final name = entry.value;
 
-                            return Chip(
-                              label: Text(name),
-                              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                              labelStyle: TextStyle(
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: SizeConfig.large),
-                              deleteIcon:
-                              const Icon(Icons.close, size: 20, color: AppColors.mainTextColor),
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(color: Colors.transparent),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              onDeleted: () {
-                                tagPeopleController.removeSelected(id);
-                              },
-                            );
-                          }).toList(),
-                        )),
+                                return Chip(
+                                  label: Text(name),
+                                  backgroundColor: AppColors.primaryColor
+                                      .withValues(alpha: 0.1),
+                                  labelStyle: TextStyle(
+                                      color: AppColors.mainTextColor,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: SizeConfig.large),
+                                  deleteIcon: const Icon(Icons.close,
+                                      size: 20, color: AppColors.mainTextColor),
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(color: Colors.transparent),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  onDeleted: () {
+                                    tagPeopleController.removeSelected(id);
+                                  },
+                                );
+                              }).toList(),
+                            )),
                       ),
 
                       // List of people
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
-                          child: Obx(() => tagPeopleController.filteredUsers.isNotEmpty
+                          padding:
+                              EdgeInsets.symmetric(vertical: SizeConfig.size4),
+                          child: Obx(() => tagPeopleController
+                                  .filteredUsers.isNotEmpty
                               ? SelectableCommonListView(
-                            scrollController: _scrollController,
-                            allItems: tagPeopleController.filteredUsers,
-                            isScrollable: true,
-                            showSubTitle: true,
-                            selectedIndexes: tagPeopleController.selectedItems.keys.toSet(),
-                            onSelectionChanged: (String id, String name, bool isSelected) {
-
-                              tagPeopleController.toggleSelection(id, name);
-                            },
-                          )
-                              : EmptyStateWidget(message: 'Not found any user')),
+                                  scrollController: _scrollController,
+                                  allItems: tagPeopleController.filteredUsers,
+                                  isScrollable: true,
+                                  showSubTitle: true,
+                                  selectedIndexes: tagPeopleController
+                                      .selectedItems.keys
+                                      .toSet(),
+                                  onSelectionChanged: (String id, String name,
+                                      bool isSelected) {
+                                    tagPeopleController.toggleSelection(
+                                        id, name);
+                                  },
+                                )
+                              : EmptyStateWidget(
+                                  message: 'Not found any user')),
                         ),
                       ),
                       SizedBox(height: SizeConfig.size8),
@@ -232,14 +243,14 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
                 ),
               ),
             );
-          }else if(tagPeopleController.allUsersResponse.value.status == Status.ERROR){
+          } else if (tagPeopleController.allUsersResponse.value.status ==
+              Status.ERROR) {
             return Center(
               child: CustomBtn(
-                  onTap: (){
+                  onTap: () {
                     tagPeopleController.getAllKindOfUsers();
                   },
-                  title: 'Retry'
-              ),
+                  title: 'Retry'),
             );
           }
           return SizedBox();
@@ -248,4 +259,3 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
     );
   }
 }
-

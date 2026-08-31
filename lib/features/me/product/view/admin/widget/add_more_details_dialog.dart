@@ -9,14 +9,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
-
 class AddMoreDetailsDialog extends StatelessWidget {
   final String fromScreen;
   const AddMoreDetailsDialog({super.key, required this.fromScreen});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AddMoreDetailsController());
+    final controller = Get.find<AddMoreDetailsController>();
 
     return Dialog(
       insetPadding: const EdgeInsets.all(25),
@@ -63,12 +62,11 @@ class AddMoreDetailsDialog extends StatelessWidget {
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
-                  textEditController: controller.titleController,
-                  hintText: AppStrings.egTitle,
-                  validator: controller.validateTitle,
-                  maxLength: 50,
-                  isCounterVisible: true
-                ),
+                    textEditController: controller.titleController,
+                    hintText: AppStrings.egTitle,
+                    validator: controller.validateTitle,
+                    maxLength: 50,
+                    isCounterVisible: true),
 
                 SizedBox(height: SizeConfig.size20),
 
@@ -81,25 +79,25 @@ class AddMoreDetailsDialog extends StatelessWidget {
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
-                  textEditController: controller.detailController,
-                  hintText: AppStrings.egWirelessEarbudsBox,
-                  validator: controller.validateDetail,
-                  maxLength: 200,
-                  isCounterVisible: true
-                ),
+                    textEditController: controller.detailController,
+                    hintText: AppStrings.egWirelessEarbudsBox,
+                    validator: controller.validateDetail,
+                    maxLength: 200,
+                    isCounterVisible: true),
 
                 SizedBox(height: SizeConfig.size30),
 
                 // Save Button
                 Obx(() => CustomBtn(
-                  title: AppStrings.save,
-                  onTap: controller.isLoading.value
-                      ? null
-                      : ()=> controller.saveDetails(fromScreen: fromScreen),
-                  bgColor: AppColors.primaryColor,
-                  textColor: AppColors.white,
-                  height: 45,
-                )),
+                      title: AppStrings.save,
+                      onTap: controller.isLoading.value
+                          ? null
+                          : () =>
+                              controller.saveDetails(fromScreen: fromScreen),
+                      bgColor: AppColors.primaryColor,
+                      textColor: AppColors.white,
+                      height: 45,
+                    )),
               ],
             ),
           ),

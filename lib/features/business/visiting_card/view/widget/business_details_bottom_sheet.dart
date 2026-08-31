@@ -47,7 +47,7 @@
 //
 // class _BusinessDetailsBottomSheetState extends State<BusinessDetailsBottomSheet> {
 //   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
-//   final locationController = Get.put(LocationController());
+//   final locationController = Get.find<LocationController>();
 //
 //   final companyOrgNameTextController = TextEditingController();
 //   final landlineNumberController = TextEditingController();

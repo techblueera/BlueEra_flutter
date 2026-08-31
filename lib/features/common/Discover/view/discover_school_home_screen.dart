@@ -870,7 +870,7 @@ class _JobVacancyLink extends StatelessWidget {
           _sectionHeader(Icons.work_outline, AppStrings.jobVacancy.tr),
           SizedBox(height: SizeConfig.paddingXS),
           InkWell(
-            onTap: () => Get.to(SchoolJobListingScreen(isEdit: false)),
+            onTap: () => Get.to(() => SchoolJobListingScreen(isEdit: false)),
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
               child: Row(

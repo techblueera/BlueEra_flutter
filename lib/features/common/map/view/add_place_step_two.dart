@@ -23,7 +23,7 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
   AddPlaceStepTwoScreen({Key? key}) : super(key: key);
 
   final AddPlaceStepTwoController controller =
-      Get.put(AddPlaceStepTwoController());
+      Get.find<AddPlaceStepTwoController>();
 
   @override
   Widget build(BuildContext context) {

@@ -58,7 +58,7 @@
 //   final subDivision = TextEditingController();
 //
 //   final personalCreateProfileController =
-//       Get.put(PersonalCreateProfileController());
+//       Get.find<PersonalCreateProfileController>();
 //   final viewProfileController = Get.find<ViewPersonalDetailsController>();
 //   bool isProfileCreateStatus = false;
 //   final authController = Get.find<AuthController>();

@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class OtherServicePhotosPhotoScreen extends StatelessWidget {
-  final controller = Get.put(OtherServicePhotoPhotoController());
+  final controller = Get.find<OtherServicePhotoPhotoController>();
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +20,11 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
               onTap: () {
-                Get.to(UploadOtherServicePhotosScreen());
+                Get.to(() => UploadOtherServicePhotosScreen());
               },
               title: AppStrings.otherUploadServicePhoto.tr),
         ),
@@ -42,9 +43,9 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
 
             return InkWell(
               onTap: () {
-                Get.to(OtherServiceCategoryDetailsScreen(
-                  categoryData: item,
-                ));
+                Get.to(() => OtherServiceCategoryDetailsScreen(
+                      categoryData: item,
+                    ));
               },
               child: Card(
                 margin: EdgeInsets.only(bottom: 16),
@@ -83,11 +84,10 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} ${AppStrings.hotelImagesSuffix.tr}",
-                                textAlign: TextAlign.center,
-
-                                    color: Colors.white, fontSize: 10),
-
+                                  "+${images.length} ${AppStrings.hotelImagesSuffix.tr}",
+                                  textAlign: TextAlign.center,
+                                  color: Colors.white,
+                                  fontSize: 10),
                             ),
                           )
                         ],
@@ -101,16 +101,15 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(item.title??"",
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                CustomText(item.title ?? "",
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("${AppStrings.hotelLastUpdate.tr} ${formatIsoDate(item.updatedAt??"")}",
-
-                                    color: Colors.grey, fontSize: 12),
-
+                            CustomText(
+                                "${AppStrings.hotelLastUpdate.tr} ${formatIsoDate(item.updatedAt ?? "")}",
+                                color: Colors.grey,
+                                fontSize: 12),
                           ],
                         ),
                       ),
@@ -124,6 +123,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
       }),
     );
   }
+
   static String formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";
     DateTime dateTime = DateTime.parse(isoString);

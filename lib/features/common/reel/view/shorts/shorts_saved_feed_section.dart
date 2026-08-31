@@ -16,19 +16,19 @@ class ShortsSavedFeedSection extends StatefulWidget {
   final String? query;
   final double headerHeight;
 
-  ShortsSavedFeedSection({
-    super.key,
-    required this.onHeaderVisibilityChanged,
-    required this.query,
-    required this.headerHeight
-  });
+  ShortsSavedFeedSection(
+      {super.key,
+      required this.onHeaderVisibilityChanged,
+      required this.query,
+      required this.headerHeight});
 
   @override
   State<ShortsSavedFeedSection> createState() => _ShortsSavedFeedSectionState();
 }
 
-class _ShortsSavedFeedSectionState extends State<ShortsSavedFeedSection> with RouteAware {
-  final ShortsController shortsController = Get.put<ShortsController>(ShortsController());
+class _ShortsSavedFeedSectionState extends State<ShortsSavedFeedSection>
+    with RouteAware {
+  final ShortsController shortsController = Get.put(ShortsController());
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -58,93 +58,88 @@ class _ShortsSavedFeedSectionState extends State<ShortsSavedFeedSection> with Ro
     shortsController.getAllSavedShorts();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-
       // if(videoController.isSavedVideosLoading.isFalse){
-        final savedShorts = shortsController.savedShorts
-            .where((e) => e.video?.type == 'short')
-            .toList();
-        log("savedShorts--> $savedShorts");
+      final savedShorts = shortsController.savedShorts
+          .where((e) => e.video?.type == 'short')
+          .toList();
+      log("savedShorts--> $savedShorts");
 
-          if (savedShorts.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.only(top: SizeConfig.size80),
-                child: EmptyStateWidget(
-                  message: 'No shorts saved.',
-                ),
-              ),
-            );
+      if (savedShorts.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.only(top: SizeConfig.size80),
+            child: EmptyStateWidget(
+              message: 'No shorts saved.',
+            ),
+          ),
+        );
+      }
+
+      return setupScrollVisibilityNotification(
+        controller: _scrollController,
+        headerHeight: widget.headerHeight,
+        // onVisibilityChanged: (visible) {
+        //   if (_isVisible != visible && mounted) {
+        //     setState(() => _isVisible = visible);
+        //     widget.onHeaderVisibilityChanged?.call(visible);
+        //   }
+        // },
+        onVisibilityChanged: (visible, offset) {
+          final controller = HomeScreenController.to;
+          final currentOffset = controller.headerOffset.value;
+
+          // Linear animation step (same speed up/down)
+          const step = 0.2; // smaller = smoother, larger = faster
+
+          double newOffset = currentOffset;
+
+          if (visible) {
+            // show header → decrease offset
+            newOffset = (currentOffset - step).clamp(0.0, 1.0);
+          } else {
+            // hide header → increase offset
+            newOffset = (currentOffset + step).clamp(0.0, 1.0);
           }
 
-          return setupScrollVisibilityNotification(
-            controller: _scrollController,
-            headerHeight: widget.headerHeight,
-            // onVisibilityChanged: (visible) {
-            //   if (_isVisible != visible && mounted) {
-            //     setState(() => _isVisible = visible);
-            //     widget.onHeaderVisibilityChanged?.call(visible);
-            //   }
-            // },
-            onVisibilityChanged: (visible, offset) {
-              final controller = HomeScreenController.to;
-              final currentOffset = controller.headerOffset.value;
+          controller.headerOffset.value = newOffset;
 
-              // Linear animation step (same speed up/down)
-              const step = 0.2; // smaller = smoother, larger = faster
-
-              double newOffset = currentOffset;
-
-              if (visible) {
-                // show header → decrease offset
-                newOffset = (currentOffset - step).clamp(0.0, 1.0);
-              } else {
-                // hide header → increase offset
-                newOffset = (currentOffset + step).clamp(0.0, 1.0);
-              }
-
-              controller.headerOffset.value = newOffset;
-
-              controller.isVisible.value = visible;
-              widget.onHeaderVisibilityChanged?.call(visible);
-            },
-            child: GridView.builder(
-              controller: _scrollController,
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(3),
-              scrollDirection: Axis.vertical,
-              itemCount: savedShorts.length,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 3,   // horizontal gap between items
-                mainAxisSpacing: 3,    // vertical gap between items
-              ),
-              itemBuilder: (context, index) {
-                final savedShortsItem = savedShorts[index];
-                return SingleShortStructure(
-                  shorts: Shorts.saved,
-                  allLoadedShorts: savedShorts,
-                  shortItem: savedShortsItem,
-                  initialIndex: index,
-                  imageHeight: SizeConfig.size200,
-                  imageWidth: SizeConfig.size130,
-                  borderRadius: 10.0,
-                );
-              },
-            ),
-          );
+          controller.isVisible.value = visible;
+          widget.onHeaderVisibilityChanged?.call(visible);
+        },
+        child: GridView.builder(
+          controller: _scrollController,
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(3),
+          scrollDirection: Axis.vertical,
+          itemCount: savedShorts.length,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 3, // horizontal gap between items
+            mainAxisSpacing: 3, // vertical gap between items
+          ),
+          itemBuilder: (context, index) {
+            final savedShortsItem = savedShorts[index];
+            return SingleShortStructure(
+              shorts: Shorts.saved,
+              allLoadedShorts: savedShorts,
+              shortItem: savedShortsItem,
+              initialIndex: index,
+              imageHeight: SizeConfig.size200,
+              imageWidth: SizeConfig.size130,
+              borderRadius: 10.0,
+            );
+          },
+        ),
+      );
 
       // }else{
       //   return Center(child: CircularProgressIndicator());
       // }
-
-
     });
   }
 }
-

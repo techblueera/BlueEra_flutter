@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/logout_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/account_deletion_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -20,7 +21,6 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 
 class ProfileSettingsNewScreen extends StatelessWidget {
   const ProfileSettingsNewScreen({super.key});
@@ -46,15 +46,15 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                   children: [
                     _buildTile(AppIconAssets.accountSetting,
                         AppStrings.accountSettings,
-                        onTap: () => Get.to(() => AccountSettingScreen())),
+                        onTap: () => Get.to(() => AccountSettingScreen(),
+                            binding: AccountDeletionBinding())),
                     _buildTile(AppIconAssets.takeFranchiseIcon,
                         AppStrings.applyForFranchise,
                         onTap: () => Get.to(() => CommonWebView(
                               urlLink: takeFranchise,
                               urlTitle: AppStrings.applyForFranchise,
                             ))),
-                    _buildTile(
-                        AppIconAssets.location_outline, 'My Addresses',
+                    _buildTile(AppIconAssets.location_outline, 'My Addresses',
                         onTap: () => AddressPicker.manage()),
                     _buildTile(AppIconAssets.referral, AppStrings.referral,
                         onTap: () => Get.to(() => ReferralPage())),
@@ -79,7 +79,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 SizedBox(height: 20),
                 CustomBtn(
                     onTap: () {
-                      Get.put(AccountDeletionController())
+                      Get.find<AccountDeletionController>()
                           .startAccountDeletion(context);
                     },
                     title: AppStrings.deleteAccount,
@@ -126,10 +126,10 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(CommonWebView(
-                                      urlLink: privacyLink,
-                                      urlTitle: AppStrings.privacyPolicy.tr,
-                                    ));
+                                    Get.to(() => CommonWebView(
+                                          urlLink: privacyLink,
+                                          urlTitle: AppStrings.privacyPolicy.tr,
+                                        ));
                                   },
                               ),
                             ],
@@ -195,7 +195,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
           ),
         ],
       ),
-
     );
   }
 }

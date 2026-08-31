@@ -19,8 +19,7 @@ import 'package:get/get.dart';
 class OtherBlogsScreen extends StatelessWidget {
   OtherBlogsScreen({super.key});
 
-  final OtherBlogsController controller =
-      Get.put(OtherBlogsController());
+  final OtherBlogsController controller = Get.find<OtherBlogsController>();
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +50,7 @@ class OtherBlogsScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherBlogsFormScreen());
+                  Get.to(() => OtherBlogsFormScreen());
                 }),
               ),
             ),
@@ -124,9 +123,9 @@ class OtherBlogsScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherBlogsFormScreen(
-                      item: item,
-                    )),
+                    onPressed: () => Get.to(() => OtherBlogsFormScreen(
+                          item: item,
+                        )),
                   ),
                   IconButton(
                     icon: const LocalAssets(
@@ -166,7 +165,6 @@ class OtherBlogsScreen extends StatelessWidget {
               fontFamily: AppConstants.OpenSans,
             ),
           ),
-
         ],
       ),
     );

@@ -15,7 +15,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LabServicePhotoPhotoController());
+    final controller = Get.find<LabServicePhotoPhotoController>();
 
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.labServicePhotos.tr),
@@ -28,7 +28,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
             top: 10,
           ),
           child: PositiveCustomBtn(
-            onTap: () => Get.to(const UploadLabServicePhotosScreen()),
+            onTap: () => Get.to(() => const UploadLabServicePhotosScreen()),
             title: AppStrings.uploadLabServicePhoto.tr,
           ),
         ),
@@ -53,7 +53,8 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
     final firstImage = images.isNotEmpty ? images[0] : "";
 
     return InkWell(
-      onTap: () => Get.to(LabServiceCategoryDetailsScreen(categoryData: item)),
+      onTap: () =>
+          Get.to(() => LabServiceCategoryDetailsScreen(categoryData: item)),
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: const RoundedRectangleBorder(

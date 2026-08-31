@@ -53,7 +53,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
   final _companyNameTextController = TextEditingController();
   final _ngoNameTextController = TextEditingController();
   final _artTypeController = TextEditingController();
-  final emailVerificationController = Get.put(EmailVerificationController());
+  final emailVerificationController = Get.find<EmailVerificationController>();
   final politicalPartyController = TextEditingController();
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
@@ -89,7 +89,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
     _skillWorkerSpecificationTextController.clear();
     setState(() {});
   }
-
 
   @override
   void initState() {

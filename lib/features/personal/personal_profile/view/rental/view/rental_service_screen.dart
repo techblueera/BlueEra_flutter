@@ -20,7 +20,7 @@ class RentalServiceScreen extends StatefulWidget {
 }
 
 class _RentalServiceScreenState extends State<RentalServiceScreen> {
-  final controller = Get.put(RentalController());
+  final controller = Get.find<RentalController>();
 
   @override
   void initState() {
@@ -31,13 +31,10 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     body: Column(
-       crossAxisAlignment: CrossAxisAlignment.start,
-       children: [
-         _filterButtons(),
-         _buildTabViews()
-       ],
-     ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_filterButtons(), _buildTabViews()],
+      ),
     );
   }
 
@@ -47,8 +44,8 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
 
       return Padding(
         padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8,
+          vertical: SizeConfig.size15,
+          horizontal: SizeConfig.size8,
         ),
         child: HorizontalTabSelector<RentalServiceType>(
           tabs: controller.rentalTabs,
@@ -69,13 +66,10 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
     });
   }
 
-
-
   Widget _buildTabViews() {
-    return Obx(()=> Expanded(
-      child: rentalServices(controller.selectedRentalTabs.value),
-     )
-    );
+    return Obx(() => Expanded(
+          child: rentalServices(controller.selectedRentalTabs.value),
+        ));
   }
 
   Widget rentalServices(RentalServiceType rentalServiceTab) {
@@ -95,17 +89,16 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
         break;
     }
 
-    if(controller.isLoading.value){
-      return Center(
-          child: CircularProgressIndicator()
-      );
+    if (controller.isLoading.value) {
+      return Center(child: CircularProgressIndicator());
     }
 
     // EMPTY LIST VIEW
     if (list.isEmpty) {
       return Center(
         child: EmptyStateWidget(
-          message: "${rentalServiceTab.label} ${AppStrings.servicesAreEmpty.tr}\n${AppStrings.createYourService.tr}",
+          message:
+              "${rentalServiceTab.label} ${AppStrings.servicesAreEmpty.tr}\n${AppStrings.createYourService.tr}",
         ),
       );
     }
@@ -132,17 +125,17 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
             itemBuilder: (context, index) {
               final service = list[index];
               return RentalCard(
-                  rentalServiceData: service,
-                  width: itemWidth,
-                  deleteServiceApi: () async {
-                    await showCommonDialog(
+                rentalServiceData: service,
+                width: itemWidth,
+                deleteServiceApi: () async {
+                  await showCommonDialog(
                     context: context,
                     text: AppStrings.areYouSureDelete,
                     confirmText: AppStrings.delete,
                     cancelText: AppStrings.cancel,
                     confirmCallback: () {
                       controller.deleteService(
-                          serviceId: service.sId ?? '',
+                        serviceId: service.sId ?? '',
                       );
                     },
                     cancelCallback: () {
@@ -157,7 +150,4 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
       ),
     );
   }
-
-
-
 }

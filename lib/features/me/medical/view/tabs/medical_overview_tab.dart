@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:BlueEra/features/me/medical/binding/medical_gallery_binding.dart';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -63,8 +64,8 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
         // same widget grocery's overview uses. It renders the cover, so the
         // old standalone medical banner section is gone.
         BusinessJoinedProfileCard(
-            businessController: _businessController,
-            showShadow: false,
+          businessController: _businessController,
+          showShadow: false,
         ),
         SizedBox(height: SizeConfig.size12),
         _buildLivePhotosSection(),
@@ -91,13 +92,15 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
         // ── QR Code (mirrors the hospital overview QR card) ──
         SizedBox(height: SizeConfig.size2),
         Obx(() {
-          final details = _businessController.businessProfileDetails.value?.data;
+          final details =
+              _businessController.businessProfileDetails.value?.data;
           if (details == null) return const SizedBox.shrink();
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
             child: BusinessQrCodeWidget(
               data: details,
-              deepLinkOverride: medicalBusinessDeepLink(medicalBusinessId: details.userId),
+              deepLinkOverride:
+                  medicalBusinessDeepLink(medicalBusinessId: details.userId),
             ),
           );
         }),
@@ -203,7 +206,8 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
       return _SectionCard(
         title: AppStrings.gallery.tr,
         trailingLabel: AppStrings.addPhoto.tr,
-        onTrailingTap: () => Get.to(() => MedicalGalleryListScreen()),
+        onTrailingTap: () => Get.to(() => MedicalGalleryListScreen(),
+            binding: MedicalGalleryBinding()),
         child: all.isEmpty ? _galleryEmptyGuide() : _galleryGrid(all),
       );
     });
@@ -213,7 +217,8 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
   /// add-photo CTA so the user understands what the section will look like.
   Widget _galleryEmptyGuide() {
     return GestureDetector(
-      onTap: () => Get.to(() => MedicalGalleryListScreen()),
+      onTap: () => Get.to(() => MedicalGalleryListScreen(),
+          binding: MedicalGalleryBinding()),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: AspectRatio(
@@ -580,6 +585,7 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
     );
   }
 }
+
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SHARED SECTION CARD WRAPPER
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

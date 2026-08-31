@@ -57,8 +57,7 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
         Marker(
           markerId: const MarkerId('rider_mini'),
           position: _riderLatLng,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
         Marker(
           markerId: const MarkerId('dest_mini'),
@@ -183,10 +182,8 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
       child: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            _xPos = (_xPos + details.delta.dx)
-                .clamp(0, screenWidth - _width);
-            _yPos = (_yPos + details.delta.dy)
-                .clamp(0, screenHeight - _height);
+            _xPos = (_xPos + details.delta.dx).clamp(0, screenWidth - _width);
+            _yPos = (_yPos + details.delta.dy).clamp(0, screenHeight - _height);
           });
         },
         onTap: _onTap,

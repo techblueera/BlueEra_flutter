@@ -209,8 +209,8 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                             placeholder: (_, __) => Container(
                               color: AppColors.fillColor,
                               child: const Center(
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               ),
                             ),
                             errorWidget: (_, __, ___) => Container(
@@ -267,8 +267,10 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                       ],
                       SizedBox(height: SizeConfig.size8),
                       PriceRow(
-                        sellingPrice: '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
-                        mrp: '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
+                        sellingPrice:
+                            '${AppConstants.rupeeSymbol}${variant.sellingPrice.toStringAsFixed(0)}',
+                        mrp:
+                            '${AppConstants.rupeeSymbol}${variant.mrp.toStringAsFixed(0)}',
                         discount: '$discount% off',
                         // Pre-publish: name both figures.
                         showLabels: true,
@@ -367,8 +369,8 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                               ),
                               Expanded(
                                 child: TextField(
-                                  keyboardType: TextInputType
-                                      .numberWithOptions(decimal: true),
+                                  keyboardType: TextInputType.numberWithOptions(
+                                      decimal: true),
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(
                                         RegExp(r'^\d*\.?\d*')),
@@ -396,9 +398,8 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                                     ),
                                     isDense: true,
                                   ),
-                                  onChanged: (value) =>
-                                      _onSellingPriceChanged(
-                                          variant.id, value, variant.mrp),
+                                  onChanged: (value) => _onSellingPriceChanged(
+                                      variant.id, value, variant.mrp),
                                 ),
                               ),
                             ],

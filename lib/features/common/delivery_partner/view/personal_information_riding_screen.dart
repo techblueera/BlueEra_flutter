@@ -37,7 +37,7 @@
 //     extends State<PersonalInformationRidingScreen> {
 //   final controller = Get.put(DeliveryPartnerController());
 //   final viewProfileController = Get.find<ViewPersonalDetailsController>();
-//   final emailVerificationController = Get.put(EmailVerificationController());
+//   final emailVerificationController = Get.find<EmailVerificationController>();
 //   final langController = Get.put(LanguageListController());
 //
 //   @override

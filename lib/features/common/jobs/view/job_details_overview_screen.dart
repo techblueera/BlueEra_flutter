@@ -30,7 +30,7 @@ class JobDetailsOverviewScreen extends StatefulWidget {
 
 class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
   JobDetailsOverviewController controller =
-      Get.put(JobDetailsOverviewController());
+      Get.find<JobDetailsOverviewController>();
 
   // Dynamic answers from JobQNAScreen
   List<Map<String, dynamic>> selectedAnswers = [];
@@ -77,9 +77,12 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
       }
     }
 
-    nameController.text = resumeController.getResumeById.value?.resume?.name??"";
-    emailController.text =resumeController.getResumeById.value?.resume?.email??"";
-    locationController.text =resumeController.getResumeById.value?.resume?.location??"";
+    nameController.text =
+        resumeController.getResumeById.value?.resume?.name ?? "";
+    emailController.text =
+        resumeController.getResumeById.value?.resume?.email ?? "";
+    locationController.text =
+        resumeController.getResumeById.value?.resume?.location ?? "";
     mobileNumberEditController.text = userMobileGlobal;
   }
 
@@ -117,16 +120,13 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                         headingWidget(text: AppStrings.contactInformation),
                         SizedBox(height: SizeConfig.size20),
                         CommonTextField(
-                          title:AppStrings.fullName,
+                          title: AppStrings.fullName,
                           hintText: AppStrings.enterFullName,
                           textEditController: nameController,
                           validationType: ValidationTypeEnum.name,
                           readOnly: true,
-
                         ),
                         SizedBox(height: SizeConfig.size18),
-
-
                         CommonTextField(
                           title: AppStrings.email,
                           hintText: AppStrings.enterEmailAddress,
@@ -135,7 +135,6 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           onChange: (val) {},
                         ),
                         SizedBox(height: SizeConfig.size18),
-
                         InkWell(
                           onTap: () {
                             Navigator.pushNamed(
@@ -146,9 +145,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                                     String? address) {
                                   if (address != null) {
                                     locationController.text = address;
-                                    setState(() {
-
-                                    });
+                                    setState(() {});
                                   }
                                 },
                                 ApiKeys.fromScreen: ""
@@ -157,7 +154,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           },
                           child: CommonTextField(
                             textEditController: locationController,
-                            hintText:AppStrings.locationHint,
+                            hintText: AppStrings.locationHint,
                             isValidate: false,
                             title: AppStrings.location,
 
@@ -167,9 +164,8 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           ),
                         ),
                         SizedBox(height: SizeConfig.size18),
-
                         CommonTextField(
-                          title:AppStrings.phoneNumber,
+                          title: AppStrings.phoneNumber,
                           textEditController: mobileNumberEditController,
                           inputLength: 10,
                           maxLength: 10,
@@ -195,10 +191,14 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
 
                   // Resume Attachment
                   Obx(() => resumeAttachmentCard(
-                        fileName:( resumeController.getResumeById.value?.resume?.name?.isNotEmpty??false)?"${(resumeController.getResumeById.value?.resume?.name??"")}.pdf":"${DateTime.now().microsecondsSinceEpoch}.pdf",
+                        fileName: (resumeController.getResumeById.value?.resume
+                                    ?.name?.isNotEmpty ??
+                                false)
+                            ? "${(resumeController.getResumeById.value?.resume?.name ?? "")}.pdf"
+                            : "${DateTime.now().microsecondsSinceEpoch}.pdf",
                         fileSize: "",
-                        uploadDateTime:
-                        DateFormat("dd MMM yyyy 'at' hh:mm a").format(DateTime.now()),
+                        uploadDateTime: DateFormat("dd MMM yyyy 'at' hh:mm a")
+                            .format(DateTime.now()),
                       )),
 
                   SizedBox(height: SizeConfig.size10),
@@ -530,9 +530,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                       child: CustomBtn(
                           height: SizeConfig.size40,
                           title: AppStrings.connect,
-                          onTap: () {
-
-                          },
+                          onTap: () {},
                           borderColor: AppColors.primaryColor,
                           bgColor: AppColors.primaryColor,
                           textColor: AppColors.white),

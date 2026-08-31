@@ -27,7 +27,7 @@ class HospitalContactUs extends StatefulWidget {
 }
 
 class _HospitalContactUsState extends State<HospitalContactUs> {
-  final controller = Get.put(HospitalBranchContactController());
+  final controller = Get.find<HospitalBranchContactController>();
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
             Expanded(child: Obx(() => _buildBody())),
             SizedBox(height: SizeConfig.size10),
             AddMoreIconButton(
-              onTapEvent: () => Get.to(HospitalBranchDetailsFormScreen()),
+              onTapEvent: () => Get.to(() => HospitalBranchDetailsFormScreen()),
               buttonName: AppStrings.addAnotherBranch,
             ),
             SizedBox(height: SizeConfig.size25),
@@ -100,7 +100,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
               ),
               InkWell(
                 onTap: () => Get.to(
-                  HospitalBranchOnlyScreen(schoolContactUsData: data),
+                  () => HospitalBranchOnlyScreen(schoolContactUsData: data),
                 ),
                 child: LocalAssets(
                   imagePath: AppIconAssets.editIcon,
@@ -160,7 +160,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
                 color: AppColors.primaryColor,
               ),
               onPressed: () => Get.to(
-                HospitalDepartmentOnlyScreen(branchId: data.id),
+                () => HospitalDepartmentOnlyScreen(branchId: data.id),
               ),
             ),
           ),
@@ -193,7 +193,7 @@ class _HospitalContactUsState extends State<HospitalContactUs> {
               ),
               InkWell(
                 onTap: () => Get.to(
-                  HospitalDepartmentOnlyScreen(
+                  () => HospitalDepartmentOnlyScreen(
                     contactInfo: contactData,
                     isContactInfoEdit: true,
                     branchId: data.id,

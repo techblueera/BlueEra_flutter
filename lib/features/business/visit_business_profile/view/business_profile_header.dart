@@ -200,7 +200,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                             // every other profile share surface in
                             // the app.
                             await ShareService.instance.shareProfile(
-                              userId: widget.businessProfileDetails.userId ?? '',
+                              userId:
+                                  widget.businessProfileDetails.userId ?? '',
                               subject:
                                   widget.businessProfileDetails.businessName,
                             );

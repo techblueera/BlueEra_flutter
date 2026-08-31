@@ -14,9 +14,7 @@ class MessagePostDetailsScreen extends StatelessWidget {
 
   final Post? post;
   final PostType postType;
-  final feedController = Get.isRegistered<FeedController>()
-      ? Get.find<FeedController>()
-      : Get.put(FeedController());
+  final feedController = Get.put(FeedController());
 
   @override
   Widget build(BuildContext context) {

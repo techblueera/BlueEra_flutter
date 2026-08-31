@@ -77,7 +77,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                         if (!widget.isReadOnly)
                           IconButton(
                             onPressed: () =>
-                                Get.to(const HospitalAboutUsScreen()),
+                                Get.to(() => const HospitalAboutUsScreen()),
                             icon: const Icon(Icons.edit_outlined, size: 20),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -179,8 +179,9 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
 
   /// Stats row: Rating | Reviews | Distance.
   Widget _buildStatsRow(dynamic data) {
-    final coordinates =
-        (data?.contacts?.isNotEmpty == true) ? data.contacts.first.branch?.location?.coordinates : null;
+    final coordinates = (data?.contacts?.isNotEmpty == true)
+        ? data.contacts.first.branch?.location?.coordinates
+        : null;
 
     String? distanceText;
     if (coordinates != null && coordinates.length >= 2) {

@@ -117,7 +117,8 @@ class _LocationTile extends StatelessWidget {
           // shape as the bio/QR cards' headers.
           Row(
             children: [
-              Expanded(child: _eyebrow(AppStrings.locationLabel.tr.toUpperCase())),
+              Expanded(
+                  child: _eyebrow(AppStrings.locationLabel.tr.toUpperCase())),
               _actionChip(),
             ],
           ),
@@ -133,16 +134,15 @@ class _LocationTile extends StatelessWidget {
                   key: ValueKey('loc-card-$lat-$lon'),
                   latitude: lat,
                   longitude: lon,
-                  businessName: displayName.isEmpty ? AppStrings.youLabel.tr : displayName,
+                  businessName: displayName.isEmpty
+                      ? AppStrings.youLabel.tr
+                      : displayName,
                 ),
               ),
             ),
             SizedBox(height: SizeConfig.size12),
           ],
-          if (address.isNotEmpty)
-            _specRows()
-          else if (!hasMap)
-            _emptyPrompt(),
+          if (address.isNotEmpty) _specRows() else if (!hasMap) _emptyPrompt(),
         ],
       ),
     );
@@ -162,7 +162,7 @@ class _LocationTile extends StatelessWidget {
           color: AppColors.mainTextColor,
           fontWeight: FontWeight.w600,
         ),
-      /*  if (hasMap) ...[
+        /*  if (hasMap) ...[
           SizedBox(height: SizeConfig.size12),
           Container(
             height: 1,
@@ -329,8 +329,8 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
   final ViewPersonalDetailsController _viewCtrl =
       Get.find<ViewPersonalDetailsController>();
   final PersonalCreateProfileController _personalCtrl =
-      Get.put(PersonalCreateProfileController());
-  final LocationController _locationCtrl = Get.put(LocationController());
+      Get.find<PersonalCreateProfileController>();
+  final LocationController _locationCtrl = Get.find<LocationController>();
 
   double _lat = 0.0;
   double _lon = 0.0;
@@ -410,8 +410,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
           ApiKeys.lon: _lon,
         }),
         ApiKeys.address: address,
-        if (_pincode != null && _pincode!.isNotEmpty)
-          ApiKeys.pincode: _pincode,
+        if (_pincode != null && _pincode!.isNotEmpty) ApiKeys.pincode: _pincode,
       };
       // showProgress: false → the sheet shows its own inline loader
       // on the Update CTA. We don't want the global progress overlay
@@ -484,8 +483,9 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
                         key: ValueKey('loc-edit-$_lat-$_lon'),
                         latitude: _lat,
                         longitude: _lon,
-                        businessName:
-                            displayName.isEmpty ? AppStrings.youLabel.tr : displayName,
+                        businessName: displayName.isEmpty
+                            ? AppStrings.youLabel.tr
+                            : displayName,
                       ),
                     )
                   : _previewPlaceholder(),
@@ -617,7 +617,9 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(
-                      fetching ? AppStrings.pinningYouOnMap.tr : AppStrings.detectAutomatically.tr,
+                      fetching
+                          ? AppStrings.pinningYouOnMap.tr
+                          : AppStrings.detectAutomatically.tr,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,

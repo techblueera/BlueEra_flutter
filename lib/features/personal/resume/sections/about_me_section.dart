@@ -42,7 +42,7 @@ class AboutMeSection extends StatefulWidget {
 }
 
 class _AboutMeSectionState extends State<AboutMeSection> {
-  final ResumeController controller = Get.put(ResumeController());
+  final ResumeController controller = Get.find<ResumeController>();
   final CareerObjectiveController careerController =
       Get.put(CareerObjectiveController());
   final SkillsController skillsController = Get.put(SkillsController());

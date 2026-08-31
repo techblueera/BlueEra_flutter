@@ -66,7 +66,7 @@ class _JobSeekerResumeOverviewScreenState
               const EdgeInsets.only(right: 10, left: 10, bottom: 30, top: 10),
           child: PositiveCustomBtn(
               onTap: () {
-                Get.to(UpdateJobSeekerScreen());
+                Get.to(() => UpdateJobSeekerScreen());
               },
               title: AppStrings.createResume_.tr),
         ),
@@ -624,7 +624,6 @@ class _JobSeekerResumeOverviewScreenState
                                     ),
                                   ),
                                 ),
-
                               ],
                             ),
                           ),
@@ -735,7 +734,6 @@ class _JobSeekerResumeOverviewScreenState
           Row(
             children: [
               Expanded(child: _title(AppStrings.certificateAwards.tr)),
-
             ],
           ),
           SizedBox(height: SizeConfig.size12),
@@ -817,38 +815,33 @@ class _JobSeekerResumeOverviewScreenState
                 },
               ),
             ),
-    if (items.length > 1) ...[
-      SizedBox(height: SizeConfig.size8),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          items.length,
-              (index) => AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            height: 6,
-            width: _certAwardPageIndex == index ? 20 : 6,
-            decoration: BoxDecoration(
-              color: _certAwardPageIndex == index
-                  ? AppColors.primaryColor
-                  : Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-      ),
-
-
-    ],
-
+            if (items.length > 1) ...[
+              SizedBox(height: SizeConfig.size8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  items.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    height: 6,
+                    width: _certAwardPageIndex == index ? 20 : 6,
+                    decoration: BoxDecoration(
+                      color: _certAwardPageIndex == index
+                          ? AppColors.primaryColor
+                          : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),
     );
     // ),
   }
-
-
 
   String _formatPercentage(String? p) {
     if (p == null || p.isEmpty) return AppStrings.na.tr;

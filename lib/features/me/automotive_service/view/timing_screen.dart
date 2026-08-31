@@ -9,12 +9,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import '../controller/timing_controller.dart';
 
 class TimingScreen extends StatelessWidget {
-   TimingScreen({Key? key}) : super(key: key);
-  final controller = Get.put(TimingController());
+  TimingScreen({Key? key}) : super(key: key);
+  final controller = Get.find<TimingController>();
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.otherTimingTitle.tr,
@@ -93,15 +92,14 @@ class TimingScreen extends StatelessWidget {
                                   // Status Text or Time Pickers
                                   dayTiming.isOpen.value
                                       ? CustomText(
-                                    AppStrings.otherOpen.tr,
-                                    color: AppColors.secondaryTextColor,
-                                    fontSize: SizeConfig.size12,
-                                  )
+                                          AppStrings.otherOpen.tr,
+                                          color: AppColors.secondaryTextColor,
+                                          fontSize: SizeConfig.size12,
+                                        )
                                       : CustomText(
-                                    AppStrings.otherClosed.tr,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
+                                          AppStrings.otherClosed.tr,
+                                          color: AppColors.mainTextColor,
+                                        ),
                                 ],
                               ),
 
@@ -115,23 +113,20 @@ class TimingScreen extends StatelessWidget {
                               SizedBox(
                                 width: 10,
                               ),
-                              
                               _buildDropdown(
                                   controller.timeSlots,
                                   dayTiming.openTime.value,
-                                      (val) => controller.updateTime(
-                                      index, val!, true)),
+                                  (val) =>
+                                      controller.updateTime(index, val!, true)),
                               const SizedBox(width: 8),
                               _buildDropdown(
                                   controller.timeSlots,
                                   dayTiming.closeTime.value,
-                                      (val) => controller.updateTime(
+                                  (val) => controller.updateTime(
                                       index, val!, false)),
                             ],
                           ),
-
                         ]
-
                       ],
                     );
                   }),

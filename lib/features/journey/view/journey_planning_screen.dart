@@ -25,7 +25,7 @@ class JourneyPlanningScreen extends StatefulWidget {
 
 class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
   final JourneyPlanningController controller =
-      Get.put(JourneyPlanningController());
+      Get.find<JourneyPlanningController>();
 
   @override
   void dispose() {
@@ -50,7 +50,7 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Start From
-             
+
                   InkWell(
                     onTap: () {
                       Navigator.pushNamed(
@@ -65,7 +65,8 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                               controller.validateForm();
                             }
                           },
-                          ApiKeys.fromScreen: RouteConstant.journeyPlanningScreen
+                          ApiKeys.fromScreen:
+                              RouteConstant.journeyPlanningScreen
                         },
                       );
                     },
@@ -73,9 +74,7 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                       textEditController: controller.startFromController,
                       hintText: "E.g., Rajiv Chowk, Delhi",
                       isValidate: false,
-                      title:
-                      "Start From",
-
+                      title: "Start From",
 
                       onChange: (value) => controller.validateForm(),
                       readOnly: true,
@@ -242,8 +241,8 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                               context,
                               RouteHelper.getSearchLocationScreenRoute(),
                               arguments: {
-                                'onPlaceSelected':
-                                    (double? lat, double? lng, String? address) {
+                                'onPlaceSelected': (double? lat, double? lng,
+                                    String? address) {
                                   if (address != null) {
                                     controller
                                         .stoppages[stoppageIndex]
@@ -251,7 +250,8 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                                         .text = address;
                                   }
                                 },
-                                ApiKeys.fromScreen: RouteConstant.journeyPlanningScreen
+                                ApiKeys.fromScreen:
+                                    RouteConstant.journeyPlanningScreen
                               },
                             );
                           },
@@ -266,16 +266,18 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                         ),
                       ),
                     ),
-                    if (attractionIndex == controller
-                        .stoppages[stoppageIndex]
-                        .attractions.length - 1)
+                    if (attractionIndex ==
+                        controller.stoppages[stoppageIndex].attractions.length -
+                            1)
                       InkWell(
                         onTap: () => controller.addAttraction(stoppageIndex),
                         child: Container(
-                          margin: EdgeInsets.only(left: SizeConfig.size5,bottom: SizeConfig.size5),
+                          margin: EdgeInsets.only(
+                              left: SizeConfig.size5, bottom: SizeConfig.size5),
                           padding: EdgeInsets.all(SizeConfig.size8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withValues(alpha: 0.1),
+                            color:
+                                AppColors.primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: LocalAssets(
@@ -288,7 +290,6 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
                 ),
               ),
             )),
-
         SizedBox(height: SizeConfig.size15),
       ],
     );

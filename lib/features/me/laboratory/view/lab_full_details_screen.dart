@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/me/laboratory/binding/lab_service_photo_photo_binding.dart';
+import 'package:BlueEra/features/me/laboratory/binding/lab_contact_us_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -92,10 +94,9 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                             CustomText(AppStrings.description.tr,
                                 fontWeight: FontWeight.w700),
                             _editButton(
-                              onTap: () =>
-                                  Get.to(() => const LabDescriptionScreen())
-                                      ?.then((_) =>
-                                          controller.fetchFullDetails()),
+                              onTap: () => Get.to(
+                                      () => const LabDescriptionScreen())
+                                  ?.then((_) => controller.fetchFullDetails()),
                             ),
                           ],
                         ),
@@ -160,7 +161,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                     title: AppStrings.contactUs.tr,
                     subtitle: AppStrings.labAddContactInfo.tr,
                     icon: Icons.contact_phone_outlined,
-                    onEdit: () => Get.to(() => LabContactUsScreen())
+                    onEdit: () => Get.to(() => LabContactUsScreen(),
+                            binding: LabContactUsBinding())
                         ?.then((_) => controller.fetchFullDetails()),
                   )
                 else
@@ -259,8 +261,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.edit_outlined,
-                size: 14, color: AppColors.primaryColor),
+            Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
             SizedBox(width: 4),
             CustomText(
               AppStrings.edit.tr,
@@ -279,7 +280,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(AppStrings.ourPopularServices.tr, fontWeight: FontWeight.w700),
+        CustomText(AppStrings.ourPopularServices.tr,
+            fontWeight: FontWeight.w700),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
           height: 70,
@@ -358,15 +360,14 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
   }
 
   void _navigateToGalleryEdit() {
-    Get.to(() => LabServicePhotosPhotoScreen())
+    Get.to(() => LabServicePhotosPhotoScreen(),
+            binding: LabServicePhotoPhotoBinding())
         ?.then((_) => controller.fetchFullDetails());
   }
 
-  Widget _buildGallerySection(
-      List<Galleries> galleries, BuildContext context) {
-    final List<String> allImages = galleries
-            .expand((photo) => photo.imageUrls ?? <String>[])
-            .toList();
+  Widget _buildGallerySection(List<Galleries> galleries, BuildContext context) {
+    final List<String> allImages =
+        galleries.expand((photo) => photo.imageUrls ?? <String>[]).toList();
     final hasData = allImages.isNotEmpty;
 
     return CommonCardWidget(
@@ -479,8 +480,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 imageUrl: signedUrls[index],
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(color: Colors.grey[200]),
-                errorWidget: (_, __, ___) =>
-                    Container(color: Colors.grey[200]),
+                errorWidget: (_, __, ___) => Container(color: Colors.grey[200]),
               ),
               Container(
                 color: Colors.black.withValues(alpha: 0.55),
@@ -561,8 +561,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               children: [
                 Expanded(child: imageTile(2)),
                 const SizedBox(width: 6),
-                Expanded(
-                    child: hasMore ? viewMoreOverlay(3) : imageTile(3)),
+                Expanded(child: hasMore ? viewMoreOverlay(3) : imageTile(3)),
               ],
             ),
           ),
@@ -578,7 +577,6 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       children: [
         _buildContactCard(contact),
         SizedBox(height: SizeConfig.size16),
-
         BusinessLocationWidget(
             locationText: "",
             latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
@@ -596,7 +594,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xffEAF2FF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
       ),
       child: CustomText(text, fontSize: SizeConfig.small),
     );
@@ -616,7 +615,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               children: [
                 CustomText(AppStrings.contactUs, fontWeight: FontWeight.bold),
                 _editButton(
-                  onTap: () => Get.to(() => LabContactUsScreen())
+                  onTap: () => Get.to(() => LabContactUsScreen(),
+                          binding: LabContactUsBinding())
                       ?.then((_) => controller.fetchFullDetails()),
                 ),
               ],
@@ -633,23 +633,26 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 10)
-                      ],
-                      image: (controller.details.value?.profile?.logoUrl?.isNotEmpty ?? false)
-                          ? DecorationImage(
-                              image: NetworkImage(controller.details.value!.profile!.logoUrl!),
-                              fit: BoxFit.cover)
-                          : DecorationImage(
-                              image: AssetImage(AppIconAssets.place_holder_image),
-                              fit: BoxFit.cover),
-                    ),
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10)
+                    ],
+                    image: (controller
+                                .details.value?.profile?.logoUrl?.isNotEmpty ??
+                            false)
+                        ? DecorationImage(
+                            image: NetworkImage(
+                                controller.details.value!.profile!.logoUrl!),
+                            fit: BoxFit.cover)
+                        : DecorationImage(
+                            image: AssetImage(AppIconAssets.place_holder_image),
+                            fit: BoxFit.cover),
                   ),
+                ),
                 const SizedBox(height: 10),
                 CustomText(controller.details.value?.profile?.name,
                     fontSize: 20, fontWeight: FontWeight.bold),
@@ -665,8 +668,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 // Contact List
                 _contactItem(AppIconAssets.website_click,
                     profile?.websiteUrl ?? "", Colors.blue),
-                _contactItem(
-                    AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
+                _contactItem(AppIconAssets.principal, AppStrings.reception.tr,
+                    Colors.grey[700]!),
                 _contactItem(AppIconAssets.email, profile?.email ?? "",
                     AppColors.secondaryTextColor),
                 _contactItem(AppIconAssets.phone_outline,

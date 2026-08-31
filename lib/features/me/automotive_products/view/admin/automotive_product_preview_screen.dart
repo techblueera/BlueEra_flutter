@@ -100,13 +100,16 @@ class AutomotiveProductPreviewScreen extends StatefulWidget {
       required this.isFromProductCreation});
 
   @override
-  State<AutomotiveProductPreviewScreen> createState() => _AutomotiveProductPreviewScreenState();
+  State<AutomotiveProductPreviewScreen> createState() =>
+      _AutomotiveProductPreviewScreenState();
 }
 
-class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPreviewScreen> {
+class _AutomotiveProductPreviewScreenState
+    extends State<AutomotiveProductPreviewScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final AutomotiveProductController controller = Get.put(AutomotiveProductController());
+  final AutomotiveProductController controller =
+      Get.find<AutomotiveProductController>();
   int _currentIndex = 0;
 
   List<AutomotiveAiVariantData> get _variants =>
@@ -167,7 +170,8 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
 
     controller.detailsList.assignAll(
       (args.details ?? [])
-          .map((d) => AutomotiveProductMoreDetails(title: d.title, details: d.detail))
+          .map((d) =>
+              AutomotiveProductMoreDetails(title: d.title, details: d.detail))
           .toList(),
     );
 
@@ -240,7 +244,8 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
           // Case 1: Inventory exists → pop until product
           if (isInventoryInStack) {
             Get.until((route) =>
-                route.settings.name == RouteHelper.getAutomotivePartsScreenRoute());
+                route.settings.name ==
+                RouteHelper.getAutomotivePartsScreenRoute());
           }
           // Case 2: Inventory not in stack → go to bottom tab, then push product
           else {
@@ -251,8 +256,8 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
           }
         } else if (widget.providerType == ProviderType.user) {
           Get.until(
-                (route) =>
-            route.settings.name ==
+            (route) =>
+                route.settings.name ==
                 RouteHelper.getEarnServiceDashboardViewRoute(),
           );
 
@@ -264,7 +269,6 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
           //   Get.until((route) =>
           //       Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
           // }
-
         } else if (widget.providerType == ProviderType.channel) {
           Get.until((route) =>
               Get.currentRoute == RouteHelper.getChannelScreenRoute());
@@ -491,7 +495,8 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
                           title: AppStrings.createVariantStartSelling,
                           onTap: () {
                             Get.toNamed(
-                              RouteHelper.getAutomotiveCreateVariantScreenRoute(),
+                              RouteHelper
+                                  .getAutomotiveCreateVariantScreenRoute(),
                               arguments: {
                                 ApiKeys.controller: controller,
                                 ApiKeys.id: widget.id,

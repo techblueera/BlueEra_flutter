@@ -191,7 +191,6 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
 
                             try {
                               await controller.saveHobbies();
-
                             } catch (e) {
                               if (mounted) {
                                 commonSnackBar(

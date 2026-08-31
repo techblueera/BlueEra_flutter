@@ -63,7 +63,7 @@ class _ChannelProductListingState extends State<ChannelProductListing> {
                   child: AdminProductCard(
                     product: productData,
                     isGridShow: false,
-                    deleteProductApi: (){
+                    deleteProductApi: () {
                       // widget.channelController.deleteProduct();
                     },
                   ),

@@ -30,7 +30,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.proConsultGalleryCertifications.tr),
+      appBar: CommonBackAppBar(
+          title: AppStrings.proConsultGalleryCertifications.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size8),
         child: Column(
@@ -76,7 +77,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                         if (controller.propertyPhotosList.length < 20)
                           InkWell(
                             onTap: () {
-                              Get.to(UploadProfessionalsServicePhotosScreen());
+                              Get.to(() =>
+                                  UploadProfessionalsServicePhotosScreen());
                             },
                             child: CustomText(
                               "+ ${AppStrings.addMore.tr}",
@@ -176,7 +178,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                             ),
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              cert.description ?? AppStrings.proConsultDescriptionGoesHere.tr,
+                              cert.description ??
+                                  AppStrings.proConsultDescriptionGoesHere.tr,
                               color: Colors.white,
                               fontSize: SizeConfig.small,
                               maxLines: 2,
@@ -223,7 +226,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText(AppStrings.proConsultAddMoreCertAndAwards.tr,
+                          CustomText(
+                              AppStrings.proConsultAddMoreCertAndAwards.tr,
                               fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -298,7 +302,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       Obx(() {
                         return AiDescriptionField(
                           label: AppStrings.description.tr,
-                          hintText: AppStrings.proConsultTellUsMoreOrganization.tr,
+                          hintText:
+                              AppStrings.proConsultTellUsMoreOrganization.tr,
                           controller: certController.descriptionController,
                           rxValue: certController.description,
                           // Your RX variable from the controller
@@ -312,7 +317,9 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       }),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
+                            title: isEdit
+                                ? AppStrings.update.tr
+                                : AppStrings.save.tr,
                             isValidate: !(certController.isSaving.value),
                             onTap: certController.isSaving.value
                                 ? null
@@ -371,7 +378,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
     return Obx(() => DropdownButtonFormField<String>(
           value: certController.documentType.value,
           items: types
-              .map((e) => DropdownMenuItem(value: e, child: Text(labels[e] ?? e)))
+              .map((e) =>
+                  DropdownMenuItem(value: e, child: Text(labels[e] ?? e)))
               .toList(),
           onChanged: (val) {
             if (val != null) certController.documentType.value = val;

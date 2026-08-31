@@ -33,7 +33,7 @@ class UpdateJourneyScreen extends StatefulWidget {
 
 class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
   final JourneyUpdatePlanningController controller =
-      Get.put(JourneyUpdatePlanningController());
+      Get.find<JourneyUpdatePlanningController>();
 
   void clearAllSocialLinks() {
     for (var field in controller.travelSocialLink) {
@@ -497,7 +497,8 @@ class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
                                         .text = address;
                                   }
                                 },
-                                ApiKeys.fromScreen: RouteConstant.UpdateJourneyScreen
+                                ApiKeys.fromScreen:
+                                    RouteConstant.UpdateJourneyScreen
                               },
                             );
                           },
@@ -522,7 +523,8 @@ class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
                               left: SizeConfig.size5, bottom: SizeConfig.size5),
                           padding: EdgeInsets.all(SizeConfig.size8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryColor..withValues(alpha: 0.1),
+                            color: AppColors.primaryColor
+                              ..withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: LocalAssets(

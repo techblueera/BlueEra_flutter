@@ -36,7 +36,8 @@ class SkillWidgetView extends StatelessWidget {
               SizedBox(height: 16),
 
               // Content based on skills availability
-              if ((personalProfileController.skillsList.isEmpty)&&!isSelfPortfolio)
+              if ((personalProfileController.skillsList.isEmpty) &&
+                  !isSelfPortfolio)
                 CustomText("No skills found"),
               if (personalProfileController.skillsList.isEmpty &&
                   isSelfPortfolio)
@@ -72,7 +73,7 @@ class SkillWidgetView extends StatelessWidget {
 
   Widget addSkillButton() {
     return GestureDetector(
-      onTap: () => Get.to(AddSkillsScreen()),
+      onTap: () => Get.to(() => AddSkillsScreen()),
       child: Row(
         children: [
           Icon(

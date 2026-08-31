@@ -25,7 +25,7 @@ class JobApplicationsScreen extends StatefulWidget {
 }
 
 class _JobApplicationsScreenState extends State<JobApplicationsScreen> {
-  final controller = Get.put(ApplicationsController());
+  final controller = Get.find<ApplicationsController>();
   Jobs? jobData;
 
   final List<ApplicationJobCategory> jobApplicationTab =

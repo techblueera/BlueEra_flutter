@@ -128,8 +128,7 @@ class ViewBusinessDetailsController extends GetxController
   /// profile's `securityDeposit` (GET business profile). Fail-open when absent:
   /// blocked ONLY when the backend reports `required && !paid`. Mirrors the
   /// selfWork gate — see docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
-  bool get canGoLive =>
-      businessProfileDetails.value?.data?.canGoLive ?? true;
+  bool get canGoLive => businessProfileDetails.value?.data?.canGoLive ?? true;
   // bool get canGoLive =>
   //     businessProfileDetails.value?.data?.canGoLive ?? false;
 
@@ -304,60 +303,60 @@ class ViewBusinessDetailsController extends GetxController
     isMeProfileFetching.value = true;
     meProfileError.value = '';
     try {
-    await getUserLoginBusinessId();
-logs("BUSINESS ID=== ${businessId}");
+      await getUserLoginBusinessId();
+      logs("BUSINESS ID=== ${businessId}");
 
-    // No businessId to fetch with. Login can legitimately return
-    // `business: null` / `business_id: null` for a BUSINESS account whose
-    // profile was never created (or was removed server-side). Requesting
-    // `/user-service/business/` with an empty id just 404s, so stop here and
-    // let the "Me" tab show a retry state instead of shimmering forever.
-    if (businessId.trim().isEmpty) {
-      meProfileError.value = AppStrings.businessProfileNotFound.tr;
-      return;
-    }
-    // 1. Show cached business profile (if any) immediately so the UI
-    //    isn't blank while the network call is in flight. Skipped in
-    //    `silent` mode — the caller (typically a post-update refresh)
-    //    already has fresher in-memory state than the cache, and
-    //    replaying the cache would visibly revert the change.
-    // final cacheKey = businessId.isNotEmpty ? businessId : userId;
-    // final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
-    // if (cached != null) {
-    //   _applyBusinessProfileData(cached, persistPrefs: false);
-    // }
-
-    // 2. Silently refresh from the server and replace state + cache on
-    //    success.
-    ResponseModel responseModel =
-        await BusinessProfileRepo().viewParticularBusinessProfile();
-    if (responseModel.isSuccess) {
-      final data = responseModel.response?.data;
-      if (data is Map<String, dynamic>) {
-        await _applyBusinessProfileData(data, persistPrefs: true);
-        // Persist for next launch.
-        final freshKey = businessId.isNotEmpty ? businessId : userId;
-        await BusinessProfileCache.write(freshKey, data);
-      }
-      viewBusinessResponse = ApiResponse.complete(responseModel);
-      // A 200 that carries no usable body leaves businessTypeGlobal empty,
-      // which is indistinguishable from "still loading" to the Me tab.
-      if (businessTypeGlobal.trim().isEmpty) {
+      // No businessId to fetch with. Login can legitimately return
+      // `business: null` / `business_id: null` for a BUSINESS account whose
+      // profile was never created (or was removed server-side). Requesting
+      // `/user-service/business/` with an empty id just 404s, so stop here and
+      // let the "Me" tab show a retry state instead of shimmering forever.
+      if (businessId.trim().isEmpty) {
         meProfileError.value = AppStrings.businessProfileNotFound.tr;
+        return;
       }
-    } else {
-      meProfileError.value =
-          responseModel.message ?? AppStrings.somethingWentWrong.tr;
-      // logs(
-      //     "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
-
-      // Only surface the error to the user when we have nothing cached
-      // to fall back on — otherwise the cached UI is already showing.
-      // if (cached == null) {
-      //   commonSnackBar(
-      //       message: responseModel.message ?? AppStrings.somethingWentWrong);
+      // 1. Show cached business profile (if any) immediately so the UI
+      //    isn't blank while the network call is in flight. Skipped in
+      //    `silent` mode — the caller (typically a post-update refresh)
+      //    already has fresher in-memory state than the cache, and
+      //    replaying the cache would visibly revert the change.
+      // final cacheKey = businessId.isNotEmpty ? businessId : userId;
+      // final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
+      // if (cached != null) {
+      //   _applyBusinessProfileData(cached, persistPrefs: false);
       // }
-    }
+
+      // 2. Silently refresh from the server and replace state + cache on
+      //    success.
+      ResponseModel responseModel =
+          await BusinessProfileRepo().viewParticularBusinessProfile();
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        if (data is Map<String, dynamic>) {
+          await _applyBusinessProfileData(data, persistPrefs: true);
+          // Persist for next launch.
+          final freshKey = businessId.isNotEmpty ? businessId : userId;
+          await BusinessProfileCache.write(freshKey, data);
+        }
+        viewBusinessResponse = ApiResponse.complete(responseModel);
+        // A 200 that carries no usable body leaves businessTypeGlobal empty,
+        // which is indistinguishable from "still loading" to the Me tab.
+        if (businessTypeGlobal.trim().isEmpty) {
+          meProfileError.value = AppStrings.businessProfileNotFound.tr;
+        }
+      } else {
+        meProfileError.value =
+            responseModel.message ?? AppStrings.somethingWentWrong.tr;
+        // logs(
+        //     "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
+
+        // Only surface the error to the user when we have nothing cached
+        // to fall back on — otherwise the cached UI is already showing.
+        // if (cached == null) {
+        //   commonSnackBar(
+        //       message: responseModel.message ?? AppStrings.somethingWentWrong);
+        // }
+      }
     } finally {
       // Cleared last — AFTER the globals were applied above — so the "Me" tab's
       // rebuild (driven by this true→false flip) reads fresh data.
@@ -457,8 +456,7 @@ logs("BUSINESS ID=== ${businessId}");
           businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
       subCategoryOfBusiness:
           businessProfileDetails.value?.data?.subCategoryDetails?.name ?? '',
-      typeOfBusiness:
-          businessProfileDetails.value?.data?.typeOfBusiness ?? '',
+      typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
     );
     await getUserLoginData();
     // Globals (businessTypeGlobal etc.) are now populated — signal the Me tab
@@ -509,7 +507,7 @@ logs("BUSINESS ID=== ${businessId}");
         viewBusinessResponse = ApiResponse.complete(responseModel);
         final upgraded = BusinessUserResponseModel.fromJson(
             responseModel.response?.data ?? {});
-logs("upgraded.businessId=== ${upgraded.businessId}");
+        logs("upgraded.businessId=== ${upgraded.businessId}");
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.userBusinessId, upgraded.businessId);
 
@@ -551,9 +549,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   /// the textual address is left for the merchant to edit via the toast.
   Future<bool> captureLocationFromLivePhoto() async {
     try {
-      final locationController = Get.isRegistered<LocationController>()
-          ? Get.find<LocationController>()
-          : Get.put(LocationController());
+      final locationController = Get.find<LocationController>();
       // Bounded wait — a GPS fix / reverse-geocode can stall indefinitely
       // (weak signal, pending permission dialog). On timeout we simply skip the
       // silent location update rather than leave a dangling operation.
@@ -948,8 +944,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   /// Rich effective status (open-now, open-today, close time, override flag)
   /// consumed by the availability sheet.
-  final Rx<ShopOpenStatus> shopStatus =
-      const ShopOpenStatus.closed().obs;
+  final Rx<ShopOpenStatus> shopStatus = const ShopOpenStatus.closed().obs;
 
   /// True while a today-override / hours call is in flight (drives the pill
   /// spinner and disables the sheet controls).
@@ -959,8 +954,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   /// True once the merchant has saved a weekly schedule with at least one open
   /// day. Until then the pill routes straight to the hours editor.
-  bool get hasSchedule =>
-      weeklySchedule.any((s) => (s.isOpen ?? false));
+  bool get hasSchedule => weeklySchedule.any((s) => (s.isOpen ?? false));
 
   /// Pull the weekly schedule + today's override off an availability document
   /// and recompute the live state, (re)starting the minute recompute timer.
@@ -1019,7 +1013,6 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       _hydrateAvailability(AvailabilityData.fromJson(data));
     }
   }
-
 
   bool ensureCanGoLive() {
     if (isGoLiveAllowed) return true;
@@ -1281,7 +1274,6 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       ResponseModel responseModel = await BusinessProfileRepo()
           .getBusinessRatings(businessId: businessId, queryParams: queryParams);
       if (responseModel.isSuccess) {
-
         BusinessRatingsModel businessRatingsModel =
             BusinessRatingsModel.fromJson(responseModel.response?.data);
         final List<BusinessRatingsData> newBusinessRatingsData =
@@ -1388,7 +1380,8 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       };
       queryParams[ApiKeys.businessId] = visitBusinessId;
 
-      final responseModel = await ProductRepo().fetchProductsRepo(queryParams: queryParams);
+      final responseModel =
+          await ProductRepo().fetchProductsRepo(queryParams: queryParams);
 
       final getOwnProductModel =
           GetProductModel.fromJson(responseModel.response!.data);

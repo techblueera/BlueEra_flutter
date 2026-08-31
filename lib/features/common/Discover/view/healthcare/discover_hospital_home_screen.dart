@@ -41,12 +41,15 @@ class DiscoverHospitalHomeScreen extends StatefulWidget {
   const DiscoverHospitalHomeScreen({super.key});
 
   @override
-  State<DiscoverHospitalHomeScreen> createState() => _DiscoverHospitalHomeScreenState();
+  State<DiscoverHospitalHomeScreen> createState() =>
+      _DiscoverHospitalHomeScreenState();
 }
 
-class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen> {
+class _DiscoverHospitalHomeScreenState
+    extends State<DiscoverHospitalHomeScreen> {
   final controller = Get.find<HospitalServiceAiController>();
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
 
   /// Tracks whether the full hospital profile has finished loading at least
@@ -85,7 +88,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
   /// model, preserving the list-card fields (name/logo/cover/location)
   /// already on screen.
   void _mergeHospitalSectionsFromBusinessProfile() {
-    final raw = viewBusinessDetailsController.viewBusinessResponseNew.data?.response?.data;
+    final raw = viewBusinessDetailsController
+        .viewBusinessResponseNew.data?.response?.data;
     _debugDumpKeys(raw);
     final hospitalJson = _extractHospitalJson(raw);
     if (hospitalJson == null) {
@@ -94,7 +98,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
     }
 
     final parsed = HospitalFullData.fromJson(hospitalJson);
-    debugPrint('[DiscoverHospital] parsed departments=${parsed.departments?.length} '
+    debugPrint(
+        '[DiscoverHospital] parsed departments=${parsed.departments?.length} '
         'types=${parsed.departments?.map((d) => d.type).toList()} '
         'management=${parsed.management?.length} gallery=${parsed.gallery?.length} '
         'emergencyCare=${parsed.emergencyCare != null} '
@@ -111,21 +116,33 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
           // "Inquiry" button (which needs userId as the owner id). Keep any
           // existing value (avoids flashing the in-app list card) and fall
           // back to the parsed full-profile value.
-          ..name = (existing.name?.isNotEmpty ?? false) ? existing.name : parsed.name
-          ..userId = (existing.userId?.isNotEmpty ?? false) ? existing.userId : parsed.userId
-          ..logoUrl = (existing.logoUrl?.isNotEmpty ?? false) ? existing.logoUrl : parsed.logoUrl
-          ..coverUrl = (existing.coverUrl?.isNotEmpty ?? false) ? existing.coverUrl : parsed.coverUrl
+          ..name =
+              (existing.name?.isNotEmpty ?? false) ? existing.name : parsed.name
+          ..userId = (existing.userId?.isNotEmpty ?? false)
+              ? existing.userId
+              : parsed.userId
+          ..logoUrl = (existing.logoUrl?.isNotEmpty ?? false)
+              ? existing.logoUrl
+              : parsed.logoUrl
+          ..coverUrl = (existing.coverUrl?.isNotEmpty ?? false)
+              ? existing.coverUrl
+              : parsed.coverUrl
           ..departments = parsed.departments ?? existing.departments
           ..management = parsed.management ?? existing.management
           ..gallery = parsed.gallery ?? existing.gallery
           ..emergencyCare = parsed.emergencyCare ?? existing.emergencyCare
           ..otherFacilities = parsed.otherFacilities ?? existing.otherFacilities
-          ..emergencyContactData = parsed.emergencyContactData ?? existing.emergencyContactData
-          ..contacts = (parsed.contacts?.isNotEmpty ?? false) ? parsed.contacts : existing.contacts
-          ..description =
-              (parsed.description?.isNotEmpty ?? false) ? parsed.description : existing.description);
+          ..emergencyContactData =
+              parsed.emergencyContactData ?? existing.emergencyContactData
+          ..contacts = (parsed.contacts?.isNotEmpty ?? false)
+              ? parsed.contacts
+              : existing.contacts
+          ..description = (parsed.description?.isNotEmpty ?? false)
+              ? parsed.description
+              : existing.description);
 
-    controller.hospitalDataResModel?.value = HospitalFullDetailsResModel(success: true, data: merged);
+    controller.hospitalDataResModel?.value =
+        HospitalFullDetailsResModel(success: true, data: merged);
 
     // Cache the OPD doctors as soon as the full profile lands — the
     // customer can tap "Inquiry" the instant the button appears (which
@@ -163,14 +180,16 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
     final vp = raw['vertical_profile'];
     if (vp is Map && vp['data'] is Map) {
       final vpData = vp['data'] as Map;
-      debugPrint('[DiscoverHospital] vertical_profile.data keys: ${vpData.keys.toList()}');
+      debugPrint(
+          '[DiscoverHospital] vertical_profile.data keys: ${vpData.keys.toList()}');
       vpData.forEach((k, v) {
         if (v is List) {
           final first = v.isNotEmpty ? v.first : null;
           debugPrint('[DiscoverHospital]   vp.data.$k is List(len=${v.length}) '
               'firstKeys=${first is Map ? first.keys.toList() : first?.runtimeType}');
         } else if (v is Map) {
-          debugPrint('[DiscoverHospital]   vp.data.$k keys: ${v.keys.toList()}');
+          debugPrint(
+              '[DiscoverHospital]   vp.data.$k keys: ${v.keys.toList()}');
         }
       });
     }
@@ -226,7 +245,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
       if (raw['hospital'] is Map) raw['hospital'],
       if (raw['hospitalDetails'] is Map) raw['hospitalDetails'],
       if (data is Map && data['hospital'] is Map) data['hospital'],
-      if (data is Map && data['hospitalDetails'] is Map) data['hospitalDetails'],
+      if (data is Map && data['hospitalDetails'] is Map)
+        data['hospitalDetails'],
       if (data is Map) data,
       raw,
     ];
@@ -260,7 +280,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
           }
         },
         child: Obx(() {
-          final isProfileLoading = viewBusinessDetailsController.isProfileLoading.value;
+          final isProfileLoading =
+              viewBusinessDetailsController.isProfileLoading.value;
           final data = controller.hospitalDataResModel?.value.data;
 
           /// First-load shimmer: keep the skeleton until the full profile
@@ -316,7 +337,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: VisitBusinessStatsCard(
-                      details: viewBusinessDetailsController.visitedBusinessProfileDetails?.data,
+                      details: viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data,
                     ),
                   );
                 }),
@@ -380,7 +402,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
                 /// LOCATION MAP
                 _buildLocationSection(),
 
-                SizedBox(height: kBottomNavigationBarHeight + SizeConfig.paddingXSL),
+                SizedBox(
+                    height: kBottomNavigationBarHeight + SizeConfig.paddingXSL),
               ],
             ),
           );
@@ -406,7 +429,10 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
               padding: EdgeInsets.all(SizeConfig.paddingS),
               child: Row(
                 children: [
-                  shimmerContainer(width: SizeConfig.size60, height: SizeConfig.size60, radius: 30),
+                  shimmerContainer(
+                      width: SizeConfig.size60,
+                      height: SizeConfig.size60,
+                      radius: 30),
                   SizedBox(width: SizeConfig.paddingS),
                   Expanded(
                     child: Column(
@@ -434,9 +460,13 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
               child: Row(
                 children: [
-                  Expanded(child: shimmerContainer(height: SizeConfig.size150, radius: 12)),
+                  Expanded(
+                      child: shimmerContainer(
+                          height: SizeConfig.size150, radius: 12)),
                   SizedBox(width: SizeConfig.paddingS),
-                  Expanded(child: shimmerContainer(height: SizeConfig.size150, radius: 12)),
+                  Expanded(
+                      child: shimmerContainer(
+                          height: SizeConfig.size150, radius: 12)),
                 ],
               ),
             ),
@@ -499,10 +529,12 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
 
   /// Emergency action cards (Call Now + Book Now)
   Widget _buildEmergencyActionCards() {
-    final emergencyNo =
-        controller.hospitalDataResModel?.value.data?.emergencyContactData?.emergencyNumber ?? "";
-    final appointmentNo =
-        controller.hospitalDataResModel?.value.data?.emergencyContactData?.appointmentNumber ?? "";
+    final emergencyNo = controller.hospitalDataResModel?.value.data
+            ?.emergencyContactData?.emergencyNumber ??
+        "";
+    final appointmentNo = controller.hospitalDataResModel?.value.data
+            ?.emergencyContactData?.appointmentNumber ??
+        "";
 
     if (emergencyNo.isEmpty && appointmentNo.isEmpty) {
       return const SizedBox.shrink();
@@ -529,7 +561,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
                   onTap: () => _launchCaller(emergencyNo),
                 ),
               ),
-            if (emergencyNo.isNotEmpty && appointmentNo.isNotEmpty) SizedBox(width: SizeConfig.paddingS),
+            if (emergencyNo.isNotEmpty && appointmentNo.isNotEmpty)
+              SizedBox(width: SizeConfig.paddingS),
             if (appointmentNo.isNotEmpty)
               Expanded(
                 child: _buildActionCard(
@@ -542,7 +575,9 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
                   onTap: () async {
                     final chatViewController = Get.find<ChatViewController>();
                     chatViewController.checkChatConnectionAndOpenChat(
-                      userId: controller.hospitalDataResModel?.value.data?.userId ?? '',
+                      userId:
+                          controller.hospitalDataResModel?.value.data?.userId ??
+                              '',
                       route: AppConstants.route_discover,
                     );
                   },
@@ -601,7 +636,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
   /// Gallery section with empty state
   Widget _buildGallerySection() {
     final gallery = controller.hospitalDataResModel?.value.data?.gallery;
-    final allImages = gallery?.expand((photo) => photo.images ?? <String>[]).toList() ?? [];
+    final allImages =
+        gallery?.expand((photo) => photo.images ?? <String>[]).toList() ?? [];
 
     if (allImages.isEmpty) {
       return Padding(
@@ -644,7 +680,7 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: () {
-          Get.to(HospitalJobListingScreen(isReadOnly: true));
+          Get.to(() => HospitalJobListingScreen(isReadOnly: true));
         },
         child: CommonCardWidget(
           cardMargin: 0,
@@ -673,7 +709,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
 
   /// Contact us section with empty state
   Widget _buildContactSection() {
-    final contacts = controller.hospitalDataResModel?.value.data?.contacts ?? [];
+    final contacts =
+        controller.hospitalDataResModel?.value.data?.contacts ?? [];
 
     if (contacts.isEmpty) {
       return Padding(
@@ -709,7 +746,10 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
     final contacts = controller.hospitalDataResModel?.value.data?.contacts;
     final coordinates = contacts?.firstOrNull?.branch?.location?.coordinates;
 
-    if (coordinates == null || coordinates.length < 2 || coordinates[0] == 0.0 || coordinates[1] == 0.0) {
+    if (coordinates == null ||
+        coordinates.length < 2 ||
+        coordinates[0] == 0.0 ||
+        coordinates[1] == 0.0) {
       return const SizedBox.shrink();
     }
 
@@ -786,7 +826,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
         decoration: BoxDecoration(
           color: isEmergency ? const Color(0xFFC8554D) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: isEmergency ? null : Border.all(color: AppColors.primaryColor),
+          border:
+              isEmergency ? null : Border.all(color: AppColors.primaryColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

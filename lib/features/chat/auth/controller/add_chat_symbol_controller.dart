@@ -37,7 +37,6 @@ class AddChatSymbolController extends GetxController {
   Rx<SymbolPostType?> selectedSymbolPostType = Rx<SymbolPostType?>(null);
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
 
-
   /// Playback length of the selected video in seconds, or null when it hasn't
   /// been read yet / couldn't be determined. Sent as `media_duration` on
   /// create — the app is the only component that knows it, so omitting it
@@ -195,7 +194,7 @@ class AddChatSymbolController extends GetxController {
 
     final path = result.path;
 
-    final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+    final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
       print("✅ Trimmed Video Path: $trimmedPath");
@@ -472,10 +471,10 @@ class AddChatSymbolController extends GetxController {
       ResponseModel response = await symbolRepo.getSymbolLikes(symbolId);
       if (response.isSuccess) {
         final data = response.response?.data;
-        final list = data is List ? data : (data is Map ? data['data'] ?? [] : []);
-        symbolLikes.value = (list as List)
-            .map((e) => SymbolLikeEntry.fromJson(e))
-            .toList();
+        final list =
+            data is List ? data : (data is Map ? data['data'] ?? [] : []);
+        symbolLikes.value =
+            (list as List).map((e) => SymbolLikeEntry.fromJson(e)).toList();
       }
     } catch (_) {}
     isLoadingLikes.value = false;
@@ -487,16 +486,17 @@ class AddChatSymbolController extends GetxController {
       ResponseModel response = await symbolRepo.getSymbolViews(symbolId);
       if (response.isSuccess) {
         final data = response.response?.data;
-        final list = data is List ? data : (data is Map ? data['data'] ?? [] : []);
-        symbolViews.value = (list as List)
-            .map((e) => SymbolViewEntry.fromJson(e))
-            .toList();
+        final list =
+            data is List ? data : (data is Map ? data['data'] ?? [] : []);
+        symbolViews.value =
+            (list as List).map((e) => SymbolViewEntry.fromJson(e)).toList();
       }
     } catch (_) {}
     isLoadingViews.value = false;
   }
 
-  Future<bool> toggleLikeSymbol(String symbolId, {required bool isLiked}) async {
+  Future<bool> toggleLikeSymbol(String symbolId,
+      {required bool isLiked}) async {
     /// Returning false makes the caller revert its optimistic heart state.
     if (isGuestActionBlocked(AppStrings.guestLikeRestricted.tr)) return false;
 

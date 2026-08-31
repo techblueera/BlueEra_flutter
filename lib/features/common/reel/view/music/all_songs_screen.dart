@@ -34,7 +34,7 @@ class _AllSongsScreenState extends State<AllSongsScreen>
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
   late TabController _tabController;
-  SongController songController = Get.put(SongController());
+  SongController songController = Get.find<SongController>();
 
   @override
   void initState() {
@@ -141,7 +141,7 @@ class _AllSongsScreenState extends State<AllSongsScreen>
                 color: AppColors.primaryColor, // Blue for selected
                 thickness: 1.5,
               ),
-              tabs:  [
+              tabs: [
                 Tab(text: AppStrings.discover.tr),
                 Tab(text: AppStrings.favorites.tr),
               ],

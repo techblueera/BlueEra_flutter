@@ -19,8 +19,7 @@ import 'package:get/get.dart';
 class OtherDownloadsScreen extends StatelessWidget {
   OtherDownloadsScreen({super.key});
 
-  final  controller =
-      Get.put(OtherDownloadsController());
+  final controller = Get.find<OtherDownloadsController>();
 
   @override
   Widget build(BuildContext context) {
@@ -44,14 +43,15 @@ class OtherDownloadsScreen extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText(AppStrings.otherNoDownloadsFound.tr)),
+                  : Center(
+                      child: CustomText(AppStrings.otherNoDownloadsFound.tr)),
             ),
             SafeArea(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherDownloadsFormScreen());
+                  Get.to(() => OtherDownloadsFormScreen());
                 }),
               ),
             ),
@@ -118,9 +118,9 @@ class OtherDownloadsScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherDownloadsFormScreen(
-                      item: item,
-                    )),
+                    onPressed: () => Get.to(() => OtherDownloadsFormScreen(
+                          item: item,
+                        )),
                   ),
                   IconButton(
                     icon: const LocalAssets(
@@ -133,7 +133,8 @@ class OtherDownloadsScreen extends StatelessWidget {
                           text: AppStrings.otherConfirmDeleteDownload.tr,
                           confirmCallback: () async {
                             Get.back();
-                            await controller.deleteDownloadsController(item.sId!);
+                            await controller
+                                .deleteDownloadsController(item.sId!);
                           },
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog
@@ -160,7 +161,6 @@ class OtherDownloadsScreen extends StatelessWidget {
               fontFamily: AppConstants.OpenSans,
             ),
           ),
-
         ],
       ),
     );

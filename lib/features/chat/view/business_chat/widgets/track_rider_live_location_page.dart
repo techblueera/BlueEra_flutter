@@ -165,7 +165,8 @@ class SimpleGoogleMapsTracking extends StatefulWidget {
   });
 
   @override
-  State<SimpleGoogleMapsTracking> createState() => _SimpleGoogleMapsTrackingState();
+  State<SimpleGoogleMapsTracking> createState() =>
+      _SimpleGoogleMapsTrackingState();
 }
 
 class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
@@ -210,7 +211,6 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
     ever(riderController.liveLat, (_) => _updateRiderOnMap());
     ever(riderController.liveLng, (_) => _updateRiderOnMap());
-
   }
 
   /// False when the caller had no drop coordinates — e.g. tracking opened from
@@ -314,9 +314,6 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   /// enough to catch an actual wrong turn.
   static const double _routeDeviationMetres = 80;
 
-
-
-
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _getRoutePolyline(); // Call the road-fetching function here
@@ -329,7 +326,8 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   /// starts. Falls back to the default pin if the SVG can't be rendered.
   Future<void> _loadRiderIcon() async {
     try {
-      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
+      final bytes = await getBytesFromSvgAsset(
+          'assets/svg/2_wheeler.svg', kVehicleMarkerSize);
       if (!mounted || bytes.isEmpty) return;
       setState(() {
         _riderIcon = BitmapDescriptor.bytes(bytes);
@@ -396,8 +394,6 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     _moveCamera(LatLng(lat, lng));
   }
 
-
-
   Future<void> _startLocationTracking() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return;
@@ -424,16 +420,16 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     currentPosition = LatLng(position.latitude, position.longitude);
 
     try {
-    setState(() {
-      liveLocationCircle = Circle(
-        circleId: CircleId('live_location_circle'),
-        center: currentPosition!,
-        radius: 15.0,
-        fillColor: Colors.blue.withValues(alpha: 0.5),
-        strokeColor: Colors.white,
-        strokeWidth: 3,
-      );
-    });
+      setState(() {
+        liveLocationCircle = Circle(
+          circleId: CircleId('live_location_circle'),
+          center: currentPosition!,
+          radius: 15.0,
+          fillColor: Colors.blue.withValues(alpha: 0.5),
+          strokeColor: Colors.white,
+          strokeWidth: 3,
+        );
+      });
     } catch (e) {
       print('Error updating live location: $e');
     }
@@ -460,8 +456,6 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   //     );
   //   });
   // }
-
-
 
   // Future<void> _fitBounds() async {
   //   if (mapController == null || startMarker == null || endMarker == null) return;
@@ -551,6 +545,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
       ],
     );
   }
+
   double _calculateTotalDistance() {
     // Prefer the server's authoritative drop distance from the poll; fall back
     // to a local straight-line calc until it arrives (both are haversine).

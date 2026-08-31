@@ -107,7 +107,8 @@ class MessageCard extends StatefulWidget {
   State<MessageCard> createState() => _MessageCardState();
 }
 
-class _MessageCardState extends State<MessageCard> with SingleTickerProviderStateMixin {
+class _MessageCardState extends State<MessageCard>
+    with SingleTickerProviderStateMixin {
   double _dragOffset = 0;
   AnimationController? _shakeController;
   final _messageKey = GlobalKey();
@@ -212,7 +213,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         );
         break;
       case "audio":
-        if (widget.message.url != null && (widget.message.url?.isNotEmpty ?? false)) {
+        if (widget.message.url != null &&
+            (widget.message.url?.isNotEmpty ?? false)) {
           messageWidget = AudioMessageWidget(
             message: widget.message,
             audioUrl: widget.message.url?.first,
@@ -224,7 +226,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
 
         break;
       case "date":
-        return (widget.message.visible_to != null && widget.message.visible_to != '')
+        return (widget.message.visible_to != null &&
+                widget.message.visible_to != '')
             ? (widget.message.visible_to == userId)
                 ? _buildDateDivider(formatChatHistoryTime(text))
                 : SizedBox()
@@ -261,8 +264,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
               singlePrice: widget.message.metadata?.price,
               photos: url,
               vegType: widget.message.metadata?.vegType,
-              nutritionalSummaryPer100g:
-                  NutritionalSummaryPer100g(caloriesKcal: widget.message.metadata?.calories)),
+              nutritionalSummaryPer100g: NutritionalSummaryPer100g(
+                  caloriesKcal: widget.message.metadata?.calories)),
           isGridView: false,
           isShowChat: false,
           isShowKM: false,
@@ -280,9 +283,14 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           serviceData: GetServiceModel(
             business: BusinessService(
                 businessName: widget.message.metadata?.variant,
-                categoryOfBusiness: CategoryOfBusiness(name: widget.message.metadata?.subCategory)),
+                categoryOfBusiness: CategoryOfBusiness(
+                    name: widget.message.metadata?.subCategory)),
             id: widget.message.metadata?.serviceId,
-            discounts: [Discounts(amountOff: num.tryParse(widget.message.metadata?.discount ?? '0'))],
+            discounts: [
+              Discounts(
+                  amountOff:
+                      num.tryParse(widget.message.metadata?.discount ?? '0'))
+            ],
             userId: widget.userId,
             type: AppConstants.service,
             title: widget.message.metadata?.title,
@@ -307,9 +315,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
               discount: widget.message.metadata?.discount,
               mrp: widget.message.metadata?.mrp,
               price: widget.message.metadata?.price,
-              selectedVariants: (widget.message.metadata?.variant?.contains("{") ?? false)
-                  ? jsonDecode(widget.message.metadata?.variant ?? '{}')
-                  : {},
+              selectedVariants:
+                  (widget.message.metadata?.variant?.contains("{") ?? false)
+                      ? jsonDecode(widget.message.metadata?.variant ?? '{}')
+                      : {},
             ),
             width: SizeConfig.screenWidth * 0.68,
             time: time);
@@ -328,24 +337,36 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         // showing the rider as two separate cards.
         return const SizedBox.shrink();
       case "selfpickup":
-        messageWidget =
-            SelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
+        messageWidget = SelfPickupMsgCard(
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId);
 
       case "food_selfpickup":
-        messageWidget =
-            FoodSelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
+        messageWidget = FoodSelfPickupMsgCard(
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId);
 
       case "homemade_food_selfpickup":
         messageWidget = FoodSelfPickupMsgCard(
-            message: widget.message, time: time, conversationId: widget.conversationId, isHomeMade: true);
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId,
+            isHomeMade: true);
 
       case "tiffin_selfpickup":
         messageWidget = FoodSelfPickupMsgCard(
-            message: widget.message, time: time, conversationId: widget.conversationId, isTiffin: true);
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId,
+            isTiffin: true);
 
       case "product_selfpickup":
         messageWidget = ProductSelfPickupMsgCard(
-            message: widget.message, time: time, conversationId: widget.conversationId);
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId);
 
       case "medical_selfpickup":
         messageWidget = ProductSelfPickupMsgCard(
@@ -384,12 +405,16 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         }
 
       case "service_enquiry":
-        messageWidget =
-            ServiceEnquiryMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
+        messageWidget = ServiceEnquiryMsgCard(
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId);
 
       case "property_enquiry":
         messageWidget = PropertyEnquiryMsgCard(
-            message: widget.message, time: time, conversationId: widget.conversationId);
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId);
 
       case "healthcare_enquiry":
         // Dedicated healthcare card — clinical/teal design, category
@@ -458,7 +483,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         );
 
       case "rider_association":
-        messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);
+        messageWidget =
+            RiderAssociationMsgCard(message: widget.message, time: time);
 
       case "rider_otp":
         // Handoff OTP card. The shop's pickup card shows an OTP input + confirm;
@@ -485,7 +511,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           conversationId: widget.conversationId,
           otherUserId: isMineCall ? widget.conversationUserId : widget.userId,
           otherUserName: isMineCall ? widget.conversationName : widget.name,
-          otherUserImage: isMineCall ? widget.conversationProfileImage : widget.profileImage,
+          otherUserImage: isMineCall
+              ? widget.conversationProfileImage
+              : widget.profileImage,
         );
 
       // NOTE: the "callongoing" synthetic message is gone. Returning to a live
@@ -512,7 +540,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         break;
 
       default:
-        messageWidget = (widget.message.visible_to != null && widget.message.visible_to != '')
+        messageWidget = (widget.message.visible_to != null &&
+                widget.message.visible_to != '')
             ? (widget.message.visible_to == userId)
                 ? _buildReceivedMessage(
                     widget.message,
@@ -569,7 +598,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                 if (chatThemeController.isMessageSelectionActive.value) {
                   chatThemeController.selectMoreMessage(widget.message);
                 } else {
-                  if (widget.message.messageType == "video" || widget.message.messageType == "image") {
+                  if (widget.message.messageType == "video" ||
+                      widget.message.messageType == "image") {
                     if (widget.message.url?.length == 1) {
                       Get.to(() => MediaSliderPage(
                             conversationId: widget.conversationId ?? '',
@@ -584,19 +614,23 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                       // symbol author — use the screen's conversation name/image
                       // as a fallback if the snapshot didn't carry the user.
                       final isMine = widget.message.myMessage ?? false;
-                      final fallbackName = isMine ? widget.conversationName : null;
-                      final fallbackImage = isMine ? widget.conversationProfileImage : null;
+                      final fallbackName =
+                          isMine ? widget.conversationName : null;
+                      final fallbackImage =
+                          isMine ? widget.conversationProfileImage : null;
                       Get.to(() => SymbolViewImages(
                             initialSymbol: sym,
                             userId: sym.userId,
                             name: sym.user?.name ?? fallbackName,
-                            profileImage: sym.user?.profileImage ?? fallbackImage,
+                            profileImage:
+                                sym.user?.profileImage ?? fallbackImage,
                           ));
                     }
                   } else if (widget.message.messageType == "text" &&
                       (widget.message.message?.contains("http") ?? false)) {
                     final regExp = RegExp(r'(https?:\/\/[^\s]+)');
-                    final match = regExp.firstMatch(widget.message.message ?? '');
+                    final match =
+                        regExp.firstMatch(widget.message.message ?? '');
                     if (match != null) {
                       final url = match.group(0)!;
                       // Open in the in-app player; pressing back docks it to a
@@ -608,7 +642,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
               },
               onHorizontalDragUpdate: (details) {
                 setState(() {
-                  _dragOffset = (_dragOffset + details.delta.dx).clamp(0, 35); // slide limit
+                  _dragOffset = (_dragOffset + details.delta.dx)
+                      .clamp(0, 35); // slide limit
                 });
               },
               onHorizontalDragEnd: (details) {
@@ -626,7 +661,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           ),
         ),
         (chatThemeController.isMessageSelectionActive.value &&
-                chatThemeController.selectedMessageIds.contains(widget.message.id ?? ""))
+                chatThemeController.selectedMessageIds
+                    .contains(widget.message.id ?? ""))
             ? Positioned.fill(
                 child: InkWell(
                 onTap: () {
@@ -641,7 +677,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                       bottomRight: Radius.circular((!isReceive) ? 12 : 0),
                       bottomLeft: Radius.circular((isReceive) ? 0 : 12),
                     ),
-                    color: chatThemeController.myMessageBgColor.value.withValues(alpha: 0.4),
+                    color: chatThemeController.myMessageBgColor.value
+                        .withValues(alpha: 0.4),
                   ),
                 ),
               ))
@@ -663,14 +700,17 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  void showSelectedVariantsDialog(BuildContext context, Map<String, dynamic>? selectedVariants) {
+  void showSelectedVariantsDialog(
+      BuildContext context, Map<String, dynamic>? selectedVariants) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0, bottom: 16.0),
+            padding: const EdgeInsets.only(
+                top: 8.0, left: 16.0, right: 16.0, bottom: 16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,7 +827,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  Widget ProductCard(ProductListing product, {required double width, required String time}) {
+  Widget ProductCard(ProductListing product,
+      {required double width, required String time}) {
     return GestureDetector(
       onTap: () {},
       child: Container(
@@ -817,8 +858,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     top: 8,
                     right: 8,
                     child: _buildIconBox(InkWell(
-                        onTap: () => showSelectedVariantsDialog(context, product.selectedVariants),
-                        child: Icon(Icons.remove_red_eye_outlined, color: Colors.white, size: 16))),
+                        onTap: () => showSelectedVariantsDialog(
+                            context, product.selectedVariants),
+                        child: Icon(Icons.remove_red_eye_outlined,
+                            color: Colors.white, size: 16))),
                   ),
                 ],
               ),
@@ -846,48 +889,49 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     // (vehicle enquiries carry the offer + intent in the
                     // form body rather than a checkout price).
                     if (((widget.message.metadata?.subCategory ?? '')
-                                .toLowerCase() !=
-                            'enquiry_only'))
+                            .toLowerCase() !=
+                        'enquiry_only'))
                       Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            CustomText(
-                              '₹${product.price}',
-                              fontWeight: FontWeight.w700,
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                            ),
-                            const SizedBox(width: 8),
-                            CustomText(
-                              ' ₹${product.mrp}',
-                              fontSize: SizeConfig.small11,
-                              color: AppColors.grayText,
-                              fontWeight: FontWeight.w400,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                            CustomText(
-                              ' ${product.discount}% off',
-                              fontSize: SizeConfig.small11,
-                              color: Colors.green[600],
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: CustomText(
-                            "${time}",
-                            fontSize: SizeConfig.size10,
-                            fontWeight: FontWeight.w400,
-                            overflow: TextOverflow.ellipsis,
-                            color: AppColors.grayText,
-                            maxLines: 1,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              CustomText(
+                                '₹${product.price}',
+                                fontWeight: FontWeight.w700,
+                                fontSize: SizeConfig.medium,
+                                color: AppColors.mainTextColor,
+                              ),
+                              const SizedBox(width: 8),
+                              CustomText(
+                                ' ₹${product.mrp}',
+                                fontSize: SizeConfig.small11,
+                                color: AppColors.grayText,
+                                fontWeight: FontWeight.w400,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                              CustomText(
+                                ' ${product.discount}% off',
+                                fontSize: SizeConfig.small11,
+                                color: Colors.green[600],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ],
                           ),
-                        )
-                      ],
-                    ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: CustomText(
+                              "${time}",
+                              fontSize: SizeConfig.size10,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              color: AppColors.grayText,
+                              maxLines: 1,
+                            ),
+                          )
+                        ],
+                      ),
                     // Inquiry-only message body — the form fields the
                     // sender filled in (Intent / Offer / Note for
                     // vehicle). Rendered in place of the price/MRP row
@@ -924,255 +968,281 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
             ),
             // Divider + action rows — hidden entirely for inquiry-only
             // messages so the card stops at the form body.
-            if (((widget.message.metadata?.subCategory ?? '')
-                        .toLowerCase() !=
-                    'enquiry_only')) ...[
-            const Divider(
-              height: 1,
-              color: Colors.grey,
-            ),
-            (!(widget.message.myMessage ?? false))
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Map<String, dynamic> data = {
-                              ApiKeys.conversation_id: widget.conversationId,
-                              ApiKeys.message: "Unavailable",
-                              ApiKeys.message_type: "text",
-                            };
-                            chatViewController.sendMessage(data);
-                          },
-                          icon: const Icon(
-                            Icons.close,
-                            color: Colors.red,
-                          ),
-                          label: CustomText(
-                            'Unavailable',
-                            color: Colors.red,
-                            fontWeight: FontWeight.w900,
+            if (((widget.message.metadata?.subCategory ?? '').toLowerCase() !=
+                'enquiry_only')) ...[
+              const Divider(
+                height: 1,
+                color: Colors.grey,
+              ),
+              (!(widget.message.myMessage ?? false))
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Map<String, dynamic> data = {
+                                ApiKeys.conversation_id: widget.conversationId,
+                                ApiKeys.message: "Unavailable",
+                                ApiKeys.message_type: "text",
+                              };
+                              chatViewController.sendMessage(data);
+                            },
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            ),
+                            label: CustomText(
+                              'Unavailable',
+                              color: Colors.red,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
-                      ),
-                      const VerticalDivider(
-                        width: 2,
-                        color: Colors.grey,
-                      ),
-                      Expanded(
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Map<String, dynamic> data = {
-                              ApiKeys.conversation_id: widget.conversationId,
-                              ApiKeys.message: "Available",
-                              ApiKeys.message_type: "text",
-                            };
+                        const VerticalDivider(
+                          width: 2,
+                          color: Colors.grey,
+                        ),
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Map<String, dynamic> data = {
+                                ApiKeys.conversation_id: widget.conversationId,
+                                ApiKeys.message: "Available",
+                                ApiKeys.message_type: "text",
+                              };
 
-                            chatViewController.sendMessage(data);
-                            // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                          },
-                          icon: Icon(
-                            Icons.check,
-                            size: 22,
-                          ),
-                          label: CustomText(
-                            'Available',
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w900,
+                              chatViewController.sendMessage(data);
+                              // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                            },
+                            icon: Icon(
+                              Icons.check,
+                              size: 22,
+                            ),
+                            label: CustomText(
+                              'Available',
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                : (widget.isFromOrderTab ?? false)
-                    ? (widget.message.metadata?.is_cancelled ?? false)
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.red,
-                                  ),
-                                  label: CustomText(
-                                    'Canceled',
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w900,
+                      ],
+                    )
+                  : (widget.isFromOrderTab ?? false)
+                      ? (widget.message.metadata?.is_cancelled ?? false)
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: TextButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                    label: CustomText(
+                                      'Canceled',
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return Dialog(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(20.0),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(Icons.warning_amber_rounded,
-                                                    color: Colors.red, size: 60),
-                                                const SizedBox(height: 15),
-                                                CustomText(
-                                                  'Are you sure you want to cancel the order?',
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 16,
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                                const SizedBox(height: 25),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  children: [
-                                                    Expanded(
-                                                      child: CustomBtn(
-                                                          bgColor: AppColors.primaryColor,
-                                                          onTap: () async {
-                                                            final controller = Get.put(OrderNowController());
-                                                            await controller.cancelOrderApi(
-                                                                widget.message.metadata?.order?.orderId ?? '',
-                                                                widget.message.conversationId ?? "");
-                                                            Get.back();
-                                                          },
-                                                          title: "Yes"),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    Expanded(
-                                                      child: CustomBtn(
-                                                          onTap: () {
-                                                            Get.back();
-                                                          },
-                                                          title: "No"),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return Dialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  icon: const Icon(Icons.close, color: Colors.red),
-                                  label: CustomText(
-                                    'Cancel',
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w900,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(20.0),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                      Icons
+                                                          .warning_amber_rounded,
+                                                      color: Colors.red,
+                                                      size: 60),
+                                                  const SizedBox(height: 15),
+                                                  CustomText(
+                                                    'Are you sure you want to cancel the order?',
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 16,
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  const SizedBox(height: 25),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceEvenly,
+                                                    children: [
+                                                      Expanded(
+                                                        child: CustomBtn(
+                                                            bgColor: AppColors
+                                                                .primaryColor,
+                                                            onTap: () async {
+                                                              final controller =
+                                                                  Get.put(
+                                                                      OrderNowController());
+                                                              await controller.cancelOrderApi(
+                                                                  widget
+                                                                          .message
+                                                                          .metadata
+                                                                          ?.order
+                                                                          ?.orderId ??
+                                                                      '',
+                                                                  widget.message
+                                                                          .conversationId ??
+                                                                      "");
+                                                              Get.back();
+                                                            },
+                                                            title: "Yes"),
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      Expanded(
+                                                        child: CustomBtn(
+                                                            onTap: () {
+                                                              Get.back();
+                                                            },
+                                                            title: "No"),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                    icon: const Icon(Icons.close,
+                                        color: Colors.red),
+                                    label: CustomText(
+                                      'Cancel',
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const VerticalDivider(
-                                width: 1,
-                                color: Colors.grey,
-                              ),
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: () async {
-                                    final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
-                                    if (await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                                    }
-                                  },
-                                  icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
-                                  label: CustomText(
-                                    'Track Order',
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w900,
+                                const VerticalDivider(
+                                  width: 1,
+                                  color: Colors.grey,
+                                ),
+                                Expanded(
+                                  child: TextButton.icon(
+                                    onPressed: () async {
+                                      final url = Uri.parse(widget.message
+                                              .metadata?.order?.trackingUrl ??
+                                          '');
+                                      if (await canLaunchUrl(url)) {
+                                        await launchUrl(url,
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                      }
+                                    },
+                                    icon: SvgPicture.asset(
+                                        AppIconAssets.carbon_delivery),
+                                    label: CustomText(
+                                      'Track Order',
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          )
-                    : (widget.message.metadata?.orderStatus ?? false)
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Expanded(
-                              //   child: TextButton.icon(
-                              //     onPressed: () {},
-                              //     icon: const Icon(Icons.close, color: Colors.red,),
-                              //     label:  CustomText(
-                              //       'Cancel',
-                              //       color: Colors.red,
-                              //       fontWeight: FontWeight.w900,
-                              //     ),
-                              //   ),
-                              // ),
-                              // const VerticalDivider(width: 1,color: Colors.grey,),
+                              ],
+                            )
+                      : (widget.message.metadata?.orderStatus ?? false)
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Expanded(
+                                //   child: TextButton.icon(
+                                //     onPressed: () {},
+                                //     icon: const Icon(Icons.close, color: Colors.red,),
+                                //     label:  CustomText(
+                                //       'Cancel',
+                                //       color: Colors.red,
+                                //       fontWeight: FontWeight.w900,
+                                //     ),
+                                //   ),
+                                // ),
+                                // const VerticalDivider(width: 1,color: Colors.grey,),
 
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                                  },
-                                  icon: Icon(
-                                    Icons.check,
-                                    color: Colors.green,
-                                  ),
-                                  label: CustomText(
-                                    'Order Placed',
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.w900,
+                                Expanded(
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                                    },
+                                    icon: Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    ),
+                                    label: CustomText(
+                                      'Order Placed',
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : ((widget.message.metadata?.subCategory ?? '')
-                                    .toLowerCase() ==
-                                'enquiry_only')
-                            // Enquiry-only product cards (e.g. vehicle
-                            // bookings sent from VehicleEnquirySheet) skip
-                            // the "Order Now" CTA — they are *inquiries*,
-                            // not checkouts. The sub_category marker is
-                            // set in the sender's shareProductParams. See
-                            // lib/features/me/vehicle/widget/vehicle_enquiry_sheet.dart.
-                            ? const SizedBox.shrink()
-                            : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Expanded(
-                              //   child: TextButton.icon(
-                              //     onPressed: () {},
-                              //     icon: const Icon(Icons.close, color: Colors.red,),
-                              //     label:  CustomText(
-                              //       'Cancel',
-                              //       color: Colors.red,
-                              //       fontWeight: FontWeight.w900,
-                              //     ),
-                              //   ),
-                              // ),
-                              // const VerticalDivider(width: 1,color: Colors.grey,),
+                              ],
+                            )
+                          : ((widget.message.metadata?.subCategory ?? '')
+                                      .toLowerCase() ==
+                                  'enquiry_only')
+                              // Enquiry-only product cards (e.g. vehicle
+                              // bookings sent from VehicleEnquirySheet) skip
+                              // the "Order Now" CTA — they are *inquiries*,
+                              // not checkouts. The sub_category marker is
+                              // set in the sender's shareProductParams. See
+                              // lib/features/me/vehicle/widget/vehicle_enquiry_sheet.dart.
+                              ? const SizedBox.shrink()
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Expanded(
+                                    //   child: TextButton.icon(
+                                    //     onPressed: () {},
+                                    //     icon: const Icon(Icons.close, color: Colors.red,),
+                                    //     label:  CustomText(
+                                    //       'Cancel',
+                                    //       color: Colors.red,
+                                    //       fontWeight: FontWeight.w900,
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // const VerticalDivider(width: 1,color: Colors.grey,),
 
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-                                    orderNow(context, widget.message.seller?.id ?? "", widget.message);
-                                  },
-                                  icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
-                                  label: CustomText(
-                                    'Order Now',
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                    Expanded(
+                                      child: TextButton.icon(
+                                        onPressed: () {
+                                          // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                                          orderNow(
+                                              context,
+                                              widget.message.seller?.id ?? "",
+                                              widget.message);
+                                        },
+                                        icon: SvgPicture.asset(
+                                            AppIconAssets.carbon_delivery),
+                                        label: CustomText(
+                                          'Order Now',
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
             ],
           ],
         ),
@@ -1180,7 +1250,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  void showProductDetailsBottomSheet(BuildContext context, ProductListing product) {
+  void showProductDetailsBottomSheet(
+      BuildContext context, ProductListing product) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1239,7 +1310,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                   color: Colors.white,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1295,8 +1367,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                             //     ? Colors.grey.shade300
                             //     :
                             Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
                         "Cancel",
@@ -1317,8 +1391,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                             //     ? Colors.grey.shade300
                             //     :
                             AppColors.primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
                         "Next",
@@ -1337,7 +1413,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildReceivedMessage(Messages message, String text, String time, bool isReceive) {
+  Widget _buildReceivedMessage(
+      Messages message, String text, String time, bool isReceive) {
     return MessageBubble(
       messages: message,
       message: text,
@@ -1356,12 +1433,14 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     return Color(int.parse(h, radix: 16));
   }
 
-  Widget _buildSymbolPreviewThumb(SymbolDetailsModel symbol, {double size = 40}) {
+  Widget _buildSymbolPreviewThumb(SymbolDetailsModel symbol,
+      {double size = 40}) {
     final type = symbol.type;
     final content = symbol.content ?? '';
 
     Widget inner;
-    if (type == 'photo' || (type == 'video' && !content.toLowerCase().contains('.mp4'))) {
+    if (type == 'photo' ||
+        (type == 'video' && !content.toLowerCase().contains('.mp4'))) {
       inner = Container(
         width: size,
         height: size,
@@ -1372,7 +1451,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                 width: size,
                 height: size,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.image_outlined, color: Colors.white, size: 18),
+                errorBuilder: (_, __, ___) => const Icon(Icons.image_outlined,
+                    color: Colors.white, size: 18),
               )
             : const Icon(Icons.image_outlined, color: Colors.white, size: 18),
       );
@@ -1382,7 +1462,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         height: size,
         color: Colors.black54,
         alignment: Alignment.center,
-        child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 22),
+        child: const Icon(Icons.play_circle_outline,
+            color: Colors.white, size: 22),
       );
     } else if (type == 'text') {
       inner = Container(
@@ -1437,14 +1518,16 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildReplyToSymbolMessage(Messages message, String text, String time, bool isReceive) {
+  Widget _buildReplyToSymbolMessage(
+      Messages message, String text, String time, bool isReceive) {
     final symbol = message.metadata?.symbol;
     if (symbol == null) {
       // Defensive fallback: no snapshot → render as plain text bubble.
       return _buildReceivedMessage(message, text, time, isReceive);
     }
 
-    final authorName = symbol.user?.name ?? (isReceive ? (widget.name ?? AppStrings.unknownLabel.tr) : 'You');
+    final authorName = symbol.user?.name ??
+        (isReceive ? (widget.name ?? AppStrings.unknownLabel.tr) : 'You');
     final subtitle = (symbol.caption?.isNotEmpty ?? false)
         ? symbol.caption!
         : (symbol.type == 'text' || symbol.type == 'embeddedUrl')
@@ -1461,7 +1544,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     return Container(
       // Compact, status-reply style (smaller than a normal text bubble).
       constraints: BoxConstraints(maxWidth: SizeConfig.screenWidth * 0.72),
-      margin: EdgeInsets.only(left: isReceive ? 0 : 40, right: isReceive ? 40 : 0),
+      margin:
+          EdgeInsets.only(left: isReceive ? 0 : 40, right: isReceive ? 40 : 0),
       child: Align(
         alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
         child: IntrinsicWidth(
@@ -1489,7 +1573,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     Icon(
                       Icons.reply,
                       size: 12,
-                      color: chatThemeController.isDarkMode.value ? Colors.white70 : Colors.black54,
+                      color: chatThemeController.isDarkMode.value
+                          ? Colors.white70
+                          : Colors.black54,
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -1497,7 +1583,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                         headerLabel,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: chatThemeController.isDarkMode.value ? Colors.white70 : Colors.black54,
+                        color: chatThemeController.isDarkMode.value
+                            ? Colors.white70
+                            : Colors.black54,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1515,7 +1603,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                         : Colors.white.withValues(alpha: 0.18),
                     border: Border(
                       left: BorderSide(
-                        color: isReceive ? AppColors.primaryColor : Colors.white70,
+                        color:
+                            isReceive ? AppColors.primaryColor : Colors.white70,
                         width: 3,
                       ),
                     ),
@@ -1534,7 +1623,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                             CustomText(
                               authorName,
                               fontWeight: FontWeight.w600,
-                              color: isReceive ? AppColors.primaryColor : Colors.white,
+                              color: isReceive
+                                  ? AppColors.primaryColor
+                                  : Colors.white,
                               fontSize: 12,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1546,13 +1637,17 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                                 Icon(
                                   _iconForSymbolType(symbol.type),
                                   size: 11,
-                                  color: isReceive ? AppColors.grayText : Colors.white70,
+                                  color: isReceive
+                                      ? AppColors.grayText
+                                      : Colors.white70,
                                 ),
                                 const SizedBox(width: 3),
                                 Flexible(
                                   child: CustomText(
                                     subtitle,
-                                    color: isReceive ? AppColors.grayText : Colors.white70,
+                                    color: isReceive
+                                        ? AppColors.grayText
+                                        : Colors.white70,
                                     fontSize: 11,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -1570,9 +1665,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                 // link (embeddedUrl or content with http), otherwise when the
                 // reply text itself contains a URL. Symbol takes precedence.
                 Builder(builder: (_) {
-                  final symbolHasLink =
-                      (symbol.type == 'embeddedUrl' || (symbol.content?.contains('http') ?? false)) &&
-                          (symbol.content?.isNotEmpty ?? false);
+                  final symbolHasLink = (symbol.type == 'embeddedUrl' ||
+                          (symbol.content?.contains('http') ?? false)) &&
+                      (symbol.content?.isNotEmpty ?? false);
                   final String? previewUrl = symbolHasLink
                       ? _firstUrl(symbol.content!)
                       : (text.contains('http') ? _firstUrl(text) : null);
@@ -1593,13 +1688,16 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                           text,
                           fontWeight: FontWeight.w500,
                           fontSize: 13.5,
-                          color: chatThemeController.isDarkMode.value ? Colors.white : Colors.black,
+                          color: chatThemeController.isDarkMode.value
+                              ? Colors.white
+                              : Colors.black,
                         ),
                       ),
                       const SizedBox(width: 6),
                       timeAndReadInfoWidget(
-                        indicateColor:
-                            chatThemeController.isDarkMode.value ? const Color(0xFFE9EDEF) : Colors.black,
+                        indicateColor: chatThemeController.isDarkMode.value
+                            ? const Color(0xFFE9EDEF)
+                            : Colors.black,
                         message: message,
                         isMyMessage: message.myMessage ?? false,
                         time: time,
@@ -1631,7 +1729,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
       if (domain.startsWith('www.')) domain = domain.substring(4);
     } catch (_) {}
 
-    final bgColor = isReceive ? Colors.white : Colors.white.withValues(alpha: 0.92);
+    final bgColor =
+        isReceive ? Colors.white : Colors.white.withValues(alpha: 0.92);
     final titleColor = Colors.black87;
     final domainColor = Colors.grey.shade600;
 
@@ -1663,7 +1762,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     child: const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primaryColor),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1702,7 +1802,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
               ),
             ),
             itemBuilder: (context, metadata, imageProvider, svgImage) {
-              final title = (metadata.title?.isNotEmpty ?? false) ? metadata.title! : domain;
+              final title = (metadata.title?.isNotEmpty ?? false)
+                  ? metadata.title!
+                  : domain;
               final desc = metadata.desc;
               return SizedBox(
                 height: 88,
@@ -1718,7 +1820,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                               Container(
                                 color: Colors.grey.shade100,
                                 alignment: Alignment.center,
-                                child: Icon(Icons.link, color: domainColor, size: 26),
+                                child: Icon(Icons.link,
+                                    color: domainColor, size: 26),
                               ),
                     ),
                     const SizedBox(width: 10),
@@ -1820,8 +1923,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildMapMessage(
-      Messages? messages, String? message, double lat, double long, String time, bool isReceiveMsg) {
+  Widget _buildMapMessage(Messages? messages, String? message, double lat,
+      double long, String time, bool isReceiveMsg) {
     Theme.of(context);
     return Container(
       height: 260,
@@ -1882,7 +1985,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                                       "https://www.google.com/maps/search/?api=1&query=$lat,$long");
 
                                   if (await canLaunchUrl(googleMapUrl)) {
-                                    await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
+                                    await launchUrl(googleMapUrl,
+                                        mode: LaunchMode.externalApplication);
                                   } else {
                                     throw "Could not open Google Maps";
                                   }
@@ -1930,7 +2034,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                             maxLines: 1,
                             "${message.split('\n')[0]}",
                             fontWeight: FontWeight.w600,
-                            color: (isReceiveMsg) ? Colors.black87 : Colors.white,
+                            color:
+                                (isReceiveMsg) ? Colors.black87 : Colors.white,
                             fontSize: 16,
                           ),
                         ),
@@ -1941,7 +2046,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                             maxLines: 1,
                             "${message.split('\n').isEmpty ? "" : message.split('\n').length < 2 ? "" : message.split('\n')[1]}",
                             fontWeight: FontWeight.w400,
-                            color: (isReceiveMsg) ? Colors.black87 : Colors.white,
+                            color:
+                                (isReceiveMsg) ? Colors.black87 : Colors.white,
                             fontSize: 14,
                           ),
                         ),
@@ -1961,8 +2067,11 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                         message: messages!,
                         isMyMessage: messages.myMessage ?? false,
                         time: time,
-                        timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,
-                        indicateColor: messages.messageRead == 1 ? Colors.blue : Colors.grey),
+                        timeColor:
+                            (!isReceiveMsg) ? Colors.white : Colors.black54,
+                        indicateColor: messages.messageRead == 1
+                            ? Colors.blue
+                            : Colors.grey),
                   ),
                 )),
               ],
@@ -1973,12 +2082,14 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildContactMessage(Messages? message, String name, String number, String time, bool isReceiveMsg) {
+  Widget _buildContactMessage(Messages? message, String name, String number,
+      String time, bool isReceiveMsg) {
     final theme = Theme.of(context);
     final displayName = name.trim().isEmpty ? 'Unknown' : name;
     final displayNumber = number.trim().isEmpty ? 'No number' : number;
     final String? profileImage = message?.sharedContactProfileImage;
-    final bool hasProfileImage = profileImage != null && profileImage.isNotEmpty;
+    final bool hasProfileImage =
+        profileImage != null && profileImage.isNotEmpty;
 
     return Align(
       alignment: (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
@@ -1986,7 +2097,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         width: 270,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: isReceiveMsg ? Colors.white : chatThemeController.myMessageBgColor.value,
+          color: isReceiveMsg
+              ? Colors.white
+              : chatThemeController.myMessageBgColor.value,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12),
             topRight: Radius.circular(12),
@@ -2000,13 +2113,16 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           children: [
             // Contact info section
             Padding(
-              padding: const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 8),
+              padding: const EdgeInsets.only(
+                  left: 12, right: 12, top: 10, bottom: 8),
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+                    backgroundColor:
+                        theme.colorScheme.surface.withValues(alpha: 0.8),
                     radius: 22,
-                    backgroundImage: hasProfileImage ? NetworkImage(profileImage) : null,
+                    backgroundImage:
+                        hasProfileImage ? NetworkImage(profileImage) : null,
                     child: hasProfileImage
                         ? null
                         : Icon(
@@ -2032,12 +2148,15 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                         GestureDetector(
                           onTap: () {
                             if (displayNumber != 'No number') {
-                              chatViewController.openUserDetailsByPhone(displayNumber);
+                              chatViewController
+                                  .openUserDetailsByPhone(displayNumber);
                             }
                           },
                           child: CustomText(
                             displayNumber,
-                            color: (isReceiveMsg) ? AppColors.primaryColor : Colors.white,
+                            color: (isReceiveMsg)
+                                ? AppColors.primaryColor
+                                : Colors.white,
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline,
@@ -2061,8 +2180,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     message: message!,
                     isMyMessage: message.myMessage ?? false,
                     time: time,
-                    timeColor: (!isReceiveMsg) ? Colors.white70 : Colors.black45,
-                    indicateColor: message.messageRead == 1 ? Colors.blue : Colors.grey,
+                    timeColor:
+                        (!isReceiveMsg) ? Colors.white70 : Colors.black45,
+                    indicateColor:
+                        message.messageRead == 1 ? Colors.blue : Colors.grey,
                   ),
                 ],
               ),
@@ -2071,7 +2192,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
             Divider(
               height: 1,
               thickness: 0.5,
-              color: isReceiveMsg ? Colors.grey.shade300 : Colors.white.withValues(alpha: 0.3),
+              color: isReceiveMsg
+                  ? Colors.grey.shade300
+                  : Colors.white.withValues(alpha: 0.3),
             ),
             // Action buttons row
             SizedBox(
@@ -2090,7 +2213,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                       child: Center(
                         child: CustomText(
                           "Chat",
-                          color: isReceiveMsg ? theme.colorScheme.primary : Colors.white,
+                          color: isReceiveMsg
+                              ? theme.colorScheme.primary
+                              : Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 13.5,
                         ),
@@ -2101,7 +2226,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                   Container(
                     width: 0.5,
                     height: 24,
-                    color: isReceiveMsg ? Colors.grey.shade300 : Colors.white.withValues(alpha: 0.3),
+                    color: isReceiveMsg
+                        ? Colors.grey.shade300
+                        : Colors.white.withValues(alpha: 0.3),
                   ),
                   // Call button — places an in-app BlueEra audio call when the
                   // number belongs to a BlueEra user, otherwise opens the
@@ -2116,7 +2243,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                       child: Center(
                         child: CustomText(
                           "Call",
-                          color: isReceiveMsg ? theme.colorScheme.primary : Colors.white,
+                          color: isReceiveMsg
+                              ? theme.colorScheme.primary
+                              : Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 13.5,
                         ),
@@ -2127,7 +2256,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                   Container(
                     width: 0.5,
                     height: 24,
-                    color: isReceiveMsg ? Colors.grey.shade300 : Colors.white.withValues(alpha: 0.3),
+                    color: isReceiveMsg
+                        ? Colors.grey.shade300
+                        : Colors.white.withValues(alpha: 0.3),
                   ),
                   // Add to contact button — opens the native phone book's
                   // "new contact" editor prefilled with this name + number.
@@ -2141,7 +2272,9 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                           "Add to contact",
                           textAlign: TextAlign.center,
                           maxLines: 2,
-                          color: isReceiveMsg ? theme.colorScheme.primary : Colors.white,
+                          color: isReceiveMsg
+                              ? theme.colorScheme.primary
+                              : Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
@@ -2175,7 +2308,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
   /// user opens (or creates) an in-app personal chat; anyone else falls back to
   /// the native SMS app.
   Future<void> _onContactChatTap(String name, String number) async {
-    final UserByPhoneModel? user = await chatViewController.resolveBlueEraUserByPhone(number);
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
     if (user != null) {
       chatViewController.checkChatConnectionAndOpenChat(
         userId: user.id,
@@ -2193,7 +2327,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
   /// user gets an in-app audio call; anyone else falls back to the native phone
   /// dialer.
   Future<void> _onContactCallTap(String name, String number) async {
-    final UserByPhoneModel? user = await chatViewController.resolveBlueEraUserByPhone(number);
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
     if (user != null) {
       _startBlueEraAudioCall(user, name);
     } else {
@@ -2212,7 +2347,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
   }
 
-  void _initiateContactCallInApp(String otherUserId, String userName, String userImage) async {
+  void _initiateContactCallInApp(
+      String otherUserId, String userName, String userImage) async {
     if (!Get.isRegistered<CallController>()) {
       Get.put(CallController());
     }
@@ -2329,10 +2465,12 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<FoodCardMessageCardBusiness> createState() => _FoodCardMessageCardBusinessState();
+  State<FoodCardMessageCardBusiness> createState() =>
+      _FoodCardMessageCardBusinessState();
 }
 
-class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusiness> {
+class _FoodCardMessageCardBusinessState
+    extends State<FoodCardMessageCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
 
   GetFoodDetailsModel? serviceData;
@@ -2361,17 +2499,20 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
     return InkWell(
       onTap: () {
         if (widget.isFromChatCard == false) {
-          Get.to(FoodDetailsViewScreen(
-            productPriceFormat:
-                (serviceData?.priceType == "single") ? "${serviceData?.singlePrice ?? "0"}" : "$priceText",
-            data: serviceData ?? GetFoodDetailsModel(),
-          ));
+          Get.to(() => FoodDetailsViewScreen(
+                productPriceFormat: (serviceData?.priceType == "single")
+                    ? "${serviceData?.singlePrice ?? "0"}"
+                    : "$priceText",
+                data: serviceData ?? GetFoodDetailsModel(),
+              ));
         }
       },
       child: Container(
-        margin: EdgeInsets.only(right: widget.isFromChatCard ? 0 : 20, bottom: 2),
-        width:
-            widget.isFromChatCard ? SizeConfig.screenWidth * 0.68 : MediaQuery.of(context).size.width * 0.45,
+        margin:
+            EdgeInsets.only(right: widget.isFromChatCard ? 0 : 20, bottom: 2),
+        width: widget.isFromChatCard
+            ? SizeConfig.screenWidth * 0.68
+            : MediaQuery.of(context).size.width * 0.45,
         // height: 310,
         // responsive width
         decoration: BoxDecoration(
@@ -2424,13 +2565,18 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   (serviceData?.vegType == null)
                       ? SizedBox()
                       : Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: (serviceData?.vegType == "veg") ? Colors.green : Colors.red,
+                            color: (serviceData?.vegType == "veg")
+                                ? Colors.green
+                                : Colors.red,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: CustomText("${serviceData?.vegType ?? "veg"}",
-                              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600),
                         ),
                   (serviceData?.vegType == null)
                       ? SizedBox()
@@ -2473,7 +2619,8 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
               children: [
                 (serviceData?.priceType == "single")
                     ? Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: CustomText(
                           "Price : ₹ ${serviceData?.singlePrice ?? "0"}",
                           fontSize: SizeConfig.small,
@@ -2483,7 +2630,8 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                         ),
                       )
                     : Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: CustomText(
                           "Price : ₹ ${priceText}",
                           fontWeight: FontWeight.w600,
@@ -2508,8 +2656,11 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
             SizedBox(height: SizeConfig.size5),
 
             KmAwayTextWidget(
-                lat: serviceData?.business?.businessLocation?.lat.toString() ?? "",
-                long: serviceData?.business?.businessLocation?.lon?.toString() ?? ""),
+                lat: serviceData?.business?.businessLocation?.lat.toString() ??
+                    "",
+                long:
+                    serviceData?.business?.businessLocation?.lon?.toString() ??
+                        ""),
             const Divider(
               height: 1,
               color: Colors.grey,
@@ -2603,15 +2754,18 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                       builder: (context) {
                                         return Dialog(
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
                                           ),
                                           child: Padding(
                                             padding: const EdgeInsets.all(20.0),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.warning_amber_rounded,
-                                                    color: Colors.red, size: 60),
+                                                const Icon(
+                                                    Icons.warning_amber_rounded,
+                                                    color: Colors.red,
+                                                    size: 60),
                                                 const SizedBox(height: 15),
                                                 CustomText(
                                                   'Are you sure you want to cancel the order?',
@@ -2621,16 +2775,28 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                                 ),
                                                 const SizedBox(height: 25),
                                                 Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
                                                   children: [
                                                     Expanded(
                                                       child: CustomBtn(
-                                                          bgColor: AppColors.primaryColor,
+                                                          bgColor: AppColors
+                                                              .primaryColor,
                                                           onTap: () async {
-                                                            final controller = Get.put(OrderNowController());
+                                                            final controller =
+                                                                Get.put(
+                                                                    OrderNowController());
                                                             await controller.cancelOrderApi(
-                                                                widget.message.metadata?.order?.orderId ?? '',
-                                                                widget.message.conversationId ?? "");
+                                                                widget
+                                                                        .message
+                                                                        .metadata
+                                                                        ?.order
+                                                                        ?.orderId ??
+                                                                    '',
+                                                                widget.message
+                                                                        .conversationId ??
+                                                                    "");
                                                             Get.back();
                                                           },
                                                           title: "Yes"),
@@ -2652,7 +2818,8 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                       },
                                     );
                                   },
-                                  icon: const Icon(Icons.close, color: Colors.red),
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.red),
                                   label: CustomText(
                                     'Cancel',
                                     color: Colors.red,
@@ -2667,12 +2834,16 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                               Expanded(
                                 child: TextButton.icon(
                                   onPressed: () async {
-                                    final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
+                                    final url = Uri.parse(widget.message
+                                            .metadata?.order?.trackingUrl ??
+                                        '');
                                     if (await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                                      await launchUrl(url,
+                                          mode: LaunchMode.externalApplication);
                                     }
                                   },
-                                  icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                                  icon: SvgPicture.asset(
+                                      AppIconAssets.carbon_delivery),
                                   label: CustomText(
                                     'Track Order',
                                     color: Colors.blue,
@@ -2737,9 +2908,13 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                 child: TextButton.icon(
                                   onPressed: () {
                                     // _openBusinessToRiderOTP(context);
-                                    orderNow(context, widget.message.seller?.id ?? "", widget.message);
+                                    orderNow(
+                                        context,
+                                        widget.message.seller?.id ?? "",
+                                        widget.message);
                                   },
-                                  icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                                  icon: SvgPicture.asset(
+                                      AppIconAssets.carbon_delivery),
                                   label: CustomText(
                                     'Order Now',
                                     color: Colors.blue,
@@ -2785,10 +2960,12 @@ class ServiceMessageCardBusiness extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ServiceMessageCardBusiness> createState() => _ServiceMessageCardBusinessState();
+  State<ServiceMessageCardBusiness> createState() =>
+      _ServiceMessageCardBusinessState();
 }
 
-class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness> {
+class _ServiceMessageCardBusinessState
+    extends State<ServiceMessageCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
 
   GetServiceModel? serviceData;
@@ -2815,9 +2992,8 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
     // fall back to the session cache populated by [_respondToEnquiry]
     // after a successful Accept/Decline PUT.
     final local = widget.message.metadata?.enquiryStatus;
-    final t = (local ?? _enquiryStatusCache[identity.id] ?? '')
-        .trim()
-        .toLowerCase();
+    final t =
+        (local ?? _enquiryStatusCache[identity.id] ?? '').trim().toLowerCase();
     return (t == 'accepted' || t == 'declined') ? t : null;
   }
 
@@ -2952,7 +3128,8 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
     // Find max discount
     Discounts? maxDiscount;
     if ((serviceData?.discounts?.length ?? 0) > 0)
-      maxDiscount = serviceData?.discounts?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+      maxDiscount = serviceData?.discounts
+          ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
 
     // Inquiry-only mode (hotel / healthcare / education enquiry sheets
     // tag the message with sub_category: 'enquiry_only'). Strip the
@@ -2974,8 +3151,9 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
       },
       child: Container(
         margin: EdgeInsets.only(right: widget.isFromChatCard ? 0 : 20),
-        width:
-            widget.isFromChatCard ? SizeConfig.screenWidth * 0.68 : MediaQuery.of(context).size.width * 0.45,
+        width: widget.isFromChatCard
+            ? SizeConfig.screenWidth * 0.68
+            : MediaQuery.of(context).size.width * 0.45,
         // responsive width
         decoration: BoxDecoration(
           color: Colors.white,
@@ -3035,7 +3213,6 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                   maxLines: 1,
                 ),
               ),
-
               SizedBox(height: SizeConfig.size5),
               Container(
                 // height: SizeConfig.size20,
@@ -3053,9 +3230,13 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                 // alignment: Alignment.center,
                 margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                 padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(30)),
+                decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(30)),
                 child: CustomText(
-                  (maxDiscount?.amountOff != null) ? "${maxDiscount?.amountOff.toString()}% Off" : "0% Off",
+                  (maxDiscount?.amountOff != null)
+                      ? "${maxDiscount?.amountOff.toString()}% Off"
+                      : "0% Off",
                   fontSize: SizeConfig.size10,
                   color: Colors.white,
                   maxLines: 1,
@@ -3065,8 +3246,12 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
               ),
               SizedBox(height: SizeConfig.size5),
               KmAwayTextWidget(
-                  lat: serviceData?.business?.businessLocation?.lat.toString() ?? "",
-                  long: serviceData?.business?.businessLocation?.lon?.toString() ?? ""),
+                  lat:
+                      serviceData?.business?.businessLocation?.lat.toString() ??
+                          "",
+                  long: serviceData?.business?.businessLocation?.lon
+                          ?.toString() ??
+                      ""),
             ],
             // Form body — the multi-line selections + note the customer
             // filled in on the enquiry sheet. Rendered for both sides so

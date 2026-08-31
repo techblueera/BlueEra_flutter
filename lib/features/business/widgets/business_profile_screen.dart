@@ -33,7 +33,7 @@ class BusinessProfileScreen extends StatefulWidget {
 class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final locationController = Get.put(LocationController());
+  final locationController = Get.find<LocationController>();
 
   List<TabItem> postTabs = [];
   List<SortBy>? filters;
@@ -234,8 +234,7 @@ class _ProfileSetupBanner extends StatelessWidget {
     final missingDesc = (d.businessDescription ?? '').trim().isEmpty;
     final missingSchedule = (d.availability?.schedule ?? const []).isEmpty;
     final missingLogo = (d.logo ?? '').isEmpty;
-    final missingCategory =
-        (d.categoryDetails?.name ?? '').isEmpty;
+    final missingCategory = (d.categoryDetails?.name ?? '').isEmpty;
     return missingDesc || missingSchedule || missingLogo || missingCategory;
   }
 
@@ -257,8 +256,7 @@ class _ProfileSetupBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.storefront_outlined,
-              color: AppColors.primaryColor),
+          const Icon(Icons.storefront_outlined, color: AppColors.primaryColor),
           SizedBox(width: SizeConfig.size10),
           Expanded(
             child: Column(

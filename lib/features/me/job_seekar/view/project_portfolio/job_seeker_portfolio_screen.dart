@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/me/job_seekar/binding/job_seeker_portfolio_professionals_binding.dart';
 import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/job_seeker_portfolio_form_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
@@ -26,7 +27,8 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
           child: AddMoreIconButton(
             onTapEvent: () {
               portfolioController.openForCreate();
-              Get.to(JobSeekerPortfolioFormScreen());
+              Get.to(() => JobSeekerPortfolioFormScreen(),
+                  binding: JobSeekerPortfolioProfessionalsBinding());
             },
           ),
         ),
@@ -38,14 +40,17 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
               return JobSeekerPortfolioProjectCardWidget(
                 project: ProfessionalPortfolio(
                   id: portfolioController.certificates[index].id,
-                    projectImage:  portfolioController.certificates[index].projectImage,
-                    projectTitle: portfolioController.certificates[index].title,
-                    category: portfolioController.certificates[index].category,
-                    description:
-                        portfolioController.certificates[index].description,
-                    completionDate:
-                        portfolioController.certificates[index].completionDate,),
-              isDateFormateReq: false,);
+                  projectImage:
+                      portfolioController.certificates[index].projectImage,
+                  projectTitle: portfolioController.certificates[index].title,
+                  category: portfolioController.certificates[index].category,
+                  description:
+                      portfolioController.certificates[index].description,
+                  completionDate:
+                      portfolioController.certificates[index].completionDate,
+                ),
+                isDateFormateReq: false,
+              );
             },
             itemCount: portfolioController.certificates.length,
           );

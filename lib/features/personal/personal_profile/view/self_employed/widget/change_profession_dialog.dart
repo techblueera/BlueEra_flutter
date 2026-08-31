@@ -26,7 +26,7 @@
 //
 //   final controller = Get.isRegistered<PersonalCreateProfileController>()
 //       ? Get.find<PersonalCreateProfileController>()
-//       : Get.put(PersonalCreateProfileController());
+//       : Get.find<PersonalCreateProfileController>();
 //
 //   void shouldShowUpdateDesignationDialog({
 //     required BuildContext context,

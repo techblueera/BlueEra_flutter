@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/me/school/binding/notice_binding.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
@@ -64,33 +65,35 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolJobListingScreen(
-                  isEdit: true,
-                ));
+                Get.to(() => SchoolJobListingScreen(
+                      isEdit: true,
+                    ));
               },
               child: cardViewWidget(title: AppStrings.jobVacancy),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolAcademicsPage(
-                  isEdit: true,
-                ));
+                Get.to(() => SchoolAcademicsPage(
+                      isEdit: true,
+                    ));
               },
               child: cardViewWidget(title: AppStrings.academics),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolStudentCorner(
-                  isEdit: true,
-                ));
+                Get.to(() => SchoolStudentCorner(
+                      isEdit: true,
+                    ));
               },
               child: cardViewWidget(title: AppStrings.studentCorner),
             ),
             InkWell(
               onTap: () {
-                Get.to(NoticeNewsScreen(
-                  isEdit: true,
-                ));
+                Get.to(
+                    () => NoticeNewsScreen(
+                          isEdit: true,
+                        ),
+                    binding: NoticeBinding());
               },
               child: cardViewWidget(title: AppStrings.noticesNews),
             ),

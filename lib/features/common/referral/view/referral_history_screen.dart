@@ -33,8 +33,7 @@ class ReferralHistoryScreenNew extends StatefulWidget {
 }
 
 class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
-  final ReferralController controller =
-      Get.find<ReferralController>();
+  final ReferralController controller = Get.find<ReferralController>();
   late final ChatViewController _chatViewController;
 
   DateTimeRange? _dateRange;
@@ -43,19 +42,17 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   @override
   void initState() {
     super.initState();
-    _chatViewController = Get.isRegistered<ChatViewController>()
-        ? Get.find<ChatViewController>()
-        : Get.put(ChatViewController());
+    _chatViewController = Get.put(ChatViewController());
     controller.fetchHistory(controller.selectedFilter.value);
   }
 
   List<WalletReferralHistoryItem> get _visibleRows {
     final all = controller.history;
     if (_dateRange == null) return all.toList();
-    final start = DateTime(_dateRange!.start.year, _dateRange!.start.month,
-        _dateRange!.start.day);
-    final endInclusive = DateTime(_dateRange!.end.year, _dateRange!.end.month,
-            _dateRange!.end.day)
+    final start = DateTime(
+        _dateRange!.start.year, _dateRange!.start.month, _dateRange!.start.day);
+    final endInclusive = DateTime(
+            _dateRange!.end.year, _dateRange!.end.month, _dateRange!.end.day)
         .add(const Duration(days: 1));
     return all.where((item) {
       final d = DateTime.tryParse(item.createdAt ?? '');
@@ -76,8 +73,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
           if (_dateRange != null)
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10,
-                  vertical: SizeConfig.size4),
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
               child: _buildDateRangeChip(),
             ),
           _buildFilterTabs(),
@@ -112,8 +108,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               return SingleChildScrollView(
                 child: CustomFormCard(
                   padding: EdgeInsets.all(SizeConfig.size10),
-                  margin:
-                      EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                   child: Column(
                     children: [
                       _buildHeaderInfo(rows),
@@ -123,8 +118,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                         primary: false,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 12),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (_, i) => _buildRefHistoryCard(rows[i]),
                       ),
                     ],
@@ -164,9 +158,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       active ? Icons.event_available_outlined : Icons.calendar_today_outlined,
       onTap: active ? null : _pickDateRange,
       tinted: active,
-      tooltip: active
-          ? AppStrings.dateFilterOn.tr
-          : AppStrings.filterByDate.tr,
+      tooltip: active ? AppStrings.dateFilterOn.tr : AppStrings.filterByDate.tr,
     );
     if (!active) return iconBox;
     return PopupMenuButton<String>(
@@ -335,8 +327,8 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                 borderRadius: BorderRadius.circular(10),
                 onTap: _pickDateRange,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
@@ -392,8 +384,8 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                 commonSnackBar(message: AppStrings.dateFilterCleared.tr);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
@@ -403,8 +395,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.close_rounded,
-                        size: 16, color: AppColors.red),
+                    Icon(Icons.close_rounded, size: 16, color: AppColors.red),
                     const SizedBox(width: 4),
                     CustomText(
                       AppStrings.clear,
@@ -449,8 +440,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
                 children: [
                   Icon(Icons.picture_as_pdf_outlined,
@@ -513,8 +503,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
     }
   }
 
-  Future<List<int>> _buildPdfBytes(
-      List<WalletReferralHistoryItem> rows) async {
+  Future<List<int>> _buildPdfBytes(List<WalletReferralHistoryItem> rows) async {
     final pdf = pw.Document();
     final filterLabel = _filterLabelKey(controller.selectedFilter.value).tr;
     final rangeLabel = _dateRange == null
@@ -537,8 +526,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
           pw.SizedBox(height: 16),
           pw.Table.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-            headerDecoration:
-                const pw.BoxDecoration(color: PdfColors.grey300),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
             cellAlignment: pw.Alignment.centerLeft,
             cellStyle: const pw.TextStyle(fontSize: 10),
             headers: [
@@ -648,9 +636,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   Widget _buildHeaderInfo(List<WalletReferralHistoryItem> rows) {
     final isAll = controller.selectedFilter.value == 'All';
     final subscribedCount = isAll
-        ? rows
-            .where((item) => item.subscriptionStatus == 'subscribed')
-            .length
+        ? rows.where((item) => item.subscriptionStatus == 'subscribed').length
         : rows.length;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -775,8 +761,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                         padding: const EdgeInsets.all(16),
                         shrinkWrap: true,
                         itemCount: children.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 10),
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (_, i) => _buildChildCard(children[i]),
                       ),
               ),
@@ -790,8 +775,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   Widget _buildChildCard(WalletReferralHistoryItem child) {
     final style = _statusStyle(child.subscriptionStatus);
     final ago = timeAgo(child.createdAt);
-    final grandChildren =
-        child.children ?? const <WalletReferralHistoryItem>[];
+    final grandChildren = child.children ?? const <WalletReferralHistoryItem>[];
     final hasMore = grandChildren.isNotEmpty;
     return Material(
       color: Colors.white,
@@ -1009,8 +993,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.08),
+                        color: AppColors.primaryColor.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: AppColors.primaryColor.withValues(alpha: 0.25),
@@ -1049,8 +1032,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                         if (ago.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Icon(Icons.schedule,
-                              size: 12,
-                              color: AppColors.secondaryTextColor),
+                              size: 12, color: AppColors.secondaryTextColor),
                           const SizedBox(width: 3),
                           Flexible(
                             child: CustomText(

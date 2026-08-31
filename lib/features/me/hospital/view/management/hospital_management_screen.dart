@@ -28,7 +28,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
     controller = Get.put(HospitalManagementController());
   }
 
-  void _openForm() => Get.to(const ManagementFormScreen());
+  void _openForm() => Get.to(() => const ManagementFormScreen());
 
   @override
   Widget build(BuildContext context) {

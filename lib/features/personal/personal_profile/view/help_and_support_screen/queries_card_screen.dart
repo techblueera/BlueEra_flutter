@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/model/support_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -22,7 +21,7 @@ class QueriesCard extends StatefulWidget {
 class _QueriesCardState extends State<QueriesCard> {
   List<SupportCase> filteredList = [];
   final HelpAndSupportController helpController =
-  Get.put(HelpAndSupportController());
+      Get.find<HelpAndSupportController>();
 
   int selectedIndex = 0;
 
@@ -46,6 +45,7 @@ class _QueriesCardState extends State<QueriesCard> {
       _applyFilter();
     });
   }
+
   void _applyFilter() {
     List<SupportCase> tempList = List.from(helpController.allList);
 
@@ -68,8 +68,9 @@ class _QueriesCardState extends State<QueriesCard> {
       final searchText = _searchController.text.trim().toLowerCase();
       if (searchText.isNotEmpty) {
         tempList = tempList
-            .where((e) =>
-            (e.subject?.toLowerCase() ?? '').toLowerCase().contains(searchText.toLowerCase()))
+            .where((e) => (e.subject?.toLowerCase() ?? '')
+                .toLowerCase()
+                .contains(searchText.toLowerCase()))
             .toList();
       }
 
@@ -79,7 +80,6 @@ class _QueriesCardState extends State<QueriesCard> {
     }
 
     /// SEARCH FILTER
-
   }
   //
   // Future<void> _performSearch(String caseId) async {
@@ -127,13 +127,11 @@ class _QueriesCardState extends State<QueriesCard> {
         title: "Queries",
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: AppColors.white
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 16),
+              borderRadius: BorderRadius.circular(10), color: AppColors.white),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -154,13 +152,15 @@ class _QueriesCardState extends State<QueriesCard> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10,),
+                  SizedBox(
+                    width: 10,
+                  ),
                   CustomBtn(
                       height: 40,
                       width: 90,
                       isValidate: true,
                       onTap: () {
-                        Get.to(()=>CreateSupportQueryPage());
+                        Get.to(() => CreateSupportQueryPage());
                       },
                       title: "Ask Queries")
                 ],
@@ -182,7 +182,9 @@ class _QueriesCardState extends State<QueriesCard> {
                           postTab[i],
                           fontSize: 14,
                           decoration: TextDecoration.underline,
-                          color: selectedIndex==i?AppColors.primaryColor:AppColors.secondaryTextColor,
+                          color: selectedIndex == i
+                              ? AppColors.primaryColor
+                              : AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -204,8 +206,7 @@ class _QueriesCardState extends State<QueriesCard> {
               Obx(() {
                 if (helpController.getQueryResponse.value.status ==
                     Status.COMPLETE) {
-
-                  if (filteredList.isEmpty&&selectedIndex==0) {
+                  if (filteredList.isEmpty && selectedIndex == 0) {
                     filteredList = helpController.allList;
                   }
 
@@ -263,6 +264,7 @@ class _QueriesCardState extends State<QueriesCard> {
         return Colors.black54;
     }
   }
+
   Widget buildQueryList(List<SupportCase> list) {
     if (list.isEmpty) {
       return Center(child: Text("No data found."));
@@ -290,7 +292,7 @@ class _QueriesCardState extends State<QueriesCard> {
                         .format(DateTime.parse(item.createdAt.toString())),
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
-                    color:AppColors.secondaryTextColor,
+                    color: AppColors.secondaryTextColor,
                   ),
                 ],
               ),
@@ -302,8 +304,7 @@ class _QueriesCardState extends State<QueriesCard> {
                     "Priority: ${item.priority}",
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
-                    color:AppColors.secondaryTextColor,
-
+                    color: AppColors.secondaryTextColor,
                   ),
                   CustomText(
                     item.status,
@@ -314,13 +315,15 @@ class _QueriesCardState extends State<QueriesCard> {
                 ],
               ),
               SizedBox(height: 4),
-              Divider(height: 20, thickness: 1,
-              color: AppColors.whiteE5,),
+              Divider(
+                height: 20,
+                thickness: 1,
+                color: AppColors.whiteE5,
+              ),
             ],
           ),
         );
       },
     );
   }
-
 }

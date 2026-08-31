@@ -12,11 +12,12 @@ class JobSeekerAddMoreInfoListingScreen extends StatefulWidget {
   const JobSeekerAddMoreInfoListingScreen({super.key});
 
   @override
-  State<JobSeekerAddMoreInfoListingScreen> createState() => _JobSeekerAddMoreInfoListingScreenState();
+  State<JobSeekerAddMoreInfoListingScreen> createState() =>
+      _JobSeekerAddMoreInfoListingScreenState();
 }
 
-class _JobSeekerAddMoreInfoListingScreenState extends State<JobSeekerAddMoreInfoListingScreen> {
-
+class _JobSeekerAddMoreInfoListingScreenState
+    extends State<JobSeekerAddMoreInfoListingScreen> {
   final additionalInfoController = Get.put(AdditionalInfoController());
 
   final getResumeController = Get.find<ProfilePicController>();
@@ -34,20 +35,20 @@ class _JobSeekerAddMoreInfoListingScreenState extends State<JobSeekerAddMoreInfo
       appBar: CommonBackAppBar(
         title: AppStrings.addAdditionalInformation.tr,
       ),
-      body:         Obx(() {
+      body: Obx(() {
         final items = additionalInfoController.additionalInfoList;
         return ResumeProfileSectionCard(
           title: "",
           items: items.toList(),
           onAddPressed: items.isEmpty
               ? () {
-            additionalInfoController.clearForm();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => AdditionalInfoScreen(isEdit: false)),
-            ).then((_) => getResumeController.getMyResume());
-          }
+                  additionalInfoController.clearForm();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => AdditionalInfoScreen(isEdit: false)),
+                  ).then((_) => getResumeController.getMyResume());
+                }
               : null,
           itemsEditCallback: (index) {
             final data = items[index];
@@ -71,7 +72,6 @@ class _JobSeekerAddMoreInfoListingScreenState extends State<JobSeekerAddMoreInfo
           },
         );
       }),
-
     );
   }
 }

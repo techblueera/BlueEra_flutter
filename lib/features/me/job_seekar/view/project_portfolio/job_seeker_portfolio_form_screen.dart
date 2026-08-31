@@ -27,7 +27,7 @@ class JobSeekerPortfolioFormScreen extends StatefulWidget {
 class _JobSeekerPortfolioFormScreenState
     extends State<JobSeekerPortfolioFormScreen> {
   final portfolioController =
-      Get.put(JobSeekerPortfolioProfessionalsController());
+      Get.find<JobSeekerPortfolioProfessionalsController>();
 
   @override
   void initState() {
@@ -140,8 +140,7 @@ class _JobSeekerPortfolioFormScreenState
                   Obx(() {
                     return AiDescriptionField(
                       label: AppStrings.description.tr,
-                      hintText:
-                          AppStrings.tellUsMoreAboutProject.tr,
+                      hintText: AppStrings.tellUsMoreAboutProject.tr,
                       controller: portfolioController.descriptionController,
                       rxValue: portfolioController.description,
                       // Your RX variable from the controller

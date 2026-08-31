@@ -56,8 +56,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final feedController =
-      Get.isRegistered<FeedController>() ? Get.find<FeedController>() : Get.put(FeedController());
+  final feedController = Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -74,10 +73,12 @@ class _FeedScreenState extends State<FeedScreen> {
         _scrollController.addListener(_scrollListener);
       }
 
-      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar, (shouldRefresh) {
+      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
+          (shouldRefresh) {
         if (shouldRefresh == true) {
           fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+              false;
         }
       });
     });
@@ -141,14 +142,23 @@ class _FeedScreenState extends State<FeedScreen> {
     super.dispose();
   }
 
-  void fetchPostData({bool isInitialLoad = false, bool refresh = false, String? id, String? query}) {
+  void fetchPostData(
+      {bool isInitialLoad = false,
+      bool refresh = false,
+      String? id,
+      String? query}) {
     feedController.getPostsByType(widget.postFilterType,
-        isInitialLoad: isInitialLoad, refresh: refresh, id: id, query: query, screenName: '');
+        isInitialLoad: isInitialLoad,
+        refresh: refresh,
+        id: id,
+        query: query,
+        screenName: '');
   }
 
   int _calculateItemCount(int rowsLength) {
     int totalItems = rowsLength;
-    if (widget.postFilterType != PostType.saved && feedController.isTargetHasMoreData.isTrue) {
+    if (widget.postFilterType != PostType.saved &&
+        feedController.isTargetHasMoreData.isTrue) {
       totalItems += 1;
     }
     return totalItems;
@@ -211,7 +221,8 @@ class _FeedScreenState extends State<FeedScreen> {
           if (feedController.isLoading.isFalse) {
             if (feedController.postsResponse.value.status == Status.COMPLETE ||
                 widget.postFilterType == PostType.saved) {
-              List<Post> posts = feedController.getListByType(widget.postFilterType);
+              List<Post> posts =
+                  feedController.getListByType(widget.postFilterType);
               final rows = buildNativeAdRows(posts.length);
               // [FEED_AD] diagnostics — filter logcat by tag [FEED_AD].
               print('[FEED_AD] type=${widget.postFilterType} '
@@ -240,36 +251,45 @@ class _FeedScreenState extends State<FeedScreen> {
               final content = RefreshIndicator(
                 notificationPredicate: (notification) {
                   return HomeScreenController.to.headerOffset.value == 0.0 &&
-                      notification.metrics.pixels <= notification.metrics.minScrollExtent;
+                      notification.metrics.pixels <=
+                          notification.metrics.minScrollExtent;
                 },
                 onRefresh: () async {
                   if (HomeScreenController.to.headerOffset.value != 0.0) return;
-                  fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+                  fetchPostData(
+                      isInitialLoad: true, refresh: true, id: widget.id);
                   return Future.value();
                 },
                 child: ListView.builder(
-                  controller: widget.isInParentScroll ? null : _scrollController,
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
+                  controller:
+                      widget.isInParentScroll ? null : _scrollController,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(
+                      top: SizeConfig.size2, bottom: SizeConfig.size80),
                   shrinkWrap: widget.isInParentScroll,
                   physics: widget.isInParentScroll
                       ? const NeverScrollableScrollPhysics()
                       : const AlwaysScrollableScrollPhysics(),
                   itemCount: _calculateItemCount(rows.length),
-                  itemBuilder: (context, index) => _buildListItem(index, posts, rows),
+                  itemBuilder: (context, index) =>
+                      _buildListItem(index, posts, rows),
                 ),
               );
 
-              if (widget.postFilterType == PostType.all || widget.postFilterType == PostType.saved) {
+              if (widget.postFilterType == PostType.all ||
+                  widget.postFilterType == PostType.saved) {
                 return setupScrollVisibilityNotification(
-                  controller: widget.isInParentScroll ? null : _scrollController,
+                  controller:
+                      widget.isInParentScroll ? null : _scrollController,
                   headerHeight: (widget.headerHeight ?? SizeConfig.size100),
                   onVisibilityChanged: (visible, offset) {
                     final controller = HomeScreenController.to;
                     const step = 0.25;
                     double newOffset = visible
                         ? (controller.headerOffset.value - step).clamp(0.0, 1.0)
-                        : (controller.headerOffset.value + step).clamp(0.0, 1.0);
+                        : (controller.headerOffset.value + step)
+                            .clamp(0.0, 1.0);
 
                     controller.headerOffset.value = newOffset;
                     controller.isVisible.value = visible;
@@ -279,13 +299,14 @@ class _FeedScreenState extends State<FeedScreen> {
                 );
               }
               return content;
-            }
-            else if (feedController.postsResponse.value.status == Status.ERROR) {
+            } else if (feedController.postsResponse.value.status ==
+                Status.ERROR) {
               return LoadErrorWidget(
                 errorMessage: AppStrings.failedToLoadPosts.tr,
                 onRetry: () {
                   feedController.isLoading.value = true;
-                  fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+                  fetchPostData(
+                      isInitialLoad: true, refresh: true, id: widget.id);
                 },
               );
             } else {
@@ -341,7 +362,8 @@ class _CreatePostEmptyState extends StatelessWidget {
         // [start..end] of the overall animation timeline. Lets each
         // element appear in its own slot without a separate
         // controller per piece.
-        double slot(double start, double end) => ((t - start) / (end - start)).clamp(0.0, 1.0);
+        double slot(double start, double end) =>
+            ((t - start) / (end - start)).clamp(0.0, 1.0);
 
         return Center(
           child: ConstrainedBox(
@@ -599,7 +621,8 @@ class _DraftCard extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   AppColors.primaryColor,
-                  Color.lerp(AppColors.primaryColor, Colors.black, 0.22) ?? AppColors.primaryColor,
+                  Color.lerp(AppColors.primaryColor, Colors.black, 0.22) ??
+                      AppColors.primaryColor,
                 ],
               ),
               boxShadow: [
@@ -770,7 +793,8 @@ class _PrimaryCta extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppColors.primaryColor,
-                Color.lerp(AppColors.primaryColor, Colors.black, 0.18) ?? AppColors.primaryColor,
+                Color.lerp(AppColors.primaryColor, Colors.black, 0.18) ??
+                    AppColors.primaryColor,
               ],
             ),
           ),
@@ -831,9 +855,7 @@ class _PrimaryCta extends StatelessWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final feedController = Get.isRegistered<FeedController>()
-      ? Get.find<FeedController>()
-      : Get.put(FeedController());
+  final feedController = Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 

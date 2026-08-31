@@ -19,6 +19,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
+import 'package:BlueEra/core/bindings/initial_binding.dart';
+import 'package:BlueEra/core/routes/app_pages.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
@@ -203,12 +205,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             SharedPreferenceUtils.authToken, "");
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.isUserLogin, "false");
-        logs('[SESSION] bg handler: $operation for our session → cleared auth token');
+        logs(
+            '[SESSION] bg handler: $operation for our session → cleared auth token');
       } catch (e) {
         logs('[SESSION] bg handler: failed to clear token: $e');
       }
     } else {
-      logs('[SESSION] bg handler: $operation ignored (not our session / self-login echo)');
+      logs(
+          '[SESSION] bg handler: $operation ignored (not our session / self-login echo)');
     }
     return;
   }
@@ -388,8 +392,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // the orderId, so the id has to be recomputable to cancel the ring.
       // It also collapses a re-delivered FCM onto the same notification
       // instead of starting a second ringing copy.
-      final ringOrderId =
-          orderIdFromRidePayload(data, metadata: metadata is Map ? metadata : null);
+      final ringOrderId = orderIdFromRidePayload(data,
+          metadata: metadata is Map ? metadata : null);
       final notifId = ringNotificationIdFor(ringOrderId);
       // orderId null here means the dismiss push can't target this ring — it
       // falls back to the shared constant id, so two concurrent requests would
@@ -588,7 +592,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final callId = (payload['call_id'] ?? data['callId'] ?? '').toString();
       if (callId.isNotEmpty) {
         await cancelIncomingCallLocalNotification(callId);
-        logs('[CALL_DEBUG] bg handler → cancelled incoming notification for callId=$callId (operation=$operation)');
+        logs(
+            '[CALL_DEBUG] bg handler → cancelled incoming notification for callId=$callId (operation=$operation)');
       }
       // Also dismiss CallKit on iOS
       if (Platform.isIOS && callId.isNotEmpty) {
@@ -1075,8 +1080,7 @@ Future<void> _initDeferred(
   /// (location, ads SDK, device info, channel data, service-provider status)
   /// until just after the deep-link target has been pushed. On a normal launch
   /// nothing changes — the batch runs inline exactly as before.
-  final bool deferForDeepLink =
-      AppNotificationHandler.pendingDeepLink != null;
+  final bool deferForDeepLink = AppNotificationHandler.pendingDeepLink != null;
 
   if (!deferForDeepLink) {
     /// Kick off the location fetch as early as possible on cold start so
@@ -1223,8 +1227,8 @@ Future<void> _requestNotificationPermissionIfNeeded() async {
 /// inline inside [_initDeferred]; on a notification open it is postponed via a
 /// post-frame callback so the deep-link target renders first.
 Future<void> _initBackgroundBatch() async {
-  unawaited(LocationService.fetchLocation().whenComplete(
-      () => unawaited(_requestNotificationPermissionIfNeeded())));
+  unawaited(LocationService.fetchLocation()
+      .whenComplete(() => unawaited(_requestNotificationPermissionIfNeeded())));
   unawaited(InterstitialAdManager.instance.initialize());
   await Future.wait<void>([
     getDeviceInfo(),
@@ -1264,6 +1268,7 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
+
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
@@ -1311,7 +1316,9 @@ class _MyAppState extends State<MyApp> {
         title: AppStrings.appName,
         theme: AppThemes.light,
         initialRoute: null,
-        onGenerateRoute: RouteHelper.generateRoute,
+        initialBinding: InitialBinding(),
+        getPages: AppPages.routes,
+        unknownRoute: AppPages.unknownRoute,
         navigatorObservers: [RouteHelper.routeObserver],
 // Publishes the visible route to CallController.currentRouteRx on every push /
 // pop / replace. The top call strip reads it to know whether a call screen is

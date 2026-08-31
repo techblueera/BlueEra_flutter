@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/me/hospital/binding/hospital_branch_contact_binding.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -46,7 +47,8 @@ class HospitalContactUsView extends StatelessWidget {
                 ),
                 if (!isReadOnly)
                   IconButton(
-                    onPressed: () => Get.to(HospitalContactUs()),
+                    onPressed: () => Get.to(() => HospitalContactUs(),
+                        binding: HospitalBranchContactBinding()),
                     icon: const Icon(Icons.edit_outlined, size: 20),
                   ),
               ],

@@ -216,9 +216,8 @@ class _BioEditSheetState extends State<_BioEditSheet> {
   final ViewPersonalDetailsController _viewCtrl =
       Get.find<ViewPersonalDetailsController>();
   final PersonalCreateProfileController _personalCtrl =
-      Get.put(PersonalCreateProfileController());
-  final AiSuggestionController _aiCtrl =
-      Get.put(AiSuggestionController());
+      Get.find<PersonalCreateProfileController>();
+  final AiSuggestionController _aiCtrl = Get.put(AiSuggestionController());
 
   bool _isValid = false;
   bool _isSaving = false;

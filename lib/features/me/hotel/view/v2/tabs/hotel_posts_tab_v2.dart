@@ -150,7 +150,8 @@ class HotelPostsTabV2 extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (i != entries.length - 1) Divider(height: 1, color: Colors.grey.shade200),
+                if (i != entries.length - 1)
+                  Divider(height: 1, color: Colors.grey.shade200),
               ],
             ],
           ),

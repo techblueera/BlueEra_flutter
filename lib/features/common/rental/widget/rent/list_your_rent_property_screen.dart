@@ -28,7 +28,7 @@ class _ListYourRentPropertyScreenState
   @override
   void initState() {
     super.initState();
-    _ctrl = Get.put(PropertyController());
+    _ctrl = Get.find<PropertyController>();
     _ctrl.listingType.value = 'Rent';
     _ctrl.resetAll();
   }
@@ -93,8 +93,7 @@ class _ListYourRentPropertyScreenState
                               maxLength: 70,
                               textInputAction: TextInputAction.next,
                               controller: _projectNameCtrl,
-                              onChanged: (v) =>
-                                  _ctrl.projectName.value = v,
+                              onChanged: (v) => _ctrl.projectName.value = v,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
                                   return AppStrings.pleaseEnterProjectName.tr;
@@ -110,8 +109,7 @@ class _ListYourRentPropertyScreenState
                               maxLines: 5,
                               textInputAction: TextInputAction.done,
                               controller: _descriptionCtrl,
-                              onChanged: (v) =>
-                                  _ctrl.description.value = v,
+                              onChanged: (v) => _ctrl.description.value = v,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
                                   return AppStrings.pleaseAddDescription.tr;

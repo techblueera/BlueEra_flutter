@@ -33,10 +33,13 @@ class FoodCardBusiness extends StatefulWidget {
     this.isGridView = false,
     this.isShowChat = true,
     this.isShowKM = false,
-    this.isFromChatCard= false,
+    this.isFromChatCard = false,
     this.isShowBusinessInfo = false,
     this.businessData,
-    this.width,  this.isShowEnquiry=false, this.conversationId, this.businessId,
+    this.width,
+    this.isShowEnquiry = false,
+    this.conversationId,
+    this.businessId,
   }) : super(key: key);
 
   @override
@@ -72,11 +75,13 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
 
     return InkWell(
       onTap: () {
-        if(widget.isFromChatCard==false){
-          Get.to(FoodDetailsViewScreen(
-            productPriceFormat:(serviceData?.priceType == "single")?"${serviceData?.singlePrice ?? "0"}": "$priceText",
-            data: serviceData ?? GetFoodDetailsModel(),
-          ));
+        if (widget.isFromChatCard == false) {
+          Get.to(() => FoodDetailsViewScreen(
+                productPriceFormat: (serviceData?.priceType == "single")
+                    ? "${serviceData?.singlePrice ?? "0"}"
+                    : "$priceText",
+                data: serviceData ?? GetFoodDetailsModel(),
+              ));
         }
       },
       child: Container(
@@ -143,7 +148,8 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                                 : Colors.red,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: CustomText("${serviceData?.vegType ?? AppStrings.veg}",
+                          child: CustomText(
+                              "${serviceData?.vegType ?? AppStrings.veg}",
                               color: Colors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.w600),
@@ -226,37 +232,34 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                   final chatViewController = Get.find<ChatViewController>();
 
                   List<Map<String, String>> urlList =
-                      serviceData?.photos?.map((e) => {"url": e}).toList()??[];
+                      serviceData?.photos?.map((e) => {"url": e}).toList() ??
+                          [];
                   Map<String, dynamic> data = {
-                    ApiKeys.food_id:"${serviceData?.id}",
-
-                    ApiKeys.price: serviceData?.priceType == "single"?
-                    "${serviceData?.singlePrice}":"$priceText",
+                    ApiKeys.food_id: "${serviceData?.id}",
+                    ApiKeys.price: serviceData?.priceType == "single"
+                        ? "${serviceData?.singlePrice}"
+                        : "$priceText",
                     ApiKeys.discount: "${serviceData?.discounts}",
-                    if ((widget.conversationId ==
-                        '' ||
-                        widget.conversationId==
-                            null))
+                    if ((widget.conversationId == '' ||
+                        widget.conversationId == null))
                       ApiKeys.other_user_id: widget.businessId
                     else
                       ApiKeys.conversation_id: widget.conversationId,
-                    ApiKeys.message:
-                    "${serviceData?.title}",
-                    ApiKeys.message_type : AppConstants.food,
+                    ApiKeys.message: "${serviceData?.title}",
+                    ApiKeys.message_type: AppConstants.food,
                     ApiKeys.title: serviceData?.title,
-                    ApiKeys.veg_type :serviceData?.vegType,
-                    ApiKeys.sub_category : serviceData?.subCategory,
-                    ApiKeys.calories: serviceData?.nutritionalSummaryPer100g?.caloriesKcal,
+                    ApiKeys.veg_type: serviceData?.vegType,
+                    ApiKeys.sub_category: serviceData?.subCategory,
+                    ApiKeys.calories:
+                        serviceData?.nutritionalSummaryPer100g?.caloriesKcal,
                     ApiKeys.url: urlList,
                   };
                   chatViewController.sendProductMessages(data);
                   chatViewController.changeBusinessInsideTab(0);
-
                 },
                 child: Container(
                     width: Get.width,
                     padding: EdgeInsets.all(SizeConfig.size5),
-
                     margin: EdgeInsets.only(
                         left: SizeConfig.size4,
                         right: SizeConfig.size4,
@@ -269,9 +272,10 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      color: AppColors.primaryColor,)
-                  // border: Border.all(color: AppColors.primaryColor)),
-                ),
+                      color: AppColors.primaryColor,
+                    )
+                    // border: Border.all(color: AppColors.primaryColor)),
+                    ),
               ),
             SizedBox(height: SizeConfig.size5),
           ],

@@ -582,9 +582,7 @@ class ChatViewController extends GetxController {
   /// Persist and reactively publish the active AI language for [type] so the
   /// AppBar badge stays in sync (from either a user selection or a server echo).
   void _syncAiLanguage(String type, String label) {
-    final profileCtrl = Get.isRegistered<AiChatProfileController>()
-        ? Get.find<AiChatProfileController>()
-        : Get.put(AiChatProfileController());
+    final profileCtrl = Get.find<AiChatProfileController>();
     profileCtrl.setLanguage(type, label);
   }
 
@@ -3373,7 +3371,6 @@ class ChatViewController extends GetxController {
     viewContactsListResponse.value = ApiResponse.complete(value);
   }
 
-
   /// Try to hydrate the contacts model from Hive without hitting the network.
   /// Returns true when cache was found and the UI was pointed at it.
   Future<bool> hydrateContactsFromCache() async {
@@ -4129,7 +4126,6 @@ class ChatViewController extends GetxController {
 
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
-
     if (isSending.value) return null;
     isSending.value = true;
     try {
@@ -4200,7 +4196,7 @@ class ChatViewController extends GetxController {
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
           if (!alreadyExists) {
-             getListOfMessageData?.add(message);
+            getListOfMessageData?.add(message);
           }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);

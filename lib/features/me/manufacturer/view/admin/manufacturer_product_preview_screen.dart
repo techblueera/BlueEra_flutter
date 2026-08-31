@@ -94,13 +94,16 @@ class ManufacturerProductPreviewScreen extends StatefulWidget {
       required this.isUserCanCreateVariants});
 
   @override
-  State<ManufacturerProductPreviewScreen> createState() => _ProductPreviewScreenState();
+  State<ManufacturerProductPreviewScreen> createState() =>
+      _ProductPreviewScreenState();
 }
 
-class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen> {
+class _ProductPreviewScreenState
+    extends State<ManufacturerProductPreviewScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final ManufacturerProductController controller = Get.put(ManufacturerProductController());
+  final ManufacturerProductController controller =
+      Get.find<ManufacturerProductController>();
   int _currentIndex = 0;
 
   @override
@@ -142,7 +145,8 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
 
     controller.detailsList.assignAll(
       (args.details ?? [])
-          .map((d) => ManufacturerProductMoreDetails(title: d.title, details: d.detail))
+          .map((d) =>
+              ManufacturerProductMoreDetails(title: d.title, details: d.detail))
           .toList(),
     );
 
@@ -226,8 +230,8 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
           }
         } else if (widget.providerType == ProviderType.user) {
           Get.until(
-                (route) =>
-            route.settings.name ==
+            (route) =>
+                route.settings.name ==
                 RouteHelper.getEarnServiceDashboardViewRoute(),
           );
 
@@ -239,7 +243,6 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
           //   Get.until((route) =>
           //       Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
           // }
-
         } else if (widget.providerType == ProviderType.channel) {
           Get.until((route) =>
               Get.currentRoute == RouteHelper.getChannelScreenRoute());
@@ -478,7 +481,8 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
                           title: AppStrings.createVariantStartSelling,
                           onTap: () {
                             Get.toNamed(
-                              RouteHelper.getManufacturerCreateVariantScreenRoute(),
+                              RouteHelper
+                                  .getManufacturerCreateVariantScreenRoute(),
                               arguments: {
                                 ApiKeys.controller: controller,
                                 ApiKeys.id: widget.id,

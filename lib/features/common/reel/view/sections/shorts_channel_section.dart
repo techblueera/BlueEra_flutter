@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -34,8 +33,7 @@ class ShortsChannelSection extends StatefulWidget {
 }
 
 class _ShortsChannelSectionState extends State<ShortsChannelSection> {
-  final ShortsController shortsController =
-      Get.put<ShortsController>(ShortsController());
+  final ShortsController shortsController = Get.put(ShortsController());
   Shorts shorts = Shorts.latest;
 
   @override

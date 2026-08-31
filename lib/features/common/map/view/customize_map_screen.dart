@@ -31,7 +31,8 @@ class CustomizeMapScreen extends StatefulWidget {
   final int? isShowCount;
   final String? selectedMapCategoryType;
 
-  const CustomizeMapScreen({super.key, this.isShowCount, this.selectedMapCategoryType});
+  const CustomizeMapScreen(
+      {super.key, this.isShowCount, this.selectedMapCategoryType});
 
   @override
   State<CustomizeMapScreen> createState() => _CustomizeMapScreenState();
@@ -40,15 +41,17 @@ class CustomizeMapScreen extends StatefulWidget {
 class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     with WidgetsBindingObserver {
   final TextEditingController address = TextEditingController();
-  final PlaceController placeController = Get.put(PlaceController());
+  final PlaceController placeController = Get.find<PlaceController>();
   final MapServiceController mapServiceController =
-      Get.put(MapServiceController());
+      Get.find<MapServiceController>();
 
   late GoogleMapController _mapController;
   Set<Marker> _markers = {};
-  LatLng _currentPosition = const LatLng(20.5937, 78.9629); // Default: India center
+  LatLng _currentPosition =
+      const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
-  final List<MapServiceCategory> categories = MapServiceCategory.values.where((category) {
+  final List<MapServiceCategory> categories =
+      MapServiceCategory.values.where((category) {
     // if (isBusiness()) {
     //   return category != MapCategory.jobs;
     // }
@@ -81,8 +84,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   @override
   void initState() {
     super.initState();
-    if(widget.selectedMapCategoryType!=null) {
-      final (category, index) = MapServiceCategory.fromStringWithIndex(widget.selectedMapCategoryType!);
+    if (widget.selectedMapCategoryType != null) {
+      final (category, index) = MapServiceCategory.fromStringWithIndex(
+          widget.selectedMapCategoryType!);
       log('category--- $category -----  index --- $index');
       mapServiceCategoryType = category;
       selectedIndex = index;
@@ -148,11 +152,12 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   /// Initial location fetch + marker setup
   Future<void> _initializeLocationAndMarkers() async {
     log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
-    if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
+    if (LocationService.lat != 0.0 && LocationService.lng != 0.0) {
       final position = LatLng(LocationService.lat, LocationService.lng);
 
       _currentPosition = LatLng(position.latitude, position.longitude);
-      _currentAddress = LocationService.userCurrentAddress.value.formattedAddress;
+      _currentAddress =
+          LocationService.userCurrentAddress.value.formattedAddress;
       searchController.text = _currentAddress ?? '';
       isCurrentLocationMarkerShown = true;
 
@@ -180,14 +185,14 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   // }
 
   /// Updates blue dot marker
-  Future<void> _updateLocationMarker({required double lat, required double lng}) async {
+  Future<void> _updateLocationMarker(
+      {required double lat, required double lng}) async {
     _lat = lat;
     _lng = lng;
 
     // 1. Calculate distance
     double distanceInMeters = Geolocator.distanceBetween(
-        _lat, _lng, _currentPosition.latitude, _currentPosition.longitude
-    );
+        _lat, _lng, _currentPosition.latitude, _currentPosition.longitude);
 
     // 2. Prepare the marker (Load icon only once if possible)
     final BitmapDescriptor locationIcon = await BitmapDescriptor.fromAssetImage(
@@ -225,8 +230,10 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
 
     _moveCameraTo(LatLng(_lat, _lng));
   }
+
   /// Loads profile image markers
-  Future<void> _loadPlaceMarkers({required double lat, required double lng}) async {
+  Future<void> _loadPlaceMarkers(
+      {required double lat, required double lng}) async {
     // 1. Fetch Data (Assuming this is an async API call)
     await placeController.fetchPlaces(lat, lng);
 
@@ -263,7 +270,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       // (Assuming place IDs are numeric, we can clear logic, or just rebuild the set)
 
       // Option A: If you want to keep the "Selected Location" marker but clear others:
-      _markers.removeWhere((m) => m.markerId.value != 'selected_location' && m.markerId.value != 'profile-circle-icon');
+      _markers.removeWhere((m) =>
+          m.markerId.value != 'selected_location' &&
+          m.markerId.value != 'profile-circle-icon');
 
       // Add the new batch
       _markers.addAll(newPlaceMarkers);
@@ -326,7 +335,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   //       if (_currentMarker != null && !isCurrentLocationMarkerShown) _currentMarker!,
   //       ..._placeMarkers,
   //     };
-  final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewProfileController =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
@@ -376,7 +386,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         width: SizeConfig.size10,
                       ),
                       CustomText(
-                       AppStrings.goLive,
+                        AppStrings.goLive,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -419,8 +429,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         onTabSelected: (index, value) {
                           setState(() {
                             selectedIndex = index;
-                            mapServiceCategoryType =
-                                value.toMapCategory() ?? MapServiceCategory.services;
+                            mapServiceCategoryType = value.toMapCategory() ??
+                                MapServiceCategory.services;
                           });
                           searchController.clear();
                         },
@@ -658,8 +668,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         category: "food",
         subType: 'homeMadeFood',
       );
-    }
-    else if (mapServiceCategoryType == MapServiceCategory.rental) {
+    } else if (mapServiceCategoryType == MapServiceCategory.rental) {
       return RentalServicesBottomSheet(
         key: const ValueKey("rental_service"),
         lat: _lat,

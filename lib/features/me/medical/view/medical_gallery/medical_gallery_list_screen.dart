@@ -1,4 +1,4 @@
-﻿import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_detail_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_upload_screen.dart';
@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class MedicalGalleryListScreen extends StatelessWidget {
-  final controller = Get.put(MedicalGalleryController());
+  final controller = Get.find<MedicalGalleryController>();
 
   MedicalGalleryListScreen({super.key});
 
@@ -20,7 +20,8 @@ class MedicalGalleryListScreen extends StatelessWidget {
       appBar: CommonBackAppBar(title: AppStrings.medicalGallery),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
             onTap: () => Get.to(() => MedicalGalleryUploadScreen()),
             title: AppStrings.uploadPhotos,
@@ -50,7 +51,8 @@ class MedicalGalleryListScreen extends StatelessWidget {
             String firstImage = images.isNotEmpty ? images[0] : '';
 
             return InkWell(
-              onTap: () => Get.to(() => MedicalGalleryDetailScreen(categoryData: item)),
+              onTap: () =>
+                  Get.to(() => MedicalGalleryDetailScreen(categoryData: item)),
               child: Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(

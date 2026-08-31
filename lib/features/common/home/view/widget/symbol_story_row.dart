@@ -21,16 +21,13 @@ class SymbolStoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<SymbolFeedController>()
-        ? Get.find<SymbolFeedController>()
-        : Get.put(SymbolFeedController());
+    final controller = Get.find<SymbolFeedController>();
 
     return Obx(() {
       // Build an ordered list with self always first.
       final List<SymbolUserGroup> raw = controller.userGroups.toList();
-      final int selfIdx = userId.isEmpty
-          ? -1
-          : raw.indexWhere((g) => g.user?.id == userId);
+      final int selfIdx =
+          userId.isEmpty ? -1 : raw.indexWhere((g) => g.user?.id == userId);
       SymbolUserGroup? selfGroup;
       if (selfIdx != -1) {
         selfGroup = raw.removeAt(selfIdx);
@@ -135,8 +132,7 @@ class SymbolStoryRow extends StatelessWidget {
                 // that, so derive the viewer index from rawIdx instead of
                 // the row index — otherwise tapping otherN opens otherN+1
                 // when the placeholder occupies row 0.
-                final int viewerIndex =
-                    (selfGroup != null ? 1 : 0) + rawIdx;
+                final int viewerIndex = (selfGroup != null ? 1 : 0) + rawIdx;
                 _openFullscreen(context, ordered, viewerIndex);
               },
             );
@@ -188,9 +184,8 @@ class _StatusCard extends StatelessWidget {
     final String? profileImage = group.user?.profileImage;
     final String name = group.user?.name ?? AppStrings.userFallback.tr;
     final SymbolFeedItem? preview = _previewSymbol;
-    final List<bool> seenFlags = group.symbols
-        .map((s) => s.hasSeen == true)
-        .toList(growable: false);
+    final List<bool> seenFlags =
+        group.symbols.map((s) => s.hasSeen == true).toList(growable: false);
 
     return GestureDetector(
       onTap: onTap,
@@ -239,17 +234,17 @@ class _StatusCard extends StatelessWidget {
                           border: Border.all(color: Colors.white, width: 1.5),
                         ),
                         child: ClipOval(
-                          child: (profileImage != null &&
-                                  profileImage.isNotEmpty)
-                              ? CachedNetworkImage(
-                                  imageUrl: profileImage,
-                                  fit: BoxFit.cover,
-                                  placeholder: (_, __) =>
-                                      const _AvatarFallback(),
-                                  errorWidget: (_, __, ___) =>
-                                      const _AvatarFallback(),
-                                )
-                              : const _AvatarFallback(),
+                          child:
+                              (profileImage != null && profileImage.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: profileImage,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) =>
+                                          const _AvatarFallback(),
+                                      errorWidget: (_, __, ___) =>
+                                          const _AvatarFallback(),
+                                    )
+                                  : const _AvatarFallback(),
                         ),
                       ),
                     ),
@@ -377,8 +372,7 @@ class _StatusCard extends StatelessWidget {
               left: 4,
               bottom: 4,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(6),
@@ -397,11 +391,26 @@ class _StatusCard extends StatelessWidget {
   }
 
   static const Set<String> _imageExtensions = {
-    'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'svg',
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+    'svg',
   };
 
   static const Set<String> _videoExtensions = {
-    'mp4', 'mov', 'm4v', 'webm', 'mkv', '3gp', 'avi',
+    'mp4',
+    'mov',
+    'm4v',
+    'webm',
+    'mkv',
+    '3gp',
+    'avi',
   };
 
   bool _isHttpUrl(String value) {
@@ -486,9 +495,8 @@ class _StatusCard extends StatelessWidget {
     final Color bg = _parseColor(symbol.backgroundColor) ??
         fallback ??
         AppColors.primaryColor;
-    final String? body = (symbol.caption?.isNotEmpty ?? false)
-        ? symbol.caption
-        : symbol.content;
+    final String? body =
+        (symbol.caption?.isNotEmpty ?? false) ? symbol.caption : symbol.content;
 
     return Container(
       color: bg,
@@ -605,8 +613,7 @@ class _AddSymbolCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E1F22),
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: Colors.white, width: 2),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                           child: const Icon(
                             Icons.add,

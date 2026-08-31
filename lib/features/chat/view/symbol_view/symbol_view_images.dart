@@ -40,11 +40,12 @@ class SymbolViewImages extends StatefulWidget {
   State<SymbolViewImages> createState() => _SymbolViewImagesState();
 }
 
-class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerProviderStateMixin {
+class _SymbolViewImagesState extends State<SymbolViewImages>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int currentIndex = 0;
   List<SymbolDetailsModel>? allImages = [];
-  final addSymbolController = Get.isRegistered<AddChatSymbolController>() ? Get.find<AddChatSymbolController>() : Get.put(AddChatSymbolController());
+  final addSymbolController = Get.find<AddChatSymbolController>();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -78,7 +79,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
   }
 
   void getSymbols() async {
-    allImages = await addSymbolController.getSymbolsForOtherUser(widget.userId ?? '');
+    allImages =
+        await addSymbolController.getSymbolsForOtherUser(widget.userId ?? '');
     if (mounted) setState(() {});
   }
 
@@ -170,7 +172,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
         _likedSymbolIds.add(id);
       }
     });
-    final success = await addSymbolController.toggleLikeSymbol(id, isLiked: wasLiked);
+    final success =
+        await addSymbolController.toggleLikeSymbol(id, isLiked: wasLiked);
     if (!success && mounted) {
       setState(() {
         if (wasLiked) {
@@ -214,15 +217,17 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     final symbol = allImages![currentIndex];
     final symbolId = symbol.id;
     final authorId = symbol.userId ?? widget.userId;
-    if (symbolId == null || symbolId.isEmpty || authorId == null || authorId.isEmpty) {
+    if (symbolId == null ||
+        symbolId.isEmpty ||
+        authorId == null ||
+        authorId.isEmpty) {
       return;
     }
 
     _replyController.clear();
     _replyFocusNode.unfocus();
 
-    final chatViewController =
-        getOrPut(() => ChatViewController());
+    final chatViewController = getOrPut(() => ChatViewController());
     final params = <String, dynamic>{
       ApiKeys.message_type: 'reply_to_symbol',
       ApiKeys.message: text,
@@ -266,7 +271,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
         child: _hasImages
             ? _buildContent()
             : const Center(
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               ),
       ),
     );
@@ -322,7 +328,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                       child: (url.caption?.isNotEmpty ?? false)
                           ? Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(26, 60, 26, 20),
+                              padding:
+                                  const EdgeInsets.fromLTRB(26, 60, 26, 20),
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
@@ -362,10 +369,12 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: buildLinkPreview(url.content ?? ''),
                           ),
-                          if (url.content != null && url.content!.isNotEmpty) ...[
+                          if (url.content != null &&
+                              url.content!.isNotEmpty) ...[
                             const SizedBox(height: 32),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24.0),
                               child: url.content!.contains('http')
                                   ? GestureDetector(
                                       onTap: () => _openUrl(url.content!),
@@ -374,7 +383,9 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                                   : CustomText(
                                       textAlign: TextAlign.center,
                                       "${url.content}",
-                                      fontWeight: addSymbolController.getFontWeight(url.fontWeight ?? 'normal'),
+                                      fontWeight:
+                                          addSymbolController.getFontWeight(
+                                              url.fontWeight ?? 'normal'),
                                       fontSize: (url.fontSize ?? 18) * 1.1,
                                       fontFamily: url.fontFamily,
                                       color: Colors.white,
@@ -460,9 +471,11 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (_isValidIndex && allImages![currentIndex].createdAt != null)
+                            if (_isValidIndex &&
+                                allImages![currentIndex].createdAt != null)
                               CustomText(
-                                _formatTime(allImages![currentIndex].createdAt!),
+                                _formatTime(
+                                    allImages![currentIndex].createdAt!),
                                 color: Colors.white60,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w400,
@@ -480,7 +493,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                 child: Container(
                   color: Colors.black38,
                   child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                    icon:
+                        const Icon(Icons.close, color: Colors.white, size: 22),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -534,12 +548,14 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                 padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white54, size: 22),
+                    const Icon(Icons.keyboard_arrow_up_rounded,
+                        color: Colors.white54, size: 22),
                     const SizedBox(height: 2),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -548,7 +564,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                           onTap: () => _showInteractionsSheet(0),
                           child: Row(
                             children: [
-                              const Icon(Icons.favorite, color: Colors.redAccent, size: 22),
+                              const Icon(Icons.favorite,
+                                  color: Colors.redAccent, size: 22),
                               const SizedBox(width: 6),
                               CustomText(
                                 "${allImages![currentIndex].likesCount ?? 0} Likes",
@@ -564,7 +581,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                           onTap: () => _showInteractionsSheet(1),
                           child: Row(
                             children: [
-                              const Icon(Icons.visibility, color: Colors.lightBlueAccent, size: 22),
+                              const Icon(Icons.visibility,
+                                  color: Colors.lightBlueAccent, size: 22),
                               const SizedBox(width: 6),
                               CustomText(
                                 "${allImages![currentIndex].seenCount ?? 0} Views",
@@ -589,7 +607,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
             bottom: MediaQuery.of(context).viewInsets.bottom > 0
-                ? MediaQuery.of(context).viewInsets.bottom - MediaQuery.of(context).padding.bottom
+                ? MediaQuery.of(context).viewInsets.bottom -
+                    MediaQuery.of(context).padding.bottom
                 : 0,
             left: 0,
             right: 0,
@@ -597,7 +616,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 22),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Row(
                 children: [
@@ -632,7 +652,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                                 enabledBorder: InputBorder.none,
                                 focusedBorder: InputBorder.none,
                                 disabledBorder: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
                               ),
                               textInputAction: TextInputAction.newline,
                               maxLines: null,
@@ -765,7 +786,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
       if (domain.startsWith('www.')) domain = domain.substring(4);
     } catch (_) {}
 
-    final faviconUrl = 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
+    final faviconUrl =
+        'https://www.google.com/s2/favicons?domain=$domain&sz=64';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -780,12 +802,14 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
             faviconUrl,
             width: 20,
             height: 20,
-            errorBuilder: (_, __, ___) => const Icon(Icons.language, color: Colors.white, size: 20),
+            errorBuilder: (_, __, ___) =>
+                const Icon(Icons.language, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 8),
           Text(
             domain,
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -836,7 +860,9 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor)),
+              child: const Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primaryColor)),
             ),
             errorWidget: Container(
               padding: const EdgeInsets.all(20),
@@ -849,7 +875,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                       color: AppColors.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.link_rounded, color: AppColors.primaryColor, size: 24),
+                    child: const Icon(Icons.link_rounded,
+                        color: AppColors.primaryColor, size: 24),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -880,14 +907,18 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                       child: Image(image: imageProvider, fit: BoxFit.cover),
                     )
                   else if (svgImage != null)
-                    SizedBox(height: squareSize, width: double.infinity, child: svgImage),
+                    SizedBox(
+                        height: squareSize,
+                        width: double.infinity,
+                        child: svgImage),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (metadata.title != null && metadata.title!.isNotEmpty)
+                        if (metadata.title != null &&
+                            metadata.title!.isNotEmpty)
                           Text(
                             metadata.title!,
                             maxLines: 2,
@@ -900,7 +931,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                               letterSpacing: -0.2,
                             ),
                           ),
-                        if (metadata.desc != null && metadata.desc!.isNotEmpty) ...[
+                        if (metadata.desc != null &&
+                            metadata.desc!.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
                             metadata.desc!,
@@ -932,7 +964,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
       child: InkWell(
         onTap: () async {
           final deletedIndex = currentIndex;
-          allImages = await addSymbolController.deleteSymbol(symbolData: symbol);
+          allImages =
+              await addSymbolController.deleteSymbol(symbolData: symbol);
 
           if (allImages == null || allImages!.isEmpty) {
             Get.back();
@@ -977,7 +1010,8 @@ class _SymbolInteractionsSheet extends StatefulWidget {
   });
 
   @override
-  State<_SymbolInteractionsSheet> createState() => _SymbolInteractionsSheetState();
+  State<_SymbolInteractionsSheet> createState() =>
+      _SymbolInteractionsSheetState();
 }
 
 class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
@@ -1046,7 +1080,8 @@ class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.favorite, size: 18, color: Colors.redAccent),
+                          const Icon(Icons.favorite,
+                              size: 18, color: Colors.redAccent),
                           const SizedBox(width: 6),
                           Text('Likes ($likesCount)'),
                         ],
@@ -1056,7 +1091,8 @@ class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.visibility, size: 18, color: Colors.lightBlueAccent),
+                          const Icon(Icons.visibility,
+                              size: 18, color: Colors.lightBlueAccent),
                           const SizedBox(width: 6),
                           Text('Views ($viewsCount)'),
                         ],
@@ -1086,7 +1122,8 @@ class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
     return Obx(() {
       if (widget.controller.isLoadingLikes.value) {
         return const Center(
-          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+          child: CircularProgressIndicator(
+              strokeWidth: 2, color: AppColors.primaryColor),
         );
       }
       if (widget.controller.symbolLikes.isEmpty) {
@@ -1121,7 +1158,8 @@ class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
     return Obx(() {
       if (widget.controller.isLoadingViews.value) {
         return const Center(
-          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+          child: CircularProgressIndicator(
+              strokeWidth: 2, color: AppColors.primaryColor),
         );
       }
       if (widget.controller.symbolViews.isEmpty) {

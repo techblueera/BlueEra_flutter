@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/jobs/binding/job_applications_binding.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -30,11 +31,10 @@ class AllSavedJobPostScreen extends StatefulWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
   final double headerHeight;
 
-  const AllSavedJobPostScreen({
-    super.key,
-    required this.onHeaderVisibilityChanged,
-    required this.headerHeight
-  });
+  const AllSavedJobPostScreen(
+      {super.key,
+      required this.onHeaderVisibilityChanged,
+      required this.headerHeight});
 
   @override
   State<AllSavedJobPostScreen> createState() => _AllSavedJobPostScreenState();
@@ -88,8 +88,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
       child: Obx(() {
         return RefreshIndicator(
           onRefresh: () async {
-            if(jobScreenController.headerOffset.value != 0.0)
-              return;
+            if (jobScreenController.headerOffset.value != 0.0) return;
 
             await apiCalling();
           },
@@ -97,441 +96,494 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                       Status.COMPLETE &&
                   jobScreenController.saveJobsList.isNotEmpty
               ? Builder(builder: (context) {
-                  final rows =
-                      buildNativeAdRows(jobScreenController.saveJobsList.length);
+                  final rows = buildNativeAdRows(
+                      jobScreenController.saveJobsList.length);
                   return ListView.builder(
-                  controller: _scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  itemCount: rows.length,
-                  itemBuilder: (context, index) {
-                    final row = rows[index];
-                    if (row.isAd) {
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                        child: NativeAdSlot(
-                          adOrdinal: row.adOrdinal,
-                          keyPrefix: 'job_saved_native_ad',
-                        ),
-                      );
-                    }
-                    if (jobScreenController.saveJobsList.isNotEmpty) {
-                      Jobs? job =
-                          jobScreenController.saveJobsList[row.contentIndex]?.jobId;
-                      String jobID = job?.sId ?? "";
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                        child: InkWell(
-                          onTap: () {
-                            if (isIndividual()) {
-                              Get.to(() => JobDetailScreen(
-                                    jobId: jobID,
-                                    isPostApply: AppConstants.APPLY_NOW,
-                                    isPostDirection: AppConstants.DIRECTION,
-                                    isPostEdit: '',
-                                    isPostCreate: '',
-                                  ));
-                            }
-                            if (isBusiness()) {
-                              Get.to(() => JobDetailScreen(
-                                    jobId: jobID,
-                                    isPostDirection: '',
-                                    isPostApply: '',
-                                    isPostEdit: '',
-                                    isPostCreate: '',
-                                  ));
-                            }
-                          },
-                          child: Container(
-                            // height: isBusiness()
-                            //     ? SizeConfig.size200 - 15
-                            //     : SizeConfig.size200 + 6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              color: AppColors.white,
-                            ),
-                            child:IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    navigatePushTo(
-                                      context,
-                                      ImageViewScreen(
-                                        appBarTitle:
-                                        AppStrings.imageViewer,
-                                        imageUrls: [job?.jobPostImage ?? ""],
-                                        initialIndex: 0,
-                                      ),
-                                    );
-                                  },
-                                  child: SizedBox(
-                                    width: SizeConfig.screenWidth * 0.35,
-                                    child: ClipRRect(
-                                      borderRadius:
-                                          const BorderRadius.horizontal(
-                                              left: Radius.circular(10.0)),
-                                      child: CachedNetworkImage(
-                                        imageUrl: job?.jobPostImage ?? "",
-                                        // <-- Replace with your image URL from API
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        // height: double.infinity,
-                                        errorWidget: (context, url, error) =>
-                                            Container(
-                                          width: SizeConfig.screenWidth,
-                                          height: SizeConfig.size140,
-                                          color: Colors.grey[300],
-                                          child: LocalAssets(
-                                              imagePath:
-                                                  AppIconAssets.blueEraIcon),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    itemCount: rows.length,
+                    itemBuilder: (context, index) {
+                      final row = rows[index];
+                      if (row.isAd) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                          child: NativeAdSlot(
+                            adOrdinal: row.adOrdinal,
+                            keyPrefix: 'job_saved_native_ad',
+                          ),
+                        );
+                      }
+                      if (jobScreenController.saveJobsList.isNotEmpty) {
+                        Jobs? job = jobScreenController
+                            .saveJobsList[row.contentIndex]?.jobId;
+                        String jobID = job?.sId ?? "";
+                        return Padding(
+                            padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                            child: InkWell(
+                              onTap: () {
+                                if (isIndividual()) {
+                                  Get.to(() => JobDetailScreen(
+                                        jobId: jobID,
+                                        isPostApply: AppConstants.APPLY_NOW,
+                                        isPostDirection: AppConstants.DIRECTION,
+                                        isPostEdit: '',
+                                        isPostCreate: '',
+                                      ));
+                                }
+                                if (isBusiness()) {
+                                  Get.to(() => JobDetailScreen(
+                                        jobId: jobID,
+                                        isPostDirection: '',
+                                        isPostApply: '',
+                                        isPostEdit: '',
+                                        isPostCreate: '',
+                                      ));
+                                }
+                              },
+                              child: Container(
+                                // height: isBusiness()
+                                //     ? SizeConfig.size200 - 15
+                                //     : SizeConfig.size200 + 6,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  color: AppColors.white,
                                 ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                        left: SizeConfig.size14,
-                                        right: SizeConfig.size12,
-                                        top: SizeConfig.size10,
-                                        bottom: SizeConfig.size10),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // SizedBox(height: SizeConfig.size5,),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            if (isIndividual()) ...[
-                                              CommonCircularImage(
-                                                url: job?.businessDetails
-                                                        ?.buisness_logo ??
-                                                    "",
-                                                title: job?.businessDetails
-                                                    ?.businessName,
-                                              ),
-                                              SizedBox(
-                                                  width: SizeConfig.size10),
-                                            ],
-
-                                            Expanded(
-                                              child: Container(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    CustomText(
-                                                      (isBusiness())
-                                                          ? job?.jobTitle
-                                                          : job?.companyName ??
-                                                              "",
-                                                      fontSize:
-                                                          SizeConfig.medium,
-                                                      color: AppColors.black28,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    CustomText(
-                                                      "${AppStrings.postedOn.tr} ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
-                                                      fontSize: SizeConfig
-                                                          .extraSmall8,
-                                                      color: AppColors
-                                                          .secondaryTextColor,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ],
-                                                ),
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          navigatePushTo(
+                                            context,
+                                            ImageViewScreen(
+                                              appBarTitle:
+                                                  AppStrings.imageViewer,
+                                              imageUrls: [
+                                                job?.jobPostImage ?? ""
+                                              ],
+                                              initialIndex: 0,
+                                            ),
+                                          );
+                                        },
+                                        child: SizedBox(
+                                          width: SizeConfig.screenWidth * 0.35,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.horizontal(
+                                                    left:
+                                                        Radius.circular(10.0)),
+                                            child: CachedNetworkImage(
+                                              imageUrl: job?.jobPostImage ?? "",
+                                              // <-- Replace with your image URL from API
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              // height: double.infinity,
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Container(
+                                                width: SizeConfig.screenWidth,
+                                                height: SizeConfig.size140,
+                                                color: Colors.grey[300],
+                                                child: LocalAssets(
+                                                    imagePath: AppIconAssets
+                                                        .blueEraIcon),
                                               ),
                                             ),
-
-                                            // Three dots menu
-                                            if ((accountTypeGlobal
-                                                    .toUpperCase() ==
-                                                AppConstants.business))
-                                              Container(
-                                                width: SizeConfig.size20,
-                                                height: SizeConfig.size30,
-                                                child: PopupMenuButton<String>(
-                                                  padding: EdgeInsets.zero,
-                                                  offset: const Offset(-6, 36),
-                                                  color: AppColors.white,
-                                                  elevation: 8,
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10)),
-                                                  onSelected: (value) async {
-                                                    if ((job?.status ==
-                                                            AppConstants
-                                                                .ON_HOLD) ||
-                                                        (job?.status ==
-                                                            AppConstants
-                                                                .CLOSED)) {
-                                                      switch (value) {
-                                                        case 'Un Hide':
-                                                          final Map<String,
-                                                                  dynamic>
-                                                              params = {
-                                                            ApiKeys.status:
-                                                                AppConstants
-                                                                    .OPEN,
-                                                          };
-
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: jobID,
-                                                            params: params,
-                                                          );
-                                                          apiCalling();
-
-                                                          break;
-
-                                                        case 'Open Vacancy':
-                                                          // Handle close vacancy action
-                                                          final Map<String,
-                                                                  dynamic>
-                                                              params = {
-                                                            ApiKeys.status:
-                                                                AppConstants
-                                                                    .OPEN,
-                                                          };
-
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: jobID,
-                                                            params: params,
-                                                          );
-                                                          apiCalling();
-
-                                                          break;
-                                                      }
-                                                    } else {
-                                                      switch (value) {
-                                                        case 'Edit':
-                                                          // Additional validation
-                                                          if (jobID.isEmpty) {
-                                                            commonSnackBar(
-                                                              message:
-                                                                  AppStrings.jobIdMissing,
-                                                            );
-
-                                                            return;
-                                                          }
-
-                                                          // Use exactly the same navigation approach as JobDetailsScreen
-                                                          Navigator.pushNamed(
-                                                              context,
-                                                              RouteHelper
-                                                                  .getCreateJobPostScreenRoute(),
-                                                              arguments: {
-                                                                'isEditMode':
-                                                                    true,
-                                                                'jobId': jobID,
-                                                              });
-                                                          // Handle edit action
-                                                          break;
-                                                        case 'Hide':
-                                                          final Map<String,
-                                                                  dynamic>
-                                                              params = {
-                                                            ApiKeys.status:
-                                                                "On Hold",
-                                                          };
-
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: jobID,
-                                                            params: params,
-                                                          );
-                                                          apiCalling();
-
-                                                          break;
-                                                        case 'Share':
-                                                          // Handle share action
-                                                          break;
-
-                                                        case 'Close Vacancy':
-                                                          final Map<String,
-                                                                  dynamic>
-                                                              params = {
-                                                            ApiKeys.status:
-                                                                "Closed",
-                                                          };
-
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: jobID,
-                                                            params: params,
-                                                          );
-                                                          apiCalling();
-
-                                                          break;
-                                                      }
-                                                    }
-                                                    print('Selected: $value');
-                                                  },
-                                                  icon: Icon(
-                                                    Icons.more_vert,
-                                                    color: AppColors.black28,
-                                                    size: SizeConfig.size20,
-                                                  ),
-                                                  itemBuilder: (context) =>
-                                                      createPopupJobCardItems(
-                                                          status: job?.status),
-                                                ),
-                                              ),
-                                          ],
+                                          ),
                                         ),
-                                        SizedBox(height: SizeConfig.size5),
-                                        CommonHorizontalDivider(
-                                            color: AppColors.grey9A,
-                                            height: 0.5),
-                                        SizedBox(height: SizeConfig.size4),
-
-                                        /// 🔵 Job Info (Flexible to fit available space)
-                                        if (isIndividual())
-                                          buildJobDescriptionContent(
-                                              title: '${AppStrings.jobTitle.tr}: ',
-                                              subtitle:
-                                                  job?.jobTitle ?? AppStrings.jobTitle),
-                                        buildJobDescriptionContent(
-                                            title: '${AppStrings.jobType.tr}: ',
-                                            subtitle:
-                                                '${job?.jobType ?? ""} - ${job?.workMode ?? ""}'),
-                                        buildJobDescriptionContent(
-                                            title: '${AppStrings.minExperience.tr}: ',
-                                            subtitle:
-                                                '${job?.experience ?? 0} yrs'),
-                                        buildJobDescriptionContent(
-                                            title: '${AppStrings.monthlyPay.tr}: ',
-                                            subtitle:
-                                                '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
-                                        buildJobDescriptionContent(
-                                            title: '${AppStrings.jobLocation.tr}: ',
-                                            subtitle:
-                                                job?.location?.addressString ??
-                                                    'N/A'),
-                                        SizedBox(
-                                          height: SizeConfig.size10,
-                                        ),
-
-                                        /// 🔵 Bottom Buttons
-                                        ((accountTypeGlobal.toUpperCase() ==
-                                                AppConstants.business))
-                                            ? PositiveCustomBtn(
-                                                borderColor:
-                                                    AppColors.primaryColor,
-                                                textColor:
-                                                    AppColors.primaryColor,
-                                                bgColor: AppColors.white,
-                                                height: SizeConfig.size32,
-                                                onTap: () {
-                                                  if ((job?.applications
-                                                              ?.length ??
-                                                          0) >
-                                                      0) {
-                                                    Get.to(
-                                                        JobApplicationsScreen(
-                                                      jobsData: job,
-                                                      onHeaderVisibilityChanged:
-                                                          widget
-                                                              .onHeaderVisibilityChanged,
-                                                          headerHeight: widget.headerHeight,
-                                                    ));
-                                                  } else {
-                                                    commonSnackBar(
-                                                        message:
-                                                        AppStrings.noApplicationFound);
-                                                  }
-                                                },
-                                                title: (job?.applications
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                    ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
-                                                    : "${AppStrings.applications.tr}")
-                                            : Row(
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                              left: SizeConfig.size14,
+                                              right: SizeConfig.size12,
+                                              top: SizeConfig.size10,
+                                              bottom: SizeConfig.size10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // SizedBox(height: SizeConfig.size5,),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
                                                 children: [
-                                                    Expanded(
-                                                      child: PositiveCustomBtn(
-                                                        height:
-                                                            SizeConfig.size32,
-                                                        onTap: () {
-                                                          if (job != null) {
-                                                            openGoogleMaps(
-                                                                locationModel: LocationModel(
-                                                                    latitude: double.parse(job
-                                                                            .location
-                                                                            ?.latitude ??
-                                                                        "0.0"),
-                                                                    longitude: double.parse(job
-                                                                            .location
-                                                                            ?.longitude ??
-                                                                        "0.0"),
-                                                                    address: job
-                                                                        .location
-                                                                        ?.addressString));
-                                                          }
-                                                        },
-                                                        title:  AppStrings.directions,
-                                                        bgColor:
-                                                            AppColors.white,
-                                                        borderColor: AppColors
-                                                            .primaryColor,
-                                                        textColor: AppColors
-                                                            .primaryColor,
-                                                        fontSize:
-                                                            SizeConfig.small,
-                                                      ),
+                                                  if (isIndividual()) ...[
+                                                    CommonCircularImage(
+                                                      url: job?.businessDetails
+                                                              ?.buisness_logo ??
+                                                          "",
+                                                      title: job
+                                                          ?.businessDetails
+                                                          ?.businessName,
                                                     ),
-                                                  SizedBox(
-                                                      width: SizeConfig.size8),
-                                                  if ((job?.isApplied == false))
+                                                    SizedBox(
+                                                        width:
+                                                            SizeConfig.size10),
+                                                  ],
 
                                                   Expanded(
-                                                    child: PositiveCustomBtn(
-                                                      height: SizeConfig.size32,
-                                                      onTap: () {
-                                                        Get.to(() =>
-                                                            JobDetailScreen(
-                                                              jobId: jobID,
-                                                              isPostDirection:
-                                                                  AppConstants
-                                                                      .DIRECTION,
-                                                              isPostApply:
-                                                                  AppConstants
-                                                                      .APPLY_NOW,
-                                                              isPostEdit: '',
-                                                              isPostCreate: '',
-                                                            ));
-                                                      },
-                                                      title:  AppStrings.applyNow,
-                                                      fontSize:
-                                                          SizeConfig.small,
+                                                    child: Container(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          CustomText(
+                                                            (isBusiness())
+                                                                ? job?.jobTitle
+                                                                : job?.companyName ??
+                                                                    "",
+                                                            fontSize: SizeConfig
+                                                                .medium,
+                                                            color: AppColors
+                                                                .black28,
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                          CustomText(
+                                                            "${AppStrings.postedOn.tr} ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
+                                                            fontSize: SizeConfig
+                                                                .extraSmall8,
+                                                            color: AppColors
+                                                                .secondaryTextColor,
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
+
+                                                  // Three dots menu
+                                                  if ((accountTypeGlobal
+                                                          .toUpperCase() ==
+                                                      AppConstants.business))
+                                                    Container(
+                                                      width: SizeConfig.size20,
+                                                      height: SizeConfig.size30,
+                                                      child: PopupMenuButton<
+                                                          String>(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        offset: const Offset(
+                                                            -6, 36),
+                                                        color: AppColors.white,
+                                                        elevation: 8,
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10)),
+                                                        onSelected:
+                                                            (value) async {
+                                                          if ((job?.status ==
+                                                                  AppConstants
+                                                                      .ON_HOLD) ||
+                                                              (job?.status ==
+                                                                  AppConstants
+                                                                      .CLOSED)) {
+                                                            switch (value) {
+                                                              case 'Un Hide':
+                                                                final Map<
+                                                                        String,
+                                                                        dynamic>
+                                                                    params = {
+                                                                  ApiKeys.status:
+                                                                      AppConstants
+                                                                          .OPEN,
+                                                                };
+
+                                                                await jobScreenController
+                                                                    .updateJobPostDetailsApi(
+                                                                  jobId: jobID,
+                                                                  params:
+                                                                      params,
+                                                                );
+                                                                apiCalling();
+
+                                                                break;
+
+                                                              case 'Open Vacancy':
+                                                                // Handle close vacancy action
+                                                                final Map<
+                                                                        String,
+                                                                        dynamic>
+                                                                    params = {
+                                                                  ApiKeys.status:
+                                                                      AppConstants
+                                                                          .OPEN,
+                                                                };
+
+                                                                await jobScreenController
+                                                                    .updateJobPostDetailsApi(
+                                                                  jobId: jobID,
+                                                                  params:
+                                                                      params,
+                                                                );
+                                                                apiCalling();
+
+                                                                break;
+                                                            }
+                                                          } else {
+                                                            switch (value) {
+                                                              case 'Edit':
+                                                                // Additional validation
+                                                                if (jobID
+                                                                    .isEmpty) {
+                                                                  commonSnackBar(
+                                                                    message:
+                                                                        AppStrings
+                                                                            .jobIdMissing,
+                                                                  );
+
+                                                                  return;
+                                                                }
+
+                                                                // Use exactly the same navigation approach as JobDetailsScreen
+                                                                Navigator.pushNamed(
+                                                                    context,
+                                                                    RouteHelper
+                                                                        .getCreateJobPostScreenRoute(),
+                                                                    arguments: {
+                                                                      'isEditMode':
+                                                                          true,
+                                                                      'jobId':
+                                                                          jobID,
+                                                                    });
+                                                                // Handle edit action
+                                                                break;
+                                                              case 'Hide':
+                                                                final Map<
+                                                                        String,
+                                                                        dynamic>
+                                                                    params = {
+                                                                  ApiKeys.status:
+                                                                      "On Hold",
+                                                                };
+
+                                                                await jobScreenController
+                                                                    .updateJobPostDetailsApi(
+                                                                  jobId: jobID,
+                                                                  params:
+                                                                      params,
+                                                                );
+                                                                apiCalling();
+
+                                                                break;
+                                                              case 'Share':
+                                                                // Handle share action
+                                                                break;
+
+                                                              case 'Close Vacancy':
+                                                                final Map<
+                                                                        String,
+                                                                        dynamic>
+                                                                    params = {
+                                                                  ApiKeys.status:
+                                                                      "Closed",
+                                                                };
+
+                                                                await jobScreenController
+                                                                    .updateJobPostDetailsApi(
+                                                                  jobId: jobID,
+                                                                  params:
+                                                                      params,
+                                                                );
+                                                                apiCalling();
+
+                                                                break;
+                                                            }
+                                                          }
+                                                          print(
+                                                              'Selected: $value');
+                                                        },
+                                                        icon: Icon(
+                                                          Icons.more_vert,
+                                                          color:
+                                                              AppColors.black28,
+                                                          size:
+                                                              SizeConfig.size20,
+                                                        ),
+                                                        itemBuilder: (context) =>
+                                                            createPopupJobCardItems(
+                                                                status: job
+                                                                    ?.status),
+                                                      ),
+                                                    ),
                                                 ],
-                                              )
-                                      ],
-                                    ),
+                                              ),
+                                              SizedBox(
+                                                  height: SizeConfig.size5),
+                                              CommonHorizontalDivider(
+                                                  color: AppColors.grey9A,
+                                                  height: 0.5),
+                                              SizedBox(
+                                                  height: SizeConfig.size4),
+
+                                              /// 🔵 Job Info (Flexible to fit available space)
+                                              if (isIndividual())
+                                                buildJobDescriptionContent(
+                                                    title:
+                                                        '${AppStrings.jobTitle.tr}: ',
+                                                    subtitle: job?.jobTitle ??
+                                                        AppStrings.jobTitle),
+                                              buildJobDescriptionContent(
+                                                  title:
+                                                      '${AppStrings.jobType.tr}: ',
+                                                  subtitle:
+                                                      '${job?.jobType ?? ""} - ${job?.workMode ?? ""}'),
+                                              buildJobDescriptionContent(
+                                                  title:
+                                                      '${AppStrings.minExperience.tr}: ',
+                                                  subtitle:
+                                                      '${job?.experience ?? 0} yrs'),
+                                              buildJobDescriptionContent(
+                                                  title:
+                                                      '${AppStrings.monthlyPay.tr}: ',
+                                                  subtitle:
+                                                      '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
+                                              buildJobDescriptionContent(
+                                                  title:
+                                                      '${AppStrings.jobLocation.tr}: ',
+                                                  subtitle: job?.location
+                                                          ?.addressString ??
+                                                      'N/A'),
+                                              SizedBox(
+                                                height: SizeConfig.size10,
+                                              ),
+
+                                              /// 🔵 Bottom Buttons
+                                              ((accountTypeGlobal
+                                                          .toUpperCase() ==
+                                                      AppConstants.business))
+                                                  ? PositiveCustomBtn(
+                                                      borderColor: AppColors
+                                                          .primaryColor,
+                                                      textColor: AppColors
+                                                          .primaryColor,
+                                                      bgColor: AppColors.white,
+                                                      height: SizeConfig.size32,
+                                                      onTap: () {
+                                                        if ((job?.applications
+                                                                    ?.length ??
+                                                                0) >
+                                                            0) {
+                                                          Get.to(
+                                                              () =>
+                                                                  JobApplicationsScreen(
+                                                                    jobsData:
+                                                                        job,
+                                                                    onHeaderVisibilityChanged:
+                                                                        widget
+                                                                            .onHeaderVisibilityChanged,
+                                                                    headerHeight:
+                                                                        widget
+                                                                            .headerHeight,
+                                                                  ),
+                                                              binding:
+                                                                  JobApplicationsBinding());
+                                                        } else {
+                                                          commonSnackBar(
+                                                              message: AppStrings
+                                                                  .noApplicationFound);
+                                                        }
+                                                      },
+                                                      title: (job?.applications
+                                                                  ?.isNotEmpty ??
+                                                              false)
+                                                          ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
+                                                          : "${AppStrings.applications.tr}")
+                                                  : Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child:
+                                                              PositiveCustomBtn(
+                                                            height: SizeConfig
+                                                                .size32,
+                                                            onTap: () {
+                                                              if (job != null) {
+                                                                openGoogleMaps(
+                                                                    locationModel: LocationModel(
+                                                                        latitude:
+                                                                            double.parse(job.location?.latitude ??
+                                                                                "0.0"),
+                                                                        longitude:
+                                                                            double.parse(job.location?.longitude ??
+                                                                                "0.0"),
+                                                                        address: job
+                                                                            .location
+                                                                            ?.addressString));
+                                                              }
+                                                            },
+                                                            title: AppStrings
+                                                                .directions,
+                                                            bgColor:
+                                                                AppColors.white,
+                                                            borderColor: AppColors
+                                                                .primaryColor,
+                                                            textColor: AppColors
+                                                                .primaryColor,
+                                                            fontSize: SizeConfig
+                                                                .small,
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                            width: SizeConfig
+                                                                .size8),
+                                                        if ((job?.isApplied ==
+                                                            false))
+                                                          Expanded(
+                                                            child:
+                                                                PositiveCustomBtn(
+                                                              height: SizeConfig
+                                                                  .size32,
+                                                              onTap: () {
+                                                                Get.to(() =>
+                                                                    JobDetailScreen(
+                                                                      jobId:
+                                                                          jobID,
+                                                                      isPostDirection:
+                                                                          AppConstants
+                                                                              .DIRECTION,
+                                                                      isPostApply:
+                                                                          AppConstants
+                                                                              .APPLY_NOW,
+                                                                      isPostEdit:
+                                                                          '',
+                                                                      isPostCreate:
+                                                                          '',
+                                                                    ));
+                                                              },
+                                                              title: AppStrings
+                                                                  .applyNow,
+                                                              fontSize:
+                                                                  SizeConfig
+                                                                      .small,
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ));
-                    }
-                    return CustomText(AppStrings.noSavedJobsYet);
-                  },
-                );
+                              ),
+                            ));
+                      }
+                      return CustomText(AppStrings.noSavedJobsYet);
+                    },
+                  );
                 })
               : Container(
                   width: Get.width,

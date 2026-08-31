@@ -28,7 +28,7 @@ class SchoolContactUs extends StatefulWidget {
 }
 
 class _SchoolContactUsState extends State<SchoolContactUs> {
-  final controller = Get.put(BranchContactController());
+  final controller = Get.find<BranchContactController>();
 
   @override
   void initState() {
@@ -51,7 +51,8 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {
-                    return Center(child: CustomText(AppStrings.noContactsFound));
+                    return Center(
+                        child: CustomText(AppStrings.noContactsFound));
                   }
                   return ListView.builder(
                     shrinkWrap: true,
@@ -82,7 +83,9 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                 )),
                                 InkWell(
                                   onTap: () {
-                                    Get.to(BranchOnlyScreen(schoolContactUsData: data,));
+                                    Get.to(() => BranchOnlyScreen(
+                                          schoolContactUsData: data,
+                                        ));
                                   },
                                   child: LocalAssets(
                                     imagePath: AppIconAssets.editIcon,
@@ -99,12 +102,11 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                         1) {
                                       commonSnackBar(
                                           message:
-                                          AppStrings.minOneBranchRequired);
+                                              AppStrings.minOneBranchRequired);
                                     } else {
                                       await showCommonDialog(
                                           context: context,
-                                          text:
-                                          AppStrings.deleteBranchConfirm,
+                                          text: AppStrings.deleteBranchConfirm,
                                           confirmCallback: () async {
                                             await controller
                                                 .deleteSchoolBranchController(
@@ -142,7 +144,8 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                               physics: NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 OtherProfileDepartments contactData =
-                                    data.departments?[index] ?? OtherProfileDepartments();
+                                    data.departments?[index] ??
+                                        OtherProfileDepartments();
                                 return Container(
                                   padding: EdgeInsets.all(8),
                                   margin: EdgeInsets.only(bottom: 12),
@@ -163,11 +166,11 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                           ),
                                           InkWell(
                                             onTap: () {
-                                              Get.to(DepartmentOnlyScreen(
-                                                contactInfo: contactData,
-                                                isContactInfoEdit: true,
-                                                branchId: data.id,
-                                              ));
+                                              Get.to(() => DepartmentOnlyScreen(
+                                                    contactInfo: contactData,
+                                                    isContactInfoEdit: true,
+                                                    branchId: data.id,
+                                                  ));
                                             },
                                             child: LocalAssets(
                                               imagePath: AppIconAssets.editIcon,
@@ -182,13 +185,13 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                               if (data.departments?.length ==
                                                   1) {
                                                 commonSnackBar(
-                                                    message:
-                                                    AppStrings.minOneDeptRequired);
+                                                    message: AppStrings
+                                                        .minOneDeptRequired);
                                               } else {
                                                 await showCommonDialog(
                                                     context: context,
-                                                    text:
-                                                    AppStrings. deleteDeptConfirm,
+                                                    text: AppStrings
+                                                        .deleteDeptConfirm,
                                                     confirmCallback: () async {
                                                       await controller
                                                           .deleteSchoolBranchDepartmentController(
@@ -263,9 +266,9 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  Get.to(DepartmentOnlyScreen(
-                                    branchId: data.id,
-                                  ));
+                                  Get.to(() => DepartmentOnlyScreen(
+                                        branchId: data.id,
+                                      ));
                                 },
                               ),
                             )
@@ -289,11 +292,10 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
 
             /// Add More Course Button
             AddMoreIconButton(
-              onTapEvent: () {
-                Get.to(BranchDetailsFormScreen());
-              },
-              buttonName: AppStrings.addAnotherBranch
-            ),
+                onTapEvent: () {
+                  Get.to(() => BranchDetailsFormScreen());
+                },
+                buttonName: AppStrings.addAnotherBranch),
             SizedBox(
               height: SizeConfig.size25,
             ),

@@ -17,9 +17,7 @@ class SuggestedChannelsScreen extends StatefulWidget {
 }
 
 class _SuggestedChannelsScreenState extends State<SuggestedChannelsScreen> {
-  final ChannelFeedController _controller = Get.isRegistered<ChannelFeedController>()
-      ? Get.find<ChannelFeedController>()
-      : Get.put(ChannelFeedController());
+  final ChannelFeedController _controller = Get.find<ChannelFeedController>();
 
   @override
   void initState() {
@@ -33,10 +31,11 @@ class _SuggestedChannelsScreenState extends State<SuggestedChannelsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CommonBackAppBar(title:  AppStrings.suggested,),
+      appBar: CommonBackAppBar(
+        title: AppStrings.suggested,
+      ),
       body: RefreshIndicator(
-        onRefresh: () =>
-            _controller.fetchUnJoinChannelData(loadMore: false),
+        onRefresh: () => _controller.fetchUnJoinChannelData(loadMore: false),
         child: Obx(() {
           final list = _controller.unJoinChannelDataList;
           if (list.isEmpty) {
@@ -64,8 +63,8 @@ class _SuggestedChannelsScreenState extends State<SuggestedChannelsScreen> {
                   () => ChannelFeedPostListingScreen(channelData: channel),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   child: UnjoinChannelCardWidget(
                     channelModel: channel,
                     index: index,

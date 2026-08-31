@@ -37,9 +37,7 @@ class TagUserController extends GetxController {
         ? Get.find<PhotoPostController>()
         : Get.put(PhotoPostController());
 
-    final messagePostController = Get.isRegistered<MessagePostController>()
-        ? Get.find<MessagePostController>()
-        : Get.put(MessagePostController());
+    final messagePostController = Get.put(MessagePostController());
 
     if (isInitialLoad) {
       page = 1;
@@ -84,9 +82,11 @@ class TagUserController extends GetxController {
               false) {
             // final taggedIds =
             //     photoPostController.postData?.value.taggedUsers ?? [];
-            final List<String> taggedIds
-                = photoPostController.postData?.value.taggedUsers?.map((user) => user.id as String).toList()??[];
-
+            final List<String> taggedIds = photoPostController
+                    .postData?.value.taggedUsers
+                    ?.map((user) => user.id as String)
+                    .toList() ??
+                [];
 
             selectedUsers.value = allUsers.where((user) {
               final isTagged = taggedIds.contains(user.id);
@@ -101,7 +101,11 @@ class TagUserController extends GetxController {
         if (messagePostController.isMsgPostEdit) {
           if (messagePostController.taggedSelectedUsersList?.isNotEmpty ??
               false) {
-            final List<String> taggedIds = messagePostController.taggedSelectedUsersList?.map((user) => user.id as String).toList()??[];
+            final List<String> taggedIds = messagePostController
+                    .taggedSelectedUsersList
+                    ?.map((user) => user.id as String)
+                    .toList() ??
+                [];
             selectedUsers.value = allUsers.where((user) {
               final isTagged = taggedIds.contains(user.id);
               user.isSelected.value =

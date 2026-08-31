@@ -50,7 +50,7 @@ class _ProductsStoreDetailsScreenState
     extends State<ProductsStoreDetailsScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final ProductController controller = Get.put(ProductController());
+  final ProductController controller = Get.find<ProductController>();
   int _currentIndex = 0;
   bool isOwnProduct = false;
 
@@ -142,8 +142,7 @@ class _ProductsStoreDetailsScreenState
             onPressed: () {
               Get.until(
                 (route) =>
-                    route.settings.name ==
-                    RouteHelper.getProductScreenRoute(),
+                    route.settings.name == RouteHelper.getProductScreenRoute(),
               );
             },
             child: const CustomText(AppStrings.yes),

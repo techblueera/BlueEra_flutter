@@ -63,11 +63,12 @@ bool isMessageOlderThan24Hours(String? createdAt,
   }
 }
 
-Widget timeAndReadInfoWidget({required Messages message,
-  required bool isMyMessage,
-  required String time,
-  Color? indicateColor,
-  Color? timeColor}) {
+Widget timeAndReadInfoWidget(
+    {required Messages message,
+    required bool isMyMessage,
+    required String time,
+    Color? indicateColor,
+    Color? timeColor}) {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeCtrl = Get.find<ChatThemeController>();
   return Row(
@@ -75,52 +76,54 @@ Widget timeAndReadInfoWidget({required Messages message,
     crossAxisAlignment: CrossAxisAlignment.center,
     mainAxisSize: MainAxisSize.min,
     children: [
-      CustomText("${time}", color: timeColor ?? chatThemeCtrl.chatTimeColor.value, fontSize: 10),
+      CustomText("${time}",
+          color: timeColor ?? chatThemeCtrl.chatTimeColor.value, fontSize: 10),
       const SizedBox(
         width: 1.5,
       ),
       isMyMessage
           ? (message.sendStatus == "pending")
-          ? Icon(
-        Icons.timelapse_outlined,
-        color: Colors.grey,
-        size: 16,
-      )
-          : Obx(() {
-        // Determine the effective status: use whichever is further along
-        // between the per-message status and the conversation-level status.
-        const statusOrder = {'sent': 0, 'delivered': 1, 'read': 2};
-        final msgStatus = message.status ?? 'sent';
-        final convStatus = chatViewController.readMessageStatus.value;
-        final msgRank = statusOrder[msgStatus] ?? 0;
-        final convRank = statusOrder[convStatus] ?? -1;
-        final effectiveStatus = (convRank > msgRank) ? convStatus : msgStatus;
+              ? Icon(
+                  Icons.timelapse_outlined,
+                  color: Colors.grey,
+                  size: 16,
+                )
+              : Obx(() {
+                  // Determine the effective status: use whichever is further along
+                  // between the per-message status and the conversation-level status.
+                  const statusOrder = {'sent': 0, 'delivered': 1, 'read': 2};
+                  final msgStatus = message.status ?? 'sent';
+                  final convStatus = chatViewController.readMessageStatus.value;
+                  final msgRank = statusOrder[msgStatus] ?? 0;
+                  final convRank = statusOrder[convStatus] ?? -1;
+                  final effectiveStatus =
+                      (convRank > msgRank) ? convStatus : msgStatus;
 
-        if (message.sendStatus == "pending") {
-          return Icon(
-            Icons.timelapse_outlined,
-            color: Colors.grey,
-            size: 16,
-          );
-        } else if (effectiveStatus == 'read') {
-          return LocalAssets(
-            imagePath: AppIconAssets.chat_double_tick,
-            imgColor: Colors.blue,
-          );
-        } else if (effectiveStatus == 'delivered') {
-          return LocalAssets(
-            imagePath: AppIconAssets.chat_double_tick,
-            imgColor: Colors.grey,
-          );
-        } else {
-          // sent or null
-          return Icon(
-            Icons.check,
-            color: indicateColor ?? AppColors.white,
-            size: 16,
-          );
-        }
-      })
+                  if (message.sendStatus == "pending") {
+                    return Icon(
+                      Icons.timelapse_outlined,
+                      color: Colors.grey,
+                      size: 16,
+                    );
+                  } else if (effectiveStatus == 'read') {
+                    return LocalAssets(
+                      imagePath: AppIconAssets.chat_double_tick,
+                      imgColor: Colors.blue,
+                    );
+                  } else if (effectiveStatus == 'delivered') {
+                    return LocalAssets(
+                      imagePath: AppIconAssets.chat_double_tick,
+                      imgColor: Colors.grey,
+                    );
+                  } else {
+                    // sent or null
+                    return Icon(
+                      Icons.check,
+                      color: indicateColor ?? AppColors.white,
+                      size: 16,
+                    );
+                  }
+                })
           : SizedBox()
     ],
   );
@@ -141,28 +144,29 @@ Widget noChatsFound([bool? reminderMsg]) {
           height: 14,
         ),
         CustomText(
-          reminderMsg==null?AppStrings.noChatsFound.tr:AppStrings.noReminderMessagesFound.tr,
+          reminderMsg == null
+              ? AppStrings.noChatsFound.tr
+              : AppStrings.noReminderMessagesFound.tr,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(
           height: 6,
         ),
-        if(reminderMsg==null)
-        CustomText(AppStrings.goToContactsAndStartNewConversation.tr),
+        if (reminderMsg == null)
+          CustomText(AppStrings.goToContactsAndStartNewConversation.tr),
         const SizedBox(
           height: 6,
         ),
-        if(reminderMsg==null)
-
-        InkWell(
-            onTap: () {
-              Get.toNamed(RouteHelper.getChatContactsRoute());
-            },
-            child: CustomText(
-              AppStrings.clickHereToStartConversation.tr,
-              color: Colors.blue,
-            )),
+        if (reminderMsg == null)
+          InkWell(
+              onTap: () {
+                Get.toNamed(RouteHelper.getChatContactsRoute());
+              },
+              child: CustomText(
+                AppStrings.clickHereToStartConversation.tr,
+                color: Colors.blue,
+              )),
       ],
     ),
   );
@@ -196,7 +200,9 @@ Widget noGroupChatsFound() {
         ),
         InkWell(
             onTap: () {
-              Get.to(ContactsPage(from: "group",));
+              Get.to(() => ContactsPage(
+                    from: "group",
+                  ));
             },
             child: CustomText(
               AppStrings.createYourFirstGroup.tr,
@@ -283,7 +289,8 @@ Widget _buildSymbolReplyPreview(
           width: SizeConfig.size20,
           height: SizeConfig.size20,
           color: AppColors.grey9A.withValues(alpha: 0.2),
-          child: Icon(Icons.image, size: SizeConfig.size14, color: AppColors.grey9A),
+          child: Icon(Icons.image,
+              size: SizeConfig.size14, color: AppColors.grey9A),
         ),
       ),
     );
@@ -303,7 +310,8 @@ Widget _buildSymbolReplyPreview(
         child: CustomText(
           (lastMessage ?? '').isEmpty
               ? AppStrings.symbolReply.tr
-              : AppStrings.symbolReplyFmt.trParams({'message': lastMessage ?? ''}),
+              : AppStrings.symbolReplyFmt
+                  .trParams({'message': lastMessage ?? ''}),
           fontSize: SizeConfig.size14,
           color: secondary,
           maxLines: 1,
@@ -314,7 +322,7 @@ Widget _buildSymbolReplyPreview(
   );
 }
 
-Widget  ChatListTile({
+Widget ChatListTile({
   required Function onSelect,
   required String type,
   required BuildContext context,
@@ -413,559 +421,634 @@ Widget  ChatListTile({
         chatViewController.selectedChatList.add(chat);
         onSelect();
       } else {
-
-      commonSnackBar(message: AppStrings.onlyFiveMembersCanChoose.tr);
+        commonSnackBar(message: AppStrings.onlyFiveMembersCanChoose.tr);
       }
     }
   }
 
-  return ((senderName == null || senderName == "null") & (senderContactNo ==
-      null))
+  return ((senderName == null || senderName == "null") &
+          (senderContactNo == null))
       ? const SizedBox()
       : InkWell(
-    onLongPress: onLongPress,
-    onTap: onTab ??
-            () {
-          if (chatViewController.isChatListSelectionMode.value) {
-            chatViewController.toggleChatListSelection(chat);
-            onSelect();
-            return;
-          }
-          if (isForwardUI == true) {
-            selectChatListCard();
-          } else if ((chat?.type == AppConstants.group_Chat_Type) ||
-              (chat?.isGroup == true)) {
-            // Group conversations can surface inside the personal/business
-            // list payloads (`type:"group"`); open the dedicated group screen.
-            chatViewController.openGroupFromChatList(chat);
-          } else {
-            chatViewController.openChatFromChatList(
-              userId: senderId,
-              conversationId: conversationId,
-              type: type,
-              contactName: senderName,
-              contactNo: senderContactNo,
-              profileImage: senderProfileImage,
-            );
-          }
-        },
-    child: Container(
-      color: isChatListSelected
-          ? AppColors.primaryColor.withValues(alpha: 0.08)
-          : Colors.transparent,
-      padding: EdgeInsets.only(
-        right: SizeConfig.size16,
-        left: (chat?.symbolData?.isNotEmpty??false)?13.5:SizeConfig.size16,
-        top: SizeConfig.size12,
-        bottom: SizeConfig.size12,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-          InkWell(
-            onTap: () {
-              if(chat?.symbolData?.isNotEmpty??false){
-                Get.to(SymbolViewImages(userId: chat?.sender?.id, name: senderName, profileImage: senderProfileImage,));
-                //
-              }else{
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Dialog(
-                      insetPadding: const EdgeInsets.all(40),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: 300,
-                          maxHeight: 300,
-                        ),
-                        child: Stack(
-                          children: [
-                            // Image Viewer
-                            Center(
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                minScale: 1.0,
-                                maxScale: 5.0,
-                                child: (senderProfileImage?.isNotEmpty == true &&
-                                    senderProfileImage?.contains('http') == true)
-                                    ? CachedNetworkImage(
-                                  imageUrl: senderProfileImage ?? "",
-                                  placeholder: (context, url) =>
-                                  const Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: CircularProgressIndicator(),
+          onLongPress: onLongPress,
+          onTap: onTab ??
+              () {
+                if (chatViewController.isChatListSelectionMode.value) {
+                  chatViewController.toggleChatListSelection(chat);
+                  onSelect();
+                  return;
+                }
+                if (isForwardUI == true) {
+                  selectChatListCard();
+                } else if ((chat?.type == AppConstants.group_Chat_Type) ||
+                    (chat?.isGroup == true)) {
+                  // Group conversations can surface inside the personal/business
+                  // list payloads (`type:"group"`); open the dedicated group screen.
+                  chatViewController.openGroupFromChatList(chat);
+                } else {
+                  chatViewController.openChatFromChatList(
+                    userId: senderId,
+                    conversationId: conversationId,
+                    type: type,
+                    contactName: senderName,
+                    contactNo: senderContactNo,
+                    profileImage: senderProfileImage,
+                  );
+                }
+              },
+          child: Container(
+            color: isChatListSelected
+                ? AppColors.primaryColor.withValues(alpha: 0.08)
+                : Colors.transparent,
+            padding: EdgeInsets.only(
+              right: SizeConfig.size16,
+              left: (chat?.symbolData?.isNotEmpty ?? false)
+                  ? 13.5
+                  : SizeConfig.size16,
+              top: SizeConfig.size12,
+              bottom: SizeConfig.size12,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        if (chat?.symbolData?.isNotEmpty ?? false) {
+                          Get.to(() => SymbolViewImages(
+                                userId: chat?.sender?.id,
+                                name: senderName,
+                                profileImage: senderProfileImage,
+                              ));
+                          //
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                insetPadding: const EdgeInsets.all(40),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 300,
+                                    maxHeight: 300,
                                   ),
-                                  errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error, size: 40),
-                                  fit: BoxFit.contain,
-                                )
-                                    : (senderProfileImage?.isNotEmpty == true)
-                                    ? Image.file(
-                                  File(senderProfileImage!),
-                                  fit: BoxFit.contain,
-                                )
-                                    : CircleAvatar(
-                                  radius: 40,
-                                  backgroundColor:
-                                  Colors.grey.shade400,
-                                  child: Text(
-                                    (senderName?.isNotEmpty == true)
-                                        ? senderName![0].toUpperCase()
-                                        : "?",
-                                    style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                                  child: Stack(
+                                    children: [
+                                      // Image Viewer
+                                      Center(
+                                        child: InteractiveViewer(
+                                          panEnabled: true,
+                                          minScale: 1.0,
+                                          maxScale: 5.0,
+                                          child: (senderProfileImage
+                                                          ?.isNotEmpty ==
+                                                      true &&
+                                                  senderProfileImage
+                                                          ?.contains('http') ==
+                                                      true)
+                                              ? CachedNetworkImage(
+                                                  imageUrl:
+                                                      senderProfileImage ?? "",
+                                                  placeholder: (context, url) =>
+                                                      const Padding(
+                                                    padding: EdgeInsets.all(20),
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ),
+                                                  errorWidget: (context, url,
+                                                          error) =>
+                                                      const Icon(Icons.error,
+                                                          size: 40),
+                                                  fit: BoxFit.contain,
+                                                )
+                                              : (senderProfileImage
+                                                          ?.isNotEmpty ==
+                                                      true)
+                                                  ? Image.file(
+                                                      File(senderProfileImage!),
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                  : CircleAvatar(
+                                                      radius: 40,
+                                                      backgroundColor:
+                                                          Colors.grey.shade400,
+                                                      child: Text(
+                                                        (senderName?.isNotEmpty ==
+                                                                true)
+                                                            ? senderName![0]
+                                                                .toUpperCase()
+                                                            : "?",
+                                                        style: const TextStyle(
+                                                          fontSize: 32,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                        ),
+                                      ),
+                                      // Title Bar
+                                      Container(
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.5),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16),
+                                              child: SizedBox(
+                                                width: 160,
+                                                child: CustomText(
+                                                  "${(senderName == "null") ? senderContactNo : senderName ?? senderContactNo}",
+                                                  maxLines: 1,
+                                                  color: Colors.white,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.close,
+                                                  color: Colors.white),
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ),
-                            // Title Bar
-                            Container(
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.5),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    child: SizedBox(
-                                      width: 160,
+                              );
+                            },
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: (chat?.symbolData?.isNotEmpty ?? false)
+                            ? EdgeInsets.all(2)
+                            : null, // border thickness
+                        decoration: (chat?.symbolData?.isNotEmpty ?? false)
+                            ? BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: SweepGradient(
+                                  startAngle: 0.0,
+                                  endAngle: 6.28319, // 2 * pi
+                                  colors: const [
+                                    AppColors.symbolBorderRed,
+                                    AppColors.symbolBorderBlue, // 1st color
+                                    // 1st color
+                                    AppColors.symbolBorderYellow,
+                                    AppColors.symbolBorderGreen,
+
+                                    AppColors.symbolBorderRed, // 1st color
+                                    // 1st color
+
+                                    // 1st color
+                                  ],
+                                  stops: const [
+                                    0.0,
+                                    0.25,
+                                    0.50,
+                                    0.75,
+                                    1.0,
+                                  ],
+                                ),
+                              )
+                            : null,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: AppColors.white,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                                (chat?.symbolData?.isNotEmpty ?? false)
+                                    ? 2.0
+                                    : 0),
+                            child: CircleAvatar(
+                              backgroundColor: theme.colorScheme.primary,
+                              radius: (chat?.symbolData?.isNotEmpty ?? false)
+                                  ? SizeConfig.size20
+                                  : SizeConfig.size22,
+                              child: (senderProfileImage == null ||
+                                      senderProfileImage == "null")
+                                  ? Center(
                                       child: CustomText(
-                                        "${(senderName == "null")
-                                            ? senderContactNo
-                                            : senderName ?? senderContactNo}",
-                                        maxLines: 1,
+                                        "${groupName?.split('')[0]}",
                                         color: Colors.white,
-                                        overflow: TextOverflow.ellipsis,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: SizeConfig.size18,
                                       ),
-                                    ),
+                                    )
+                                  : (senderProfileImage.isNotEmpty)
+                                      ? ClipOval(
+                                          child: (senderProfileImage
+                                                  .startsWith('http'))
+                                              ? CachedNetworkImage(
+                                                  imageUrl: senderProfileImage,
+                                                  fit: BoxFit.cover,
+                                                  width: SizeConfig.size44,
+                                                  height: SizeConfig.size44,
+                                                  // Decode at ~thumbnail size instead of the full
+                                                  // source resolution. Avatars in the list are ~44dp,
+                                                  // so a 132px memory cache covers up to 3x DPR and
+                                                  // cuts decode time dramatically on offline reloads.
+                                                  memCacheWidth: 132,
+                                                  memCacheHeight: 132,
+                                                  fadeInDuration: Duration.zero,
+                                                  fadeOutDuration:
+                                                      Duration.zero,
+                                                  placeholder: (_, __) =>
+                                                      Container(
+                                                    width: SizeConfig.size44,
+                                                    height: SizeConfig.size44,
+                                                    color: AppColors.white,
+                                                  ),
+                                                  errorWidget: (_, __, ___) =>
+                                                      Center(
+                                                    child: CustomText(
+                                                      (senderName?.isNotEmpty ??
+                                                              false)
+                                                          ? senderName!
+                                                              .substring(0, 1)
+                                                              .toUpperCase()
+                                                          : '',
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      fontSize:
+                                                          SizeConfig.size18,
+                                                    ),
+                                                  ),
+                                                )
+                                              : (senderProfileImage
+                                                      .startsWith('assets'))
+                                                  ? Image.asset(
+                                                      senderProfileImage)
+                                                  : Image.file(
+                                                      File(senderProfileImage),
+                                                      width: SizeConfig.size44,
+                                                      height: SizeConfig.size44,
+                                                      fit: BoxFit.cover,
+                                                      cacheWidth: 132,
+                                                      cacheHeight: 132,
+                                                    ),
+                                        )
+                                      : Center(
+                                          child: CustomText(
+                                            (senderName?.isNotEmpty ?? false)
+                                                ? senderName!
+                                                    .substring(0, 1)
+                                                    .toUpperCase()
+                                                : '',
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: SizeConfig.size18,
+                                          ),
+                                        ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Small badge at the top-right (45° from 12 o'clock) marking the
+                    // row as a group conversation.
+                    if (isGroupChat)
+                      Positioned(
+                        top: -1,
+                        right: -1,
+                        child: Container(
+                          padding: const EdgeInsets.all(1.5),
+                          decoration: const BoxDecoration(
+                            color: AppColors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.groups_rounded,
+                              size: 9,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(width: SizeConfig.size12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildChatListName(
+                        senderName: senderName,
+                        senderContactNo: senderContactNo,
+                        conversationId: conversationId,
+                      ),
+                      SizedBox(height: SizeConfig.size2),
+                      Obx(() {
+                        final isTyping = chatViewController.typingByConversation
+                            .containsKey(conversationId);
+                        if (isTyping) {
+                          return SizedBox(
+                            width: SizeConfig.size260,
+                            child: CustomText(
+                              AppStrings.typingDots.tr,
+                              fontSize: SizeConfig.size14,
+                              color: Colors.green,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }
+                        return SizedBox(
+                          width: SizeConfig.size260,
+                          child: lastMessageType == "reply_to_symbol"
+                              ? _buildSymbolReplyPreview(
+                                  chat, lastMessage, secondaryText)
+                              : (lastMessageType == "document" ||
+                                      lastMessageType == "contact" ||
+                                      lastMessageType == "audio" ||
+                                      lastMessageType == "location" ||
+                                      lastMessageType == "live_location" ||
+                                      lastMessageType == "image" ||
+                                      lastMessageType == "video")
+                                  ? Row(
+                                      children: [
+                                        Icon(
+                                          lastMessageType == "document"
+                                              ? Icons.picture_as_pdf
+                                              : lastMessageType == "contact"
+                                                  ? Icons.person
+                                                  : lastMessageType == "audio"
+                                                      ? Icons.audiotrack
+                                                      : lastMessageType ==
+                                                              "video"
+                                                          ? Icons.video_chat
+                                                          : lastMessageType ==
+                                                                  "location"
+                                                              ? Icons
+                                                                  .location_history
+                                                              : lastMessageType ==
+                                                                      "live_location"
+                                                                  ? (chat?.isEnded ==
+                                                                          true
+                                                                      ? Icons
+                                                                          .location_off_rounded
+                                                                      : Icons
+                                                                          .share_location_rounded)
+                                                                  : Icons
+                                                                      .camera_alt,
+                                          color: secondaryText,
+                                          size: SizeConfig.size16,
+                                        ),
+                                        SizedBox(width: SizeConfig.size4),
+                                        CustomText(
+                                          lastMessageType == "document"
+                                              ? AppStrings.documentLabel.tr
+                                              : lastMessageType == "contact"
+                                                  ? AppStrings.contactLabel.tr
+                                                  : lastMessageType == "audio"
+                                                      ? AppStrings.audioLabel.tr
+                                                      : lastMessageType ==
+                                                              "video"
+                                                          ? AppStrings
+                                                              .videoLabel.tr
+                                                          : lastMessageType ==
+                                                                  "location"
+                                                              ? AppStrings
+                                                                  .locationLabel
+                                                                  .tr
+                                                              : lastMessageType ==
+                                                                      "live_location"
+                                                                  ? (chat?.isEnded ==
+                                                                          true
+                                                                      ? AppStrings
+                                                                          .liveLocationEnded
+                                                                          .tr
+                                                                      : AppStrings
+                                                                          .liveLocationMsgType
+                                                                          .tr)
+                                                                  : AppStrings
+                                                                      .imageLabel
+                                                                      .tr,
+                                          fontSize: SizeConfig.size14,
+                                          color: secondaryText,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    )
+                                  : lastMessage == null
+                                      ? CustomText(
+                                          "${(senderDesignation == null) ? senderContactNo : senderDesignation}",
+                                          fontSize: SizeConfig.size14,
+                                          color: secondaryText,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      : Builder(builder: (_) {
+                                          final msg = lastMessage;
+                                          final lowerMsg = msg.toLowerCase();
+                                          // The status colours (missed call / ongoing / calling)
+                                          // are semantic and stay put in both looks — only the
+                                          // neutral default follows the surface.
+                                          Color msgColor = secondaryText;
+                                          if (lowerMsg
+                                              .contains('missed call')) {
+                                            msgColor = Colors.red;
+                                          } else if (lowerMsg
+                                              .contains('ongoing')) {
+                                            msgColor = AppColors.primaryColor;
+                                          } else if (lowerMsg
+                                              .contains('calling')) {
+                                            msgColor = Colors.green;
+                                          }
+                                          return CustomText(
+                                            maxLines: 1,
+                                            msg,
+                                            fontSize: SizeConfig.size14,
+                                            color: msgColor,
+                                            overflow: TextOverflow.ellipsis,
+                                          );
+                                        }),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                (isForwardUI == true)
+                    ? const SizedBox()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isPendingLastMessage)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Icon(
+                                    Icons.access_time,
+                                    size: SizeConfig.size12,
+                                    color: secondaryText,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(
-                                        Icons.close, color: Colors.white),
-                                    onPressed: () => Navigator.of(context).pop(),
-                                  ),
-                                ],
+                                ),
+                              CustomText(
+                                "${formatTimeFromUtc(updatedAt)}",
+                                fontSize: SizeConfig.size11,
+                                color: secondaryText,
+                              ),
+                            ],
+                          ),
+                          if (isRecentlyCreated) ...[
+                            SizedBox(height: SizeConfig.size4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: CustomText(
+                                AppStrings.newTag.tr,
+                                color: AppColors.primaryColor,
+                                fontSize: SizeConfig.size11,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }
-
-            },
-            child: Container(
-              padding: (chat?.symbolData?.isNotEmpty??false)?EdgeInsets.all(2):null, // border thickness
-              decoration: (chat?.symbolData?.isNotEmpty??false)?BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: SweepGradient(
-                  startAngle: 0.0,
-                  endAngle: 6.28319, // 2 * pi
-                  colors: const [
-                    AppColors.symbolBorderRed,
-                    AppColors.symbolBorderBlue,     // 1st color
-                    // 1st color
-                    AppColors.symbolBorderYellow,
-                    AppColors.symbolBorderGreen,
-
-                    AppColors.symbolBorderRed,// 1st color
-                        // 1st color
-
-                    // 1st color
-                  ],
-                  stops: const [
-                    0.0,
-                    0.25,
-                    0.50,
-                    0.75,
-                    1.0,
-                  ],
-                ),
-              ):null,
-              child: Container(
-
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: AppColors.white,
-                ),
-                child: Padding(
-                  padding:  EdgeInsets.all((chat?.symbolData?.isNotEmpty??false)?2.0:0),
-                  child: CircleAvatar(
-                    backgroundColor: theme.colorScheme.primary,
-                    radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
-                    child: (senderProfileImage == null || senderProfileImage == "null")
-                        ? Center(
-                      child: CustomText(
-                        "${groupName?.split('')[0]}",
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: SizeConfig.size18,
-                      ),
-                    )
-                        : (senderProfileImage.isNotEmpty)
-                        ? ClipOval(
-                      child: (senderProfileImage.startsWith('http'))
-                          ? CachedNetworkImage(
-                        imageUrl: senderProfileImage,
-                        fit: BoxFit.cover,
-                        width: SizeConfig.size44,
-                        height: SizeConfig.size44,
-                        // Decode at ~thumbnail size instead of the full
-                        // source resolution. Avatars in the list are ~44dp,
-                        // so a 132px memory cache covers up to 3x DPR and
-                        // cuts decode time dramatically on offline reloads.
-                        memCacheWidth: 132,
-                        memCacheHeight: 132,
-                        fadeInDuration: Duration.zero,
-                        fadeOutDuration: Duration.zero,
-                        placeholder: (_, __) => Container(
-                          width: SizeConfig.size44,
-                          height: SizeConfig.size44,
-                          color: AppColors.white,
-                        ),
-                        errorWidget: (_, __, ___) => Center(
-                          child: CustomText(
-                            (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: SizeConfig.size18,
+                          SizedBox(height: SizeConfig.size6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isPinned)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Icon(Icons.push_pin,
+                                      size: 14, color: Colors.grey.shade500),
+                                ),
+                              if (showFlagBadge &&
+                                  Get.isRegistered<ChatFlagController>())
+                                Obx(() {
+                                  final assignedFlag =
+                                      Get.find<ChatFlagController>()
+                                          .getFlagForConversation(
+                                              conversationId);
+                                  if (assignedFlag != null) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: assignedFlag.color
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: assignedFlag.color,
+                                            width: 0.8),
+                                      ),
+                                      child: CustomText(
+                                        assignedFlag.label,
+                                        color: assignedFlag.color,
+                                        fontSize: SizeConfig.size11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  }
+                                  if (isRecentLastMessage) {
+                                    return CustomText(
+                                      AppStrings.newTag.tr,
+                                      color: AppColors.primaryColor,
+                                      fontSize: SizeConfig.size12,
+                                      fontWeight: FontWeight.w600,
+                                    );
+                                  }
+                                  if (unreadCount > 0) {
+                                    return CircleAvatar(
+                                      radius: SizeConfig.size12,
+                                      backgroundColor: Colors.lightBlue,
+                                      child: CustomText(
+                                        "$unreadCount",
+                                        color: AppColors.white,
+                                        fontSize: SizeConfig.size12,
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                })
+                              else if (isRecentLastMessage)
+                                CustomText(
+                                  AppStrings.newTag.tr,
+                                  color: AppColors.primaryColor,
+                                  fontSize: SizeConfig.size12,
+                                  fontWeight: FontWeight.w600,
+                                )
+                              else if (unreadCount > 0)
+                                CircleAvatar(
+                                  radius: SizeConfig.size12,
+                                  backgroundColor: Colors.lightBlue,
+                                  child: CustomText(
+                                    "$unreadCount",
+                                    color: AppColors.white,
+                                    fontSize: SizeConfig.size12,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                      )
-                          : (senderProfileImage.startsWith('assets'))?Image.asset(senderProfileImage): Image.file(
-                        File(senderProfileImage),
-                        width: SizeConfig.size44,
-                        height: SizeConfig.size44,
-                        fit: BoxFit.cover,
-                        cacheWidth: 132,
-                        cacheHeight: 132,
+                        ],
                       ),
-                    )
-                        : Center(
-                      child: CustomText(
-                        (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: SizeConfig.size18,
+                if (isForwardUI == true)
+                  Theme(
+                    data: theme.copyWith(
+                      checkboxTheme: CheckboxThemeData(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        side: const BorderSide(color: Colors.black),
+                      ),
+                    ),
+                    child: Transform.scale(
+                      scale: 1.3,
+                      child: Checkbox(
+                        activeColor: Colors.blue,
+                        checkColor: Colors.white,
+                        value: isSelected,
+                        onChanged: (_) => selectChatListCard(),
                       ),
                     ),
                   ),
-                ),
-              ),
-            )
-            ,
-          ),
-              // Small badge at the top-right (45° from 12 o'clock) marking the
-              // row as a group conversation.
-              if (isGroupChat)
-                Positioned(
-                  top: -1,
-                  right: -1,
-                  child: Container(
-                    padding: const EdgeInsets.all(1.5),
+                if (isChatListSelected)
+                  Container(
+                    width: 24,
+                    height: 24,
                     decoration: const BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.primaryColor,
                       shape: BoxShape.circle,
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.groups_rounded,
-                        size: 9,
-                        color: AppColors.white,
-                      ),
-                    ),
+                    child:
+                        const Icon(Icons.check, color: Colors.white, size: 16),
                   ),
-                ),
-            ],
-          ),
-          SizedBox(width: SizeConfig.size12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildChatListName(
-                  senderName: senderName,
-                  senderContactNo: senderContactNo,
-                  conversationId: conversationId,
-                ),
-                SizedBox(height: SizeConfig.size2),
-                Obx(() {
-                  final isTyping = chatViewController
-                      .typingByConversation.containsKey(conversationId);
-                  if (isTyping) {
-                    return SizedBox(
-                      width: SizeConfig.size260,
-                      child: CustomText(
-                        AppStrings.typingDots.tr,
-                        fontSize: SizeConfig.size14,
-                        color: Colors.green,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }
-                  return SizedBox(
-                    width: SizeConfig.size260,
-                    child: lastMessageType == "reply_to_symbol"
-                        ? _buildSymbolReplyPreview(
-                            chat, lastMessage, secondaryText)
-                        : (lastMessageType == "document" ||
-                        lastMessageType == "contact" ||
-                        lastMessageType == "audio" ||
-                        lastMessageType == "location" ||
-                        lastMessageType == "live_location" ||
-                        lastMessageType == "image" ||
-                        lastMessageType == "video")
-                        ? Row(
-                      children: [
-                        Icon(
-                          lastMessageType == "document"
-                              ? Icons.picture_as_pdf
-                              : lastMessageType == "contact"
-                              ? Icons.person
-                              : lastMessageType == "audio"
-                              ? Icons.audiotrack
-                              : lastMessageType == "video"
-                              ? Icons.video_chat
-                              : lastMessageType == "location"
-                              ? Icons.location_history
-                              : lastMessageType == "live_location"
-                              ? (chat?.isEnded == true
-                                  ? Icons.location_off_rounded
-                                  : Icons.share_location_rounded)
-                              : Icons.camera_alt,
-                          color: secondaryText,
-                          size: SizeConfig.size16,
-                        ),
-                        SizedBox(width: SizeConfig.size4),
-                        CustomText(
-                          lastMessageType == "document"
-                              ? AppStrings.documentLabel.tr
-                              : lastMessageType == "contact"
-                              ? AppStrings.contactLabel.tr
-                              : lastMessageType == "audio"
-                              ? AppStrings.audioLabel.tr
-                              : lastMessageType == "video"
-                              ? AppStrings.videoLabel.tr
-                              : lastMessageType == "location"
-                              ? AppStrings.locationLabel.tr
-                              : lastMessageType == "live_location"
-                              ? (chat?.isEnded == true
-                                  ? AppStrings.liveLocationEnded.tr
-                                  : AppStrings.liveLocationMsgType.tr)
-                              : AppStrings.imageLabel.tr,
-                          fontSize: SizeConfig.size14,
-                          color: secondaryText,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    )
-                        : lastMessage == null
-                        ? CustomText(
-                      "${(senderDesignation == null)
-                          ? senderContactNo
-                          : senderDesignation}",
-                      fontSize: SizeConfig.size14,
-                      color: secondaryText,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                        : Builder(builder: (_) {
-                      final msg = lastMessage;
-                      final lowerMsg = msg.toLowerCase();
-                      // The status colours (missed call / ongoing / calling)
-                      // are semantic and stay put in both looks — only the
-                      // neutral default follows the surface.
-                      Color msgColor = secondaryText;
-                      if (lowerMsg.contains('missed call')) {
-                        msgColor = Colors.red;
-                      } else if (lowerMsg.contains('ongoing')) {
-                        msgColor = AppColors.primaryColor;
-                      } else if (lowerMsg.contains('calling')) {
-                        msgColor = Colors.green;
-                      }
-                      return CustomText(
-                        maxLines: 1,
-                        msg,
-                        fontSize: SizeConfig.size14,
-                        color: msgColor,
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    }),
-                  );
-                }),
               ],
             ),
           ),
-          SizedBox(width: SizeConfig.size10),
-          (isForwardUI == true)
-              ? const SizedBox()
-              : Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isPendingLastMessage)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: Icon(
-                        Icons.access_time,
-                        size: SizeConfig.size12,
-                        color: secondaryText,
-                      ),
-                    ),
-                  CustomText(
-                    "${formatTimeFromUtc(updatedAt)}",
-                    fontSize: SizeConfig.size11,
-                    color: secondaryText,
-                  ),
-                ],
-              ),
-              if (isRecentlyCreated) ...[
-                SizedBox(height: SizeConfig.size4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: CustomText(
-                    AppStrings.newTag.tr,
-                    color: AppColors.primaryColor,
-                    fontSize: SizeConfig.size11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-              SizedBox(height: SizeConfig.size6),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isPinned)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: Icon(Icons.push_pin,
-                          size: 14, color: Colors.grey.shade500),
-                    ),
-                  if (showFlagBadge && Get.isRegistered<ChatFlagController>())
-                    Obx(() {
-                      final assignedFlag = Get.find<ChatFlagController>()
-                          .getFlagForConversation(conversationId);
-                      if (assignedFlag != null) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: assignedFlag.color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: assignedFlag.color, width: 0.8),
-                          ),
-                          child: CustomText(
-                            assignedFlag.label,
-                            color: assignedFlag.color,
-                            fontSize: SizeConfig.size11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        );
-                      }
-                      if (isRecentLastMessage) {
-                        return CustomText(
-                          AppStrings.newTag.tr,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.size12,
-                          fontWeight: FontWeight.w600,
-                        );
-                      }
-                      if (unreadCount > 0) {
-                        return CircleAvatar(
-                          radius: SizeConfig.size12,
-                          backgroundColor: Colors.lightBlue,
-                          child: CustomText(
-                            "$unreadCount",
-                            color: AppColors.white,
-                            fontSize: SizeConfig.size12,
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    })
-                  else if (isRecentLastMessage)
-                    CustomText(
-                      AppStrings.newTag.tr,
-                      color: AppColors.primaryColor,
-                      fontSize: SizeConfig.size12,
-                      fontWeight: FontWeight.w600,
-                    )
-                  else if (unreadCount > 0)
-                    CircleAvatar(
-                      radius: SizeConfig.size12,
-                      backgroundColor: Colors.lightBlue,
-                      child: CustomText(
-                        "$unreadCount",
-                        color: AppColors.white,
-                        fontSize: SizeConfig.size12,
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-          if (isForwardUI == true)
-            Theme(
-              data: theme.copyWith(
-                checkboxTheme: CheckboxThemeData(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  side: const BorderSide(color: Colors.black),
-                ),
-              ),
-              child: Transform.scale(
-                scale: 1.3,
-                child: Checkbox(
-                  activeColor: Colors.blue,
-                  checkColor: Colors.white,
-                  value: isSelected,
-                  onChanged: (_) => selectChatListCard(),
-                ),
-              ),
-            ),
-          if (isChatListSelected)
-            Container(
-              width: 24,
-              height: 24,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check, color: Colors.white, size: 16),
-            ),
-        ],
-      ),
-    ),
-  );
+        );
 }
-
 
 String formatTimeFromUtc(String utcString) {
   if (utcString.isEmpty) return '';
@@ -977,7 +1060,7 @@ String formatTimeFromUtc(String utcString) {
   DateTime today = DateTime(now.year, now.month, now.day);
   DateTime yesterday = today.subtract(Duration(days: 1));
   DateTime dateToCompare =
-  DateTime(localDate.year, localDate.month, localDate.day);
+      DateTime(localDate.year, localDate.month, localDate.day);
 
   if (dateToCompare == today) {
     // Today: return time
@@ -1003,290 +1086,290 @@ String formatChatTime(String isoDateString) {
 Widget replyMessageTypeIcons(Messages message) {
   return (message.replyParentMessage?.messageType == "image")
       ? Icon(
-    Icons.camera_enhance_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
+          Icons.camera_enhance_outlined,
+          size: SizeConfig.size16,
+          color: AppColors.grayText,
+        )
       : (message.replyParentMessage?.messageType == "video")
-      ? Icon(
-    Icons.video_camera_back_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
-      : (message.replyParentMessage?.messageType == "location")
-      ? Icon(
-    Icons.location_on_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
-      : (message.replyParentMessage?.messageType == "document")
-      ? Icon(
-    Icons.picture_as_pdf_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
-      : (message.replyParentMessage?.messageType == "contact")
-      ? Icon(
-    Icons.person_2_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
-      : (message.replyParentMessage?.messageType == "audio")
-      ? Icon(
-    Icons.audio_file_outlined,
-    size: SizeConfig.size16,
-    color: AppColors.grayText,
-  )
-      : CustomText(
-    "${message.replyParentMessage?.message}",
-    fontWeight: FontWeight.w500,
-    color: AppColors.grayText,
-    fontSize: SizeConfig.size13,
-  );
+          ? Icon(
+              Icons.video_camera_back_outlined,
+              size: SizeConfig.size16,
+              color: AppColors.grayText,
+            )
+          : (message.replyParentMessage?.messageType == "location")
+              ? Icon(
+                  Icons.location_on_outlined,
+                  size: SizeConfig.size16,
+                  color: AppColors.grayText,
+                )
+              : (message.replyParentMessage?.messageType == "document")
+                  ? Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: SizeConfig.size16,
+                      color: AppColors.grayText,
+                    )
+                  : (message.replyParentMessage?.messageType == "contact")
+                      ? Icon(
+                          Icons.person_2_outlined,
+                          size: SizeConfig.size16,
+                          color: AppColors.grayText,
+                        )
+                      : (message.replyParentMessage?.messageType == "audio")
+                          ? Icon(
+                              Icons.audio_file_outlined,
+                              size: SizeConfig.size16,
+                              color: AppColors.grayText,
+                            )
+                          : CustomText(
+                              "${message.replyParentMessage?.message}",
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.grayText,
+                              fontSize: SizeConfig.size13,
+                            );
 }
 
 Widget messageTypeIcons(Messages message) {
   return (message.messageType == "image")
       ? Icon(
-    Icons.camera_enhance_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
+          Icons.camera_enhance_outlined,
+          size: SizeConfig.size16,
+          color: Colors.black,
+        )
       : (message.messageType == "video")
-      ? Icon(
-    Icons.video_camera_back_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
-      : (message.messageType == "location")
-      ? Icon(
-    Icons.location_on_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
-      : (message.messageType == "document")
-      ? Icon(
-    Icons.picture_as_pdf_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
-      : (message.messageType == "contact")
-      ? Icon(
-    Icons.person_2_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
-      : (message.messageType == "audio")
-      ? Icon(
-    Icons.audio_file_outlined,
-    size: SizeConfig.size16,
-    color: Colors.black,
-  )
-      : CustomText(
-    "${message.message}",
-    fontWeight: FontWeight.w500,
-    color: Colors.black,
-    fontSize: SizeConfig.size13,
-  );
+          ? Icon(
+              Icons.video_camera_back_outlined,
+              size: SizeConfig.size16,
+              color: Colors.black,
+            )
+          : (message.messageType == "location")
+              ? Icon(
+                  Icons.location_on_outlined,
+                  size: SizeConfig.size16,
+                  color: Colors.black,
+                )
+              : (message.messageType == "document")
+                  ? Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: SizeConfig.size16,
+                      color: Colors.black,
+                    )
+                  : (message.messageType == "contact")
+                      ? Icon(
+                          Icons.person_2_outlined,
+                          size: SizeConfig.size16,
+                          color: Colors.black,
+                        )
+                      : (message.messageType == "audio")
+                          ? Icon(
+                              Icons.audio_file_outlined,
+                              size: SizeConfig.size16,
+                              color: Colors.black,
+                            )
+                          : CustomText(
+                              "${message.message}",
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              fontSize: SizeConfig.size13,
+                            );
 }
 
 Widget replyMessageTypeIconWithLabel(Messages message) {
   return (message.replyParentMessage?.messageType == "image")
       ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.imageLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
+          children: [
+            replyMessageTypeIcons(message),
+            SizedBox(
+              width: SizeConfig.size4,
+            ),
+            CustomText(
+              AppStrings.imageLabel.tr,
+              fontWeight: FontWeight.w500,
+              color: AppColors.grayText,
+              fontSize: SizeConfig.size13,
+            ),
+          ],
+        )
       : (message.replyParentMessage?.messageType == "video")
-      ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.videoLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.replyParentMessage?.messageType == "location")
-      ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.locationLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.replyParentMessage?.messageType == "document")
-      ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.documentLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.replyParentMessage?.messageType == "contact")
-      ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.contactLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.replyParentMessage?.messageType == "audio")
-      ? Row(
-    children: [
-      replyMessageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.audioLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: AppColors.grayText,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : CustomText(
-    "${message.replyParentMessage?.message}",
-    fontWeight: FontWeight.w500,
-    color: AppColors.grayText,
-    fontSize: SizeConfig.size13,
-    maxLines: 1,
-  );
+          ? Row(
+              children: [
+                replyMessageTypeIcons(message),
+                SizedBox(
+                  width: SizeConfig.size4,
+                ),
+                CustomText(
+                  AppStrings.videoLabel.tr,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grayText,
+                  fontSize: SizeConfig.size13,
+                ),
+              ],
+            )
+          : (message.replyParentMessage?.messageType == "location")
+              ? Row(
+                  children: [
+                    replyMessageTypeIcons(message),
+                    SizedBox(
+                      width: SizeConfig.size4,
+                    ),
+                    CustomText(
+                      AppStrings.locationLabel.tr,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.grayText,
+                      fontSize: SizeConfig.size13,
+                    ),
+                  ],
+                )
+              : (message.replyParentMessage?.messageType == "document")
+                  ? Row(
+                      children: [
+                        replyMessageTypeIcons(message),
+                        SizedBox(
+                          width: SizeConfig.size4,
+                        ),
+                        CustomText(
+                          AppStrings.documentLabel.tr,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.grayText,
+                          fontSize: SizeConfig.size13,
+                        ),
+                      ],
+                    )
+                  : (message.replyParentMessage?.messageType == "contact")
+                      ? Row(
+                          children: [
+                            replyMessageTypeIcons(message),
+                            SizedBox(
+                              width: SizeConfig.size4,
+                            ),
+                            CustomText(
+                              AppStrings.contactLabel.tr,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.grayText,
+                              fontSize: SizeConfig.size13,
+                            ),
+                          ],
+                        )
+                      : (message.replyParentMessage?.messageType == "audio")
+                          ? Row(
+                              children: [
+                                replyMessageTypeIcons(message),
+                                SizedBox(
+                                  width: SizeConfig.size4,
+                                ),
+                                CustomText(
+                                  AppStrings.audioLabel.tr,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.grayText,
+                                  fontSize: SizeConfig.size13,
+                                ),
+                              ],
+                            )
+                          : CustomText(
+                              "${message.replyParentMessage?.message}",
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.grayText,
+                              fontSize: SizeConfig.size13,
+                              maxLines: 1,
+                            );
 }
 
 Widget messageTypeIconWithLabel(Messages message) {
   return (message.messageType == "image")
       ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.imageLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
+          children: [
+            messageTypeIcons(message),
+            SizedBox(
+              width: SizeConfig.size4,
+            ),
+            CustomText(
+              AppStrings.imageLabel.tr,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+              fontSize: SizeConfig.size13,
+            ),
+          ],
+        )
       : (message.messageType == "video")
-      ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.videoLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.messageType == "location")
-      ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.locationLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.messageType == "document")
-      ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.documentLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.messageType == "contact")
-      ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.contactLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : (message.messageType == "audio")
-      ? Row(
-    children: [
-      messageTypeIcons(message),
-      SizedBox(
-        width: SizeConfig.size4,
-      ),
-      CustomText(
-        AppStrings.audioLabel.tr,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-        fontSize: SizeConfig.size13,
-      ),
-    ],
-  )
-      : CustomText(
-    "${message.message}",
-    fontWeight: FontWeight.w500,
-    color: Colors.black,
-    fontSize: SizeConfig.size13,
-  );
+          ? Row(
+              children: [
+                messageTypeIcons(message),
+                SizedBox(
+                  width: SizeConfig.size4,
+                ),
+                CustomText(
+                  AppStrings.videoLabel.tr,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                  fontSize: SizeConfig.size13,
+                ),
+              ],
+            )
+          : (message.messageType == "location")
+              ? Row(
+                  children: [
+                    messageTypeIcons(message),
+                    SizedBox(
+                      width: SizeConfig.size4,
+                    ),
+                    CustomText(
+                      AppStrings.locationLabel.tr,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                      fontSize: SizeConfig.size13,
+                    ),
+                  ],
+                )
+              : (message.messageType == "document")
+                  ? Row(
+                      children: [
+                        messageTypeIcons(message),
+                        SizedBox(
+                          width: SizeConfig.size4,
+                        ),
+                        CustomText(
+                          AppStrings.documentLabel.tr,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                          fontSize: SizeConfig.size13,
+                        ),
+                      ],
+                    )
+                  : (message.messageType == "contact")
+                      ? Row(
+                          children: [
+                            messageTypeIcons(message),
+                            SizedBox(
+                              width: SizeConfig.size4,
+                            ),
+                            CustomText(
+                              AppStrings.contactLabel.tr,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              fontSize: SizeConfig.size13,
+                            ),
+                          ],
+                        )
+                      : (message.messageType == "audio")
+                          ? Row(
+                              children: [
+                                messageTypeIcons(message),
+                                SizedBox(
+                                  width: SizeConfig.size4,
+                                ),
+                                CustomText(
+                                  AppStrings.audioLabel.tr,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                  fontSize: SizeConfig.size13,
+                                ),
+                              ],
+                            )
+                          : CustomText(
+                              "${message.message}",
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              fontSize: SizeConfig.size13,
+                            );
 }
 
 /// Public entry so chat widgets (an @mention, a group member row) can open
@@ -1310,8 +1393,7 @@ void _navigateToProfile({
   openChatProfile(
     contactNo: contactNo,
     userId: authorId,
-    businessId:
-        type.toUpperCase() == AppConstants.business ? authorId : null,
+    businessId: type.toUpperCase() == AppConstants.business ? authorId : null,
     accountType: type,
   );
 }
@@ -1333,6 +1415,7 @@ void _refreshChatAfterOutgoingCall(String? conversationId) {
       ApiKeys.per_page_message: 30,
     });
   }
+
   Future.delayed(const Duration(milliseconds: 500), _fetch);
   Future.delayed(const Duration(milliseconds: 1500), _fetch);
   Future.delayed(const Duration(milliseconds: 3000), _fetch);
@@ -1457,7 +1540,6 @@ void _showCallOptionsBottomSheet({
                 title: AppStrings.voiceCall.tr,
                 subtitle: AppStrings.callEncryptedNoContactShare.tr,
                 onTap: () {
-
                   Navigator.pop(ctx);
                   _initiateCallFromChat(
                     callType: CallType.audio,
@@ -1539,9 +1621,12 @@ Widget _callOptionTile({
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.grayText)),
+                Text(subtitle,
+                    style: TextStyle(fontSize: 12, color: AppColors.grayText)),
               ],
             ),
           ),
@@ -1561,7 +1646,8 @@ Widget _chatTitleAvatar({
 }) {
   final hasImage =
       profileImage != null && profileImage != 'null' && profileImage.isNotEmpty;
-  final initial = (name != null && name.isNotEmpty) ? name.substring(0, 1) : 'U';
+  final initial =
+      (name != null && name.isNotEmpty) ? name.substring(0, 1) : 'U';
   final placeholder = CircleAvatar(
     radius: SizeConfig.size18,
     backgroundColor: theme.colorScheme.primary,
@@ -1656,8 +1742,8 @@ void showAiChatProfileEditSheet(
       final dir = await getApplicationDocumentsDirectory();
       final ext =
           picked.path.contains('.') ? picked.path.split('.').last : 'jpg';
-      final saved =
-          await File(picked.path).copy('${dir.path}/ai_chat_${type}_avatar.$ext');
+      final saved = await File(picked.path)
+          .copy('${dir.path}/ai_chat_${type}_avatar.$ext');
       previewPath.value = saved.path;
     } catch (_) {
       previewPath.value = picked.path;
@@ -1751,8 +1837,7 @@ void showAiChatProfileEditSheet(
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child:
-                        CustomText('Cancel', color: AppColors.primaryColor),
+                    child: CustomText('Cancel', color: AppColors.primaryColor),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1876,7 +1961,8 @@ void showAiChatClearDialog({required String type}) {
   );
 }
 
-AppBar getChatTitleAppBar(BuildContext context, {
+AppBar getChatTitleAppBar(
+  BuildContext context, {
   String? userId,
   String? conversationId,
   String? type,
@@ -1896,36 +1982,40 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final bottomBarController = Get.find<BottomBarController>();
   // AI chat keeps a locally-personalized name/image/mute state. Resolve (and
   // lazily register) its controller only for the AI variant of this appbar.
-  final aiProfileCtrl = (isFromAiChat == true)
-      ? (Get.isRegistered<AiChatProfileController>()
-          ? Get.find<AiChatProfileController>()
-          : Get.put(AiChatProfileController()))
-      : null;
+  final aiProfileCtrl =
+      (isFromAiChat == true) ? (Get.find<AiChatProfileController>()) : null;
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,
     leadingWidth: 38,
     leading: InkWell(
-      onTap: onBackCallback ?? () {
-        // Tell server we left this conversation (screenRoom → "online")
-        chatViewController.leaveConversation();
-        if (chatViewController.canPopBusiness.value) {
-          chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, );
-          bottomBarController.onChangeIndex(2);
-          Navigator.popUntil(context, ModalRoute.withName(
-              RouteHelper.getBottomNavigationBarScreenRoute()));
-          chatViewController.onSelectChatTab(1);
-        } else {
-          // Use the framework Navigator instead of Get.back(): Get.back()
-          // internally calls closeCurrentSnackbar(), which throws a
-          // LateInitializationError when a queued snackbar's animation
-          // controller hasn't been initialized yet.
-          Navigator.pop(context);
-          chatViewController.emitEvent(
-              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"},);
-        }
-      },
+      onTap: onBackCallback ??
+          () {
+            // Tell server we left this conversation (screenRoom → "online")
+            chatViewController.leaveConversation();
+            if (chatViewController.canPopBusiness.value) {
+              chatViewController.emitEvent(
+                ChatEmitEvents.ChatList,
+                {ApiKeys.type: "$socketType"},
+              );
+              bottomBarController.onChangeIndex(2);
+              Navigator.popUntil(
+                  context,
+                  ModalRoute.withName(
+                      RouteHelper.getBottomNavigationBarScreenRoute()));
+              chatViewController.onSelectChatTab(1);
+            } else {
+              // Use the framework Navigator instead of Get.back(): Get.back()
+              // internally calls closeCurrentSnackbar(), which throws a
+              // LateInitializationError when a queued snackbar's animation
+              // controller hasn't been initialized yet.
+              Navigator.pop(context);
+              chatViewController.emitEvent(
+                ChatEmitEvents.ChatList,
+                {ApiKeys.type: "$socketType"},
+              );
+            }
+          },
       child: Padding(
         padding: EdgeInsets.only(left: SizeConfig.size18),
         // Reduce touch padding if needed
@@ -1936,67 +2026,66 @@ AppBar getChatTitleAppBar(BuildContext context, {
     title: InkWell(
       onTap: (isFromAiChat == true)
           ? () {
-        // Tapping the AI profile lets the user rename it / change its image,
-        // stored locally only.
-        showAiChatProfileEditSheet(
-          context,
-          controller: aiProfileCtrl!,
-          type: type ?? '',
-          defaultName: name,
-          defaultImage: profileImage,
-        );
-      }
-          : (type != AppStrings.Admin||type != AppStrings.PersonalChatAi||type != AppStrings.BusinessChatAi)
-          ? () {
-
-        if (isGroupAppBar != null) {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              transitionDuration: const Duration(milliseconds: 400),
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  ViewGroupMembers(
-
-                    conversationId: conversationId,
-                    type: type,
-
-                  ),
-              transitionsBuilder: (context, animation, secondaryAnimation,
-                  child) {
-                return ScaleTransition(
-                  scale: Tween<double>(begin: 0.9, end: 1.0)
-                      .animate(CurvedAnimation(
-                      parent: animation, curve: Curves.easeOut)),
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  ),
-                );
-              },
-            ),
-          );
-        } else {
-          // Personal AND business chats now share one destination resolver.
-          // The business lane used to hard-push the product store for every
-          // business, so a chat with a lab, pharmacy, restaurant or school
-          // opened a product catalogue. [openChatProfile] looks the participant
-          // up by their number (the one call that returns account type +
-          // business type + sub-category) and opens the screen that profile
-          // actually owns, falling back to these ids when there's no number.
-          openChatProfile(
-            contactNo: contactNo,
-            userId: userId,
-            // The business lane carries the business under `userId`, so it
-            // doubles as the business id; `_pick` inside the resolver drops
-            // whichever is blank.
-            businessId: socketType == "business" ? userId : null,
-            accountType:
-                socketType == "business" ? AppConstants.business : type,
-          );
-        }
-      }
-
-          : () {},
+              // Tapping the AI profile lets the user rename it / change its image,
+              // stored locally only.
+              showAiChatProfileEditSheet(
+                context,
+                controller: aiProfileCtrl!,
+                type: type ?? '',
+                defaultName: name,
+                defaultImage: profileImage,
+              );
+            }
+          : (type != AppStrings.Admin ||
+                  type != AppStrings.PersonalChatAi ||
+                  type != AppStrings.BusinessChatAi)
+              ? () {
+                  if (isGroupAppBar != null) {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        transitionDuration: const Duration(milliseconds: 400),
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            ViewGroupMembers(
+                          conversationId: conversationId,
+                          type: type,
+                        ),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return ScaleTransition(
+                            scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+                                CurvedAnimation(
+                                    parent: animation, curve: Curves.easeOut)),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  } else {
+                    // Personal AND business chats now share one destination resolver.
+                    // The business lane used to hard-push the product store for every
+                    // business, so a chat with a lab, pharmacy, restaurant or school
+                    // opened a product catalogue. [openChatProfile] looks the participant
+                    // up by their number (the one call that returns account type +
+                    // business type + sub-category) and opens the screen that profile
+                    // actually owns, falling back to these ids when there's no number.
+                    openChatProfile(
+                      contactNo: contactNo,
+                      userId: userId,
+                      // The business lane carries the business under `userId`, so it
+                      // doubles as the business id; `_pick` inside the resolver drops
+                      // whichever is blank.
+                      businessId: socketType == "business" ? userId : null,
+                      accountType: socketType == "business"
+                          ? AppConstants.business
+                          : type,
+                    );
+                  }
+                }
+              : () {},
       child: Row(
         children: [
           // AI chat shows the locally-personalized avatar (reactive); other
@@ -2036,7 +2125,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         fontSize: SizeConfig.size16,
                       ),
               ),
-              if(isGroupAppBar == null)
+              if (isGroupAppBar == null)
                 Row(
                   children: [
                     Obx(() {
@@ -2054,13 +2143,16 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         statusLabel = "BlueCs Ltd";
                       } else if (type != AppStrings.Admin) {
                         if (type == "business") {
-                          statusLabel = chatViewController.userOnlineStatus.value == "Online"
-                              ? AppStrings.shopOpen.tr
-                              : AppStrings.shopClosed.tr;
+                          statusLabel =
+                              chatViewController.userOnlineStatus.value ==
+                                      "Online"
+                                  ? AppStrings.shopOpen.tr
+                                  : AppStrings.shopClosed.tr;
                         } else if (socketType == "order") {
                           statusLabel = designation ?? '';
                         } else {
-                          statusLabel = chatViewController.userOnlineStatus.value;
+                          statusLabel =
+                              chatViewController.userOnlineStatus.value;
                         }
                       } else {
                         // Admin/broadcast (BlueEra community) thread: it's a
@@ -2081,10 +2173,10 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     (type != AppStrings.Admin)
                         ? SizedBox()
                         : Icon(
-                      Icons.verified,
-                      color: Colors.blue,
-                      size: SizeConfig.size14,
-                    ),
+                            Icons.verified,
+                            color: Colors.blue,
+                            size: SizeConfig.size14,
+                          ),
                   ],
                 ),
             ],
@@ -2092,224 +2184,236 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ],
       ),
     ),
-    actions: (type == AppStrings.Admin||type == AppStrings.PersonalChatAi||type == AppStrings.BusinessChatAi||type == AppStrings.InventoryChatAi)
+    actions: (type == AppStrings.Admin ||
+            type == AppStrings.PersonalChatAi ||
+            type == AppStrings.BusinessChatAi ||
+            type == AppStrings.InventoryChatAi)
         ? null
         : [
-      SizedBox(width: SizeConfig.size8),
-      if(isGroupAppBar == null&&isFromAiChat!=true)
-        Builder(
-          builder: (ctx) {
-            final flagCtrl = Get.isRegistered<ChatFlagController>()
-                ? Get.find<ChatFlagController>()
-                : Get.put(ChatFlagController());
-            return Obx(() {
-              final existingFlag = flagCtrl.getFlagForConversation(conversationId);
-              return InkWell(
-                onTap: () {
-                  Get.dialog(
-                    GestureDetector(
+            SizedBox(width: SizeConfig.size8),
+            if (isGroupAppBar == null && isFromAiChat != true)
+              Builder(
+                builder: (ctx) {
+                  final flagCtrl = Get.isRegistered<ChatFlagController>()
+                      ? Get.find<ChatFlagController>()
+                      : Get.put(ChatFlagController());
+                  return Obx(() {
+                    final existingFlag =
+                        flagCtrl.getFlagForConversation(conversationId);
+                    return InkWell(
                       onTap: () {
-                        Get.back();
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: Material(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 12, top: 80),
-                            child: GestureDetector(
-                              onTap: () {},
-                              child: ChatFlagDropdown(
-                                conversationId: conversationId ?? '',
+                        Get.dialog(
+                          GestureDetector(
+                            onTap: () {
+                              Get.back();
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Material(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.only(right: 12, top: 80),
+                                  child: GestureDetector(
+                                    onTap: () {},
+                                    child: ChatFlagDropdown(
+                                      conversationId: conversationId ?? '',
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          barrierDismissible: false,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: existingFlag != null
+                            ? Text(existingFlag.emoji,
+                                style: const TextStyle(fontSize: 20))
+                            : Icon(Icons.flag_outlined,
+                                color: AppColors.chat_input_icon_color,
+                                size: 26),
                       ),
-                    ),
-                    barrierDismissible: false,
-                  );
+                    );
+                  });
                 },
+              ),
+            if (isFromAiChat != true)
+              InkWell(
+                  onTap: disableCallButton
+                      ? null
+                      : () {
+                          _showCallOptionsBottomSheet(
+                            context: context,
+                            otherUserId: isGroupAppBar == null ? userId : null,
+                            conversationId: conversationId,
+                            userName: name ?? '',
+                            userImage: profileImage ?? '',
+                            contactNo: contactNo ?? '',
+                          );
+                        },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Image.asset(
+                      "assets/images/audio_and_video_call.png",
+                      width: 24,
+                      height: 24,
+                    ),
+                  )),
+            // Language change shortcut — same action as the 3-dot menu's
+            // "language" option.
+            if (isFromAiChat == true)
+              InkWell(
+                onTap: () => showAiChatLanguageSheet(context,
+                    controller: aiProfileCtrl!, type: type ?? ''),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: existingFlag != null
-                      ? Text(existingFlag.emoji, style: const TextStyle(fontSize: 20))
-                      : Icon(Icons.flag_outlined,
-                          color: AppColors.chat_input_icon_color, size: 26),
+                  child: Icon(Icons.language,
+                      color: AppColors.chat_input_icon_color, size: 26),
                 ),
-              );
-            });
-          },
-        ),
-      if(isFromAiChat!=true)
-        InkWell(
-            onTap: disableCallButton
-                ? null
-                : () {
-              _showCallOptionsBottomSheet(
-                context: context,
-                otherUserId: isGroupAppBar == null ? userId : null,
-                conversationId: conversationId,
-                userName: name ?? '',
-                userImage: profileImage ?? '',
-                contactNo: contactNo ?? '',
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: Image.asset(
-             "assets/images/audio_and_video_call.png",
-                width: 24,
-                height: 24,
-
-              ),
-            )),
-      // Language change shortcut — same action as the 3-dot menu's
-      // "language" option.
-      if(isFromAiChat == true)
-        InkWell(
-          onTap: () => showAiChatLanguageSheet(context,
-              controller: aiProfileCtrl!, type: type ?? ''),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Icon(Icons.language,
-                color: AppColors.chat_input_icon_color, size: 26),
-          ),
-        )
-      else
-        SizedBox(width: SizeConfig.size12),
-      if(isFromAiChat == true)
-        Obx(() {
-          // Read .value synchronously so Obx tracks it and rebuilds the menu
-          // icon/labels when the mute state changes.
-          final isMuted = aiProfileCtrl!.isMuted.value;
-          return PopupMenuButton<String>(
-            icon: LocalAssets(
-              imagePath: AppIconAssets.chat_info_pop,
-              height: 20,
-              width: 20,
-              imgColor: AppColors.black,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            constraints: const BoxConstraints(),
-            offset: const Offset(-6, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) async {
-              final t = type ?? '';
-              if (value == "mute") {
-                await aiProfileCtrl.toggleMute(t);
-                commonSnackBar(
-                    message: aiProfileCtrl.isMuted.value
-                        ? 'Notifications muted'
-                        : 'Notifications unmuted');
-              } else if (value == "language") {
-                showAiChatLanguageSheet(context,
-                    controller: aiProfileCtrl, type: t);
-              } else if (value == "clear") {
-                showAiChatClearDialog(type: t);
-              } else if (value == "background") {
-                Get.to(() => ChatBackgroundScreen());
-              }
-            },
-            itemBuilder: (context) =>
-                PopupMenuBuilders.popupMenuForAiChatOptions(isMuted),
-          );
-        })
-      else if(isGroupAppBar == null)
-        PopupMenuButton<String>(
-            icon: LocalAssets(
-              imagePath: AppIconAssets.chat_info_pop,
-              height: 20,
-              width: 20,
-              imgColor: AppColors.black,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            constraints: const BoxConstraints(),
-            offset: const Offset(-6, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) {
-              if(value == "clear_chat"){
-                // Inquiry lane: a conversation can only be deleted/cleared once
-                // it is at least 48h old. Personal chat is exempt.
-                if (socketType == AppConstants.business_Chat_Type) {
-                  final createdAt = chatViewController
-                      .businessConversationCreatedAt(conversationId);
-                  if (!chatViewController.isInquiryDeleteUnlocked(createdAt)) {
-                    commonSnackBar(
-                        message:
-                            "This inquiry chat can only be deleted after 48 hours.");
-                    return;
-                  }
-                }
-                showDeleteChatDialog(conversationId ?? '');
-              } else if(value == "report"){
-                // TODO: Handle report
-              } else if(value == "block"){
-                // TODO: Handle block
-              } else if(value == "media_docs"){
-                Get.to(() => ConversationMediaPage(
-                  conversationId: conversationId ?? '',
-                  contactName: name ?? AppStrings.chat.tr,
-                  initialTab: 0,
-                ));
-              } else if(value == "chat_theme"){
-                Get.to(() => ChatBackgroundScreen());
-              } else if(value == "add_shortcut"){
-                ChatShortcutService.createChatShortcut(
-                  conversationId: conversationId ?? '',
-                  name: name ?? AppStrings.chat.tr,
-                  userId: userId ?? '',
-                  profileImage: profileImage,
-                  chatType: socketType ?? 'personal',
+              )
+            else
+              SizedBox(width: SizeConfig.size12),
+            if (isFromAiChat == true)
+              Obx(() {
+                // Read .value synchronously so Obx tracks it and rebuilds the menu
+                // icon/labels when the mute state changes.
+                final isMuted = aiProfileCtrl!.isMuted.value;
+                return PopupMenuButton<String>(
+                  icon: LocalAssets(
+                    imagePath: AppIconAssets.chat_info_pop,
+                    height: 20,
+                    width: 20,
+                    imgColor: AppColors.black,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  constraints: const BoxConstraints(),
+                  offset: const Offset(-6, 36),
+                  color: AppColors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  onSelected: (value) async {
+                    final t = type ?? '';
+                    if (value == "mute") {
+                      await aiProfileCtrl.toggleMute(t);
+                      commonSnackBar(
+                          message: aiProfileCtrl.isMuted.value
+                              ? 'Notifications muted'
+                              : 'Notifications unmuted');
+                    } else if (value == "language") {
+                      showAiChatLanguageSheet(context,
+                          controller: aiProfileCtrl, type: t);
+                    } else if (value == "clear") {
+                      showAiChatClearDialog(type: t);
+                    } else if (value == "background") {
+                      Get.to(() => ChatBackgroundScreen());
+                    }
+                  },
+                  itemBuilder: (context) =>
+                      PopupMenuBuilders.popupMenuForAiChatOptions(isMuted),
                 );
-              }
-            },
-            itemBuilder: (context) => PopupMenuBuilders.popPupMenuForPersonalChat(),
-        ),
-      if(isGroupAppBar != null)
-        PopupMenuButton<String>(
-            icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            constraints: const BoxConstraints(),
-            offset: const Offset(-6, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) {
-              if(value == "group_info"){
-                Get.to(() => ViewGroupMembers(
-                      conversationId: conversationId,
-                      type: type,
-                    ));
-              } else if(value == "clear_chat"){
-                showDeleteChatDialog(conversationId ?? '');
-              } else if(value == "background_change"){
-                Get.to(() => ChatBackgroundScreen());
-              } else if(value == "exit_group"){
-                showExitGroupDialog(conversationId ?? '');
-              } else if(value == "pin_group"){
-                // Pin/unpin from the conversation list.
-                final pinCtrl = Get.isRegistered<ChatPinArchiveController>()
-                    ? Get.find<ChatPinArchiveController>()
-                    : Get.put(ChatPinArchiveController());
-                pinCtrl.togglePin(conversationId ?? '');
-                commonSnackBar(message: "Group pin updated");
-              }
-            },
-            itemBuilder: (context) => PopupMenuBuilders.popPupMenuForGroupChat(),
-        )
-      else if (isFromAiChat==false)
-        SizedBox(),
-      SizedBox(width: SizeConfig.size8),
-
-    ],
+              })
+            else if (isGroupAppBar == null)
+              PopupMenuButton<String>(
+                icon: LocalAssets(
+                  imagePath: AppIconAssets.chat_info_pop,
+                  height: 20,
+                  width: 20,
+                  imgColor: AppColors.black,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(),
+                offset: const Offset(-6, 36),
+                color: AppColors.white,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                onSelected: (value) {
+                  if (value == "clear_chat") {
+                    // Inquiry lane: a conversation can only be deleted/cleared once
+                    // it is at least 48h old. Personal chat is exempt.
+                    if (socketType == AppConstants.business_Chat_Type) {
+                      final createdAt = chatViewController
+                          .businessConversationCreatedAt(conversationId);
+                      if (!chatViewController
+                          .isInquiryDeleteUnlocked(createdAt)) {
+                        commonSnackBar(
+                            message:
+                                "This inquiry chat can only be deleted after 48 hours.");
+                        return;
+                      }
+                    }
+                    showDeleteChatDialog(conversationId ?? '');
+                  } else if (value == "report") {
+                    // TODO: Handle report
+                  } else if (value == "block") {
+                    // TODO: Handle block
+                  } else if (value == "media_docs") {
+                    Get.to(() => ConversationMediaPage(
+                          conversationId: conversationId ?? '',
+                          contactName: name ?? AppStrings.chat.tr,
+                          initialTab: 0,
+                        ));
+                  } else if (value == "chat_theme") {
+                    Get.to(() => ChatBackgroundScreen());
+                  } else if (value == "add_shortcut") {
+                    ChatShortcutService.createChatShortcut(
+                      conversationId: conversationId ?? '',
+                      name: name ?? AppStrings.chat.tr,
+                      userId: userId ?? '',
+                      profileImage: profileImage,
+                      chatType: socketType ?? 'personal',
+                    );
+                  }
+                },
+                itemBuilder: (context) =>
+                    PopupMenuBuilders.popPupMenuForPersonalChat(),
+              ),
+            if (isGroupAppBar != null)
+              PopupMenuButton<String>(
+                icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(),
+                offset: const Offset(-6, 36),
+                color: AppColors.white,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                onSelected: (value) {
+                  if (value == "group_info") {
+                    Get.to(() => ViewGroupMembers(
+                          conversationId: conversationId,
+                          type: type,
+                        ));
+                  } else if (value == "clear_chat") {
+                    showDeleteChatDialog(conversationId ?? '');
+                  } else if (value == "background_change") {
+                    Get.to(() => ChatBackgroundScreen());
+                  } else if (value == "exit_group") {
+                    showExitGroupDialog(conversationId ?? '');
+                  } else if (value == "pin_group") {
+                    // Pin/unpin from the conversation list.
+                    final pinCtrl = Get.isRegistered<ChatPinArchiveController>()
+                        ? Get.find<ChatPinArchiveController>()
+                        : Get.put(ChatPinArchiveController());
+                    pinCtrl.togglePin(conversationId ?? '');
+                    commonSnackBar(message: "Group pin updated");
+                  }
+                },
+                itemBuilder: (context) =>
+                    PopupMenuBuilders.popPupMenuForGroupChat(),
+              )
+            else if (isFromAiChat == false)
+              SizedBox(),
+            SizedBox(width: SizeConfig.size8),
+          ],
   );
 }
+
 void showDeleteChatDialog(String conId) {
   Get.dialog(
     Dialog(
@@ -2317,7 +2421,9 @@ void showDeleteChatDialog(String conId) {
         borderRadius: BorderRadius.circular(16),
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child:DeleteChatHistoryDialog(conversationId:conId ,),
+      child: DeleteChatHistoryDialog(
+        conversationId: conId,
+      ),
     ),
     barrierDismissible: false, // user must tap button
   );
@@ -2376,7 +2482,8 @@ void showExitGroupDialog(String conId) {
                       chatViewController.emitEvent(
                           ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
                       // Pop back to the chat list (group info + chat screen).
-                      Get.until((route) => route.isFirst ||
+                      Get.until((route) =>
+                          route.isFirst ||
                           route.settings.name ==
                               RouteHelper.getBottomNavigationBarScreenRoute());
                       commonSnackBar(message: "You exited the group");
@@ -2394,12 +2501,14 @@ void showExitGroupDialog(String conId) {
   );
 }
 
-PreferredSize getChatOptionsAppBar(BuildContext context, {
-   String? userId,
-   String? conversationId,
-   TextEditingController? editingController,
+PreferredSize getChatOptionsAppBar(
+  BuildContext context, {
+  String? userId,
+  String? conversationId,
+  TextEditingController? editingController,
   String? profileImage,
   bool? isFromAiChat,
+
   /// Inquiry (business) lane only: block deleting messages newer than 48h.
   bool restrictDeleteWithin48h = false,
 }) {
@@ -2437,8 +2546,8 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
             // Inquiry lane: messages can only be deleted after 48 hours. Block
             // if any selected message is still inside the lock window.
             if (restrictDeleteWithin48h) {
-              final blocked = chatThemeController.selectedMessages.any(
-                  (m) => !chatViewController.isInquiryDeleteUnlocked(m.createdAt));
+              final blocked = chatThemeController.selectedMessages.any((m) =>
+                  !chatViewController.isInquiryDeleteUnlocked(m.createdAt));
               if (blocked) {
                 commonSnackBar(
                     message:
@@ -2450,37 +2559,37 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
               context: context,
               builder: (_) => CommonDeleteDialog(
                 showDeleteForEveryone:
-                chatThemeController.isDeleteForEveryOneAvailable.value,
-
+                    chatThemeController.isDeleteForEveryOneAvailable.value,
                 onDeleteForMe: () async {
                   FocusScope.of(context).unfocus();
 
                   Map<String, dynamic> data = {
                     ApiKeys.conversation_id: "$conversationId",
                     ApiKeys.delete_from_every_one: false,
-                    ApiKeys.message_id_list: chatThemeController.selectedMessageIds
+                    ApiKeys.message_id_list:
+                        chatThemeController.selectedMessageIds
                   };
 
-                  await chatViewController
-                      .deleteChatMessage(data, userId ?? '');
+                  await chatViewController.deleteChatMessage(
+                      data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
 
                   Navigator.pop(context);
                 },
-
                 onDeleteForEveryone: () async {
                   FocusScope.of(context).unfocus();
 
                   Map<String, dynamic> data = {
                     ApiKeys.conversation_id: "$conversationId",
                     ApiKeys.delete_from_every_one: true,
-                    ApiKeys.message_id_list: chatThemeController.selectedMessageIds
+                    ApiKeys.message_id_list:
+                        chatThemeController.selectedMessageIds
                   };
 
-                  await chatViewController
-                      .deleteChatMessage(data, userId ?? '');
+                  await chatViewController.deleteChatMessage(
+                      data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
@@ -2492,34 +2601,38 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           },
         ),
         (chatThemeController.selectedMessageIds.length == 1 &&
-            chatThemeController.selectedFirstMessage?.value?.messageType ==
-                "text")
+                chatThemeController.selectedFirstMessage?.value?.messageType ==
+                    "text")
             ? IconButton(
-          icon: Icon(
-            Icons.edit,
-            color: AppColors.chat_input_icon_color,
-            size: SizeConfig.size22,
-          ),
-          onPressed: () {
-            editingController?.text = chatThemeController
-                .selectedFirstMessage?.value?.message ??
-                '';
-            showMessageEditDialog(
-              userId ?? "",
-              conversationId ?? "",
-              editingController,
-              chatThemeController,
-              chatViewController,
-            );
-          },
-        )
+                icon: Icon(
+                  Icons.edit,
+                  color: AppColors.chat_input_icon_color,
+                  size: SizeConfig.size22,
+                ),
+                onPressed: () {
+                  editingController?.text = chatThemeController
+                          .selectedFirstMessage?.value?.message ??
+                      '';
+                  showMessageEditDialog(
+                    userId ?? "",
+                    conversationId ?? "",
+                    editingController,
+                    chatThemeController,
+                    chatViewController,
+                  );
+                },
+              )
             : SizedBox(),
         IconButton(
-          icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
-          onPressed: (){
-            showPinDialog(conversationId??'');
+          icon: Icon(
+            Icons.push_pin_outlined,
+            color: AppColors.chat_input_icon_color,
+            size: 22,
+          ),
+          onPressed: () {
+            showPinDialog(conversationId ?? '');
           },
-        // onPressed: (){},
+          // onPressed: (){},
         ),
         Padding(
           padding: EdgeInsets.only(left: SizeConfig.size6),
@@ -2528,10 +2641,8 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          SocialMainScreen(
+                      builder: (context) => SocialMainScreen(
                             isForwardUI: true,
-
                           )));
             },
             child: SvgPicture.asset(
@@ -2541,7 +2652,6 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
             ),
           ),
         ),
-
 
         // PopupMenuButton<String>(
         //   icon: Icon(Icons.more_vert, color: AppColors.chat_input_icon_color),
@@ -2560,6 +2670,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
     ),
   );
 }
+
 void showPinDialog(String conId) {
   Get.dialog(
     Dialog(
@@ -2567,11 +2678,14 @@ void showPinDialog(String conId) {
         borderRadius: BorderRadius.circular(16),
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child:PinMessageDurationDialog(conversationId:conId ,),
+      child: PinMessageDurationDialog(
+        conversationId: conId,
+      ),
     ),
     barrierDismissible: false, // user must tap button
   );
 }
+
 void launchDialPad(String phoneNumber) async {
   final Uri url = Uri(scheme: 'tel', path: phoneNumber);
 
@@ -2582,7 +2696,8 @@ void launchDialPad(String phoneNumber) async {
   }
 }
 
-void showMessageEditDialog(String userId,
+void showMessageEditDialog(
+    String userId,
     String conversationId,
     TextEditingController? editingController,
     ChatThemeController chatThemeController,
@@ -2630,8 +2745,7 @@ void showMessageEditDialog(String userId,
                 hintText: AppStrings.typeYourMessage.tr,
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.05),
-                contentPadding:
-                EdgeInsets.symmetric(
+                contentPadding: EdgeInsets.symmetric(
                     horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -2666,14 +2780,15 @@ void showMessageEditDialog(String userId,
                     ApiKeys;
                     Map<String, dynamic> data = {
                       ApiKeys.id:
-                      "${chatThemeController.selectedFirstMessage?.value?.id}",
+                          "${chatThemeController.selectedFirstMessage?.value?.id}",
                       ApiKeys.type: "message",
                       ApiKeys.message: "${editingController?.text}"
                     };
                     bool value =
-                    await chatViewController.updateMessageApi(data);
+                        await chatViewController.updateMessageApi(data);
                     if (value) {
-                      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+                      chatViewController
+                          .emitEvent(ChatEmitEvents.messageReceived, {
                         ApiKeys.conversation_id: conversationId,
                         ApiKeys.page: 1,
                         ApiKeys.is_online_user: userId,
@@ -2749,7 +2864,6 @@ class _BusinessToRiderOtpVerificationCardState
               AppStrings.enterOtp.tr,
               fontSize: SizeConfig.size20,
               fontWeight: FontWeight.w700,
-
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
@@ -2757,7 +2871,6 @@ class _BusinessToRiderOtpVerificationCardState
               textAlign: TextAlign.center,
               fontSize: SizeConfig.size14,
               color: AppColors.grayText,
-
             ),
             SizedBox(height: SizeConfig.size20),
             _buildOtpInput(),
@@ -2768,19 +2881,15 @@ class _BusinessToRiderOtpVerificationCardState
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CustomText(
-                      "${AppStrings.wrongOtp.tr} ",
-                      color: Colors.red, fontSize: SizeConfig.size12
-                  ),
+                  CustomText("${AppStrings.wrongOtp.tr} ",
+                      color: Colors.red, fontSize: SizeConfig.size12),
                   GestureDetector(
                     onTap: () {},
                     child: CustomText(
                       AppStrings.reEnter.tr,
-
                       color: Colors.blue,
                       fontSize: SizeConfig.size12,
                       decoration: TextDecoration.underline,
-
                     ),
                   ),
                 ],
@@ -2815,7 +2924,8 @@ class _BusinessToRiderOtpVerificationCardState
       return CustomBtn(
           bgColor: AppColors.primaryColor,
           isLoading: orderController.ownerOtpLoading.value,
-          onTap: () {}, title: AppStrings.submit.tr);
+          onTap: () {},
+          title: AppStrings.submit.tr);
     });
   }
 }

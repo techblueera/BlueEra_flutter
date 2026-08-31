@@ -26,7 +26,7 @@ class NoticeNewsScreen extends StatefulWidget {
 }
 
 class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
-  final noticeController = Get.put(NoticeController());
+  final noticeController = Get.find<NoticeController>();
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.to(SchoolNoticeAndNews());
+                      Get.to(() => SchoolNoticeAndNews());
                     },
                     title: AppStrings.addNoticeNews),
               ),
@@ -178,10 +178,10 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
               }, onNoticeNewsEdit: () {
                 NoticeNewsData data =
                     noticeController.noticeNewsDataList[noticeIndex];
-                Get.to(SchoolNoticeAndNews(
-                  isEdit: true,
-                  newsData: data,
-                ));
+                Get.to(() => SchoolNoticeAndNews(
+                      isEdit: true,
+                      newsData: data,
+                    ));
               })
             : SizedBox(
                 width: 10,

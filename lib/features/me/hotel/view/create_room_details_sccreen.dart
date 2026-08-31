@@ -24,7 +24,7 @@ class RoomDesignScreen extends StatelessWidget {
 
   RoomDesignScreen({super.key, required this.roomType, required this.roomName});
 
-  final controller = Get.put(RoomDetailController());
+  final controller = Get.find<RoomDetailController>();
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +282,7 @@ class RoomDesignScreen extends StatelessWidget {
         isValidate: isValid,
         title: AppStrings.next.tr,
         onTap: isValid
-            ? () => Get.to(HotelImageUploadScreen(
+            ? () => Get.to(() => HotelImageUploadScreen(
                   roomName: roomName,
                   roomType: roomType,
                 ))

@@ -226,95 +226,94 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
             // user themselves — you can't follow/unfollow your own account.
             if ((user?.id ?? "") != userId)
               GestureDetector(
-              onTap: () async {
-                if (isGuestUser()) {
-                  createProfileScreen();
+                onTap: () async {
+                  if (isGuestUser()) {
+                    createProfileScreen();
 
-                  return;
-                }
-                if (isValidation(user)) {
-                  final controllerVisit = Get.put(VisitProfileController());
+                    return;
+                  }
+                  if (isValidation(user)) {
+                    final controllerVisit = Get.put(VisitProfileController());
 
-                  await controllerVisit.unFollowUserController(
-                      candidateResumeId: user?.id);
-                  apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
-                  // final chatViewController = Get.find<ChatViewController>();
-                  // Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
-                  // chatViewController.newVisitContactApiResponse?.value;
-                  // await chatViewController.checkChatConnection(detas);
-                  //
-                  // chatViewController.openAnyOneChatFunction(
-                  //   profileImage: user?.accountType?.toUpperCase() ==
-                  //           AppConstants.business
-                  //       ? user?.business_logo
-                  //       : user?.profileImage,
-                  //   otherUserId: (chatViewController.newVisitContactApiResponse
-                  //                   ?.value?.data?.conversationId ??
-                  //               '') ==
-                  //           ""
-                  //       ? chatViewController.newVisitContactApiResponse?.value
-                  //               ?.data?.otherUserId ??
-                  //           ''
-                  //       : null,
-                  //   type: user?.accountType?.toLowerCase(),
-                  //   isInitialMessage: (chatViewController
-                  //                   .newVisitContactApiResponse
-                  //                   ?.value
-                  //                   ?.data
-                  //                   ?.conversationId ??
-                  //               '') ==
-                  //           ""
-                  //       ? true
-                  //       : false,
-                  //   userId: user?.id,
-                  //   conversationId: (chatViewController
-                  //           .newVisitContactApiResponse
-                  //           ?.value
-                  //           ?.data
-                  //           ?.conversationId ??
-                  //       ''),
-                  //   contactName: user?.accountType?.toUpperCase() ==
-                  //           AppConstants.business
-                  //       ? user?.business_name
-                  //       : user?.name,
-                  //   contactNo: "",
-                  // );
-                } else {
-                  final controllerVisit = Get.put(VisitProfileController());
+                    await controllerVisit.unFollowUserController(
+                        candidateResumeId: user?.id);
+                    apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
+                    // final chatViewController = Get.find<ChatViewController>();
+                    // Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
+                    // chatViewController.newVisitContactApiResponse?.value;
+                    // await chatViewController.checkChatConnection(detas);
+                    //
+                    // chatViewController.openAnyOneChatFunction(
+                    //   profileImage: user?.accountType?.toUpperCase() ==
+                    //           AppConstants.business
+                    //       ? user?.business_logo
+                    //       : user?.profileImage,
+                    //   otherUserId: (chatViewController.newVisitContactApiResponse
+                    //                   ?.value?.data?.conversationId ??
+                    //               '') ==
+                    //           ""
+                    //       ? chatViewController.newVisitContactApiResponse?.value
+                    //               ?.data?.otherUserId ??
+                    //           ''
+                    //       : null,
+                    //   type: user?.accountType?.toLowerCase(),
+                    //   isInitialMessage: (chatViewController
+                    //                   .newVisitContactApiResponse
+                    //                   ?.value
+                    //                   ?.data
+                    //                   ?.conversationId ??
+                    //               '') ==
+                    //           ""
+                    //       ? true
+                    //       : false,
+                    //   userId: user?.id,
+                    //   conversationId: (chatViewController
+                    //           .newVisitContactApiResponse
+                    //           ?.value
+                    //           ?.data
+                    //           ?.conversationId ??
+                    //       ''),
+                    //   contactName: user?.accountType?.toUpperCase() ==
+                    //           AppConstants.business
+                    //       ? user?.business_name
+                    //       : user?.name,
+                    //   contactNo: "",
+                    // );
+                  } else {
+                    final controllerVisit = Get.put(VisitProfileController());
 
-                  await controllerVisit.followUserController(
-                      candidateResumeId: user?.id);
-                  apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
-
-
-                }
-                // setState(() => _isFollowing = !_isFollowing);
-                // widget.onPressed();
-              },
-              child: AnimatedContainer(
-                width: 100,
-                alignment: Alignment.center,
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: !isValidation(user)
-                      ? AppColors.primaryColor
-                      : AppColors.white,
-                  border: Border.all(
-                    color: AppColors.primaryColor,
-                    width: 1.5,
+                    await controllerVisit.followUserController(
+                        candidateResumeId: user?.id);
+                    apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
+                  }
+                  // setState(() => _isFollowing = !_isFollowing);
+                  // widget.onPressed();
+                },
+                child: AnimatedContainer(
+                  width: 100,
+                  alignment: Alignment.center,
+                  duration: const Duration(milliseconds: 200),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: !isValidation(user)
+                        ? AppColors.primaryColor
+                        : AppColors.white,
+                    border: Border.all(
+                      color: AppColors.primaryColor,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: CustomText(
+                    isValidation(user) ? "Unfollow" : AppStrings.follow,
+                    color: !isValidation(user)
+                        ? AppColors.white
+                        : AppColors.primaryColor,
+                    fontSize: 13,
                   ),
                 ),
-                child: CustomText(
-                  isValidation(user) ? "Unfollow" : AppStrings.follow,
-                  color: !isValidation(user)
-                      ? AppColors.white
-                      : AppColors.primaryColor,
-                  fontSize: 13,
-                ),
               ),
-            ),
           ],
         ),
       ),

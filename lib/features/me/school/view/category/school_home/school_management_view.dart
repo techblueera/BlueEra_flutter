@@ -14,6 +14,7 @@ import '../../../../../../core/api/model/school_about_us_model.dart';
 class SchoolManagementSection extends StatelessWidget {
   final List<Management>? managementData;
   final bool isEdit;
+
   /// Overrides `CommonCardWidget`'s default 10px all-around margin.
   /// Pass 0 when the caller manages spacing externally.
   final double? cardMargin;
@@ -41,7 +42,7 @@ class SchoolManagementSection extends StatelessWidget {
                   ServiceHomeTitleWidget(title: AppStrings.managementTrust),
                   if (isEdit)
                     IconButton(
-                      onPressed: () => Get.to(ManagementAndTrust()),
+                      onPressed: () => Get.to(() => ManagementAndTrust()),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                     ),
                 ],
@@ -60,7 +61,7 @@ class SchoolManagementSection extends StatelessWidget {
                   if (isEdit) ...[
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      onPressed: () => Get.to(ManagementAndTrust()),
+                      onPressed: () => Get.to(() => ManagementAndTrust()),
                       icon: const Icon(Icons.add, size: 16),
                       label: const Text("Add"),
                       style: OutlinedButton.styleFrom(
@@ -99,7 +100,7 @@ class SchoolManagementSection extends StatelessWidget {
                   color: Colors.black,
                 ),
                 InkWell(
-                  onTap: () => Get.to(ManagementAndTrust()),
+                  onTap: () => Get.to(() => ManagementAndTrust()),
                   child: CustomText(
                     AppStrings.viewAll.tr,
                     color: AppColors.primaryColor,

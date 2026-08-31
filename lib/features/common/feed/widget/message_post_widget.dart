@@ -153,16 +153,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                   // what the reader is scanning for, and the byline reads as a
                   // caption beneath it.
                   if (_post.media?.isNotEmpty ?? false) ...[
-                    if ((_post.media_types?.firstOrNull
-                                ?.startsWith("video/") ??
+                    if ((_post.media_types?.firstOrNull?.startsWith("video/") ??
                             false) ||
                         isVideoUrl(_post.media?.firstOrNull)) ...[
                       Padding(
                         padding: EdgeInsets.fromLTRB(
-                            _kMediaInset,
-                            _kMediaInset,
-                            _kMediaInset,
-                            0),
+                            _kMediaInset, _kMediaInset, _kMediaInset, 0),
                         child: PostFeedAutoPlayVideoCard(
                           videoItem: videoData!,
                           globalMuteNotifier: ValueNotifier(false),
@@ -174,35 +170,27 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 userId: videoData?.video?.userId ?? '',
                                 contentId: videoData?.video?.id ?? '',
                                 userBlockVoidCallback: () async {
-                                  await Get.find<VideoController>()
-                                      .userBlocked(
+                                  await Get.find<VideoController>().userBlocked(
                                     videoType: VideoType.videoFeed,
-                                    otherUserId:
-                                        videoData?.video?.userId ?? '',
+                                    otherUserId: videoData?.video?.userId ?? '',
                                   );
                                 },
                                 reportCallback: (params) {
-                                  Get.find<VideoController>()
-                                      .videoPostReport(
-                                          videoId:
-                                              videoData?.video?.id ?? '',
-                                          videoType: VideoType.videoFeed,
-                                          params: params);
+                                  Get.find<VideoController>().videoPostReport(
+                                      videoId: videoData?.video?.id ?? '',
+                                      videoType: VideoType.videoFeed,
+                                      params: params);
                                 });
                           },
                         ),
                       ),
                     ],
-                    if ((_post.media_types?.firstOrNull
-                                ?.startsWith("image/") ??
+                    if ((_post.media_types?.firstOrNull?.startsWith("image/") ??
                             false) ||
                         isImageUrl(_post.media?.firstOrNull))
                       Padding(
                         padding: EdgeInsets.fromLTRB(
-                            _kMediaInset,
-                            _kMediaInset,
-                            _kMediaInset,
-                            0),
+                            _kMediaInset, _kMediaInset, _kMediaInset, 0),
                         child: SocialImageGrid(
                           imageUrls: _post.media ?? [],
                           subTitle: _post.subTitle ?? "",
@@ -210,9 +198,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           // Only the home/search feed opens the full-screen
                           // reels-style image feed; reposts & other screens
                           // keep the plain viewer so their flows don't change.
-                          openImageFeedOnTap:
-                              widget.postType == PostType.all &&
-                                  widget.isRepost != true,
+                          openImageFeedOnTap: widget.postType == PostType.all &&
+                              widget.isRepost != true,
                         ),
                       ),
                   ],
@@ -269,7 +256,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       // is non-English (i.e. hide only if BOTH are pure English),
                                       // or if already translated (to allow toggle back).
                                       if (!(transController.translator
-                                                  .isEnglishText(_post.title ?? '') &&
+                                                  .isEnglishText(
+                                                      _post.title ?? '') &&
                                               transController.translator
                                                   .isEnglishText(subTitle)) ||
                                           transController.isTranslated.value)
@@ -331,7 +319,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 ),
                                 Flexible(
                                     child: ClickableLinkText(
-                                        url: _post.referenceLink!,)),
+                                  url: _post.referenceLink!,
+                                )),
                               ],
                             ),
                           ),
@@ -666,17 +655,18 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                             items: [
                               FeedStatItem(
                                 iconPath: AppIconAssets.clock_new,
-                                label: timeAgo(
-                                    _post.createdAt?.toIso8601String()),
+                                label:
+                                    timeAgo(_post.createdAt?.toIso8601String()),
                               ),
                               FeedStatItem(
                                 iconPath: AppIconAssets.eye_new,
-                                label: formatNumberLikePost(_post.viewsCount ?? 0),
+                                label:
+                                    formatNumberLikePost(_post.viewsCount ?? 0),
                               ),
                               FeedStatItem(
                                 iconPath: AppIconAssets.comment_new,
-                                label:
-                                    formatNumberLikePost(_post.commentsCount ?? 0),
+                                label: formatNumberLikePost(
+                                    _post.commentsCount ?? 0),
                                 onTap: () {
                                   if (isGuestUser()) {
                                     createProfileScreen();
@@ -687,7 +677,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               ),
                               FeedStatItem(
                                 iconPath: AppIconAssets.like_new,
-                                label: formatNumberLikePost(_post.likesCount ?? 0),
+                                label:
+                                    formatNumberLikePost(_post.likesCount ?? 0),
                                 iconColor: (widget.post?.isLiked ?? false)
                                     ? AppColors.primaryColor
                                     : null,
@@ -704,8 +695,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   "message_post")
                                 FeedStatItem(
                                   iconPath: AppIconAssets.repost_new,
-                                  label:
-                                      formatNumberLikePost(_post.repostCount ?? 0),
+                                  label: formatNumberLikePost(
+                                      _post.repostCount ?? 0),
                                   onTap: () {
                                     if (isGuestUser()) {
                                       createProfileScreen();
@@ -743,15 +734,14 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
         return Dialog(
           insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
           backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 800),
               child: Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -775,11 +765,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               .value = true;
                           Get.until((route) =>
                               route.settings.name ==
-                              RouteHelper
-                                  .getBottomNavigationBarScreenRoute());
+                              RouteHelper.getBottomNavigationBarScreenRoute());
                         } else {
-                          commonSnackBar(
-                              message: AppStrings.alreadyReposted);
+                          commonSnackBar(message: AppStrings.alreadyReposted);
                         }
                       },
                       child: Row(
@@ -796,8 +784,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           ),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
                                   padding: EdgeInsets.symmetric(
@@ -815,8 +802,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   child: CustomText(
                                     AppStrings.sharePostWithFollowers,
                                     textAlign: TextAlign.left,
-                                    color:
-                                        AppColors.secondaryTextColor,
+                                    color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size13,
                                   ),
                                 ),
@@ -828,18 +814,16 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     ),
                     Padding(
                       padding: EdgeInsets.only(
-                          top: SizeConfig.size10,
-                          bottom: SizeConfig.size10),
-                      child: Divider(
-                          color: AppColors.secondaryTextColor),
+                          top: SizeConfig.size10, bottom: SizeConfig.size10),
+                      child: Divider(color: AppColors.secondaryTextColor),
                     ),
                     InkWell(
                       onTap: () {
                         Get.back();
-                        Get.to(CreateMessagePostScreenRepost(
-                          isEdit: false,
-                          post: widget.post,
-                        ));
+                        Get.to(() => CreateMessagePostScreenRepost(
+                              isEdit: false,
+                              post: widget.post,
+                            ));
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,8 +840,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           Flexible(
                             flex: 2,
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
                                   padding: EdgeInsets.symmetric(
@@ -875,8 +858,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   child: CustomText(
                                     AppStrings.addCommentBeforeShare,
                                     textAlign: TextAlign.left,
-                                    color:
-                                        AppColors.secondaryTextColor,
+                                    color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size13,
                                   ),
                                 ),

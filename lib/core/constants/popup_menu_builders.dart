@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/notification_settings_binding.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -351,10 +352,7 @@ class PopupMenuBuilders {
             if (items[i]['id'] == "ADD_SYMBOL") {
               Get.to(() => AddChatSymbolScreen());
             } else if (items[i]['id'] == "VIEW_SYMBOL") {
-              final addSymbolController =
-                  Get.isRegistered<AddChatSymbolController>()
-                      ? Get.find<AddChatSymbolController>()
-                      : Get.put(AddChatSymbolController());
+              final addSymbolController = Get.find<AddChatSymbolController>();
               Get.to(() => SymbolViewImages(
                     mySymbols: addSymbolController.mySymbols,
                   ));
@@ -369,7 +367,8 @@ class PopupMenuBuilders {
             } else if (items[i]['id'] == "LINKED_DEVICE") {
               commonSnackBar(message: "Coming soon....");
             } else if (items[i]['id'] == "NOTIFICATION") {
-              Get.to(() => NotificationSettingScreen());
+              Get.to(() => NotificationSettingScreen(),
+                  binding: NotificationSettingsBinding());
             } else if (items[i]['id'] == "INVITE_FRIEND") {
               commonSnackBar(message: "Coming soon....");
             } else if (items[i]['id'] == "WALLET") {

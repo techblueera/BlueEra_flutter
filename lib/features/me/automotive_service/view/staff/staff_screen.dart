@@ -18,7 +18,7 @@ class StaffScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(StaffController());
+    final controller = Get.find<StaffController>();
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -58,39 +58,39 @@ class StaffScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStaffCard(BuildContext context,
-      StaffController controller, StaffData item) {
+  Widget _buildStaffCard(
+      BuildContext context, StaffController controller, StaffData item) {
     String dateRange = "";
     try {
       if (item.joinedFrom != null) {
         final fromDate = DateTime.parse(item.joinedFrom!);
         final fromStr = DateFormat('d MMM, yyyy').format(fromDate);
-        
+
         String toStr = AppStrings.present.tr;
         if (item.joinedTo != null) {
           final toDate = DateTime.parse(item.joinedTo!);
-           // Assuming if joinedTo is same as joinedFrom or some logic, but usually it's a range.
-           // However, if joinedTo is present, format it.
-           // User snippet showed: "1st, Jan, 2024 - Present"
-           // If joinedTo is null or equal to some default, maybe it's present?
-           // The API response example showed joinedFrom and joinedTo having same value in one case, 
-           // but typically logic is: if joinedTo is null -> Present.
-           // The controller logic I wrote: if joinedTo is null -> Present.
-           
-           // If joinedTo is available, use it.
-           toStr = DateFormat('d MMM, yyyy').format(toDate);
+          // Assuming if joinedTo is same as joinedFrom or some logic, but usually it's a range.
+          // However, if joinedTo is present, format it.
+          // User snippet showed: "1st, Jan, 2024 - Present"
+          // If joinedTo is null or equal to some default, maybe it's present?
+          // The API response example showed joinedFrom and joinedTo having same value in one case,
+          // but typically logic is: if joinedTo is null -> Present.
+          // The controller logic I wrote: if joinedTo is null -> Present.
+
+          // If joinedTo is available, use it.
+          toStr = DateFormat('d MMM, yyyy').format(toDate);
         } else {
-           toStr = AppStrings.present.tr;
+          toStr = AppStrings.present.tr;
         }
-        
+
         // However, if the user explicitly checked "Present", the API might send null or omitted joinedTo.
         // Or if the backend sends joinedTo same as joinedFrom for "Present"? No, that would be weird.
         // Let's assume null joinedTo means Present.
-        
+
         if (item.joinedTo == null) {
           toStr = AppStrings.present.tr;
         }
-        
+
         dateRange = "$fromStr - $toStr";
       }
     } catch (e) {
@@ -143,8 +143,8 @@ class StaffScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(
-                          width: 24, 
-                          height: 24, 
+                          width: 24,
+                          height: 24,
                           child: PopupMenuButton<String>(
                             padding: EdgeInsets.zero,
                             iconSize: 20,
@@ -158,8 +158,7 @@ class StaffScreen extends StatelessWidget {
                               } else if (value == 'Delete') {
                                 commonConformationDialog(
                                   context: context,
-                                  text:
-                                      AppStrings.otherConfirmDeleteStaff.tr,
+                                  text: AppStrings.otherConfirmDeleteStaff.tr,
                                   confirmCallback: () {
                                     Get.back();
                                     controller.deleteStaff(item.sId ?? "");
@@ -170,9 +169,11 @@ class StaffScreen extends StatelessWidget {
                             },
                             itemBuilder: (context) => [
                               PopupMenuItem(
-                                  value: 'Edit', child: Text(AppStrings.edit.tr)),
+                                  value: 'Edit',
+                                  child: Text(AppStrings.edit.tr)),
                               PopupMenuItem(
-                                  value: 'Delete', child: Text(AppStrings.delete.tr)),
+                                  value: 'Delete',
+                                  child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )
@@ -201,7 +202,7 @@ class StaffScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                     if (dateRange.isNotEmpty)
+                    if (dateRange.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: CustomText(
@@ -212,7 +213,6 @@ class StaffScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-
                   ],
                 ),
               ),

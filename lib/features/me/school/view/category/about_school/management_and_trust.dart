@@ -73,7 +73,11 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               /// Doctor Image
-                              Expanded(child: NetWorkOcToAssets(imgUrl: data?.photo ?? "",height: 140,)),
+                              Expanded(
+                                  child: NetWorkOcToAssets(
+                                imgUrl: data?.photo ?? "",
+                                height: 140,
+                              )),
                               const SizedBox(width: 12),
 
                               /// Details
@@ -93,10 +97,12 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                                         ),
                                         InkWell(
                                           onTap: () {
-                                            Get.to(ManagementTrustFormScreen(
-                                              isEdit: true,management: data,
-                                              editItemIndex: index,
-                                            ));
+                                            Get.to(
+                                                () => ManagementTrustFormScreen(
+                                                      isEdit: true,
+                                                      management: data,
+                                                      editItemIndex: index,
+                                                    ));
                                           },
                                           child: const Icon(Icons.edit,
                                               size: 20,
@@ -171,9 +177,9 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                   horizontal: SizeConfig.size5, vertical: SizeConfig.size10),
               child: AddMoreIconButton(
                 onTapEvent: () {
-                  Get.to(ManagementTrustFormScreen(
-                    isEdit: false,
-                  ));
+                  Get.to(() => ManagementTrustFormScreen(
+                        isEdit: false,
+                      ));
                 },
               ),
             ),

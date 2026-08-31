@@ -80,9 +80,7 @@ class _FeedCardState extends State<FeedCard> {
     openFeedProfile(_post?.user?.copyWith(id: authorId));
   }
 
-  final feedController = Get.isRegistered<FeedController>()
-      ? Get.find<FeedController>()
-      : Get.put(FeedController());
+  final feedController = Get.put(FeedController());
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +128,8 @@ class _FeedCardState extends State<FeedCard> {
                     post: _post,
                     isRepost: widget.isRepost,
                     channelName: widget.channelName,
-                    authorId: _post?.user?.id ?? '0',postedAgo: _post?.createdAt.toString(),
+                    authorId: _post?.user?.id ?? '0',
+                    postedAgo: _post?.createdAt.toString(),
                     postType: widget.postFilteredType,
                     onTapAvatar: _shouldShowProfileNavigation()
                         ? () =>
@@ -319,7 +318,10 @@ void showShareOptionsDialog(String shareUrl) {
             ),
             onTap: () {
               Get.back();
-              Get.to(() => ChatForwardScreen(sharedText: shareUrl,stopChatNav: true,));
+              Get.to(() => ChatForwardScreen(
+                    sharedText: shareUrl,
+                    stopChatNav: true,
+                  ));
             },
           ),
           const Divider(height: 1),

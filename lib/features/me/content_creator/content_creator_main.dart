@@ -360,7 +360,8 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
           backgroundColor: AppColors.primaryColor,
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
       ),
@@ -423,7 +424,8 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
                   },
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size10, horizontal: SizeConfig.size4),
+                        vertical: SizeConfig.size10,
+                        horizontal: SizeConfig.size4),
                     child: Row(
                       children: [
                         LocalAssets(
@@ -478,7 +480,6 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
       SizedBox(height: SizeConfig.size16),
     ];
   }
-
 }
 
 class _PostMenuEntry {

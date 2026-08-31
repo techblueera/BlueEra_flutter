@@ -14,7 +14,7 @@ class ManagementCardListWidget extends StatelessWidget {
 
   const ManagementCardListWidget({super.key, this.isReadOnly = true});
 
-  void _openManagement() => Get.to(const HospitalManagementScreen());
+  void _openManagement() => Get.to(() => const HospitalManagementScreen());
 
   @override
   Widget build(BuildContext context) {

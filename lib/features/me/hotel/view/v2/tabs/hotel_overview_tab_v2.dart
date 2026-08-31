@@ -109,7 +109,7 @@ class _HotelOverviewTabV2State extends State<HotelOverviewTabV2> {
             final hasPhotos =
                 photos?.any((p) => (p.imageReferences?.isNotEmpty ?? false)) ??
                     false;
-            final onEdit = () => Get.to(PropertyPhotoScreen())
+            final onEdit = () => Get.to(() => PropertyPhotoScreen())
                 ?.then((_) => widget.controller.loadHotelData());
             return CommonCardWidget(
               padding: 10,

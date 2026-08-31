@@ -154,8 +154,9 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.gallery.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () => Get.to(OtherServicePhotosPhotoScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: () =>
+                        Get.to(() => OtherServicePhotosPhotoScreen())
+                            ?.then((_) => controller.getBusinessProfileFull()),
                   ),
                   const SizedBox(height: 10),
                   if ((data?.gallery?.isNotEmpty ?? false))
@@ -164,7 +165,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.gallery.tr,
-                      onTap: () => Get.to(OtherServicePhotosPhotoScreen())
+                      onTap: () => Get.to(() => OtherServicePhotosPhotoScreen())
                           ?.then((_) => controller.getBusinessProfileFull()),
                     ),
                 ],
@@ -563,23 +564,24 @@ class _ContactUs extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(OtherBranchOnlyScreen(
-                      schoolContactUsData: SchoolContactUsData(
-                        id: contacts.id,
-                        branch: Branch(
-                          name: contacts.branch?.name,
-                          location: SchoolLocation(
-                            name: contacts.branch?.location?.name,
-                            coordinates:
-                                contacts.branch?.location?.coordinates ?? [],
+                    onTap: () => Get.to(() => OtherBranchOnlyScreen(
+                          schoolContactUsData: SchoolContactUsData(
+                            id: contacts.id,
+                            branch: Branch(
+                              name: contacts.branch?.name,
+                              location: SchoolLocation(
+                                name: contacts.branch?.location?.name,
+                                coordinates:
+                                    contacts.branch?.location?.coordinates ??
+                                        [],
+                              ),
+                              website: contacts.branch?.website,
+                            ),
+                            departments: contacts.departments ?? [],
+                            schoolId: contacts.id,
+                            v: contacts.v,
                           ),
-                          website: contacts.branch?.website,
-                        ),
-                        departments: contacts.departments ?? [],
-                        schoolId: contacts.id,
-                        v: contacts.v,
-                      ),
-                    )),
+                        )),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
@@ -619,7 +621,7 @@ class _ContactUs extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         GestureDetector(
-          onTap: () => Get.to(OtherBranchDetailsFormScreen()),
+          onTap: () => Get.to(() => OtherBranchDetailsFormScreen()),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 10),

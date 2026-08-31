@@ -24,14 +24,16 @@ class VehicleInformationRidingScreen extends StatefulWidget {
   final String screeName;
 
   @override
-  State<VehicleInformationRidingScreen> createState() => _VehicleInformationRidingScreenState();
+  State<VehicleInformationRidingScreen> createState() =>
+      _VehicleInformationRidingScreenState();
 }
 
-class _VehicleInformationRidingScreenState extends State<VehicleInformationRidingScreen> {
-  final controller = Get.put(DeliveryPartnerController());
+class _VehicleInformationRidingScreenState
+    extends State<VehicleInformationRidingScreen> {
+  final controller = Get.find<DeliveryPartnerController>();
 
   @override
-  initState(){
+  initState() {
     super.initState();
     // Pass the profession so the backend returns only the valid options — no
     // local filtering. See docs/backend/VEHICLE_ENUMS_BY_PROFESSION_GUIDE.md.
@@ -47,233 +49,249 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
             child: Center(child: CircularProgressIndicator()),
           )
         : Padding(
-          padding: EdgeInsets.all(SizeConfig.size16),
-          child: CustomFormCard(
-            child: Form(
-              key: controller.formKeyStep6,
-              child: AbsorbPointer(
-                absorbing: controller.isRiderVehicleInformationLoading.value,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Vehicle Type
-                    CustomText(
-                      AppStrings.vehicleType.tr,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<VehicleEnumItem>(
-                      items:
-                          controller.vehicleEnumResponse?.vehicleType ?? [],
-                      title: AppStrings.vehicleType.tr,
-                      selectedValue: controller.selectedVehicleType.value,
-                      hintText: AppStrings.egTwoThreeWheeler.tr,
-                      displayValue: (value) => value.slugValue,
-                      onChanged: (value) {
-                        controller.selectedVehicleType.value = value;
-                      },
-                      // validator: (value) {
-                      //   return null;
-                      // },
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// Registration Type
-                    CustomText(
-                      AppStrings.registrationType.tr,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<VehicleEnumItem>(
-                      items: controller.vehicleEnumResponse?.registrationType ?? [],
-                      selectedValue: controller.selectedVehicleRegistrationType.value,
-                      title: AppStrings.registrationType.tr,
-                      hintText: AppStrings.egPersonalCommercial.tr,
-                      displayValue: (value) => value.slugValue,
-                      onChanged: (value) {
-                        controller.selectedVehicleRegistrationType.value = value;
-                      },
-                      // validator: (value) {
-                      //   return null;
-                      // },
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// Vehicle Use Type
-                    CustomText(
-                      AppStrings.vehicleUseType.tr,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<VehicleEnumItem>(
-                      items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
-                      selectedValue: controller.selectedVehicleUseType.value,
-                      title: AppStrings.vehicleUseType.tr,
-                      hintText: AppStrings.egPassengerDeliveryGoods.tr,
-                      displayValue: (value) => value.slugValue,
-                      onChanged: (value) {
-                        controller.selectedVehicleUseType.value = value;
-                      },
-                      // validator: (value) {
-                      //   return null;
-                      // },
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// Vehicle Name
-                    CommonTextField(
-                      title: AppStrings.vehicleNameCompanyName.tr,
-                      hintText:"Honda",
-                      textEditController: controller.vehicleNameController,
-                      isValidate: true,
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// Fuel Type
-                    CustomText(
-                      AppStrings.fuelType.tr,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<VehicleEnumItem>(
-                      items: controller.vehicleEnumResponse?.fuelType ?? [],
-                      selectedValue: controller.selectedFuelType.value,
-                      title: AppStrings.fuelType.tr,
-                      hintText: AppStrings.egPetrolDiesel.tr,
-                      displayValue: (value) => value.slugValue,
-                      onChanged: (value) {
-                        controller.selectedFuelType.value = value;
-                      },
-                      // validator: (value) {
-                      //   return null;
-                      // },
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// Vehicle Number
-                    CommonTextField(
-                      title: AppStrings.vehicleNumber.tr,
-                      hintText: AppStrings.egWB5454.tr,
-                      textEditController: controller.vehicleRegistrationNumberController,
-                      isCapitalize: true,
-                      maxLength: VehicleNumber.maxLength,
-                      // Replaces the old `regularExpression: [A-Za-z0-9]`,
-                      // which let a digit be typed into the state-code slot.
-
-                      inputFormatters: VehicleNumber.relaxedInputFormatters,
-                      validator: VehicleNumber.validate,
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    // /// Vehicle Model
-                    CommonTextField(
-                      title: AppStrings.vehicleModelYearManufacturing.tr,
-                      hintText: AppStrings.eg2020.tr,
-                      // hintText: "E.g. Honda, Maruti, BMW....",
-                      keyBoardType: TextInputType.number,
-                      textEditController: controller.vehicleModelController,
-                      isValidate: true,
-                    ),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    /// terms & conditions
-                    SizedBox(
-                      width: double.infinity,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ///  Checkbox with custom blue border
-                          Obx(() => GestureDetector(
-                            onTap: () => controller.isTermsAccepted.value = !controller.isTermsAccepted.value,
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              margin: EdgeInsets.only(top: 2),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: AppColors.primaryColor,
-                                  width: 1.5,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                                color: controller.isTermsAccepted.value ? AppColors.primaryColor : Colors.transparent,
-                              ),
-                              child: controller.isTermsAccepted.value
-                                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                  : null,
-                            ),
-                          )),
-                          SizedBox(width: SizeConfig.size8),
-
-                          /// ✅ Terms & Privacy Rich Text
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black87,
-                                  fontFamily: AppConstants.OpenSans,
-                                ),
-                                children: [
-                                  TextSpan(text: AppStrings.acceptAll.tr),
-                                  TextSpan(
-                                    text: AppStrings.termsConditions.tr,
-                                    style: const TextStyle(color: AppColors.primaryColor),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        Get.to(() => CommonWebView(
-                                          urlLink: tncLink,
-                                          urlTitle: AppStrings.termsConditions,
-                                        ));
-                                      },
-                                  ),
-                                  TextSpan(text: ' ${AppStrings.and.tr}\n'),
-                                  TextSpan(
-                                    text: AppStrings.privacyPolicy.tr,
-                                    style: const TextStyle(color: AppColors.primaryColor),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        Get.to(() => CommonWebView(
-                                          urlLink: privacyLink,
-                                          urlTitle: AppStrings.privacyPolicy,
-                                        ));
-                                      },
-                                  ),
-                                  const TextSpan(text: '.'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+            padding: EdgeInsets.all(SizeConfig.size16),
+            child: CustomFormCard(
+              child: Form(
+                key: controller.formKeyStep6,
+                child: AbsorbPointer(
+                  absorbing: controller.isRiderVehicleInformationLoading.value,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// Vehicle Type
+                      CustomText(
+                        AppStrings.vehicleType.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
                       ),
-                    ),
-
-                    SizedBox(height: SizeConfig.paddingL),
-                    CustomBtn(
-                      title: controller.isRiderVehicleInformationLoading.value
-                          ? null
-                          : AppStrings.create.tr,
-                      onTap: ()=> controller.ridersOnboardingVehicleInformationApi(
-                          widget.screeName
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<VehicleEnumItem>(
+                        items:
+                            controller.vehicleEnumResponse?.vehicleType ?? [],
+                        title: AppStrings.vehicleType.tr,
+                        selectedValue: controller.selectedVehicleType.value,
+                        hintText: AppStrings.egTwoThreeWheeler.tr,
+                        displayValue: (value) => value.slugValue,
+                        onChanged: (value) {
+                          controller.selectedVehicleType.value = value;
+                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
                       ),
-                      radius: 10.0,
-                      bgColor: AppColors.primaryColor,
-                      isLoading: controller.isRiderVehicleInformationLoading.value,
-                    ),
+                      SizedBox(height: SizeConfig.paddingM),
 
-                  ],
+                      /// Registration Type
+                      CustomText(
+                        AppStrings.registrationType.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<VehicleEnumItem>(
+                        items:
+                            controller.vehicleEnumResponse?.registrationType ??
+                                [],
+                        selectedValue:
+                            controller.selectedVehicleRegistrationType.value,
+                        title: AppStrings.registrationType.tr,
+                        hintText: AppStrings.egPersonalCommercial.tr,
+                        displayValue: (value) => value.slugValue,
+                        onChanged: (value) {
+                          controller.selectedVehicleRegistrationType.value =
+                              value;
+                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Vehicle Use Type
+                      CustomText(
+                        AppStrings.vehicleUseType.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<VehicleEnumItem>(
+                        items:
+                            controller.vehicleEnumResponse?.vehicleUsesType ??
+                                [],
+                        selectedValue: controller.selectedVehicleUseType.value,
+                        title: AppStrings.vehicleUseType.tr,
+                        hintText: AppStrings.egPassengerDeliveryGoods.tr,
+                        displayValue: (value) => value.slugValue,
+                        onChanged: (value) {
+                          controller.selectedVehicleUseType.value = value;
+                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Vehicle Name
+                      CommonTextField(
+                        title: AppStrings.vehicleNameCompanyName.tr,
+                        hintText: "Honda",
+                        textEditController: controller.vehicleNameController,
+                        isValidate: true,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Fuel Type
+                      CustomText(
+                        AppStrings.fuelType.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<VehicleEnumItem>(
+                        items: controller.vehicleEnumResponse?.fuelType ?? [],
+                        selectedValue: controller.selectedFuelType.value,
+                        title: AppStrings.fuelType.tr,
+                        hintText: AppStrings.egPetrolDiesel.tr,
+                        displayValue: (value) => value.slugValue,
+                        onChanged: (value) {
+                          controller.selectedFuelType.value = value;
+                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Vehicle Number
+                      CommonTextField(
+                        title: AppStrings.vehicleNumber.tr,
+                        hintText: AppStrings.egWB5454.tr,
+                        textEditController:
+                            controller.vehicleRegistrationNumberController,
+                        isCapitalize: true,
+                        maxLength: VehicleNumber.maxLength,
+                        // Replaces the old `regularExpression: [A-Za-z0-9]`,
+                        // which let a digit be typed into the state-code slot.
+
+                        inputFormatters: VehicleNumber.relaxedInputFormatters,
+                        validator: VehicleNumber.validate,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      // /// Vehicle Model
+                      CommonTextField(
+                        title: AppStrings.vehicleModelYearManufacturing.tr,
+                        hintText: AppStrings.eg2020.tr,
+                        // hintText: "E.g. Honda, Maruti, BMW....",
+                        keyBoardType: TextInputType.number,
+                        textEditController: controller.vehicleModelController,
+                        isValidate: true,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// terms & conditions
+                      SizedBox(
+                        width: double.infinity,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ///  Checkbox with custom blue border
+                            Obx(() => GestureDetector(
+                                  onTap: () =>
+                                      controller.isTermsAccepted.value =
+                                          !controller.isTermsAccepted.value,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    margin: EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: AppColors.primaryColor,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: controller.isTermsAccepted.value
+                                          ? AppColors.primaryColor
+                                          : Colors.transparent,
+                                    ),
+                                    child: controller.isTermsAccepted.value
+                                        ? const Icon(Icons.check,
+                                            color: Colors.white, size: 16)
+                                        : null,
+                                  ),
+                                )),
+                            SizedBox(width: SizeConfig.size8),
+
+                            /// ✅ Terms & Privacy Rich Text
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                    fontFamily: AppConstants.OpenSans,
+                                  ),
+                                  children: [
+                                    TextSpan(text: AppStrings.acceptAll.tr),
+                                    TextSpan(
+                                      text: AppStrings.termsConditions.tr,
+                                      style: const TextStyle(
+                                          color: AppColors.primaryColor),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          Get.to(() => CommonWebView(
+                                                urlLink: tncLink,
+                                                urlTitle:
+                                                    AppStrings.termsConditions,
+                                              ));
+                                        },
+                                    ),
+                                    TextSpan(text: ' ${AppStrings.and.tr}\n'),
+                                    TextSpan(
+                                      text: AppStrings.privacyPolicy.tr,
+                                      style: const TextStyle(
+                                          color: AppColors.primaryColor),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          Get.to(() => CommonWebView(
+                                                urlLink: privacyLink,
+                                                urlTitle:
+                                                    AppStrings.privacyPolicy,
+                                              ));
+                                        },
+                                    ),
+                                    const TextSpan(text: '.'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: SizeConfig.paddingL),
+                      CustomBtn(
+                        title: controller.isRiderVehicleInformationLoading.value
+                            ? null
+                            : AppStrings.create.tr,
+                        onTap: () =>
+                            controller.ridersOnboardingVehicleInformationApi(
+                                widget.screeName),
+                        radius: 10.0,
+                        bgColor: AppColors.primaryColor,
+                        isLoading:
+                            controller.isRiderVehicleInformationLoading.value,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ));
+          ));
     if (isFromTab) return content;
     return Scaffold(
       appBar: CommonBackAppBar(

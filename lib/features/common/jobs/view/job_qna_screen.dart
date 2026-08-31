@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/jobs/binding/job_details_overview_binding.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_overview_screen.dart';
@@ -20,7 +21,8 @@ class JobQNAScreen extends StatefulWidget {
 
 class _JobQNAScreenState extends State<JobQNAScreen> {
   final TextEditingController availabilityController = TextEditingController();
-  final TextEditingController whyRightPersonController = TextEditingController();
+  final TextEditingController whyRightPersonController =
+      TextEditingController();
   String? selectedAvailability;
   String? selectedRelocation;
   String? selectedNoticePeriod;
@@ -58,7 +60,8 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                   borderRadius: BorderRadius.circular(10.0),
                   color: AppColors.white,
                 ),
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.size20, horizontal: SizeConfig.size12),
+                padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size20, horizontal: SizeConfig.size12),
                 child: Column(
                   children: [
                     // Why right person question
@@ -67,27 +70,29 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                     SizedBox(height: SizeConfig.size24),
 
                     PollCard(
-                       AppStrings.confirmAvailability.tr,
-                        [
-                          AppStrings.willingToJoinImmediately.tr,
-                          AppStrings.notAvailableSpecify.tr,
-                        ],
-                        selectedAvailability,
-                            (value) {
-                          setState(() {
-                            selectedAvailability = value;
-                          });
-                          validateForm();
-                        },
-                      ),
+                      AppStrings.confirmAvailability.tr,
+                      [
+                        AppStrings.willingToJoinImmediately.tr,
+                        AppStrings.notAvailableSpecify.tr,
+                      ],
+                      selectedAvailability,
+                      (value) {
+                        setState(() {
+                          selectedAvailability = value;
+                        });
+                        validateForm();
+                      },
+                    ),
 
-                    if(selectedAvailability == "No (Please specify your availability)")...[
+                    if (selectedAvailability ==
+                        "No (Please specify your availability)") ...[
                       SizedBox(height: SizeConfig.size16),
                       CommonTextField(
                         textEditController: availabilityController,
                         hintText: AppStrings.writeYourAvailability,
                         isValidate: true,
-                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                        regularExpression:
+                            RegularExpressionUtils.alphabetSpacePattern,
                         onChange: (value) {
                           validateForm();
                         },
@@ -101,9 +106,9 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                       [
                         AppStrings.yes.tr,
                         AppStrings.no.tr,
-                    ],
+                      ],
                       selectedRelocation,
-                          (value) {
+                      (value) {
                         setState(() {
                           selectedRelocation = value;
                         });
@@ -121,14 +126,13 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                         AppStrings.lessThan1Month.tr
                       ],
                       selectedNoticePeriod,
-                          (value) {
+                      (value) {
                         setState(() {
                           selectedNoticePeriod = value;
                         });
                         validateForm();
                       },
                     ),
-
                   ],
                 ),
               ),
@@ -138,61 +142,75 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
               //Continue button
               CustomBtn(
                 title: AppStrings.continueTxt,
-                onTap: (validate) ? () {
-                  // Collect all answers
-                  List<Map<String, dynamic>> selectedAnswers = [];
-                  
-                  // Add why right person answer if provided
-                  if (whyRightPersonController.text.isNotEmpty) {
-                    selectedAnswers.add({
-                      'question': 'Explain why you are the right person for this job?',
-                      'answer': whyRightPersonController.text,
-                      'isInput': true,
-                      'controller': whyRightPersonController,
-                    });
-                  }
-                  
-                  // Add availability answer if selected
-                  if (selectedAvailability != null) {
-                    String availabilityAnswer = selectedAvailability!;
-                    if (selectedAvailability == "No (Please specify your availability)" && availabilityController.text.isNotEmpty) {
-                      availabilityAnswer = availabilityController.text;
-                    }
-                    selectedAnswers.add({
-                      'question': 'Confirm your availability',
-                      'answer': availabilityAnswer,
-                      'isInput': false,
-                      'originalSelection': selectedAvailability,
-                      'customText': selectedAvailability == "No (Please specify your availability)" ? availabilityController.text : null,
-                    });
-                  }
-                  
-                  // Add relocation answer if selected
-                  if (selectedRelocation != null) {
-                    selectedAnswers.add({
-                      'question': 'Are you willing to relocate yourself?',
-                      'answer': selectedRelocation!,
-                      'isInput': false,
-                      'originalSelection': selectedRelocation,
-                    });
-                  }
-                  
-                  // Add notice period answer if selected
-                  if (selectedNoticePeriod != null) {
-                    selectedAnswers.add({
-                      'question': 'What is your notice period?',
-                      'answer': selectedNoticePeriod!,
-                      'isInput': false,
-                      'originalSelection': selectedNoticePeriod,
-                    });
-                  }
-                  
-                  Get.to(() => JobDetailsOverviewScreen(), arguments: {
-                    "jobId": jobId,
-                    "resumeId": resumeId,
-                    "selectedAnswers": selectedAnswers,
-                  });
-                } : null,
+                onTap: (validate)
+                    ? () {
+                        // Collect all answers
+                        List<Map<String, dynamic>> selectedAnswers = [];
+
+                        // Add why right person answer if provided
+                        if (whyRightPersonController.text.isNotEmpty) {
+                          selectedAnswers.add({
+                            'question':
+                                'Explain why you are the right person for this job?',
+                            'answer': whyRightPersonController.text,
+                            'isInput': true,
+                            'controller': whyRightPersonController,
+                          });
+                        }
+
+                        // Add availability answer if selected
+                        if (selectedAvailability != null) {
+                          String availabilityAnswer = selectedAvailability!;
+                          if (selectedAvailability ==
+                                  "No (Please specify your availability)" &&
+                              availabilityController.text.isNotEmpty) {
+                            availabilityAnswer = availabilityController.text;
+                          }
+                          selectedAnswers.add({
+                            'question': 'Confirm your availability',
+                            'answer': availabilityAnswer,
+                            'isInput': false,
+                            'originalSelection': selectedAvailability,
+                            'customText': selectedAvailability ==
+                                    "No (Please specify your availability)"
+                                ? availabilityController.text
+                                : null,
+                          });
+                        }
+
+                        // Add relocation answer if selected
+                        if (selectedRelocation != null) {
+                          selectedAnswers.add({
+                            'question': 'Are you willing to relocate yourself?',
+                            'answer': selectedRelocation!,
+                            'isInput': false,
+                            'originalSelection': selectedRelocation,
+                          });
+                        }
+
+                        // Add notice period answer if selected
+                        if (selectedNoticePeriod != null) {
+                          selectedAnswers.add({
+                            'question': 'What is your notice period?',
+                            'answer': selectedNoticePeriod!,
+                            'isInput': false,
+                            'originalSelection': selectedNoticePeriod,
+                          });
+                        }
+
+                        Get.to(() => JobDetailsOverviewScreen(),
+                            // This screen is normally reached through its route, which
+                            // carries the binding. Reached directly here, so the
+                            // binding has to be passed explicitly or the screen
+                            // Get.find would throw.
+                            binding: JobDetailsOverviewBinding(),
+                            arguments: {
+                              "jobId": jobId,
+                              "resumeId": resumeId,
+                              "selectedAnswers": selectedAnswers,
+                            });
+                      }
+                    : null,
                 isValidate: validate,
               ),
             ],
@@ -202,11 +220,11 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
     );
   }
 
-  Widget titleWidget(String text){
+  Widget titleWidget(String text) {
     return CustomText(
-        text,
-        fontSize: SizeConfig.medium,
-        color: AppColors.black28,
+      text,
+      fontSize: SizeConfig.medium,
+      color: AppColors.black28,
     );
   }
 
@@ -218,13 +236,7 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
           borderRadius: BorderRadius.circular(16.0),
           color: AppColors.white,
           border: Border.all(color: AppColors.white12, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.black25,
-                blurRadius: 6
-            )
-          ]
-      ),
+          boxShadow: [BoxShadow(color: AppColors.black25, blurRadius: 6)]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -238,7 +250,6 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
             color: AppColors.blackA3,
           ),
           SizedBox(height: 10),
-
           CommonTextField(
             textEditController: whyRightPersonController,
             hintText: AppStrings.answer,
@@ -255,11 +266,11 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
   }
 
   Widget PollCard(
-      String title,
-      List<String> options, // Accept a list of options
-      String? groupValue,
-      Function(String?) onChanged,
-      ) {
+    String title,
+    List<String> options, // Accept a list of options
+    String? groupValue,
+    Function(String?) onChanged,
+  ) {
     return RadioGroup<String>(
       groupValue: groupValue,
       onChanged: onChanged,
@@ -277,16 +288,15 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
     );
   }
 
-
   Theme RadioBtn(String option) {
     return Theme(
-      data: ThemeData(
-      ),
+      data: ThemeData(),
       child: RadioListTile<String>(
         contentPadding: EdgeInsets.zero,
         visualDensity: VisualDensity(horizontal: -4, vertical: -4),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        title: CustomText(option, fontSize: SizeConfig.small, color: AppColors.grey83),
+        title: CustomText(option,
+            fontSize: SizeConfig.small, color: AppColors.grey83),
         value: option,
         dense: true,
         activeColor: AppColors.primaryColor,
@@ -296,23 +306,23 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
 
   ///VALIDATE FORM...
   void validateForm() {
-    final selectedAvailabilityIsNotEmpty = selectedAvailability!=null;
-    final selectedRelocationIsNotEmpty = selectedRelocation!=null;
-    final selectedNoticePeriodIsNotEmpty = selectedNoticePeriod!=null;
-    final availabilityControllerIsNotEmpty = availabilityController.text.isNotEmpty;
-    final whyRightPersonControllerIsNotEmpty = whyRightPersonController.text.isNotEmpty;
+    final selectedAvailabilityIsNotEmpty = selectedAvailability != null;
+    final selectedRelocationIsNotEmpty = selectedRelocation != null;
+    final selectedNoticePeriodIsNotEmpty = selectedNoticePeriod != null;
+    final availabilityControllerIsNotEmpty =
+        availabilityController.text.isNotEmpty;
+    final whyRightPersonControllerIsNotEmpty =
+        whyRightPersonController.text.isNotEmpty;
 
-    if(selectedAvailabilityIsNotEmpty  ||
+    if (selectedAvailabilityIsNotEmpty ||
         selectedRelocationIsNotEmpty ||
         selectedNoticePeriodIsNotEmpty ||
-        whyRightPersonControllerIsNotEmpty
-    ){
-
-      if(selectedAvailability == "No (Please specify your availability)"){
-        if(!availabilityControllerIsNotEmpty){
-        validate = false;
-        setState(() {});
-        return;
+        whyRightPersonControllerIsNotEmpty) {
+      if (selectedAvailability == "No (Please specify your availability)") {
+        if (!availabilityControllerIsNotEmpty) {
+          validate = false;
+          setState(() {});
+          return;
         }
       }
 

@@ -58,9 +58,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   final ScrollController _scrollController = ScrollController();
   late ShortsController? shortsController;
 
-  var inventoryController = Get.isRegistered<InventoryController>()
-      ? Get.find<InventoryController>()
-      : Get.put(InventoryController());
+  var inventoryController = Get.put(InventoryController());
 
   final homeScreenController = HomeScreenController.to;
 

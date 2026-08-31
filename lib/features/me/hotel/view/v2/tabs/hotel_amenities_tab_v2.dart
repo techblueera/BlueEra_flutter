@@ -40,7 +40,7 @@ class HotelAmenitiesTabV2 extends StatelessWidget {
             final items = profile?.policy == null
                 ? const <String>[]
                 : _policyItems(profile!.policy!);
-            final onEdit = () => Get.to(HotelPoliciesScreen())
+            final onEdit = () => Get.to(() => HotelPoliciesScreen())
                 ?.then((_) => controller.loadHotelData());
 
             if (items.isEmpty) {

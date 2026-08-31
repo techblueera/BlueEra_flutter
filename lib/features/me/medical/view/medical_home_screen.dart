@@ -1,6 +1,7 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/me/medical/binding/medical_gallery_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -49,7 +50,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
   late final MedicalGalleryController _galleryController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final MedicalController _medicalController;
 
   @override
@@ -63,7 +65,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
+      final res = await MedicalRepo()
+          .fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
@@ -83,7 +86,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   /// If the gallery controller's own fetch returned empty but the home API
   /// has gallery data, parse and populate it so images display.
   void _populateGalleryFromResponse(dynamic galleryJson) {
-    if (galleryJson == null || galleryJson is! List || galleryJson.isEmpty) return;
+    if (galleryJson == null || galleryJson is! List || galleryJson.isEmpty)
+      return;
     if (_galleryController.galleryList.isNotEmpty) return; // already loaded
 
     try {
@@ -177,8 +181,10 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                               ? logo
                               : (profile?.logo ?? '');
                       return url.isNotEmpty
-                          ? Image.network(url, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(color: Colors.blueGrey[100]))
+                          ? Image.network(url,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  Container(color: Colors.blueGrey[100]))
                           : Container(color: Colors.blueGrey[100]);
                     }),
                   ),
@@ -196,8 +202,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     ),
                   ),
                 ),
-
-
 
                 // Editable logo (circular)
                 Positioned(
@@ -292,7 +296,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       dio.MultipartFile? imageByPart;
       if (imagePath.isNotEmpty) {
         final fileName = imagePath.split('/').last;
-        imageByPart = await dio.MultipartFile.fromFile(imagePath, filename: fileName);
+        imageByPart =
+            await dio.MultipartFile.fromFile(imagePath, filename: fileName);
       }
       final reqData = {
         ApiKeys.businessId: businessId,
@@ -356,24 +361,25 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: AppStrings.medicalAddProductsTitle.tr),
+            ServiceHomeTitleWidget(
+                title: AppStrings.medicalAddProductsTitle.tr),
             SizedBox(height: SizeConfig.size12),
             Row(
               children: [
                 Expanded(
                   child: _addProductActionCard(
-                    icon: Icons.add_circle_outline,
-                    title: AppStrings.medicalAddNewProductsTitle.tr,
-                    subtitle: AppStrings.medicalAddNewProductsSubtitle.tr,
-                    color: AppColors.primaryColor,
-                    onTap: (){
-                      Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
-
-                    }
-                    // onTap: () => Get.to(
-                    //   () => const AddMedicalProductsScreen(),
-                    // ),
-                  ),
+                      icon: Icons.add_circle_outline,
+                      title: AppStrings.medicalAddNewProductsTitle.tr,
+                      subtitle: AppStrings.medicalAddNewProductsSubtitle.tr,
+                      color: AppColors.primaryColor,
+                      onTap: () {
+                        Get.toNamed(
+                            RouteHelper.getAddMedicalSnapSearchScreenRoute());
+                      }
+                      // onTap: () => Get.to(
+                      //   () => const AddMedicalProductsScreen(),
+                      // ),
+                      ),
                 ),
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
@@ -382,8 +388,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                     title: AppStrings.medicalMyProductsCardTitle.tr,
                     subtitle: AppStrings.medicalMyProductsCardSubtitle.tr,
                     color: AppColors.green00,
-                    onTap: () => Get.to(
-                        () => const MyMedicalSuperCategoryScreen()),
+                    onTap: () =>
+                        Get.to(() => const MyMedicalSuperCategoryScreen()),
                   ),
                 ),
               ],
@@ -460,7 +466,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceHomeTitleWidget(title: AppStrings.medicalOurPopularProducts.tr),
+            ServiceHomeTitleWidget(
+                title: AppStrings.medicalOurPopularProducts.tr),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
               height: 230,
@@ -508,7 +515,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                 ? CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: Colors.grey.shade100),
+                    placeholder: (_, __) =>
+                        Container(color: Colors.grey.shade100),
                     errorWidget: (_, __, ___) => Container(
                       color: Colors.grey.shade100,
                       child: Icon(Icons.image_outlined, color: Colors.grey),
@@ -553,7 +561,9 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.mainTextColor,
                       ),
-                      if (mrp != null && sellingPrice != null && mrp != sellingPrice) ...[
+                      if (mrp != null &&
+                          sellingPrice != null &&
+                          mrp != sellingPrice) ...[
                         SizedBox(width: 4),
                         Text(
                           '₹$mrp',
@@ -582,7 +592,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     );
   }
 
-
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GALLERY (ss9) - Grid with Add More â†’ full gallery screen
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -606,7 +615,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                 children: [
                   ServiceHomeTitleWidget(title: AppStrings.gallery),
                   InkWell(
-                    onTap: () => Get.to(() => MedicalGalleryListScreen()),
+                    onTap: () => Get.to(() => MedicalGalleryListScreen(),
+                        binding: MedicalGalleryBinding()),
                     child: CustomText(
                       AppStrings.addMore,
                       fontSize: 13,
@@ -619,7 +629,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               SizedBox(height: 12),
               if (allImages.isEmpty)
                 GestureDetector(
-                  onTap: () => Get.to(() => MedicalGalleryListScreen()),
+                  onTap: () => Get.to(() => MedicalGalleryListScreen(),
+                      binding: MedicalGalleryBinding()),
                   child: Container(
                     height: 140,
                     width: double.infinity,
@@ -703,7 +714,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
 
     // 1 image
     if (display.length == 1) {
-      return SizedBox(height: height, width: double.infinity, child: imgTile(0));
+      return SizedBox(
+          height: height, width: double.infinity, child: imgTile(0));
     }
 
     // 2 images â€” side by side
@@ -814,7 +826,9 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                           height: 70,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 8)
+                            ],
                             image: DecorationImage(
                               image: NetworkImage(profile.logo!),
                               fit: BoxFit.cover,
@@ -840,15 +854,20 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
                       Divider(height: 20),
                       // Contact items
                       if (profile.websiteUrl?.isNotEmpty ?? false)
-                        _contactItem(AppIconAssets.website_click, profile.websiteUrl!, AppColors.primaryColor),
+                        _contactItem(AppIconAssets.website_click,
+                            profile.websiteUrl!, AppColors.primaryColor),
                       if (owner?.name?.isNotEmpty ?? false)
-                        _contactItem(AppIconAssets.principal, owner!.name!, Colors.grey[700]!),
+                        _contactItem(AppIconAssets.principal, owner!.name!,
+                            Colors.grey[700]!),
                       if (owner?.email?.isNotEmpty ?? false)
-                        _contactItem(AppIconAssets.email, owner!.email!, AppColors.secondaryTextColor),
+                        _contactItem(AppIconAssets.email, owner!.email!,
+                            AppColors.secondaryTextColor),
                       if (phone != null)
-                        _contactItem(AppIconAssets.phone_outline, phone, AppColors.secondaryTextColor),
+                        _contactItem(AppIconAssets.phone_outline, phone,
+                            AppColors.secondaryTextColor),
                       if (profile.address?.isNotEmpty ?? false)
-                        _contactItem(AppIconAssets.location_new, profile.address!, Colors.grey[700]!),
+                        _contactItem(AppIconAssets.location_new,
+                            profile.address!, Colors.grey[700]!),
                     ],
                   ),
                 ),
@@ -878,7 +897,8 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LocalAssets(imagePath: icon, imgColor: iconColor, height: 18, width: 18),
+          LocalAssets(
+              imagePath: icon, imgColor: iconColor, height: 18, width: 18),
           SizedBox(width: 12),
           Expanded(
             child: CustomText(

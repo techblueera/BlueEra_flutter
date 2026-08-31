@@ -42,10 +42,9 @@ class LocalMediaGrid extends StatelessWidget {
       final thumb = msgPostController.videoThumbnails[files.firstOrNull?.path];
 
       return isVideo
-          ?
-   buildVideoMediaStack(File(files.firstOrNull?.path??""), 0, thumb)
+          ? buildVideoMediaStack(File(files.firstOrNull?.path ?? ""), 0, thumb)
 
-      /*ClipRRect(
+          /*ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: (thumb != null
                   ? Image.file(thumb, fit: BoxFit.cover)
@@ -310,7 +309,7 @@ class LocalMediaGrid extends StatelessWidget {
           onTap: isVideo
               ? () => onTapMedia?.call(index)
               : () => Get.to(
-                    ImageViewScreen(
+                    () => ImageViewScreen(
                       subTitle: "",
                       appBarTitle: AppStrings.imageViewer.tr,
                       imageUrls: [file.path],
@@ -341,35 +340,33 @@ class LocalMediaGrid extends StatelessWidget {
       ],
     );
   }
+
   Widget buildVideoMediaStack(File file, int index, File? thumb) {
     return Stack(
       // fit: StackFit.expand,
       children: [
         InkWell(
-          onTap:() => onTapMedia?.call(index),
-
-          child:(thumb != null
-                  ? Image.file(thumb, fit: BoxFit.cover)
-                  : Container(
-                      color: Colors.black12,
-                      child: const Center(child: CircularProgressIndicator()),
-                    ))
-             ,
+          onTap: () => onTapMedia?.call(index),
+          child: (thumb != null
+              ? Image.file(thumb, fit: BoxFit.cover)
+              : Container(
+                  color: Colors.black12,
+                  child: const Center(child: CircularProgressIndicator()),
+                )),
         ),
         if (isVideo)
           Positioned(
               bottom: 0,
               right: 0,
-              left:0 ,top: 0,
+              left: 0,
+              top: 0,
               child: InkWell(
-
-                  onTap:() => onTapMedia?.call(index),
-
-                  child: Icon(Icons.play_circle_fill, color: Colors.white, size: 40))),
+                  onTap: () => onTapMedia?.call(index),
+                  child: Icon(Icons.play_circle_fill,
+                      color: Colors.white, size: 40))),
         Positioned(
           bottom: 10,
           right: 10,
-
           child: GestureDetector(
             onTap: () => onEditTap?.call(index),
             child: LocalAssets(imagePath: AppIconAssets.round_black_edit),
@@ -440,7 +437,7 @@ class _InstaSliderState extends State<InstaSlider> {
                 right: 12,
                 child: GestureDetector(
                   onTap: () {
-                    Get.off(PhotoListingWidget());
+                    Get.off(() => PhotoListingWidget());
                     // Handle edit action
                   },
                   child: LocalAssets(imagePath: AppIconAssets.round_black_edit),

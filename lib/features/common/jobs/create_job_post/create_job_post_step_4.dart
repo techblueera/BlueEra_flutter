@@ -31,7 +31,7 @@ class CreateJobPostStep4 extends StatefulWidget {
 }
 
 class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
-  final JobPostStep4Controller controller = Get.put(JobPostStep4Controller());
+  final JobPostStep4Controller controller = Get.find<JobPostStep4Controller>();
   final createJobPostController = Get.find<CreateJobPostController>();
 
   @override
@@ -104,7 +104,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildToggleQuestion(
-                        title:AppStrings.confirmAvailability,
+                        title: AppStrings.confirmAvailability,
                         toggleValue: controller.confirmAvailability,
                         options: [
                           buildRadioOption(
@@ -120,7 +120,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                         ],
                       ),
                       buildToggleQuestion(
-                        title:AppStrings.willingToRelocate,
+                        title: AppStrings.willingToRelocate,
                         toggleValue: controller.willingToRelocate,
                         options: [
                           buildRadioOption(
@@ -150,7 +150,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                             groupValue: controller.noticePeriodOption,
                           ),
                           buildRadioOption(
-                            label:AppStrings.lessThan1Month,
+                            label: AppStrings.lessThan1Month,
                             value: "30",
                             groupValue: controller.noticePeriodOption,
                           ),
@@ -237,7 +237,9 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText(title,),
+                CustomText(
+                  title,
+                ),
                 Transform.scale(
                   scale: 0.70,
                   child: Switch(

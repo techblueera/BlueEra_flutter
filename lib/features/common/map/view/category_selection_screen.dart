@@ -15,7 +15,7 @@ class CategorySelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CategoryController());
+    final controller = Get.find<CategoryController>();
     final addPlaceController = Get.find<AddPlaceStepOneController>();
 
     return Scaffold(

@@ -38,25 +38,25 @@ class AddBioViaAiScreen extends StatefulWidget {
   final int? selectedMonth;
   final int? selectedDay;
 
-  const AddBioViaAiScreen({
-    super.key,
-    required this.profession,
-    required this.designation,
-    required this.selectedYear,
-    required this.selectedMonth,
-    required this.selectedDay});
+  const AddBioViaAiScreen(
+      {super.key,
+      required this.profession,
+      required this.designation,
+      required this.selectedYear,
+      required this.selectedMonth,
+      required this.selectedDay});
 
   @override
   State<AddBioViaAiScreen> createState() => _AddBioViaAiScreenState();
 }
 
 class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
-  final aiController = Get.put(AiSuggestionController());
-  final bioSuggestionController = Get.put(BioSuggestionController());
+  final aiController = Get.find<AiSuggestionController>();
+  final bioSuggestionController = Get.find<BioSuggestionController>();
   final ViewPersonalDetailsController viewPersonalDetailsController =
-        Get.find<ViewPersonalDetailsController>();
+      Get.find<ViewPersonalDetailsController>();
   final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+      Get.find<PersonalCreateProfileController>();
   final TextEditingController bioController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isFormValid = false;
@@ -166,18 +166,16 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
         },
         apiType: "bio",
         targetController: bioController,
-        onSaved: (){
+        onSaved: () {
           // An AI pick replaces whatever suggestion was ticked.
           _selectedSuggestionIndex = null;
           validateForm();
-        }
-    );
+        });
   }
 
   void _applySuggestion(int index, BioSuggestion suggestion) {
     // The field caps at 900 characters, so keep the sentences that fit.
-    bioController.text =
-        suggestion.fittedTo(AppConstants.inputCharterLimit900);
+    bioController.text = suggestion.fittedTo(AppConstants.inputCharterLimit900);
     _selectedSuggestionIndex = index;
     validateForm();
   }
@@ -185,9 +183,9 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     appBar: CommonBackAppBar(
-       title: AppStrings.personalDetails.tr,
-     ),
+      appBar: CommonBackAppBar(
+        title: AppStrings.personalDetails.tr,
+      ),
       body: SingleChildScrollView(
         child: CustomFormCard(
           margin: EdgeInsets.symmetric(
@@ -210,7 +208,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
                     ),
-                /*   SizedBox(width: SizeConfig.size8),
+                    /*   SizedBox(width: SizeConfig.size8),
                    InkWell(
                       onTap: _generateAiBio,
                       child: Obx(()=> aiController.isLoading.value ?
@@ -290,8 +288,8 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation(
-                                          Colors.white),
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
                                     ),
                                   )
                                 : const SizedBox.shrink(),
@@ -441,9 +439,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        isSelected
-                            ? Icons.check_circle
-                            : Icons.circle_outlined,
+                        isSelected ? Icons.check_circle : Icons.circle_outlined,
                         size: 20,
                         color: isSelected
                             ? AppColors.primaryColor
@@ -497,8 +493,8 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
     // Pop everything back down to the BottomNavigation root. `route.isFirst`
     // terminates the walk if the named route somehow isn't on the stack, so a
     // mismatch can't pop the navigator empty.
-    Get.until((route) =>
-        route.settings.name == bottomNavRoute || route.isFirst);
+    Get.until(
+        (route) => route.settings.name == bottomNavRoute || route.isFirst);
 
     if (widget.profession == SELF_EMPLOYED) {
       Get.find<BottomBarController>().currentIndex.value = landingIndex;

@@ -37,14 +37,15 @@ import '../../../../business/visit_business_profile/view/visit_business_profile_
 class VideoPlayerScreen extends StatefulWidget {
   final ShortFeedItem videoItem;
   final VideoType videoType;
-  const VideoPlayerScreen({super.key, required this.videoItem, required this.videoType});
+  const VideoPlayerScreen(
+      {super.key, required this.videoItem, required this.videoType});
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  final VideoController videoController = Get.put(VideoController());
+  final VideoController videoController = Get.find<VideoController>();
   late final SingleVideoPlayerController videoPlayerController;
   final ScrollController _scrollController = ScrollController();
   bool isCollapsed = false;
@@ -65,7 +66,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    videoPlayerController = Get.put(SingleVideoPlayerController(), tag: widget.videoItem.videoId);
+    videoPlayerController =
+        Get.put(SingleVideoPlayerController(), tag: widget.videoItem.videoId);
     videoController.videoFeedItem = widget.videoItem;
     isUploadFromChannel = videoController.videoFeedItem?.channel?.id != null;
     _setupScrollListener();
@@ -78,7 +80,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       videoController.getAllFeedVideos(isInitialLoad: true);
     });
   }
-
 
   // @override
   // void didChangeDependencies() {
@@ -103,7 +104,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   //   }
   // }
 
-
   // void _checkOrientation() {
   //   final orientation = MediaQuery.of(context).orientation;
   //   if (orientation == Orientation.portrait && !_isPortraitReady) {
@@ -116,7 +116,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   //   }
   // }
 
-
   void _initializeVideo() {
     _startHideControlsTimer();
     videoPlayerController.initializeVideo(
@@ -126,18 +125,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _setupVideoData() {
-    videoController.isLiked.value = videoController.videoFeedItem?.interactions?.isLiked ?? false;
-    videoController.likes.value = videoController.videoFeedItem?.video?.stats?.likes ?? 0;
-    videoController.comments.value = videoController.videoFeedItem?.video?.stats?.comments ?? 0;
+    videoController.isLiked.value =
+        videoController.videoFeedItem?.interactions?.isLiked ?? false;
+    videoController.likes.value =
+        videoController.videoFeedItem?.video?.stats?.likes ?? 0;
+    videoController.comments.value =
+        videoController.videoFeedItem?.video?.stats?.comments ?? 0;
     if (isUploadFromChannel) {
-      videoController.isChannelFollow.value = videoController.videoFeedItem?.channel?.isFollowing ?? false;
+      videoController.isChannelFollow.value =
+          videoController.videoFeedItem?.channel?.isFollowing ?? false;
     }
   }
 
   void _setupScrollListener() {
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-        if (videoController.isMoreDataAvailable && videoController.isLoadingMore.isFalse) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (videoController.isMoreDataAvailable &&
+            videoController.isLoadingMore.isFalse) {
           videoController.getAllFeedVideos();
         }
       }
@@ -146,17 +151,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   void _scheduleVideoView() {
     Future.delayed(const Duration(seconds: 5), () {
-      videoController.videoView(videoId: videoController.videoFeedItem!.video!.id ?? '0');
+      videoController.videoView(
+          videoId: videoController.videoFeedItem!.video!.id ?? '0');
     });
   }
 
   void checkVideoSavedInDb() {
-    videoController.isVideoSavedInDb.value = HiveServices().isVideoSaved(videoController.videoFeedItem?.videoId ?? '');
+    videoController.isVideoSavedInDb.value = HiveServices()
+        .isVideoSaved(videoController.videoFeedItem?.videoId ?? '');
   }
 
   @override
   void dispose() {
-    deleteIfRegistered<SingleVideoPlayerController>(tag: widget.videoItem.videoId);
+    deleteIfRegistered<SingleVideoPlayerController>(
+        tag: widget.videoItem.videoId);
     ScreenService.keepOff();
     _hideControlsTimer?.cancel();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -226,9 +234,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       DeviceOrientation.portraitDown,
     ]);
     setState(() => _isPortrait = true);
-
   }
-
 
   void _measureHeaderHeight() {
     log('isMeasurd--$_isMeasured');
@@ -243,7 +249,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         });
       }
     }
-
   }
 
   @override
@@ -271,13 +276,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
-
   Widget _buildVideoPlayerContainer() {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: Container(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.width * (9/16),
+        height: MediaQuery.of(context).size.width * (9 / 16),
         color: Colors.black,
         child: Obx(() {
           // Only the video rendering depends on RxBool
@@ -298,8 +302,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
-
-
   // ... (All other build methods like _buildPreMeasureWidget, _buildMeasuredContent, _buildActions, etc., remain unchanged)
   Widget _buildPreMeasureWidget() {
     return Container(
@@ -316,7 +318,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-
         SliverAppBar(
           pinned: true,
           automaticallyImplyLeading: false,
@@ -335,7 +336,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ),
           ),
         ),
-
         SliverToBoxAdapter(
           child: Obx(() {
             final videos = videoController.videoFeedPosts;
@@ -379,9 +379,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => VideoPlayerScreen(
-            videoItem: videoFeedItem,
-            videoType: widget.videoType
-        ),
+            videoItem: videoFeedItem, videoType: widget.videoType),
       ),
     );
 
@@ -393,50 +391,43 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     openBlockSelectionDialog(
         context: context,
         reportType: 'VIDEO_POST',
-        userId: videoFeedItem.video?.userId??'',
-        contentId: videoFeedItem.video?.id??'',
+        userId: videoFeedItem.video?.userId ?? '',
+        contentId: videoFeedItem.video?.id ?? '',
         userBlockVoidCallback: () async {
           await Get.find<VideoController>().userBlocked(
             videoType: VideoType.videoFeed,
             otherUserId: videoFeedItem.video?.userId ?? '',
           );
         },
-        reportCallback: (params){
+        reportCallback: (params) {
           Get.find<VideoController>().videoPostReport(
-              videoId: videoFeedItem.video?.id??'',
+              videoId: videoFeedItem.video?.id ?? '',
               videoType: widget.videoType,
-              params: params
-          );
-        }
-    );
+              params: params);
+        });
   }
 
   Widget _buildActions() {
     return Obx(() => Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.black25,
-                blurRadius: 4
-            )
-          ]
-      ),
-      child: PostActionsBar(
-        isLiked: videoController.isLiked.value,
-        totalLikes: videoController.likes.value,
-        totalComment: videoController.comments.value,
-        totalRepost: videoController.videoFeedItem?.video?.stats?.shares ?? 0,
-        isPostAlreadySaved: videoController.isVideoSavedInDb.value,
-        onLikeDislikePressed: _onLikeDislikePressed,
-        onCommentButtonPressed: _onCommentPressed,
-        onSavedUnSavedButtonPressed: _onSavedPressed,
-        onShareButtonPressed: () async {
-          await _shareVideoSimple();
-        },
-      ),
-    ));
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+              color: AppColors.white,
+              boxShadow: [BoxShadow(color: AppColors.black25, blurRadius: 4)]),
+          child: PostActionsBar(
+            isLiked: videoController.isLiked.value,
+            totalLikes: videoController.likes.value,
+            totalComment: videoController.comments.value,
+            totalRepost:
+                videoController.videoFeedItem?.video?.stats?.shares ?? 0,
+            isPostAlreadySaved: videoController.isVideoSavedInDb.value,
+            onLikeDislikePressed: _onLikeDislikePressed,
+            onCommentButtonPressed: _onCommentPressed,
+            onSavedUnSavedButtonPressed: _onSavedPressed,
+            onShareButtonPressed: () async {
+              await _shareVideoSimple();
+            },
+          ),
+        ));
   }
 
   Future<void> _shareVideoSimple() async {
@@ -456,7 +447,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         text: message,
         subject: title,
       ));
-
     } catch (e) {
       print("Video share failed: $e");
     } finally {
@@ -481,13 +471,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
               color: AppColors.white,
-              boxShadow: [
-                BoxShadow(
-                    color: AppColors.black25,
-                    blurRadius: 4
-                )
-              ]
-          ),
+              boxShadow: [BoxShadow(color: AppColors.black25, blurRadius: 4)]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -496,9 +480,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w700,
               ),
-
               SizedBox(height: SizeConfig.size15),
-
               ExpandableText(
                 text: videoController.videoFeedItem?.video?.description ?? '',
                 trimLines: 2,
@@ -510,25 +492,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 expandMode: ExpandMode.expandable,
                 dialogTitle: 'Video Description',
               ),
-
               SizedBox(height: SizeConfig.size15),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: InkWell(
-                      onTap: ()=> _openProfile(),
+                      onTap: () => _openProfile(),
                       child: ChannelProfileHeader(
                         imageUrl: isUploadFromChannel
-                            ? videoController.videoFeedItem?.channel?.logoUrl ?? ''
-                            : videoController.videoFeedItem?.author?.profileImage ?? '',
+                            ? videoController.videoFeedItem?.channel?.logoUrl ??
+                                ''
+                            : videoController
+                                    .videoFeedItem?.author?.profileImage ??
+                                '',
                         title: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.name ?? ''
-                            : videoController.videoFeedItem?.author?.username ?? '',
+                            : videoController.videoFeedItem?.author?.username ??
+                                '',
                         subtitle: isUploadFromChannel
-                            ? videoController.videoFeedItem?.channel?.username ?? ''
-                            : videoController.videoFeedItem?.author?.designation ?? "OTHERS",
+                            ? videoController
+                                    .videoFeedItem?.channel?.username ??
+                                ''
+                            : videoController
+                                    .videoFeedItem?.author?.designation ??
+                                "OTHERS",
                         avatarSize: SizeConfig.size40,
                         isVerifiedTickShow: true,
                       ),
@@ -540,24 +528,29 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Obx(() => CustomBtn(
-                          onTap: () {
-                            if (isGuestUser()) {
-                              createProfileScreen();
-                              return;
-                            }
-                            videoController.followUnfollowChannel(
-                                channelId: videoController.videoFeedItem?.channel?.id ?? '',
-                                videoType: widget.videoType,
-                                isFollow: videoController.isChannelFollow.value
-                            );
-                          },
-                          title: videoController.isChannelFollow.isTrue ? "Following" : "Follow",
-                          textColor: AppColors.primaryColor,
-                          width: SizeConfig.size70,
-                          height: SizeConfig.size25,
-                          borderColor: AppColors.primaryColor,
-                          bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                        )),
+                              onTap: () {
+                                if (isGuestUser()) {
+                                  createProfileScreen();
+                                  return;
+                                }
+                                videoController.followUnfollowChannel(
+                                    channelId: videoController
+                                            .videoFeedItem?.channel?.id ??
+                                        '',
+                                    videoType: widget.videoType,
+                                    isFollow:
+                                        videoController.isChannelFollow.value);
+                              },
+                              title: videoController.isChannelFollow.isTrue
+                                  ? "Following"
+                                  : "Follow",
+                              textColor: AppColors.primaryColor,
+                              width: SizeConfig.size70,
+                              height: SizeConfig.size25,
+                              borderColor: AppColors.primaryColor,
+                              bgColor:
+                                  AppColors.primaryColor.withValues(alpha: 0.1),
+                            )),
                         SizedBox(height: SizeConfig.size4),
                       ],
                     )
@@ -605,7 +598,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     if (videoController.isLiked.isTrue) {
       // Unlike action
       widget.videoItem.interactions?.isLiked = false;
-      widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
+      widget.videoItem.video?.stats?.likes =
+          (widget.videoItem.video?.stats?.likes ?? 1) - 1;
 
       // Call debounced unlike API
       Get.find<VideoController>()
@@ -613,7 +607,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     } else {
       // Like action
       widget.videoItem.interactions?.isLiked = true;
-      widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 0) + 1;
+      widget.videoItem.video?.stats?.likes =
+          (widget.videoItem.video?.stats?.likes ?? 0) + 1;
 
       // Call debounced like API
       Get.find<VideoController>()
@@ -646,26 +641,26 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           id: isFromPost
               ? originPostId!
               : (videoController.videoFeedItem?.video?.id ?? '0'),
-          totalComments: videoController.videoFeedItem?.video?.stats?.comments ?? 0,
+          totalComments:
+              videoController.videoFeedItem?.video?.stats?.comments ?? 0,
           commentType: isFromPost ? CommentType.post : CommentType.video,
           onNewCommentCount: (int newCommentCount) {
             videoController.comments.value = newCommentCount;
-            widget.videoItem.video?.stats?.comments = videoController.comments.value;
+            widget.videoItem.video?.stats?.comments =
+                videoController.comments.value;
             // propagate to controller lists
             Get.find<VideoController>().updateVideoCommentCount(
               videoType: widget.videoType,
               videoId: widget.videoItem.video?.id ?? '0',
               newCommentCount: newCommentCount,
             );
-          }
-      ),
+          }),
     );
   }
 
   Future<void> _onSavedPressed() async {
-    videoController.isVideoSavedInDb.value = await Get.find<VideoController>().saveVideosToLocalDB(
-        videoFeedItem: videoController.videoFeedItem!
-    );
+    videoController.isVideoSavedInDb.value = await Get.find<VideoController>()
+        .saveVideosToLocalDB(videoFeedItem: videoController.videoFeedItem!);
     log('isvideo saved--> ${videoController.isVideoSavedInDb.value}');
   }
 
@@ -674,32 +669,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       createProfileScreen();
       return;
     }
-    print("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
-    if(videoController.videoFeedItem?.channel?.id!=null){
-      Navigator.pushNamed(
-          context,
-          RouteHelper.getChannelScreenRoute(),
+    print(
+        "sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
+    if (videoController.videoFeedItem?.channel?.id != null) {
+      Navigator.pushNamed(context, RouteHelper.getChannelScreenRoute(),
           arguments: {
-            ApiKeys.argAccountType: videoController.videoFeedItem?.author?.accountType,
+            ApiKeys.argAccountType:
+                videoController.videoFeedItem?.author?.accountType,
             ApiKeys.channelId: videoController.videoFeedItem?.channel?.id,
             ApiKeys.authorId: videoController.videoFeedItem?.author?.id
-          }
-      );
-    }else{
+          });
+    } else {
       /// we don't have channel so will call profile
-      if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual) {
+      if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() ==
+          AppConstants.individual) {
         if (videoController.videoFeedItem?.author?.id == userId) {
           openMeOverview();
 
           // navigatePushTo(context, PersonalProfileSetupNewScreen());
         } else {
-          Get.to(() => NewVisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??'', screenFromName: AppConstants.feedScreen,));
+          Get.to(() => NewVisitProfileScreen(
+                authorId: videoController.videoFeedItem?.author?.id ?? '',
+                screenFromName: AppConstants.feedScreen,
+              ));
         }
-      }else{
+      } else {
         if (videoController.videoFeedItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
-          Get.to(() => VisitBusinessProfileNew(businessId: videoController.videoFeedItem?.author?.id??'', screenName:  AppConstants.feedScreen,));
+          Get.to(() => VisitBusinessProfileNew(
+                businessId: videoController.videoFeedItem?.author?.id ?? '',
+                screenName: AppConstants.feedScreen,
+              ));
         }
       }
     }
@@ -722,7 +723,6 @@ class _VideoPlayerWithControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-
       // Show error
       if (controller.isVideoError.value) {
         return controller.getVideoErrorWidget();
@@ -737,7 +737,7 @@ class _VideoPlayerWithControls extends StatelessWidget {
       final isPlaying = controller.isVideoPlaying.value;
 
       return GestureDetector(
-        onTap: (){
+        onTap: () {
           controller.toggleControls();
           onTapVideo();
         },
@@ -800,7 +800,8 @@ class _VideoPlayerWithControls extends StatelessWidget {
     );
   }
 
-  Widget _buildControlsOverlay(BuildContext context, bool isPlaying, VideoPlayerController videoController) {
+  Widget _buildControlsOverlay(BuildContext context, bool isPlaying,
+      VideoPlayerController videoController) {
     return Container(
       color: Colors.black38,
       child: Column(
@@ -812,7 +813,8 @@ class _VideoPlayerWithControls extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, bool isPlaying, VideoPlayerController videoController) {
+  Widget _buildBottomBar(BuildContext context, bool isPlaying,
+      VideoPlayerController videoController) {
     return ValueListenableBuilder(
       valueListenable: videoController,
       builder: (context, VideoPlayerValue value, child) {
@@ -874,10 +876,13 @@ class _VideoPlayerWithControls extends StatelessWidget {
               icon: const Icon(Icons.replay_10, color: Colors.white, size: 30),
               onPressed: () {
                 final currentPosition = videoController.value.position;
-                final newPosition = currentPosition - const Duration(seconds: 10);
-                videoController.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
+                final newPosition =
+                    currentPosition - const Duration(seconds: 10);
+                videoController.seekTo(
+                    newPosition > Duration.zero ? newPosition : Duration.zero);
 
-                controller.showControlsTemporarily(); // Show controls after seeking
+                controller
+                    .showControlsTemporarily(); // Show controls after seeking
               },
             ),
           ),
@@ -916,10 +921,13 @@ class _VideoPlayerWithControls extends StatelessWidget {
               onPressed: () {
                 final currentPosition = videoController.value.position;
                 final duration = videoController.value.duration;
-                final newPosition = currentPosition + const Duration(seconds: 10);
-                videoController.seekTo(newPosition < duration ? newPosition : duration);
+                final newPosition =
+                    currentPosition + const Duration(seconds: 10);
+                videoController
+                    .seekTo(newPosition < duration ? newPosition : duration);
 
-                controller.showControlsTemporarily(); // Show controls after seeking
+                controller
+                    .showControlsTemporarily(); // Show controls after seeking
               },
             ),
           ),
@@ -934,7 +942,6 @@ class _VideoPlayerWithControls extends StatelessWidget {
     return '$minutes:$seconds';
   }
 }
-
 
 class FullScreenPlayer extends StatefulWidget {
   final SingleVideoPlayerController singleVideoController;
@@ -1004,7 +1011,6 @@ class _FullScreenPlayerState extends State<FullScreenPlayer> {
 
     overlayEntry.remove();
   }
-
 
   @override
   Widget build(BuildContext context) {

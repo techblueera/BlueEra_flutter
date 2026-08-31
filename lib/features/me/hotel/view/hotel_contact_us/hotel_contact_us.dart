@@ -81,11 +81,12 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                       ),
                                       InkWell(
                                         onTap: () {
-                                          Get.to(HotelDepartmentOnlyScreen(
-                                            contactInfo: contactData,
-                                            isContactInfoEdit: true,
-                                            branchId: contactData.id,
-                                          ));
+                                          Get.to(
+                                              () => HotelDepartmentOnlyScreen(
+                                                    contactInfo: contactData,
+                                                    isContactInfoEdit: true,
+                                                    branchId: contactData.id,
+                                                  ));
                                         },
                                         child: LocalAssets(
                                           imagePath: AppIconAssets.editIcon,
@@ -184,7 +185,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
             // if (controller.schoolContactUsData?.value == null)
             AddMoreIconButton(
               onTapEvent: () {
-                Get.to(HotelBranchDetailsFormScreen());
+                Get.to(() => HotelBranchDetailsFormScreen());
               },
               buttonName: AppStrings.addAnotherBranch.tr,
             ),

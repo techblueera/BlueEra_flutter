@@ -18,7 +18,8 @@ class BusinessLocationBottomSheet extends StatefulWidget {
   final BusinessProfileDetails? prevBusinessDetails;
   final bool isFromCreateUser;
 
-  BusinessLocationBottomSheet({super.key, this.prevBusinessDetails, this.isFromCreateUser = false});
+  BusinessLocationBottomSheet(
+      {super.key, this.prevBusinessDetails, this.isFromCreateUser = false});
 
   @override
   State<BusinessLocationBottomSheet> createState() =>
@@ -32,8 +33,8 @@ class _BusinessLocationBottomSheetState
   final cityController = TextEditingController();
   final RegExp pinRegex = RegExp(r'^[1-9][0-9]{5}$');
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
-  final locationController = Get.put(LocationController());
+      Get.find<ViewBusinessDetailsController>();
+  final locationController = Get.find<LocationController>();
 
   bool isValidIndianPincode(String pin) {
     return pinRegex.hasMatch(pin.trim());
@@ -61,7 +62,8 @@ class _BusinessLocationBottomSheetState
           lat, lng, data.address ?? "");
 
       final hasAddress = fullBusinessAddressTextController.text.isNotEmpty;
-      final hasLatLng = (lat != null && lat != 0.0) && (lng != null && lng != 0.0);
+      final hasLatLng =
+          (lat != null && lat != 0.0) && (lng != null && lng != 0.0);
 
       if (!hasAddress || !hasLatLng) {
         // Address or lat/lng missing — fetch both from GPS
@@ -91,7 +93,9 @@ class _BusinessLocationBottomSheetState
 
       if (mounted) setState(() {});
     } else {
-      commonSnackBar(message: 'Unable to fetch location. Please enable GPS and try again.');
+      commonSnackBar(
+          message:
+              'Unable to fetch location. Please enable GPS and try again.');
     }
   }
 
@@ -142,7 +146,7 @@ class _BusinessLocationBottomSheetState
                 hintText: AppStrings.fullBusinessAddress,
               ),
               TextButton(
-                onPressed: () =>  updateAddressFromLocation(),
+                onPressed: () => updateAddressFromLocation(),
                 child: CustomText(
                   AppStrings.tapToFetchBusinessLocation,
                   fontSize: SizeConfig.small,
@@ -161,15 +165,16 @@ class _BusinessLocationBottomSheetState
               ),
               SizedBox(height: SizeConfig.size16),
               CommonTextField(
-                onChange: (val){
-                  setState(() {
-
-                  });
+                onChange: (val) {
+                  setState(() {});
                 },
                 validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) return AppStrings.pleaseEnterPinCode.tr;
-                  return isValidIndianPincode(value) ? null : AppStrings.enterValidIndianPincode.tr;
-                  },
+                  if (value == null || value.trim().isEmpty)
+                    return AppStrings.pleaseEnterPinCode.tr;
+                  return isValidIndianPincode(value)
+                      ? null
+                      : AppStrings.enterValidIndianPincode.tr;
+                },
                 textEditController: picCodeController,
                 title: AppStrings.pincodeTitle,
                 keyBoardType: TextInputType.number,
@@ -180,14 +185,16 @@ class _BusinessLocationBottomSheetState
                 title: AppStrings.save,
                 bgColor: AppColors.primaryColor,
                 radius: 10,
-                onTap:() {
+                onTap: () {
                   if (fullBusinessAddressTextController.text.trim().isEmpty) {
                     commonSnackBar(message: AppStrings.pleaseEnterAddress);
                     return;
                   }
 
                   if (!_hasValidLatLng) {
-                    commonSnackBar(message: 'Location not found. Please tap "Fetch Business Location" to update.');
+                    commonSnackBar(
+                        message:
+                            'Location not found. Please tap "Fetch Business Location" to update.');
                     return;
                   }
 
@@ -206,8 +213,12 @@ class _BusinessLocationBottomSheetState
                     ApiKeys.address: fullBusinessAddressTextController.text,
                     ApiKeys.pincode: picCodeController.text,
                     ApiKeys.business_location: jsonEncode({
-                      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-                      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+                      ApiKeys.lat: viewBusinessDetailsController
+                          .addressLat?.value
+                          .toString(),
+                      ApiKeys.lon: viewBusinessDetailsController
+                          .addressLong?.value
+                          .toString(),
                     }),
                   };
 
@@ -217,7 +228,7 @@ class _BusinessLocationBottomSheetState
                   } else {
                     Get.offNamedUntil(
                       RouteHelper.getBottomNavigationBarScreenRoute(),
-                          (route) => false,
+                      (route) => false,
                     );
                   }
                 },
@@ -264,4 +275,3 @@ class _BusinessLocationBottomSheetState
   //   });
   // }
 }
-

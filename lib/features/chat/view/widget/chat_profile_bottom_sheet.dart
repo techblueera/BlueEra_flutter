@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/notification_settings_binding.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -132,17 +133,28 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
 
   String _localizedTitle(String id) {
     switch (id) {
-      case 'ADD_SYMBOL': return AppStrings.addSymbolMenu.tr;
-      case 'VIEW_SYMBOL': return AppStrings.viewSymbolMenu.tr;
-      case 'CREATE_GROUP': return AppStrings.createGroupMenu.tr;
-      case 'BACKGROUND': return AppStrings.backgroundMenu.tr;
-      case 'WALLET': return AppStrings.walletLabel.tr;
-      case 'PRIVATE_ROOM': return AppStrings.privateRoomMenu.tr;
-      case 'LINKED_DEVICE': return AppStrings.linkedDeviceMenu.tr;
-      case 'LOCK_CHAT': return AppStrings.lockChatMenu.tr;
-      case 'NOTIFICATION': return AppStrings.notificationMenu.tr;
-      case 'INVITE_FRIEND': return AppStrings.inviteFriendMenu.tr;
-      default: return id;
+      case 'ADD_SYMBOL':
+        return AppStrings.addSymbolMenu.tr;
+      case 'VIEW_SYMBOL':
+        return AppStrings.viewSymbolMenu.tr;
+      case 'CREATE_GROUP':
+        return AppStrings.createGroupMenu.tr;
+      case 'BACKGROUND':
+        return AppStrings.backgroundMenu.tr;
+      case 'WALLET':
+        return AppStrings.walletLabel.tr;
+      case 'PRIVATE_ROOM':
+        return AppStrings.privateRoomMenu.tr;
+      case 'LINKED_DEVICE':
+        return AppStrings.linkedDeviceMenu.tr;
+      case 'LOCK_CHAT':
+        return AppStrings.lockChatMenu.tr;
+      case 'NOTIFICATION':
+        return AppStrings.notificationMenu.tr;
+      case 'INVITE_FRIEND':
+        return AppStrings.inviteFriendMenu.tr;
+      default:
+        return id;
     }
   }
 
@@ -173,9 +185,7 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
         Get.to(() => AddChatSymbolScreen());
         break;
       case 'VIEW_SYMBOL':
-        final ctrl = Get.isRegistered<AddChatSymbolController>()
-            ? Get.find<AddChatSymbolController>()
-            : Get.put(AddChatSymbolController());
+        final ctrl = Get.find<AddChatSymbolController>();
         Get.to(() => SymbolViewImages(mySymbols: ctrl.mySymbols));
         break;
       case 'CREATE_GROUP':
@@ -185,7 +195,8 @@ class _ChatProfileSheetState extends State<_ChatProfileSheet>
         Get.to(() => ChatBackgroundScreen());
         break;
       case 'NOTIFICATION':
-        Get.to(() => NotificationSettingScreen());
+        Get.to(() => NotificationSettingScreen(),
+            binding: NotificationSettingsBinding());
         break;
       case 'WALLET':
         Get.to(() => const WalletChatScreen());

@@ -56,11 +56,10 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   // Products/Service/Foods). A fixed length would mismatch TabBarView's
   // children count and throw.
   TabController? _tabController;
-  final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final controller =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final controllerVisit = Get.put(VisitProfileController());
-  final chatViewController = Get.isRegistered<ChatViewController>()
-      ? Get.find<ChatViewController>()
-      : Get.put(ChatViewController());
+  final chatViewController = Get.put(ChatViewController());
 
   late VisitProfileController visitProfileController;
 
@@ -121,11 +120,11 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
         // Transparent so the app-wide themed background (AppHomeBackground,
         // set via app_background_screen) shows through instead of white.
         backgroundColor: Colors.transparent,
-        appBar: widget.showAppBar ? CommonBackAppBar(
-          onBackTap: (){
-            backPress();
-          }
-        ) : null,
+        appBar: widget.showAppBar
+            ? CommonBackAppBar(onBackTap: () {
+                backPress();
+              })
+            : null,
         body: GetBuilder<ViewBusinessDetailsController>(
           init: controller,
           builder: (controller) {

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/common/ott/binding/ott_video_player_binding.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/ott/view/ott_video_player_screen.dart';
@@ -81,7 +82,11 @@ class _VideoListScreenState extends State<VideoListScreen> {
                     channelFeedController.allVideoChannelDataList[index];
                 return InkWell(
                     onTap: () {
-                      Get.to(() => OttVideoPlayerScreen(videoItems: video,));
+                      Get.to(
+                          () => OttVideoPlayerScreen(
+                                videoItems: video,
+                              ),
+                          binding: OttVideoPlayerBinding());
                     },
                     child: _buildVideoItem(video));
               },

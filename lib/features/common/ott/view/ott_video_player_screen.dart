@@ -17,7 +17,7 @@ class OttVideoPlayerScreen extends StatefulWidget {
 }
 
 class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
-  final controller = Get.put(OttVideoPlayerController());
+  final controller = Get.find<OttVideoPlayerController>();
 
   @override
   void initState() {
@@ -66,7 +66,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                 ),
               )
             : SafeArea(
-              child: GetBuilder<OttVideoPlayerController>(
+                child: GetBuilder<OttVideoPlayerController>(
                   builder: (_) {
                     return Center(
                       child: controller.isInitialized.value
@@ -80,25 +80,27 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                     child: AspectRatio(
                                       aspectRatio: controller
                                           .videoController.value.aspectRatio,
-                                      child:
-                                          VideoPlayer(controller.videoController),
+                                      child: VideoPlayer(
+                                          controller.videoController),
                                     ),
                                   ),
                                 ),
-              
+
                                 // 2. THE CONTROLS OVERLAY (Fade in/out)
                                 Obx(() => AnimatedOpacity(
                                       opacity: controller.showControls.value
                                           ? 1.0
                                           : 0.0,
-                                      duration: const Duration(milliseconds: 300),
+                                      duration:
+                                          const Duration(milliseconds: 300),
                                       child: IgnorePointer(
-                                        ignoring: !controller.showControls.value,
+                                        ignoring:
+                                            !controller.showControls.value,
                                         child: Stack(
                                           children: [
                                             // A. Semi-transparent background for controls visibility
                                             Container(color: Colors.black38),
-              
+
                                             // B. TOP ROW (Back + Settings)
                                             Positioned(
                                               top: 40,
@@ -128,7 +130,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                 ],
                                               ),
                                             ),
-              
+
                                             // C. CENTER ROW (Rewind - Play - Forward)
                                             Align(
                                               alignment: Alignment.center,
@@ -170,7 +172,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                 ],
                                               ),
                                             ),
-              
+
                                             // D. BOTTOM ROW (Time - Slider - Fullscreen)
                                             Positioned(
                                               bottom: 20,
@@ -183,15 +185,17 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                     children: [
                                                       // Current Time
                                                       Text(
-                                                        formatDuration(controller
-                                                            .currentPosition
-                                                            .value),
+                                                        formatDuration(
+                                                            controller
+                                                                .currentPosition
+                                                                .value),
                                                         style: const TextStyle(
                                                             color: Colors.white,
                                                             fontWeight:
-                                                                FontWeight.bold),
+                                                                FontWeight
+                                                                    .bold),
                                                       ),
-              
+
                                                       // Progress Bar
                                                       Expanded(
                                                         child: SliderTheme(
@@ -231,7 +235,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                           ),
                                                         ),
                                                       ),
-              
+
                                                       // Total Duration
                                                       CustomText(
                                                           formatDuration(
@@ -241,16 +245,18 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                           color: Colors.white,
                                                           fontWeight:
                                                               FontWeight.bold),
-              
+
                                                       // Fullscreen Toggle
                                                       const SizedBox(width: 10),
                                                       IconButton(
                                                         icon: Icon(
-                                                          controller.isFullScreen
+                                                          controller
+                                                                  .isFullScreen
                                                                   .value
                                                               ? Icons
                                                                   .fullscreen_exit
-                                                              : Icons.fullscreen,
+                                                              : Icons
+                                                                  .fullscreen,
                                                           color: Colors.white,
                                                         ),
                                                         onPressed: controller
@@ -258,7 +264,10 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                       ),
                                                     ],
                                                   ),
-                                                  SizedBox(height: kBottomNavigationBarHeight,)
+                                                  SizedBox(
+                                                    height:
+                                                        kBottomNavigationBarHeight,
+                                                  )
                                                 ],
                                               ),
                                             ),
@@ -268,11 +277,12 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                     )),
                               ],
                             )
-                          : const CircularProgressIndicator(color: Colors.white),
+                          : const CircularProgressIndicator(
+                              color: Colors.white),
                     );
                   },
                 ),
-            ),
+              ),
       ),
     );
   }

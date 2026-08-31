@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/hotel_room_listing_res_model.dart';
+import 'package:BlueEra/features/me/hotel/binding/room_detail_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -106,10 +107,12 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
       width: double.infinity,
       color: Colors.white,
       child: OutlinedButton.icon(
-        onPressed: () => Get.to(RoomDesignScreen(
-          roomType: widget.roomType,
-          roomName: widget.roomName,
-        )),
+        onPressed: () => Get.to(
+            () => RoomDesignScreen(
+                  roomType: widget.roomType,
+                  roomName: widget.roomName,
+                ),
+            binding: RoomDetailBinding()),
         icon: const Icon(Icons.add_circle_outline, size: 20),
         label: CustomText(AppStrings.addMore.tr, fontWeight: FontWeight.w600),
         style: OutlinedButton.styleFrom(
@@ -184,8 +187,7 @@ class _RoomCardState extends State<_RoomCard> {
             ),
           ),
           child: ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: CarouselSlider(
               options: CarouselOptions(
                 height: 220,
@@ -253,8 +255,7 @@ class _RoomCardState extends State<_RoomCard> {
         child: CircleAvatar(
           backgroundColor: Colors.black.withValues(alpha: 0.4),
           radius: 16,
-          child:
-              const Icon(Icons.more_vert, color: Colors.white, size: 18),
+          child: const Icon(Icons.more_vert, color: Colors.white, size: 18),
         ),
         itemBuilder: (_) => [
           PopupMenuItem(
@@ -289,9 +290,9 @@ class _RoomCardState extends State<_RoomCard> {
           const SizedBox(height: 6),
           Text.rich(TextSpan(children: [
             TextSpan(
-              text: '₹${formatNumber(int.tryParse(room.pricePerDay?.toString() ?? '') ?? 0)}',
-              style:
-                  const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+              text:
+                  '₹${formatNumber(int.tryParse(room.pricePerDay?.toString() ?? '') ?? 0)}',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
             ),
             const TextSpan(
               text: '/day',

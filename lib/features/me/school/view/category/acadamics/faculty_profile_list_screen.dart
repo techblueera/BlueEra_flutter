@@ -14,28 +14,31 @@ class FacultyProfileListScreen extends StatelessWidget {
   final controller = Get.put(FacultyController());
   final bool isEdit;
 
-   FacultyProfileListScreen({super.key, required this.isEdit});
+  FacultyProfileListScreen({super.key, required this.isEdit});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title:  AppStrings.faculty,
+        title: AppStrings.faculty,
       ),
-      bottomNavigationBar:isEdit? SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.to(FacultyFormScreen());
-              },
-              title:  AppStrings.addFacility,),
-        ),
-      ):null,
+      bottomNavigationBar: isEdit
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    right: 10.0, left: 10.0, bottom: 40, top: 10),
+                child: PositiveCustomBtn(
+                  bgColor: AppColors.white,
+                  textColor: AppColors.primaryColor,
+                  borderColor: AppColors.primaryColor,
+                  onTap: () {
+                    Get.to(() => FacultyFormScreen());
+                  },
+                  title: AppStrings.addFacility,
+                ),
+              ),
+            )
+          : null,
       body: Obx(() {
         if (controller.getAllFacultyResponse.value.status == Status.COMPLETE) {
           if (controller.profiles.isEmpty) {
@@ -77,48 +80,55 @@ class FacultyProfileListScreen extends StatelessWidget {
                         CustomText(user.email ?? ""),
                       ],
                     ),
-                    trailing:isEdit?
-                    PopupMenuButton<String>(
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          Get.to(FacultyFormScreen(isEdit: true,facultyData: user,));
-                        } else if (value == 'delete') {
-                          await showCommonDialog(
-                              context: context,
-                              text:
-                              AppStrings.deleteFacultyConfirm,
-                              confirmCallback: () async {
-                                await controller.deleteFacultyProfileController(
-                                    facultyID: user.id!);
-                              },
-                              cancelCallback: () {
-                                Navigator.of(context).pop(); // Close the dialog
-                              },
-                              confirmText: AppStrings.yes,
-                              cancelText: AppStrings.no);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 20),
-                                SizedBox(width: 8),
-                                CustomText(AppStrings.edit)
-                              ],
-                            )),
-                        PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, color: Colors.red, size: 20),
-                                SizedBox(width: 8),
-                                CustomText(AppStrings.delete, color: Colors.red)
-                              ],
-                            )),
-                      ],
-                    ):null,
+                    trailing: isEdit
+                        ? PopupMenuButton<String>(
+                            onSelected: (value) async {
+                              if (value == 'edit') {
+                                Get.to(() => FacultyFormScreen(
+                                      isEdit: true,
+                                      facultyData: user,
+                                    ));
+                              } else if (value == 'delete') {
+                                await showCommonDialog(
+                                    context: context,
+                                    text: AppStrings.deleteFacultyConfirm,
+                                    confirmCallback: () async {
+                                      await controller
+                                          .deleteFacultyProfileController(
+                                              facultyID: user.id!);
+                                    },
+                                    cancelCallback: () {
+                                      Navigator.of(context)
+                                          .pop(); // Close the dialog
+                                    },
+                                    confirmText: AppStrings.yes,
+                                    cancelText: AppStrings.no);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit, size: 20),
+                                      SizedBox(width: 8),
+                                      CustomText(AppStrings.edit)
+                                    ],
+                                  )),
+                              PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete,
+                                          color: Colors.red, size: 20),
+                                      SizedBox(width: 8),
+                                      CustomText(AppStrings.delete,
+                                          color: Colors.red)
+                                    ],
+                                  )),
+                            ],
+                          )
+                        : null,
                   ),
                 );
               },

@@ -44,8 +44,8 @@ class CreateMessagePostScreenNew extends StatefulWidget {
 class _CreateMessagePostScreenNewState
     extends State<CreateMessagePostScreenNew> {
   final msgController = Get.put(MessagePostController());
-  final tagUserController = Get.put(TagUserController());
-  final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
+  final tagUserController = Get.find<TagUserController>();
+  final reelUploadDetailsController = Get.find<ReelUploadDetailsController>();
   VideoCategoryData? _commonCategory;
 
   @override
@@ -178,7 +178,7 @@ class _CreateMessagePostScreenNewState
                         CustomText(AppStrings.yourLekha),
                         InkWell(
                           onTap: () {
-                            Get.to(SocialPostDescriptionScreen());
+                            Get.to(() => SocialPostDescriptionScreen());
                           },
                           child: LocalAssets(
                             height: 25,

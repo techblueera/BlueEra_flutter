@@ -314,8 +314,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         children: [
                           _buildSectionHeader(
                             AppStrings.hotelChooseRoom.tr,
-                            onAdd: () => Get.to(RoomSelectionScreen()),
-                            onEdit: () => Get.to(RoomAmenitiesScreen()),
+                            onAdd: () => Get.to(() => RoomSelectionScreen()),
+                            onEdit: () => Get.to(() => RoomAmenitiesScreen()),
                           ),
                           const SizedBox(height: 12),
 
@@ -371,7 +371,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                               return _buildEmptyPlaceholder(
                                 AppStrings.hotelNoRoomsAdded.tr,
                                 icon: Icons.hotel_outlined,
-                                onAdd: () => Get.to(RoomSelectionScreen()),
+                                onAdd: () =>
+                                    Get.to(() => RoomSelectionScreen()),
                               );
                             }
                             if (controller.filteredRooms.isEmpty) {
@@ -401,7 +402,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                                     false;
                             if (!hasRooms) return const SizedBox.shrink();
                             return InkWell(
-                              onTap: () => Get.to(RoomSelectionScreen()),
+                              onTap: () => Get.to(() => RoomSelectionScreen()),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
@@ -434,7 +435,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         children: [
                           _buildSectionHeader(
                             AppStrings.hotelGallery.tr,
-                            onAdd: () => Get.to(PropertyPhotoScreen()),
+                            onAdd: () => Get.to(() => PropertyPhotoScreen()),
                           ),
                           const SizedBox(height: 12),
                           profile?.photos?.isNotEmpty == true
@@ -442,7 +443,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                               : _buildEmptyPlaceholder(
                                   AppStrings.hotelNoPhotosAdded.tr,
                                   icon: Icons.photo_library_outlined,
-                                  onAdd: () => Get.to(PropertyPhotoScreen()),
+                                  onAdd: () =>
+                                      Get.to(() => PropertyPhotoScreen()),
                                 ),
                         ],
                       ),
@@ -461,7 +463,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                           children: [
                             _buildSectionHeader(
                               AppStrings.hotelAmenitiesTitle.tr,
-                              onEdit: () => Get.to(HotelAmenitiesScreen()),
+                              onEdit: () =>
+                                  Get.to(() => HotelAmenitiesScreen()),
                             ),
                             const SizedBox(height: 15),
                             profile?.hotelAmenities != null
@@ -469,7 +472,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                                 : _buildEmptyPlaceholder(
                                     AppStrings.hotelNoAmenitiesAdded.tr,
                                     icon: Icons.spa_outlined,
-                                    onAdd: () => Get.to(HotelAmenitiesScreen()),
+                                    onAdd: () =>
+                                        Get.to(() => HotelAmenitiesScreen()),
                                   ),
                           ],
                         ),
@@ -486,7 +490,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         children: [
                           _buildSectionHeader(
                             AppStrings.hotelPoliciesTitle.tr,
-                            onEdit: () => Get.to(HotelPoliciesScreen()),
+                            onEdit: () => Get.to(() => HotelPoliciesScreen()),
                           ),
                           const SizedBox(height: 10),
                           profile?.policy != null
@@ -494,7 +498,8 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                               : _buildEmptyPlaceholder(
                                   AppStrings.hotelNoPoliciesAdded.tr,
                                   icon: Icons.policy_outlined,
-                                  onAdd: () => Get.to(HotelPoliciesScreen()),
+                                  onAdd: () =>
+                                      Get.to(() => HotelPoliciesScreen()),
                                 ),
                         ],
                       ),
@@ -666,7 +671,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
       return _buildEmptyPlaceholder(
         AppStrings.hotelNoPoliciesAdded.tr,
         icon: Icons.policy_outlined,
-        onAdd: () => Get.to(HotelPoliciesScreen()),
+        onAdd: () => Get.to(() => HotelPoliciesScreen()),
       );
     }
 
@@ -699,14 +704,14 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
         children: [
           _buildSectionHeader(
             AppStrings.contactUs.tr,
-            onEdit: () => Get.to(const HotelContactUs()),
+            onEdit: () => Get.to(() => const HotelContactUs()),
           ),
           const SizedBox(height: 20),
           if (profile?.contacts?.isEmpty ?? true)
             _buildEmptyPlaceholder(
               AppStrings.hotelNoContactDetailsAdded.tr,
               icon: Icons.contact_phone_outlined,
-              onAdd: () => Get.to(const HotelContactUs()),
+              onAdd: () => Get.to(() => const HotelContactUs()),
             )
           else
             Container(

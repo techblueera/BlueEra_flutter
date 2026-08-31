@@ -803,7 +803,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
       key: _scaffoldKey,
-
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -1169,8 +1168,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             !viewPersonalDetailsController.isMeProfileFetching.value) {
           return _MeTabError(
             message: error,
-            onRetry: () => viewPersonalDetailsController
-                .viewPersonalProfile(forceRefresh: true),
+            onRetry: () => viewPersonalDetailsController.viewPersonalProfile(
+                forceRefresh: true),
           );
         }
         // Type not resolved yet (first load, re-login with a stale ready flag,
@@ -1464,8 +1463,8 @@ class _MeTabError extends StatelessWidget {
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.only(
-                left: SizeConfig.size12, top: SizeConfig.size8),
+            padding:
+                EdgeInsets.only(left: SizeConfig.size12, top: SizeConfig.size8),
             child: Align(
               alignment: Alignment.topLeft,
               child: Material(
@@ -1491,65 +1490,65 @@ class _MeTabError extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     return Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor.withValues(alpha: 0.10),
+              ),
+              child: Icon(
+                Icons.person_off_outlined,
+                size: 44,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size16),
+            CustomText(
+              message,
+              fontSize: SizeConfig.large18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size8),
+            CustomText(
+              AppStrings.profileLoadFailedHint.tr,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+            ),
+            SizedBox(height: SizeConfig.size24),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: CustomText(
+                AppStrings.tryAgain.tr,
+                fontSize: SizeConfig.medium15,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size24,
+                  vertical: SizeConfig.size12,
                 ),
-                child: Icon(
-                  Icons.person_off_outlined,
-                  size: 44,
-                  color: AppColors.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              SizedBox(height: SizeConfig.size16),
-              CustomText(
-                message,
-                fontSize: SizeConfig.large18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              CustomText(
-                AppStrings.profileLoadFailedHint.tr,
-                fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
-                textAlign: TextAlign.center,
-                maxLines: 3,
-              ),
-              SizedBox(height: SizeConfig.size24),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: CustomText(
-                  AppStrings.tryAgain.tr,
-                  fontSize: SizeConfig.medium15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size24,
-                    vertical: SizeConfig.size12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

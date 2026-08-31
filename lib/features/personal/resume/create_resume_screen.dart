@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -9,10 +8,10 @@ import 'package:BlueEra/features/personal/resume/sections/add_more_section.dart'
 import 'package:BlueEra/features/personal/resume/sections/education_section.dart';
 import 'package:BlueEra/features/personal/resume/sections/experience_section.dart';
 import 'package:BlueEra/features/personal/resume/sections/profile_section.dart';
-import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:get/get.dart';
 
 class CreateResumeScreen extends StatefulWidget {
@@ -21,10 +20,10 @@ class CreateResumeScreen extends StatefulWidget {
 }
 
 class _CreateResumeScreenState extends State<CreateResumeScreen> {
-  final ResumeController controller = Get.put(ResumeController());
+  final ResumeController controller = Get.find<ResumeController>();
 
   final ProfilePicController profilePicController =
-      Get.put(ProfilePicController());
+      Get.find<ProfilePicController>();
   @override
   void initState() {
     // TODO: implement initState
@@ -32,10 +31,12 @@ class _CreateResumeScreenState extends State<CreateResumeScreen> {
 
     super.initState();
   }
+
   //
   apiCall() async {
     await profilePicController.getMyResume();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,8 +45,10 @@ class _CreateResumeScreenState extends State<CreateResumeScreen> {
         titleColor: AppColors.mainTextColor,
         showRightTextButton: true,
         rightTextButtonText: AppStrings.template.tr,
-        onRightTextButtonTap: (){
-          navigatePushTo(context, ResumeTemplateScreen());
+        onRightTextButtonTap: () {
+          // Routed (not navigatePushTo, which uses a raw MaterialPageRoute GetX
+          // never sees) so ResumeTemplateBinding actually runs.
+          Get.toNamed(RouteHelper.getResumeTemplateScreenRoute());
         },
       ),
       body: SafeArea(

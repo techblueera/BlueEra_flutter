@@ -46,7 +46,7 @@ class FoodServicesBottomSheet extends StatefulWidget {
 
 class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
   final MapServiceController mapServiceController =
-      Get.put(MapServiceController());
+      Get.find<MapServiceController>();
   int _selectedSubCategoryIndex = 0;
   String? _selectedSubCategory;
   final List<String> subCategories = [];
@@ -186,7 +186,6 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                               itemBuilder: (context, index) =>
                                   _buildServiceCard(serviceData[index]),
                             );
-
                           },
                         ),
                       ),
@@ -319,14 +318,12 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         Expanded(
                           child: CommonIconContainerButton(
                             onTap: () async {
-                              final chatViewController = Get.isRegistered<ChatViewController>()
-                                  ? Get.find<ChatViewController>()
-                                  : Get.put(ChatViewController());
+                              final chatViewController =
+                                  Get.put(ChatViewController());
                               chatViewController.checkChatConnectionAndOpenChat(
                                 userId: serviceData.id ?? '',
                                 route: AppConstants.route_discover,
                               );
-
                             },
                             icon: LocalAssets(
                               imagePath: AppIconAssets.quillChatIcon,

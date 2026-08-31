@@ -54,10 +54,10 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.to(CommonStudentCornerFormScreen(
-                        title: widget.title,
-                        screenName: widget.screenName,
-                      ));
+                      Get.to(() => CommonStudentCornerFormScreen(
+                            title: widget.title,
+                            screenName: widget.screenName,
+                          ));
                     },
                     title: "${AppStrings.add.tr} ${widget.title}"),
               ),
@@ -115,10 +115,10 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                           onTap: () {
                             final urlType = data.uploadPhoto ?? "";
                             if (urlType.isPdf) {
-                              Get.to(FullScreenPdfViewer(
-                                fileUrl: data.uploadPhoto ?? "",
-                                title: data.description ?? "",
-                              ));
+                              Get.to(() => FullScreenPdfViewer(
+                                    fileUrl: data.uploadPhoto ?? "",
+                                    title: data.description ?? "",
+                                  ));
                             }
 
                             if (urlType.isImageUrl) {
@@ -154,7 +154,9 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                 itemCount: dataList.length,
               );
             }
-            return Center(child: CustomText("${widget.title} ${AppStrings.noDataFound.tr}"));
+            return Center(
+                child:
+                    CustomText("${widget.title} ${AppStrings.noDataFound.tr}"));
           }
           return SizedBox();
         }),
@@ -209,13 +211,13 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                     cancelText: AppStrings.no);
               }, onNoticeNewsEdit: () {
                 StudentCornerItem data = dataList[noticeIndex];
-                Get.to(CommonStudentCornerFormScreen(
-                  isEdit: true,
-                  studentItem: data,
-                  title: widget.title,
-                  screenName: widget.screenName,
-                  itemIndex: noticeIndex,
-                ));
+                Get.to(() => CommonStudentCornerFormScreen(
+                      isEdit: true,
+                      studentItem: data,
+                      title: widget.title,
+                      screenName: widget.screenName,
+                      itemIndex: noticeIndex,
+                    ));
               })
             : SizedBox(
                 width: 10,

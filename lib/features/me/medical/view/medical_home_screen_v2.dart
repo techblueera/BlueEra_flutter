@@ -272,49 +272,47 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         // shows its own loading state. Blocking here meant the Products tab
         // (the landing tab) sat behind a spinner for the Overview profile call.
         child: Stack(
+          children: [
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBarHeight: topBarHeight,
+              topBar: Column(
+                // mainAxisSize: MainAxisSize.min,
                 children: [
-                  HomeTabScaffold(
-                    controller: _tabController,
-                    tabLabels: _tabs,
-                    topBarHeight: topBarHeight,
-                    topBar: Column(
-                      // mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildTopBar(),
-                        // _buildProfileRow(_data?.businessProfile),
-                      ],
-                    ),
-                    // Top bar (status inset + ~56) + the profile row (~74).
-                    // Sized with headroom so the profile row's two text lines
-                    // don't overflow the fixed header height (was +120 → 6px
-                    // overflow).
-                    // topBarHeight: MediaQuery.of(context).padding.top + 132,
-                    // One class per tab, each in `view/tabs/` — this screen
-                    // owns the chrome (top bar, tab controller, per-tab fetch)
-                    // and nothing else. Stats already is its own screen.
-                    tabViews: [
-                      _tabScroll(
-                          MedicalProductsTab(businessId: widget.businessId)),
-                      // Overview waits on its OWN fetch rather than the whole
-                      // screen doing so; once the profile lands the setState
-                      // in [_fetchData] swaps this for the real tab.
-                      _tabScroll(
-                        _data == null && _isProfileLoading
-                            ? const SizedBox(
-                                height: 320,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2),
-                                ),
-                              )
-                            : MedicalOverviewTab(data: _data),
-                      ),
-                      // _tabScroll(const MedicalPostTab()),
-                      ProfileStatisticsScreen(userId: userId),
-                    ],
-                  ),
+                  _buildTopBar(),
+                  // _buildProfileRow(_data?.businessProfile),
                 ],
               ),
+              // Top bar (status inset + ~56) + the profile row (~74).
+              // Sized with headroom so the profile row's two text lines
+              // don't overflow the fixed header height (was +120 → 6px
+              // overflow).
+              // topBarHeight: MediaQuery.of(context).padding.top + 132,
+              // One class per tab, each in `view/tabs/` — this screen
+              // owns the chrome (top bar, tab controller, per-tab fetch)
+              // and nothing else. Stats already is its own screen.
+              tabViews: [
+                _tabScroll(MedicalProductsTab(businessId: widget.businessId)),
+                // Overview waits on its OWN fetch rather than the whole
+                // screen doing so; once the profile lands the setState
+                // in [_fetchData] swaps this for the real tab.
+                _tabScroll(
+                  _data == null && _isProfileLoading
+                      ? const SizedBox(
+                          height: 320,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : MedicalOverviewTab(data: _data),
+                ),
+                // _tabScroll(const MedicalPostTab()),
+                ProfileStatisticsScreen(userId: userId),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -376,7 +374,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               children: [
                 ElevatedButton(
                     onPressed: () {
-                      Get.to(ProfileStatisticsScreen(userId: userId));
+                      Get.to(() => ProfileStatisticsScreen(userId: userId));
                     },
                     child: CustomText(AppStrings.clickMe.tr)),
                 Row(

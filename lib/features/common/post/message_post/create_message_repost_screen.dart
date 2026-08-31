@@ -178,8 +178,7 @@ class _CreateMessagePostScreenNewState
                         CommonTextField(
                           textEditController:
                               msgController.descriptionMessage.value,
-                          hintText:
-                          AppStrings.defaultRepostMessage,
+                          hintText: AppStrings.defaultRepostMessage,
                           title: AppStrings.yourMessage,
                           maxLine: 5,
                           maxLength: 1000,
@@ -206,13 +205,12 @@ class _CreateMessagePostScreenNewState
 
                             msgController.postText.value = newVal;
                           },
-
                           validator: (val) {
                             if (val == null || val.trim().length < 10) {
                               return AppStrings.messageMinLengthError.tr;
                             }
                             if (RegExp(r'https?').hasMatch(val)) {
-                              return  AppStrings.messageLinkNotAllowed.tr;
+                              return AppStrings.messageLinkNotAllowed.tr;
                             }
                             return null;
                           },

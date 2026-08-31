@@ -50,7 +50,8 @@ class _ProductsStoreDetailsScreenState
     extends State<ManufacturerProductsStoreDetailsScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final ManufacturerProductController controller = Get.put(ManufacturerProductController());
+  final ManufacturerProductController controller =
+      Get.find<ManufacturerProductController>();
   int _currentIndex = 0;
   bool isOwnProduct = false;
 
@@ -142,8 +143,7 @@ class _ProductsStoreDetailsScreenState
             onPressed: () {
               Get.until(
                 (route) =>
-                    route.settings.name ==
-                    RouteHelper.getProductScreenRoute(),
+                    route.settings.name == RouteHelper.getProductScreenRoute(),
               );
             },
             child: const CustomText(AppStrings.yes),
@@ -464,7 +464,8 @@ class _ProductsStoreDetailsScreenState
           debugPrint('owner type -- ${owner.type}');
           debugPrint('id -- ${owner.id}');
           final destination = isBusiness
-              ? ManufacturerVisitProductStoreDetailsScreen(visitBusinessId: ownerId)
+              ? ManufacturerVisitProductStoreDetailsScreen(
+                  visitBusinessId: ownerId)
               : NewVisitProfileScreen(
                   authorId: ownerId, screenFromName: screen);
           Get.to(() => destination);

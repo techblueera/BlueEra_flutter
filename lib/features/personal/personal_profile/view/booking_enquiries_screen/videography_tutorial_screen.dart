@@ -11,17 +11,17 @@ import '../../../../../widgets/horizontal_tab_selector.dart';
 import 'controller/booking_controller.dart';
 
 class VideographyTutorialScreen extends StatefulWidget {
- final  String? videoId;
- final String? channelId;
-  const VideographyTutorialScreen({super.key,  this.videoId, this.channelId});
+  final String? videoId;
+  final String? channelId;
+  const VideographyTutorialScreen({super.key, this.videoId, this.channelId});
 
   @override
-  State<VideographyTutorialScreen> createState() => _VideographyTutorialScreenState();
+  State<VideographyTutorialScreen> createState() =>
+      _VideographyTutorialScreenState();
 }
 
 class _VideographyTutorialScreenState extends State<VideographyTutorialScreen> {
-  
-final controller = Get.put(BookingController());
+  final controller = Get.find<BookingController>();
   int selectedIndex = 0;
 
   Color getStatusColor(String status) {
@@ -44,8 +44,18 @@ final controller = Get.put(BookingController());
 
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
@@ -61,10 +71,11 @@ final controller = Get.put(BookingController());
   @override
   void initState() {
     super.initState();
-   
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print("datata${widget.channelId},${widget.videoId}");
-      controller.getReceivedvideoBookingList(channelId:widget.channelId,videoId: widget.videoId);
+      controller.getReceivedvideoBookingList(
+          channelId: widget.channelId, videoId: widget.videoId);
     });
   }
 
@@ -83,13 +94,13 @@ final controller = Get.put(BookingController());
           SizedBox(height: SizeConfig.size10),
           // Filter Chips
           Obx(() => HorizontalTabSelector(
-            tabs: controller.filters2,
-            selectedIndex: controller.selectedIndex2.value,
-            onTabSelected: (index, value) {
-              controller.updateTab2(index);
-            },
-            labelBuilder: (label) => label,
-          )),
+                tabs: controller.filters2,
+                selectedIndex: controller.selectedIndex2.value,
+                onTabSelected: (index, value) {
+                  controller.updateTab2(index);
+                },
+                labelBuilder: (label) => label,
+              )),
           SizedBox(height: SizeConfig.size10),
           Expanded(
             child: Obx(() {
@@ -104,7 +115,9 @@ final controller = Get.put(BookingController());
               final filtered = controller.selectedTab2 == 'All'
                   ? controller.receivedbookings
                   : controller.receivedbookings
-                      .where((booking) => booking.status.toLowerCase() == controller.selectedTab2.toLowerCase())
+                      .where((booking) =>
+                          booking.status.toLowerCase() ==
+                          controller.selectedTab2.toLowerCase())
                       .toList();
 
               if (filtered.isEmpty) {
@@ -153,18 +166,16 @@ final controller = Get.put(BookingController());
                           ],
                         ),
                         SizedBox(height: SizeConfig.size8),
-                        
-                       
+
                         CustomText("Date: ${formatDate(booking.bookingTime)}"),
                         CustomText("Time: ${formatTime(booking.bookingTime)}"),
-                        
-                      
+
                         if (booking.durationInMinutes != null)
-                          CustomText("Duration: ${booking.durationInMinutes} minutes"),
+                          CustomText(
+                              "Duration: ${booking.durationInMinutes} minutes"),
                         if (booking.amount != null)
                           CustomText("Amount: ${booking.amount} INR"),
-                        
-                      
+
                         SizedBox(height: SizeConfig.size8),
                         CustomText(
                           "Customer Details:",
@@ -172,8 +183,9 @@ final controller = Get.put(BookingController());
                           fontSize: SizeConfig.medium,
                         ),
                         CustomText("Email: ${booking.customerDetails.email}"),
-                        CustomText("Phone: ${booking.customerDetails.mobileNumber}"),
-                        
+                        CustomText(
+                            "Phone: ${booking.customerDetails.mobileNumber}"),
+
                         // Video Title
                         if (booking.videoTitle.isNotEmpty) ...[
                           SizedBox(height: SizeConfig.size8),
@@ -183,75 +195,72 @@ final controller = Get.put(BookingController());
                             fontWeight: FontWeight.w500,
                           ),
                         ],
-                        
+
                         SizedBox(height: SizeConfig.size12),
                         Row(
                           children: [
-                                                         Expanded(child: CustomBtn(
-                               height: 40,
-                               radius: SizeConfig.size12,
-                               bgColor: AppColors.white,
-                               borderColor: AppColors.red,
-                               onTap: () {
-                                
-                                 controller.bookingUpdate(
-                                   bookingId: booking.id,
-                                   params: {"status": "rejected"},
-                                 ).then((_) {
-                                  
-                                   controller.getReceivedvideoBookingList(
-                                     channelId: widget.channelId,
-                                     videoId: widget.videoId,
-                                   );
-                                 });
-                               },
-                               title: "Cancel",
-                               textColor: AppColors.red,
-                             ),),
+                            Expanded(
+                              child: CustomBtn(
+                                height: 40,
+                                radius: SizeConfig.size12,
+                                bgColor: AppColors.white,
+                                borderColor: AppColors.red,
+                                onTap: () {
+                                  controller.bookingUpdate(
+                                    bookingId: booking.id,
+                                    params: {"status": "rejected"},
+                                  ).then((_) {
+                                    controller.getReceivedvideoBookingList(
+                                      channelId: widget.channelId,
+                                      videoId: widget.videoId,
+                                    );
+                                  });
+                                },
+                                title: "Cancel",
+                                textColor: AppColors.red,
+                              ),
+                            ),
                             SizedBox(width: SizeConfig.size12),
                             Expanded(
-                              child: CommonPopupButton(
-                                menuItems: [
-                                  PopupMenuItem(
-                                    value: 'Accept Booking',
-                                    child: CustomText(
-                                      'Accept Booking',
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.black87,
-                                    ),
+                                child: CommonPopupButton(
+                              menuItems: [
+                                PopupMenuItem(
+                                  value: 'Accept Booking',
+                                  child: CustomText(
+                                    'Accept Booking',
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black87,
                                   ),
-                                  PopupMenuItem(
-                                    value: 'Message',
-                                    child: CustomText(
-                                      'Message',
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.black87,
-                                    ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'Message',
+                                  child: CustomText(
+                                    'Message',
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black87,
                                   ),
-                                ],
-                                title: "Next Step",
-                                onSelected: (value) {
-                                  if (value == 'Accept Booking') {
-                                  
-                                    controller.bookingUpdate(
-                                      bookingId: booking.id,
-                                      params: {"status": "accepted"},
-                                    ).then((_) {
-                                    
-                                      controller.getReceivedvideoBookingList(
-                                        channelId: widget.channelId,
-                                        videoId: widget.videoId,
-                                      );
-                                    });
-                                  } else if (value == 'Message') {
-                                   
-                                    print('Message functionality to be implemented');
-                                  }
-                                },
-                              )
-                            ),
+                                ),
+                              ],
+                              title: "Next Step",
+                              onSelected: (value) {
+                                if (value == 'Accept Booking') {
+                                  controller.bookingUpdate(
+                                    bookingId: booking.id,
+                                    params: {"status": "accepted"},
+                                  ).then((_) {
+                                    controller.getReceivedvideoBookingList(
+                                      channelId: widget.channelId,
+                                      videoId: widget.videoId,
+                                    );
+                                  });
+                                } else if (value == 'Message') {
+                                  print(
+                                      'Message functionality to be implemented');
+                                }
+                              },
+                            )),
                           ],
                         )
                       ],

@@ -25,7 +25,8 @@ class PropertyPhotoScreen extends StatelessWidget {
       appBar: CommonBackAppBar(title: AppStrings.hotelPropertyPhotos.tr),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
             onTap: _openUploadScreen,
             title: AppStrings.hotelUploadPropertyPhoto.tr,
@@ -48,7 +49,7 @@ class PropertyPhotoScreen extends StatelessWidget {
 
   void _openUploadScreen() {
     controller.clearSelection();
-    Get.to(UploadPropertyPhotosScreen());
+    Get.to(() => UploadPropertyPhotosScreen());
   }
 
   Widget _buildAlbumCard(HotelPropertyPhotoData item) {
@@ -56,11 +57,10 @@ class PropertyPhotoScreen extends StatelessWidget {
     final firstImage = images.isNotEmpty ? images.first : '';
 
     return InkWell(
-      onTap: () => Get.to(CategoryDetailsScreen(categoryData: item)),
+      onTap: () => Get.to(() => CategoryDetailsScreen(categoryData: item)),
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(

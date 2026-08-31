@@ -8,8 +8,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
-
 class HeaderWidgets extends StatefulWidget {
   final String businessName;
   final String logoUrl;
@@ -41,9 +39,9 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
     super.initState();
     controller = Get.put(VisitProfileController());
   }
+
   @override
   Widget build(BuildContext context) {
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -98,8 +96,7 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
                   _buildTag("Restaurant"),
                   SizedBox(width: SizeConfig.size6),
                   _buildTag("Closed",
-                      borderColor: AppColors.red,
-                      textColor: AppColors.red),
+                      borderColor: AppColors.red, textColor: AppColors.red),
                   SizedBox(width: SizeConfig.size6),
                   _buildTag("14.2 KM Far"),
                 ],
@@ -109,17 +106,13 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
         ),
       ],
     );
-
-
-
   }
 
-
   Widget _buildTag(
-      String text, {
-        Color borderColor = AppColors.greyA5,
-        Color textColor = AppColors.black,
-      }) {
+    String text, {
+    Color borderColor = AppColors.greyA5,
+    Color textColor = AppColors.black,
+  }) {
     return Container(
         padding: EdgeInsets.symmetric(
             horizontal: SizeConfig.size4, vertical: SizeConfig.size4),
@@ -134,6 +127,4 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
           color: textColor,
         ));
   }
-
-
 }

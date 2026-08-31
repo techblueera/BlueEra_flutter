@@ -53,9 +53,10 @@ class EmergencyContactsController extends GetxController {
       final ResponseModel res = await _repo.submitEmergencyContact(body: body);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.emergencySavedContact.tr);
-        Get.to(EmergencyPrivacyAlertsScreen());
+        Get.to(() => EmergencyPrivacyAlertsScreen());
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

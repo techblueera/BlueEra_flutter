@@ -20,10 +20,10 @@ class LogoNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.to(VideoListScreen(
-          channelID: channelID,
-          channelName: channelName,
-        ));
+        Get.to(() => VideoListScreen(
+              channelID: channelID,
+              channelName: channelName,
+            ));
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -50,7 +50,7 @@ class LogoNameWidget extends StatelessWidget {
             // Check if URL exists before trying to load
             child: ((logoUrl.isNotEmpty))
                 ? CachedNetworkImage(
-                    imageUrl: logoUrl,filterQuality: FilterQuality.low,
+                    imageUrl: logoUrl, filterQuality: FilterQuality.low,
                     // 1. If image loads successfully, show it in a CircleAvatar
                     imageBuilder: (context, imageProvider) => CircleAvatar(
                       radius: 35,

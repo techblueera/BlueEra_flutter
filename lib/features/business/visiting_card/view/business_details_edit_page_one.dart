@@ -58,19 +58,19 @@ class _BusinessDetailsEditPageOneState
 
   ContactType? selectedType = ContactType.Mobile;
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
 
   bool validate = false;
   NatureOfBusiness? selectedBusiness;
   final _formKey = GlobalKey<FormState>();
 
-  final locationController = Get.put(LocationController());
+  final locationController = Get.find<LocationController>();
 
   NatureOfBusiness? getBusinessFromString(String? input) {
     if (input == null) return null;
 
     return NatureOfBusiness.values.firstWhere(
-          (e) => e.displayName.toLowerCase() == input.toLowerCase(),
+      (e) => e.displayName.toLowerCase() == input.toLowerCase(),
       orElse: () => NatureOfBusiness.OTHERS,
     );
   }
@@ -82,7 +82,6 @@ class _BusinessDetailsEditPageOneState
 
     final data = widget.prevBusinessDetails;
 
-
     if (data != null) {
       companyOrgNameTextController.text = data.businessName ?? '';
 
@@ -91,7 +90,7 @@ class _BusinessDetailsEditPageOneState
       cityController.text = data.cityStatePincode ?? '';
       fullBusinessAddressTextController.text = data.address ?? '';
       picCodeController.text =
-      data.pincode != null ? data.pincode.toString() : "";
+          data.pincode != null ? data.pincode.toString() : "";
       locationTextController.text = data.businessLocation != null
           ? '${data.businessLocation?.lat}, ${data.businessLocation?.lon}'
           : '';
@@ -147,7 +146,6 @@ class _BusinessDetailsEditPageOneState
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -157,7 +155,7 @@ class _BusinessDetailsEditPageOneState
         if (widget.isFromCreateUser) {
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-                (route) => false,
+            (route) => false,
           );
         } else {
           Get.back();
@@ -172,7 +170,7 @@ class _BusinessDetailsEditPageOneState
             if (widget.isFromCreateUser) {
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
-                    (route) => false,
+                (route) => false,
               );
             } else {
               Get.back();
@@ -196,7 +194,6 @@ class _BusinessDetailsEditPageOneState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       // ///UPLOAD PROFILE....
                       // Center(
                       //   child: CommonProfileImage(
@@ -237,10 +234,9 @@ class _BusinessDetailsEditPageOneState
                         textEditController: companyOrgNameTextController,
                         inputLength: AppConstants.inputCharterLimit30,
                         keyBoardType: TextInputType.text,
-
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        title:AppStrings.businessName,
+                            RegularExpressionUtils.alphabetSpacePattern,
+                        title: AppStrings.businessName,
                         hintText: AppConstants.companyOrgBusiness,
                         isValidate: false,
                         validator: (value) {
@@ -271,11 +267,11 @@ class _BusinessDetailsEditPageOneState
                       ),
                       NewDatePicker(
                         selectedDay:
-                        viewBusinessDetailsController.selectDay?.value,
+                            viewBusinessDetailsController.selectDay?.value,
                         selectedMonth:
-                        viewBusinessDetailsController.selectMonth?.value,
+                            viewBusinessDetailsController.selectMonth?.value,
                         selectedYear:
-                        viewBusinessDetailsController.selectYear?.value,
+                            viewBusinessDetailsController.selectYear?.value,
                         onDayChanged: (value) {
                           viewBusinessDetailsController.selectDay?.value =
                               value ?? 0;
@@ -304,7 +300,7 @@ class _BusinessDetailsEditPageOneState
                       // SizedBox(
                       //   height: SizeConfig.size14,
                       // ),
-                                 /*     Obx(() {
+                      /*     Obx(() {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -438,7 +434,7 @@ class _BusinessDetailsEditPageOneState
                       ///ENTER ORG/COMPANY NAME...
 
                       ///Supply chain...
-                     /* if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
+                      /* if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
                           BusinessType.Product.name)...[
                         // SizedBox(
                         //   height: SizeConfig.size20,
@@ -498,7 +494,6 @@ class _BusinessDetailsEditPageOneState
                         // ),
                       ],*/
 
-
                       ///Mobile number
                       CustomText(
                         AppStrings.phoneNumber,
@@ -527,7 +522,6 @@ class _BusinessDetailsEditPageOneState
                       // ),
 
                       ///websiteOptional
-
 
                       SizedBox(
                         height: SizeConfig.size20,
@@ -704,7 +698,7 @@ class _BusinessDetailsEditPageOneState
                               onTap: () {
                                 Navigator.of(context).pop();
                               },
-                              title:AppStrings.cancel,
+                              title: AppStrings.cancel,
                               bgColor: Colors.transparent,
                               textColor: AppColors.primaryColor,
                               borderColor: AppColors.primaryColor,
@@ -716,28 +710,40 @@ class _BusinessDetailsEditPageOneState
                               radius: 10,
                               bgColor: AppColors.primaryColor,
                               onTap: () async {
-                                Map<String, dynamic> updatedParams = await buildBusinessDetailsPayload();
+                                Map<String, dynamic> updatedParams =
+                                    await buildBusinessDetailsPayload();
 
-                                if ((_formKey.currentState?.validate() ?? false) == false) {
-                                  commonSnackBar(message: AppStrings.fixErrorsBeforeSaving);
+                                if ((_formKey.currentState?.validate() ??
+                                        false) ==
+                                    false) {
+                                  commonSnackBar(
+                                      message:
+                                          AppStrings.fixErrorsBeforeSaving);
                                   return;
                                 }
 
                                 /// Validate required fields
                                 if (companyOrgNameTextController.text.isEmpty) {
-                                  commonSnackBar(message: AppStrings.pleaseEnterBusinessName);
+                                  commonSnackBar(
+                                      message:
+                                          AppStrings.pleaseEnterBusinessName);
                                   // commonSnackBar(message: "Please Enter Business Name");
                                   return;
                                 }
 
                                 if (selectedType == ContactType.Mobile) {
-                                  String? phoneError = ValidationMethod.validatePhone(mobileController.text);
+                                  String? phoneError =
+                                      ValidationMethod.validatePhone(
+                                          mobileController.text);
                                   if (phoneError != null) {
                                     commonSnackBar(message: phoneError);
                                     return;
                                   }
-                                } else if (selectedType == ContactType.Landline) {
-                                  String? landlineError = ValidationMethod.validateLandline(landlineNumberController.text);
+                                } else if (selectedType ==
+                                    ContactType.Landline) {
+                                  String? landlineError =
+                                      ValidationMethod.validateLandline(
+                                          landlineNumberController.text);
                                   if (landlineError != null) {
                                     commonSnackBar(message: landlineError);
                                     return;
@@ -750,7 +756,9 @@ class _BusinessDetailsEditPageOneState
                                 // }
 
                                 if (websiteController.text.trim().isNotEmpty) {
-                                  String? webError = ValidationMethod.urlValidation(websiteController.text.trim());
+                                  String? webError =
+                                      ValidationMethod.urlValidation(
+                                          websiteController.text.trim());
                                   if (webError != null) {
                                     commonSnackBar(message: webError);
                                     return;
@@ -759,15 +767,19 @@ class _BusinessDetailsEditPageOneState
 
                                 /// Build payload for saving available fields
                                 updatedParams.addAll({
-                                  ApiKeys.business_name: companyOrgNameTextController.text,
+                                  ApiKeys.business_name:
+                                      companyOrgNameTextController.text,
                                   //ApiKeys.mobile_no: mobileController.text,
                                   // ApiKeys.date_of_incorporation:
                                   // "${selectedYear}-${selectedMonth}-${selectedDay}", // assuming you have these
-                                  ApiKeys.website: websiteController.text.trim(),
+                                  ApiKeys.website:
+                                      websiteController.text.trim(),
                                   ApiKeys.opening_time:
-                                  viewBusinessDetailsController.shopOpenTime.value,
+                                      viewBusinessDetailsController
+                                          .shopOpenTime.value,
                                   ApiKeys.closing_time:
-                                  viewBusinessDetailsController.shopCloseTime.value,
+                                      viewBusinessDetailsController
+                                          .shopCloseTime.value,
                                 });
 
                                 /// Call API to update business details
@@ -777,11 +789,11 @@ class _BusinessDetailsEditPageOneState
                                 /// After save — navigate back or show success
                                 if (widget.isFromCreateUser == false) {
                                   Navigator.of(context).pop();
-
                                 } else {
                                   Get.offNamedUntil(
-                                    RouteHelper.getBottomNavigationBarScreenRoute(),
-                                        (route) => false,
+                                    RouteHelper
+                                        .getBottomNavigationBarScreenRoute(),
+                                    (route) => false,
                                   );
                                 }
                               },
@@ -807,7 +819,6 @@ class _BusinessDetailsEditPageOneState
   }
 
   Future<Map<String, dynamic>> buildBusinessDetailsPayload() async {
-
     // dioObj.MultipartFile? imageByPart;
     // if (viewBusinessDetailsController.isImageUpdated.value) {
     //   if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ?? false) {
@@ -830,15 +841,15 @@ class _BusinessDetailsEditPageOneState
         ApiKeys.year: viewBusinessDetailsController.selectYear?.value
       },
       ApiKeys.type_of_business:
-      viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
+          viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
       ApiKeys.office_mob_no_Pre: 91,
       ApiKeys.business_number: {
         if (mobileController.text.isNotEmpty)
           "office_mob_no": {
             "pre": 91,
-            "number": int.tryParse(mobileController.text) ?? mobileController.text,
+            "number":
+                int.tryParse(mobileController.text) ?? mobileController.text,
           },
-
         if (landlineNumberController.text.isNotEmpty)
           "office_landline_no": {
             "pre": int.tryParse(landlineCodeController.text) ??
@@ -846,8 +857,7 @@ class _BusinessDetailsEditPageOneState
             "number": int.tryParse(landlineNumberController.text) ??
                 landlineNumberController.text,
           },
-
-        },
+      },
       if (landlineNumberController.text.isNotEmpty)
         ApiKeys.office_landline_no_number: landlineNumberController.text,
       ApiKeys.Nature_of_Business: selectedBusiness == NatureOfBusiness.OTHERS
@@ -860,7 +870,7 @@ class _BusinessDetailsEditPageOneState
       ApiKeys.business_location: jsonEncode({
         ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
         ApiKeys.lon:
-        viewBusinessDetailsController.addressLong?.value.toString(),
+            viewBusinessDetailsController.addressLong?.value.toString(),
       }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,

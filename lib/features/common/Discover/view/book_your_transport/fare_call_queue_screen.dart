@@ -128,7 +128,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Watch for ride accepted
     _queueAcceptedWorker =
         ever(discoverController.fareCallAcceptedRiderInfo, (riderInfo) {
-      debugPrint('[FARE_CALL_SCREEN] fareCallAcceptedRiderInfo changed → riderInfo=$riderInfo, mounted=$mounted');
+      debugPrint(
+          '[FARE_CALL_SCREEN] fareCallAcceptedRiderInfo changed → riderInfo=$riderInfo, mounted=$mounted');
       if (!mounted) return;
       if (riderInfo != null) {
         _onRiderAccepted(riderInfo);
@@ -138,11 +139,13 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Watch for queue exhausted (no riders)
     _queueExhaustedWorker =
         ever(discoverController.isFareCallInProgress, (inProgress) {
-      debugPrint('[FARE_CALL_SCREEN] isFareCallInProgress changed → inProgress=$inProgress, riderInfo=${discoverController.fareCallAcceptedRiderInfo.value}, mounted=$mounted');
+      debugPrint(
+          '[FARE_CALL_SCREEN] isFareCallInProgress changed → inProgress=$inProgress, riderInfo=${discoverController.fareCallAcceptedRiderInfo.value}, mounted=$mounted');
       if (!mounted) return;
       if (!inProgress &&
           discoverController.fareCallAcceptedRiderInfo.value == null) {
-        debugPrint('[FARE_CALL_SCREEN] ⚠️ Queue exhausted → popping screen in 1s');
+        debugPrint(
+            '[FARE_CALL_SCREEN] ⚠️ Queue exhausted → popping screen in 1s');
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) Get.back();
         });
@@ -151,7 +154,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
     // Watch call status for timer and ride-accepted fallback
     _callStatusWorker = ever(_callController.callStatus, (status) {
-      debugPrint('[FARE_CALL_SCREEN] callStatus changed → $status, mounted=$mounted, _callWasConnected=$_callWasConnected, _riderAccepted=${_riderAccepted.value}');
+      debugPrint(
+          '[FARE_CALL_SCREEN] callStatus changed → $status, mounted=$mounted, _callWasConnected=$_callWasConnected, _riderAccepted=${_riderAccepted.value}');
       if (!mounted) return;
       if (status == CallStatus.connected) {
         _callWasConnected = true;
@@ -165,27 +169,32 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         // using the current rider ID and details from the selected riders list.
         if (_callWasConnected && !_riderAccepted.value) {
           var riderId = discoverController.fareCallCurrentRiderId.value;
-          debugPrint('[FARE_CALL_SCREEN] fallback → fareCallCurrentRiderId=$riderId, selectedRiders count=${discoverController.selectedRiders.length}');
+          debugPrint(
+              '[FARE_CALL_SCREEN] fallback → fareCallCurrentRiderId=$riderId, selectedRiders count=${discoverController.selectedRiders.length}');
 
           // If ride:queue:calling was skipped, fareCallCurrentRiderId may be
           // empty. Fall back to the first selected rider (single-rider orders).
           if (riderId.isEmpty && discoverController.selectedRiders.isNotEmpty) {
             riderId = discoverController.selectedRiders.first.riderId ?? '';
-            debugPrint('[FARE_CALL_SCREEN] fallback → using first selectedRider riderId=$riderId');
+            debugPrint(
+                '[FARE_CALL_SCREEN] fallback → using first selectedRider riderId=$riderId');
           }
 
           if (riderId.isNotEmpty) {
             final riderUser = discoverController.selectedRiders
                 .firstWhereOrNull((r) => r.riderId == riderId);
-            debugPrint('[FARE_CALL_SCREEN] fallback → setting fareCallAcceptedRiderInfo, riderUser found=${riderUser != null}, name=${riderUser?.name}');
+            debugPrint(
+                '[FARE_CALL_SCREEN] fallback → setting fareCallAcceptedRiderInfo, riderUser found=${riderUser != null}, name=${riderUser?.name}');
             discoverController.fareCallAcceptedRiderId.value = riderId;
             discoverController.fareCallAcceptedRiderInfo.value = {
               'riderId': riderId,
               if (riderUser?.name != null) 'name': riderUser!.name,
-              if (riderUser?.profileImage != null) 'profileImage': riderUser!.profileImage,
+              if (riderUser?.profileImage != null)
+                'profileImage': riderUser!.profileImage,
             };
           } else {
-            debugPrint('[FARE_CALL_SCREEN] fallback → FAILED: riderId is empty, cannot set riderAccepted!');
+            debugPrint(
+                '[FARE_CALL_SCREEN] fallback → FAILED: riderId is empty, cannot set riderAccepted!');
           }
         }
       }
@@ -194,14 +203,16 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Watch for ride completed (from socket event)
     _rideCompletedWorker =
         ever(discoverController.isFareCallRideCompleted, (completed) {
-      debugPrint('[FARE_CALL_SCREEN] isFareCallRideCompleted changed → completed=$completed, mounted=$mounted');
+      debugPrint(
+          '[FARE_CALL_SCREEN] isFareCallRideCompleted changed → completed=$completed, mounted=$mounted');
       if (!mounted || !completed) return;
       _handleRideCompleted();
     });
 
     // If rider was already accepted (e.g. returning from floating overlay),
     // restore map state directly.
-    final existingRiderInfo = discoverController.fareCallAcceptedRiderInfo.value;
+    final existingRiderInfo =
+        discoverController.fareCallAcceptedRiderInfo.value;
     if (existingRiderInfo != null && !_riderAccepted.value) {
       _riderAccepted.value = true;
       _acceptedRiderInfo = existingRiderInfo;
@@ -215,8 +226,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       if (widget.orderId.isNotEmpty) {
         _liveTrackController = Get.put(RiderLocationPollController());
         _liveTrackController!.startPolling(widget.orderId);
-        _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
-        _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
+        _riderLatWorker =
+            ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
+        _riderLngWorker =
+            ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
         // Ride completion arrives as rideActive:false on the poll.
         ever(_liveTrackController!.rideCompleted, (completed) {
@@ -234,7 +247,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   }
 
   void _onRiderAccepted(Map<String, dynamic> riderInfo) {
-    debugPrint('[FARE_CALL_SCREEN] _onRiderAccepted CALLED → riderInfo=$riderInfo, mounted=$mounted, _riderAccepted=${_riderAccepted.value}');
+    debugPrint(
+        '[FARE_CALL_SCREEN] _onRiderAccepted CALLED → riderInfo=$riderInfo, mounted=$mounted, _riderAccepted=${_riderAccepted.value}');
     // Rider accepted the ride order (after speaking on call).
     // End the call if still active, then switch to map view.
     if (_callController.callStatus.value != CallStatus.idle) {
@@ -244,7 +258,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
     _riderAccepted.value = true;
     _acceptedRiderInfo = riderInfo;
-    debugPrint('[FARE_CALL_SCREEN] _onRiderAccepted → _riderAccepted is now TRUE');
+    debugPrint(
+        '[FARE_CALL_SCREEN] _onRiderAccepted → _riderAccepted is now TRUE');
 
     // Enable PiP for map phase
     if (Platform.isAndroid) {
@@ -256,8 +271,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       _liveTrackController = Get.put(RiderLocationPollController());
       _liveTrackController!.startPolling(widget.orderId);
 
-      _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
-      _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
+      _riderLatWorker =
+          ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
+      _riderLngWorker =
+          ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
       // Ride completion arrives as rideActive:false on the poll (also covered
       // by the socket/FCM signal).
@@ -282,9 +299,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   /// Handle ride completion (from any source: socket or stream)
   void _handleRideCompleted() {
-    debugPrint('[FARE_CALL_SCREEN] _handleRideCompleted CALLED → _rideCompleted=${_rideCompleted.value}, _riderAccepted=${_riderAccepted.value}');
+    debugPrint(
+        '[FARE_CALL_SCREEN] _handleRideCompleted CALLED → _rideCompleted=${_rideCompleted.value}, _riderAccepted=${_riderAccepted.value}');
     if (_rideCompleted.value) return; // Prevent duplicate handling
-
 
     _liveTrackController?.stopPolling();
     _riderLatWorker?.dispose();
@@ -383,8 +400,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
     setState(() {
       _markers
-        ..removeWhere((m) =>
-            m.markerId.value == 'pickup' || m.markerId.value == 'drop')
+        ..removeWhere(
+            (m) => m.markerId.value == 'pickup' || m.markerId.value == 'drop')
         ..add(
           Marker(
             markerId: const MarkerId('pickup'),
@@ -424,9 +441,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       );
 
       if (result != null && result.points.isNotEmpty) {
-        final routeCoords = result.points
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList();
+        final routeCoords =
+            result.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
         _routeCoords = routeCoords;
 
         setState(() {
@@ -478,7 +494,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     if (riderLat == 0.0 || riderLng == 0.0) return 0.0;
 
     final meters = geo.Geolocator.distanceBetween(
-      riderLat, riderLng, pickupLat, pickupLng,
+      riderLat,
+      riderLng,
+      pickupLat,
+      pickupLng,
     );
     return meters / 1000;
   }
@@ -517,7 +536,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     discoverController.stopRideStartedFallbackPoll();
 
     _mapController?.dispose();
-    if (_liveTrackController != null && Get.isRegistered<RiderLocationPollController>()) {
+    if (_liveTrackController != null &&
+        Get.isRegistered<RiderLocationPollController>()) {
       Get.delete<RiderLocationPollController>();
     }
     super.dispose();
@@ -579,7 +599,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       riderLngVal: riderLng,
       destLatVal: pickupLat,
       destLngVal: pickupLng,
-      destLabelVal: discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
+      destLabelVal: discoverController.selectedFromAddress?.value ??
+          AppStrings.pickupLabel.tr,
       customerNameVal: _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
       fareAmountVal: 0,
       routePoints: _routeCoords,
@@ -600,12 +621,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Pop all screens until the bottom navigation bar
     final bottomBarController = Get.put(BottomBarController());
     final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.selectedChatTabIndex.value=1;
+    chatViewController.selectedChatTabIndex.value = 1;
     bottomBarController.onChangeIndex(2);
     Get.until((route) =>
-        route.settings.name == '/BottomNavigationBarScreen' ||
-        route.isFirst);
-
+        route.settings.name == '/BottomNavigationBarScreen' || route.isFirst);
   }
 
   /// Push the Connect screen on the Inquiry tab without ending the active
@@ -620,7 +639,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   /// Load the saved emergency contact (name + number) from secure storage.
   Future<void> _loadEmergencyContact() async {
     final name = await SharedPreferenceUtils.getSecureValue(_kEmergencyName);
-    final number = await SharedPreferenceUtils.getSecureValue(_kEmergencyNumber);
+    final number =
+        await SharedPreferenceUtils.getSecureValue(_kEmergencyNumber);
     if (!mounted) return;
     setState(() {
       _emergencyName = (name is String && name.trim().isNotEmpty) ? name : null;
@@ -835,7 +855,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
               // Rider info card
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -874,7 +895,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              _acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr,
+                              _acceptedRiderInfo?['name'] ??
+                                  AppStrings.riderLabel.tr,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -892,7 +914,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+                              color: const Color(0xFF4285F4)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -919,252 +942,256 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   Widget _buildMapBottomPanel() {
     return Obx(() {
-    // Passenger rides: the customer holds BOTH OTPs. The PICKUP (ride-start)
-    // OTP is read to the rider on arrival — showing only the delivery OTP
-    // here made customers read the wrong code and the rider's start-ride call
-    // failed with INVALID_PICKUP_OTP. So: pickup OTP until the ride starts,
-    // delivery (completion) OTP after, each clearly labelled.
-    final pickupOtp = discoverController.fareCallPickupOtp.value;
-    final deliveryOtp = discoverController.fareCallDeliveryOtp.value;
-    final rideStarted = discoverController.isFareCallRideStarted.value;
+      // Passenger rides: the customer holds BOTH OTPs. The PICKUP (ride-start)
+      // OTP is read to the rider on arrival — showing only the delivery OTP
+      // here made customers read the wrong code and the rider's start-ride call
+      // failed with INVALID_PICKUP_OTP. So: pickup OTP until the ride starts,
+      // delivery (completion) OTP after, each clearly labelled.
+      final pickupOtp = discoverController.fareCallPickupOtp.value;
+      final deliveryOtp = discoverController.fareCallDeliveryOtp.value;
+      final rideStarted = discoverController.isFareCallRideStarted.value;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 10),
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
             ),
-          ),
-          const SizedBox(height: 16),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-          // Emergency contact person + emergency call button. Replaces the
-          // rider name here — the rider's name still shows in the map top bar.
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                // Emergency icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFEA4335).withValues(alpha: 0.1),
-                    border: Border.all(
-                      color: const Color(0xFFEA4335).withValues(alpha: 0.5),
-                      width: 2,
-                    ),
-                  ),
-                  child: const Icon(Icons.emergency_share_rounded,
-                      color: Color(0xFFEA4335), size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Emergency Contact Person',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'OpenSans',
-                          color: Color(0xFF1A1A2E),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        (_emergencyNumber?.trim().isNotEmpty ?? false)
-                            ? ((_emergencyName?.trim().isNotEmpty ?? false)
-                                ? '${_emergencyName!.trim()} • ${_emergencyNumber!.trim()}'
-                                : _emergencyNumber!.trim())
-                            : 'Not added • Emergency $_emergencyFallbackNumber',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          fontFamily: 'OpenSans',
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      // Add / change the emergency contact (opens contact list).
-                      GestureDetector(
-                        onTap: _pickEmergencyContact,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.person_add_alt_1_rounded,
-                                size: 14, color: Color(0xFF4285F4)),
-                            const SizedBox(width: 4),
-                            Text(
-                              (_emergencyNumber?.trim().isNotEmpty ?? false)
-                                  ? 'Change contact'
-                                  : 'Add emergency contact',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'OpenSans',
-                                color: Color(0xFF4285F4),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Emergency call button
-                GestureDetector(
-                  onTap: _callEmergency,
-                  child: Container(
-                    width: 40,
-                    height: 40,
+            // Emergency contact person + emergency call button. Replaces the
+            // rider name here — the rider's name still shows in the map top bar.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  // Emergency icon
+                  Container(
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEA4335).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFEA4335).withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: const Color(0xFFEA4335).withValues(alpha: 0.5),
+                        width: 2,
+                      ),
                     ),
-                    child: const Icon(Icons.call_rounded,
-                        color: Color(0xFFEA4335), size: 20),
+                    child: const Icon(Icons.emergency_share_rounded,
+                        color: Color(0xFFEA4335), size: 24),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Before the ride starts the customer shares the PICKUP (ride-start)
-          // OTP with the rider; once started, the DELIVERY (completion) OTP to
-          // be shared at the drop.
-          //
-          // A passenger ride has ONLY the pickup/ride-start OTP — there is no
-          // delivery OTP (that belongs to product/parcel/goods pickups). So the
-          // delivery card is suppressed for passenger rides.
-          if (!rideStarted && pickupOtp.isNotEmpty) ...[
-            _buildOtpCard(
-              label: 'Ride Start OTP',
-              otp: pickupOtp,
-              color: const Color(0xFF1A73E8),
-            ),
-            const SizedBox(height: 16),
-          ],
-          // Delivery card only when the order category is KNOWN and not a
-          // passenger ride — with orderFor still unresolved this used to
-          // fail open and show a "Delivery OTP" the ride flow never asks for
-          // (passenger rides complete Ola-style, without any drop OTP).
-          if (rideStarted &&
-              deliveryOtp.isNotEmpty &&
-              discoverController.fareCallOrderFor.value.isNotEmpty &&
-              !discoverController.isFareCallPassengerRide) ...[
-            _buildOtpCard(
-              label: 'Delivery OTP',
-              otp: deliveryOtp,
-              color: const Color(0xFF00C853),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Share live location once the ride has started.
-          if (rideStarted) _buildShareRiderDetailsButton(),
-
-          const SizedBox(height: 16),
-
-          // Ride summary (pickup → drop)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                // Timeline dots
-                Column(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF00C853),
-                        shape: BoxShape.circle,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Emergency Contact Person',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          (_emergencyNumber?.trim().isNotEmpty ?? false)
+                              ? ((_emergencyName?.trim().isNotEmpty ?? false)
+                                  ? '${_emergencyName!.trim()} • ${_emergencyNumber!.trim()}'
+                                  : _emergencyNumber!.trim())
+                              : 'Not added • Emergency $_emergencyFallbackNumber',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontFamily: 'OpenSans',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // Add / change the emergency contact (opens contact list).
+                        GestureDetector(
+                          onTap: _pickEmergencyContact,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_add_alt_1_rounded,
+                                  size: 14, color: Color(0xFF4285F4)),
+                              const SizedBox(width: 4),
+                              Text(
+                                (_emergencyNumber?.trim().isNotEmpty ?? false)
+                                    ? 'Change contact'
+                                    : 'Add emergency contact',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'OpenSans',
+                                  color: Color(0xFF4285F4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Emergency call button
+                  GestureDetector(
+                    onTap: _callEmergency,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA4335).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      child: const Icon(Icons.call_rounded,
+                          color: Color(0xFFEA4335), size: 20),
                     ),
-                    Container(
-                      width: 1,
-                      height: 20,
-                      color: Colors.grey.shade300,
-                    ),
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF7043),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Before the ride starts the customer shares the PICKUP (ride-start)
+            // OTP with the rider; once started, the DELIVERY (completion) OTP to
+            // be shared at the drop.
+            //
+            // A passenger ride has ONLY the pickup/ride-start OTP — there is no
+            // delivery OTP (that belongs to product/parcel/goods pickups). So the
+            // delivery card is suppressed for passenger rides.
+            if (!rideStarted && pickupOtp.isNotEmpty) ...[
+              _buildOtpCard(
+                label: 'Ride Start OTP',
+                otp: pickupOtp,
+                color: const Color(0xFF1A73E8),
+              ),
+              const SizedBox(height: 16),
+            ],
+            // Delivery card only when the order category is KNOWN and not a
+            // passenger ride — with orderFor still unresolved this used to
+            // fail open and show a "Delivery OTP" the ride flow never asks for
+            // (passenger rides complete Ola-style, without any drop OTP).
+            if (rideStarted &&
+                deliveryOtp.isNotEmpty &&
+                discoverController.fareCallOrderFor.value.isNotEmpty &&
+                !discoverController.isFareCallPassengerRide) ...[
+              _buildOtpCard(
+                label: 'Delivery OTP',
+                otp: deliveryOtp,
+                color: const Color(0xFF00C853),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Share live location once the ride has started.
+            if (rideStarted) _buildShareRiderDetailsButton(),
+
+            const SizedBox(height: 16),
+
+            // Ride summary (pickup → drop)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  // Timeline dots
+                  Column(
                     children: [
-                      Text(
-                        discoverController.selectedFromAddress?.value ?? AppStrings.pickupLabel.tr,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'OpenSans',
-                          color: Color(0xFF1A1A2E),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF00C853),
+                          shape: BoxShape.circle,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        discoverController.selectedToAddress?.value ?? AppStrings.dropLabel.tr,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'OpenSans',
-                          color: Color(0xFF1A1A2E),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        color: Colors.grey.shade300,
+                      ),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF7043),
+                          shape: BoxShape.circle,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          discoverController.selectedFromAddress?.value ??
+                              AppStrings.pickupLabel.tr,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          discoverController.selectedToAddress?.value ??
+                              AppStrings.dropLabel.tr,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'OpenSans',
+                            color: Color(0xFF1A1A2E),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
-        ],
-      ),
-    );
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+          ],
+        ),
+      );
     });
   }
 
   Widget _buildRideCompletedPanel() {
     final completedData = discoverController.fareCallRideCompletedData.value;
-    final rideDetails = completedData?['rideDetails'] as Map<String, dynamic>? ?? {};
-    final riderInfo = completedData?['riderInfo'] as Map<String, dynamic>? ?? {};
+    final rideDetails =
+        completedData?['rideDetails'] as Map<String, dynamic>? ?? {};
+    final riderInfo =
+        completedData?['riderInfo'] as Map<String, dynamic>? ?? {};
 
     final fare = rideDetails['fare'] ?? 0;
     final modeOfPayment = rideDetails['modeOfPayment'] ?? '';
@@ -1340,7 +1367,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                   Column(
                     children: [
                       Text(
-                        modeOfPayment.toString().capitalizeFirst ?? modeOfPayment,
+                        modeOfPayment.toString().capitalizeFirst ??
+                            modeOfPayment,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -1636,12 +1664,17 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     final riderInfo = data?['riderInfo'];
     final rideDetails = data?['rideDetails'];
 
-    final riderName = riderInfo?['name'] ?? _acceptedRiderInfo?['name'] ?? AppStrings.unknown.tr;
-    final riderContact = riderInfo?['contact'] ?? _acceptedRiderInfo?['contact'] ?? '';
+    final riderName = riderInfo?['name'] ??
+        _acceptedRiderInfo?['name'] ??
+        AppStrings.unknown.tr;
+    final riderContact =
+        riderInfo?['contact'] ?? _acceptedRiderInfo?['contact'] ?? '';
     final dropAddress = rideDetails?['drop']?['address'] ??
-        discoverController.selectedToAddress?.value ?? '';
+        discoverController.selectedToAddress?.value ??
+        '';
     final pickupAddress = rideDetails?['pickup']?['address'] ??
-        discoverController.selectedFromAddress?.value ?? '';
+        discoverController.selectedFromAddress?.value ??
+        '';
 
     return AppStrings.shareRiderSafetyTextFmt.trParams({
       'rider': riderName,
@@ -1792,7 +1825,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       final total = discoverController.fareCallTotalRiders.value;
 
       return Text(
-        total > 0 ? '${AppStrings.callingRiderOfTotal.tr} $index / $total' : AppStrings.findingYouARider.tr,
+        total > 0
+            ? '${AppStrings.callingRiderOfTotal.tr} $index / $total'
+            : AppStrings.findingYouARider.tr,
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w500,
@@ -2004,7 +2039,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      from.isNotEmpty ? from : AppStrings.pickupLocationLabel.tr,
+                      from.isNotEmpty
+                          ? from
+                          : AppStrings.pickupLocationLabel.tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,

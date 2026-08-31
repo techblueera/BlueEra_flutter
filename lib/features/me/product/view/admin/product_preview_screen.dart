@@ -106,7 +106,7 @@ class ProductPreviewScreen extends StatefulWidget {
 class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final ProductController controller = Get.put(ProductController());
+  final ProductController controller = Get.find<ProductController>();
   int _currentIndex = 0;
 
   List<AiVariantData> get _variants =>
@@ -251,8 +251,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           }
         } else if (widget.providerType == ProviderType.user) {
           Get.until(
-                (route) =>
-            route.settings.name ==
+            (route) =>
+                route.settings.name ==
                 RouteHelper.getEarnServiceDashboardViewRoute(),
           );
 
@@ -264,7 +264,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           //   Get.until((route) =>
           //       Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
           // }
-
         } else if (widget.providerType == ProviderType.channel) {
           Get.until((route) =>
               Get.currentRoute == RouteHelper.getChannelScreenRoute());

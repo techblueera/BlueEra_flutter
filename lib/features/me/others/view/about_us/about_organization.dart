@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -21,7 +20,7 @@ class AboutOrganization extends StatelessWidget {
   AboutOrganization({super.key});
 
   final AboutOrganisationController controller =
-      Get.put(AboutOrganisationController());
+      Get.find<AboutOrganisationController>();
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +44,16 @@ class AboutOrganization extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText(AppStrings.otherNoOrganizationFound.tr)),
+                  : Center(
+                      child:
+                          CustomText(AppStrings.otherNoOrganizationFound.tr)),
             ),
             SafeArea(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(AboutOrganizationFormScreen());
+                  Get.to(() => AboutOrganizationFormScreen());
                 }),
               ),
             ),
@@ -119,9 +120,9 @@ class AboutOrganization extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(AboutOrganizationFormScreen(
-                      item: item,
-                    )),
+                    onPressed: () => Get.to(() => AboutOrganizationFormScreen(
+                          item: item,
+                        )),
                   ),
                   IconButton(
                     icon: const LocalAssets(
@@ -161,7 +162,6 @@ class AboutOrganization extends StatelessWidget {
               fontFamily: AppConstants.OpenSans,
             ),
           ),
-
         ],
       ),
     );

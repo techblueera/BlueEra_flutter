@@ -78,7 +78,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (mounted) setState(() {});
       print('✅ INIT: Initialization complete');
     });
-
   }
 
   @override
@@ -93,7 +92,8 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (e.controller != null) {
         final wasPlaying = e.controller!.value.isPlaying;
         e.controller?.pause();
-        print('   - Cache[$i]: Was playing: $wasPlaying, Now paused: ${!e.controller!.value.isPlaying}');
+        print(
+            '   - Cache[$i]: Was playing: $wasPlaying, Now paused: ${!e.controller!.value.isPlaying}');
       }
     });
 
@@ -123,19 +123,20 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         final wasPlaying = controller.value.isPlaying;
         controller.pause();
         _releaseWakeLock();
-        print('🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
+        print(
+            '🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
       }
     }
     // else if (state == AppLifecycleState.resumed) {
-      // if (!_isAdShowing) {
-      //   final controller = _videoCache[currentIndex]?.controller;
-      //   if (controller != null) {
-      //     controller.play();
-      //     _acquireWakeLock();
-      //     print('▶️ LIFECYCLE: Resumed video at index $currentIndex');
-      //   }
-      // }
-     // }
+    // if (!_isAdShowing) {
+    //   final controller = _videoCache[currentIndex]?.controller;
+    //   if (controller != null) {
+    //     controller.play();
+    //     _acquireWakeLock();
+    //     print('▶️ LIFECYCLE: Resumed video at index $currentIndex');
+    //   }
+    // }
+    // }
   }
 
   Future<void> _acquireWakeLock() async {
@@ -178,14 +179,16 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     });
 
     if (toRemove.isNotEmpty) {
-      print('🗑️ WARMUP: Disposing controllers outside range [$left-$right]: $toRemove');
+      print(
+          '🗑️ WARMUP: Disposing controllers outside range [$left-$right]: $toRemove');
     }
 
     toRemove.forEach((i) {
       final controller = _videoCache[i]?.controller;
       if (controller != null) {
         final wasPlaying = controller.value.isPlaying;
-        print('   - Disposing cache[$i]: was playing: $wasPlaying, controller: ${controller.hashCode}');
+        print(
+            '   - Disposing cache[$i]: was playing: $wasPlaying, controller: ${controller.hashCode}');
         controller.dispose();
       }
       _videoCache.remove(i);
@@ -353,7 +356,8 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       default:
         break;
     }
-    print('📋 FEED: Feed initialized with ${widget.initialShorts.length} items');
+    print(
+        '📋 FEED: Feed initialized with ${widget.initialShorts.length} items');
   }
 
   List<ShortFeedItem>? _getCurrentFeedList(ShortsController controller) {
@@ -405,8 +409,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   Future<void> _blockUserAndAdvance(
-      {required ShortFeedItem videoItem,
-        required String otherUserId}) async {
+      {required ShortFeedItem videoItem, required String otherUserId}) async {
     print('🚫 BLOCK: Blocking user and advancing...');
     final list = _getCurrentFeedList(shortsFeedController!);
     if (list == null) return;
@@ -418,7 +421,8 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (controller != null) {
       final wasPlaying = controller.value.isPlaying;
       controller.pause();
-      print('🔇 BLOCK: Paused video at index $index (was playing: $wasPlaying)');
+      print(
+          '🔇 BLOCK: Paused video at index $index (was playing: $wasPlaying)');
     }
 
     final hasNext = index < list.length - 1;
@@ -426,13 +430,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (hasNext) {
       print('➡️ BLOCK: Moving to next video (index ${index + 1})');
       await _pageController.animateToPage(index + 1,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut);
+          duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
     } else if (hasPrev) {
       print('⬅️ BLOCK: Moving to previous video (index ${index - 1})');
       await _pageController.animateToPage(index - 1,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut);
+          duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
     }
 
     await Get.find<ShortsController>()
@@ -472,7 +474,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (index >= (list?.length ?? 0) - 3) {
       _onScrollToEnd(shortsFeedController!);
     }
-
   }
 
   Future<bool> _onPop() async {
@@ -484,9 +485,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       final wasPlaying = currentController.value.isPlaying;
       currentController.pause();
       _releaseWakeLock();
-      print('🔇 BACK_PRESSED: Paused current video at index $currentIndex (was playing: $wasPlaying)');
+      print(
+          '🔇 BACK_PRESSED: Paused current video at index $currentIndex (was playing: $wasPlaying)');
     } else {
-      print('⚠️ BACK_PRESSED: No controller found for current index $currentIndex');
+      print(
+          '⚠️ BACK_PRESSED: No controller found for current index $currentIndex');
     }
 
     // Also pause all other cached controllers as a safety measure
@@ -499,7 +502,8 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     });
 
     if (pausedIndices.isNotEmpty) {
-      print('🔇 BACK_PRESSED: Also paused controllers at indices: $pausedIndices');
+      print(
+          '🔇 BACK_PRESSED: Also paused controllers at indices: $pausedIndices');
     }
 
     // Print final cache state
@@ -524,38 +528,36 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                   controller: _pageController,
                   itemCount: list?.length ?? 0,
                   onPageChanged: _onPageChanged,
-                    itemBuilder: (_, index) {
-                      final item = list![index];
-                      return ShortPlayerItem(
-                        key: ValueKey(item.video?.id ?? index),
-                        videoItem: item,
-                        autoPlay: index == currentIndex,
-                        // autoPlay: !_isAdShowing && index == currentIndex,
-                        shorts: widget.shorts,
-                        onTapOption: () => openBlockSelectionDialog(
-                          context: context,
-                          reportType: 'VIDEO_POST',
-                          userId: item.video?.userId ?? '',
-                          contentId: item.video?.id ?? '',
-                          userBlockVoidCallback: () async =>
-                              _blockUserAndAdvance(
-                                  videoItem: item,
-                                  otherUserId: item.video?.userId ?? ''
-                              ),
-                          reportCallback: (params) =>
-                              Get.find<ShortsController>().shortPostReport(
-                                  videoId: item.video?.id ?? '',
-                                  shorts: widget.shorts,
-                                  params: params),
-                        ),
-                        /* ---- NEW: pass pre-built controller ---- */
-                        onReload: () => _reloadIndex(index),
-                        preloadedController: _videoCache[index]?.controller,
-                        initializeFuture: _videoCache[index]?.initializeFuture,
-                        coverUrl: _videoCache[index]?.coverUrl,
-                        /* ---------------------------------------- */
-                      );
-                    },
+                  itemBuilder: (_, index) {
+                    final item = list![index];
+                    return ShortPlayerItem(
+                      key: ValueKey(item.video?.id ?? index),
+                      videoItem: item,
+                      autoPlay: index == currentIndex,
+                      // autoPlay: !_isAdShowing && index == currentIndex,
+                      shorts: widget.shorts,
+                      onTapOption: () => openBlockSelectionDialog(
+                        context: context,
+                        reportType: 'VIDEO_POST',
+                        userId: item.video?.userId ?? '',
+                        contentId: item.video?.id ?? '',
+                        userBlockVoidCallback: () async => _blockUserAndAdvance(
+                            videoItem: item,
+                            otherUserId: item.video?.userId ?? ''),
+                        reportCallback: (params) => Get.find<ShortsController>()
+                            .shortPostReport(
+                                videoId: item.video?.id ?? '',
+                                shorts: widget.shorts,
+                                params: params),
+                      ),
+                      /* ---- NEW: pass pre-built controller ---- */
+                      onReload: () => _reloadIndex(index),
+                      preloadedController: _videoCache[index]?.controller,
+                      initializeFuture: _videoCache[index]?.initializeFuture,
+                      coverUrl: _videoCache[index]?.coverUrl,
+                      /* ---------------------------------------- */
+                    );
+                  },
                 );
               }),
 
@@ -794,8 +796,7 @@ class _ReelScrubBarState extends State<_ReelScrubBar> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color:
-                                        Colors.black.withValues(alpha: 0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -814,4 +815,3 @@ class _ReelScrubBarState extends State<_ReelScrubBar> {
     );
   }
 }
-

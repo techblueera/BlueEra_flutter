@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/account_deletion_binding.dart';
 import 'package:BlueEra/core/api/model/journey_status_model.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -370,8 +371,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
-                        left:
-                            (isLeading ?? false) ? 0.0 : SizeConfig.size15),
+                        left: (isLeading ?? false) ? 0.0 : SizeConfig.size15),
                     child: CommonSearchBar(
                         controller: controller!,
                         isShowCursor: isShowCursor,
@@ -448,7 +448,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       borderRadius: BorderRadius.circular(10)),
                   onSelected: (value) {},
                   icon: LocalAssets(imagePath: AppIconAssets.resumeCardIcon),
-                  itemBuilder: (context) => PopupMenuBuilders.popupMenuResumeCardItems(),
+                  itemBuilder: (context) =>
+                      PopupMenuBuilders.popupMenuResumeCardItems(),
                 ),
 
               if (isGuestLogout ?? false)
@@ -489,9 +490,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   icon: Icon(Icons.more_vert),
-                  itemBuilder: (context) => PopupMenuBuilders.inventoryPopupMenuItems(),
+                  itemBuilder: (context) =>
+                      PopupMenuBuilders.inventoryPopupMenuItems(),
                 ),
-
             ],
           );
         }),
@@ -513,8 +514,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if (isSearch == true &&
-            Get.find<AuthController>().isSearchOpen.value)
+        if (isSearch == true && Get.find<AuthController>().isSearchOpen.value)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: InkWell(
@@ -703,8 +703,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Row(
                               children: [
                                 InkWell(
-                                  onTap: () => transactionFilterOnTap
-                                      ?.call("COMPLETED"),
+                                  onTap: () =>
+                                      transactionFilterOnTap?.call("COMPLETED"),
                                   child: CustomText(
                                     "Completed",
                                     textAlign: TextAlign.left,
@@ -827,7 +827,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: IconButton(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
                 onPressed: () async {
-                  Get.to(() => ProfileSettingsNewScreen());
+                  Get.to(() => ProfileSettingsNewScreen(),
+                      binding: AccountDeletionBinding());
                 },
                 icon: LocalAssets(
                   imagePath: AppIconAssets.more_setting,

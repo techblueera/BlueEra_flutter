@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/home/binding/video_feed_binding.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -192,7 +193,8 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
 
                 // ⭐ NEW — LinkedIn-style UI
                 Obx(() {
-                  if (videoManager.showReplayOverlay.value&&(showVideo && controller.value.isInitialized)) {
+                  if (videoManager.showReplayOverlay.value &&
+                      (showVideo && controller.value.isInitialized)) {
                     return Positioned.fill(
                       child: Container(
                         color: Colors.black45,
@@ -246,9 +248,10 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                                                         ApiKeys.type:
                                                             AppConstants
                                                                 .MESSAGE_POST,
-                                                        ApiKeys.repostId:
-                                                            widget.videoItem.videoId ??
-                                                                ""
+                                                        ApiKeys.repostId: widget
+                                                                .videoItem
+                                                                .videoId ??
+                                                            ""
                                                       },
                                                     );
                                                     if (responseModel
@@ -339,7 +342,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                                                     ],
                                                   ),
                                                 ),
-
                                                 SizedBox(
                                                     height: SizeConfig.size20),
                                               ],
@@ -411,30 +413,32 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
         videoType: widget.videoType,
         onTapOption: widget.onTapOption,
         onTapCard: () async {
-          await Get.to(() => VideoFeedScreen(
-                videoData: VideoPost(
-                  id: '${widget.videoItem.video?.id}',
-                  title: '${widget.videoItem.video?.title}',
-                  subTitle: '${widget.videoItem.video?.description}',
-                  videoUrl: '${widget.videoItem.video?.videoUrl}',
-                  thumbnail: '',
-                  aspectRatio: '',
-                  authorName: '${widget.videoItem.author?.name}',
-                  authorUsername: '${widget.videoItem.author?.username}',
-                  avatar: '${widget.videoItem.author?.profileImage}',
-                  designation: '${widget.videoItem.author?.designation}',
-                  business_category: '',
-                  account_type: '${widget.videoItem.author?.accountType}',
-                  createdAt: widget.videoItem.video?.createdAt ?? "",
-                  comments_count: widget.videoItem.commentsCount ?? 0,
-                  repost_count: widget.videoItem.repostCount ?? 0,
-                  type: widget.videoItem.video?.type ?? "",
-                  views_count: widget.videoItem.viewsCount ?? 0,
-                  isLiked: widget.videoItem.interactions?.isLiked ?? false,
-                  likes_count: widget.videoItem.likesCount ?? 0,
-                ),
-                // Provide the manager instance so fullscreen can reuse the controller
-              ));
+          await Get.to(
+              () => VideoFeedScreen(
+                    videoData: VideoPost(
+                      id: '${widget.videoItem.video?.id}',
+                      title: '${widget.videoItem.video?.title}',
+                      subTitle: '${widget.videoItem.video?.description}',
+                      videoUrl: '${widget.videoItem.video?.videoUrl}',
+                      thumbnail: '',
+                      aspectRatio: '',
+                      authorName: '${widget.videoItem.author?.name}',
+                      authorUsername: '${widget.videoItem.author?.username}',
+                      avatar: '${widget.videoItem.author?.profileImage}',
+                      designation: '${widget.videoItem.author?.designation}',
+                      business_category: '',
+                      account_type: '${widget.videoItem.author?.accountType}',
+                      createdAt: widget.videoItem.video?.createdAt ?? "",
+                      comments_count: widget.videoItem.commentsCount ?? 0,
+                      repost_count: widget.videoItem.repostCount ?? 0,
+                      type: widget.videoItem.video?.type ?? "",
+                      views_count: widget.videoItem.viewsCount ?? 0,
+                      isLiked: widget.videoItem.interactions?.isLiked ?? false,
+                      likes_count: widget.videoItem.likesCount ?? 0,
+                    ),
+                    // Provide the manager instance so fullscreen can reuse the controller
+                  ),
+              binding: VideoFeedBinding());
         },
         isShowUser: false,
       ),

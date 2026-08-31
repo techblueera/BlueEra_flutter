@@ -30,7 +30,7 @@ class AddUpdateProductScreen extends StatefulWidget {
 }
 
 class _AddUpdateProductScreenState extends State<AddUpdateProductScreen> {
-  final addUpdateProductController = Get.put(AddUpdateProductController());
+  final addUpdateProductController = Get.find<AddUpdateProductController>();
   late final String channelId;
   late final ProductData? productData;
 

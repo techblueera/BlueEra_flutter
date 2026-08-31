@@ -21,7 +21,7 @@ class CreateMessagePostScreen extends StatefulWidget {
 
 class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
   final previewContainerKey = GlobalKey();
-  final controller = Get.put(AddChatSymbolController());
+  final controller = Get.find<AddChatSymbolController>();
 
   final List<Color> colorOptions = [
     Colors.black,
@@ -86,8 +86,8 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          controller.selectedBgColor.value.withValues(alpha: 0.35),
+                      color: controller.selectedBgColor.value
+                          .withValues(alpha: 0.35),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -97,7 +97,8 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                 width: double.infinity,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(20),
-                child: controller.selectedSymbolPostType.value == SymbolPostType.link
+                child: controller.selectedSymbolPostType.value ==
+                        SymbolPostType.link
                     ? _buildLinkStickerPreview()
                     : _buildTextMessageEditor(),
               ),
@@ -138,9 +139,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                       color: color,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected
-                            ? Colors.white
-                            : Colors.transparent,
+                        color: isSelected ? Colors.white : Colors.transparent,
                         width: 2.5,
                       ),
                       boxShadow: isSelected
@@ -353,7 +352,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
   Widget _buildLinkStickerPreview() {
     final link = controller.linkTextSymbolController.text.trim();
     final hasLink = link.isNotEmpty;
-    
+
     // Extract domain for display
     String displayLink = AppStrings.linkFallback.tr;
     try {
@@ -383,10 +382,8 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.link_rounded, 
-                color: controller.selectedBgColor.value, 
-                size: 20
-              ),
+              Icon(Icons.link_rounded,
+                  color: controller.selectedBgColor.value, size: 20),
               const SizedBox(width: 8),
               Flexible(
                 child: CustomText(
@@ -399,10 +396,8 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.arrow_outward_rounded, 
-                color: controller.selectedBgColor.value, 
-                size: 14
-              ),
+              Icon(Icons.arrow_outward_rounded,
+                  color: controller.selectedBgColor.value, size: 14),
             ],
           ),
         ),

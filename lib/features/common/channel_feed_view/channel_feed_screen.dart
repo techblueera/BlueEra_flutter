@@ -40,7 +40,7 @@ class ChannelFeedScreen extends StatefulWidget {
 }
 
 class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
-  final channelFeedController = Get.put(ChannelFeedController());
+  final channelFeedController = Get.find<ChannelFeedController>();
   final scrollController = ScrollController();
 
   Future<void> _guardedChannelFetch() async {
@@ -91,9 +91,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
     // those rows a surface to be legible against.
     final bool glass = GlassScope.isActive(context);
     final myWidget = Material(
-      color: glass
-          ? Colors.white.withValues(alpha: 0.62)
-          : AppColors.white,
+      color: glass ? Colors.white.withValues(alpha: 0.62) : AppColors.white,
       child: RefreshIndicator(
           onRefresh: () async {
             channelFeedController.clearList();
@@ -110,16 +108,15 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               if (isIndividualUser() && channelId.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     child: CustomFormCard(
                       // Sits on the frosted sheet above, so it takes a lighter
                       // wash than a standalone glass card would — two full
                       // translucencies stacked would add back up to opaque
                       // white.
-                      color: glass
-                          ? Colors.white.withValues(alpha: 0.55)
-                          : null,
+                      color:
+                          glass ? Colors.white.withValues(alpha: 0.55) : null,
                       padding: EdgeInsets.symmetric(
                         horizontal: SizeConfig.size16,
                         vertical: SizeConfig.size10,
@@ -136,7 +133,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                         _buildCircleIcon(
                                             AppIconAssets.channelNew),
                                         SizedBox(width: SizeConfig.size6),
-                                        _buildTitleWidget(AppStrings.myChannel.tr),
+                                        _buildTitleWidget(
+                                            AppStrings.myChannel.tr),
                                       ],
                                     ),
                                     SizedBox(width: SizeConfig.size6),
@@ -198,7 +196,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                 );
                               },
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   _buildCircleIcon(AppIconAssets.channelNew),
                                   SizedBox(width: SizeConfig.size6),
@@ -332,8 +331,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
             onTap: () => Get.to(() => const SuggestedChannelsScreen()),
             borderRadius: BorderRadius.circular(24),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 22, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(24),
@@ -366,8 +364,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
         onTap: () => Get.to(() => const SuggestedChannelsScreen()),
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.primaryColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),

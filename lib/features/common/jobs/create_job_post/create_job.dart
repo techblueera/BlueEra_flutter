@@ -48,9 +48,10 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
   void initState() {
     super.initState();
 
-    // Initialize controller with proper disposal of existing instance
-    deleteIfRegistered<CreateJobPostController>();
-    createJobPostController = Get.put(CreateJobPostController());
+    // Controller comes from CreateJobPostBinding: created on route entry and
+    // disposed with the route, so the old delete-then-put dance (which would
+    // delete the instance the binding just made) is gone.
+    createJobPostController = Get.find<CreateJobPostController>();
 
     // Always reset controller state first to ensure clean state
     createJobPostController.resetControllerState();
@@ -1014,5 +1015,3 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
     }
   }
 }
-
-

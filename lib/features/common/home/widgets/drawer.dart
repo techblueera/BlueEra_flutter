@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:BlueEra/features/personal/personal_profile/binding/account_deletion_binding.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/notification_settings_binding.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -51,7 +53,8 @@ class ProfileMenuDrawer extends StatefulWidget {
 
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
-  final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final viewBusinessProfileController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   final walletController = getOrPut(() => WalletController());
 
@@ -116,7 +119,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       );
     } else {
       return _capitalizeFirstLetter(
-        viewBusinessProfileController.businessProfileDetails.value?.data?.businessName ?? '',
+        viewBusinessProfileController
+                .businessProfileDetails.value?.data?.businessName ??
+            '',
       );
     }
   }
@@ -139,10 +144,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
   String userDesignation() {
     if (accountTypeGlobal != "BUSINESS") {
-      return viewProfileController.personalProfileDetails.value.user?.designation ?? '';
+      return viewProfileController
+              .personalProfileDetails.value.user?.designation ??
+          '';
     } else {
       return _capitalizeFirstLetter(
-        viewBusinessProfileController.businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
+        viewBusinessProfileController
+                .businessProfileDetails.value?.data?.categoryDetails?.name ??
+            '',
       );
     }
   }
@@ -151,11 +160,16 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   /// at a glance ("BUSINESS", "PROFESSIONAL", etc.) and falls back to
   /// "MEMBER" when no profile-type signal is available.
   String _accountTypeLabel() {
-    if (accountTypeGlobal == "BUSINESS") return AppStrings.accountTypeBusiness.tr;
-    if (userProfileTypeGlobal == SOCIAL_PROFILE) return AppStrings.accountTypeSocial.tr;
-    if (userProfileTypeGlobal == PROFESSIONAL) return AppStrings.accountTypeProfessional.tr;
-    if (userProfileTypeGlobal == SELF_EMPLOYED) return AppStrings.accountTypeSelfEmployed.tr;
-    if (userProfileTypeGlobal == GIG_WORKER) return AppStrings.accountTypeGigWorker.tr;
+    if (accountTypeGlobal == "BUSINESS")
+      return AppStrings.accountTypeBusiness.tr;
+    if (userProfileTypeGlobal == SOCIAL_PROFILE)
+      return AppStrings.accountTypeSocial.tr;
+    if (userProfileTypeGlobal == PROFESSIONAL)
+      return AppStrings.accountTypeProfessional.tr;
+    if (userProfileTypeGlobal == SELF_EMPLOYED)
+      return AppStrings.accountTypeSelfEmployed.tr;
+    if (userProfileTypeGlobal == GIG_WORKER)
+      return AppStrings.accountTypeGigWorker.tr;
     return AppStrings.accountTypeMember.tr;
   }
 
@@ -339,7 +353,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(12),
@@ -378,7 +393,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          designation.isNotEmpty ? designation : AppStrings.tapToViewProfile.tr,
+                          designation.isNotEmpty
+                              ? designation
+                              : AppStrings.tapToViewProfile.tr,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.78),
@@ -400,7 +417,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _avatarFallback() {
     return Container(
       color: Colors.white,
-      child: const Icon(Icons.person_rounded, size: 28, color: Color(0xFF5E2BA8)),
+      child:
+          const Icon(Icons.person_rounded, size: 28, color: Color(0xFF5E2BA8)),
     );
   }
 
@@ -558,7 +576,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           color: _amber,
           title: AppStrings.saved.tr,
           onTap: () {
-            Get.to(() => SavedFeedScreen(selectedTab: SavedFeedTab.posts, headerHeight: SizeConfig.size30));
+            Get.to(() => SavedFeedScreen(
+                selectedTab: SavedFeedTab.posts,
+                headerHeight: SizeConfig.size30));
           },
         ),
       ]),
@@ -601,7 +621,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         ),
       ]),
       _DrawerSection(AppStrings.workspaceSectionLabel.tr, [
-      /*  _DrawerItem(
+        /*  _DrawerItem(
           icon: Icons.podcasts_rounded,
           color: _blue,
           title: AppStrings.channelAndCommunity.tr,
@@ -631,8 +651,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             RouteHelper.getAddDocumentScreenRoute(),
             arguments: {
               ApiKeys.showViewDocProof: true,
-              ApiKeys.argDocumentVia:
-                  isIndividual ? AppConstants.personalDocumentScreen : AppConstants.businessDocumentScreen
+              ApiKeys.argDocumentVia: isIndividual
+                  ? AppConstants.personalDocumentScreen
+                  : AppConstants.businessDocumentScreen
             },
           ),
         ),
@@ -648,7 +669,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           icon: Icons.settings_outlined,
           color: _slate,
           title: AppStrings.accountSettings.tr,
-          onTap: () => Get.to(() => AccountSettingScreen()),
+          onTap: () => Get.to(() => AccountSettingScreen(),
+              binding: AccountDeletionBinding()),
         ),
         _DrawerItem(
           icon: Icons.palette_rounded,
@@ -660,13 +682,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           icon: Icons.notifications_outlined,
           color: _rose,
           title: AppStrings.manageNotification.tr,
-          onTap: () => Get.to(NotificationSettingScreen()),
+          onTap: () => Get.to(() => NotificationSettingScreen(),
+              binding: NotificationSettingsBinding()),
         ),
         _DrawerItem(
           icon: Icons.support_agent_rounded,
           color: _cyan,
           title: AppStrings.helpSupport.tr,
-          onTap: () => Get.to(HelpAndSupportScreen()),
+          onTap: () => Get.to(() => HelpAndSupportScreen()),
         ),
       ]),
     ];
@@ -766,7 +789,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.logout_rounded, size: 17, color: Color(0xFFE11D48)),
+                    const Icon(Icons.logout_rounded,
+                        size: 17, color: Color(0xFFE11D48)),
                     const SizedBox(width: 8),
                     CustomText(
                       AppStrings.logout.tr,
@@ -817,7 +841,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(height: 12),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _closeAndRun(() => Get.to(() => ChangeLanguageScreen())),
+            onTap: () =>
+                _closeAndRun(() => Get.to(() => ChangeLanguageScreen())),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
@@ -831,7 +856,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.translate_rounded, size: 12, color: AppColors.primaryColor),
+                  Icon(Icons.translate_rounded,
+                      size: 12, color: AppColors.primaryColor),
                   const SizedBox(width: 5),
                   CustomText(
                     lang.selectedLang.toUpperCase(),
@@ -841,7 +867,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     letterSpacing: 0.6,
                   ),
                   const SizedBox(width: 6),
-                  Icon(Icons.swap_horiz_rounded, size: 12, color: AppColors.primaryColor),
+                  Icon(Icons.swap_horiz_rounded,
+                      size: 12, color: AppColors.primaryColor),
                 ],
               ),
             ),

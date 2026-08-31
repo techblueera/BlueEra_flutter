@@ -49,10 +49,8 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       icon: 'assets/svg/youtube_grey.svg',
       linkController: TextEditingController(),
     ),
-
   ];
-  final manageChannelController =
-      Get.put<ManageChannelController>(ManageChannelController());
+  final manageChannelController = Get.find<ManageChannelController>();
 
   bool get hasExistingLogo =>
       _channelData != null &&
@@ -132,7 +130,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: (_channelData != null) ? AppStrings.updateChannel : AppStrings.createChannel,
+        title: (_channelData != null)
+            ? AppStrings.updateChannel
+            : AppStrings.createChannel,
       ),
       body: Form(
         key: _formKey,
@@ -190,7 +190,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                         borderRadius: BorderRadius.circular(
                                             SizeConfig.size50),
                                         child: Image.network(
-                                          _channelData?.logoUrl??"",
+                                          _channelData?.logoUrl ?? "",
                                           fit: BoxFit.cover,
                                           height: SizeConfig.size100,
                                           width: SizeConfig.size100,
@@ -268,7 +268,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                   textEditController: _channelNameController,
                   inputLength: AppConstants.inputCharterLimit50,
                   keyBoardType: TextInputType.text,
-                  title:AppStrings.channelName,
+                  title: AppStrings.channelName,
                   hintText: "Eg. McDonald's India",
                   isValidate: true,
                   validator: (value) {
@@ -324,7 +324,8 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                       BoxShadow(
                                           blurRadius: 6,
                                           spreadRadius: 0.5,
-                                          color: Colors.black.withValues(alpha: 0.15))
+                                          color: Colors.black
+                                              .withValues(alpha: 0.15))
                                     ]
                                   : null,
                             ),
@@ -462,7 +463,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                         onTap: () => _onSubmit(),
                         height: SizeConfig.size40,
                         radius: 8,
-                        title: (_channelData != null) ? AppStrings.update : AppStrings.create,
+                        title: (_channelData != null)
+                            ? AppStrings.update
+                            : AppStrings.create,
                         borderColor: AppColors.primaryColor,
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
@@ -557,11 +560,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       // return;
       try {
         if (_channelData != null) {
-
-          ChannelController channelController = Get.put(ChannelController());
+          ChannelController channelController = Get.find<ChannelController>();
           await channelController.updateChannel(
               reqData: requestData, socialLinkReqData: socialLinkRequestData);
-
         } else {
           if (channelId.isEmpty) {
             await manageChannelController.createChannel(

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/me/hospital/binding/hospital_photo_binding.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_photos_screen.dart';
@@ -18,10 +19,9 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> allImages = photos
-            ?.expand((photo) => photo.images ?? const <String>[])
-            .toList() ??
-        const <String>[];
+    final List<String> allImages =
+        photos?.expand((photo) => photo.images ?? const <String>[]).toList() ??
+            const <String>[];
 
     if (allImages.isEmpty && isReadOnly) return const SizedBox.shrink();
 
@@ -61,7 +61,8 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
     );
   }
 
-  void _openGallery() => Get.to(HospitalPhotosScreen());
+  void _openGallery() =>
+      Get.to(() => HospitalPhotosScreen(), binding: HospitalPhotoBinding());
 
   Widget _buildGalleryLayout(BuildContext context, List<String> images) {
     final display = images.length > 4 ? images.sublist(0, 4) : images;

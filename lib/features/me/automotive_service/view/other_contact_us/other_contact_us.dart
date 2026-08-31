@@ -21,13 +21,15 @@ import '../../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../../widgets/custom_text_cm.dart';
 
 class OtherContactUs extends StatefulWidget {
-  const OtherContactUs({super.key,});
+  const OtherContactUs({
+    super.key,
+  });
   @override
   State<OtherContactUs> createState() => _OtherContactUsState();
 }
 
 class _OtherContactUsState extends State<OtherContactUs> {
-  final controller = Get.put(OtherBranchContactController());
+  final controller = Get.find<OtherBranchContactController>();
 
   @override
   void initState() {
@@ -52,7 +54,8 @@ class _OtherContactUsState extends State<OtherContactUs> {
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {
-                    return Center(child: CustomText(AppStrings.otherNoContactUsFound.tr));
+                    return Center(
+                        child: CustomText(AppStrings.otherNoContactUsFound.tr));
                   }
                   return ListView.builder(
                     shrinkWrap: true,
@@ -83,7 +86,9 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                 )),
                                 InkWell(
                                   onTap: () {
-                                    Get.to(OtherBranchOnlyScreen(schoolContactUsData: data,));
+                                    Get.to(() => OtherBranchOnlyScreen(
+                                          schoolContactUsData: data,
+                                        ));
                                   },
                                   child: LocalAssets(
                                     imagePath: AppIconAssets.editIcon,
@@ -99,13 +104,14 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                             .schoolContactUsData?.length ==
                                         1) {
                                       commonSnackBar(
-                                          message:
-                                              AppStrings.otherAtLeastOneBranchRequired.tr);
+                                          message: AppStrings
+                                              .otherAtLeastOneBranchRequired
+                                              .tr);
                                     } else {
                                       await showCommonDialog(
                                           context: context,
-                                          text:
-                                              AppStrings.otherConfirmDeleteBranch.tr,
+                                          text: AppStrings
+                                              .otherConfirmDeleteBranch.tr,
                                           confirmCallback: () async {
                                             await controller
                                                 .deleteSchoolBranchController(
@@ -143,7 +149,8 @@ class _OtherContactUsState extends State<OtherContactUs> {
                               physics: NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 OtherProfileDepartments contactData =
-                                    data.departments?[index] ?? OtherProfileDepartments();
+                                    data.departments?[index] ??
+                                        OtherProfileDepartments();
                                 return Container(
                                   padding: EdgeInsets.all(8),
                                   margin: EdgeInsets.only(bottom: 12),
@@ -164,11 +171,12 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                           ),
                                           InkWell(
                                             onTap: () {
-                                              Get.to(OtherDepartmentOnlyScreen(
-                                                contactInfo: contactData,
-                                                isContactInfoEdit: true,
-                                                branchId: data.id,
-                                              ));
+                                              Get.to(() =>
+                                                  OtherDepartmentOnlyScreen(
+                                                    contactInfo: contactData,
+                                                    isContactInfoEdit: true,
+                                                    branchId: data.id,
+                                                  ));
                                             },
                                             child: LocalAssets(
                                               imagePath: AppIconAssets.editIcon,
@@ -183,13 +191,15 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                               if (data.departments?.length ==
                                                   1) {
                                                 commonSnackBar(
-                                                    message:
-                                                        AppStrings.otherAtLeastOneDepartmentRequired.tr);
+                                                    message: AppStrings
+                                                        .otherAtLeastOneDepartmentRequired
+                                                        .tr);
                                               } else {
                                                 await showCommonDialog(
                                                     context: context,
-                                                    text:
-                                                        AppStrings.otherConfirmDeleteDepartment.tr,
+                                                    text: AppStrings
+                                                        .otherConfirmDeleteDepartment
+                                                        .tr,
                                                     confirmCallback: () async {
                                                       await controller
                                                           .deleteSchoolBranchDepartmentController(
@@ -264,9 +274,9 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  Get.to(OtherDepartmentOnlyScreen(
-                                    branchId: data.id,
-                                  ));
+                                  Get.to(() => OtherDepartmentOnlyScreen(
+                                        branchId: data.id,
+                                      ));
                                 },
                               ),
                             )
@@ -291,7 +301,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
             /// Add More Course Button
             AddMoreIconButton(
               onTapEvent: () {
-                Get.to(OtherBranchDetailsFormScreen());
+                Get.to(() => OtherBranchDetailsFormScreen());
               },
               buttonName: AppStrings.otherAddAnotherBranch.tr,
             ),

@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -40,21 +39,23 @@ class VisitProfileController extends GetxController {
   RxString haveYouWorkedHere = 'No'.obs;
   RxString partnerType = ''.obs;
   RxString selectedState = "Andhra Pradesh".obs;
-  RxBool enquiryBtnLoading=false.obs;
+  RxBool enquiryBtnLoading = false.obs;
   @override
   void onInit() {
     super.onInit();
   }
+
   void selectState(String state) {
     selectedState.value = state;
   }
 
-  final personalController = Get.put(PersonalCreateProfileController());
-  final personalProfileDetails = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-  RxBool isProfileLoading=false.obs;
+  final personalController = Get.find<PersonalCreateProfileController>();
+  final personalProfileDetails =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  RxBool isProfileLoading = false.obs;
   Future<void> fetchUserById({required String userId}) async {
     try {
-      isProfileLoading.value=true;
+      isProfileLoading.value = true;
       ResponseModel response = await UserRepo().getUserById(userId: userId);
       if (response.isSuccess && response.response?.data != null) {
         // print("useralldata:${response.response?.data}");
@@ -81,22 +82,16 @@ class VisitProfileController extends GetxController {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
-      isProfileLoading.value=false;
-
+      isProfileLoading.value = false;
     } catch (e) {
-      isProfileLoading.value=false;
+      isProfileLoading.value = false;
 
       userProfileResponse.value = ApiResponse.error("Error: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
-
-
   //  ratting Summary Api
-
-
-
 
   String formatDateOfBirth(DateOfBirth? dateOfBirth) {
     if (dateOfBirth == null) return 'Not available';
@@ -156,7 +151,6 @@ class VisitProfileController extends GetxController {
 
         /// Update follow status in store screen
         updateFollowStatusForStore(candidateResumeId, true);
-
       } else {
         isFollow.value = false;
 
@@ -195,7 +189,6 @@ class VisitProfileController extends GetxController {
 
         /// Update Unfollow status in store screen
         updateFollowStatusForStore(candidateResumeId, false);
-
       } else {
         isFollow.value = true;
 
@@ -210,6 +203,7 @@ class VisitProfileController extends GetxController {
       followUnFollowResponse.value = ApiResponse.error('error');
     }
   }
+
   ///FOLLOW CHANNEL...
 
   Future<void> followChannelUserController(
@@ -219,7 +213,7 @@ class VisitProfileController extends GetxController {
 
       ///FOR NOW WE SET
       ResponseModel responseModel =
-      await UserRepo().channelFollowUser(followUserId: candidateResumeId);
+          await UserRepo().channelFollowUser(followUserId: candidateResumeId);
       if (responseModel.isSuccess) {
         isFollow.value = true;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
@@ -227,7 +221,6 @@ class VisitProfileController extends GetxController {
 
         /// Update follow status in store screen
         updateFollowStatusForStore(candidateResumeId, true);
-
       } else {
         isFollow.value = false;
 
@@ -245,6 +238,7 @@ class VisitProfileController extends GetxController {
     //   followerCount.value = followerCount.value + 1;
     // }
   }
+
   ///UNFOLLOW CHANNEL USER...
   Future<void> unChannelFollowUserController(
       {required String? candidateResumeId}) async {
@@ -261,7 +255,6 @@ class VisitProfileController extends GetxController {
 
         /// Update Unfollow status in store screen
         updateFollowStatusForStore(candidateResumeId, false);
-
       } else {
         isFollow.value = true;
 
@@ -277,16 +270,14 @@ class VisitProfileController extends GetxController {
     }
   }
 
-
   void updateFollowStatusForStore(String? candidateResumeId, bool isFollowed) {
-
     final controller = getOrPut(() => StoreController());
 
     // Update in allStore
     final listStoreData = controller.allStore;
     if (listStoreData.isNotEmpty) {
       final index = listStoreData.indexWhere(
-            (elem) => elem.userId == candidateResumeId,
+        (elem) => elem.userId == candidateResumeId,
       );
       if (index != -1) {
         final data = listStoreData[index];
@@ -329,7 +320,6 @@ class VisitProfileController extends GetxController {
     //   storeScreenController.allStore.refresh();
     // }
   }
-
 
   ///ADD TESTIMONIAL....
   Future<void> addTestimonialController(
@@ -385,28 +375,30 @@ class VisitProfileController extends GetxController {
   }
 
   ///GET CHANNEL DETAILS...
-  RxString? channelUserName="".obs;
-  RxString? channelName="".obs;
-  RxString? channelUserId="".obs;
-  resetData(){
-    channelName?.value="";
-    channelUserName?.value="";
-    channelUserId?.value="";
+  RxString? channelUserName = "".obs;
+  RxString? channelName = "".obs;
+  RxString? channelUserId = "".obs;
+  resetData() {
+    channelName?.value = "";
+    channelUserName?.value = "";
+    channelUserId?.value = "";
   }
-  Future<String?> getUserChannelDetailsController({required String? userId}) async {
+
+  Future<String?> getUserChannelDetailsController(
+      {required String? userId}) async {
     try {
       resetData();
       getUserChannelDetailsResponse.value = ApiResponse.initial('Initial');
 
       ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId??"");
+          await ChannelRepo().getChannelDetails(channelOrUserId: userId ?? "");
 
       if (response.statusCode == 200) {
         ChannelModel channelModel =
             ChannelModel.fromJson(response.response?.data);
-        channelName?.value=channelModel.data.name;
-        channelUserName?.value=channelModel.data.username;
-        channelUserId?.value=channelModel.data.id;
+        channelName?.value = channelModel.data.name;
+        channelUserName?.value = channelModel.data.username;
+        channelUserId?.value = channelModel.data.id;
         getUserChannelDetailsResponse.value = ApiResponse.complete(response);
       } else {
         getUserChannelDetailsResponse.value = ApiResponse.error('error');
@@ -433,12 +425,14 @@ class VisitProfileController extends GetxController {
         'city': cityController.text.trim(),
         'qualification': selectQualification.value,
         ApiKeys.partnerType: partnerType.value,
-        ApiKeys.investmentAmount: int.tryParse(investmentController.text.trim()) ?? 0,
+        ApiKeys.investmentAmount:
+            int.tryParse(investmentController.text.trim()) ?? 0,
         ApiKeys.hasExistingBusiness: haveYouWorkedHere.value == "Yes",
         'hasExperience': haveYouWorkedHere.value == "Yes",
         'message': messageController.text.trim(),
       };
-      final response = await UserRepo().submitFranchiseInquiry(bodyRequest: params);
+      final response =
+          await UserRepo().submitFranchiseInquiry(bodyRequest: params);
       if (response.statusCode == 200 || response.statusCode == 201) {
         _clearFranchiseForm();
         commonSnackBar(message: AppStrings.franchiseSubmitSuccess.tr);

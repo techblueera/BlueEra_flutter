@@ -22,7 +22,7 @@ class SearchChannelScreen extends StatefulWidget {
 }
 
 class _SearchChannelScreenState extends State<SearchChannelScreen> {
-  final controller = Get.put(SearchChannelController());
+  final controller = Get.find<SearchChannelController>();
 
   @override
   void dispose() {
@@ -77,11 +77,13 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
 
                 if (controller.searchList.isEmpty &&
                     controller.searchController.text.isNotEmpty) {
-                  return const Center(child: CustomText(AppStrings.noChannelsFound));
+                  return const Center(
+                      child: CustomText(AppStrings.noChannelsFound));
                 }
 
                 if (controller.searchList.isEmpty) {
-                  return const Center(child: CustomText(AppStrings.noChannelsFound));
+                  return const Center(
+                      child: CustomText(AppStrings.noChannelsFound));
                 }
 
                 return ListView.separated(
@@ -92,10 +94,10 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
 
                     return ListTile(
                       onTap: () {
-                        Get.to(VideoListScreen(
-                          channelID: channel.sId ?? "",
-                          channelName: channel.name ?? "",
-                        ));
+                        Get.to(() => VideoListScreen(
+                              channelID: channel.sId ?? "",
+                              channelName: channel.name ?? "",
+                            ));
                       },
                       leading: Container(
                         padding: const EdgeInsets.all(2),

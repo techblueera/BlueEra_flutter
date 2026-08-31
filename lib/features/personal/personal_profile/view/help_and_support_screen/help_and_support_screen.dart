@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/help_and_support_binding.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/faq_screen.dart';
@@ -23,26 +24,24 @@ class HelpAndSupportScreen extends StatefulWidget {
 }
 
 class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
-
   @override
   Widget build(BuildContext context) {
     return GetBuilder<HelpAndSupportController>(
       init: HelpAndSupportController(),
       builder: (helpController) {
         return Scaffold(
-
           appBar: CommonBackAppBar(
             onBackTap: () {
-
               Navigator.pop(context);
             },
             isShadowShow: false,
             title: AppStrings.helpAndSupport,
-
             isLeading: true,
           ),
           body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8,),
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+            ),
             child: Column(
               children: [
                 SizedBox(height: SizeConfig.size20),
@@ -51,12 +50,12 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   AppStrings.customerSupport,
                   () {
                     // Get.to(CustomerSupportScreen());
-                    final chat =ChatViewController.personalAiChatModule;
-                    Get.to(()=> AiChatScreen(
-                      profileImage: chat?.sender?.profileImage,
-                      name: chat?.sender?.name,
-                      type: chat?.sender?.accountType,
-                      ));
+                    final chat = ChatViewController.personalAiChatModule;
+                    Get.to(() => AiChatScreen(
+                          profileImage: chat?.sender?.profileImage,
+                          name: chat?.sender?.name,
+                          type: chat?.sender?.accountType,
+                        ));
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -64,24 +63,24 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   'assets/images/mail.png',
                   AppStrings.mailUs,
                   () {
-                    Get.to(HelpAndSupportFormScreen());
+                    Get.to(() => HelpAndSupportFormScreen());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
-                 'assets/images/qury.png',
+                  'assets/images/qury.png',
                   AppStrings.queries,
                   () {
-                    Get.to(QueriesCard());
+                    Get.to(() => QueriesCard(),
+                        binding: HelpAndSupportBinding());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
                   'assets/images/complaint.png',
-
                   "Complaint",
                   () {
-                   Get.to(ComplaintMainPage());
+                    Get.to(() => ComplaintMainPage());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -89,7 +88,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   'assets/images/faq.png',
                   AppStrings.faq,
                   () {
-                    Get.to(FaqScreen());
+                    Get.to(() => FaqScreen());
                   },
                 ),
               ],
@@ -112,7 +111,6 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
       ),
-
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -123,7 +121,6 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
                 width: 20,
                 imagePath: value1,
                 imgColor: AppColors.secondaryTextColor,
-
               ),
               SizedBox(width: SizeConfig.size16),
               CustomText(
@@ -134,21 +131,22 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
               ),
             ],
           ),
-          if(value2==AppStrings.customerSupport)
-          LocalAssets(imagePath: AppImageAssets.chat_with_ai_bot),
-          if(value2==AppStrings.mailUs)
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: AppColors.whiteE5.withValues(alpha: 0.4)
-            ),
-            padding: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
-            child: Center(
-              child: CustomText(
-                "mailusbluecs@gmail.com",fontSize: 14,
-              color: AppColors.secondaryTextColor,),
-            ),
-          )
+          if (value2 == AppStrings.customerSupport)
+            LocalAssets(imagePath: AppImageAssets.chat_with_ai_bot),
+          if (value2 == AppStrings.mailUs)
+            Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.whiteE5.withValues(alpha: 0.4)),
+              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: Center(
+                child: CustomText(
+                  "mailusbluecs@gmail.com",
+                  fontSize: 14,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ),
+            )
         ],
       ),
     ),

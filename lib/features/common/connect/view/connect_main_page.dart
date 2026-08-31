@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:BlueEra/features/personal/personal_profile/binding/notification_settings_binding.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show ImageFilter;
@@ -101,7 +102,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   int selectedIndex = 0;
   int selectedSubIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  final symbolFeedController = Get.put(SymbolFeedController());
+  final symbolFeedController = Get.find<SymbolFeedController>();
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final ChatViewController chatViewController =
       getOrPut(() => ChatViewController());
@@ -503,8 +504,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               // inquiry-order selection screen for the chosen drop location.
               final drop = await showRideDropLocationSheet(context);
               if (drop != null) {
-                Get.to(
-                    () => GoodsMultiOrderBookingMain(dropAddress: drop));
+                Get.to(() => GoodsMultiOrderBookingMain(dropAddress: drop));
               }
             },
             customBorder: const CircleBorder(),
@@ -1304,7 +1304,8 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                           bgColor: const Color(0xFFE6F9F1),
                           onTap: () {
                             Navigator.pop(context);
-                            Get.to(() => NotificationSettingScreen());
+                            Get.to(() => NotificationSettingScreen(),
+                                binding: NotificationSettingsBinding());
                           },
                         ),
                         _menuDivider(),

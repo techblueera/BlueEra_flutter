@@ -40,9 +40,7 @@ class BottomNavHideOnScroll extends StatefulWidget {
 }
 
 class _BottomNavHideOnScrollState extends State<BottomNavHideOnScroll> {
-  BottomBarController get _bottomBar => Get.isRegistered<BottomBarController>()
-      ? Get.find<BottomBarController>()
-      : Get.put(BottomBarController());
+  BottomBarController get _bottomBar => Get.put(BottomBarController());
 
   double _accumulator = 0;
 

@@ -28,26 +28,26 @@ class AccountSettingScreen extends StatefulWidget {
 }
 
 class _AccountSettingScreenState extends State<AccountSettingScreen> {
-
   final controller = getOrPut(() => LanguageControllerNew());
   final LiveLocationService locationService = LiveLocationService();
 
-  final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final viewBusinessProfileController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: CommonBackAppBar(
+      appBar: CommonBackAppBar(
         title: AppStrings.accountSettings,
         isLeading: true,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8,vertical: 12),
+        padding:
+            EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: 12),
         child: Obx(() {
           // ✅ Safe Navigation
           // if (accountController.index == '1') {
@@ -76,9 +76,6 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
           return ListView(
             children: [
-
-
-
               // _helpServiceCard(
               //   AppIconAssets.app_setting_edit_profile,
               //   AppStrings.editProfile,
@@ -125,27 +122,25 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               _helpServiceCard(
                 AppIconAssets.app_setting_language,
                 AppStrings.language,
-                    () {
-                      navigatePushTo(context, ChangeLanguageScreen());
+                () {
+                  navigatePushTo(context, ChangeLanguageScreen());
                 },
                 slugId: "Language",
               ),
-              if(accountTypeGlobal == "BUSINESS")
-                _helpServiceCard(
-                AppIconAssets.app_setting_verification,
-                AppStrings.verificationStatus,
-                    () {
-                      // navigatePushTo(context, UpdateProfileScreen());
+              if (accountTypeGlobal == "BUSINESS")
+                _helpServiceCard(AppIconAssets.app_setting_verification,
+                    AppStrings.verificationStatus, () {
+                  // navigatePushTo(context, UpdateProfileScreen());
                 },
-                slugId: "Verification Status",
-                  isVerified: viewBusinessProfileController.isBusinessVerified.value
-              ),
+                    slugId: "Verification Status",
+                    isVerified:
+                        viewBusinessProfileController.isBusinessVerified.value),
 
               _helpServiceCard(
                 AppIconAssets.app_setting_manage_subscription,
                 AppStrings.contribute,
-                    () {
-                      openContributionScreen();
+                () {
+                  openContributionScreen();
                   // accountController.setIndex("6");
                   // accountController.setTitle("Manage Subscription");
                 },
@@ -153,11 +148,10 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               ),
 
               _helpServiceCard(
-               'assets/images/two_step.png',
+                'assets/images/two_step.png',
                 AppStrings.twoStepAuthentication,
-                    () {
-                      navigatePushTo(context, TwoStepVerifyScreen());
-
+                () {
+                  navigatePushTo(context, TwoStepVerifyScreen());
                 },
               ),
 
@@ -170,7 +164,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                   // page in an in-app browser (OTP + Terms happen there). Don't
                   // wrap it in another dialog here — that double-confirms.
                   // See docs/backend/FLUTTER_ACCOUNT_DELETION_INTEGRATION.md.
-                  Get.put(AccountDeletionController())
+                  Get.find<AccountDeletionController>()
                       .startAccountDeletion(context);
                 },
               ),
@@ -191,12 +185,8 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 }
 
 Widget _helpServiceCard(
-    String iconPath,
-    String title,
-    GestureTapCallback? onTap, {
-      String? slugId,
-      bool? isVerified
-    }) {
+    String iconPath, String title, GestureTapCallback? onTap,
+    {String? slugId, bool? isVerified}) {
   final lang = getOrPut(() => LanguageControllerNew());
 
   return Padding(
@@ -216,7 +206,6 @@ Widget _helpServiceCard(
             color: AppColors.whiteE5,
             width: 1,
           ),
-
         ),
         child: Row(
           children: [
@@ -227,7 +216,8 @@ Widget _helpServiceCard(
                 minWidth: 0,
                 minHeight: 0,
               ),
-              visualDensity: VisualDensity.compact, // removes extra layout space
+              visualDensity:
+                  VisualDensity.compact, // removes extra layout space
 
               splashRadius: 12,
               iconSize: 20,
@@ -238,8 +228,7 @@ Widget _helpServiceCard(
                 boxFix: BoxFit.cover,
                 imgColor: AppColors.secondaryTextColor,
               ),
-            )
-            ,
+            ),
 
             SizedBox(width: SizeConfig.size8),
 
@@ -255,7 +244,11 @@ Widget _helpServiceCard(
 
             // Right Side Controls (as per image)
             if (slugId == "Email Verification")
-              _statusChip((isVerified==true)?AppStrings.verified:AppStrings.pending, isGreen: isVerified==true),
+              _statusChip(
+                  (isVerified == true)
+                      ? AppStrings.verified
+                      : AppStrings.pending,
+                  isGreen: isVerified == true),
 
             if (slugId == "Language")
               _statusChip(lang.selectedLang.value, isGrey: true),
@@ -270,18 +263,18 @@ Widget _helpServiceCard(
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
               ),
-
           ],
         ),
       ),
     ),
   );
 }
+
 Widget _statusChip(
-    String text, {
-      bool isGreen = false,
-      bool isGrey = false,
-    }) {
+  String text, {
+  bool isGreen = false,
+  bool isGrey = false,
+}) {
   Color bgColor;
   Color textColor;
 
@@ -313,6 +306,7 @@ Widget _statusChip(
     ),
   );
 }
+
 Widget buildSettingItem({
   required String imagePath,
   required String title,
@@ -346,21 +340,22 @@ Widget buildSettingItem({
     ),
   );
 }
+
 Widget buildToggleSwitch({
   required RxBool value,
   required VoidCallback onChanged,
 }) {
   return Obx(() => Transform.scale(
-    scale: 0.75, // Adjust scale to reduce size
-    child: Switch(
-      value: value.value,
-      onChanged: (val) => onChanged(),
-      activeColor: AppColors.primaryColor,
-      activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
-      inactiveTrackColor: Colors.grey[300],
-      inactiveThumbColor: Colors.grey[400],
-    ),
-  ));
+        scale: 0.75, // Adjust scale to reduce size
+        child: Switch(
+          value: value.value,
+          onChanged: (val) => onChanged(),
+          activeColor: AppColors.primaryColor,
+          activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
+          inactiveTrackColor: Colors.grey[300],
+          inactiveThumbColor: Colors.grey[400],
+        ),
+      ));
 }
 
 Widget buildToggleSwitchChip({
@@ -368,14 +363,14 @@ Widget buildToggleSwitchChip({
   required VoidCallback onChanged,
 }) {
   return Obx(() => Transform.scale(
-    scale: 0.6, // Adjust scale to reduce size
-    child: Switch(
-      value: value.value,
-      onChanged: (val) => onChanged(),
-      activeColor: AppColors.white,
-      activeTrackColor: AppColors.primaryColor,
-      inactiveTrackColor: Colors.grey[300],
-      inactiveThumbColor: Colors.grey[400],
-    ),
-  ));
+        scale: 0.6, // Adjust scale to reduce size
+        child: Switch(
+          value: value.value,
+          onChanged: (val) => onChanged(),
+          activeColor: AppColors.white,
+          activeTrackColor: AppColors.primaryColor,
+          inactiveTrackColor: Colors.grey[300],
+          inactiveThumbColor: Colors.grey[400],
+        ),
+      ));
 }

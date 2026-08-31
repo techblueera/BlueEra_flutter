@@ -321,7 +321,7 @@ class MessagePostController extends GetxController {
       return;
     }
 
-    final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+    final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
       print("✅ Trimmed Video Path: $trimmedPath");
@@ -759,7 +759,8 @@ class MessagePostController extends GetxController {
         setSuggestions(responseModel.response?.data);
         isGenerated.value = false; // Re-enable button after success
       } else {
-        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
         isGenerated.value = false; // Re-enable button on failure
       }
     } catch (e) {
@@ -791,7 +792,8 @@ class MessagePostController extends GetxController {
             break;
           }
         }
-        throw Exception("Invalid response format: no suitable list found in map");
+        throw Exception(
+            "Invalid response format: no suitable list found in map");
       }
     } else {
       throw Exception("Invalid response format: expected List or Map");
@@ -830,5 +832,6 @@ class MessagePostController extends GetxController {
       selectedEmotion.value.isNotEmpty &&
       topicDescriptionText.value.isNotEmpty &&
       !isGenerated.value && // <--- disable when generated
-      !isThumbnailGenerating.value; // <--- disable while thumbnail is generating
+      !isThumbnailGenerating
+          .value; // <--- disable while thumbnail is generating
 }

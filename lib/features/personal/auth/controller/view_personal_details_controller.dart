@@ -180,7 +180,8 @@ class ViewPersonalDetailsController extends GetxController
   ///   the pinger stays stopped; we retry in the background, and the
   ///   map-service's 5-minute stale-lastSeen auto-close is the backstop if
   ///   every retry fails.
-  Future<void> _applyLiveStatus(bool isOpen, {required bool userInitiated}) async {
+  Future<void> _applyLiveStatus(bool isOpen,
+      {required bool userInitiated}) async {
     _cancelStatusRetry();
 
     shopStatusOpenClose.value = isOpen;
@@ -333,8 +334,8 @@ class ViewPersonalDetailsController extends GetxController
       isShopStatusUpdating.value = true;
       changeShopStatusResponse.value = ApiResponse.initial("Initial");
 
-      ResponseModel responseModel =
-          await PersonalProfileRepo().setServiceStatusRepo(bodyReq: {
+      ResponseModel responseModel = await PersonalProfileRepo()
+          .setServiceStatusRepo(bodyReq: {
         ApiKeys.userId: userId,
         ApiKeys.status: requestedOpen ? "OPEN" : "CLOSED"
       });
@@ -712,6 +713,7 @@ class ViewPersonalDetailsController extends GetxController
         ? null
         : (res.message ?? AppStrings.somethingWentWrong.tr);
   }
+
   RxBool isSocialEdit = false.obs, isSelfVideo = false.obs;
   RxString isYoutubeEdit = "".obs;
   RxString youtube = ''.obs;
@@ -781,7 +783,7 @@ class ViewPersonalDetailsController extends GetxController
       return;
     }
 
-    final personalController = Get.put(PersonalCreateProfileController());
+    final personalController = Get.find<PersonalCreateProfileController>();
 
     // 1. Hydrate from cache immediately so the UI isn't blank while
     //    the silent network refresh below is in flight. The repo call
@@ -903,8 +905,7 @@ class ViewPersonalDetailsController extends GetxController
     PersonalCreateProfileController personalController, {
     required bool persistPrefs,
   }) async {
-    personalProfileDetails.value =
-        PersonalProfileDetailsModel.fromJson(data);
+    personalProfileDetails.value = PersonalProfileDetailsModel.fromJson(data);
 
     ///SET MY PROFILE DATA
     final user = personalProfileDetails.value.user;
@@ -979,8 +980,7 @@ class ViewPersonalDetailsController extends GetxController
 
     /// Check Earn services
     earnProfileType.assignAll(personalProfileDetails.value.earnProfileType);
-    debugPrint(
-        '=== earnProfileType: $earnProfileType ===');
+    debugPrint('=== earnProfileType: $earnProfileType ===');
 
     /// Seed the location fallback from the personal profile so nearby APIs
     /// still work when device GPS is off.
@@ -1028,7 +1028,6 @@ class ViewPersonalDetailsController extends GetxController
     }
   }
 
-
   ///SET SOCIAL LINK DATA
   setSocialLink(data) async {
     youtube.value = data['user']['social_links']['youtube'] ?? '';
@@ -1037,7 +1036,6 @@ class ViewPersonalDetailsController extends GetxController
     instagram.value = data['user']['social_links']['instagram'] ?? '';
     website.value = data['user']['social_links']['website'] ?? '';
     final introVideoController = getOrPut(() => IntroductionVideoController());
-
 
     // logs("personalProfileDetails.value.user?.introVideo=== 1 ${ personalProfileDetails.value.user?.introVideo }");
     introVideoController.videoUrl.value =
@@ -1257,7 +1255,7 @@ class ViewPersonalDetailsController extends GetxController
                                   Get.isRegistered<
                                           EmailVerificationController>()
                                       ? Get.find<EmailVerificationController>()
-                                      : Get.put(EmailVerificationController());
+                                      : Get.find<EmailVerificationController>();
 
                               emailVerificationController.verifyEmail(email);
                             }
@@ -1278,7 +1276,7 @@ class ViewPersonalDetailsController extends GetxController
   void showBioUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        Get.find<PersonalCreateProfileController>();
     final ViewPersonalDetailsController viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
     final TextEditingController bioController = TextEditingController();
@@ -1372,7 +1370,7 @@ class ViewPersonalDetailsController extends GetxController
   void showEducationUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        Get.find<PersonalCreateProfileController>();
     final viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
 

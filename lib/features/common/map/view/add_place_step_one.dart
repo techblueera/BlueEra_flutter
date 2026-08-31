@@ -31,7 +31,7 @@ class AddPlaceStepOneScreen extends StatefulWidget {
 
 class _AddPlaceStepOneScreenState extends State<AddPlaceStepOneScreen> {
   final AddPlaceStepOneController controller =
-      Get.put(AddPlaceStepOneController());
+      Get.find<AddPlaceStepOneController>();
 
   @override
   void dispose() {
@@ -264,7 +264,8 @@ class _AddPlaceStepOneScreenState extends State<AddPlaceStepOneScreen> {
             ),
             child: imagePath == ""
                 ? Center(
-                    child: LocalAssets(imagePath:AppIconAssets.profile_camera_pic),
+                    child: LocalAssets(
+                        imagePath: AppIconAssets.profile_camera_pic),
                   )
                 : null,
           ),

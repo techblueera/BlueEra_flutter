@@ -26,7 +26,7 @@ class AddChatSymbolScreen extends StatefulWidget {
 
 class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
     with SingleTickerProviderStateMixin {
-  final controller = Get.put(AddChatSymbolController());
+  final controller = Get.find<AddChatSymbolController>();
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -142,7 +142,8 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                       boxShadow: canPost
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF0086FF).withValues(alpha: 0.3),
+                                color: const Color(0xFF0086FF)
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -268,5 +269,4 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
       child: child,
     );
   }
-
 }

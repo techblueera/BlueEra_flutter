@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/me/school/binding/campus_life_binding.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
@@ -63,13 +64,17 @@ class CampusPhotoGallery extends StatelessWidget {
                 ),
                 if (isEdit)
                   _AddPhotoPill(
-                      onTap: () => Get.to(CampusLifeListingScreen())),
+                      onTap: () => Get.to(() => CampusLifeListingScreen(),
+                          binding: CampusLifeBinding())),
               ],
             ),
             const SizedBox(height: 12),
             if (allImages.isEmpty)
               GestureDetector(
-                onTap: isEdit ? () => Get.to(CampusLifeListingScreen()) : null,
+                onTap: isEdit
+                    ? () => Get.to(() => CampusLifeListingScreen(),
+                        binding: CampusLifeBinding())
+                    : null,
                 child: Container(
                   height: 160,
                   width: double.infinity,
@@ -91,7 +96,9 @@ class CampusPhotoGallery extends StatelessWidget {
                       if (isEdit) ...[
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
-                          onPressed: () => Get.to(CampusLifeListingScreen()),
+                          onPressed: () => Get.to(
+                              () => CampusLifeListingScreen(),
+                              binding: CampusLifeBinding()),
                           icon: const Icon(Icons.add, size: 16),
                           label: const Text("Add"),
                           style: OutlinedButton.styleFrom(

@@ -49,7 +49,7 @@ class CommentBottomSheet extends StatefulWidget {
 }
 
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
-  static CommentController commentController = Get.put(CommentController());
+  static CommentController commentController = Get.find<CommentController>();
 
   @override
   void initState() {
@@ -148,7 +148,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
                         /// Input Field
                         _buildSendCommentField(),
-
                       ],
                     )),
             ),
@@ -226,7 +225,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           child: CustomText(
                                             visibleCount < totalReplies
                                                 ? AppStrings.viewMoreReplies
-                                                :AppStrings.hideReplies,
+                                                : AppStrings.hideReplies,
                                             fontSize: SizeConfig.medium,
                                             color: AppColors.secondaryTextColor,
                                             fontWeight: FontWeight.w600,
@@ -463,8 +462,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     } else if (replyingTo != null) {
       // If text only contains the mention (like "@Bluecs limited")
       final mentionText = "@$replyingTo";
-      if (textValue == mentionText || textValue == "$mentionText ") {
-      }
+      if (textValue == mentionText || textValue == "$mentionText ") {}
     }
     return Container(
       color: AppColors.whiteFE,
@@ -510,7 +508,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 ),
               ),
 
-        /*    // 🟩 AI Generate icon (visible when input is empty)
+            /*    // 🟩 AI Generate icon (visible when input is empty)
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               child: isAiVisible
@@ -597,8 +595,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: AppColors.primaryColor),
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
                       isDense: true,
                       suffixIcon: IconButton(
                         onPressed: () async {
@@ -606,11 +604,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                             createProfileScreen();
                             return;
                           }
-                          final replyingTo = commentController.replyingToUser.value;
+                          final replyingTo =
+                              commentController.replyingToUser.value;
                           try {
                             await Get.to(() => PostAiCommentScreen(
                                   dataId: replyingTo != null
-                                      ? (commentController.parentCommentId ?? widget.id)
+                                      ? (commentController.parentCommentId ??
+                                          widget.id)
                                       : widget.id,
                                   commentType: replyingTo != null
                                       ? "comment_reply"

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/me/laboratory/binding/lab_service_photo_photo_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -143,7 +144,8 @@ class LabOverviewTabV2 extends StatelessWidget {
                 // Section headers below mirror the `_SectionHeader` +
                 // `_ChipCta` pattern used on the Tests tab so both surfaces
                 // read as one language.
-                onEdit: () => Get.to(() => LabServicePhotosPhotoScreen())
+                onEdit: () => Get.to(() => LabServicePhotosPhotoScreen(),
+                        binding: LabServicePhotoPhotoBinding())
                     ?.then((_) => controller.fetchFullDetails()),
               ),
             ),

@@ -47,7 +47,7 @@ class HomeServicesBottomSheet extends StatefulWidget {
 
 class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
   final MapServiceController mapServiceController =
-      Get.put(MapServiceController());
+      Get.find<MapServiceController>();
   int _selectedSubCategoryIndex = 0;
   String? _selectedSubCategory;
   final List<String> subCategories = [];
@@ -187,7 +187,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                               itemBuilder: (context, index) =>
                                   _buildServiceCard(serviceData[index]),
                             );
-
                           },
                         ),
                       ),
@@ -261,7 +260,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                       ],
                       borderRadius: BorderRadius.zero,
                     ),
-
                   ],
                 ),
               ),
@@ -275,7 +273,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     ProfileSummaryCard(
                       name: serviceData.name ?? '',
                       imageUrl: serviceData.profileImage ?? '',
@@ -283,12 +280,9 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                       reviews: serviceData.reviewCount ?? 0,
                       distance: "${serviceData.distance ?? 0} km",
                     ),
-
-
                     if (serviceData.priceData?.priceRange?.min != null)
                       CustomText(
-                        (serviceData.priceData?.priceRange?.min ?? 0) >
-                            1000000
+                        (serviceData.priceData?.priceRange?.min ?? 0) > 1000000
                             ? "Charge : INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
                             : 'Charge : INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
                         fontSize: SizeConfig.extraSmall,
@@ -296,21 +290,19 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                         fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
                       ),
-
                     Row(
                       children: [
                         Expanded(
                           child: (serviceData.id != userId)
                               ? CommonIconContainerButton(
                                   onTap: () async {
-                                    final chatViewController = Get.isRegistered<ChatViewController>()
-                                        ? Get.find<ChatViewController>()
-                                        : Get.put(ChatViewController());
-                                    chatViewController.checkChatConnectionAndOpenChat(
+                                    final chatViewController =
+                                        Get.put(ChatViewController());
+                                    chatViewController
+                                        .checkChatConnectionAndOpenChat(
                                       userId: serviceData.id ?? '',
                                       route: AppConstants.route_discover,
                                     );
-
                                   },
                                   icon: LocalAssets(
                                     imagePath: AppIconAssets.quillChatIcon,

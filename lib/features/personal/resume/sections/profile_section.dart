@@ -33,7 +33,7 @@ class _ProfileSectionState extends State<ProfileSection> {
       Get.put(CurrentJobController());
 
   final ProfilePicController getResumeController =
-      Get.put(ProfilePicController());
+      Get.find<ProfilePicController>();
 
   @override
   void initState() {

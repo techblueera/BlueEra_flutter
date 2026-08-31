@@ -39,10 +39,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   late TabController _tabController;
   final OverviewController overViewController = Get.put(OverviewController());
   final FeedController feedController = Get.put(FeedController());
-  VisitProfileController visitController =
-      Get.isRegistered<VisitProfileController>()
-          ? Get.find<VisitProfileController>()
-          : Get.put(VisitProfileController());
+  VisitProfileController visitController = Get.put(VisitProfileController());
 
   @override
   void initState() {
@@ -213,234 +210,234 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     return Container(
       color: AppColors.white,
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Banner + Avatar + Actions (Stack)
-        SizedBox(
-          height: 180,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Banner image
-              ClipRRect(
-                child: Container(
-                  height: 140,
-                  width: double.infinity,
-                  color: const Color(0xFF8DD0F7),
-                  child: bannerUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: bannerUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[300],
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFF8DD0F7),
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-
-              // Profile avatar — overlaps banner
-              Positioned(
-                left: 20,
-                top: 100,
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.white,
-                  child: CircleAvatar(
-                    radius: 37,
-                    backgroundImage: (user?.profileImage != null &&
-                            (user?.profileImage?.isNotEmpty ?? false))
-                        ? NetworkImage(user?.profileImage ?? "")
-                        : null,
-                    backgroundColor: AppColors.primaryColor,
-                    child: (user?.profileImage == null ||
-                            (user?.profileImage?.isEmpty ?? false))
-                        ? CustomText(
-                            getInitials(user?.name),
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner + Avatar + Actions (Stack)
+          SizedBox(
+            height: 180,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Banner image
+                ClipRRect(
+                  child: Container(
+                    height: 140,
+                    width: double.infinity,
+                    color: const Color(0xFF8DD0F7),
+                    child: bannerUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: bannerUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[300],
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: const Color(0xFF8DD0F7),
+                            ),
                           )
                         : null,
                   ),
                 ),
-              ),
 
-              // Back button
-              Positioned(
-                left: 8,
-                top: 8,
-                child: _circleButton(
-                  icon: Icons.arrow_back_ios_new,
-                  onTap: _onBack,
-                ),
-              ),
-
-              // Share + More buttons
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Row(
-                  children: [
-                    _circleButton(
-                      icon: Icons.share_outlined,
-                      onTap: () async {
-                        // ShareService owns the link + body + share
-                        // sheet for someone-else's-profile shares.
-                        await ShareService.instance.shareProfile(
-                          userId: user?.id,
-                          subject: user?.name,
-                        );
-                      },
-                    ),
-                    // const SizedBox(width: 4),
-                    // _circleButton(
-                    //   icon: Icons.more_vert,
-                    //   onTap: () {},
-                    // ),
-                  ],
-                ),
-              ),
-
-              // Follow button — positioned at right, below banner
-              if (user?.id != null)
+                // Profile avatar — overlaps banner
                 Positioned(
-                  right: 12,
-                  top: 144,
-                  child: Obx(() {
-                    final isFollowing = visitController.isFollow.value;
-                    return GestureDetector(
-                      onTap: () async {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else {
-                          if (isFollowing) {
-                            await visitController.unFollowUserController(
-                                candidateResumeId: user?.id);
-                          } else {
-                            await visitController.followUserController(
-                                candidateResumeId: user?.id);
-                          }
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isFollowing
-                              ? AppColors.greyLite
-                              : AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: CustomText(
-                          isFollowing
-                              ? AppStrings.unfollow.tr
-                              : AppStrings.follow.tr,
-                          color: isFollowing
-                              ? AppColors.secondaryTextColor
-                              : Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.size10,
-                        ),
+                  left: 20,
+                  top: 100,
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.white,
+                    child: CircleAvatar(
+                      radius: 37,
+                      backgroundImage: (user?.profileImage != null &&
+                              (user?.profileImage?.isNotEmpty ?? false))
+                          ? NetworkImage(user?.profileImage ?? "")
+                          : null,
+                      backgroundColor: AppColors.primaryColor,
+                      child: (user?.profileImage == null ||
+                              (user?.profileImage?.isEmpty ?? false))
+                          ? CustomText(
+                              getInitials(user?.name),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+
+                // Back button
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: _circleButton(
+                    icon: Icons.arrow_back_ios_new,
+                    onTap: _onBack,
+                  ),
+                ),
+
+                // Share + More buttons
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Row(
+                    children: [
+                      _circleButton(
+                        icon: Icons.share_outlined,
+                        onTap: () async {
+                          // ShareService owns the link + body + share
+                          // sheet for someone-else's-profile shares.
+                          await ShareService.instance.shareProfile(
+                            userId: user?.id,
+                            subject: user?.name,
+                          );
+                        },
                       ),
-                    );
-                  }),
+                      // const SizedBox(width: 4),
+                      // _circleButton(
+                      //   icon: Icons.more_vert,
+                      //   onTap: () {},
+                      // ),
+                    ],
+                  ),
                 ),
-            ],
+
+                // Follow button — positioned at right, below banner
+                if (user?.id != null)
+                  Positioned(
+                    right: 12,
+                    top: 144,
+                    child: Obx(() {
+                      final isFollowing = visitController.isFollow.value;
+                      return GestureDetector(
+                        onTap: () async {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                          } else {
+                            if (isFollowing) {
+                              await visitController.unFollowUserController(
+                                  candidateResumeId: user?.id);
+                            } else {
+                              await visitController.followUserController(
+                                  candidateResumeId: user?.id);
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isFollowing
+                                ? AppColors.greyLite
+                                : AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: CustomText(
+                            isFollowing
+                                ? AppStrings.unfollow.tr
+                                : AppStrings.follow.tr,
+                            color: isFollowing
+                                ? AppColors.secondaryTextColor
+                                : Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.size10,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+              ],
+            ),
           ),
-        ),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        // Name + Username + Profession
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                user?.name ?? '',
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                color: AppColors.mainTextColor,
-              ),
-              const SizedBox(height: 4),
-              if (user?.username != null && user!.username!.isNotEmpty)
+          // Name + Username + Profession
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 CustomText(
-                  "@${user.username}",
-                  fontSize: 14,
-                  color: AppColors.secondaryTextColor,
+                  user?.name ?? '',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  color: AppColors.mainTextColor,
                 ),
-              if (user?.profession != null &&
-                  user?.profession != "null" &&
-                  (user?.profession?.isNotEmpty ?? false)) ...[
                 const SizedBox(height: 4),
-                CustomText(
-                  user.profession,
-                  fontSize: 13,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-
-              // Bio
-              if ((user?.bio ?? '').trim().isNotEmpty) ...[
-                const SizedBox(height: 8),
-                ExpandableText(
-                  text: user.bio ?? '',
-                  trimLines: 3,
-                  style: TextStyle(
-                    color: AppColors.mainTextColor,
+                if (user?.username != null && user!.username!.isNotEmpty)
+                  CustomText(
+                    "@${user.username}",
                     fontSize: 14,
-                    height: 1.4,
-                    fontFamily: AppConstants.OpenSans,
+                    color: AppColors.secondaryTextColor,
                   ),
-                  expandMode: ExpandMode.expandable,
-                ),
-              ],
-
-              const SizedBox(height: 12),
-
-              // Stats row
-              Row(
-                children: [
-                  _statItem(
-                    count: visitController.userData.value?.totalPosts
-                            ?.toString() ??
-                        "0",
-                    label: AppStrings.post.tr,
+                if (user?.profession != null &&
+                    user?.profession != "null" &&
+                    (user?.profession?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 4),
+                  CustomText(
+                    user.profession,
+                    fontSize: 13,
+                    color: AppColors.secondaryTextColor,
                   ),
-                  const SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () => _openFollowList(0),
-                    child: _statItem(
-                      count: visitController.userData.value?.followingCount
+                ],
+
+                // Bio
+                if ((user?.bio ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ExpandableText(
+                    text: user.bio ?? '',
+                    trimLines: 3,
+                    style: TextStyle(
+                      color: AppColors.mainTextColor,
+                      fontSize: 14,
+                      height: 1.4,
+                      fontFamily: AppConstants.OpenSans,
+                    ),
+                    expandMode: ExpandMode.expandable,
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                // Stats row
+                Row(
+                  children: [
+                    _statItem(
+                      count: visitController.userData.value?.totalPosts
                               ?.toString() ??
                           "0",
-                      label: AppStrings.following.tr,
+                      label: AppStrings.post.tr,
                     ),
-                  ),
-                  const SizedBox(width: 20),
-                  Obx(() => GestureDetector(
-                        onTap: () => _openFollowList(1),
-                        child: _statItem(
-                          count:
-                              visitController.followerCount.value.toString(),
-                          label: AppStrings.followers.tr,
-                        ),
-                      )),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Divider(color: AppColors.whiteEE, thickness: 1, height: 1),
-            ],
+                    const SizedBox(width: 20),
+                    GestureDetector(
+                      onTap: () => _openFollowList(0),
+                      child: _statItem(
+                        count: visitController.userData.value?.followingCount
+                                ?.toString() ??
+                            "0",
+                        label: AppStrings.following.tr,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Obx(() => GestureDetector(
+                          onTap: () => _openFollowList(1),
+                          child: _statItem(
+                            count:
+                                visitController.followerCount.value.toString(),
+                            label: AppStrings.followers.tr,
+                          ),
+                        )),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Divider(color: AppColors.whiteEE, thickness: 1, height: 1),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }

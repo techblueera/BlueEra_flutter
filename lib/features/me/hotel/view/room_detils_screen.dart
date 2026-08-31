@@ -19,24 +19,56 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
   final controller = Get.put(RoomDetailController());
 
   final List<Map<String, dynamic>> roomDetailsList = [
-    {"name": AppStrings.hotelRoomStandard, "key_id": "standardRoom", "key": "STANDARD_ROOM"},
-    {"name": AppStrings.hotelRoomEconomy, "key_id": "economyRoom", "key": "ECONOMY_ROOM"},
-    {"name": AppStrings.hotelRoomDeluxe, "key_id": "deluxeRoom", "key": "DELUXE_ROOM"},
+    {
+      "name": AppStrings.hotelRoomStandard,
+      "key_id": "standardRoom",
+      "key": "STANDARD_ROOM"
+    },
+    {
+      "name": AppStrings.hotelRoomEconomy,
+      "key_id": "economyRoom",
+      "key": "ECONOMY_ROOM"
+    },
+    {
+      "name": AppStrings.hotelRoomDeluxe,
+      "key_id": "deluxeRoom",
+      "key": "DELUXE_ROOM"
+    },
     {
       "name": AppStrings.hotelRoomSuperDeluxe,
       "key_id": "superDeluxeRoom",
       "key": "SUPER_DELUXE_ROOM"
     },
-    {"name": AppStrings.hotelRoomPremium, "key_id": "premiumRoom", "key": "PREMIUM_ROOM"},
+    {
+      "name": AppStrings.hotelRoomPremium,
+      "key_id": "premiumRoom",
+      "key": "PREMIUM_ROOM"
+    },
     {
       "name": AppStrings.hotelRoomExecutive,
       "key_id": "executiveRoom",
       "key": "EXECUTIVE_ROOM"
     },
-    {"name": AppStrings.hotelRoomFamily, "key_id": "familyRoom", "key": "FAMILY_ROOM"},
-    {"name": AppStrings.hotelRoomSuite, "key_id": "suiteRoom", "key": "SUITE_ROOM"},
-    {"name": AppStrings.hotelRoomLuxurySuite, "key_id": "luxurySuite", "key": "LUXURY_SUITE"},
-    {"name": AppStrings.hotelRoomStudio, "key_id": "studioRoom", "key": "STUDIO_ROOM"},
+    {
+      "name": AppStrings.hotelRoomFamily,
+      "key_id": "familyRoom",
+      "key": "FAMILY_ROOM"
+    },
+    {
+      "name": AppStrings.hotelRoomSuite,
+      "key_id": "suiteRoom",
+      "key": "SUITE_ROOM"
+    },
+    {
+      "name": AppStrings.hotelRoomLuxurySuite,
+      "key_id": "luxurySuite",
+      "key": "LUXURY_SUITE"
+    },
+    {
+      "name": AppStrings.hotelRoomStudio,
+      "key_id": "studioRoom",
+      "key": "STUDIO_ROOM"
+    },
     {
       "name": AppStrings.hotelRoomVillaCottage,
       "key_id": "villaCottage",
@@ -88,10 +120,10 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                             ),
                             InkWell(
                               onTap: () {
-                                Get.to(RoomListingScreen(
-                                  roomType: keyId,
-                                  roomName: (item['name'] as String).tr,
-                                ));
+                                Get.to(() => RoomListingScreen(
+                                      roomType: keyId,
+                                      roomName: (item['name'] as String).tr,
+                                    ));
                               },
                               child: CustomText(
                                 AppStrings.hotelAddBtn.tr,
@@ -99,7 +131,6 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-
                           ],
                         ));
                   },
@@ -123,5 +154,3 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
 
   // Helper to place placeholder icons matching your design
 }
-
-

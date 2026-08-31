@@ -50,7 +50,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.to(AcademicCalenderFormScreen());
+                      Get.to(() => AcademicCalenderFormScreen());
                     },
                     title: AppStrings.addAcademicCalendar),
               ),
@@ -98,10 +98,10 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                           onTap: () {
                             final urlType = data.uploadPhoto ?? "";
                             if (urlType.isPdf) {
-                              Get.to(FullScreenPdfViewer(
-                                fileUrl: data.uploadPhoto ?? "",
-                                title: data.description ?? "",
-                              ));
+                              Get.to(() => FullScreenPdfViewer(
+                                    fileUrl: data.uploadPhoto ?? "",
+                                    title: data.description ?? "",
+                                  ));
                             }
 
                             if (urlType.isImageUrl) {
@@ -193,10 +193,10 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
               }, onNoticeNewsEdit: () {
                 AcademicCalenderData data =
                     academicCalenderController.noticeNewsDataList[noticeIndex];
-                Get.to(AcademicCalenderFormScreen(
-                  isEdit: true,
-                  newsData: data,
-                ));
+                Get.to(() => AcademicCalenderFormScreen(
+                      isEdit: true,
+                      newsData: data,
+                    ));
               })
             : SizedBox(
                 width: 10,

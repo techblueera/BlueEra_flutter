@@ -78,7 +78,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     return v.variant.sellingPrice;
   }
 
-  double _effectiveMrp(SelectedVariant v) => inventoryController.effectiveMrp(v);
+  double _effectiveMrp(SelectedVariant v) =>
+      inventoryController.effectiveMrp(v);
 
   int _discountPercent(double mrp, double selling) {
     if (mrp <= 0 || selling >= mrp) return 0;
@@ -559,9 +560,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
-        color: hasError
-            ? AppColors.red.withValues(alpha: 0.04)
-            : _canvas,
+        color: hasError ? AppColors.red.withValues(alpha: 0.04) : _canvas,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: hasError
@@ -644,9 +643,10 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                 double.tryParse(displaySelling) ?? variant.sellingPrice;
             // Read the overridden MRP map so an edit re-renders the card.
             final mrpOverride = inventoryController.variantMrp[variant.id];
-            final mrpNum = (mrpOverride != null && mrpOverride.trim().isNotEmpty)
-                ? (double.tryParse(mrpOverride) ?? variant.mrp)
-                : variant.mrp;
+            final mrpNum =
+                (mrpOverride != null && mrpOverride.trim().isNotEmpty)
+                    ? (double.tryParse(mrpOverride) ?? variant.mrp)
+                    : variant.mrp;
             final discount = _discountPercent(mrpNum, sellingNum);
 
             return Row(
@@ -657,8 +657,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                   label: 'Selling price',
                   value:
                       '${AppConstants.rupeeSymbol}${sellingNum.toStringAsFixed(0)}',
-                  valueColor:
-                      hasError ? AppColors.red : AppColors.primaryColor,
+                  valueColor: hasError ? AppColors.red : AppColors.primaryColor,
                   valueSize: SizeConfig.large18 + 1,
                 ),
                 SizedBox(width: SizeConfig.size16),
@@ -1113,8 +1112,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                       Container(
                         width: SizeConfig.size45,
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.08),
+                          color: AppColors.primaryColor.withValues(alpha: 0.08),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(11),
                             bottomLeft: Radius.circular(11),

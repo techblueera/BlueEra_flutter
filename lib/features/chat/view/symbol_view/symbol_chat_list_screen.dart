@@ -23,9 +23,7 @@ class SymbolChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<SymbolFeedController>()
-        ? Get.find<SymbolFeedController>()
-        : Get.put(SymbolFeedController());
+    final controller = Get.find<SymbolFeedController>();
     // Refresh so the list reflects any symbols posted/expired since the feed
     // was last fetched.
     controller.fetchSymbolFeed();
@@ -34,9 +32,8 @@ class SymbolChatListScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(title: AppStrings.symbols.tr),
       body: Obx(() {
-        final groups = controller.userGroups
-            .where((g) => g.symbols.isNotEmpty)
-            .toList();
+        final groups =
+            controller.userGroups.where((g) => g.symbols.isNotEmpty).toList();
 
         return RefreshIndicator(
           onRefresh: () => controller.fetchSymbolFeed(),
@@ -146,7 +143,8 @@ class SymbolChatListScreen extends StatelessWidget {
                             imageUrl: profileImage,
                             fit: BoxFit.cover,
                             placeholder: (_, __) => const _AvatarFallback(),
-                            errorWidget: (_, __, ___) => const _AvatarFallback(),
+                            errorWidget: (_, __, ___) =>
+                                const _AvatarFallback(),
                           )
                         : const _AvatarFallback(),
                   ),
@@ -249,7 +247,8 @@ class _SymbolRingPainter extends CustomPainter {
     if (count == 0) return;
 
     final Offset center = Offset(size.width / 2, size.height / 2);
-    final double radius = (math.min(size.width, size.height) - _strokeWidth) / 2;
+    final double radius =
+        (math.min(size.width, size.height) - _strokeWidth) / 2;
     final Rect rect = Rect.fromCircle(center: center, radius: radius);
 
     final Paint paint = Paint()

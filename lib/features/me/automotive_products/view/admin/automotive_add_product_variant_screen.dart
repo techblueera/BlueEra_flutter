@@ -24,7 +24,8 @@ class AutomotiveAddProductVariantScreen extends StatefulWidget {
       _AutomotiveAddProductVariantScreenState();
 }
 
-class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProductVariantScreen> {
+class _AutomotiveAddProductVariantScreenState
+    extends State<AutomotiveAddProductVariantScreen> {
   final productController = getOrPut(() => AutomotiveProductController());
   late final AutomotiveInventoryController inventoryController;
 
@@ -37,7 +38,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
   @override
   void initState() {
     super.initState();
-    inventoryController = Get.put(AutomotiveInventoryController());
+    inventoryController = Get.find<AutomotiveInventoryController>();
 
     // Make sure every visible variant is marked selected in the
     // inventory controller (publish reads from there).
@@ -78,7 +79,8 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
     return v.variant.sellingPrice;
   }
 
-  double _effectiveMrp(AutomotiveSelectedVariant v) => inventoryController.effectiveMrp(v);
+  double _effectiveMrp(AutomotiveSelectedVariant v) =>
+      inventoryController.effectiveMrp(v);
 
   /// "3 products" / "1 product" — composed here rather than inside the
   /// translation string, because the plural form is a separate word in each
@@ -181,8 +183,8 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             final pid = productIds[index];
-                            final variants =
-                                grouped[pid] ?? const <AutomotiveSelectedVariant>[];
+                            final variants = grouped[pid] ??
+                                const <AutomotiveSelectedVariant>[];
                             if (variants.isEmpty) {
                               return const SizedBox.shrink();
                             }
@@ -575,9 +577,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
-        color: hasError
-            ? AppColors.red.withValues(alpha: 0.04)
-            : _canvas,
+        color: hasError ? AppColors.red.withValues(alpha: 0.04) : _canvas,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: hasError
@@ -660,9 +660,10 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                 double.tryParse(displaySelling) ?? variant.sellingPrice;
             // Read the overridden MRP map so an edit re-renders the card.
             final mrpOverride = inventoryController.variantMrp[variant.id];
-            final mrpNum = (mrpOverride != null && mrpOverride.trim().isNotEmpty)
-                ? (double.tryParse(mrpOverride) ?? variant.mrp)
-                : variant.mrp;
+            final mrpNum =
+                (mrpOverride != null && mrpOverride.trim().isNotEmpty)
+                    ? (double.tryParse(mrpOverride) ?? variant.mrp)
+                    : variant.mrp;
             final discount = _discountPercent(mrpNum, sellingNum);
 
             return Row(
@@ -673,8 +674,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                   label: AppStrings.sellingPrice.tr,
                   value:
                       '${AppConstants.rupeeSymbol}${sellingNum.toStringAsFixed(0)}',
-                  valueColor:
-                      hasError ? AppColors.red : AppColors.primaryColor,
+                  valueColor: hasError ? AppColors.red : AppColors.primaryColor,
                   valueSize: SizeConfig.large18 + 1,
                 ),
                 SizedBox(width: SizeConfig.size16),
@@ -842,8 +842,8 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
       if (sp == null || sp <= 0) {
         sellingError.value = AppStrings.automotiveEnterValidSellingPrice.tr;
       } else if (mrp != null && sp > mrp) {
-        sellingError.value =
-            AppStrings.automotiveSellingCannotExceedMrpFmt.trParams({
+        sellingError.value = AppStrings.automotiveSellingCannotExceedMrpFmt
+            .trParams({
           'mrp': '${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)}'
         });
       } else {
@@ -1136,8 +1136,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
                       Container(
                         width: SizeConfig.size45,
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.08),
+                          color: AppColors.primaryColor.withValues(alpha: 0.08),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(11),
                             bottomLeft: Radius.circular(11),
@@ -1250,8 +1249,7 @@ class _AutomotiveAddProductVariantScreenState extends State<AutomotiveAddProduct
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: CustomText(
-            AppStrings.automotiveCheckPricesFmt
-                .trParams({'error': firstError}),
+            AppStrings.automotiveCheckPricesFmt.trParams({'error': firstError}),
             color: AppColors.white,
           ),
           backgroundColor: AppColors.red,

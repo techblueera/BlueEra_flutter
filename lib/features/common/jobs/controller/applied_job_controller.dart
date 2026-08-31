@@ -322,7 +322,6 @@ class AppliedJobController extends GetxController {
   Future<void> bulkSendAssignment() async {
     commonSnackBar(message: "Coming soon");
     return;
-
   }
 
   Future<void> bulkMarkNotInterested(BuildContext context) async {
@@ -366,9 +365,9 @@ class AppliedJobController extends GetxController {
         ApiKeys.template: "resumeTemplate1"
       });
       if (responseModel.isSuccess) {
-        Get.to(ResumeWebPreview(
-          htmlContent: '''${responseModel.response}''',
-        ));
+        Get.to(() => ResumeWebPreview(
+              htmlContent: '''${responseModel.response}''',
+            ));
         candidateResumePreviewResponse.value =
             ApiResponse.complete(responseModel);
       } else {

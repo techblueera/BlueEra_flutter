@@ -131,9 +131,7 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
   /// never disturbed.
   void _openInfiniteVideoPlayer() {
     final item = getVideoData(post);
-    final controller = Get.isRegistered<ShortsController>()
-        ? Get.find<ShortsController>()
-        : Get.put(ShortsController());
+    final controller = Get.put(ShortsController());
 
     final shorts = _isShort ? Shorts.homeShort : Shorts.homeLong;
     controller.primeHomeFeed(isLong: !_isShort, initial: [item]);
@@ -355,7 +353,8 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.refresh, color: AppColors.white, size: SizeConfig.size30),
+                Icon(Icons.refresh,
+                    color: AppColors.white, size: SizeConfig.size30),
                 SizedBox(height: SizeConfig.size8),
                 CustomText(
                   'Watch again',
@@ -490,8 +489,8 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
       height: size,
       color: AppColors.white.withValues(alpha: 0.25),
       alignment: Alignment.center,
-      child: Icon(Icons.person,
-          color: AppColors.white, size: SizeConfig.size14),
+      child:
+          Icon(Icons.person, color: AppColors.white, size: SizeConfig.size14),
     );
 
     return ClipOval(
@@ -566,7 +565,8 @@ class _Badge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.white, size: SizeConfig.size14 * iconScale),
+          Icon(icon,
+              color: AppColors.white, size: SizeConfig.size14 * iconScale),
           SizedBox(width: SizeConfig.size4),
           CustomText(
             label,

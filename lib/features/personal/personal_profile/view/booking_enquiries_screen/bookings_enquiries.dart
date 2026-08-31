@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_booking_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/binding/booking_binding.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +30,7 @@ class BookingsScreen extends StatelessWidget {
         isLeading: true,
       ),
       body: Padding(
-        padding:  EdgeInsets.all( SizeConfig.size18),
+        padding: EdgeInsets.all(SizeConfig.size18),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -45,35 +46,38 @@ class BookingsScreen extends StatelessWidget {
                     onTap: () {
                       if (options[index] == "My Bookings") {
                         Get.toNamed(RouteHelper.getMyBookingScreenRoute());
-                      }else if(options[index] == "Received Bookings"){
-                        Get.to(()=>ReceivedBookingsScreen(channelId: channelId,));
-                      }
-                      else if(options[index] == "Received Enquiries"){
-                        Get.to(Get.to(()=>ReceivedEnquiriesScreen(channelId: channelId,)));
-                      }
-                      else if(options[index] == "Sent Enquiries"){
+                      } else if (options[index] == "Received Bookings") {
+                        Get.to(
+                            () => ReceivedBookingsScreen(
+                                  channelId: channelId,
+                                ),
+                            binding: BookingBinding());
+                      } else if (options[index] == "Received Enquiries") {
+                        Get.to(Get.to(
+                            () => ReceivedEnquiriesScreen(
+                                  channelId: channelId,
+                                ),
+                            binding: BookingBinding()));
+                      } else if (options[index] == "Sent Enquiries") {
                         Get.toNamed(RouteHelper.getMyEnquiresRoute());
-                      }
-                      else if(options[index] == "Set & Edit Availability"){
+                      } else if (options[index] == "Set & Edit Availability") {
                         print("channelId:$channelId");
-                        Get.toNamed(
-                            RouteHelper.getAvailabilityScreenRoute(),
-                            arguments: {ApiKeys.argId: channelId}
-                        );
+                        Get.toNamed(RouteHelper.getAvailabilityScreenRoute(),
+                            arguments: {ApiKeys.argId: channelId});
                       }
                     },
                     child: Padding(
-                      padding:  EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size16,
+                          vertical: SizeConfig.size16),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child:CustomText(
+                        child: CustomText(
                           options[index],
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w700,
                           color: Colors.black87,
                         ),
-
                       ),
                     ),
                   ),

@@ -17,7 +17,7 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
-  final controller = Get.put(BookingController());
+  final controller = Get.find<BookingController>();
   int selectedIndex = 0;
   final List<Map<String, dynamic>> bookings = [
     {
@@ -93,25 +93,29 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         children: [
           SizedBox(height: SizeConfig.size10),
           Obx(() => HorizontalTabSelector(
-            tabs: controller.filters,
-            selectedIndex: controller.selectedIndex.value,
-            onTabSelected: (index, value) {
-              controller.updateTab(index);
-            },
-            labelBuilder: (label) => label,
-          )),
+                tabs: controller.filters,
+                selectedIndex: controller.selectedIndex.value,
+                onTabSelected: (index, value) {
+                  controller.updateTab(index);
+                },
+                labelBuilder: (label) => label,
+              )),
           SizedBox(height: SizeConfig.size10),
           Obx(() {
             if (controller.isLoading.value) {
-              return const Expanded(child: Center(child: CircularProgressIndicator()));
+              return const Expanded(
+                  child: Center(child: CircularProgressIndicator()));
             }
 
             final filtered = controller.selectedTab.value == 'All'
                 ? controller.bookings
-                : controller.bookings.where((b) => b.status == controller.selectedTab.value).toList();
+                : controller.bookings
+                    .where((b) => b.status == controller.selectedTab.value)
+                    .toList();
 
             if (filtered.isEmpty) {
-              return const Expanded(child: Center(child: CustomText("No Bookings Found")));
+              return const Expanded(
+                  child: Center(child: CustomText("No Bookings Found")));
             }
 
             return Expanded(
@@ -120,7 +124,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 child: ListView.separated(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                   itemCount: filtered.length,
-                  separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size12),
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: SizeConfig.size12),
                   itemBuilder: (context, index) {
                     final booking = filtered[index];
                     return Container(
@@ -150,12 +155,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             ],
                           ),
                           SizedBox(height: SizeConfig.size8),
-                          CustomText("Date: ${formatDate(booking.bookingTime)}"),
-                          CustomText("Timings: ${formatTime(booking.bookingTime)}"),
+                          CustomText(
+                              "Date: ${formatDate(booking.bookingTime)}"),
+                          CustomText(
+                              "Timings: ${formatTime(booking.bookingTime)}"),
                           Row(
                             children: [
                               CustomText("Location: "),
-                              CustomText("Google Meet (Online)", color: Colors.blue),
+                              CustomText("Google Meet (Online)",
+                                  color: Colors.blue),
                             ],
                           ),
                           SizedBox(height: SizeConfig.size12),
@@ -199,6 +207,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       ),
     );
   }
+
   String formatDate(DateTime dateTime) {
     return "${dateTime.day} ${_monthName(dateTime.month)}, ${dateTime.year}";
   }
@@ -209,10 +218,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   String _monthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
-
 }

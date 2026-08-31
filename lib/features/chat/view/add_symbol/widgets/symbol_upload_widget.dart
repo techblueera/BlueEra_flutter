@@ -21,9 +21,7 @@ class SymbolUploadWidget extends StatefulWidget {
 }
 
 class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
-  final controller = Get.isRegistered<AddChatSymbolController>()
-      ? Get.find<AddChatSymbolController>()
-      : Get.put(AddChatSymbolController());
+  final controller = Get.find<AddChatSymbolController>();
 
   late final List<_SymbolTypeOption> _options = [
     _SymbolTypeOption(
@@ -60,8 +58,10 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   Widget build(BuildContext context) {
     return Obx(() {
       final hasMedia = controller.imagesList.isNotEmpty;
-      final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
-      final isVideo = controller.selectedSymbolPostType.value == SymbolPostType.video;
+      final isPhoto =
+          controller.selectedSymbolPostType.value == SymbolPostType.image;
+      final isVideo =
+          controller.selectedSymbolPostType.value == SymbolPostType.video;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +210,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   // ─── MEDIA HEADER (count + add more) ───────────────────────────────
 
   Widget _buildMediaHeader() {
-    final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
+    final isPhoto =
+        controller.selectedSymbolPostType.value == SymbolPostType.image;
     final count = controller.imagesList.length;
 
     return Row(
@@ -687,8 +688,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   bottom: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(8),
@@ -712,7 +713,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   // ─── EMPTY STATE PLACEHOLDER ───────────────────────────────────────
 
   Widget _buildEmptyMediaPlaceholder() {
-    final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
+    final isPhoto =
+        controller.selectedSymbolPostType.value == SymbolPostType.image;
     final option = isPhoto ? _options[0] : _options[1];
 
     return GestureDetector(
@@ -1008,7 +1010,8 @@ class _SymbolTypeOption {
 }
 
 void openVideoPreview(File file) async {
-  final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: file.path));
+  final trimmedPath =
+      await Get.to(() => VideoTrimmerPage(videoPath: file.path));
   if (trimmedPath != null) {
     await Get.find<AddChatSymbolController>().setVideoFile(File(trimmedPath));
   }
