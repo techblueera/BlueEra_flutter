@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/features/personal/emergency/view/emergency_basic_info_screen.dart';
 import '../controller/emergency_profile_controller.dart';
@@ -616,18 +617,20 @@ class _GetAppBanner extends StatelessWidget {
   const _GetAppBanner();
 
   Future<void> _openPlayStore() async {
-    // Replace with your actual package name
-    final uri = Uri.parse(
-      'https://play.google.com/store/apps/details?id=ai.blueera.app',
-    );
+    // `ai.blueera.app` is not a listing that exists — the app ships as
+    // `ai.bluecs.app` (see android/app/build.gradle `applicationId` and the
+    // `assetlinks.json` on beapp.in). Use the shared constants so the store
+    // links can never drift from the real package/app ids again.
+    final uri = Uri.parse(AppConstants.androidPlayStoreUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
   Future<void> _openAppStore() async {
-    // Replace with your actual App Store link
-    final uri = Uri.parse('https://apps.apple.com/app/blueera/id0000000000');
+    // Was a placeholder id (`id0000000000`), which opens an App Store error
+    // page. The real listing id lives in [AppConstants.iosAppId].
+    final uri = Uri.parse(AppConstants.iosAppStoreUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
