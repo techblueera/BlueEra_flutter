@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -277,7 +278,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
                 _tabScroll(
-                  SchoolAcademicsTabV2(controller: _schoolController),
+                  withQurekaPromoBelow(
+                      SchoolAcademicsTabV2(controller: _schoolController)),
                   horizontalPadding: 10,
                 ),
                 _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),

@@ -19,6 +19,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_suggestions_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_video_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/widget/symbol_story_row.dart';
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -403,6 +404,10 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
+            // Story rail only — no promo pinned under it. The ad rows
+            // interleaved by [buildNativeAdRows] already carry the Qureka card
+            // at the shared cadence, so one here made the feed open on a promo
+            // and then show another a few posts down.
             if (showStories && indexFeed == 0) {
               return const SymbolStoryRow();
             }
@@ -420,7 +425,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
               // platform view); Flutter only adds the matching radius-20 clip,
               // the soft post-card shadow, and EdgeInsets.all(5) spacing — the
               // same spacing FeedCardWidget + MessagePostWidget use.
-              return NativeAdSlot(
+              // Qureka promo in place of the native ad — see kQurekaReplacesNativeAds.
+              return PromoAdSlot(
                 adOrdinal: row.adOrdinal,
                 keyPrefix: 'home_feed_native_ad',
                 factoryId: 'feedAdFactory',

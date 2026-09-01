@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -226,7 +227,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
               // chrome (top bar, tab controller, per-tab fetch/refresh) and
               // nothing else. Statistics already is its own screen.
               tabViews: [
-                _tabScroll(GroceryProductsTab(businessId: widget.businessId)),
+                _tabScroll(withQurekaPromoBelow(GroceryProductsTab(businessId: widget.businessId))),
                 _tabScroll(const GroceryOverviewTab()),
                 // _tabScroll(const GroceryPostTab()),
                 ProfileStatisticsScreen(userId: widget.businessId),

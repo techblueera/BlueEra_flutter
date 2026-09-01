@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -294,7 +295,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     // and nothing else. Stats already is its own screen.
                     tabViews: [
                       _tabScroll(
-                          MedicalProductsTab(businessId: widget.businessId)),
+                          withQurekaPromoBelow(
+                              MedicalProductsTab(businessId: widget.businessId))),
                       // Overview waits on its OWN fetch rather than the whole
                       // screen doing so; once the profile lands the setState
                       // in [_fetchData] swaps this for the real tab.

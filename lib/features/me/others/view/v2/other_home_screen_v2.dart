@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -111,7 +112,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const OtherServicesTabV2()),
+                _tabScroll(withQurekaPromoBelow(const OtherServicesTabV2())),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 // _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),

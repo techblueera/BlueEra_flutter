@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -152,7 +153,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll(withQurekaPromoBelowAll(_buildOrderTab())),
                 _tabScroll(const [ContentCreatorOverviewTab()]),
                 _tabScroll(const [ContentCreatorChannelTab()]),
                 _tabScroll(const [EarnStoreCards()]),

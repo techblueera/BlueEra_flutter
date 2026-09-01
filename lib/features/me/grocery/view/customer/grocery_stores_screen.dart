@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/widgets/measure_size.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -422,6 +423,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       top: SizeConfig.size4,
                       bottom: SizeConfig.paddingL + 70,
                     ),
+                    // No promo row pinned at index 0: the ad rows interleaved
+                    // by [buildNativeAdRows] already carry the Qureka card at
+                    // the shared cadence, so a leading one made the list open
+                    // on a promo AND show another one a few cards later.
                     itemBuilder: (context, index) {
                       if (index == rows.length) {
                         return Padding(
@@ -453,7 +458,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         // ordinal) so the loaded ad survives list rebuilds
                         // (load-more, etc.) instead of reloading and burning
                         // impressions.
-                        return NativeAdSlot(
+                        return PromoAdSlot(
                           adOrdinal: row.adOrdinal,
                           keyPrefix: 'grocery_native_ad',
                           height: adHeight,

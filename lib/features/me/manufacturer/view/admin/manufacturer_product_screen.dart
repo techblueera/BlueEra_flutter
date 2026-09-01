@@ -1,5 +1,6 @@
 ﻿import 'dart:ui';
 
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -192,7 +193,8 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
               // Statistics already are their own screens.
               tabViews: [
                 _tabScroll(
-                    ManufacturerProductsTab(onAddProduct: _onAddProduct)),
+                    withQurekaPromoBelow(
+                        ManufacturerProductsTab(onAddProduct: _onAddProduct))),
                 _tabScroll(const ManufacturerProductHomeScreen()),
                 // _tabScroll(const ManufacturerPostTab()),
                 ProfileStatisticsScreen(userId: userId),

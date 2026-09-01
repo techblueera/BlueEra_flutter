@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -216,7 +217,9 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
                 itemBuilder: (context, index) {
                   final row = rows[index];
                   if (row.isAd) {
-                    return NativeAdSlot(
+                    // Qureka promo instead of a native ad on this screen — see
+                    // kQurekaReplacesNativeAds for the switch back.
+                    return PromoAdSlot(
                       adOrdinal: row.adOrdinal,
                       keyPrefix: 'food_listing_native_ad',
                     );

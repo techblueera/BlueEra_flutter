@@ -172,6 +172,7 @@ flutter:
     - assets/category/foods/menu/
     - assets/translations/
     - assets/onboarding/
+    - assets/qureka/
 
 
   fonts:

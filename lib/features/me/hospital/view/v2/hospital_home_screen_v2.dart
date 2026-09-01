@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -143,7 +144,8 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
                 _tabScroll(
-                    HospitalDepartmentsTabV2(controller: _hospitalController)),
+                    withQurekaPromoBelow(
+                        HospitalDepartmentsTabV2(controller: _hospitalController))),
                 _tabScroll(
                     HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(

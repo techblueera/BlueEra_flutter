@@ -42,6 +42,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/help_support/widget/help_support_avatar_button.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/features/loan/view/quick_loan_apply_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
@@ -241,6 +242,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(child: _header(context)),
+                      // Qureka Lite promo, directly under the header — the
+                      // first thing below the search bar, before the ongoing
+                      // ride / order chips and the catalogue.
+                      const SliverToBoxAdapter(
+                        child: QurekaPromoBanner(
+                          margin: EdgeInsets.fromLTRB(_gap, _gap, _gap, 0),
+                        ),
+                      ),
                       const SliverToBoxAdapter(child: OngoingBookingChip()),
                       // Orders waiting on the customer, with their clocks.
                       // Directly under the ride chip because they answer the
