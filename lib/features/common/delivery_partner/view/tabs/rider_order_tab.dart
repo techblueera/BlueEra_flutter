@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -130,7 +131,11 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
 
   @override
   Widget build(BuildContext context) {
-    return RiderTabScroll(children: _buildOrderTab());
+    // Promo strip appended INSIDE the tab's own scroll, so it travels with the
+    // content and settles after the last row rather than sitting as a pinned
+    // band. This screen passes its tabs to HomeTabScaffold directly (no shared
+    // `_tabScroll` helper), so the wrap goes here rather than at the scaffold.
+    return RiderTabScroll(children: withQurekaPromoBelowAll(_buildOrderTab()));
   }
 
   List<Widget> _buildOrderTab() {
