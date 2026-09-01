@@ -16,6 +16,7 @@ import '../../auth/controller/custom_chat_tab_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/custom_chat_tab_model.dart';
 import '../archive_chat/archive_chat_list.dart';
+import '../business_chat/business_chat_list.dart' show ChatBucket, bucketChat;
 import '../flag_chat/flag_chat_list.dart';
 import '../group_chat/group_chat_list.dart';
 import '../pin_chat/pin_chat_list.dart';
@@ -577,6 +578,82 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
     return name == 'blueera' || type == AppStrings.Admin;
   }
 
+  /// Sort key for "most recent activity": the last-message time, falling back
+  /// to creation time. Empty string for a row with neither, which sorts it to
+  /// the bottom — the same place the Today/History split sends it.
+  String _lastActivityKey(ChatList? chat) {
+    if (chat == null) return '';
+    final updated = chat.updatedAt;
+    if (updated != null && updated.isNotEmpty) return updated;
+    return chat.createdAt ?? '';
+  }
+
+  /// The order / inquiry conversations that also belong on the Chat tab.
+  ///
+  /// Placing an order creates a business conversation, so it only ever landed
+  /// in Inquiry. The Chat tab now carries those rows too — same conversation,
+  /// two entry points — so a fresh order is reachable without switching tabs.
+  ///
+  /// Which rows: exactly the ones the Inquiry tab shows, so the two tabs can't
+  /// disagree. [ChatBucket.chats] is orders I PLACED plus normal business
+  /// chats; orders I RECEIVED as a seller stay in the Me/Order lane, and a
+  /// rider's own ride threads are bucketed out by [bucketChat]. Archived and
+  /// PIN-locked business threads are dropped the same way Inquiry drops them.
+  ///
+  /// Reading the business model here also registers it with the enclosing
+  /// [Obx], so the Chat tab repaints when the business list arrives.
+  List<ChatList?> _businessChatsForChatTab(Set<String?> alreadyListed) {
+    final businessList =
+        chatViewController.getBusinessChatListModel?.value.chatList ?? [];
+    if (businessList.isEmpty) return const [];
+
+    final archivedIds = pinArchiveController.businessArchivedIds;
+    final lockedIds = lockController.businessLockedIds;
+
+    final merged = <ChatList?>[];
+    for (final chat in businessList) {
+      if (chat == null) continue;
+      final id = chat.conversationId;
+      // A conversation the personal list already carries must not double up.
+      if (alreadyListed.contains(id)) continue;
+      if (archivedIds.contains(id) || lockedIds.contains(id)) continue;
+      if (bucketChat(chat) != ChatBucket.chats) continue;
+      merged.add(chat);
+    }
+    return merged;
+  }
+
+  /// True when the conversation saw activity at or after [cutoff] — i.e. it
+  /// belongs under the "Today" heading. `updated_at` is the last-message time;
+  /// `created_at` only covers rows the server sent before the conversation had
+  /// one. A row with no usable timestamp can't be claimed as recent, so it
+  /// falls through to History. Same rule as [recentInquiryChats] on the
+  /// Inquiry side, so the two tabs can never disagree about what "today" means.
+  bool _isActiveSince(ChatList chat, DateTime cutoff) {
+    final raw =
+        (chat.updatedAt?.isNotEmpty ?? false) ? chat.updatedAt : chat.createdAt;
+    if (raw == null || raw.isEmpty) return false;
+    try {
+      return DateTime.parse(raw).toLocal().isAfter(cutoff);
+    } catch (_) {
+      return false; // unparseable timestamp — can't claim it's recent
+    }
+  }
+
+  /// Section heading ("Today" / "History") separating the last-24h chats from
+  /// the aged-out ones. Matches the Inquiry tab's heading style.
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      child: CustomText(
+        title,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: Colors.grey.shade600,
+      ),
+    );
+  }
+
 Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     // Sort pinned to top — archived chats are no longer filtered out here.
     List<ChatList?> chatList = data?.chatList ?? [];
@@ -590,13 +667,34 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
       return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
 
-    // Sort: pinned chats first, then unpinned
+    // Orders / inquiries surface on this tab as well as on Inquiry — see
+    // [_businessChatsForChatTab]. Pickers are left alone: the forward screen
+    // already lists recent inquiries in its own section above this list, so
+    // merging here would show every order twice.
+    final bool mergeBusinessChats =
+        widget.isForwardUI != true && widget.isNewGroupUI != true;
+    if (mergeBusinessChats) {
+      chatList = [
+        ...chatList,
+        ..._businessChatsForChatTab(
+          chatList.map((c) => c?.conversationId).toSet(),
+        ),
+      ];
+    }
+
+    // Sort: pinned chats first, then newest activity first.
+    //
+    // The recency tie-break is not cosmetic. The merged order rows arrive in
+    // the business list's own order, so without it every order would sit
+    // below every personal chat regardless of age. It also can't be left to
+    // the incoming order: `List.sort` is NOT stable in Dart, so a comparator
+    // returning 0 for two unpinned rows is free to swap them and scramble the
+    // server's newest-first ordering.
     chatList.sort((a, b) {
       final aPinned = pinnedIds.contains(a?.conversationId);
       final bPinned = pinnedIds.contains(b?.conversationId);
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-      return 0;
+      if (aPinned != bPinned) return aPinned ? -1 : 1;
+      return _lastActivityKey(b).compareTo(_lastActivityKey(a));
     });
 
     final hasArchived = archivedIds.isNotEmpty;
@@ -624,6 +722,38 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
         widget.isNewGroupUI != true;
     final suggestionRowCount = showContactSuggestions ? 1 : 0;
 
+    // Recency split — the Chat tab now mirrors the Inquiry tab's sections.
+    // "Today" is the last 24 hours of activity (`updated_at`, falling back to
+    // `created_at` for rows the server sent before the conversation had a
+    // message); everything older drops under "History" in the same list.
+    // Pinned chats are exempt: the user pinned them to keep them at the top,
+    // so they stay under Today however old the last message is.
+    //
+    // Pickers (forward / new-group) keep the flat list — section headings
+    // there would only get in the way of picking a conversation.
+    final bool showSections =
+        widget.isForwardUI != true && widget.isNewGroupUI != true;
+    final List<ChatList?> todayList = [];
+    final List<ChatList?> historyList = [];
+    if (showSections) {
+      final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+      for (final chat in chatList) {
+        if (chat != null &&
+            !pinnedIds.contains(chat.conversationId) &&
+            !_isActiveSince(chat, cutoff)) {
+          historyList.add(chat);
+        } else {
+          todayList.add(chat);
+        }
+      }
+    } else {
+      todayList.addAll(chatList);
+    }
+    final bool showTodayHeader = showSections && todayList.isNotEmpty;
+    final bool showHistoryHeader = showSections && historyList.isNotEmpty;
+    final int todayHeaderCount = showTodayHeader ? 1 : 0;
+    final int historyHeaderCount = showHistoryHeader ? 1 : 0;
+
     return Container(
       // Still render the list when there are no real chats but pinned system
       // rows exist (AI / BlueEra notifications), so those stay visible for a
@@ -638,7 +768,12 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
         // scrollable (it adds MediaQuery.padding.top), which showed up as an
         // empty strip above the first chat row.
         padding: EdgeInsets.zero,
-        itemCount: chatList.length + topRowCount + suggestionRowCount,
+        itemCount: topRowCount +
+            todayHeaderCount +
+            todayList.length +
+            historyHeaderCount +
+            historyList.length +
+            suggestionRowCount,
         shrinkWrap: true,
         physics: widget.isForwardUI == true
             ? NeverScrollableScrollPhysics()
@@ -649,14 +784,40 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
             return _buildRecordsRow();
           }
 
-          // Suggestions sit BELOW the (broadcast-only) chat rows.
-          if (showContactSuggestions &&
-              index == chatList.length + topRowCount) {
-            return const StartChatContactSuggestions();
+          // Past the Records row — `i` now walks the real content:
+          // [Today?, today…, History?, history…, suggestions?]
+          int i = index - topRowCount;
+
+          // "Today" heading above the last-24h chats.
+          if (showTodayHeader) {
+            if (i == 0) return _buildSectionHeader(AppStrings.todayLabel.tr);
+            i -= 1;
           }
 
-          final chatIndex = index - topRowCount;
-          final chat = chatList[chatIndex];
+          final List<ChatList?> section;
+          final int chatIndex;
+          if (i < todayList.length) {
+            section = todayList;
+            chatIndex = i;
+          } else {
+            i -= todayList.length;
+
+            // "History" heading above the aged-out conversations.
+            if (showHistoryHeader) {
+              if (i == 0) {
+                return _buildSectionHeader(AppStrings.historyTab.tr);
+              }
+              i -= 1;
+            }
+
+            // Suggestions sit BELOW every chat row.
+            if (i >= historyList.length) {
+              return const StartChatContactSuggestions();
+            }
+            section = historyList;
+            chatIndex = i;
+          }
+          final chat = section[chatIndex];
           final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
           final isChatSelected = chatViewController.selectedConversationIds
               .contains(chat?.conversationId ?? '');

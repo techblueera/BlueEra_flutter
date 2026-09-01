@@ -359,6 +359,14 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.personal_Chat_Type},
       );
+      // The Chat tab now also renders the order / inquiry rows (see
+      // `PersonalChatsList._businessChatsForChatTab`), so it needs the
+      // business list too — without this emit a freshly placed order only
+      // shows up here after the user has visited Inquiry at least once.
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.business_Chat_Type},
+      );
     } else if (index == 1 || index == 2) {
       // Inquiry and the Order tab both render from the business chat list,
       // so both need the same socket emit.
