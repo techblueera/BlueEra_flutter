@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/image_decode_size.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -56,6 +57,13 @@ class CachedAvatarWidget extends StatelessWidget {
                   width: size,
                   height: size,
                   fit: BoxFit.cover,
+                  // Decode at avatar size, not at whatever the user uploaded.
+                  // This widget draws every author, commenter and suggestion
+                  // face in the app — a feed screen holds dozens at once — and
+                  // without this each one was a full-resolution bitmap in the
+                  // image cache to be painted into a 40px circle. See
+                  // [decodeWidthFor].
+                  memCacheWidth: decodeWidthFor(context, size),
                   placeholder: (context, url) => Container(
                     width: size,
                     height: size,

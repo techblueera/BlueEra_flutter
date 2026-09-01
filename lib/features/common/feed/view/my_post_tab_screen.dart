@@ -79,11 +79,18 @@ class _MyPostTabScreenState extends State<MyPostTabScreen>
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Cache-first: paint the last-known grid on the FIRST frame — this runs
+    // before the first build, and the read is synchronous — then refresh behind
+    // it. A cold second launch used to sit on a spinner until the network came
+    // back; now the user sees their posts immediately and never learns that a
+    // request went out.
+    final hydratedFromCache = _feedController.primeMyPostsFromCacheSync();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewController.UserFollowersAndPostsCount(userId);
-      // Only fetch when the shared list is cold — the profile screens populate
-      // the very same list, so a warm one is already correct.
-      if (_feedController.myPosts.isEmpty) {
+      // Fetch when the list is cold OR when what's on screen came off disk —
+      // a cache hit is a reason to revalidate, not a reason to skip. Only a
+      // list the profile screens already filled with live data is left alone.
+      if (hydratedFromCache || _feedController.myPosts.isEmpty) {
         _fetch(isInitialLoad: true);
       }
     });

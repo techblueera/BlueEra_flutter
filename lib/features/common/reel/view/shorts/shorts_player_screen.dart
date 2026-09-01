@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -44,6 +46,20 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   /// back to the broken master and loops.
   final Set<String> _mp4FallbackIds = <String>{};
 
+  /// The page whose neighbours still need preloading, and the timer that will
+  /// do it if no [ScrollEndNotification] arrives first. See [_onPageChanged]
+  /// for why the work is deferred at all.
+  int? _pendingWarmUpIndex;
+  Timer? _warmUpDebounce;
+
+  /// Long enough to sit out a normal page settle, short enough that a video
+  /// which somehow never reports a scroll end still starts promptly.
+  static const Duration _kWarmUpFallbackDelay = Duration(milliseconds: 260);
+
+  /// Mirrors the platform wake lock so a swipe doesn't re-issue a call that
+  /// changes nothing. `keepOn`/`keepOff` are channel round-trips.
+  bool _wakeLockHeld = false;
+
   @override
   void initState() {
     super.initState();
@@ -83,31 +99,19 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
   @override
   void dispose() {
-    print('🔴 DISPOSE: Starting disposal process...');
     WidgetsBinding.instance.removeObserver(this);
+    _warmUpDebounce?.cancel();
     _releaseWakeLock();
 
-    /* 1. Pause every cached controller first */
-    print('🔇 DISPOSE: Pausing all cached controllers...');
-    _videoCache.forEach((i, e) {
-      if (e.controller != null) {
-        final wasPlaying = e.controller!.value.isPlaying;
-        e.controller?.pause();
-        print('   - Cache[$i]: Was playing: $wasPlaying, Now paused: ${!e.controller!.value.isPlaying}');
-      }
-    });
-
-    /* 2. Dispose all controllers */
-    print('🗑️ DISPOSE: Disposing all cached controllers...');
+    /* Pause every cached controller first, then dispose them — pausing up
+       front means no audio can leak out of a controller while the rest of the
+       teardown runs. */
+    _videoCache.values.forEach((e) => e.controller?.pause());
     _videoCache.values.forEach((e) {
-      if (e.controller != null) {
-        print('   - Disposing controller: ${e.controller.hashCode}');
-        e.controller?.dispose();
-        e.controller = null;
-      }
+      e.controller?.dispose();
+      e.controller = null;
     });
     _videoCache.clear();
-    print('✅ DISPOSE: All controllers disposed and cache cleared');
 
     _pageController.dispose();
     super.dispose();
@@ -139,15 +143,17 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   Future<void> _acquireWakeLock() async {
-    if (!mounted) return;
+    if (!mounted || _wakeLockHeld) return;
+    _wakeLockHeld = true;
     await ScreenService.keepOn();
-    print('🔒 WAKE-LOCK acquired');
   }
 
+  /// No `mounted` guard: this also runs from [dispose], and a screen that leaves
+  /// the wake lock behind keeps the display on for the rest of the session.
   Future<void> _releaseWakeLock() async {
-    if (!mounted) return;
+    if (!_wakeLockHeld) return;
+    _wakeLockHeld = false;
     await ScreenService.keepOff();
-    print('🔓 WAKE-LOCK released');
   }
 
   //
@@ -164,6 +170,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   /* ------------------------------------------------------ */
 
   /* --------------  NEW : OOM-safe cache  -------------- */
+  /// Only ever called once the scroll has settled — see [_onPageChanged].
   void _warmUpRange(int centre) {
     final list = _getCurrentFeedList(shortsFeedController!);
     if (list == null) return;
@@ -177,35 +184,19 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (i < left || i > right) toRemove.add(i);
     });
 
-    if (toRemove.isNotEmpty) {
-      print('🗑️ WARMUP: Disposing controllers outside range [$left-$right]: $toRemove');
-    }
-
     toRemove.forEach((i) {
-      final controller = _videoCache[i]?.controller;
-      if (controller != null) {
-        final wasPlaying = controller.value.isPlaying;
-        print('   - Disposing cache[$i]: was playing: $wasPlaying, controller: ${controller.hashCode}');
-        controller.dispose();
-      }
+      _videoCache[i]?.controller?.dispose();
       _videoCache.remove(i);
     });
 
     /* create missing — always cover the whole [left..right] window so the
        current page and its immediate neighbours are ready to play. The
        dispose-far pass above already capped the map, so no extra guard. */
-    final toCreate = <int>[];
     for (int i = left; i <= right; i++) {
       if (_videoCache.containsKey(i)) continue;
       final item = list.elementAtOrNull(i);
       if (item == null) continue;
-
-      toCreate.add(i);
       _videoCache[i] = _createEntry(item, i);
-    }
-
-    if (toCreate.isNotEmpty) {
-      print('🆕 WARMUP: Created new controllers for indices: $toCreate');
     }
   }
 
@@ -441,38 +432,68 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   void _onPageChanged(int index) {
-    print('📄 PAGE_CHANGE: From $currentIndex to $index');
     setState(() => currentIndex = index);
 
-    /* pause others */
-    final pausedIndices = <int>[];
-    _videoCache.forEach((i, e) {
-      if (i != index && e.controller != null) {
-        final wasPlaying = e.controller!.value.isPlaying;
-        if (wasPlaying) {
-          e.controller!.pause();
-          pausedIndices.add(i);
-        }
-      }
-    });
-
-    if (pausedIndices.isNotEmpty) {
-      print('🔇 PAGE_CHANGE: Paused controllers at indices: $pausedIndices');
-      _releaseWakeLock();
+    /* pause others — cheap, and it has to happen on this frame or two videos
+       play over each other for as long as the settle takes */
+    for (final entry in _videoCache.entries) {
+      if (entry.key == index) continue;
+      final controller = entry.value.controller;
+      if (controller != null && controller.value.isPlaying) controller.pause();
     }
+    // The wake lock is deliberately NOT released here: the page we just moved
+    // to is about to start playing, so dropping it and re-taking it a moment
+    // later is two platform round-trips per swipe for no change in state.
 
-    /* preload neighbours first so the current page has a controller */
-    _warmUpRange(index);
+    /* Everything expensive is deferred until the scroll actually stops.
+       _warmUpRange disposes and constructs VideoPlayerControllers, and
+       `initialize()` allocates a platform surface/texture — doing that here,
+       while the fling is still settling (and again for every page a fast flick
+       passes through), is what made up/down scrolling stutter. Instagram feels
+       smooth because nothing heavy happens until the finger is done.
 
-    /* play current as soon as it is initialized */
-    _playWhenReady(index);
+       _onScrollNotification commits this the instant the scroll ends; the timer
+       is only a fallback for the paths that produce no ScrollEndNotification. */
+    _pendingWarmUpIndex = index;
+    _warmUpDebounce?.cancel();
+    _warmUpDebounce = Timer(_kWarmUpFallbackDelay, _commitWarmUp);
 
-    /* load more */
+    /* load more — cheap, and the controller's own guards make repeats no-ops */
     final list = _getCurrentFeedList(shortsFeedController!);
     if (index >= (list?.length ?? 0) - 3) {
       _onScrollToEnd(shortsFeedController!);
     }
+  }
 
+  /// Runs the deferred preload for whichever page we last landed on, as long as
+  /// it is still the visible one.
+  void _commitWarmUp() {
+    _warmUpDebounce?.cancel();
+    _warmUpDebounce = null;
+    final index = _pendingWarmUpIndex;
+    _pendingWarmUpIndex = null;
+    if (index == null || !mounted || index != currentIndex) return;
+    _warmUpRange(index);
+    // Hand the freshly-built controllers to their pages. `allowImplicitScrolling`
+    // means the neighbours are already mounted, so this is what lets them show a
+    // first frame the moment the user starts the next swipe instead of holding
+    // their cover until they become current.
+    setState(() {});
+    _playWhenReady(index);
+  }
+
+  /// Drives [_commitWarmUp] off the scroll lifecycle: the moment the PageView
+  /// settles, the preload runs — no waiting out the fallback timer.
+  ///
+  /// Deferred by a frame because a scroll can end from inside layout (a
+  /// viewport re-measure starts an idle activity), and [_commitWarmUp] calls
+  /// setState. The fallback timer is deliberately left armed until the commit
+  /// actually happens, so a frame that never comes can't strand the preload.
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollEndNotification && _pendingWarmUpIndex != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _commitWarmUp());
+    }
+    return false;
   }
 
   Future<bool> _onPop() async {
@@ -519,14 +540,28 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
             children: [
               Obx(() {
                 final list = _getCurrentFeedList(shortsFeedController!);
-                return PageView.builder(
+                return NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: PageView.builder(
                   scrollDirection: Axis.vertical,
                   controller: _pageController,
                   itemCount: list?.length ?? 0,
                   onPageChanged: _onPageChanged,
+                  // Keep the neighbouring pages BUILT rather than constructing
+                  // them mid-swipe. Their cover images and overlays are then
+                  // already laid out and decoded when the drag starts, which is
+                  // the difference between a swipe that reveals a finished page
+                  // and one that reveals a page assembling itself.
+                  allowImplicitScrolling: true,
+                  physics: const _ReelPageScrollPhysics(),
                     itemBuilder: (_, index) {
                       final item = list![index];
-                      return ShortPlayerItem(
+                      // Each reel is a video texture under a stack of overlays
+                      // that repaint on their own (buffering spinner, the
+                      // play/pause fade). The boundary keeps one page's repaint
+                      // from dirtying the page sliding past it.
+                      return RepaintBoundary(
+                        child: ShortPlayerItem(
                         key: ValueKey(item.video?.id ?? index),
                         videoItem: item,
                         autoPlay: index == currentIndex,
@@ -554,8 +589,10 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                         initializeFuture: _videoCache[index]?.initializeFuture,
                         coverUrl: _videoCache[index]?.coverUrl,
                         /* ---------------------------------------- */
+                      ),
                       );
                     },
+                  ),
                 );
               }),
 
@@ -637,6 +674,34 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 }
 
 /* helper class to keep controller + first frame + cover */
+/// Page physics tuned for a reel feed.
+///
+/// The only change from [PageScrollPhysics] is the snap spring. Flutter's
+/// default is `mass 0.5 / stiffness 100` at a damping ratio of **1.1** — mildly
+/// underdamped, so the page overshoots its rest position and eases back, which
+/// on a full-bleed video reads as the next reel drifting into place rather than
+/// arriving. This one is stiffer (a shorter settle) and critically damped at
+/// **1.0** (no overshoot at all), which is what makes a short flick feel like it
+/// commits the moment the finger leaves the glass.
+///
+/// Drag friction and overscroll are untouched: the parent stays whatever the
+/// platform's [ScrollBehavior] supplies, so the feed still behaves like every
+/// other Android/iOS scrollable in the app.
+class _ReelPageScrollPhysics extends PageScrollPhysics {
+  const _ReelPageScrollPhysics({super.parent});
+
+  @override
+  _ReelPageScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _ReelPageScrollPhysics(parent: buildParent(ancestor));
+
+  @override
+  SpringDescription get spring => SpringDescription.withDampingRatio(
+        mass: 0.5,
+        stiffness: 180,
+        ratio: 1.0,
+      );
+}
+
 class _VideoCacheEntry {
   VideoPlayerController? controller;
   Future<void>? initializeFuture;

@@ -46,22 +46,43 @@ abstract class Env {
   @EnviedField(varName: 'PROD_RAZORPAY_KEY')
   static String prodRazorPayKey = _Env.prodRazorPayKey;
 
-  // ── Google AdMob IDs — per platform ──
-  @EnviedField(varName: 'ADMOB_APP_ID_ANDROID')
-  static String admobAppIdAndroid = _Env.admobAppIdAndroid;
+  // ── Google AdMob ad-unit IDs — per platform, live + test ──
+  //
+  // The names here must match `.env` EXACTLY: envied resolves each field by its
+  // `varName` at build time, and a name with no matching line in `.env` is a
+  // hard build failure, not a null. These six used to read ADMOB_APP_ID_*,
+  // ADMOB_NATIVE_* and ADMOB_INTERSTITIAL_*, none of which `.env` defines — so
+  // `env.g.dart` (generated from the real key names) had no such members and
+  // the whole tree stopped compiling on `_Env.admobAppIdAndroid`.
+  //
+  // There is deliberately NO app-id field. The AdMob app id is read by the
+  // native SDK from AndroidManifest.xml / Info.plist; Dart never needs it, and
+  // `.env` accordingly does not carry one.
+  @EnviedField(varName: 'ADMOB_NATIVE_AD_UNIT_ANDROID')
+  static String admobNativeAdUnitAndroid = _Env.admobNativeAdUnitAndroid;
 
-  @EnviedField(varName: 'ADMOB_APP_ID_IOS')
-  static String admobAppIdIos = _Env.admobAppIdIos;
+  @EnviedField(varName: 'ADMOB_NATIVE_AD_UNIT_IOS')
+  static String admobNativeAdUnitIos = _Env.admobNativeAdUnitIos;
 
-  @EnviedField(varName: 'ADMOB_NATIVE_ANDROID')
-  static String admobNativeAndroid = _Env.admobNativeAndroid;
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_ANDROID')
+  static String admobInterstitialAdUnitAndroid =
+      _Env.admobInterstitialAdUnitAndroid;
 
-  @EnviedField(varName: 'ADMOB_NATIVE_IOS')
-  static String admobNativeIos = _Env.admobNativeIos;
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_IOS')
+  static String admobInterstitialAdUnitIos = _Env.admobInterstitialAdUnitIos;
 
-  @EnviedField(varName: 'ADMOB_INTERSTITIAL_ANDROID')
-  static String admobInterstitialAndroid = _Env.admobInterstitialAndroid;
+  @EnviedField(varName: 'ADMOB_TEST_NATIVE_AD_UNIT_ANDROID')
+  static String admobTestNativeAdUnitAndroid =
+      _Env.admobTestNativeAdUnitAndroid;
 
-  @EnviedField(varName: 'ADMOB_INTERSTITIAL_IOS')
-  static String admobInterstitialIos = _Env.admobInterstitialIos;
+  @EnviedField(varName: 'ADMOB_TEST_NATIVE_AD_UNIT_IOS')
+  static String admobTestNativeAdUnitIos = _Env.admobTestNativeAdUnitIos;
+
+  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_ANDROID')
+  static String admobTestInterstitialAdUnitAndroid =
+      _Env.admobTestInterstitialAdUnitAndroid;
+
+  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_IOS')
+  static String admobTestInterstitialAdUnitIos =
+      _Env.admobTestInterstitialAdUnitIos;
 }

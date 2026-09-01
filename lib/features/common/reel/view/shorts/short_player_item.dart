@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -527,31 +526,40 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     );
   }
 
+  /// The tap-to-play/pause badge.
+  ///
+  /// Drawn with a plain scrim instead of a [BackdropFilter]. A blur here forces
+  /// a `saveLayer` that re-samples the
+  /// video frame underneath on every frame, on every page the PageView is
+  /// holding — and while a swipe is in flight that is two of them at once, for
+  /// a badge the user is not even looking at. The same reasoning is written up
+  /// at length in `discover_screen.dart`, where a blur over scrolling content
+  /// had to be abandoned twice.
+  ///
+  /// The dark scrim reads on a light frame the way the old light tint read on a
+  /// dark one, so the badge is still legible over any video.
+  ///
+  /// It stays mounted at zero opacity (rather than being conditionally built)
+  /// so the fade in and out still play — with the blur gone, `Opacity` skips
+  /// painting it entirely at alpha 0, so an invisible badge costs nothing.
   Widget _buildPlayPauseOverlay() {
     return Center(
       child: AnimatedOpacity(
         opacity: _showOverlayIcon ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 300),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(40),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              height: 56,
-              width: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                // Transparent frosted glass: light tint over the blur with a
-                // subtle bright rim so it reads on both dark and light frames.
-                color: Colors.white.withValues(alpha: 0.18),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  width: 1,
-                ),
-              ),
-              child: Icon(_playPauseIcon, size: 34, color: Colors.white),
+        child: Container(
+          height: 56,
+          width: 56,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.38),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.35),
+              width: 1,
             ),
           ),
+          child: Icon(_playPauseIcon, size: 34, color: Colors.white),
         ),
       ),
     );
@@ -975,9 +983,15 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     return false;
   }
 
-  /// Shared frosted-glass pill (same language as the play/pause overlay) used
-  /// for both the Visit Store and Follow actions. [filled] gives it a solid
-  /// primary background for a stronger CTA.
+  /// Shared pill (same language as the play/pause overlay) used for both the
+  /// Visit Store and Follow actions. [filled] gives it a solid primary
+  /// background for a stronger CTA.
+  ///
+  /// No [BackdropFilter], for the reason spelled out on [_buildPlayPauseOverlay]
+  /// — and this one is worse, because unlike the badge it is ALWAYS visible, so
+  /// its blur ran on every frame of every reel the PageView was holding. The
+  /// unfilled pill takes a dark scrim in its place, which carries the white
+  /// label over a bright video better than the old 18%-white tint did anyway.
   Widget _frostedPill({
     required IconData icon,
     required String label,
@@ -986,37 +1000,31 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: filled
-                  ? AppColors.primaryColor.withValues(alpha: 0.85)
-                  : Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.35),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 15, color: Colors.white),
-                SizedBox(width: SizeConfig.size4),
-                CustomText(
-                  label,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-              ],
-            ),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
+        decoration: BoxDecoration(
+          color: filled
+              ? AppColors.primaryColor.withValues(alpha: 0.85)
+              : Colors.black.withValues(alpha: 0.38),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.35),
+            width: 1,
           ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: Colors.white),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ],
         ),
       ),
     );

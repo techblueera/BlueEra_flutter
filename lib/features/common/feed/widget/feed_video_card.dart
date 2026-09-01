@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/image_decode_size.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -283,6 +284,10 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
       return CachedNetworkImage(
         imageUrl: cover,
         fit: BoxFit.cover,
+        // A video cover is served at playback resolution and painted at screen
+        // width; decode it to the slot rather than to the source. Device pixels
+        // straight off Get because this builder carries no BuildContext.
+        memCacheWidth: decodeWidthForPixels(Get.width * Get.pixelRatio),
         placeholder: (_, __) => const ColoredBox(color: AppColors.black30),
         errorWidget: (_, __, ___) => LocalAssets(
           imagePath: AppIconAssets.place_holder_image,
@@ -501,6 +506,7 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
               width: size,
               height: size,
               fit: BoxFit.cover,
+              memCacheWidth: decodeWidthForPixels(size * Get.pixelRatio),
               placeholder: (_, __) => placeholder,
               errorWidget: (_, __, ___) => placeholder,
             )

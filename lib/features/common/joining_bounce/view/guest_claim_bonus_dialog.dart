@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -247,15 +248,32 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
   }
 }
 
-/// Guest variant of the scratch-card popup.
+/// Guest variant of the scratch-card popup — laid out to
+/// `assets/claim_dialog_ui.png`.
 ///
-/// A guest can scratch the card, but the reward amount is NEVER exposed — the
-/// surface under the cover is only a "sign up to claim" teaser. Once they've
-/// scratched ~30%, the **Create Profile** CTA activates, nudging them to sign
-/// up (where the real, claimable card lives). Shown instead of
-/// [ClaimBonusDialog] when [isGuestUser] is true.
+/// Under the scratch cover is [AppImageAssets.claimDialog], a single piece of
+/// artwork that carries the whole offer ("Create your account, and get your
+/// ₹100 joining bonus", the bonus ticket, and the wallet strip). Scratching
+/// past ~30% fades the cover away, reveals the full image with a confetti
+/// burst, and activates the **Create Account Now** CTA.
+///
+/// This is the guest counterpart to [ClaimBonusDialog], shown when
+/// [isGuestUser] is true. The difference is what is underneath: the signed-in
+/// card reveals a real, claimable `bonus_inr` off the API, while a guest has no
+/// profile and therefore no `JoiningBounce` at all — so theirs is a fixed promo
+/// image and the CTA leads to sign-up rather than to a claim.
+///
+/// **The ₹100 lives in the artwork, not in code.** There is no amount constant
+/// here to change; re-quoting the offer means replacing the PNG.
 class GuestClaimBonusDialog extends StatefulWidget {
   const GuestClaimBonusDialog({super.key});
+
+  /// Aspect ratio of [AppImageAssets.claimDialog] (960x630).
+  ///
+  /// The card is sized by the artwork's OWN ratio rather than a fixed height so
+  /// the image is never cropped or letterboxed on any screen width — every word
+  /// in it is baked into the pixels, so losing an edge loses copy.
+  static const double _artworkAspect = 960 / 630;
 
   @override
   State<GuestClaimBonusDialog> createState() => _GuestClaimBonusDialogState();
@@ -290,60 +308,103 @@ class _GuestClaimBonusDialogState extends State<GuestClaimBonusDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: InkWell(
-                onTap: () => Navigator.of(context).maybePop(),
-                customBorder: const CircleBorder(),
-                child: Icon(Icons.close_rounded,
-                    size: 20, color: AppColors.secondaryTextColor),
-              ),
-            ),
-            CustomText(
-              'Congrats!',
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppColors.mainTextColor,
-            ),
-            const SizedBox(height: 4),
-            CustomText(
-              'You have won a scratch card',
-              fontSize: 14,
-              color: AppColors.secondaryTextColor,
+            // Heading with the close button ON THE SAME LINE, as drawn.
+            //
+            // It used to be an Align in a row of ITS OWN, above the heading —
+            // which pushed "Congrats!" down by the height of the button and
+            // left a dead band across the top of the dialog. In the mock the
+            // disc floats at the right edge, level with the heading, while the
+            // heading stays centred on the dialog. A Stack is what gives both:
+            // the full-width Column below sizes the stack and centres the text,
+            // and the disc is positioned over its top-right corner without
+            // taking any layout space from it.
+            Stack(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomText(
+                        'Congrats!',
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                      ),
+                      const SizedBox(height: 4),
+                      CustomText(
+                        'You have won a scratch card',
+                        fontSize: 14,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                ),
+                // A soft grey disc rather than a bare glyph: it sits over white
+                // here, and the disc is what gives it a hit target the eye can
+                // find. 34 to match the mock, where the disc measures a little
+                // over a tenth of the dialog's content width.
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).maybePop(),
+                    customBorder: const CircleBorder(),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.whiteF3,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close_rounded,
+                          size: 20, color: AppColors.mainTextColor),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
-            // Scratch card — `revealed: false` always, so the cover never fades
-            // and the amount is never exposed. Scratching only fires the
-            // threshold callback; the surface beneath is a neutral teaser.
+            // Scratch card. Under the cover is the artwork itself, which
+            // carries ALL of the offer copy in its pixels: the headline, the
+            // ₹100, the bonus ticket and the wallet strip. Nothing is drawn
+            // over it — text laid on top would collide with the baked-in text
+            // at some width, and there is no width at which both could be
+            // right.
+            //
+            // `revealed: _scratchedEnough`, not a hard `false`. This card used
+            // to keep its cover on forever because the guest variant existed to
+            // withhold an amount. The artwork states the offer openly, so there
+            // is nothing left to withhold: once the guest has scratched past
+            // the threshold the remaining cover fades and the whole image is
+            // shown (with the confetti burst), instead of leaving them to
+            // scrub away every last corner by hand to read it.
             _ScratchCard(
-              revealed: false,
+              revealed: _scratchedEnough,
               threshold: 0.3,
               onRevealed: _onScratched,
-              child: Container(
-                height: 250,
-                width: double.infinity,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primaryColor, width: 1.4),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.card_giftcard_rounded,
-                        size: 48, color: AppColors.primaryColor),
-                    const SizedBox(height: 12),
-                    CustomText(
-                      'Sign up to reveal\n& claim your reward',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                      textAlign: TextAlign.center,
+              child: AspectRatio(
+                aspectRatio: GuestClaimBonusDialog._artworkAspect,
+                child: Image.asset(
+                  AppImageAssets.claimDialog,
+                  fit: BoxFit.cover,
+                  // The card is the whole point of the dialog; if the asset
+                  // ever goes missing, fail to a plain branded panel rather
+                  // than to Flutter's grey broken-image box.
+                  errorBuilder: (_, __, ___) => ColoredBox(
+                    color: AppColors.primaryColor,
+                    child: Center(
+                      child: CustomText(
+                        'Create your account and get\nyour joining bonus',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -351,8 +412,9 @@ class _GuestClaimBonusDialogState extends State<GuestClaimBonusDialog> {
 
             CustomText(
               _scratchedEnough
-                  ? 'Create your profile to claim this reward.'
-                  : 'Scratch the card to continue.',
+                  ? 'Create your profile to claim your joining bonus — '
+                      'it lands in your wallet straight away.'
+                  : 'Scratch the card to see what you have won.',
               fontSize: 12,
               color: AppColors.secondaryTextColor,
               textAlign: TextAlign.center,
@@ -368,7 +430,7 @@ class _GuestClaimBonusDialogState extends State<GuestClaimBonusDialog> {
               bgColor:
                   _scratchedEnough ? AppColors.primaryColor : AppColors.whiteF3,
               textColor: _scratchedEnough ? AppColors.white : AppColors.grey9B,
-              title: 'Create Profile',
+              title: 'Create Account Now',
               onTap: _scratchedEnough ? _onCreateProfile : null,
             ),
           ],

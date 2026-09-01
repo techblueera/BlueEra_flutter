@@ -456,6 +456,19 @@ class _StatusCard extends StatelessWidget {
     );
   }
 
+  /// Placeholder / error state for a link symbol.
+  ///
+  /// The card is a fixed 88x146 ([_cardHeight]) and this padding reserves 92 of
+  /// those 146 rows for the avatar that overlays the top and the name that
+  /// overlays the bottom — so the icon and the URL have exactly 54px to live in.
+  /// Three lines of 10pt did not fit (22 icon + 6 gap + 36 text = 64), which is
+  /// the 10px RenderFlex overflow this used to throw.
+  ///
+  /// Two lines fit with headroom, and [Flexible] is what stops it coming back:
+  /// the height budget here is fixed while the text is not — a user running a
+  /// larger system font scales these lines and blows the same budget again. With
+  /// the URL flexible the Column can only ever hand it the room that is left,
+  /// so the worst case is a shorter ellipsised URL rather than a red banner.
   Widget _linkFallback(String url, Color bg) {
     return Container(
       color: bg,
@@ -466,15 +479,17 @@ class _StatusCard extends StatelessWidget {
         children: [
           const Icon(Icons.link, color: Colors.white, size: 22),
           const SizedBox(height: 6),
-          Text(
-            url,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              url,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

@@ -23,7 +23,7 @@ import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
-import 'package:BlueEra/features/common/joining_bounce/view/claim_bonus_dialog.dart';
+import 'package:BlueEra/features/common/joining_bounce/view/guest_claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';

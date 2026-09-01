@@ -35,14 +35,46 @@ class KeyedJsonCache {
     if (key.isEmpty) return null;
     try {
       final box = await _safeBox();
-      final raw = box.get(key);
-      if (raw is! String) return null;
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) return Map<String, dynamic>.from(decoded);
-      return null;
+      return _decode(box.get(key));
     } catch (_) {
       return null;
     }
+  }
+
+  /// The cached map for [key] read **without an await** — null when the box is
+  /// not open yet, on a miss, or on a parse error.
+  ///
+  /// Hive's `box.get` is synchronous once the box is open; only *opening* it is
+  /// async. So a screen whose box was opened at boot (see [ensureOpen]) can
+  /// hydrate inside `initState` and paint its very first frame with content,
+  /// instead of showing a spinner for the one or two frames it takes an
+  /// `await`ed [get] to come back. That gap is exactly what makes a
+  /// cache-first screen still look like it's loading.
+  ///
+  /// [get] stays the general path — use this only where a frame matters.
+  Map<String, dynamic>? getSync(String key) {
+    if (key.isEmpty || !Hive.isBoxOpen(boxName)) return null;
+    try {
+      return _decode(Hive.box(boxName).get(key));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _decode(dynamic raw) {
+    if (raw is! String) return null;
+    final decoded = jsonDecode(raw);
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    return null;
+  }
+
+  /// Opens the box up front so later [getSync] calls can serve. Call at boot
+  /// for the caches whose screens must paint on their first frame; never
+  /// required for [get], which opens lazily.
+  Future<void> ensureOpen() async {
+    try {
+      await _safeBox();
+    } catch (_) {}
   }
 
   /// Clears all entries in this cache box (used to invalidate after a mutation
@@ -77,6 +109,28 @@ const KeyedJsonCache riderOrdersCache = KeyedJsonCache('rider_orders_box');
 /// every successful first-page fetch (stale-while-revalidate); auto-reset on
 /// logout. Stored as `{'feed': [<post json>, ...]}`.
 const KeyedJsonCache socialFeedCache = KeyedJsonCache('social_feed_cache_box');
+
+/// Caches the Social section's "My Post" grid (first page) keyed by user id, so
+/// the tab paints the viewer's own posts instantly on open and refreshes behind
+/// them. Stored as `{'cachedAt': <ms>, 'posts': [<post json>, ...]}`.
+///
+/// Its own box rather than a slot in [socialFeedCache]: the two are written on
+/// completely different triggers (the home feed on every first-page fetch, this
+/// one only when the viewer's own posts reload) and invalidated separately —
+/// publishing a post must drop this without touching the home feed's copy.
+const KeyedJsonCache myPostsCache = KeyedJsonCache('my_posts_cache_box');
+
+/// The Social-section caches that must be readable **synchronously** on the
+/// first frame of their tab (see [KeyedJsonCache.getSync]). Opened once at boot
+/// so Feed / Bites / My Post never paint a spinner over content they already
+/// have on disk.
+Future<void> openSocialCaches() async {
+  await Future.wait([
+    socialFeedCache.ensureOpen(),
+    myPostsCache.ensureOpen(),
+    symbolFeedCache.ensureOpen(),
+  ]);
+}
 
 /// Caches the security-deposit explainer videos (global — same for every user)
 /// under a constant key, so the contribution screen serves them from Hive and

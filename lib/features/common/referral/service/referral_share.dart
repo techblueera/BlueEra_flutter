@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -76,10 +77,22 @@ String buildReferralShareMessage({String? referralCode, String? accountType}) {
 /// Fetching by URL sends the card the backend built, whatever the carousel is
 /// doing.
 ///
-/// Degrades to a text-only share when there is no poster or it can't be
-/// fetched — a referral message with no image is still a working referral.
+/// [posterAsset] is a BUNDLED image to attach — used by placements whose
+/// artwork is the offer itself (Discover's "Invite Friends, Get Rewarded"
+/// banner), where sending the account's profile card instead would attach a
+/// picture the user never saw. It is also the fallback when [posterUrl] is
+/// absent or won't download, so a share started from such a placement always
+/// carries an image.
+///
+/// Precedence is [posterUrl] first: a backend card is composed for this
+/// specific account, so where one exists and the caller asked for it, it wins.
+///
+/// Degrades to a text-only share when there is no poster at all — a referral
+/// message with no image is still a working referral, because the code, the
+/// profile link and the store link all live in the text.
 Future<void> shareReferralPoster({
   String? posterUrl,
+  String? posterAsset,
   String? referralCode,
   String? accountType,
 }) async {
@@ -88,7 +101,7 @@ Future<void> shareReferralPoster({
     accountType: accountType,
   );
   try {
-    final file = await _posterFile(posterUrl);
+    final file = await _posterFile(posterUrl) ?? await _assetFile(posterAsset);
     if (file == null) {
       await SharePlus.instance
           .share(ShareParams(text: caption, subject: caption));
@@ -126,6 +139,30 @@ Future<File?> _posterFile(String? url) async {
     return out;
   } catch (_) {
     // Offline, 404, or an unwritable temp dir — the caller falls back to text.
+    return null;
+  }
+}
+
+/// A bundled asset copied into the temp directory so the share sheet can attach
+/// it, or null.
+///
+/// [_posterFile] cannot do this: it fetches over HTTP, and an asset path has no
+/// scheme to fetch. Assets live inside the app package rather than on the
+/// filesystem, so the bytes have to come out of [rootBundle] and be written
+/// somewhere a receiving app can read — the same temp directory the downloaded
+/// posters are handed out of.
+Future<File?> _assetFile(String? assetPath) async {
+  final source = assetPath?.trim() ?? '';
+  if (source.isEmpty) return null;
+  try {
+    final data = await rootBundle.load(source);
+    final dir = await getTemporaryDirectory();
+    final out = File('${dir.path}/referral_card_'
+        '${DateTime.now().millisecondsSinceEpoch}${_extensionFor(source)}');
+    await out.writeAsBytes(data.buffer.asUint8List());
+    return out;
+  } catch (_) {
+    // Missing asset or an unwritable temp dir — the caller falls back to text.
     return null;
   }
 }

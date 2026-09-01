@@ -421,7 +421,12 @@ class FeedController extends GetxController {
         final postResponse = PostResponse.fromJson(response.response?.data);
 
         if (page == 1) {
-          targetList.clear();
+          // NOT cleared first: `targetList.value = …` a few lines down replaces
+          // the contents anyway, and the extra clear() notified listeners with
+          // an empty list in between — one frame of the empty state (or of the
+          // loading spinner, which is gated on the list being empty) flashing
+          // over content that was about to be replaced by more content.
+          //
           // Initial load: cache all data, display first batch
           _cachedPosts[type] = List.from(postResponse.data);
           _displayedCounts[type] = displayLimit.clamp(0, postResponse.data.length);
@@ -436,6 +441,12 @@ class FeedController extends GetxController {
           if (type == PostType.all && postResponse.data.isNotEmpty) {
             await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
             print('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+          }
+          // Persist the Social section's My Post grid for its next cold open,
+          // so the tab paints the viewer's own posts on its first frame instead
+          // of a spinner (see primeMyPostsFromCacheSync).
+          if (type == PostType.myPosts && postResponse.data.isNotEmpty) {
+            await _cacheMyPosts(postResponse.data);
           }
         } else {
           // Subsequent loads: add new data to cache
@@ -1119,22 +1130,21 @@ class FeedController extends GetxController {
     }
     if (isLoadingHome.value) return;
     if (refresh) {
-      // Only a cold open (nothing on screen yet) benefits from the cache; a
-      // pull-to-refresh that already has content keeps the original spinner so
-      // we don't flash stale posts over live ones.
-      final bool isColdOpen = allPosts.isEmpty;
       cursor.value = "";
-      allPosts.clear();
-      shortsController?.latestShortsPosts.clear();
       hasMoreData.value = true;
-      if (isColdOpen) {
-        // Paint the last-cached feed instantly so the Social tab isn't stuck on
-        // a spinner on first open; the live fetch below replaces it once it
-        // lands. On a cache miss this falls back to the original loading state.
+      if (allPosts.isEmpty) {
+        // Cold open: paint the last-cached feed so the tab isn't stuck on a
+        // spinner while the live fetch runs. On a cache miss this falls back to
+        // the original loading state.
         await _hydrateFeedFromCache();
-      } else {
-        feedResponse.value = ApiResponse.loading();
       }
+      // Anything already on screen — a return to the tab, or a pull-to-refresh
+      // — is left exactly where it is and swapped for the live first page when
+      // it lands: a SILENT revalidate. This used to clear the list and switch
+      // to ApiResponse.loading(), which is what made coming back to Social wipe
+      // a perfectly good feed and show a full-screen spinner over it. The
+      // first-page branch below assigns over the list wholesale (and re-clears
+      // the reel bucket), so nothing needs clearing up front.
     }
     if (!hasMoreData.value) return;
     isLoadingHome.value = true;
@@ -1266,32 +1276,36 @@ class FeedController extends GetxController {
   /// as stale and re-fetched from scratch.
   static const Duration _feedCacheTtl = Duration(days: 1);
 
+  /// Paints the last-cached Social-tab feed **without awaiting**, so a screen
+  /// can call this from `initState` and have content on its very first frame.
+  ///
+  /// Returns true when it painted something. Only works once the cache box is
+  /// open (it is, from boot — see `openSocialCaches`); on a miss, a stale entry
+  /// or an unopened box it returns false and leaves state untouched, and the
+  /// awaited [_hydrateFeedFromCache] takes over.
+  bool primeFeedFromCacheSync() {
+    try {
+      return _applyCachedFeed(socialFeedCache.getSync(userId));
+    } catch (e) {
+      logs("feed cache sync hydrate error: $e");
+      return false;
+    }
+  }
+
   /// Loads the last-cached Social-tab feed into [allPosts] so the tab paints
   /// instantly on open. Sets [feedResponse] to COMPLETE on a fresh hit (content
   /// is ready to render) or LOADING on a miss / stale entry (original spinner
   /// behaviour). Stale entries are dropped.
   Future<void> _hydrateFeedFromCache() async {
+    // Sync read first: the box is open from boot, and `box.get` is synchronous
+    // once it is — so the common case costs no frames at all. The await below
+    // only covers the launch where the box wasn't ready in time.
+    if (primeFeedFromCacheSync()) return;
     try {
       final cached = await socialFeedCache.get(userId);
-      final rawList = cached?['feed'];
-      if (cached != null && rawList is List && rawList.isNotEmpty) {
-        if (_isCacheStale(cached['cachedAt'], _feedCacheTtl)) {
-          await socialFeedCache.clear();
-        } else {
-          final cachedPosts = rawList
-              .map((e) => Post.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList();
-          allPosts.assignAll(cachedPosts);
-          for (final data in cachedPosts) {
-            if (data.type == "short_video") {
-              shortsController?.latestShortsPosts.add(getVideoData(data));
-            }
-          }
-          feedResponse.value = ApiResponse.complete(
-            HomeFeedResponse(success: true, feed: cachedPosts, metaData: null),
-          );
-          return;
-        }
+      if (_applyCachedFeed(cached)) return;
+      if (cached != null && _isCacheStale(cached['cachedAt'], _feedCacheTtl)) {
+        await socialFeedCache.clear();
       }
     } catch (e) {
       logs("feed cache hydrate error: $e");
@@ -1299,24 +1313,113 @@ class FeedController extends GetxController {
     feedResponse.value = ApiResponse.loading();
   }
 
-  /// Persists the first [10] posts of the live feed (with a timestamp for
-  /// expiry) for the next cold open.
+  /// Puts a decoded cache entry on screen, or reports that it had nothing
+  /// usable in it (missing, empty or past [_feedCacheTtl]).
+  bool _applyCachedFeed(Map<String, dynamic>? cached) {
+    final rawList = cached?['feed'];
+    if (cached == null || rawList is! List || rawList.isEmpty) return false;
+    if (_isCacheStale(cached['cachedAt'], _feedCacheTtl)) return false;
+
+    final cachedPosts = rawList
+        .map((e) => Post.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+    allPosts.assignAll(cachedPosts);
+    shortsController?.latestShortsPosts.clear();
+    for (final data in cachedPosts) {
+      if (data.type == "short_video") {
+        shortsController?.latestShortsPosts.add(getVideoData(data));
+      }
+    }
+    feedResponse.value = ApiResponse.complete(
+      HomeFeedResponse(success: true, feed: cachedPosts, metaData: null),
+    );
+    return true;
+  }
+
+  /// Persists the live FIRST PAGE of the feed (with a timestamp for expiry) for
+  /// the next cold open.
+  ///
+  /// The whole page, deliberately — there is no separate "cache size" constant
+  /// to keep in step with anything. What gets stored is exactly one fetch, so
+  /// the restored feed is precisely what the user would have seen had the
+  /// request already returned. The size is bounded by the request itself
+  /// ([limit], currently 40), not by a second number chosen here; raising the
+  /// page size raises the cache with it, which is the behaviour you want and
+  /// the one nobody has to remember to update.
+  ///
+  /// Cheap at that scale: ~1.5 KB of JSON per post (ids, caption, counts and
+  /// media URLs — the images themselves are not in here, they live in the image
+  /// cache), so a 40-item page is ~60 KB and costs ~4 ms to decode on the cold
+  /// open. Only [_cacheFeed]'s caller knows about pages, and it only ever calls
+  /// this for page one.
   Future<void> _cacheFeed(List<Post> feed) async {
     try {
       await socialFeedCache.save(userId, {
         'cachedAt': DateTime.now().millisecondsSinceEpoch,
         // Suggestion blocks are ranked live per request and go stale the moment
-        // the viewer follows someone, so they're never cached — caching one
-        // would also burn a slot of the 10-post budget on a block that can only
-        // rehydrate empty.
+        // the viewer follows someone, so they're never cached — one could only
+        // ever rehydrate empty.
         'feed': feed
             .where((p) => !p.isSuggestions)
-            .take(10)
             .map((p) => p.toJson())
             .toList(),
       });
     } catch (e) {
       logs("feed cache save error: $e");
+    }
+  }
+
+  // ------------------------------------------------------------ "My Post"
+  //
+  // The Social section's My Post grid gets the same stale-while-revalidate
+  // treatment as the feed: its own box (see [myPostsCache]) because the two are
+  // written on different triggers and invalidated separately — publishing a
+  // post must drop this without touching the home feed's copy.
+
+  static const Duration _myPostsCacheTtl = Duration(days: 1);
+
+  /// Paints the last-cached "My Post" grid into [myPosts] without awaiting, for
+  /// a first frame that already has content. Returns true when it painted.
+  ///
+  /// A warm list is left alone and reported as a miss: the profile screens fill
+  /// the very same list, and what they put there is live data that must not be
+  /// overwritten with a snapshot from disk.
+  bool primeMyPostsFromCacheSync() {
+    if (myPosts.isNotEmpty) return false;
+    try {
+      final cached = myPostsCache.getSync(userId);
+      final rawList = cached?['posts'];
+      if (cached == null || rawList is! List || rawList.isEmpty) return false;
+      if (_isCacheStale(cached['cachedAt'], _myPostsCacheTtl)) return false;
+      myPosts.assignAll(
+        rawList.map((e) => Post.fromJson(Map<String, dynamic>.from(e as Map))),
+      );
+      // The grid's spinner is gated on `isLoading && list.isEmpty`, so this
+      // also has to come down — otherwise the refresh that follows would put a
+      // spinner back over content already on screen.
+      isLoading.value = false;
+      return true;
+    } catch (e) {
+      logs("my posts cache hydrate error: $e");
+      return false;
+    }
+  }
+
+  /// Persists the live FIRST PAGE of the viewer's own posts for the next cold
+  /// open.
+  ///
+  /// The whole page, like the feed — no separate cache-size constant. The
+  /// amount stored is decided by the request ([initialFetchLimit]), so the
+  /// restored grid is exactly one fetch and there is no second number to keep
+  /// in step. Only the `page == 1` branch calls this.
+  Future<void> _cacheMyPosts(List<Post> posts) async {
+    try {
+      await myPostsCache.save(userId, {
+        'cachedAt': DateTime.now().millisecondsSinceEpoch,
+        'posts': posts.map((p) => p.toJson()).toList(),
+      });
+    } catch (e) {
+      logs("my posts cache save error: $e");
     }
   }
 

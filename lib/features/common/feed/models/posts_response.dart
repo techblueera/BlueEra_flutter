@@ -316,9 +316,22 @@ class Post {
   }
 
   Map<String, dynamic> toJson() {
+    // An `item_type: "reel"` item is a MARKER post: it carries no post fields
+    // at all, only the nested reel payload. Serialising it through the general
+    // branch below wrote out a row of nulls, and rehydrating that produced a
+    // post with no media, no author and no reel — a blank tile in a cached
+    // grid. Mirror the matching branch in [fromJson] instead.
+    if (isReel) {
+      return {
+        'item_type': 'reel',
+        'origin_post_id': originPostId,
+        'reel': reel?.toJson(),
+      };
+    }
     return {
       '_id': id,
       // '_id': id,
+      'item_type': itemType,
       'channelName': channelName,
       'message': message,
       'is_reposted': is_reposted,
@@ -880,6 +893,30 @@ class FeedReel {
     return null;
   }
 
+  /// The inverse of [FeedReel.fromJson], so a reel survives a round trip
+  /// through the disk caches (My Post, the Social feed). Written back under the
+  /// keys `fromJson` reads, not the ones the API happens to use elsewhere —
+  /// `created_at` goes out as the ISO string [_parseReelTimestamp] normalised
+  /// it to, which that parser accepts on the way back in.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'channel_id': channelId,
+        'title': title,
+        'caption': caption,
+        'description': description,
+        'coverUrl': coverUrl,
+        'videoUrl': videoUrl,
+        'duration': duration,
+        'type': type,
+        'created_at': createdAt,
+        'origin_post_id': originPostId,
+        'engagement_source': engagementSource,
+        'song': song,
+        'thumbnails': thumbnails,
+        'stats': stats.toJson(),
+      };
+
   /// Text to show under the cover: caption first, then title.
   String get displayText {
     final c = caption?.trim() ?? '';
@@ -911,6 +948,13 @@ class FeedReelStats {
       comments: parse(json['comments']),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'views': views,
+        'likes': likes,
+        'shares': shares,
+        'comments': comments,
+      };
 }
 
 class User {

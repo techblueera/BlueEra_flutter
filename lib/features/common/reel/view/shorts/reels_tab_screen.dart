@@ -52,7 +52,19 @@ class ReelsTabScreen extends StatefulWidget {
   State<ReelsTabScreen> createState() => _ReelsTabScreenState();
 }
 
-class _ReelsTabScreenState extends State<ReelsTabScreen> {
+class _ReelsTabScreenState extends State<ReelsTabScreen>
+    with AutomaticKeepAliveClientMixin {
+  /// Bites sits in the Social [TabBarView], which disposes an off-screen page.
+  /// Without this, leaving the tab threw away the grid's scroll position AND
+  /// the playback manager's video controller, so coming back re-fetched
+  /// nothing but re-built and re-initialised everything — a visible stall on a
+  /// tab the user flicks in and out of constantly.
+  ///
+  /// Playback itself is still gated on visibility by [_ReelGridPlaybackManager],
+  /// so a kept-alive but off-screen grid is not left playing video.
+  @override
+  bool get wantKeepAlive => true;
+
   late final ShortsController _controller;
   final ScrollController _scrollController = ScrollController();
   final _ReelPrefetcher _prefetcher = _ReelPrefetcher();
@@ -74,11 +86,18 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
           order,
         );
     _scrollController.addListener(_onScroll);
-    // Defer the first fetch past the first frame so the cache-first path
-    // (which reassigns observable lists synchronously) never notifies an
-    // Obx mid-build.
+    // Cache-first: put the last-known reels on screen before the first build
+    // (the Hive read is synchronous once the box is open, and it is opened at
+    // boot), so a cold second launch never shows the shimmer at all.
+    final hydratedFromCache = _controller.primeTrendingFromCacheSync();
+    // The fetch itself still waits for the first frame so the cache-first path
+    // (which reassigns observable lists synchronously) never notifies an Obx
+    // mid-build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_controller.trendingVideoFeedPosts.isEmpty) {
+      // A cache hit is a reason to revalidate, not a reason to skip: refresh
+      // behind whatever was restored. Only a list already warm from this
+      // session is left alone.
+      if (hydratedFromCache || _controller.trendingVideoFeedPosts.isEmpty) {
         _controller.getAllFeedTrending(isInitialLoad: true, refresh: true);
       }
     });
@@ -139,6 +158,7 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin
     // Transparent so the app-wide [AppHomeBackground] (banner / colour chosen
     // in App Background settings) shows through, matching the Social/Community
     // tabs instead of a hardcoded black fill.

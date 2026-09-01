@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/image_decode_size.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -131,6 +132,12 @@ class _FeedReelTile extends StatelessWidget {
                 CachedNetworkImage(
                   imageUrl: cover,
                   fit: BoxFit.cover,
+                  // A reel cover is a full portrait video frame served at
+                  // playback resolution, shown here in a HALF-width tile — so
+                  // this is the largest ratio of decoded pixels to painted
+                  // pixels anywhere in the feed, and two of them land per row.
+                  memCacheWidth: decodeWidthFor(
+                      context, MediaQuery.sizeOf(context).width / 2),
                   placeholder: (_, __) => Container(color: AppColors.whiteE5),
                   errorWidget: (_, __, ___) =>
                       Container(color: AppColors.whiteE5),

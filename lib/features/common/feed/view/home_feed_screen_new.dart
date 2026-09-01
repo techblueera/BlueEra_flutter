@@ -26,6 +26,7 @@ import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 DateTime? lastHomeFetchTime;
 // Define the threshold (e.g., 5 seconds)
@@ -53,7 +54,21 @@ class HomeFeedScreenNew extends StatefulWidget {
   State<HomeFeedScreenNew> createState() => _HomeFeedScreenNewState();
 }
 
-class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
+class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
+    with AutomaticKeepAliveClientMixin {
+  /// The feed lives inside the Social section's [TabBarView], which disposes a
+  /// page the moment it scrolls out of the viewport. Without this, every trip to
+  /// Bites and back tore the feed down and rebuilt it from scratch: scroll
+  /// position lost, every card and image re-created, and initState's fetch
+  /// re-armed. No feed app does that — you come back to a feed exactly where you
+  /// left it.
+  ///
+  /// Cheap to hold: the tree stays mounted but is not laid out or painted while
+  /// it is off screen, and the posts it renders are in [FeedController] either
+  /// way.
+  @override
+  bool get wantKeepAlive => true;
+
   final FeedController feedController = Get.put(FeedController());
   final ScrollController _scrollController = ScrollController();
   late ShortsController? shortsController;
@@ -90,6 +105,18 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       shortsController = Get.find<ShortsController>();
     } else {
       shortsController = Get.put(ShortsController());
+    }
+    // Cache-first: put the last-known feed on screen BEFORE the first frame is
+    // built (the Hive read is synchronous once the box is open, and it is
+    // opened at boot). Without this the tab still flashed its spinner on every
+    // cold open, because the cache hydration inside getFeed only starts after
+    // the post-frame callback below and comes back an await later.
+    //
+    // Only when the shared list is cold — a warm one is live data from this
+    // session and must not be overwritten with a snapshot from disk.
+    if (widget.postFilterType == PostType.all &&
+        feedController.allPosts.isEmpty) {
+      feedController.primeFeedFromCacheSync();
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _guardedFetchData(refreshFlag: true); // Guarded call
@@ -161,22 +188,23 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       case 'message_post':
       case 'image_post':
       case 'poll_post':
-        trackPostView(item.id);
         // FeedCard owns its internal padding; no wrapping Padding here.
-        return FeedCard(
-          post: item,
-          index: index,
-          postFilteredType: PostType.all,
-          bottomPadding: 0,
-          horizontalPadding: 0,
-          // Set to 0 to remove side gaps
-          isRepost: false,
+        return _seen(
+          [item.id],
+          FeedCard(
+            post: item,
+            index: index,
+            postFilteredType: PostType.all,
+            bottomPadding: 0,
+            horizontalPadding: 0,
+            // Set to 0 to remove side gaps
+            isRepost: false,
+          ),
         );
 
       case 'short_video':
       case 'long_video':
-        trackPostView(item.id);
-        return FeedVideoCard(post: item);
+        return _seen([item.id], FeedVideoCard(post: item));
 
       case 'business':
         return FeedBusinessCard(post: item);
@@ -196,6 +224,38 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  /// Counts a view for [postId] once the card is actually **on screen**, not
+  /// when it is built.
+  ///
+  /// `trackPostView` used to be called straight from the item builder. A
+  /// `ListView` builds ahead of the viewport by its cache extent (250px by
+  /// default, and more here), so posts the user scrolled past the edge of and
+  /// never saw were counted as views — and on a fast flick the whole run
+  /// between two resting positions got counted. Views are a ranking signal;
+  /// inflating them with cards nobody looked at degrades the feed for everyone.
+  ///
+  /// 50% visible matches what the rest of the app treats as "on screen" (the
+  /// Bites grid uses the same threshold to pick what plays), and
+  /// `trackPostView` still de-duplicates per session, so a post scrolled past
+  /// twice is one view either way.
+  /// [postIds] is a list because a reel PAIR shares one row — the two are side
+  /// by side, so either the row is on screen or neither of them is, and one
+  /// detector covering both is cheaper than two.
+  Widget _seen(List<String> postIds, Widget child) {
+    final ids = postIds.where((id) => id.isNotEmpty).toList(growable: false);
+    if (ids.isEmpty) return child;
+    return VisibilityDetector(
+      key: ValueKey('feed_seen_${ids.join('_')}'),
+      onVisibilityChanged: (info) {
+        if (info.visibleFraction < 0.5) return;
+        for (final id in ids) {
+          trackPostView(id);
+        }
+      },
+      child: child,
+    );
   }
 
   /// True for an item the feed should be able to pair 2-up: a reel, in either
@@ -249,8 +309,54 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     return blocks;
   }
 
+  /// Cached output of [_buildBlocks] + [buildNativeAdRows], keyed on the post
+  /// list that produced it.
+  ///
+  /// Both walk the whole feed and allocate two fresh lists, and they used to run
+  /// inside the `Obx` — so they re-ran on EVERY rebuild, including the ones that
+  /// have nothing to do with the feed's contents (the header collapsing, a
+  /// single like landing, a video card reporting a frame). By the time the feed
+  /// is a few hundred posts deep that is real work, repeated many times a
+  /// second, to arrive at exactly the list already in hand.
+  ///
+  /// The freshness check is a length + element-identity scan against a snapshot
+  /// of the list the current blocks were built from.
+  ///
+  /// It deliberately does NOT compare the list objects themselves. `allPosts` is
+  /// an `RxList` that [FeedController] mutates IN PLACE (`assignAll`, `addAll`),
+  /// so the list instance is the same object for the life of the controller —
+  /// an `identical` check on it would pass forever and the feed would freeze on
+  /// its first page. Nor does it use `==`: `Post` has no value equality, so that
+  /// degrades to the same identity comparison per element with more ceremony.
+  ///
+  /// A scan of N pointer comparisons costs a fraction of rebuilding two lists of
+  /// N objects, and it answers the right question — a like landing mutates a
+  /// `Post` in place and must NOT invalidate the layout, while a fetch swaps the
+  /// elements and must.
+  List<Post> _blocksSnapshot = const [];
+  List<FeedBlock> _blocks = const [];
+  List<NativeAdRow> _rows = const [];
+
+  bool _blocksAreFresh(List<Post> posts) {
+    if (_blocksSnapshot.length != posts.length) return false;
+    for (var i = 0; i < posts.length; i++) {
+      if (!identical(_blocksSnapshot[i], posts[i])) return false;
+    }
+    return true;
+  }
+
+  void _ensureBlocks(List<Post> posts) {
+    if (_blocksAreFresh(posts)) return;
+    _blocksSnapshot = List.of(posts);
+    _blocks = _buildBlocks(posts);
+    // Interleave native ads across the MAIN combined list (one block per post)
+    // at the shared series positions — independent of each post's type.
+    _rows = buildNativeAdRows(_blocks.length);
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin
     return Obx(() {
       // if (feedController.isLoadingHome.isFalse) {
       if (feedController.feedResponse.value.status == Status.COMPLETE ||
@@ -275,15 +381,20 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             ],
           );
         }
-        final blocks = _buildBlocks(posts);
+        _ensureBlocks(posts);
+        final blocks = _blocks;
+        final rows = _rows;
         final bool showStories = widget.postFilterType == PostType.all;
-        // Interleave native ads across the MAIN combined list (one block per
-        // post in feedController.allPosts) at the shared series positions —
-        // independent of each post's individual type.
-        final rows = buildNativeAdRows(blocks.length);
         final listView = ListView.builder(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          // Build a screen's worth ahead of the viewport instead of the 250px
+          // default. A feed card is ~380-500px tall, so the default barely
+          // reaches the next one and every flick lands on a card that is still
+          // being laid out and decoding its image. One viewport of runway is
+          // what the scroll needs to stay ahead of the finger; more than that
+          // and the extra cards are decoding images nobody is going to see.
+          cacheExtent: MediaQuery.sizeOf(context).height,
           // 1. Set padding to zero if you want it flush, or keep only what is necessary
           padding: EdgeInsets.zero,
           itemCount: rows.length + (showStories ? 1 : 0),
@@ -329,12 +440,14 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             final index = row.contentIndex;
             final block = blocks[index];
 
-            // A grid block is a run of consecutive reels laid out 2-up.
+            // A grid block is a run of consecutive reels laid out 2-up. Both
+            // reels in the pair share the row's visibility — they are side by
+            // side, so either the row is on screen or neither of them is.
             if (block.isGrid) {
-              for (final reel in block.items) {
-                trackPostView(reel.id);
-              }
-              return FeedReelPairRow(reels: block.items);
+              return _seen(
+                block.items.map((r) => r.id).toList(),
+                FeedReelPairRow(reels: block.items),
+              );
             }
 
             final item = block.items.first;

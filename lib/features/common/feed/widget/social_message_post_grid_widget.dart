@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/image_decode_size.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -282,6 +283,9 @@ class SocialImageGrid extends StatelessWidget {
             width: screenWidth,
             height: imageHeight,
             fit: BoxFit.cover,
+            // Device pixels straight off Get: this builder takes no
+            // BuildContext, and `screenWidth` is already `Get.width`.
+            memCacheWidth: decodeWidthForPixels(screenWidth * Get.pixelRatio),
             placeholder: (context, _) => Container(
               color: Colors.grey[200],
               alignment: Alignment.center,
@@ -310,6 +314,7 @@ class SocialImageGrid extends StatelessWidget {
          fit: BoxFit.cover,
          width: Get.width,
          height: heightImg?.toDouble() ?? 300,
+         memCacheWidth: decodeWidthForPixels(Get.width * Get.pixelRatio),
          placeholder: (context, _) => Center(
            child: LocalAssets(
              imagePath: AppIconAssets.place_holder_image,

@@ -36,26 +36,27 @@ class AdConfig {
   /// release. (Release always serves live units.)
   static const bool admobTestMode = !kReleaseMode;
 
-  /// AdMob App ID (also hardcoded in AndroidManifest / Info.plist, per
-  /// platform — the native SDK reads it from there, this is for Dart use).
-  static String get admobAppId =>
-      Platform.isIOS ? Env.admobAppIdIos : Env.admobAppIdAndroid;
+  // NOTE: there is no `admobAppId` here any more. It read
+  // `Env.admobAppIdAndroid` / `...Ios`, which `.env` has never defined — and
+  // nothing in the app called it. The native SDK reads the app id from
+  // AndroidManifest.xml / Info.plist, so Dart never needed one.
 
-  // Google's official TEST unit ids (always fill; safe on any device).
-  static const String _admobTestNativeAndroid =
-      'ca-app-pub-3940256099942544/2247696110';
-  static const String _admobTestInterstitialAndroid =
-      'ca-app-pub-3940256099942544/1033173712';
-  static const String _admobTestNativeIos =
-      'ca-app-pub-3940256099942544/3986624511';
-  static const String _admobTestInterstitialIos =
-      'ca-app-pub-3940256099942544/4411468910';
+  // TEST unit ids, from `.env` (via [Env]), per platform. These are Google's
+  // public test units — the same ids for every publisher — but they live in
+  // `.env` alongside the live ones so both sets are managed in one place.
+  static String get _admobTestNativeAndroid => Env.admobTestNativeAdUnitAndroid;
+  static String get _admobTestInterstitialAndroid =>
+      Env.admobTestInterstitialAdUnitAndroid;
+  static String get _admobTestNativeIos => Env.admobTestNativeAdUnitIos;
+  static String get _admobTestInterstitialIos =>
+      Env.admobTestInterstitialAdUnitIos;
 
   // Live unit ids come from `.env` (via [Env]), per platform.
-  static String get _admobNativeAndroid => Env.admobNativeAndroid;
-  static String get _admobInterstitialAndroid => Env.admobInterstitialAndroid;
-  static String get _admobNativeIos => Env.admobNativeIos;
-  static String get _admobInterstitialIos => Env.admobInterstitialIos;
+  static String get _admobNativeAndroid => Env.admobNativeAdUnitAndroid;
+  static String get _admobInterstitialAndroid =>
+      Env.admobInterstitialAdUnitAndroid;
+  static String get _admobNativeIos => Env.admobNativeAdUnitIos;
+  static String get _admobInterstitialIos => Env.admobInterstitialAdUnitIos;
 
   /// Native ad unit to request — Google test id in [admobTestMode], else live.
   static String get admobNativeUnit {

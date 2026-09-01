@@ -103,6 +103,23 @@ class ShortsController extends GetxController{
 
   String? _lastFetchedId;
 
+  /// Paints the last-cached Bites grid **without awaiting**, so the tab can
+  /// call this from `initState` and have reels on its very first frame instead
+  /// of a shimmer. Returns true when it painted something.
+  ///
+  /// A warm list is left alone and reported as a miss — it is live data from
+  /// this session and must not be overwritten with a snapshot from disk. The
+  /// caller revalidates in both cases; see [getAllFeedTrending], which now
+  /// refreshes behind whatever is on screen rather than clearing it.
+  bool primeTrendingFromCacheSync() {
+    if (trendingVideoFeedPosts.isNotEmpty) return false;
+    final cached = HomeCacheService().getCachedShortsSync();
+    if (cached == null || cached.isEmpty) return false;
+    trendingVideoFeedPosts.value = cached;
+    isFirstLoadTrending.value = false;
+    return true;
+  }
+
   ///GET ALL Feed Trending(In Shorts)...
   Future<void> getAllFeedTrending({
     bool isInitialLoad = false,
@@ -117,23 +134,33 @@ class ShortsController extends GetxController{
       // seed and re-shuffles the feed (pull-to-refresh = new random order).
       trendingVideoFeedSeed = null;
 
-      // Try to get cached shorts first
-      if (trendingVideoFeedCurrentPage == 1) {
+      // Nothing on screen yet → try disk. Skipped when the list is already
+      // populated (a sync prime from Hive, or a warm list from an earlier
+      // visit): re-assigning the same items would rebuild every tile in the
+      // grid and restart its preview playback for no new content.
+      if (trendingVideoFeedPosts.isEmpty) {
         final cachedShorts = await HomeCacheService().getCachedShorts();
         if (cachedShorts != null && cachedShorts.isNotEmpty) {
           print('📱 Showing cached shorts: ${cachedShorts.length} items');
           trendingVideoFeedPosts.value = cachedShorts;
-          isFirstLoadTrending.value = false;
-
-          // Fetch fresh data in background
-          _fetchShortsInBackground(queryParams: {
-            ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
-            ApiKeys.limit: limit,
-          });
-          return;
         } else {
           print('📱 No cached shorts found, fetching from API...');
         }
+      }
+
+      // Anything on screen — from disk or from an earlier fetch — stays put
+      // while the live page is fetched behind it, and is swapped for it when it
+      // lands. That is what stops a return to Bites (and a pull-to-refresh)
+      // from tearing the grid down to a shimmer.
+      if (trendingVideoFeedPosts.isNotEmpty) {
+        isFirstLoadTrending.value = false;
+        // Awaited so a pull-to-refresh keeps its indicator until fresh content
+        // is actually on screen; the cold-open caller doesn't block on this.
+        await _fetchShortsInBackground(queryParams: {
+          ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
+          ApiKeys.limit: limit,
+        });
+        return;
       }
     }
 

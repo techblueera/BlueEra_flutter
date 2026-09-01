@@ -56,7 +56,7 @@ class AppImageAssets {
   static const String dummyScratch = "${imgPath}dummy_scratch.png";
   static const String coinIcon = "${imgPath}coin_icon.png";
   static const String moneyBagIcon = "${imgPath}money_bag_icon.png";
-  static const String completeProfileBanner = "${imgPath}complete_profile_banner.jpeg";
+  static const String completeProfileBanner = "${imgPath}complete_profile_banner.png";
   static const String groceryBanner = "${imgPath}grocery_banner.jpeg";
   static const String franchiseBanner = "${imgPath}franchise_banner.jpeg";
   static const String gpsDiscover = "${imgPath}gps_discover.png";
@@ -64,6 +64,8 @@ class AppImageAssets {
   static const String professionalsDiscover = "${imgPath}professionals_discover.png";
   static const String financialDiscover = "${imgPath}financial_discover.png";
   static const String jobsDiscover = "${imgPath}jobs_discover.png";
+  static const String claimDialog = "${imgPath}claim_dialog.png";
+  static const String referEarnBanner = "${imgPath}refer_earn_banner.png";
 
   /// Coin Wallet dashboard (earn-coin) artwork.
   static const String coinHeaderBg = "${imgPath}coin_header_bg.png";

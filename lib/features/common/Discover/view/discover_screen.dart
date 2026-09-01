@@ -32,6 +32,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
@@ -52,7 +53,6 @@ import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -789,9 +789,34 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       sliver: SliverToBoxAdapter(
         child: Column(
           children: [
+            // Refer & Earn — a plain static banner, NOT the header's
             Padding(
               padding: const EdgeInsets.fromLTRB(_gap, 0, _gap, _gap),
-              child: const DiscoverProfileBanner(),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                // The whole banner is the button — it says "Invite Friends", so
+                // the tap does the inviting. It shares THIS artwork, not the
+                // account's profile card: the offer ("Earn up to ₹1000") is in
+                // these pixels, and attaching a profile poster instead would
+                // send a picture the user never saw. The referral code and
+                // links ride in the message text regardless.
+                onTap: () => shareDiscoverReferral(
+                  posterAsset: AppImageAssets.referEarnBanner,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: AspectRatio(
+                    aspectRatio: 1176 / 603,
+                    child: Image.asset(
+                      AppImageAssets.referEarnBanner,
+                      fit: BoxFit.cover,
+                      // A missing asset collapses the slot rather than leaving
+                      // Flutter's grey broken-image box mid-page.
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
             ),
             // The QR is deliberately PLAIN: no scroll-linked scale, no width
             // override — exactly the card the rest of the app renders. Growing
@@ -815,72 +840,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         ),
       ),
     );
-  }
-}
-
-/// The "Complete your profile / ₹400" card at the top of the design, and again
-/// above the QR row.
-///
-/// One image, not v1's carousel: the design shows a single card in both slots.
-/// The artwork is the account's own backend-generated marketing card when it
-/// has one, and the bundled complete-profile banner when it does not — which is
-/// also what a guest sees, so the header measures the same before and after
-/// sign-up and nothing shifts under the user at the moment they create a
-/// profile.
-class DiscoverProfileBanner extends StatelessWidget {
-  const DiscoverProfileBanner({super.key});
-
-  /// The design's card is close to 2:1 — measured off `assets/Discover.png`,
-  /// where it runs 308 x 150 inside a 324-wide frame. Sized by ratio rather
-  /// than a fixed height so the whole card shows on every width instead of
-  /// being cropped to a strip.
-  static const double _aspect = 2.05;
-
-  @override
-  Widget build(BuildContext context) {
-    // getOrPut, not find: this is the same instance the share sheet composes
-    // its card from, and resolving it outside the Obx guarantees the builder
-    // always has an observable to read.
-    final personal = getOrPut(() => ViewPersonalDetailsController());
-
-    return Obx(() {
-      String? poster =
-          personal.personalProfileDetails.value.user?.marketingCard?.readyUrl;
-      if (isBusinessUser() &&
-          Get.isRegistered<ViewBusinessDetailsController>()) {
-        // Falls back to the personal poster: a business account still has a
-        // personal profile behind it, and for some that is where the card is
-        // generated.
-        poster = Get.find<ViewBusinessDetailsController>()
-                .businessProfileDetails
-                .value
-                ?.data
-                ?.marketingCard
-                ?.readyUrl ??
-            poster;
-      }
-      final hasPoster = poster?.trim().isNotEmpty ?? false;
-
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: _aspect,
-          child: hasPoster
-              ? CachedNetworkImage(
-                  imageUrl: poster!.trim(),
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const LocalAssets(
-                    imagePath: AppImageAssets.completeProfileBanner,
-                    boxFix: BoxFit.cover,
-                  ),
-                )
-              : const LocalAssets(
-                  imagePath: AppImageAssets.completeProfileBanner,
-                  boxFix: BoxFit.cover,
-                ),
-        ),
-      );
-    });
   }
 }
 

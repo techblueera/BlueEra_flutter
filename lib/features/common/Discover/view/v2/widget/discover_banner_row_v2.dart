@@ -134,7 +134,7 @@ class DiscoverBannerRowV2 extends StatelessWidget {
                           title,
                           // 16 / w600, as specified — the card titles across
                           // the page are one type style.
-                          fontSize: SizeConfig.large,
+                          fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor,
                           maxLines: 1,

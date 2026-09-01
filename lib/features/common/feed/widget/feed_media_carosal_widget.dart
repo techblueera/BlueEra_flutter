@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/image_decode_size.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -240,6 +241,14 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                                 fit: BoxFit.cover,
                                 width: width,
                                 height: height,
+                                // Post photos are the heaviest thing the feed
+                                // paints — a 1080x1350 upload is ~5.8 MB of RAM
+                                // decoded at source size, held in the image
+                                // cache, for a slot one screen wide. Decoding
+                                // to the slot instead is the single biggest
+                                // cut to feed memory and to the GPU upload on
+                                // the frame that first shows the card.
+                                memCacheWidth: decodeWidthFor(context, width),
                                 placeholder: (context, _) =>  Center(
                                   child:
                                   LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),

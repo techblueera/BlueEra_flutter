@@ -53,6 +53,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 import 'core/constants/getx_utils.dart';
 import 'core/services/address_cache_service.dart';
+import 'core/services/keyed_json_cache.dart';
 import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -1105,6 +1106,10 @@ Future<void> _initDeferred(
     if (!deferForDeepLink) getServiceProviderStatusUtils(),
     HiveServices.init(),
     HomeCacheService.init(),
+    // Social-tab caches, opened here so Feed / Bites / My Post can read them
+    // SYNCHRONOUSLY in initState and paint their first frame with content
+    // instead of a spinner (see KeyedJsonCache.getSync).
+    openSocialCaches(),
     AddressCacheService.init(),
     PackageInfo.fromPlatform().then((info) => appVersion = info.version),
     Hive.openBox('languageBox').then((_) {}),
