@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/business_service_list.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -35,12 +36,48 @@ class OtherServicesTabV2 extends StatefulWidget {
 class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
   final _serviceController = getOrPut(() => ServiceController());
 
+  /// The "add your first service" sheet is opened at most once per visit to
+  /// this screen. The tab stays alive inside the TabBarView, so without this a
+  /// return from the add flow — which refetches — could re-open it while the
+  /// merchant is still deciding.
+  bool _promptShown = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchServices();
     });
+  }
+
+  /// Opens the add-service sheet when the business has NO service yet.
+  ///
+  /// This is the Services tab's own nudge and it belongs here rather than on
+  /// the screen's landing: a service is what the profile is BLOCKED on (the
+  /// account cannot go live without one), so the first thing the merchant is
+  /// asked for is the thing that unblocks them. The live-photo sheet, which
+  /// used to open here instead, now waits for the Overview tab — the tab that
+  /// actually holds the photos.
+  ///
+  /// No cadence rule: the sheet is the empty state's own call to action, so it
+  /// keeps appearing on each visit until a service exists. [_promptShown]
+  /// keeps it to once per visit.
+  Future<void> _promptForFirstServiceIfNeeded() async {
+    if (_promptShown || !mounted) return;
+    if (_serviceController.serviceDataList.isNotEmpty) return;
+    _promptShown = true;
+    await showAddCatalogPromptSheet(
+      context: context,
+      // Literal copy, like the empty-state banner below it — the shared
+      // `addPromptTitle*` keys are per-catalog ("your dishes", "your
+      // medicines") and none of them covers services.
+      spec: const AddProductPromptSpec(
+        titleKey: 'Add your services',
+        ctaKey: 'Add Service',
+        icon: Icons.add_business_outlined,
+      ),
+      onAddProduct: _onAddServiceTap,
+    );
   }
 
   /// Re-fetches the business services list. Called on first mount AND
@@ -55,7 +92,9 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
       ApiKeys.type: AppConstants.service,
       ApiKeys.providerType: ProviderType.business.title,
       ApiKeys.subType: 'homeService',
-    });
+      // Decided on the RESULT, never on the empty list we start with — an
+      // in-flight fetch looks exactly like a business with no services.
+    }).whenComplete(_promptForFirstServiceIfNeeded);
   }
 
   void _onAddServiceTap() {
@@ -138,7 +177,6 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
               ),
             );
           }),
-          SizedBox(height: kBottomNavigationBarHeight + 10),
         ],
       ),
     );
@@ -159,18 +197,22 @@ class _ServiceRequiredBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-      child: Container(
-        padding: EdgeInsets.all(SizeConfig.size16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+    // No inset of its own. It used to add `horizontal: size4` on top of the
+    // tab's size8, which put this banner 4pt narrower than the
+    // `CommonCardWidget` that REPLACES it once a service exists — the card
+    // visibly jumped outward when the first service was added, and the promo
+    // strip below could not line up with both. One gutter for the tab now: the
+    // tab's own size8.
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
             LocalAssets(
               imagePath: AppIconAssets.emptyIcon,
               height: 60,
@@ -229,8 +271,7 @@ class _ServiceRequiredBanner extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

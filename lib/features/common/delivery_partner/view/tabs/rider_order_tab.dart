@@ -135,7 +135,13 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
     // content and settles after the last row rather than sitting as a pinned
     // band. This screen passes its tabs to HomeTabScaffold directly (no shared
     // `_tabScroll` helper), so the wrap goes here rather than at the scaffold.
-    return RiderTabScroll(children: withQurekaPromoBelowAll(_buildOrderTab()));
+    return RiderTabScroll(
+      children: withQurekaPromoBelowAll(
+        _buildOrderTab(),
+        // The scroll has no horizontal padding; the tab guts itself at size12.
+        stripMargin: qurekaStripMarginFor(SizeConfig.size12),
+      ),
+    );
   }
 
   List<Widget> _buildOrderTab() {
@@ -407,7 +413,10 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
 
   Widget _buildPreferenceTab() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      // size12, matching the actions deck above it — this was a literal 14
+      // while the deck sat at 12, so the two disagreed by 2pt and the promo
+      // strip appended under the tab could line up with only one of them.
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

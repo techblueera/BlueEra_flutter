@@ -842,6 +842,96 @@ const String HOSPITAL = "HOSPITAL";
 const String PHARMACY = "PHARMACY";
 const String LABTEST = "LABTEST";
 
+/// Raw `businessCategoryGlobal` values the Me-tab router matches on when it
+/// picks the module for a business account (see `_buildBusinessScreen`).
+///
+/// These are the CATEGORY strings as the onboarding API returns them, which is
+/// why they are separate from the display labels on [AppConstants] ("HOSPITAL
+/// SECTOR", "Sales Sector", …): those name the same sectors for the UI, these
+/// are what actually arrives in the global. The API is inconsistent about case
+/// and about underscore-vs-space, so every constant here is upper-case and the
+/// call sites upper-case the value before comparing; where both spellings turn
+/// up, both are listed.
+class BusinessCategoryTokens {
+  const BusinessCategoryTokens._();
+
+  // ── Healthcare ────────────────────────────────────────────────────────────
+  static const String hospitals = "HOSPITALS";
+  static const String alternativeHealth = "ALTERNATIVE HEALTH";
+  static const String diagnostic = "DIAGNOSTIC";
+  static const String pharmacy = "PHARMACY";
+
+  /// Substrings — not whole categories. A standalone doctor arrives as
+  /// "DOCTORS", "Doctors", "Clinic Doctors" or "CLINICS", so the category is
+  /// tested with `contains` against these.
+  static const String doctorToken = "DOCTOR";
+  static const String clinicToken = "CLINIC";
+
+  /// The same two categories as whole values, for the account-creation path,
+  /// which is handed an exact category rather than a free-form one.
+  static const String doctors = "DOCTORS";
+  static const String clinics = "CLINICS";
+
+  /// Not a healthcare category — the "support services" category that shares
+  /// the generic other-profile creation path with Service businesses.
+  static const String supportServices = "SUPPORT_SERVICES";
+
+  // ── Manufacturing ─────────────────────────────────────────────────────────
+  /// Also substrings: the value carries either the display name
+  /// ("Manufacturing Healthcare") or the tag id ("MANUFACTURING_HEALTHCARE"),
+  /// and each token appears in exactly one manufacturing category.
+  static const String groceryToken = "GROCERY";
+  static const String healthcareToken = "HEALTHCARE";
+  static const String automotiveToken = "AUTOMOTIVE";
+
+  // ── Automotive ────────────────────────────────────────────────────────────
+  /// Categories that open the vehicle showroom (v3).
+  static const Set<String> automotiveVehicleSales = {
+    "VEHICLE_SALES",
+    "VEHICLE SALES",
+    // "VEHICLE_PARTS",
+    // "VEHICLE_RENTAL",
+    // "AUTO PARTS",
+    // "VEHICLE RENTAL",
+    // "AUTO RENTAL",
+  };
+
+  /// Categories that open the automotive-service module.
+  static const Set<String> automotiveServiceAndSupport = {
+    "VEHICLE SERVICE",
+    "VEHICLE_SERVICE",
+    // "TRANSPORT_LOGISTIC",
+    // "TRANSPORT LOGISTIC",
+    "VEHICLE_SUPPORT",
+    "VEHICLE SUPPORT",
+    "TRANSPORT_LOGISTICS_PARKING",
+    "TRANSPORT LOGISTICS PARKING",
+  };
+
+  /// The same service/support categories PLUS `TRANSPORT_LOGISTIC`, used by
+  /// account creation to decide which businesses get a generic "other" profile
+  /// created for them.
+  ///
+  /// Deliberately NOT the same set as [automotiveServiceAndSupport]: transport
+  /// logistics gets an other-profile at signup but is not routed to the
+  /// automotive-service module on the Me tab, so the two lists differ by that
+  /// one pair of spellings. Keep them separate.
+  static const Set<String> automotiveOtherProfileCategories = {
+    "VEHICLE SERVICE",
+    "VEHICLE_SERVICE",
+    "TRANSPORT_LOGISTIC",
+    "TRANSPORT LOGISTIC",
+    "VEHICLE_SUPPORT",
+    "VEHICLE SUPPORT",
+    "TRANSPORT_LOGISTICS_PARKING",
+    "TRANSPORT LOGISTICS PARKING",
+  };
+
+  /// Substring for the parts catalogue ("AUTO PARTS", with its space, as the
+  /// API returns it).
+  static const String autoPartsToken = "AUTO PARTS";
+}
+
 // Consulatant
 const String LEGAL_GOVT_CONSULTANT = "LEGAL_GOVT_CONSULTANT";
 const String FINANCE_TAX_CONSULTANT = "FINANCE_TAX_CONSULTANT";

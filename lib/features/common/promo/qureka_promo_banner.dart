@@ -1,77 +1,27 @@
 import 'dart:math';
 
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/features/common/promo/model/promo_ad_models.dart';
+import 'package:BlueEra/features/common/promo/promo_ads_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Where the Qureka promo banners point.
+/// Where a promo banner points when the creative itself carries no
+/// `targetUrl`.
 ///
-/// One constant for every placement — Discover, the Social feed and the store
-/// listings all read this, so the destination can never differ between them.
+/// The API marks most creatives decorative (`targetUrl: null`) and tells
+/// clients not to invent a destination. This is not an invented one: it is the
+/// app's configured promo destination, the same single constant every placement
+/// read while the artwork was bundled. A creative that DOES carry a
+/// `targetUrl` always wins over it.
 ///
-/// Empty disables the promo entirely: [QurekaPromoBanner] renders nothing when
-/// this is blank, so the banners can be pulled from all three screens by
-/// clearing this one line, with no other edit and no dead artwork left behind.
-///
-/// If a partner ever supplies a tracked link (a `?pub=` / `?utm_` variant),
-/// replace the whole value here rather than appending at the call sites — the
-/// point of a single constant is that attribution can't drift between
-/// placements.
+/// Empty disables the tap everywhere — the banners then render as pure artwork
+/// with no tap target, which is exactly the API's decorative rule.
 const String kQurekaPromoUrl = 'https://qureka.com/';
 
-/// The bundled Qureka Lite creatives, in `assets/qureka/`.
-///
-/// All six are wide banners at roughly 16:9 (900x506 or 800x480), so they share
-/// one box — see [QurekaPromoBanner._aspect].
-class QurekaCreatives {
-  QurekaCreatives._();
-
-  /// "Play GK Quiz & Earn upto 50,000 coins".
-  static const String gkQuiz = 'assets/qureka/gk_quiz.jpg';
-
-  /// IPL cricket quiz.
-  static const String iplQuiz = 'assets/qureka/ipl_quiz.jpg';
-
-  /// History quiz.
-  static const String historyQuiz = 'assets/qureka/history_quiz.jpg';
-
-  /// Tech-skills quiz.
-  static const String techSkillsQuiz = 'assets/qureka/tech_skills_quiz.jpg';
-
-  /// "SSC EXAM Quiz for 50,000 Coins is Live".
-  static const String sscExamQuiz = 'assets/qureka/ssc_exam_quiz.png';
-
-  /// "SSC, BANK PO क्लियर करना है?" — the Hindi exam-prep creative.
-  static const String sscBankPoQuiz = 'assets/qureka/ssc_bank_po_quiz.png';
-
-  static const List<String> all = [
-    gkQuiz,
-    iplQuiz,
-    historyQuiz,
-    techSkillsQuiz,
-    sscExamQuiz,
-    sscBankPoQuiz,
-  ];
-
-  // ── Slim 320x50 strips ────────────────────────────────────────────────
-  //
-  // A different SHAPE, not just different art: at 6.4:1 these are a banner
-  // strip rather than a card. They exist for surfaces where a full 16:9 card
-  // would be too much — the "Me" tabs, where the merchant came to work and the
-  // promo has to stay out of the way.
-
-  /// "Play Tech Quiz & Earn upto 15,000 coins".
-  static const String techQuizStrip = 'assets/qureka/tech_quiz_strip.jpg';
-
-  /// "Play Cricket Quiz & Earn upto 50,000 coins daily".
-  static const String cricketQuizStrip =
-      'assets/qureka/cricket_quiz_strip.jpg';
-
-  static const List<String> strips = [techQuizStrip, cricketQuizStrip];
-}
-
 /// While true, the surfaces that opted in by using [PromoAdSlot] fill their ad
-/// rows with Qureka promo cards instead of Google/Meta native ads.
+/// rows with promo cards instead of Google/Meta native ads.
 ///
 /// This is the "for now" switch. Flip it to false and every one of those slots
 /// goes straight back to serving real native ads with no other edit — the call
@@ -83,8 +33,8 @@ class QurekaCreatives {
 /// keep serving native ads regardless.
 const bool kQurekaReplacesNativeAds = true;
 
-/// An ad row that renders EITHER a Qureka promo card or a real native ad,
-/// decided by [kQurekaReplacesNativeAds].
+/// An ad row that renders EITHER a promo card or a real native ad, decided by
+/// [kQurekaReplacesNativeAds].
 ///
 /// A drop-in for [NativeAdSlot]: same constructor arguments, so switching a
 /// screen over is a one-word change at the call site and switching back is one
@@ -93,7 +43,7 @@ const bool kQurekaReplacesNativeAds = true;
 /// keeping them means nothing has to be re-derived when ads come back.
 ///
 /// [adOrdinal] doubles as the promo's creative index, so a list with several ad
-/// rows shows a DIFFERENT quiz card in each rather than the same one repeated
+/// rows shows a DIFFERENT creative in each rather than the same one repeated
 /// down the page.
 class PromoAdSlot extends StatelessWidget {
   const PromoAdSlot({
@@ -141,10 +91,8 @@ class PromoAdSlot extends StatelessWidget {
       // Cycle by ordinal rather than at random: within one list the cards then
       // differ from each other, and they stay put across rebuilds instead of
       // reshuffling every time the list repaints.
-      creative:
-          QurekaCreatives.all[adOrdinal.abs() % QurekaCreatives.all.length],
-      margin: margin ??
-          EdgeInsets.fromLTRB(0, 0, 0, bottomGap ?? 12),
+      creativeIndex: adOrdinal,
+      margin: margin ?? EdgeInsets.fromLTRB(0, 0, 0, bottomGap ?? 12),
       borderRadius: borderRadius,
     );
   }
@@ -152,12 +100,26 @@ class PromoAdSlot extends StatelessWidget {
 
 /// The slim 320x50 strip the "Me" tabs use, as a standalone widget.
 ///
-/// [QurekaPromoBanner] with the strip aspect and the strip artwork — same tap
-/// behaviour, same "hidden when unconfigured" rule.
+/// [QurekaPromoBanner] with the strip placement — same tap behaviour, same
+/// "hidden when there is nothing to show" rule.
+///
+/// The default margin suits the tab scrolls that pad their content `left: 20`
+/// and nothing on the right (grocery, product, food, manufacturer, automotive
+/// parts): the scroll supplies the left inset, the strip supplies the matching
+/// right one. Screens laid out any other way must pass their own — see
+/// [withQurekaPromoBelow].
+const EdgeInsets kQurekaStripMargin = EdgeInsets.fromLTRB(0, 16, 20, 4);
+
 const Widget kQurekaStrip = QurekaPromoBanner(
   strip: true,
-  margin: EdgeInsets.fromLTRB(0, 16, 20, 4),
+  margin: kQurekaStripMargin,
 );
+
+/// The strip's margin for a tab whose scroll has NO horizontal padding and
+/// whose content insets itself by [contentInset] — the strip then takes the
+/// same inset on both sides and lines up with the cards above it.
+EdgeInsets qurekaStripMarginFor(double contentInset) =>
+    EdgeInsets.fromLTRB(contentInset, 16, contentInset, 4);
 
 /// [content] with the promo STRIP appended under it, for use **inside** a
 /// scroll view.
@@ -169,73 +131,111 @@ const Widget kQurekaStrip = QurekaPromoBanner(
 /// as a separate band above or below the list — which is what it looked like
 /// while the wrapping was done from `HomeTabScaffold`, outside the scrollable.
 ///
-/// Right padding only: those tab scrolls are laid out with a left inset and no
-/// right one, so the strip supplies its own to sit square with the content.
-Widget withQurekaPromoBelow(Widget content) {
+/// [stripMargin] is how the strip lines up with the cards above it, and the
+/// caller has to say — nothing here can measure the insets its sibling applies.
+/// The default assumes the tab scroll pads `left: 20` with no right inset, so
+/// the strip contributes the matching right one (see [kQurekaStripMargin]).
+///
+/// A screen whose scroll has NO horizontal padding — its content insets itself
+/// instead — must pass `qurekaStripMarginFor(<that inset>)`, or the strip runs
+/// to the screen edge on the left while stopping 20 short on the right, which
+/// is exactly the misalignment this parameter exists to fix. A screen whose
+/// scroll already pads BOTH edges passes `qurekaStripMarginFor(0)`.
+Widget withQurekaPromoBelow(Widget content, {EdgeInsets? stripMargin}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [content, kQurekaStrip],
+    children: [
+      content,
+      QurekaPromoBanner(
+        strip: true,
+        margin: stripMargin ?? kQurekaStripMargin,
+      ),
+    ],
   );
 }
 
 /// [withQurekaPromoBelow] for the two "Me" screens whose `_tabScroll` takes a
 /// `List<Widget>` (content creator, professionals) rather than a single child.
-List<Widget> withQurekaPromoBelowAll(List<Widget> content) {
-  return [...content, kQurekaStrip];
+List<Widget> withQurekaPromoBelowAll(List<Widget> content,
+    {EdgeInsets? stripMargin}) {
+  return [
+    ...content,
+    QurekaPromoBanner(
+      strip: true,
+      margin: stripMargin ?? kQurekaStripMargin,
+    ),
+  ];
 }
 
-/// A tappable Qureka Lite promo banner that opens [kQurekaPromoUrl] **inside the
-/// app**.
+/// A tappable promo banner drawn from the SERVER-served creative bundle
+/// ([PromoAdsService]) — no bundled artwork, so a campaign can be swapped,
+/// paused or reordered without an app release.
 ///
-/// `LaunchMode.inAppWebView` rather than `externalApplication`: this is a promo,
-/// and bouncing the user out to Chrome loses them — the app goes to the
-/// background and coming back is their problem. In-app keeps the back button
-/// pointing at wherever they were. It is the same mode the channel links use.
+/// The slot decides the size, not the image: [strip] picks the 320x50
+/// `banner_strip` placement, otherwise the 900x506 `home_hero` card. The box is
+/// reserved from the placement's own aspect ratio BEFORE the image loads, so a
+/// feed never jumps as creatives arrive.
 ///
-/// **Renders nothing when [kQurekaPromoUrl] is empty**, so every placement is
-/// inert until the link is configured. It also collapses when its artwork is
-/// missing, so a stale asset bundle leaves a clean page rather than a grey
-/// broken-image box.
-class QurekaPromoBanner extends StatelessWidget {
+/// **Renders nothing when the bundle has no creative for its placement** — a
+/// cold first launch with no cache and no network, a paused campaign, a slot
+/// the backend stopped serving. A promo that isn't there collapses to zero
+/// height rather than leaving a grey box.
+///
+/// Taps open [kQurekaPromoUrl] (or the creative's own `targetUrl`) in the
+/// **device browser** — `LaunchMode.externalApplication`, not the in-app
+/// webview. The destination is a third-party site that runs its own quizzes and
+/// sign-in, and an embedded webview gives it none of the browser session, saved
+/// logins or cookies it expects, so the promo is worth less to the user AND to
+/// the partner. The app is left in the background and comes back untouched on
+/// the system back gesture.
+class QurekaPromoBanner extends StatefulWidget {
   const QurekaPromoBanner({
     super.key,
-    this.creative,
+    this.creativeIndex,
     this.strip = false,
     this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     this.borderRadius = 16,
   });
 
-  /// Which artwork to show. Null picks one per mount from the matching set —
-  /// placements that appear on several screens then don't all show the
-  /// identical banner, without any of them having to coordinate.
-  final String? creative;
+  /// Which creative in the placement to show. Null picks one per MOUNT (not per
+  /// build, so it does not reshuffle on repaint) — placements that appear on
+  /// several screens then don't all show the identical banner, without any of
+  /// them having to coordinate.
+  final int? creativeIndex;
 
-  /// Draw the slim 320x50 BANNER STRIP instead of the 16:9 card.
+  /// Draw the slim 320x50 banner strip instead of the wide card.
   ///
-  /// Not a styling flag — it selects a different set of artwork
-  /// ([QurekaCreatives.strips]) with a different shape. A card cropped to strip
-  /// height would lose most of its message; the strips are drawn for it.
+  /// Not a styling flag — it selects a different PLACEMENT, whose artwork is
+  /// drawn for that shape. A card cropped to strip height would lose most of
+  /// its message.
   final bool strip;
 
   final EdgeInsetsGeometry margin;
   final double borderRadius;
 
-  /// The cards are 900x506 and 800x480; 16:9 sits between them, so `cover`
-  /// trims a hair off the taller ones rather than letterboxing any of them.
-  static const double _cardAspect = 16 / 9;
+  @override
+  State<QurekaPromoBanner> createState() => _QurekaPromoBannerState();
+}
 
-  /// The strips are exactly 320x50.
-  static const double _stripAspect = 320 / 50;
+class _QurekaPromoBannerState extends State<QurekaPromoBanner> {
+  /// Frozen at mount so the random pick survives rebuilds. Only used when the
+  /// caller passes no [QurekaPromoBanner.creativeIndex].
+  late final int _seed = Random().nextInt(1 << 31);
 
-  static final Random _rng = Random();
+  String get _placementKey =>
+      widget.strip ? AdPlacements.bannerStrip : AdPlacements.homeHero;
 
-  Future<void> _open() async {
-    final raw = kQurekaPromoUrl.trim();
+  Future<void> _open(AdCreative creative) async {
+    final raw = (creative.targetUrl ?? kQurekaPromoUrl).trim();
     if (raw.isEmpty) return;
     final uri = Uri.tryParse(raw.startsWith('http') ? raw : 'https://$raw');
     if (uri == null) return;
     try {
-      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+      // The device BROWSER, not an in-app webview: the promo is a third-party
+      // destination that runs its own quizzes and sign-in, and a webview hands
+      // it none of the browser session it expects. Android resolves this
+      // through the manifest's `https` VIEW query, which is already declared.
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {
       // A device with no browser at all — nothing useful to say, and a promo is
       // not worth a snackbar over.
@@ -244,31 +244,54 @@ class QurekaPromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Not configured → not shown. See [kQurekaPromoUrl].
-    if (kQurekaPromoUrl.trim().isEmpty) return const SizedBox.shrink();
+    // Rebuilds when a fetch lands, so a banner built before the bundle arrived
+    // fills itself in rather than staying collapsed for the session.
+    return ValueListenableBuilder<int>(
+      valueListenable: PromoAdsService.revision,
+      builder: (context, _, __) {
+        final placement = PromoAdsService.of(_placementKey);
+        final creative = PromoAdsService.pick(
+          _placementKey,
+          index: widget.creativeIndex ?? _seed,
+        );
+        // Nothing to show → no gap. See the class doc.
+        if (placement == null || creative == null) {
+          return const SizedBox.shrink();
+        }
 
-    final set = strip ? QurekaCreatives.strips : QurekaCreatives.all;
-    final art = creative ?? set[_rng.nextInt(set.length)];
+        final tappable =
+            (creative.targetUrl ?? kQurekaPromoUrl).trim().isNotEmpty;
 
-    return Padding(
-      padding: margin,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _open,
-        child: ClipRRect(
-          // A 50pt-tall strip with a 16pt radius reads as a pill; it takes its
-          // own, smaller corner.
-          borderRadius: BorderRadius.circular(strip ? 8 : borderRadius),
-          child: AspectRatio(
-            aspectRatio: strip ? _stripAspect : _cardAspect,
-            child: Image.asset(
-              art,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        return Padding(
+          padding: widget.margin,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: tappable ? () => _open(creative) : null,
+            child: ClipRRect(
+              // A 50pt-tall strip with a 16pt radius reads as a pill; it takes
+              // its own, smaller corner.
+              borderRadius:
+                  BorderRadius.circular(widget.strip ? 8 : widget.borderRadius),
+              child: AspectRatio(
+                // The slot's own ratio, from the API — the box is the right
+                // size before a byte of the image has loaded.
+                aspectRatio: placement.aspectRatio,
+                child: CachedNetworkImage(
+                  imageUrl: creative.url,
+                  fit: BoxFit.cover,
+                  // A flat tint, not a spinner: the box is already the final
+                  // size, so this just holds its place for the moment it takes
+                  // the (cached, after first run) image to decode.
+                  placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                  // A dead URL collapses the slot instead of parking a broken
+                  // image in the layout.
+                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -279,7 +279,13 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               tabViews: [
                 _tabScroll(
                   withQurekaPromoBelow(
-                      SchoolAcademicsTabV2(controller: _schoolController)),
+                    SchoolAcademicsTabV2(controller: _schoolController),
+                    // The scroll pads both edges by 10 (horizontalPadding
+                    // below) and every card in the tab adds another size4 of
+                    // its own, so the strip matches that 4 — at 0 it sat 4pt
+                    // wider than the deck and the course list.
+                    stripMargin: qurekaStripMarginFor(SizeConfig.size4),
+                  ),
                   horizontalPadding: 10,
                 ),
                 _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),

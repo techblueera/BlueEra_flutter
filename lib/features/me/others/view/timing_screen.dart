@@ -1,9 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/option_picker_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -111,10 +111,10 @@ class TimingScreen extends StatelessWidget {
                               SizedBox(
                                 width: 10,
                               ),
-                              _buildDropdown(controller.timeSlots, dayTiming.openTime.value,
+                              _buildDropdown(context, controller.timeSlots, dayTiming.openTime.value,
                                   (val) => controller.updateTime(index, val!, true)),
                               const SizedBox(width: 8),
-                              _buildDropdown(controller.timeSlots, dayTiming.closeTime.value,
+                              _buildDropdown(context, controller.timeSlots, dayTiming.closeTime.value,
                                   (val) => controller.updateTime(index, val!, false)),
                             ],
                           ),
@@ -159,39 +159,48 @@ class TimingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown(List<String> items, String currentValue, Function(String?) onChanged) {
-    return Container(
-      height: 35,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F5),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: items.contains(currentValue) ? currentValue : null,
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            size: 16,
-            color: AppColors.mainTextColor,
-          ),
-          isDense: true,
-          style: TextStyle(
-            fontSize: 12,
-            fontFamily: AppConstants.OpenSans,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w500,
-          ),
-          items: items.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: CustomText(
-                value,
-                fontSize: 12,
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
+  /// A time field: the chosen value, tapped to pick from the list.
+  ///
+  /// A sheet rather than a `DropdownButton` — 7 days × 2 fields × 48 slots is
+  /// 672 rows a DropdownButton would build and lay out before this screen could
+  /// paint. See [showOptionPickerSheet].
+  Widget _buildDropdown(BuildContext context, List<String> items,
+      String currentValue, Function(String?) onChanged) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: () async {
+        final picked = await showOptionPickerSheet<String>(
+          context: context,
+          title: 'Select time',
+          options: items,
+          selected: items.contains(currentValue) ? currentValue : null,
+          labelOf: (v) => v,
+        );
+        if (picked != null) onChanged(picked);
+      },
+      child: Container(
+        height: 35,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F0F5),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              currentValue,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mainTextColor,
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: AppColors.mainTextColor,
+            ),
+          ],
         ),
       ),
     );

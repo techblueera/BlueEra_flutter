@@ -4,16 +4,26 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class HospitalRepo extends BaseService {
+  /// `showProgress: false` — a side effect of account creation, run while the
+  /// Submit button already shows its own spinner. See the note on
+  /// `OtherRepo.createOtherBusinessProfileRepo`.
   Future<ResponseModel> createHospitalRepo(
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(aiCreateHospital,
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+        params: reqBody,
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
+  /// `showProgress: false` — the Hospital "Me" screen's own load: it runs from
+  /// `HospitalHomeScreenV2.initState` and from its pull-to-refresh, both of
+  /// which already show progress. A blocking dialog there greys out the screen
+  /// the merchant just opened.
   Future<ResponseModel> getHospitalFullDetailsRepo() async {
-    final response = await ApiBaseHelper()
-        .getHTTP(userSelfHospital, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(userSelfHospital,
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 

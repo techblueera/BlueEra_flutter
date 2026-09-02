@@ -15,6 +15,11 @@ mixin OtherServiceApi {
   final String otherBusinessProfileSearch = "other-service/business-profile/search";
   final String otherContactUsService = 'other-service/contact';
 
+  /// Promo creatives (Qureka Lite artwork) grouped by placement, plus the
+  /// bilingual notification copy. Public — no token, so it can be prefetched
+  /// before login. See docs/backend/ADS_API_FLUTTER_GUIDE.md.
+  final String promoAds = "other-service/ads";
+
   // "Other" business enquiry surface — banking / insurance / loans /
   // capital-market / data. Same generic-selections shape as the
   // healthcare-business endpoint, but a distinct `business_enquiry` card

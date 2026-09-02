@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/option_picker_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -165,59 +166,60 @@ class _TimeBox extends StatelessWidget {
           ? selectedString
           : timeOptions.first;
 
-      return Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size4,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.whiteF3,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.greyE5),
-        ),
-        child: DropdownButton<String>(
-          value: validValue,
-          isDense: true,
-          // isExpanded lets the button shrink to the Expanded width instead
-          // of demanding its widest item's width, which is what used to force
-          // the whole row to overflow.
-          isExpanded: true,
-          icon: Icon(
-            Icons.keyboard_arrow_down,
-            size: SizeConfig.size18,
-            color: AppColors.secondaryTextColor,
+      // A sheet, not a `DropdownButton`. The options are 15-minute steps, so a
+      // DropdownButton per field had this selector building and laying out
+      // 7 days × 2 fields × 96 options = 1,344 rows before the sheet it lives
+      // in could paint. Now the closed field is a label and the rows are built
+      // lazily, for one field, only when tapped. See [showOptionPickerSheet].
+      return InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          final picked = await showOptionPickerSheet<String>(
+            context: context,
+            title: day,
+            options: timeOptions,
+            selected: validValue,
+            labelOf: controller.to12HourLabel,
+          );
+          if (picked == null) return;
+          final parts = picked.split(':');
+          final newTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
+          isStart
+              ? controller.updateStartTime(day, newTime)
+              : controller.updateEndTime(day, newTime);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10,
+            vertical: SizeConfig.size10,
           ),
-          dropdownColor: AppColors.white,
-          underline: const SizedBox(),
-          style: TextStyle(
-            color: AppColors.mainTextColor,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w500,
+          decoration: BoxDecoration(
+            color: AppColors.whiteF3,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyE5),
           ),
-          items: timeOptions
-              .map(
-                (t) => DropdownMenuItem(
-                  value: t,
-                  child: CustomText(
-                    controller.to12HourLabel(t),
-                    fontSize: SizeConfig.small,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          child: Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  controller.to12HourLabel(validValue),
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              )
-              .toList(),
-          onChanged: (val) {
-            if (val == null) return;
-            final parts = val.split(':');
-            final newTime = TimeOfDay(
-              hour: int.parse(parts[0]),
-              minute: int.parse(parts[1]),
-            );
-            isStart
-                ? controller.updateStartTime(day, newTime)
-                : controller.updateEndTime(day, newTime);
-          },
+              ),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: SizeConfig.size18,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
         ),
       );
     });

@@ -143,9 +143,12 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(
-                    withQurekaPromoBelow(
-                        HospitalDepartmentsTabV2(controller: _hospitalController))),
+                _tabScroll(withQurekaPromoBelow(
+                  HospitalDepartmentsTabV2(controller: _hospitalController),
+                  // The scroll has no horizontal padding and the tab insets
+                  // itself by size4, so the strip matches it on both edges.
+                  stripMargin: qurekaStripMarginFor(SizeConfig.size4),
+                )),
                 _tabScroll(
                     HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(

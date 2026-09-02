@@ -59,7 +59,6 @@ class HospitalDepartmentsTabV2 extends StatelessWidget {
           }),
           SizedBox(height: SizeConfig.size10),
           HospitalBookingScreen(isReadOnly: false),
-          SizedBox(height: kBottomNavigationBarHeight + 10),
         ],
       ),
     );

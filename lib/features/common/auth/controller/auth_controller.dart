@@ -568,17 +568,6 @@ class AuthController extends GetxController {
     }
   }
 
-  static const Set<String> _automotiveOtherCategories = {
-    'VEHICLE SERVICE',
-    'VEHICLE_SERVICE',
-    'TRANSPORT_LOGISTIC',
-    'TRANSPORT LOGISTIC',
-    'VEHICLE_SUPPORT',
-    'VEHICLE SUPPORT',
-    'TRANSPORT_LOGISTICS_PARKING',
-    'TRANSPORT LOGISTICS PARKING',
-  };
-
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
     addUserResponse.value = ApiResponse.loading('loading');
     try {
@@ -651,19 +640,20 @@ class AuthController extends GetxController {
 
           if (typeOfBusiness == BusinessType.Siksha.name.toUpperCase()) {
             pending.add(getOrPut(() => SchoolController()).createSchoolController(reqData: reqData));
-          } else if (categoryOfBusiness == "Diagnostic".toUpperCase()) {
+          } else if (categoryOfBusiness == BusinessCategoryTokens.diagnostic) {
             pending
                 .add(getOrPut(() => LabServiceAiController()).createLabServiceController(reqData: reqBody));
-          } else if (categoryOfBusiness == "HOSPITALS" ||
-              categoryOfBusiness == "ALTERNATIVE HEALTH" ||
-              categoryOfBusiness == "DOCTORS" ||
-              categoryOfBusiness == "CLINICS") {
+          } else if (categoryOfBusiness == BusinessCategoryTokens.hospitals ||
+              categoryOfBusiness == BusinessCategoryTokens.alternativeHealth ||
+              categoryOfBusiness == BusinessCategoryTokens.doctors ||
+              categoryOfBusiness == BusinessCategoryTokens.clinics) {
             pending.add(getOrPut(() => HospitalServiceAiController())
                 .createHospitalServiceController(reqData: reqBody));
-          } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
+          } else if (categoryOfBusiness == BusinessCategoryTokens.supportServices ||
               typeOfBusiness == BusinessType.Service.name.toUpperCase() ||
               (typeOfBusiness == BusinessType.Automotive.name.toUpperCase() &&
-                  _automotiveOtherCategories.contains(categoryOfBusiness))) {
+                  BusinessCategoryTokens.automotiveOtherProfileCategories
+                      .contains(categoryOfBusiness))) {
             // Direct instantiation (not `getOrPut`) — two classes share the
             // name `BusinessProfileFullController` (one under me/others, one
             // under me/automotive_service). GetX keys its registry by the

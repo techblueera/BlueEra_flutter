@@ -211,10 +211,13 @@ class AutomotiveProductRepo extends BaseService {
   }
 
   // GET: Fetch full business profile
+  //
+  // `showProgress: false` — a read backing a screen's own loading state, same
+  // as its `ProductRepo` / `OtherRepo` twins.
   Future<dynamic> getBusinessProfileFullRepo(String id) async {
     return await ApiBaseHelper().getHTTP(
       "automotive_products-service/api/business-profile/$id/full",
-      showProgress: true,
+      showProgress: false,
       onSuccess: (res) {},
       onError: (error) {},
     );
@@ -277,9 +280,12 @@ class AutomotiveProductRepo extends BaseService {
 
 
   ///GET BUSINESS PROFILE REPO....
+  /// `showProgress: false` — the id lookup paired with
+  /// [getBusinessProfileFullRepo] in the same screen load.
   Future<ResponseModel> getBusinessProfileRepo() async {
     final response = await ApiBaseHelper().getHTTP(
         automotiveProductBusinessProfile,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

@@ -14,20 +14,19 @@ class HotelRoomsTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-          child: OrderActionsCarousel(),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-          child: HotelChooseRoomCard(controller: controller),
-        ),
-        SizedBox(height: kBottomNavigationBarHeight + 10),
-      ],
+    // ONE gutter for the tab, applied once here. The deck used to be padded 8
+    // and the room card 10, so the two disagreed by 2pt and the promo strip
+    // appended below could not line up with both.
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          OrderActionsCarousel(),
+          SizedBox(height: SizeConfig.size12),
+          HotelChooseRoomCard(controller: controller),
+        ],
+      ),
     );
   }
 }

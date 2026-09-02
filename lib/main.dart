@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
+import 'package:BlueEra/features/common/promo/promo_ads_service.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -1110,6 +1111,10 @@ Future<void> _initDeferred(
     // SYNCHRONOUSLY in initState and paint their first frame with content
     // instead of a spinner (see KeyedJsonCache.getSync).
     openSocialCaches(),
+    // Promo-ad bundle box, opened here for the same reason: PromoAdsService
+    // hydrates from it synchronously below, so Discover / the feed paint their
+    // banner on the first frame instead of popping one in after the fetch.
+    promoAdsCache.ensureOpen(),
     AddressCacheService.init(),
     PackageInfo.fromPlatform().then((info) => appVersion = info.version),
     Hive.openBox('languageBox').then((_) {}),
@@ -1120,6 +1125,14 @@ Future<void> _initDeferred(
   /// notification handler so incoming broadcast/system pushes are captured
   /// into it, and hydrated from Hive here so past notifications show on launch.
   Get.put(BlueEraNotificationController(), permanent: true);
+
+  /// Promo artwork: serve the bundle straight out of Hive, and call the API
+  /// ONLY when nothing is stored yet (see [PromoAdsService]) — after the first
+  /// successful fetch this costs no request on any later launch. Public
+  /// endpoint, so it runs before login, and deliberately not awaited: the promo
+  /// is decorative and nothing on screen waits for it.
+  PromoAdsService.hydrateFromCache();
+  unawaited(PromoAdsService.ensureLoaded());
 
   /// Notification-hub local cache. Registered before the notification handler
   /// so incoming pushes are mirrored into it, and hydrated from Hive here so the

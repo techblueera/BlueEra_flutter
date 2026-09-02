@@ -120,6 +120,17 @@ const KeyedJsonCache socialFeedCache = KeyedJsonCache('social_feed_cache_box');
 /// publishing a post must drop this without touching the home feed's copy.
 const KeyedJsonCache myPostsCache = KeyedJsonCache('my_posts_cache_box');
 
+/// Caches the promo-ad bundle (`other-service/ads`) under a constant key —
+/// global artwork, identical for every user, so it is NOT keyed by user id.
+/// Stores the raw response plus a fetch stamp as
+/// `{'fetchedAt': <ms>, 'version': <string>, 'placements': {...},
+/// 'notifications': [...]}`.
+///
+/// Opened at boot so [PromoAdsService] can hydrate synchronously and the first
+/// Discover / feed frame already carries a banner instead of popping one in a
+/// beat later. See lib/features/common/promo/promo_ads_service.dart.
+const KeyedJsonCache promoAdsCache = KeyedJsonCache('promo_ads_box');
+
 /// The Social-section caches that must be readable **synchronously** on the
 /// first frame of their tab (see [KeyedJsonCache.getSync]). Opened once at boot
 /// so Feed / Bites / My Post never paint a spinner over content they already

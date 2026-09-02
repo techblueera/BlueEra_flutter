@@ -242,14 +242,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(child: _header(context)),
-                      // Qureka Lite promo, directly under the header — the
-                      // first thing below the search bar, before the ongoing
-                      // ride / order chips and the catalogue.
-                      const SliverToBoxAdapter(
-                        child: QurekaPromoBanner(
-                          margin: EdgeInsets.fromLTRB(_gap, _gap, _gap, 0),
-                        ),
-                      ),
+                      // The promo used to sit HERE, directly under the search
+                      // bar, as a full-width card — the first thing on the page,
+                      // ahead of the user's own in-flight rides and orders. It
+                      // now runs as two slim strips BETWEEN the catalogue
+                      // sections instead (see [_promoStrip]), so what the user
+                      // came for leads the page and the promo reads as a break
+                      // between sections rather than as the headline.
                       const SliverToBoxAdapter(child: OngoingBookingChip()),
                       // Orders waiting on the customer, with their clocks.
                       // Directly under the ride chip because they answer the
@@ -437,9 +436,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           _folderRow(_groceryAndFoodFolder(context), _shoppingFolder(context)),
           _bannerRow(_homeServicesRow()),
           _folderRow(_findServicesFolder(context), _healthcareFolder()),
+          // First promo strip — a third of the way down, after the page has
+          // already given the user four sections.
+          _promoStrip(0),
           _bannerRow(_professionalRow()),
           _folderRow(_stayFolder(), _rentFolder()),
           _bannerRow(_financialRow()),
+          // Second strip, two thirds down. Spacing them this far apart is the
+          // point: two strips a section apart would read as one banner block.
+          _promoStrip(1),
           _folderRow(_automotiveFolder(), _educationFolder()),
           _bannerRow(_jobsRow()),
         ],
@@ -450,6 +455,25 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _bannerRow(Widget child) => Padding(
         padding: const EdgeInsets.only(bottom: _gap),
         child: child,
+      );
+
+  /// A promo ad between two sections — the slim 320x50 `banner_strip`, the same
+  /// shape the "Me" tabs carry, not the full-width `home_hero` card this page
+  /// used to open with.
+  ///
+  /// The strip is a different PLACEMENT, not the card scaled down: its artwork
+  /// is drawn at 6.4:1 and served under its own key, so it stays legible at a
+  /// height a card cropped this thin could never hold its message at. That is
+  /// also what makes it sit right here — at strip height it reads as a divider
+  /// between sections rather than as a section of its own.
+  ///
+  /// [index] picks the creative, so the page's two strips are never the same
+  /// image and neither reshuffles as the list repaints. Collapses to nothing
+  /// when the ad bundle has no strip creative, leaving no gap in the column.
+  Widget _promoStrip(int index) => QurekaPromoBanner(
+        strip: true,
+        creativeIndex: index,
+        margin: const EdgeInsets.only(bottom: _gap),
       );
 
   /// Two folders side by side. A folder sizes itself, so a row whose second

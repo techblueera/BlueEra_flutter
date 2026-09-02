@@ -192,10 +192,14 @@ class ProductRepo extends BaseService {
   }
 
   // GET: Fetch full business profile
+  //
+  // `showProgress: false` — a read backing a screen's own loading state (the
+  // seller resolve keeps `isProductSellerLoading`), so the blocking dialog only
+  // greyed out a screen that was already saying it was busy.
   Future<dynamic> getBusinessProfileFullRepo(String id) async {
     return await ApiBaseHelper().getHTTP(
       "product-service/api/business-profile/$id/full",
-      showProgress: true,
+      showProgress: false,
       onSuccess: (res) {},
       onError: (error) {},
     );
@@ -258,9 +262,12 @@ class ProductRepo extends BaseService {
 
 
   ///GET BUSINESS PROFILE REPO....
+  /// `showProgress: false` — the id lookup paired with
+  /// [getBusinessProfileFullRepo] in the same screen load.
   Future<ResponseModel> getBusinessProfileRepo() async {
     final response = await ApiBaseHelper().getHTTP(
         productBusinessProfile,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

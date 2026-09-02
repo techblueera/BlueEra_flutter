@@ -168,7 +168,10 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
           topBar: _buildTopBar(),
           topBarHeight: MediaQuery.of(context).padding.top + 56,
           tabViews: [
-            _tabScroll(withQurekaPromoBelow(LabTestsTabV2(controller: _labController))),
+            _tabScroll(withQurekaPromoBelow(
+              LabTestsTabV2(controller: _labController),
+              stripMargin: qurekaStripMarginFor(12),
+            )),
             _tabScroll(LabOverviewTabV2(controller: _labController)),
             _tabScroll(LabFacilitiesTabV2(controller: _labController)),
             // _tabScroll(const LabPostsTabV2()),

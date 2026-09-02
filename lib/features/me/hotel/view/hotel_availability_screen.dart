@@ -329,6 +329,17 @@ class _HotelAvailabilityScreenState extends State<HotelAvailabilityScreen> {
     );
   }
 
+  // Time field: the chosen time in 24-hour (railway) form, tapped to open a
+  // list of 30-minute steps from 00:00 → 23:30.
+  //
+  // The list opens in a SHEET rather than living in a `DropdownButton`, and
+  // that is a performance fix, not a style change. A DropdownButton builds
+  // every one of its items up front — and lays them all out in a hidden stack
+  // to size itself — so every field here built all 48 options before the screen
+  // could show anything, each an Icon plus a [CustomText] (which runs a `.tr`
+  // lookup per build). That is what made the hours editor take seconds to open.
+  // Now the closed field is a label, and the 48 rows are built lazily, for one
+  // field, only when tapped. Same fix as `ShopAvailabilityScreen`.
   Widget _timeField({
     required String label,
     required TimeOfDay time,
@@ -344,54 +355,138 @@ class _HotelAvailabilityScreenState extends State<HotelAvailabilityScreen> {
           color: AppColors.secondaryTextColor,
         ),
         SizedBox(height: SizeConfig.size6),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<TimeOfDay>(
-              value: _snap(time),
-              isExpanded: true,
-              isDense: true,
+        InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => _pickTime(label: label, current: time, onChanged: onChanged),
+          child: Container(
+            height: 44,
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            decoration: BoxDecoration(
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(10),
-              icon: const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppColors.primaryColor,
-              ),
-              items: _timeOptions
-                  .map(
-                    (t) => DropdownMenuItem<TimeOfDay>(
-                      value: t,
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 16,
-                            color: AppColors.primaryColor,
-                          ),
-                          SizedBox(width: SizeConfig.size8),
-                          CustomText(
-                            _hhmm(t),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.mainTextColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (t) {
-                if (t != null) onChanged(t);
-              },
+              border: Border.all(color: AppColors.greyE5, width: 1),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 16,
+                  color: AppColors.primaryColor,
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(
+                  child: CustomText(
+                    _hhmm(_snap(time)),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.primaryColor,
+                ),
+              ],
             ),
           ),
         ),
       ],
     );
+  }
+
+  /// The 30-minute options, as a lazily-built list. Opens scrolled to the
+  /// current value so the common edit — a step or two either side — is right
+  /// under the thumb instead of 20 rows away.
+  Future<void> _pickTime({
+    required String label,
+    required TimeOfDay current,
+    required ValueChanged<TimeOfDay> onChanged,
+  }) async {
+    const rowHeight = 48.0;
+    final snapped = _snap(current);
+    final selected = _timeOptions.indexWhere(
+      (t) => t.hour == snapped.hour && t.minute == snapped.minute,
+    );
+
+    final picked = await showModalBottomSheet<TimeOfDay>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: SizeConfig.size12),
+              CustomText(
+                label,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+              SizedBox(height: SizeConfig.size8),
+              Container(height: 1, color: AppColors.greyE5),
+              SizedBox(
+                // Capped so the sheet is a list to scroll, not a full-screen
+                // takeover for a two-tap edit.
+                height: rowHeight * 7,
+                child: ListView.builder(
+                  itemExtent: rowHeight,
+                  controller: ScrollController(
+                    // Three rows of context above the current value.
+                    initialScrollOffset:
+                        selected <= 3 ? 0 : (selected - 3) * rowHeight,
+                  ),
+                  itemCount: _timeOptions.length,
+                  itemBuilder: (_, i) {
+                    final option = _timeOptions[i];
+                    final isSelected = i == selected;
+                    return InkWell(
+                      onTap: () => Navigator.of(sheetContext).pop(option),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size16),
+                        color: isSelected
+                            ? AppColors.primaryColor.withValues(alpha: 0.08)
+                            : null,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 16,
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : AppColors.secondaryTextColor,
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            CustomText(
+                              _hhmm(option),
+                              fontSize: 13.5,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : AppColors.mainTextColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: SizeConfig.size8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (picked != null) onChanged(picked);
   }
 
   Widget _buildSaveBar() {

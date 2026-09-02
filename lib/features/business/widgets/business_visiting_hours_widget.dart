@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/option_picker_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -114,42 +115,45 @@ class _TimeDropdown extends StatelessWidget {
   String _format(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
+  /// The chosen time, tapped to pick from the list.
+  ///
+  /// A sheet, not a `DropdownButton`: the options here are 15-minute steps, so
+  /// a DropdownButton per field meant this widget built and laid out
+  /// 7 days × 2 fields × 96 options = 1,344 rows before it could paint. See
+  /// [showOptionPickerSheet].
   @override
   Widget build(BuildContext context) {
     final selected = _format(value);
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
-      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-      decoration: BoxDecoration(
-        color: AppColors.whiteF3,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: DropdownButton<String>(
-        value: selected,
-        isDense: true,
-        icon: const SizedBox(),
-        dropdownColor: AppColors.white,
-        underline: const SizedBox(),
-        style: TextStyle(
-          color: AppColors.grey9A,
+    return InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: () async {
+        final picked = await showOptionPickerSheet<String>(
+          context: context,
+          title: 'Select time',
+          options: _timeOptions,
+          selected: _timeOptions.contains(selected) ? selected : null,
+          labelOf: (v) => v,
+        );
+        if (picked == null) return;
+        final parts = picked.split(':');
+        onChanged(
+          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8, vertical: SizeConfig.size6),
+        margin: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+        decoration: BoxDecoration(
+          color: AppColors.whiteF3,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: CustomText(
+          selected,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w400,
+          color: AppColors.grey9A,
         ),
-        items: _timeOptions.map((timeStr) {
-          return DropdownMenuItem(
-            value: timeStr,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
-              child: CustomText(timeStr),
-            ),
-          );
-        }).toList(),
-        onChanged: (val) {
-          if (val != null) {
-            final parts = val.split(':');
-            onChanged(TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])));
-          }
-        },
       ),
     );
   }

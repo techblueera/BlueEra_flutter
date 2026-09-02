@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/others/view/v2/tabs/other_overview_tab_v2.da
 // import 'package:BlueEra/features/me/others/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_stats_tab_v2.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -71,10 +72,20 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   final ChatFlagController _chatFlagController =
       getOrPut(() => ChatFlagController());
 
+  /// Index of the Overview tab in [_tabs] — the tab that owns the live photos,
+  /// and therefore the only place the live-photo sheet is asked for.
+  static const int _overviewTabIndex = 1;
+
+  /// One sheet per visit: `_tabController` fires twice per swipe (once on the
+  /// index change, once when the animation settles) and the merchant can come
+  /// back to Overview repeatedly.
+  bool _livePhotoSheetAsked = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(_onTabChanged);
     registerMeTabBackHandler(_tabController);
     _otherController = getOrPut(() => BusinessProfileFullController());
     if (_otherController.businessProfile.value == null) {
@@ -92,8 +103,28 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     );
   }
 
+  /// Asks for the live-photo sheet when the merchant OPENS Overview.
+  ///
+  /// It used to fire on the screen's landing (from `OthersMain`), which put a
+  /// photo-upload sheet over the Services tab — a tab that is about services,
+  /// and whose own blocker is that no service exists. Overview is where the
+  /// live photos live, so that is where being asked for them makes sense.
+  ///
+  /// The sheet keeps its own "already has photos / a sheet is already up"
+  /// checks; this only decides WHEN to ask.
+  void _onTabChanged() {
+    if (_tabController.index != _overviewTabIndex) return;
+    if (_livePhotoSheetAsked || !mounted) return;
+    _livePhotoSheetAsked = true;
+    showBusinessLivePhotoBottomSheetIfNeeded(
+      context: context,
+      controller: _businessController,
+    );
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -112,7 +143,16 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(const OtherServicesTabV2())),
+                _tabScroll(withQurekaPromoBelow(
+                  const OtherServicesTabV2(),
+                  // This tab scroll has no horizontal padding of its own, so
+                  // the strip has to state the tab's gutter itself or it runs
+                  // to the screen edge. size8 is that gutter, and it is now the
+                  // ONLY one in the tab — the empty-state banner used to add 4
+                  // on top of it (see `_ServiceRequiredBanner`), which left no
+                  // single value the strip could line up with.
+                  stripMargin: qurekaStripMarginFor(SizeConfig.size8),
+                )),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 // _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),

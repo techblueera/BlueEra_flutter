@@ -224,7 +224,6 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
               ],
             );
           }),
-          SizedBox(height: kBottomNavigationBarHeight + 20),
         ],
       ),
     );

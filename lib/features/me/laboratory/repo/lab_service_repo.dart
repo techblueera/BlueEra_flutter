@@ -65,12 +65,16 @@ class LabServiceRepo extends BaseService {
     );
     return response;
   }
+  /// `showProgress: false` — a side effect of account creation, run while the
+  /// Submit button already shows its own spinner. See the note on
+  /// `OtherRepo.createOtherBusinessProfileRepo`.
   Future<ResponseModel> createLabServiceRepo({
     required Map<String, dynamic> reqBody,
   }) async {
     final response = await ApiBaseHelper().postHTTP(
       labServiceProcessResponse,
       params: reqBody,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

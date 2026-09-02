@@ -185,7 +185,10 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
       topBar: _buildTopBar(),
       topBarHeight: MediaQuery.of(context).padding.top + 56,
       tabViews: [
-        _tabScroll(withQurekaPromoBelow(DoctorBookingTab(controller: _appointmentController))),
+        _tabScroll(withQurekaPromoBelow(
+          DoctorBookingTab(controller: _appointmentController),
+          stripMargin: qurekaStripMarginFor(SizeConfig.size12),
+        )),
         _tabScroll(DoctorOverviewTab(controller: _profileController)),
         _tabScroll(DoctorAboutMeTab(controller: _profileController)),
         // _tabScroll(const HospitalPostsTabV2()),

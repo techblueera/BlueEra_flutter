@@ -321,10 +321,17 @@ class OtherRepo extends BaseService {
   }
 
   // GET: Fetch full business profile
+  ///
+  /// `showProgress: false` — this is the "Me" tab's OWN screen load: it runs
+  /// from `initState` and from the pull-to-refresh, on a screen that already
+  /// carries its own loading state (`BusinessProfileFullController.isLoading`).
+  /// A blocking dialog on top of that greys out a screen the user just opened,
+  /// and turns a pull-to-refresh — which has a spinner by definition — into a
+  /// modal wait.
   Future<dynamic> getBusinessProfileFullRepo(String id) async {
     return await ApiBaseHelper().getHTTP(
       "other-service/business-profile/$id/full",
-      showProgress: true,
+      showProgress: false,
       onSuccess: (res) {},
       onError: (error) {},
     );
@@ -354,11 +361,20 @@ class OtherRepo extends BaseService {
     return response;
   }
   ///CREATE BUSINESS.......
+  ///
+  /// `showProgress: false` — this only ever runs as a SIDE EFFECT of account
+  /// creation (`AuthController.addBusinessUser`), alongside the profile fetch,
+  /// while the Submit button is already showing its own inline spinner. Left on
+  /// the default it raised the global blocking dialog on top of that button,
+  /// seconds after the tap. And because `ApiBaseHelper.showProgressDialog` is a
+  /// single static read per request, this call's `true` also overrode the
+  /// deliberate `false` on the requests running in parallel with it.
   Future<ResponseModel> createOtherBusinessProfileRepo(
       {required dynamic reqBODY,}) async {
     final response = await ApiBaseHelper().postHTTP(
         otherBusinessProfile,
         params: reqBODY,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;
@@ -383,9 +399,13 @@ class OtherRepo extends BaseService {
     return response;
   }
   ///GET HOTEL CONTACT REPO....
+  ///
+  /// `showProgress: false` — the id lookup that runs immediately before
+  /// [getBusinessProfileFullRepo] in the same screen load. Left on the default
+  /// it flashed the blocking dialog for one request of a two-request open.
   Future<ResponseModel> getBusinessProfileRepo() async {
     final response = await ApiBaseHelper().getHTTP(otherBusinessProfile,
-        onError: (error) {}, onSuccess: (data) {});
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 

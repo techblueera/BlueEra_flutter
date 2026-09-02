@@ -126,7 +126,13 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(const OtherServicesTabV2())),
+                _tabScroll(withQurekaPromoBelow(
+                  const OtherServicesTabV2(),
+                  // This tab scroll has no horizontal padding — the tab insets
+                  // itself by size8, so the strip takes the same on both edges
+                  // instead of running to the screen edge on the left.
+                  stripMargin: qurekaStripMarginFor(SizeConfig.size8),
+                )),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 // _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),

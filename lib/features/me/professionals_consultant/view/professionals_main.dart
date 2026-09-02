@@ -129,7 +129,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               topBarHeight: topBarHeight,
               // Order must match [_tabs].
               tabViews: [
-                _tabScroll(withQurekaPromoBelowAll(_buildServiceTab())),
+                _tabScroll(withQurekaPromoBelowAll(
+                  _buildServiceTab(),
+                  stripMargin: qurekaStripMarginFor(20),
+                )),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(const [EarnStoreCards()]),
                 _tabScroll(_buildStaticsTab()),

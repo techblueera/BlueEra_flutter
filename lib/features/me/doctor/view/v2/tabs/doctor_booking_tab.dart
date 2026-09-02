@@ -71,7 +71,6 @@ class DoctorBookingTab extends StatelessWidget {
             ),
           );
         }),
-        SizedBox(height: kBottomNavigationBarHeight + 30),
       ],
     );
   }

@@ -13,12 +13,16 @@ class HotelServiceRepo extends BaseService {
   // ---- Hotel profile & service catalog --------------------------------------
 
   /// Bootstraps a new hotel record for the signed-in business.
+  /// `showProgress: false` — a side effect of account creation, run while the
+  /// Submit button already shows its own spinner. See the note on
+  /// `OtherRepo.createOtherBusinessProfileRepo`.
   Future<ResponseModel> createHotelServiceRepo({
     required Map<String, dynamic> reqBody,
   }) async {
     final response = await ApiBaseHelper().postHTTP(
       createHotelService,
       params: reqBody,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -39,9 +43,13 @@ class HotelServiceRepo extends BaseService {
   }
 
   /// Full home payload: profile + rooms + policies + amenities.
+  /// `showProgress: false` — the Hotel "Me" screen's own load
+  /// (`HotelHomeScreenV2.initState` + pull-to-refresh), which already reports
+  /// its own progress.
   Future<ResponseModel> getHotelHomeRepo() async {
     final response = await ApiBaseHelper().getHTTP(
       hotelHomeFull,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

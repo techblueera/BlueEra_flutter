@@ -1,14 +1,13 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/franchise/request_to_franchise.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -20,20 +19,22 @@ import 'package:get/get.dart';
 /// A CAROUSEL of up to three slides, restored from the header the current
 /// Discover replaced (it had briefly collapsed to a single image):
 ///
-///   1. **The account's marketing card** — the poster the backend composes for
-///      sharing a profile, off `marketing_card.ready_url`. A guest has no
-///      profile and so no card, and gets the bundled complete-profile artwork
-///      in that slot instead: same box, so the header measures the same before
-///      and after sign-up and nothing shifts under the user at the moment they
-///      create a profile.
+///   1. **"You are not live"** — the go-live card, in the account's own flavour
+///      ([AppImageAssets.goLiveBusinessAccount] /
+///      [AppImageAssets.goLiveIndividualAccount]). It appears ONLY while the
+///      account is offline and disappears the moment it goes live, so the slot
+///      is a status light rather than a permanent promo. A guest has no account
+///      to take live and gets the complete-profile artwork in that slot
+///      instead: same box, so the header measures the same before and after
+///      sign-up and nothing shifts under the user as they create a profile.
+///
+///      This replaced the account's backend marketing card (`marketing_card
+///      .ready_url`). The card was the profile the user could already see;
+///      being offline is something they usually cannot, and it is the one thing
+///      that stops customers finding them.
 ///   2. **The grocery promo** — always present, in every condition.
 ///   3. **The franchise promo** — gated on [canSeeFranchiseBanner], and the one
 ///      bundled slide that goes somewhere: it opens the enquiry form.
-///
-/// The share button and the "Share It, Get 100 Rupees" hook ride on the POSTER
-/// slide only — the hook is about sharing this user's referral card, and
-/// sitting it on the grocery or franchise promo read as a reward for those,
-/// neither of which is shareable.
 ///
 /// Lives in its own file rather than at the bottom of `discover_screen.dart`:
 /// the page is long, and this is a self-contained component with its own state,
@@ -134,22 +135,19 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
     getOrPut(() => ViewPersonalDetailsController());
 
     return Obx(() {
-      // Only the poster is needed here — the share path resolves the code for
-      // itself inside [shareDiscoverReferral].
-      final poster = resolveReferralCard().posterUrl;
-
       final guest = isGuestUser();
-      final hasPoster = poster != null;
+      // Null once the account is live — the slot then simply isn't there.
+      final goLive = _goLiveSlide();
 
       // Built as a list rather than inline so the tap handler can key off WHICH
       // slide was tapped instead of a position: the leading slide is present
-      // for a guest and for a poster-holder but absent for a signed-in account
-      // with no card yet, so every index below it shifts.
+      // for a guest and for an offline account but absent for a live one, so
+      // every index below it shifts.
       final slides = <String>[
         if (guest)
           AppImageAssets.completeProfileBanner
-        else if (hasPoster)
-          poster,
+        else if (goLive != null)
+          goLive,
         AppImageAssets.groceryBanner,
         if (canSeeFranchiseBanner) AppImageAssets.franchiseBanner,
       ];
@@ -161,10 +159,6 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
       final VoidCallback? onShare = guest ? null : shareDiscoverReferral;
 
       final index = _current.clamp(0, slides.length - 1);
-      // The poster is the only slide that comes from the profile API — the
-      // bundled promos are assets — so "is this the shareable card" survives
-      // slides being added or reordered, which an index would not.
-      final onPosterSlide = isNetworkImage(slides[index]);
 
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -205,39 +199,15 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
                   itemBuilder: (_, i, __) =>
                       _tappable(slides[i], guest, _slide(slides[i])),
                 ),
-              // The referral hook, ON the artwork: this banner IS the card the
-              // user shares, so the reward for sharing it is stated on the card
-              // rather than captioned above it. Top-LEFT, so it can never
-              // collide with the share button opposite. Yellow can't carry
-              // itself over a poster of unknown brightness, so it takes a dark
-              // shadow.
-              if (onShare != null && onPosterSlide)
-                Positioned(
-                  top: 8,
-                  left: 12,
-                  right: 52,
-                  // Broken over three lines with explicit newlines rather than
-                  // left to soft-wrap: the breaks belong after the comma and
-                  // before the amount, and the natural wrap points would
-                  // otherwise move with the font scale.
-                  child: CustomText(
-                    'Share It,\nGet 100\nRupees',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.yellow00,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    shadows: const [
-                      Shadow(
-                        color: Color(0xB3000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                ),
-              // Share — sits on the artwork itself so the poster and the action
-              // on it are one thing. Top-right, clear of the page dots.
+              // The "Share It, Get 100 Rupees" hook used to sit here, on the
+              // marketing-card slide. It went with that slide: every remaining
+              // slide is a promo for something OTHER than this user's profile,
+              // and the offer is already stated in full on the Refer & Earn
+              // banner further down the page.
+              //
+              // Share — the referral itself still travels from here (the code
+              // and the deep link ride in the message text), so the button
+              // stays. Top-right, clear of the page dots.
               if (onShare != null)
                 Positioned(top: 8, right: 8, child: _shareButton(onShare)),
               if (slides.length > 1)
@@ -254,6 +224,75 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
     });
   }
 
+  /// The go-live artwork for this account, or null when there is nothing to
+  /// say — the account is already live, or it is a guest / logged out.
+  ///
+  /// Reads the SAME observable each account type's own Go Live pill reads, so
+  /// the card and the pill can never disagree:
+  ///   * business → [ViewBusinessDetailsController.isLive] (computed from the
+  ///     weekly schedule plus any same-day override);
+  ///   * individual → [ViewPersonalDetailsController.shopStatusOpenClose].
+  ///
+  /// A business whose controller isn't registered yet returns null rather than
+  /// guessing: "not live" is the state we advertise, and advertising it off a
+  /// profile that simply has not loaded would show the card to accounts that
+  /// are live.
+  String? _goLiveSlide() {
+    if (!isLoggedIn() || isGuestUser()) return null;
+
+    if (isBusinessUser()) {
+      if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
+      final live = Get.find<ViewBusinessDetailsController>().isLive.value;
+      return live ? null : AppImageAssets.goLiveBusinessAccount;
+    }
+
+    final personal = getOrPut(() => ViewPersonalDetailsController());
+    return personal.shopStatusOpenClose.value
+        ? null
+        : AppImageAssets.goLiveIndividualAccount;
+  }
+
+  /// Takes the account live from here where that is the WHOLE tap, and hands
+  /// off to the "Me" screen where it is not.
+  ///
+  /// Going live is gated differently per account, and the gates live on the
+  /// screens that own the data behind them:
+  ///
+  ///  * **Un-gated business** (hospital, lab, hotel, school, doctor,
+  ///    automotive-service, other) — its pill IS
+  ///    `ViewBusinessDetailsController.toggleLiveNow()`, nothing else. That
+  ///    call carries its own hours prompt and the plan / security-deposit gate
+  ///    with it, so running it from here is the same tap, not a shortcut past
+  ///    anything.
+  ///  * **Catalogue business** (grocery, food, product, manufacturer, auto
+  ///    parts, pharmacy, vehicle sales) — its pill runs
+  ///    `ensureCatalogueBeforeGoLive` FIRST, off a catalogue controller that
+  ///    only that screen owns. A shop taken live from here with empty shelves
+  ///    would occupy every near-by list and hand each customer an empty store.
+  ///  * **Individual** — deposit, background-location / battery / overlay
+  ///    permissions, rider document checks.
+  ///
+  /// So the first case toggles, and the rest land on the Me tab with the pill
+  /// in the top bar and every gate intact.
+  Future<void> _onGoLiveTap() async {
+    final canToggleHere = isBusinessUser() &&
+        !businessGoLiveNeedsCatalogue() &&
+        Get.isRegistered<ViewBusinessDetailsController>();
+
+    if (canToggleHere) {
+      await Get.find<ViewBusinessDetailsController>().toggleLiveNow();
+      return;
+    }
+    _openMeTab();
+  }
+
+  /// The Me tab, where the account's own Go Live pill lives.
+  void _openMeTab() {
+    if (!Get.isRegistered<BottomBarController>()) return;
+    Get.find<BottomBarController>()
+        .onChangeIndex(BottomBarController.meTabIndex);
+  }
+
   /// Wraps a slide in a tap target only where the slide actually goes
   /// somewhere, so the inert promos keep plain artwork and no invisible hit
   /// area under the share button's neighbourhood.
@@ -261,6 +300,9 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
     VoidCallback? onTap;
     if (slide == AppImageAssets.franchiseBanner) {
       onTap = () => Get.to(() => const FranchiseInquiryScreen());
+    } else if (slide == AppImageAssets.goLiveBusinessAccount ||
+        slide == AppImageAssets.goLiveIndividualAccount) {
+      onTap = _onGoLiveTap;
     } else if (guest && slide == AppImageAssets.completeProfileBanner) {
       // The guest slide IS the call to action, so the whole artwork opens
       // sign-up.

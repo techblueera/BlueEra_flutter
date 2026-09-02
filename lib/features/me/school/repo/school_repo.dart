@@ -17,9 +17,14 @@ class SchoolRepo extends BaseService {
   }
 
   ///CREATE SCHOOL/UNIVERSITY DETAILS...
+  ///
+  /// `showProgress: false` — a side effect of account creation, run while the
+  /// Submit button already shows its own spinner. See the note on
+  /// `OtherRepo.createOtherBusinessProfileRepo`.
   Future<ResponseModel> createSchoolRepo({required dynamic reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(aiCreateSchool,
         params: {ApiKeys.aiOutput: reqBody},
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;
@@ -162,9 +167,13 @@ class SchoolRepo extends BaseService {
   }
 
   ///GET SCHOOL CONTACT REPO....
+  /// `showProgress: false` — the School "Me" screen's own load
+  /// (`SchoolHomeScreenV2.initState` + pull-to-refresh), which already reports
+  /// its own progress.
   Future<ResponseModel> getSchoolByIDRepo({String? schoolID}) async {
     final response = await ApiBaseHelper().getHTTP(
         "${schoolUserID}${schoolID ?? schoolIDGlobal}",
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

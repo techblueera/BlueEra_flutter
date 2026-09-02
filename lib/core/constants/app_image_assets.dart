@@ -66,11 +66,14 @@ class AppImageAssets {
   static const String jobsDiscover = "${imgPath}jobs_discover.png";
   static const String claimDialog = "${imgPath}claim_dialog.png";
   static const String referEarnBanner = "${imgPath}refer_earn_banner.png";
+  static const String goLiveBusinessAccount = "${imgPath}go_live_business_account.png";
+  static const String goLiveIndividualAccount = "${imgPath}go_live_individual_account.png";
 
   /// Coin Wallet dashboard (earn-coin) artwork.
   static const String coinHeaderBg = "${imgPath}coin_header_bg.png";
   static const String earnTrophy = "${imgPath}earn_trophy.png";
   static const String earnFlame = "${imgPath}earn_flame.png";
+
   static const String earnCalendar = "${imgPath}earn_calendar.png";
   static const String earnVerifiedBadge = "${imgPath}earn_verified_badge.png";
   static const String taskProfile = "${imgPath}task_profile.png";

@@ -119,7 +119,6 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
               );
             }),
           ),
-          SizedBox(height: kBottomNavigationBarHeight + 10),
         ],
       ),
     );

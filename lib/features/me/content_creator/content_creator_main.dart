@@ -153,7 +153,10 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(withQurekaPromoBelowAll(_buildOrderTab())),
+                _tabScroll(withQurekaPromoBelowAll(
+                  _buildOrderTab(),
+                  stripMargin: qurekaStripMarginFor(SizeConfig.size12),
+                )),
                 _tabScroll(const [ContentCreatorOverviewTab()]),
                 _tabScroll(const [ContentCreatorChannelTab()]),
                 _tabScroll(const [EarnStoreCards()]),

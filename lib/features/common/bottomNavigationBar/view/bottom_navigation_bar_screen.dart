@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
@@ -23,10 +22,12 @@ import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
+import 'package:BlueEra/features/common/joining_bounce/view/claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/joining_bounce/view/guest_claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_shimmer.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
@@ -975,7 +976,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // _UnknownBusinessFallback here: that fallback is reserved for a
         // genuinely UNRECOGNISED *non-empty* type (handled inside
         // _buildBusinessScreen).
-        return const _MeTabShimmer();
+        return const MeTabShimmer();
       }
       return _buildBusinessScreen();
     });
@@ -1001,16 +1002,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // (hospital-service/doctors*). They get their own module; everything
       // else in Healthcare keeps its existing destination, so the hospital
       // OPD flow below is unchanged.
+      final category = businessCategoryGlobal.toUpperCase();
       if (_isStandaloneDoctor()) {
         return const DoctorMain();
-      } else if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
-          (businessCategoryGlobal.toUpperCase() ==
-              "Alternative Health".toUpperCase())) {
+      } else if (category == BusinessCategoryTokens.hospitals ||
+          category == BusinessCategoryTokens.alternativeHealth) {
         return const HospitalMain();
-      } else if (businessCategoryGlobal.toUpperCase() ==
-          "Diagnostic".toUpperCase()) {
+      } else if (category == BusinessCategoryTokens.diagnostic) {
         return const LaboratoryMain();
-      } else if (businessCategoryGlobal.toUpperCase() == "PHARMACY") {
+      } else if (category == BusinessCategoryTokens.pharmacy) {
         return const MedicalScreen(fromBottomNavBar: true);
       }
       return const OthersMain();
@@ -1043,11 +1043,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // appears in exactly one manufacturing category, so either shape lands.
       final category = businessCategoryGlobal.toUpperCase();
       logs("MANUFACTURING -> category= $category");
-      if (category.contains('GROCERY')) {
+      if (category.contains(BusinessCategoryTokens.groceryToken)) {
         return const GroceryScreen(fromBottomNavBar: true);
-      } else if (category.contains('HEALTHCARE')) {
+      } else if (category.contains(BusinessCategoryTokens.healthcareToken)) {
         return const MedicalScreen(fromBottomNavBar: true);
-      } else if (category.contains('AUTOMOTIVE')) {
+      } else if (category.contains(BusinessCategoryTokens.automotiveToken)) {
         return const AutomotivePartsScreen();
       }
       // MANUFACTURING_PRODUCT — and deliberately also anything added
@@ -1097,47 +1097,27 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return false;
     }
     final category = businessCategoryGlobal.toUpperCase().trim();
-    return category.contains('DOCTOR') || category.contains('CLINIC');
+    return category.contains(BusinessCategoryTokens.doctorToken) ||
+        category.contains(BusinessCategoryTokens.clinicToken);
   }
 
   bool _isSpecificServiceAutomotive() {
     final category = businessCategoryGlobal.toUpperCase();
 
-    // 1. Define the Automotive sectors that count as "Others"
-    final automotiveOthersSectors = {
-      "VEHICLE_SALES",
-      "VEHICLE SALES",
-      // "VEHICLE_PARTS",
-      // "VEHICLE_RENTAL",
-      // "AUTO PARTS",
-      // "VEHICLE RENTAL",
-      // "AUTO RENTAL",
-    };
-
-    // 2. Check if it's Automotive AND in one of those sectors
+    // Automotive AND one of the showroom (vehicle-sales) categories.
     return businessTypeGlobal.toUpperCase() ==
             BusinessType.Automotive.name.toUpperCase() &&
-        automotiveOthersSectors.contains(category);
+        BusinessCategoryTokens.automotiveVehicleSales.contains(category);
   }
 
   bool _isSpecificServiceSpecialAutomotive() {
     final category = businessCategoryGlobal.toUpperCase();
     logs("category=== ${category}");
-    final automotiveOthersSpecialSectors = {
-      "VEHICLE SERVICE",
-      "VEHICLE_SERVICE",
-      // "TRANSPORT_LOGISTIC",
-      // "TRANSPORT LOGISTIC",
-      "VEHICLE_SUPPORT",
-      "VEHICLE SUPPORT",
-      "TRANSPORT_LOGISTICS_PARKING",
-      "TRANSPORT LOGISTICS PARKING",
-    };
 
-    // 2. Check if it's Automotive AND in one of those sectors
+    // Automotive AND one of the service / support / transport categories.
     return businessTypeGlobal.toUpperCase() ==
             BusinessType.Automotive.name.toUpperCase() &&
-        automotiveOthersSpecialSectors.contains(category);
+        BusinessCategoryTokens.automotiveServiceAndSupport.contains(category);
   }
 
   bool _isSpecificProductAutomotive() {
@@ -1147,7 +1127,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // to the parts catalog screen.
     return businessTypeGlobal.toUpperCase() ==
             BusinessType.Automotive.name.toUpperCase() &&
-        category.toUpperCase().contains('AUTO PARTS');
+        category.contains(BusinessCategoryTokens.autoPartsToken);
   }
 
   Widget resolveIndividualScreen() {
@@ -1177,7 +1157,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // _UnknownProfileFallback here: that fallback is reserved for a
         // genuinely UNRECOGNISED *non-empty* type (handled inside
         // _buildIndividualScreen).
-        return const _MeTabShimmer();
+        return const MeTabShimmer();
       }
       return _buildIndividualScreen();
     });
@@ -1209,126 +1189,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       default:
         return const _UnknownProfileFallback();
     }
-  }
-}
-
-/// Branded **shimmer** skeleton shown on the "Me" tab (business AND individual)
-/// while the own-profile fetch that populates `businessTypeGlobal` /
-/// `userProfileTypeGlobal` is still resolving (first load, re-login, or an
-/// in-flight refresh). It mimics the real Me-dashboard layout — cover banner +
-/// avatar + identity lines + stats card + action pills + content cards — so the
-/// transition to the real screen doesn't jump. Swaps to the resolved screen the
-/// moment the type global lands (the resolve Obx rebuilds).
-///
-/// This deliberately REPLACES the old "unknown fallback on empty type" flash:
-/// an empty type means "not loaded yet" → shimmer; the identity fallbacks are
-/// reserved for a genuinely unrecognised *non-empty* type.
-class _MeTabShimmer extends StatelessWidget {
-  const _MeTabShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    // Lives in the tab *body* only — the bottom nav bar is a sibling Positioned
-    // in the parent Stack, so tabs stay visible/tappable while this shows.
-    //
-    // Mirrors the real Me-dashboard skeleton (HomeTabScaffold): a top-bar header
-    // (avatar + title lines + go-live pill) → a pinned 5-tab row with an
-    // underline indicator → tab content cards. So the swap to the real screen
-    // reads as the same page finishing loading, not a different layout.
-    return SafeArea(
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size16,
-          SizeConfig.size12,
-          SizeConfig.size16,
-          SizeConfig.size16,
-        ),
-        child: buildLoadingShimmer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header (top bar): avatar + title/subtitle + go-live pill ──
-              Row(
-                children: [
-                  shimmerContainer(width: 44, height: 44, radius: 22),
-                  SizedBox(width: SizeConfig.size12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        shimmerContainer(height: 16, width: 160),
-                        const SizedBox(height: 9),
-                        shimmerContainer(height: 12, width: 100),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  // Go-live pill
-                  shimmerContainer(width: 86, height: 32, radius: 16),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // ── Pinned tab row: 5 label placeholders + indicator on tab 1 ──
-              Row(
-                children: List.generate(5, (i) {
-                  return Expanded(
-                    child: Column(
-                      children: [
-                        shimmerContainer(height: 11, width: 46, radius: 6),
-                        const SizedBox(height: 8),
-                        // Active-tab underline under the first tab only.
-                        shimmerContainer(
-                          height: 3,
-                          width: i == 0 ? 26 : 0,
-                          radius: 2,
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 6),
-              // Hairline under the tab bar.
-              shimmerContainer(height: 1, radius: 0),
-              const SizedBox(height: 16),
-              // ── Tab content: a hero card + a few list rows ──
-              shimmerContainer(height: 150, radius: 14),
-              const SizedBox(height: 16),
-              _contentRow(),
-              const SizedBox(height: 14),
-              _contentRow(),
-              const SizedBox(height: 14),
-              _contentRow(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// One list-row skeleton: leading thumbnail + two text lines + trailing pill,
-  /// matching the card rows the real Me tabs render (products, orders, etc.).
-  Widget _contentRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        shimmerContainer(width: 56, height: 56, radius: 12),
-        SizedBox(width: SizeConfig.size12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              shimmerContainer(height: 14, width: 200),
-              const SizedBox(height: 9),
-              shimmerContainer(height: 11, width: 130),
-            ],
-          ),
-        ),
-        SizedBox(width: SizeConfig.size12),
-        shimmerContainer(width: 64, height: 30, radius: 15),
-      ],
-    );
   }
 }
 

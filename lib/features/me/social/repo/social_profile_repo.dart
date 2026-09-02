@@ -13,7 +13,8 @@ class SocialProfileRepo extends BaseService {
   final ApiBaseHelper _apiBaseHelper = ApiBaseHelper();
 
   Future<SocialProfileResModel> getSocialProfile() async {
-    final response = await _apiBaseHelper.getHTTP(socialProfile);
+    final response =
+        await _apiBaseHelper.getHTTP(socialProfile, showProgress: false);
     if (response.response != null && response.response!.data != null) {
       return SocialProfileResModel.fromJson(response.response!.data);
     }
@@ -21,7 +22,8 @@ class SocialProfileRepo extends BaseService {
   }
 
   Future<PersonalIdentityModel> getPersonalIdentity() async {
-    final response = await _apiBaseHelper.getHTTP(personalIdentity);
+    final response =
+        await _apiBaseHelper.getHTTP(personalIdentity, showProgress: false);
     if (response.response != null && response.response!.data != null) {
       return PersonalIdentityModel.fromJson(response.response!.data);
     }
@@ -39,7 +41,8 @@ class SocialProfileRepo extends BaseService {
   }
 
   Future<SocialEventModel> getEvents() async {
-    final response = await _apiBaseHelper.getHTTP(events);
+    final response =
+        await _apiBaseHelper.getHTTP(events, showProgress: false);
     if (response.response != null && response.response!.data != null) {
       return SocialEventModel.fromJson(response.response!.data);
     }
@@ -72,7 +75,8 @@ class SocialProfileRepo extends BaseService {
   }
 
   Future<SocialVisionMissionModel> getMissionVision() async {
-    final response = await _apiBaseHelper.getHTTP(missionVision);
+    final response =
+        await _apiBaseHelper.getHTTP(missionVision, showProgress: false);
     if (response.response != null && response.response!.data != null) {
       return SocialVisionMissionModel.fromJson(response.response!.data);
     }
@@ -89,7 +93,8 @@ class SocialProfileRepo extends BaseService {
   }
 
   Future<SocialActivityResModel> getSocialActivities() async {
-    final response = await _apiBaseHelper.getHTTP(socialActivities);
+    final response =
+        await _apiBaseHelper.getHTTP(socialActivities, showProgress: false);
     if (response.response != null && response.response!.data != null) {
       return SocialActivityResModel.fromJson(response.response!.data);
     }

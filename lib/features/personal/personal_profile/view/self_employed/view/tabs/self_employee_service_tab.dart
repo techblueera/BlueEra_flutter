@@ -18,7 +18,13 @@ class SelfEmployeeServiceTab extends StatelessWidget {
     // [RiderOrderTab]; this screen also hands its tabs to HomeTabScaffold
     // directly, so the wrap belongs here.
     return SelfEmployeeTabScroll(
-      child: withQurekaPromoBelow(const SelfProfessionServiceScreen()),
+      child: withQurekaPromoBelow(
+        const SelfProfessionServiceScreen(),
+        // That scroll has no horizontal padding and this screen guts its own
+        // content at 20, so the strip takes the same — otherwise it starts at
+        // the screen edge while every card above it starts 20 in.
+        stripMargin: qurekaStripMarginFor(20),
+      ),
     );
   }
 }

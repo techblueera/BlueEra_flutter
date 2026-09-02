@@ -77,6 +77,27 @@ Future<void> showAddProductPromptIfNeeded({
       SharedPreferenceUtils.addProductPromptLastShownKey, today);
 
   if (!context.mounted) return;
+  await showAddCatalogPromptSheet(
+    context: context,
+    spec: spec,
+    onAddProduct: onAddProduct,
+  );
+}
+
+/// The same sheet with NO cadence rule — it opens every time it is called.
+///
+/// For the case the once-a-day nudge above does not cover: a section that is
+/// EMPTY and blocks the profile, where the prompt is not a reminder but the
+/// screen's actual next step (the Services tab of an "other" business, which
+/// cannot go live until one service exists). The caller owns the "should this
+/// open at all" decision — typically "the list came back empty" — and is
+/// responsible for not re-opening it on every rebuild.
+Future<void> showAddCatalogPromptSheet({
+  required BuildContext context,
+  required AddProductPromptSpec spec,
+  required VoidCallback onAddProduct,
+}) async {
+  if (!context.mounted) return;
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,

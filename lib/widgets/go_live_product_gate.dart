@@ -1,5 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -190,4 +193,54 @@ class _EmptyCatalogueGoLiveSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Whether THIS account's "Me" home is one of the catalogue screens above —
+/// i.e. whether its Go-Live pill runs [ensureCatalogueBeforeGoLive] before
+/// `toggleLiveNow()`.
+///
+/// Exists so a caller OUTSIDE those screens (the Discover header's go-live
+/// card) can tell a plain toggle from a gated one: for an un-gated business the
+/// pill is literally `toggleLiveNow()` and can be performed anywhere, while a
+/// gated one must be taken on its own screen, which owns the catalogue
+/// controller this gate needs.
+///
+/// Mirrors the type/category routing in `_buildBusinessScreen`
+/// (bottom_navigation_bar_screen.dart) — same globals, same tokens — so a
+/// merchant classified here lands on the screen this claims they do. Keep the
+/// two in step: a business routed to a NEW catalogue screen has to be added
+/// here as well, or its card would fire a toggle that walks past the gate.
+///
+/// Individual accounts are never "un-gated" in this sense (their go-live adds
+/// deposit / permission / document checks of its own) and are not this
+/// function's business — it answers only for [isBusinessUser].
+bool businessGoLiveNeedsCatalogue() {
+  final type = businessTypeGlobal.toUpperCase();
+  final category = businessCategoryGlobal.toUpperCase();
+
+  // Food, Grocery, Product: one catalogue screen each.
+  if (type == BusinessType.Food.name.toUpperCase() ||
+      type == BusinessType.Grocery.name.toUpperCase() ||
+      type == BusinessType.Product.name.toUpperCase()) {
+    return true;
+  }
+
+  // Manufacturing splits four ways and every branch is a catalogue screen.
+  if (type == BusinessType.Manufacturing.name.toUpperCase()) return true;
+
+  // Healthcare: only PHARMACY sells from a catalogue (MedicalScreen). Hospitals,
+  // diagnostics, doctors and the rest are plain toggles.
+  if (type == BusinessType.Healthcare.name.toUpperCase()) {
+    return category == BusinessCategoryTokens.pharmacy;
+  }
+
+  // Automotive: parts (catalogue) and vehicle sales (showroom listings) gate;
+  // service / support / transport do not.
+  if (type == BusinessType.Automotive.name.toUpperCase()) {
+    return category.contains(BusinessCategoryTokens.autoPartsToken) ||
+        BusinessCategoryTokens.automotiveVehicleSales.contains(category);
+  }
+
+  // Siksha, Motel, Finance, Service → school / hotel / others, all plain.
+  return false;
 }

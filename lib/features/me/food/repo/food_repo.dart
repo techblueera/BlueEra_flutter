@@ -277,9 +277,12 @@ class FoodRepo extends BaseService {
   }
 
   // GET: Fetch property photos
+  /// `showProgress: false` — a gallery read that fills a tab, not an action the
+  /// user is waiting on.
   Future<ResponseModel> getFoodServicePhotosRepo() async {
     final response = await ApiBaseHelper().getHTTP(
       homeFoodGallery,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

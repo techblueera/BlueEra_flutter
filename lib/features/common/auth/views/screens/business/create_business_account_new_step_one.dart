@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/model/location_data_model.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -48,6 +49,17 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
   /// Chosen category is the pharmacy / medical-store one, which by law trades
   /// on a drug licence — so step one asks for that licence number.
   bool isPharmacyCategory = false;
+
+  /// True while [_onSubmit] is resolving the device location, BEFORE the
+  /// create-account request starts.
+  ///
+  /// The Submit button's spinner is driven by `addUserResponse`, which only
+  /// goes LOADING once `addBusinessUser` is called — and that is after a GPS
+  /// fix plus a reverse geocode, two to three seconds on a cold location. For
+  /// that whole stretch the button looked untapped, so the tap read as ignored
+  /// and got repeated. This flag is ORed into the button's loading state so it
+  /// spins from the moment it is pressed.
+  bool _resolvingLocation = false;
 
   /// Whether a brand / branch name has to be collected here.
   ///
@@ -689,9 +701,11 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                         vertical: SizeConfig.size15),
                     child: SafeArea(
                       child: Obx(() {
-                        final loading = authController
-                                .addUserResponse.value.status ==
-                            Status.LOADING;
+                        // Covers BOTH halves of the submit: the location
+                        // resolve first, then the account request.
+                        final loading = _resolvingLocation ||
+                            authController.addUserResponse.value.status ==
+                                Status.LOADING;
                         return SizedBox(
                           width: double.infinity,
                           height: SizeConfig.size44,
@@ -803,9 +817,21 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
         filename: fileName,
       );
     }
-    final locationData = await locationController.checkPermissionAndSetData(
-      preferNativeGeocoding: true,
-    );
+    // GPS fix + reverse geocode — the slow part of submitting, and the reason
+    // the button has to say so itself: nothing else reports progress until the
+    // create request goes out below.
+    setState(() => _resolvingLocation = true);
+    LocationDataModel? locationData;
+    try {
+      locationData = await locationController.checkPermissionAndSetData(
+        preferNativeGeocoding: true,
+      );
+    } finally {
+      // Cleared before the request starts, which is where `addUserResponse`
+      // takes over the spinner — and on the permission-denied path below, so a
+      // refusal leaves a live button rather than one stuck spinning.
+      if (mounted) setState(() => _resolvingLocation = false);
+    }
     if (locationData != null) {
       log("Business Type    : ${authController.selectedTypeOfBusiness}");
       log("Category Slug Id  : ${authController.selectedCategorySlugId}");
