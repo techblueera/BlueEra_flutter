@@ -37,14 +37,29 @@ import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart'
 import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_order_local_store.dart';
 import 'package:BlueEra/core/services/other_profile_dirty.dart';
-import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/controller/management_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/controller/other_service_photo_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/controller/timing_controller.dart';
-import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/controller/management_controller.dart';
-import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
-import 'package:BlueEra/features/me/others/controller/timing_controller.dart';
+// The `me/others` and `me/automotive_service` forks are line-for-line twins,
+// so the two halves below collide on every name they did NOT prefix — most
+// of all `DayTiming`, which both timing controllers declare. Unprefixed, the
+// pair compiles only for as long as nobody writes `DayTiming` in this file;
+// the day someone does it becomes an ambiguous-import error with no obvious
+// cause. Each import is therefore narrowed to the one controller this file
+// actually drops, which is all it ever wanted from them.
+import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart'
+    show AutomotiveBusinessProfileFullController;
+import 'package:BlueEra/features/me/automotive_service/controller/management_controller.dart'
+    show AutomotiveManagementController;
+import 'package:BlueEra/features/me/automotive_service/controller/other_service_photo_controller.dart'
+    show AutomotiveServicePhotoController;
+import 'package:BlueEra/features/me/automotive_service/controller/timing_controller.dart'
+    show AutomotiveTimingController;
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart'
+    show BusinessProfileFullController;
+import 'package:BlueEra/features/me/others/controller/management_controller.dart'
+    show ManagementController;
+import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart'
+    show OtherServicePhotoPhotoController;
+import 'package:BlueEra/features/me/others/controller/timing_controller.dart'
+    show TimingController;
 import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -131,9 +146,9 @@ class LogoutHelper {
   ///   drawer), so smart-management never auto-disposes them.
   /// - `ChatViewController`: owns chat sockets/listeners.
   static void _resetSessionControllers() {
-    _drop(deleteIfRegistered<ChatViewController>);
-    _drop(deleteIfRegistered<ViewPersonalDetailsController>);
-    _drop(deleteIfRegistered<ViewBusinessDetailsController>);
+    _drop(() => deleteIfRegistered<ChatViewController>());
+    _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
+    _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
     _resetMeSectionControllers();
   }
 
@@ -144,6 +159,26 @@ class LogoutHelper {
   /// throwing used to abort the whole reset AND the two steps that follow it in
   /// phase 2 (the reactive preference wipe and the language reset), because
   /// they share a try/catch. Each drop now stands alone.
+  ///
+  /// Callers MUST wrap the call in a closure — `_drop(() =>
+  /// deleteIfRegistered<T>())` — and never pass the generic tear-off
+  /// `_drop(deleteIfRegistered<T>)`. A tear-off carrying an explicit type
+  /// argument compiles to a const `InstantiationConstant` holding a bare
+  /// reference to `T`. If nothing reachable from `main` ever CONSTRUCTS a `T`,
+  /// the AOT tree shaker drops the class, that constant is left pointing at a
+  /// class which no longer exists, and the release build dies before it links:
+  ///
+  /// ```
+  /// Error: Lookup failed: AutomotiveTimingController in package:BlueEra/...
+  /// Dart snapshot generator failed with exit code 254
+  /// ConstFinder failure: Reference to ... is not bound to an AST node
+  /// ```
+  ///
+  /// That is exactly what a dead screen looks like from here: this file is
+  /// often the LAST reference to a controller, so it is the file that pays for
+  /// the shaking. Debug and profile builds do not tree shake, so it only ever
+  /// surfaces on a release build. Inside a closure the type argument sits in
+  /// ordinary retained code, which keeps the class declaration alive and bound.
   static void _drop(void Function() delete) {
     try {
       delete();
@@ -177,19 +212,19 @@ class LogoutHelper {
   /// profession types) and SharedPreferences (base URL, the per-account
   /// one-time flags) are deliberately left on disk.
   static void _resetMeSectionControllers() {
-    _drop(deleteIfRegistered<AccountPlanEntitlement>);
-    _drop(deleteIfRegistered<AccountPlanController>);
-    _drop(deleteIfRegistered<GroceryController>);
-    _drop(deleteIfRegistered<RestaurantController>);
-    _drop(deleteIfRegistered<FoodServiceController>);
-    _drop(deleteIfRegistered<InventoryController>);
-    _drop(deleteIfRegistered<ProductController>);
-    _drop(deleteIfRegistered<MedicalController>);
-    _drop(deleteIfRegistered<AutomotiveInventoryController>);
-    _drop(deleteIfRegistered<AutomotiveProductController>);
-    _drop(deleteIfRegistered<ManufacturerInventoryController>);
-    _drop(deleteIfRegistered<ManufacturerProductController>);
-    _drop(deleteIfRegistered<VehicleV3Controller>);
+    _drop(() => deleteIfRegistered<AccountPlanEntitlement>());
+    _drop(() => deleteIfRegistered<AccountPlanController>());
+    _drop(() => deleteIfRegistered<GroceryController>());
+    _drop(() => deleteIfRegistered<RestaurantController>());
+    _drop(() => deleteIfRegistered<FoodServiceController>());
+    _drop(() => deleteIfRegistered<InventoryController>());
+    _drop(() => deleteIfRegistered<ProductController>());
+    _drop(() => deleteIfRegistered<MedicalController>());
+    _drop(() => deleteIfRegistered<AutomotiveInventoryController>());
+    _drop(() => deleteIfRegistered<AutomotiveProductController>());
+    _drop(() => deleteIfRegistered<ManufacturerInventoryController>());
+    _drop(() => deleteIfRegistered<ManufacturerProductController>());
+    _drop(() => deleteIfRegistered<VehicleV3Controller>());
     _resetOtherServiceControllers();
   }
 
@@ -227,15 +262,15 @@ class LogoutHelper {
   /// could be registered at a time, and `Get.find<T>()` on the other one threw
   /// on the cast. They carry an `Automotive` prefix now.
   static void _resetOtherServiceControllers() {
-    _drop(deleteIfRegistered<BusinessProfileFullController>);
-    _drop(deleteIfRegistered<OtherServicePhotoPhotoController>);
-    _drop(deleteIfRegistered<ManagementController>);
-    _drop(deleteIfRegistered<TimingController>);
+    _drop(() => deleteIfRegistered<BusinessProfileFullController>());
+    _drop(() => deleteIfRegistered<OtherServicePhotoPhotoController>());
+    _drop(() => deleteIfRegistered<ManagementController>());
+    _drop(() => deleteIfRegistered<TimingController>());
 
-    _drop(deleteIfRegistered<AutomotiveBusinessProfileFullController>);
-    _drop(deleteIfRegistered<AutomotiveServicePhotoController>);
-    _drop(deleteIfRegistered<AutomotiveManagementController>);
-    _drop(deleteIfRegistered<AutomotiveTimingController>);
+    _drop(() => deleteIfRegistered<AutomotiveBusinessProfileFullController>());
+    _drop(() => deleteIfRegistered<AutomotiveServicePhotoController>());
+    _drop(() => deleteIfRegistered<AutomotiveManagementController>());
+    _drop(() => deleteIfRegistered<AutomotiveTimingController>());
 
     _drop(OtherProfileDirty.clear);
   }

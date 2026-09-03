@@ -17,8 +17,12 @@ import 'package:BlueEra/features/me/others/controller/business_profile_full_cont
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
     hide Location;
+import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
+import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
+import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
@@ -369,6 +373,10 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           SizedBox(height: SizeConfig.size10),
 
+          const _MoreSectionsLinks(),
+
+          SizedBox(height: SizeConfig.size10),
+
           // ── Contact Us ──
           Padding(
             padding: EdgeInsets.only(
@@ -466,6 +474,60 @@ class OtherOverviewTabV2 extends StatelessWidget {
       );
     });
   }
+}
+
+/// The profile sections this tab has no card of its own for.
+///
+/// About Us (About Organization, Management, Staff, Office Facility),
+/// Announcements (Blogs, News, Downloads) and Privacy & Terms used to hang off
+/// `widget/add_others_services.dart` — the pre-v2 menu of nine tiles that
+/// `other_home_screen_v2` replaced. The replacement grew a proper card for each
+/// section it DISPLAYS (management, gallery, timings, jobs) and silently
+/// dropped the ones it had only ever linked, so about fifteen editor screens
+/// stayed in the tree with no route into them from a running app: the menu that
+/// reached them is imported by nothing. These tiles are that menu's surviving
+/// half, restored in the tab that replaced it.
+///
+/// They are plain links, and deliberately do NOT go through [_openSection]:
+/// that exists to refetch the profile when an editor wrote to a section this
+/// tab renders, and none of these three renders anything off `businessProfile`.
+/// Same reasoning as `_openJobs` — no pop of them can leave a pixel here stale,
+/// so there is nothing to consume and nothing to refetch.
+///
+/// Still NOT reachable, and left that way on purpose: `OtherContactUs`, the
+/// branch + department list. This tab already links branch add/edit directly
+/// and shows [BusinessContactMapCard] where the old Contact Us card was (the
+/// commented-out block below), so putting the hub back is a layout decision for
+/// whoever owns that card, not a gap to be quietly filled here. Its department
+/// screen is the one piece of the old menu still stranded.
+class _MoreSectionsLinks extends StatelessWidget {
+  const _MoreSectionsLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+      child: Column(
+        children: [
+          _tile(AppStrings.aboutUs.tr, AppIconAssets.about_us,
+              () => const OthersAboutUs()),
+          _tile(AppStrings.otherAnnouncements.tr,
+              AppIconAssets.other_announcements,
+              () => const AnnouncementsScreen()),
+          _tile(AppStrings.otherPrivacyTncTitle.tr, AppIconAssets.other_privacy,
+              () => OtherPrivacyConditionScreen()),
+        ],
+      ),
+    );
+  }
+
+  /// `Get.to(page)` takes the BUILDER, never `Get.to(Page())` — the closure
+  /// form is what lets GetX drop the page and its controllers on pop.
+  Widget _tile(String title, String icon, Widget Function() page) => InkWell(
+        onTap: () => Get.to(page),
+        child: MeMenuCardDesign(title: title, icon: icon),
+      );
 }
 
 /// Placeholder for ONE other-service section while

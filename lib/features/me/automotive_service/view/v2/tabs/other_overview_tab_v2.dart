@@ -9,8 +9,12 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/automotive_service/view/about_us/about_us.dart';
+import 'package:BlueEra/features/me/automotive_service/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/other_job_listing_screen.dart';
+import 'package:BlueEra/features/me/automotive_service/view/other_privacy_condition/other_privacy_condition_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/other_service_photos_screen.dart';
@@ -32,7 +36,20 @@ import '../../../../../../widgets/common_business_live_photo.dart';
 import '../../../../../business/widgets/business_contact_map_card.dart';
 import '../../../../../business/widgets/business_joined_profile_card.dart';
 import '../../../../../business/widgets/website_overview_card.dart';
-import '../../../../others/view/timing_screen.dart';
+// The AUTOMOTIVE fork's timing screen, not `me/others/`'s. Both declare a
+// `TimingScreen`, but each one `Get.put`s its OWN controller — this one puts
+// `AutomotiveTimingController`, the other puts `TimingController`. GetX keys
+// its registry by the simple class name, so reaching across the fork here
+// registered the me/others controller from inside the automotive profile:
+// the two profiles then shared one registry slot, the automotive Overview
+// edited timings through the other fork's instance, and `LogoutHelper`'s
+// drop of `AutomotiveTimingController` had nothing to drop.
+//
+// It also left `AutomotiveTimingController` with no reachable construction
+// site anywhere in the app, which is what broke the release build: the AOT
+// tree shaker deleted the class while `logout_helper.dart` still held a
+// const reference to it. See the `_drop` doc comment there.
+import '../../timing_screen.dart';
 
 /// Overview tab for the redesigned other-business "me" profile.
 ///
@@ -202,6 +219,10 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
+          SizedBox(height: SizeConfig.size10),
+
+          const _MoreSectionsLinks(),
+
           // SizedBox(height: SizeConfig.size10),
           Padding(
             padding: EdgeInsets.only(
@@ -300,6 +321,59 @@ class OtherOverviewTabV2 extends StatelessWidget {
       );
     });
   }
+}
+
+/// The profile sections this tab has no card of its own for.
+///
+/// About Us (About Organization, Management, Staff, Office Facility),
+/// Announcements (Blogs, News, Downloads) and Privacy & Terms used to hang off
+/// `widget/add_others_services.dart` — the pre-v2 menu of nine tiles that
+/// `other_home_screen_v2` replaced. The replacement grew a proper card for each
+/// section it DISPLAYS (management, gallery, timings, jobs) and silently
+/// dropped the ones it had only ever linked, so about fifteen editor screens
+/// stayed in the tree with no route into them from a running app: the menu that
+/// reached them is imported by nothing. These tiles are that menu's surviving
+/// half, restored in the tab that replaced it.
+///
+/// They are deliberately plain links, and nothing here refetches the profile on
+/// return. None of the three renders anything off `businessProfile`, so no pop
+/// of one can leave this tab showing something stale — the cards above DO
+/// render it, which is the only reason they refetch.
+///
+/// Still NOT reachable, and left that way on purpose: `OtherContactUs`, the
+/// branch + department list. This tab already links branch add/edit directly
+/// and shows [BusinessContactMapCard] where the old Contact Us card was (the
+/// commented-out block above), so putting the hub back is a layout decision for
+/// whoever owns that card, not a gap to be quietly filled here. Its department
+/// screen is the one piece of the old menu still stranded.
+class _MoreSectionsLinks extends StatelessWidget {
+  const _MoreSectionsLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          EdgeInsets.only(left: SizeConfig.size30, right: SizeConfig.size12),
+      child: Column(
+        children: [
+          _tile(AppStrings.aboutUs.tr, AppIconAssets.about_us,
+              () => const OthersAboutUs()),
+          _tile(AppStrings.otherAnnouncements.tr,
+              AppIconAssets.other_announcements,
+              () => const AnnouncementsScreen()),
+          _tile(AppStrings.otherPrivacyTncTitle.tr, AppIconAssets.other_privacy,
+              () => OtherPrivacyConditionScreen()),
+        ],
+      ),
+    );
+  }
+
+  /// `Get.to(page)` takes the BUILDER, never `Get.to(Page())` — the closure
+  /// form is what lets GetX drop the page and its controllers on pop.
+  Widget _tile(String title, String icon, Widget Function() page) => InkWell(
+        onTap: () => Get.to(page),
+        child: MeMenuCardDesign(title: title, icon: icon),
+      );
 }
 
 /// Placeholder for ONE other-service section while
