@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
@@ -247,7 +248,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
               _buildTabButtons(),
 
               // 📋 Notification List
-              _buildNotificationList()
+              _buildNotificationList(),
+
+              // Anchored banner under the list. Safe at the BOTTOM here (and
+              // not on the Connect chat list) because this is a pushed route
+              // with its own back app bar — no bottom nav underneath for the
+              // strip to sit against. It collapses to zero height when there
+              // is no fill, so the list keeps the full screen either way.
+              const AdMobBannerAdWidget(
+                margin: EdgeInsets.only(top: 4, bottom: 4),
+              ),
             ],
           ),
         ),

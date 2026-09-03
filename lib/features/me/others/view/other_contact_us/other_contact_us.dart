@@ -83,7 +83,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                 )),
                                 InkWell(
                                   onTap: () {
-                                    Get.to(OtherBranchOnlyScreen(schoolContactUsData: data,));
+                                    Get.to(() => OtherBranchOnlyScreen(schoolContactUsData: data,));
                                   },
                                   child: LocalAssets(
                                     imagePath: AppIconAssets.editIcon,
@@ -164,7 +164,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                           ),
                                           InkWell(
                                             onTap: () {
-                                              Get.to(OtherDepartmentOnlyScreen(
+                                              Get.to(() => OtherDepartmentOnlyScreen(
                                                 contactInfo: contactData,
                                                 isContactInfoEdit: true,
                                                 branchId: data.id,
@@ -264,7 +264,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  Get.to(OtherDepartmentOnlyScreen(
+                                  Get.to(() => OtherDepartmentOnlyScreen(
                                     branchId: data.id,
                                   ));
                                 },
@@ -291,7 +291,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
             /// Add More Course Button
             AddMoreIconButton(
               onTapEvent: () {
-                Get.to(OtherBranchDetailsFormScreen());
+                Get.to(() => OtherBranchDetailsFormScreen());
               },
               buttonName: AppStrings.otherAddAnotherBranch.tr,
             ),

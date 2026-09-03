@@ -43,7 +43,15 @@ mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
   /// live "Me" screen to jump to a specific internal tab (e.g. Overview), and
   /// any Overview request that arrived before this screen was built is honoured
   /// here on first frame.
-  void registerMeTabBackHandler(TabController controller) {
+  ///
+  /// [overviewTabIndex] is where Overview actually sits in THIS screen's tab
+  /// order. Most "Me" screens put it second and can leave the default; a screen
+  /// that orders its tabs differently must pass its own, or a deep link to
+  /// Overview opens whatever tab happens to be at index 1 instead.
+  void registerMeTabBackHandler(
+    TabController controller, {
+    int overviewTabIndex = BottomBarController.meOverviewTabIndex,
+  }) {
     if (!Get.isRegistered<BottomBarController>()) return;
     final bbc = Get.find<BottomBarController>();
     bool handler() {
@@ -67,6 +75,9 @@ mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
 
     _meSelectTabRef = selectTab;
     bbc.meTabSelectTabHandler = selectTab;
+    // Published so `openMeOverviewTab()` on the LIVE screen resolves Overview
+    // to this screen's own index rather than the app-wide default.
+    bbc.meOverviewTabIndexOverride = overviewTabIndex;
 
     // A deep-link (e.g. profile_completion_reminder) that landed on the "Me"
     // tab before this screen existed leaves a pending Overview request; honour
@@ -74,7 +85,7 @@ mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
     if (bbc.pendingMeOverview) {
       bbc.pendingMeOverview = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        selectTab(BottomBarController.meOverviewTabIndex);
+        selectTab(overviewTabIndex);
       });
     }
   }
@@ -89,6 +100,9 @@ mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
       }
       if (bbc.meTabSelectTabHandler == _meSelectTabRef) {
         bbc.meTabSelectTabHandler = null;
+        // Only ours to clear — paired with the handler above, so a newer
+        // screen's override isn't wiped by this one's dispose.
+        bbc.meOverviewTabIndexOverride = null;
       }
     }
     _meBackHandlerRef = null;

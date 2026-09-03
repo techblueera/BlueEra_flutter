@@ -50,42 +50,22 @@ class ProfessionalsServicePhotoPhotoController extends GetxController {
     isLoading.value = false;
   }
 
-  var categoryImages = <String, RxList<String>>{}.obs;
-
   final int maxImages = 6;
   final int minImages = 1;
 
-  // Categories from your image
-  final List<String> categories = [
-    "External View & Parking",
-    "Lobby & Reception",
-    "Garden & Outdoor Areas",
-    "Rooms",
-    "Bathrooms",
-    "Restaurant & Bar",
-    "Breakfast Service",
-    "Gym & Fitness Center",
-    "Swimming Pool",
-    "Spa & Wellness",
-    "Kids Play Area",
-    "Conference & Meeting Rooms",
-    "Cleanliness & Hygiene",
-    "Safety & Security",
-    "Staff & Customer Service"
-  ];
+  // Removed: a hard-coded list of fifteen HOTEL sections ("Lobby & Reception",
+  // "Swimming Pool", "Spa & Wellness", …) that arrived with the hotel gallery
+  // this module was copied from, plus the `categoryImages` map it populated.
+  // Both were dead — this module's upload screen never read either one, and
+  // nothing outside this file referenced them. The equivalent lists in the
+  // other-service, automotive and laboratory galleries WERE live and are now
+  // driven by the merchant's own album titles instead.
 
   @override
   void onInit() {
     super.onInit();
     fetchPhotos();
-
-    // Initialize an empty observable list for each category
-    for (var cat in categories) {
-      categoryImages[cat] = <String>[].obs;
-    }
   }
-
-  // Observable for the selected category string
 
   // Observable list for image paths (max 6)
   var selectedImages = <String>[].obs;

@@ -26,7 +26,7 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
           child: AddMoreIconButton(
             onTapEvent: () {
               portfolioController.openForCreate();
-              Get.to(JobSeekerPortfolioFormScreen());
+              Get.to(() => JobSeekerPortfolioFormScreen());
             },
           ),
         ),

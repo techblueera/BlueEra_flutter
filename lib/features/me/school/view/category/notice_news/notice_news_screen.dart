@@ -51,7 +51,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.to(SchoolNoticeAndNews());
+                      Get.to(() => SchoolNoticeAndNews());
                     },
                     title: AppStrings.addNoticeNews),
               ),
@@ -178,7 +178,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
               }, onNoticeNewsEdit: () {
                 NoticeNewsData data =
                     noticeController.noticeNewsDataList[noticeIndex];
-                Get.to(SchoolNoticeAndNews(
+                Get.to(() => SchoolNoticeAndNews(
                   isEdit: true,
                   newsData: data,
                 ));

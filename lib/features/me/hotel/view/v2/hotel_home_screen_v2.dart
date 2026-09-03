@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -127,9 +127,9 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(
+                _tabScroll(withBannerAdBelow(
                   HotelRoomsTabV2(controller: _hotelController),
-                  stripMargin: qurekaStripMarginFor(SizeConfig.size8),
+                  margin: bannerAdMarginFor(SizeConfig.size8),
                 )),
                 _tabScroll(HotelOverviewTabV2(controller: _hotelController)),
                 _tabScroll(HotelAmenitiesTabV2(controller: _hotelController)),

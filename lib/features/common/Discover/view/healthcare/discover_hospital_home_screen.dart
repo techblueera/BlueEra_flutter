@@ -644,7 +644,7 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: () {
-          Get.to(HospitalJobListingScreen(isReadOnly: true));
+          Get.to(() => HospitalJobListingScreen(isReadOnly: true));
         },
         child: CommonCardWidget(
           cardMargin: 0,

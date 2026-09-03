@@ -498,7 +498,7 @@ class _JobSeekerPortfolioProjectCardWidgetState
         if (value == 'edit') {
           portfolioController.openForEdit(widget.project);
           // _openAddEditSheet(context, true);
-          Get.to(JobSeekerPortfolioFormScreen());
+          Get.to(() => JobSeekerPortfolioFormScreen());
 
           // Get.to(() => AddMoreCourseScreen(isEdit: true, courseData: data));
         } else {

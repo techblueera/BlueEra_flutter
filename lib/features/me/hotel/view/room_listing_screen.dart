@@ -106,7 +106,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
       width: double.infinity,
       color: Colors.white,
       child: OutlinedButton.icon(
-        onPressed: () => Get.to(RoomDesignScreen(
+        onPressed: () => Get.to(() => RoomDesignScreen(
           roomType: widget.roomType,
           roomName: widget.roomName,
         )),

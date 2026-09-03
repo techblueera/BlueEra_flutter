@@ -72,7 +72,7 @@ class SkillWidgetView extends StatelessWidget {
 
   Widget addSkillButton() {
     return GestureDetector(
-      onTap: () => Get.to(AddSkillsScreen()),
+      onTap: () => Get.to(() => AddSkillsScreen()),
       child: Row(
         children: [
           Icon(

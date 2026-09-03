@@ -170,7 +170,7 @@
 //           ? (!widget.isVisitorProfile)
 //               ? InkWell(
 //                   onTap: () {
-//                     Get.to(SelfIntroVideoUpload());
+//                     Get.to(() => SelfIntroVideoUpload());
 //                   },
 //                   child: profileListTile(
 //                       iconPath: AppIconAssets.video_outline,

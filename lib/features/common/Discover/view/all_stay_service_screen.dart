@@ -400,8 +400,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     void openDetails() {
       (service.type == AppConstants.property ||
               service.type == AppConstants.flat)
-          ? Get.to(HomeStayDetailsWidget(service: service))
-          : Get.to(VehicleDetailsWidget(service: service));
+          ? Get.to(() => HomeStayDetailsWidget(service: service))
+          : Get.to(() => VehicleDetailsWidget(service: service));
     }
 
     return GestureDetector(
@@ -834,7 +834,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 /*
     return InkWell(
       onTap: () {
-        Get.to(HotelDiscoverHomeScreen(
+        Get.to(() => HotelDiscoverHomeScreen(
           data: service,
         ));
       },
@@ -2301,9 +2301,9 @@ class _StayMapScreenState extends State<_StayMapScreen> {
   void _openRentalDetails(RentalServiceData service) {
     if (service.type == AppConstants.property ||
         service.type == AppConstants.flat) {
-      Get.to(HomeStayDetailsWidget(service: service));
+      Get.to(() => HomeStayDetailsWidget(service: service));
     } else {
-      Get.to(VehicleDetailsWidget(service: service));
+      Get.to(() => VehicleDetailsWidget(service: service));
     }
   }
 

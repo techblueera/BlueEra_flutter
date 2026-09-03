@@ -11,6 +11,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
+import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
     hide Location;
@@ -45,6 +46,44 @@ class OtherOverviewTabV2 extends StatelessWidget {
   final BusinessProfileFullController controller;
 
   const OtherOverviewTabV2({super.key, required this.controller});
+
+  /// Opens a section editor, and refetches the full profile ONLY if that
+  /// section was actually written to while the merchant was in there.
+  ///
+  /// Every one of these cards used to end in an unconditional
+  /// `.then((_) => getBusinessProfileFull())`, so simply opening a section and
+  /// pressing back fired a `/business-profile/<id>/full` request that could not
+  /// have returned anything new — the heaviest call on the screen, on a plain
+  /// look-and-leave. The editors' controllers now record a successful write
+  /// through [OtherProfileDirty] and this consumes it: one write, one refetch.
+  ///
+  /// `Get.to(() => Widget())` rather than `Get.to(() => Widget())`: the closure form
+  /// is what lets GetX drop the page and its controllers when the route pops.
+  /// The eager form builds the widget immediately and holds it, which is what
+  /// GetX warns about in the log.
+  void _openSection(Widget Function() page, OtherProfileSection section) {
+    Get.to(page)?.then((_) {
+      if (OtherProfileDirty.consume(section)) {
+        controller.getBusinessProfileFull();
+      }
+    });
+  }
+
+  void _openGallery() =>
+      _openSection(() => OtherServicePhotosPhotoScreen(), OtherProfileSection.gallery);
+
+  void _openManagement() =>
+      _openSection(() => const ManagementScreen(), OtherProfileSection.management);
+
+  void _openTimings() =>
+      _openSection(() => TimingScreen(), OtherProfileSection.timings);
+
+  /// The Jobs card is a permanent call to action — it renders an
+  /// [EmptySectionPlaceholder] unconditionally and reads nothing off the
+  /// profile (the model has no jobs field at all). So it opens its screen and
+  /// refetches NOTHING; the `getBusinessProfileFull()` that used to run here
+  /// could never have changed a pixel of this tab.
+  void _openJobs() => Get.to(() => const OtherJobListingScreen());
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +152,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(
                     right: SizeConfig.size12, left: SizeConfig.size25),
-                child: _TimingsRequiredBanner(
-                  onTap: () => Get.to(() => TimingScreen())
-                      ?.then((_) => controller.getBusinessProfileFull()),
-                ),
+                child: _TimingsRequiredBanner(onTap: _openTimings),
               ),
             SizedBox(height: SizeConfig.size16),
           ],
@@ -148,8 +184,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.otherManagementTitle.tr,
                     actionLabel: AppStrings.viewAll,
-                    onAction: () => Get.to(() => const ManagementScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: _openManagement,
                   ),
                   const SizedBox(height: 10),
                   if ((data?.management?.isNotEmpty ?? false))
@@ -159,8 +194,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                       imageAsset: 'assets/images/other_management.png',
                       ctaLabel: AppStrings.otherManagementTitle.tr,
                       ctaIcon: Icons.groups_outlined,
-                      onTap: () => Get.to(() => const ManagementScreen())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                      onTap: _openManagement,
                     ),
                 ],
               ),
@@ -182,16 +216,14 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.otherJobsTitle.tr,
                     actionLabel: AppStrings.viewAll,
-                    onAction: () => Get.to(() => const OtherJobListingScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: _openJobs,
                   ),
                   const SizedBox(height: 10),
                   EmptySectionPlaceholder(
                     imageAsset: 'assets/images/other_job.png',
                     ctaLabel: AppStrings.otherJobsTitle.tr,
                     ctaIcon: Icons.work_outline,
-                    onTap: () => Get.to(() => const OtherJobListingScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onTap: _openJobs,
                   ),
                 ],
               ),
@@ -199,16 +231,6 @@ class OtherOverviewTabV2 extends StatelessWidget {
           ),
 
           SizedBox(height: SizeConfig.size10),
-          // ── Timings ──
-          Padding(
-            padding: EdgeInsets.only(
-                right: SizeConfig.size12, left: SizeConfig.size25),
-            child: _TimingCard(
-              timings: data?.timings,
-              onEditTap: () => Get.to(() => TimingScreen())
-                  ?.then((_) => controller.getBusinessProfileFull()),
-            ),
-          ),
 
           Padding(
               padding: EdgeInsets.only(
@@ -229,8 +251,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.gallery.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () => Get.to(OtherServicePhotosPhotoScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: _openGallery,
                   ),
                   const SizedBox(height: 10),
                   if ((data?.gallery?.isNotEmpty ?? false))
@@ -239,8 +260,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.gallery.tr,
-                      onTap: () => Get.to(OtherServicePhotosPhotoScreen())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                      onTap: _openGallery,
                     ),
                 ],
               ),
@@ -268,7 +288,21 @@ class OtherOverviewTabV2 extends StatelessWidget {
               BusinessType.Finance.name.toUpperCase())
             SizedBox(height: SizeConfig.size10),
 
-          // SizedBox(height: SizeConfig.size10),
+          // ── Timings ──
+          //
+          // Sits directly above Contact Us: both answer "how do I reach this
+          // business", so when the hours are filled in they read as one block
+          // rather than being separated by the gallery and banking cards.
+          Padding(
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
+            child: _TimingCard(
+              timings: data?.timings,
+              onEditTap: _openTimings,
+            ),
+          ),
+
+          SizedBox(height: SizeConfig.size10),
 
           // ── Contact Us ──
           Padding(
@@ -290,7 +324,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                 //     imageAsset: 'assets/images/other_gallery.png',
                 //     ctaLabel: AppStrings.contactUs.tr,
                 //     ctaIcon: Icons.contact_phone_outlined,
-                //     onTap: () => Get.to(OtherContactUs())
+                //     onTap: () => Get.to(() => OtherContactUs())
                 //         ?.then((_) => controller.getBusinessProfileFull()),
                 //   ),
               ],
@@ -869,7 +903,7 @@ class _ContactUs extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(OtherBranchOnlyScreen(
+                    onTap: () => Get.to(() => OtherBranchOnlyScreen(
                       schoolContactUsData: SchoolContactUsData(
                         id: contacts.id,
                         branch: Branch(
@@ -925,7 +959,7 @@ class _ContactUs extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         GestureDetector(
-          onTap: () => Get.to(OtherBranchDetailsFormScreen()),
+          onTap: () => Get.to(() => OtherBranchDetailsFormScreen()),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1279,13 +1313,14 @@ class _BankingRequiredBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+    // [CommonCardWidget] rather than a hand-rolled Container: this banner
+    // REPLACES the whole overview when the gate trips, so it has to look like
+    // the cards it stands in for. Rolling its own decoration left it the one
+    // flat surface on a tab where every other card is lifted.
+    return CommonCardWidget(
+      padding: SizeConfig.size16,
+      cardMargin: 0,
+      borderColorColor: Colors.grey.shade200,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -1359,13 +1394,11 @@ class _TimingsRequiredBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+    // Same card chrome as [_BankingRequiredBanner] — see the note there.
+    return CommonCardWidget(
+      padding: SizeConfig.size16,
+      cardMargin: 0,
+      borderColorColor: Colors.grey.shade200,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

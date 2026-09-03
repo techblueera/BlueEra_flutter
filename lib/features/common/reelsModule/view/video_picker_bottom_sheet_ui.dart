@@ -207,7 +207,7 @@
 //
 //         Get.back(); // Stop Loading...
 //         if (videoImage != null) {
-//           // Get.to(VideoTrimScreen(
+//           // Get.to(() => VideoTrimScreen(
 //           //   videoPath: videoPath,
 //           //   videoType: isVideoUploadType,
 //           //   videoThumbnail: videoImage,
@@ -233,7 +233,7 @@
 //         Get.back(); // Stop Loading...
 //       }
 //       /*} else {
-//         Get.to(VideoTrimScreen(videoPath: videoPath,videoType: isVideoUploadType,videoThumbnail:videoImage??"" ,));
+//         Get.to(() => VideoTrimScreen(videoPath: videoPath,videoType: isVideoUploadType,videoThumbnail:videoImage??"" ,));
 //         // Get.back();
 //
 //         // commonSnackBar(

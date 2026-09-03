@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_photo_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/upload_lab_service_photos_screen.dart';
@@ -28,7 +29,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
             top: 10,
           ),
           child: PositiveCustomBtn(
-            onTap: () => Get.to(const UploadLabServicePhotosScreen()),
+            onTap: () => _startUpload(context, controller),
             title: AppStrings.uploadLabServicePhoto.tr,
           ),
         ),
@@ -53,7 +54,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
     final firstImage = images.isNotEmpty ? images[0] : "";
 
     return InkWell(
-      onTap: () => Get.to(LabServiceCategoryDetailsScreen(categoryData: item)),
+      onTap: () => Get.to(() => LabServiceCategoryDetailsScreen(categoryData: item)),
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: const RoundedRectangleBorder(
@@ -134,6 +135,36 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
         height: 100,
         child: const Icon(Icons.image),
       );
+
+  /// Photos first, album second.
+  ///
+  /// Tapping upload opens the multi-select picker straight away — up to
+  /// [LabServicePhotoPhotoController.maxImages] in one pass — and only once
+  /// something has actually been picked does the next screen open to name the
+  /// album. Backing out of the picker leaves the lab where they were instead
+  /// of on an empty form they now have to abandon too.
+  ///
+  /// It used to run the other way round: the button opened a form whose first
+  /// field was the album name, so a group had to be named before a single
+  /// photo was visible, and one could be named with nothing then picked.
+  static Future<void> _startUpload(
+    BuildContext context,
+    LabServicePhotoPhotoController controller,
+  ) async {
+    // Start from empty: this controller outlives the upload screen, so
+    // whatever a cancelled attempt left behind must not leak into this one.
+    controller.resetUploadForm();
+
+    final paths = await PhotoPickerService.pickMultiplePhotos(
+      context,
+      AppStrings.uploadLabServicePhoto.tr,
+      maxImages: controller.maxImages,
+    );
+    if (paths == null || paths.isEmpty) return;
+
+    controller.addImages(paths);
+    Get.to(() => const UploadLabServicePhotosScreen());
+  }
 
   static String _formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";

@@ -44,7 +44,7 @@ class DirectorCard extends StatelessWidget {
                   ServiceHomeTitleWidget(title: AppStrings.principalMessage),
                   if (isEdit)
                     IconButton(
-                      onPressed: () => Get.to(PrincipalMessageScreen()),
+                      onPressed: () => Get.to(() => PrincipalMessageScreen()),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                     ),
                 ],
@@ -63,7 +63,7 @@ class DirectorCard extends StatelessWidget {
                     if (isEdit) ...[
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
-                        onPressed: () => Get.to(PrincipalMessageScreen()),
+                        onPressed: () => Get.to(() => PrincipalMessageScreen()),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text("Add"),
                         style: OutlinedButton.styleFrom(
@@ -167,7 +167,7 @@ class DirectorCard extends StatelessWidget {
                         ),
                         if (isEdit)
                           InkWell(
-                            onTap: () => Get.to(PrincipalMessageScreen()),
+                            onTap: () => Get.to(() => PrincipalMessageScreen()),
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               padding: const EdgeInsets.all(8),

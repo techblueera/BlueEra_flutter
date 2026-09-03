@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
@@ -360,25 +361,45 @@ class _NearYouAllScreenState extends State<NearYouAllScreen> {
 
     final shown = _visible.clamp(0, entries.length);
     final hasMore = shown < entries.length;
+    // Native ads at the shared list cadence. [buildNativeAdRows] never places
+    // one after the final item, so the ladder always ends on a rung.
+    final rows = buildNativeAdRows(shown);
 
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, SizeConfig.size24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            if (index == shown) return _appendFooter();
-            final entry = entries[index];
+            if (index == rows.length) return _appendFooter();
+            final row = rows[index];
+            if (row.isAd) {
+              // Inset by the ladder's spine width so the ad lands in the CARD
+              // column and leaves the distance gutter clear. Full-width it
+              // would cut straight across the hairline, which reads as the
+              // ladder ending rather than pausing.
+              return NativeAdSlot(
+                adOrdinal: row.adOrdinal,
+                keyPrefix: 'near_you_native_ad',
+                margin: const EdgeInsets.only(
+                    left: _NearbyRow._spineWidth, bottom: 10),
+              );
+            }
+            final i = row.contentIndex;
+            final entry = entries[i];
             return _NearbyRow(
               key: ValueKey(entry.itemKey),
               entry: entry,
               // First rung starts the ladder, last one ends it — the hairline
               // is drawn per row, so the ends have to know they are ends.
-              isFirst: index == 0,
-              isLast: index == shown - 1 && !hasMore,
+              // Keyed off the CONTENT index, not the row index: `isFirst` also
+              // drives the one filled marker on the page, so an ad row must not
+              // hand a second row that emphasis.
+              isFirst: i == 0,
+              isLast: i == shown - 1 && !hasMore,
               onTap: openNearbyEntry,
             );
           },
-          childCount: shown + (hasMore ? 1 : 0),
+          childCount: rows.length + (hasMore ? 1 : 0),
         ),
       ),
     );

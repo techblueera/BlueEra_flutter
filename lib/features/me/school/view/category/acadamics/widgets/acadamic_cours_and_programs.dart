@@ -47,7 +47,7 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   EdgeInsets.only(left: 15, right: 15, bottom: 30, top: 10),
               child: AddMoreIconButton(
                 onTapEvent: () {
-                  Get.to(AddMoreCourseScreen());
+                  Get.to(() => AddMoreCourseScreen());
                 },
                 buttonName: AppStrings.addMoreCourse,
               ),

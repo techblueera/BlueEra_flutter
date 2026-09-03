@@ -614,7 +614,8 @@ class AppStrings {
   static const uploadPhotos = "uploadPhotos";
   static const noGalleryPhotosYet = "noGalleryPhotosYet";
   static const lastUpdateLabel = "lastUpdateLabel";
-  static const interiorPhotosHint = "interiorPhotosHint";
+  // `interiorPhotosHint` was the medical gallery dropdown's hint; removed with
+  // the dropdown (the free-text field uses otherGalleryCategoryHint).
   static const uploadingLabel = "uploadingLabel";
   static const noRidersAvailableHere = "noRidersAvailableHere";
   static const yourCartIsEmpty = "yourCartIsEmpty";
@@ -5328,12 +5329,9 @@ class AppStrings {
   static const String medicalOtcMedicines = "medical_otc_medicines";
   static const String medicalPersonalBabyCare = "medical_personal_baby_care";
   static const String medicalWoundCareFirstAid = "medical_wound_care_first_aid";
-  static const String medicalGalleryExternalParking = "medicalGalleryExternalParking";
-  static const String medicalGalleryInteriorPhotos = "medicalGalleryInteriorPhotos";
-  static const String medicalGalleryEquipmentPhotos = "medicalGalleryEquipmentPhotos";
-  static const String medicalGalleryTeamStaffPhotos = "medicalGalleryTeamStaffPhotos";
-  static const String medicalGalleryMedicinesProducts = "medicalGalleryMedicinesProducts";
-  static const String medicalGalleryBillingCounter = "medicalGalleryBillingCounter";
+  // The six medicalGallery* category labels lived here. Removed with the fixed
+  // dropdown they fed — album names are now entered by the pharmacy and stored
+  // verbatim, so there is nothing to translate.
   static const String medicalProductsAddedSuccessfully = "medical_products_added_successfully";
   static const String medicalInventoryUpdatedSuccessfully = "medical_inventory_updated_successfully";
   static const String medicalInventoryDeleted = "medical_inventory_deleted";
@@ -6439,6 +6437,18 @@ class AppStrings {
 
   static const String otherServicePhotos = "otherServicePhotos";
   static const String otherUploadServicePhoto = "otherUploadServicePhoto";
+
+  // Gallery category field on the "other service" photo upload screen. The
+  // category is free text the merchant owns — there is no fixed taxonomy for a
+  // business that is, by definition, not one of the modelled verticals.
+  static const String otherGalleryCategoryLabel = "otherGalleryCategoryLabel";
+  static const String otherGalleryCategoryHint = "otherGalleryCategoryHint";
+  static const String otherGalleryYourCategories =
+      "otherGalleryYourCategories";
+  static const String otherGalleryOtherCategory =
+      "otherGalleryOtherCategory";
+  static const String otherGalleryNewCategoryHelp =
+      "otherGalleryNewCategoryHelp";
   static const String otherProfileQr = "otherProfileQr";
   static const String otherScanToViewProfile = "otherScanToViewProfile";
   static const String otherCopyProfileId = "otherCopyProfileId";
@@ -8046,17 +8056,13 @@ class AppStrings {
   // FAB
   static const String addListingFabLabel = "addListingFabLabel";
 
-  /// HOTEL property-photo categories (lib/features/me/hotel/controller/
-  /// property_photo_controller.dart) — display labels for the upload
-  /// dropdown. The same English strings double as API wire-keys in
-  /// `PropertyPhotoController.categories`, so the controller list keeps
-  /// the literals; the view layer renders the localized variant at
-  /// display time by mapping each option through these keys.
-  static const String photoCategoryExternalViewParking = "photoCategoryExternalViewParking";
-  static const String photoCategoryLobbyGarden = "photoCategoryLobbyGarden";
-  static const String photoCategoryRooms = "photoCategoryRooms";
-  static const String photoCategoryRestaurantBar = "photoCategoryRestaurantBar";
-  static const String photoCategoryGymSwimmingPool = "photoCategoryGymSwimmingPool";
+  // The five HOTEL property-photo category labels lived here
+  // (photoCategoryExternalViewParking / …LobbyGarden / …Rooms /
+  // …RestaurantBar / …GymSwimmingPool). Removed with the fixed dropdown they
+  // fed: album names are now entered by the hotel and stored verbatim, so
+  // there is nothing to translate. Their doc claimed the English strings
+  // doubled as API wire-keys — the controller had in fact been sending the
+  // TRANSLATED label as `category`, which is the bug that retired them.
 
   /// DISCOVER map widgets (lib/features/common/Discover/widget/
   /// discover_map_widgets.dart) — banner location pill placeholder and

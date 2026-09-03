@@ -50,7 +50,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   'assets/images/customer.png',
                   AppStrings.customerSupport,
                   () {
-                    // Get.to(CustomerSupportScreen());
+                    // Get.to(() => CustomerSupportScreen());
                     final chat =ChatViewController.personalAiChatModule;
                     Get.to(()=> AiChatScreen(
                       profileImage: chat?.sender?.profileImage,
@@ -64,7 +64,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   'assets/images/mail.png',
                   AppStrings.mailUs,
                   () {
-                    Get.to(HelpAndSupportFormScreen());
+                    Get.to(() => HelpAndSupportFormScreen());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -72,7 +72,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                  'assets/images/qury.png',
                   AppStrings.queries,
                   () {
-                    Get.to(QueriesCard());
+                    Get.to(() => QueriesCard());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -81,7 +81,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
 
                   "Complaint",
                   () {
-                   Get.to(ComplaintMainPage());
+                   Get.to(() => ComplaintMainPage());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -89,7 +89,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   'assets/images/faq.png',
                   AppStrings.faq,
                   () {
-                    Get.to(FaqScreen());
+                    Get.to(() => FaqScreen());
                   },
                 ),
               ],

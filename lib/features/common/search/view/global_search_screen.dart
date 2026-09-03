@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/search/controller/global_search_controller.dart';
 import 'package:BlueEra/features/common/search/model/search_category.dart';
@@ -1030,26 +1031,42 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
                 SizeConfig.size12, SizeConfig.size12, SizeConfig.size12, 0),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) {
-                  final item = items[i];
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: SizeConfig.size12),
-                    child: SearchResultCard(
-                      item: item,
-                      // Products keep the richer enquiry sheet (photo, pricing,
-                      // variants, nearby sellers); every other entity type goes
-                      // through _openResult.
-                      onTap: () => isSearchProductType(item.entityType)
-                          ? showProductInquiryBottomSheet(context, item)
-                          : _openResult(item),
-                    ),
-                  );
-                },
-                childCount: items.length,
-              ),
-            ),
+            sliver: Builder(builder: (context) {
+              // Native ads at the shared list cadence, keyed on the committed
+              // query so a NEW search rebuilds its slots from scratch instead
+              // of a kept-alive ad from the previous query's results surviving
+              // into an unrelated one.
+              final rows = buildNativeAdRows(items.length);
+              final adPrefix = 'search_native_ad_${controller.committedQuery}';
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (_, index) {
+                    final row = rows[index];
+                    if (row.isAd) {
+                      return NativeAdSlot(
+                        adOrdinal: row.adOrdinal,
+                        keyPrefix: adPrefix,
+                        bottomGap: SizeConfig.size12,
+                      );
+                    }
+                    final item = items[row.contentIndex];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: SizeConfig.size12),
+                      child: SearchResultCard(
+                        item: item,
+                        // Products keep the richer enquiry sheet (photo,
+                        // pricing, variants, nearby sellers); every other
+                        // entity type goes through _openResult.
+                        onTap: () => isSearchProductType(item.entityType)
+                            ? showProductInquiryBottomSheet(context, item)
+                            : _openResult(item),
+                      ),
+                    );
+                  },
+                  childCount: rows.length,
+                ),
+              );
+            }),
           ),
           SliverToBoxAdapter(
             // Footer: loading spinner while paginating, else spacer.

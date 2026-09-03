@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -143,11 +143,11 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(
+                _tabScroll(withBannerAdBelow(
                   HospitalDepartmentsTabV2(controller: _hospitalController),
                   // The scroll has no horizontal padding and the tab insets
                   // itself by size4, so the strip matches it on both edges.
-                  stripMargin: qurekaStripMarginFor(SizeConfig.size4),
+                  margin: bannerAdMarginFor(SizeConfig.size4),
                 )),
                 _tabScroll(
                     HospitalOverviewTabV2(controller: _hospitalController)),

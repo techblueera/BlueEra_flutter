@@ -1,5 +1,5 @@
 ﻿import 'dart:ui';
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -288,7 +288,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
               // chrome (top bar, tab controller, per-tab fetch/refresh) and
               // nothing else. Statistics already is its own screen.
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(const FoodProductsTab())),
+                _tabScroll(withBannerAdBelow(const FoodProductsTab())),
                 _tabScroll(const FoodOverviewTab()),
                 // _tabScroll(const FoodPostTab()),
                 ProfileStatisticsScreen(

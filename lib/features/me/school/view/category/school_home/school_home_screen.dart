@@ -64,7 +64,7 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolJobListingScreen(
+                Get.to(() => SchoolJobListingScreen(
                   isEdit: true,
                 ));
               },
@@ -72,7 +72,7 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolAcademicsPage(
+                Get.to(() => SchoolAcademicsPage(
                   isEdit: true,
                 ));
               },
@@ -80,7 +80,7 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolStudentCorner(
+                Get.to(() => SchoolStudentCorner(
                   isEdit: true,
                 ));
               },
@@ -88,7 +88,7 @@ class SchoolHomeScreen extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Get.to(NoticeNewsScreen(
+                Get.to(() => NoticeNewsScreen(
                   isEdit: true,
                 ));
               },

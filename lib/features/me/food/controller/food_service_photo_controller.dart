@@ -41,62 +41,114 @@ class FoodServicePhotoPhotoController extends GetxController {
     isLoading.value = false;
   }
 
-  var categoryImages = <String, RxList<String>>{}.obs;
-
   final int maxImages = 6;
   final int minImages = 1;
 
-  // Categories from your image
-  final List<String> categories = [
-    "Food & Signature Dishes",
-    "Starters & Appetizers",
-    "Main Course (Veg)",
-    "Main Course (Non-Veg)",
-    "Desserts & Sweets",
-    "Beverages & Mocktails",
-    "Bar & Cocktails",
-    "Main Dining Area",
-    "Lobby & Reception",
-    "Rooftop & Outdoor Seating",
-    "Garden & Patio Dining",
-    "Private Dining Rooms",
-    "Kitchen & Food Preparation",
-    "Menu Cards",
-    "Buffet & Breakfast Service",
-    "Staff & Customer Service",
-    "Events & Celebrations",
-    "Exterior & Parking",
-    "Cleanliness & Hygiene",
-    "Washrooms & Restrooms"
-  ];
+  /// The gallery categories THIS restaurant has actually created, in the order
+  /// the API returned them, de-duplicated case-insensitively.
+  ///
+  /// This replaces a fixed twenty-entry list. Unlike the hotel taxonomy the
+  /// other galleries inherited, that list was at least food-shaped — but it
+  /// was still somebody else's idea of how a kitchen photographs itself, it
+  /// could not be added to, and it trailed off into the hotel entries it was
+  /// derived from ("Lobby & Reception", "Washrooms & Restrooms"). There is no
+  /// server-side catalog of sections to swap it for: the gallery API stores a
+  /// free `title` per group. So the categories ARE the ones the restaurant has
+  /// made, offered back as suggestions, with an "Other" option for the next
+  /// one. See [selectedCategory].
+  List<String> get existingCategories {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final photo in propertyPhotosList) {
+      final title = photo.title?.trim() ?? '';
+      if (title.isEmpty) continue;
+      if (!seen.add(title.toLowerCase())) continue;
+      result.add(title);
+    }
+    return result;
+  }
 
   @override
   void onInit() {
     super.onInit();
     fetchPhotos();
-
-    // Initialize an empty observable list for each category
-    for (var cat in categories) {
-      categoryImages[cat] = <String>[].obs;
-    }
   }
 
-  // Observable for the selected category string
+  /// The category this upload will be filed under — either picked from
+  /// [existingCategories] or typed fresh. Free text, because that is exactly
+  /// what the API's `title` is.
   var selectedCategory = "".obs;
 
   // Observable list for image paths (max 6)
   var selectedImages = <String>[].obs;
 
+  /// True while the "Other" option is chosen — the restaurant is naming a
+  /// category of its own rather than filing under one it already has.
+  ///
+  /// Tracked separately from [selectedCategory] because the two mean different
+  /// things while the name is still being typed: "Other is chosen but nothing
+  /// entered yet" has to keep the text field on screen, and an empty
+  /// [selectedCategory] alone can't say that.
+  var isCustomCategory = false.obs;
+
+  /// Whether the upload form is complete enough to submit. `trim` so a
+  /// category of nothing but spaces doesn't pass.
+  bool get canSubmitUpload =>
+      selectedCategory.value.trim().isNotEmpty && selectedImages.isNotEmpty;
+
+  /// How many more photos this upload can take.
+  int get remainingImageSlots => maxImages - selectedImages.length;
+
+  /// Files this category under one of [existingCategories].
+  void selectExistingCategory(String category) {
+    isCustomCategory.value = false;
+    selectedCategory.value = category;
+  }
+
+  /// Switches to the "Other" option: clears whatever existing category was
+  /// selected and hands the naming over to the text field.
+  void chooseCustomCategory() {
+    isCustomCategory.value = true;
+    selectedCategory.value = '';
+  }
+
   void onCategoryChanged(String? value) {
-    if (value != null) {
-      selectedCategory.value = value;
-    }
+    selectedCategory.value = value ?? '';
+  }
+
+  /// Clears the upload form, so a cancelled attempt doesn't leak into the next
+  /// one — this controller outlives the upload screen.
+  void resetUploadForm() {
+    selectedCategory.value = '';
+    isCustomCategory.value = false;
+    selectedImages.clear();
   }
 
   void addImage(String path) {
-    if (selectedImages.length < 6) {
+    if (selectedImages.length < maxImages) {
       selectedImages.add(path);
     } else {
+      commonSnackBar(message: AppStrings.foodPhotoLimitReached.tr);
+    }
+  }
+
+  /// Appends a batch from the multi-picker, keeping the total at or under
+  /// [maxImages].
+  ///
+  /// The picker is already told the cap, but it only knows how many were
+  /// picked in THAT pass — the restaurant can come back and add more to a
+  /// selection that is already part-full, so the ceiling is re-checked here
+  /// against what is already held. Anything over the line is dropped with one
+  /// snackbar rather than one per file.
+  void addImages(List<String> paths) {
+    if (paths.isEmpty) return;
+    final room = remainingImageSlots;
+    if (room <= 0) {
+      commonSnackBar(message: AppStrings.foodPhotoLimitReached.tr);
+      return;
+    }
+    selectedImages.addAll(paths.take(room));
+    if (paths.length > room) {
       commonSnackBar(message: AppStrings.foodPhotoLimitReached.tr);
     }
   }
@@ -119,7 +171,9 @@ class FoodServicePhotoPhotoController extends GetxController {
       }
 
       var requestBody = {
-        "title": selectedCategory.value,
+        // Trimmed so "Desserts" and "Desserts " don't become two categories
+        // that read identically in the list.
+        "title": selectedCategory.value.trim(),
         "imageUrls": urlList,
         ApiKeys.businessId: businessId,
       };
@@ -130,6 +184,7 @@ class FoodServicePhotoPhotoController extends GetxController {
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
+        resetUploadForm();
         fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
@@ -355,6 +356,10 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
       // a page lands AND when the counts call answers (the products sort reads
       // `storeCounts`, which is observable).
       final stores = sortStores(controller.allStore, _sort);
+      // Native ads interleaved between the store cards at the shared cadence
+      // (single source of truth in native_ad_list_inserter.dart), never after
+      // the last card.
+      final rows = buildNativeAdRows(stores.length);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,10 +380,10 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                   top: SizeConfig.size4,
                   bottom: SizeConfig.paddingL + 70,
                 ),
-                itemCount: stores.length +
+                itemCount: rows.length +
                     (controller.isAllStoreLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index >= stores.length) {
+                  if (index >= rows.length) {
                     return const Padding(
                       padding: EdgeInsets.all(20),
                       child: Center(
@@ -386,7 +391,14 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                       ),
                     );
                   }
-                  return ProductStoreCard(store: stores[index]);
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'product_store_native_ad',
+                    );
+                  }
+                  return ProductStoreCard(store: stores[row.contentIndex]);
                 },
               ),
             ),

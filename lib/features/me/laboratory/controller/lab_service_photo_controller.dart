@@ -25,29 +25,78 @@ class LabServicePhotoPhotoController extends GetxController {
   final RxList<OtherServiceGalleryData> propertyPhotosList =
       <OtherServiceGalleryData>[].obs;
 
-  /// Available album categories shown in the upload dropdown.
-  final List<String> categories = const [
-    'External View & Parking',
-    'Exterior Photos',
-    'Interior Photos',
-    'Equipment Photos',
-    'Team/Staff Photos',
-    'Lobby & Reception',
-    'Rooms',
-    'Bathrooms',
-    'Conference & Meeting Rooms',
-    'Cleanliness & Hygiene',
-    'Safety & Security',
-    'Staff & Customer Service',
-  ];
+  /// The album categories THIS lab has actually created, in the order the API
+  /// returned them, de-duplicated case-insensitively.
+  ///
+  /// This replaces a fixed twelve-entry list that still carried the hotel
+  /// sections it was derived from — "Lobby & Reception", "Rooms",
+  /// "Bathrooms", "Conference & Meeting Rooms" — none of which describe a
+  /// diagnostic lab. There is no server-side catalog of album categories to
+  /// swap it for: the gallery API stores a free `title` per album. So the
+  /// categories ARE the ones the lab has made, offered back as suggestions,
+  /// and a new one is created simply by typing it. See [selectedCategory].
+  List<String> get existingCategories {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final photo in propertyPhotosList) {
+      final title = photo.title?.trim() ?? '';
+      if (title.isEmpty) continue;
+      if (!seen.add(title.toLowerCase())) continue;
+      result.add(title);
+    }
+    return result;
+  }
 
   /// Max picks before [addImage] starts rejecting.
   static const int _maxImagesPerUpload = 6;
 
   // ---- Upload-form state ----------------------------------------------------
 
+  /// The album this upload will be filed under — either picked from
+  /// [existingCategories] or typed fresh. Free text, because that is exactly
+  /// what the API's `title` is.
   final RxString selectedCategory = "".obs;
   final RxList<String> selectedImages = <String>[].obs;
+
+  /// True while the "Other" option is chosen — the lab is naming an album of
+  /// its own rather than filing under one it already has.
+  ///
+  /// Tracked separately from [selectedCategory] because the two mean different
+  /// things while the name is still being typed: "Other is chosen but nothing
+  /// entered yet" has to keep the text field on screen, and an empty
+  /// [selectedCategory] alone can't say that.
+  final RxBool isCustomCategory = false.obs;
+
+  /// Whether the upload form is complete enough to submit. `trim` so an album
+  /// name of nothing but spaces doesn't pass.
+  bool get canSubmitUpload =>
+      selectedCategory.value.trim().isNotEmpty && selectedImages.isNotEmpty;
+
+  /// Cap on one upload, and how many more photos it can still take.
+  int get maxImages => _maxImagesPerUpload;
+
+  int get remainingImageSlots => _maxImagesPerUpload - selectedImages.length;
+
+  /// Files this upload under one of [existingCategories].
+  void selectExistingCategory(String category) {
+    isCustomCategory.value = false;
+    selectedCategory.value = category;
+  }
+
+  /// Switches to the "Other" option: clears whatever existing album was
+  /// selected and hands the naming over to the text field.
+  void chooseCustomCategory() {
+    isCustomCategory.value = true;
+    selectedCategory.value = '';
+  }
+
+  /// Clears the upload form, so a cancelled attempt doesn't leak into the
+  /// next one — this controller outlives the upload screen.
+  void resetUploadForm() {
+    selectedCategory.value = '';
+    isCustomCategory.value = false;
+    selectedImages.clear();
+  }
 
   @override
   void onInit() {
@@ -80,7 +129,7 @@ class LabServicePhotoPhotoController extends GetxController {
   }
 
   void onCategoryChanged(String? value) {
-    if (value != null) selectedCategory.value = value;
+    selectedCategory.value = value ?? '';
   }
 
   void addImage(String path) {
@@ -89,6 +138,27 @@ class LabServicePhotoPhotoController extends GetxController {
       return;
     }
     selectedImages.add(path);
+  }
+
+  /// Appends a batch from the multi-picker, keeping the total at or under
+  /// [_maxImagesPerUpload].
+  ///
+  /// The picker is already told the cap, but it only knows how many were
+  /// picked in THAT pass — the lab can come back and add more to a selection
+  /// that is already part-full, so the ceiling is re-checked here against what
+  /// is already held. Anything over the line is dropped with one snackbar
+  /// rather than one per file.
+  void addImages(List<String> paths) {
+    if (paths.isEmpty) return;
+    final room = remainingImageSlots;
+    if (room <= 0) {
+      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+      return;
+    }
+    selectedImages.addAll(paths.take(room));
+    if (paths.length > room) {
+      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+    }
   }
 
   void removeImage(int index) {
@@ -108,15 +178,19 @@ class LabServicePhotoPhotoController extends GetxController {
 
       final ResponseModel response =
           await _repo.addOtherServicePhotosRepo(reqBody: {
-        "title": selectedCategory.value,
+        // Trimmed so "Sample Collection" and "Sample Collection " don't become
+        // two albums that read identically in the list.
+        "title": selectedCategory.value.trim(),
         "imageUrls": urls,
       });
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
-        selectedImages.clear();
-        selectedCategory.value = "";
+        // Also clears `isCustomCategory`, which the inline pair above didn't
+        // know about — otherwise the next upload would open on the "Other"
+        // branch left over from this one.
+        resetUploadForm();
         await fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

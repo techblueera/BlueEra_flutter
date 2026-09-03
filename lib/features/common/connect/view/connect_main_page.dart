@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui' show ImageFilter;
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -806,6 +807,16 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     Column(
                       children: [
                         const CustomerOngoingRideCard(),
+                        // Banner ABOVE the list, not below it. The bottom nav
+                        // is a Positioned overlay on this route, so the tab's
+                        // content runs underneath it — a strip at the Column's
+                        // bottom would be hidden by the bar, and any part that
+                        // showed would sit flush against it. Collapses to zero
+                        // height with no fill, so the list is unchanged when
+                        // there is no ad.
+                        const AdMobBannerAdWidget(
+                          margin: EdgeInsets.only(bottom: 6),
+                        ),
                         Expanded(
                           child: PersonalChatsList(isForwardUI: false),
                         ),

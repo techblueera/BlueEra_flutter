@@ -1,4 +1,3 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -378,9 +377,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                   }
                   final row = rows[index];
                   if (row.isAd) {
-                    // Qureka promo instead of a native ad on this screen — see
-                    // kQurekaReplacesNativeAds for the switch back.
-                    return PromoAdSlot(
+                    return NativeAdSlot(
                       adOrdinal: row.adOrdinal,
                       keyPrefix: 'restaurant_near_native_ad',
                     );

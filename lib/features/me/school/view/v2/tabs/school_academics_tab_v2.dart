@@ -32,7 +32,7 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
   }
 
   void _openAdd() {
-    Get.to(AddMoreCourseScreen())?.then((_) => _refreshAfterEdit());
+    Get.to(() => AddMoreCourseScreen())?.then((_) => _refreshAfterEdit());
   }
 
   void _openEdit(Courses course) {
@@ -52,7 +52,7 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
               yearly: course.courseFees?.yearly,
             ),
     );
-    Get.to(AddMoreCourseScreen(isEdit: true, courseData: data))
+    Get.to(() => AddMoreCourseScreen(isEdit: true, courseData: data))
         ?.then((_) => _refreshAfterEdit());
   }
 

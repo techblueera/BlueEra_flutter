@@ -33,9 +33,26 @@ class BottomBarController extends GetxController {
   /// Bottom-nav index of the "Me" tab.
   static const int meTabIndex = 0;
 
-  /// Internal tab index of the "Overview" tab inside every "Me" home screen
-  /// (all of them order it second, right after Order/Inquiry).
+  /// DEFAULT internal tab index of the "Overview" tab inside a "Me" home
+  /// screen — most of them order it second, right after Order/Inquiry.
+  ///
+  /// Screens that order their tabs differently declare their real index via
+  /// [meOverviewTabIndexOverride] instead of moving this; see
+  /// `MeTabBackHandlerMixin.registerMeTabBackHandler`.
   static const int meOverviewTabIndex = 1;
+
+  /// Overview's index on the "Me" home screen that is CURRENTLY mounted, when
+  /// that screen does not use the default. Set and cleared by
+  /// `MeTabBackHandlerMixin` alongside [meTabSelectTabHandler], so a deep link
+  /// lands on Overview whatever position the live screen gives it.
+  ///
+  /// Null means "use [meOverviewTabIndex]".
+  int? meOverviewTabIndexOverride;
+
+  /// Overview's index on the live "Me" screen — the override when one is
+  /// registered, else the app-wide default.
+  int get activeMeOverviewTabIndex =>
+      meOverviewTabIndexOverride ?? meOverviewTabIndex;
 
   /// Set by the currently-mounted "Me" tab home screen (via
   /// `MeTabBackHandlerMixin`) so a deep-link / notification tap can jump that
@@ -54,7 +71,7 @@ class BottomBarController extends GetxController {
   void openMeOverviewTab() {
     final selectTab = meTabSelectTabHandler;
     if (currentIndex.value == meTabIndex && selectTab != null) {
-      selectTab(meOverviewTabIndex);
+      selectTab(activeMeOverviewTabIndex);
     } else {
       pendingMeOverview = true;
       onChangeIndex(meTabIndex);

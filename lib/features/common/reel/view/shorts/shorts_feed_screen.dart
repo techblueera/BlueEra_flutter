@@ -190,7 +190,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                     Status.COMPLETE) ...[
                   ShortsSectionTitle(
                       title: "🔥 Trending", topPadding: 0, onViewAll: () {
-                    Get.to(TrendingShortsViewAll(query: widget.query ?? ""));
+                    Get.to(() => TrendingShortsViewAll(query: widget.query ?? ""));
                   }),
                   _buildTrendingSection(),
                 ]
@@ -198,7 +198,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                 if (shortsFeedController.isFirstLoadTrending.isTrue) ...[
                   ShortsSectionTitle(
                       title: "🔥 Trending", topPadding: 0, onViewAll: () {
-                    Get.to(TrendingShortsViewAll(query: widget.query ?? ""));
+                    Get.to(() => TrendingShortsViewAll(query: widget.query ?? ""));
                   }),
                   const ShimmerShortsStrip(),
                 ],
@@ -211,7 +211,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "📍 Near By",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(NearByShortsViewAll(query: widget.query ?? ""));
+                        Get.to(() => NearByShortsViewAll(query: widget.query ?? ""));
                       }),
                   _buildNearBySection(),
                 ]
@@ -221,7 +221,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "📍 Near By",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(NearByShortsViewAll(query: widget.query ?? ""));
+                        Get.to(() => NearByShortsViewAll(query: widget.query ?? ""));
                       }),
                   const ShimmerShortsStrip(),
                 ],
@@ -235,7 +235,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "✨ For You",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(PersonalizationShortsViewAll(
+                        Get.to(() => PersonalizationShortsViewAll(
                             query: widget.query ?? ""));
                       }),
                   _buildPersonalizedSection(),
@@ -247,7 +247,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
                       title: "✨ For You",
                       topPadding: SizeConfig.size15,
                       onViewAll: () {
-                        Get.to(PersonalizationShortsViewAll(query: widget.query ?? ""));
+                        Get.to(() => PersonalizationShortsViewAll(query: widget.query ?? ""));
                       }),
                   const ShimmerShortsStrip(),
                 ],

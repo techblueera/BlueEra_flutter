@@ -132,7 +132,7 @@ class AddAccountupiController extends GetxController {
     if (response.isSuccess) {
       addAccountResponseModalClass =
           AddAccountResponseModalClass.fromJson(response.response!.data);
-      // Get.to(RouteHelper.)
+      // Get.to(() => RouteHelper.)
       Get.back(result: {
         'bankName': bankNameController.text.trim(),
         'upi_id': upiController.text.trim().toUpperCase(),

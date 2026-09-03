@@ -660,13 +660,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           icon: Icons.notifications_outlined,
           color: _rose,
           title: AppStrings.manageNotification.tr,
-          onTap: () => Get.to(NotificationSettingScreen()),
+          onTap: () => Get.to(() => NotificationSettingScreen()),
         ),
         _DrawerItem(
           icon: Icons.support_agent_rounded,
           color: _cyan,
           title: AppStrings.helpSupport.tr,
-          onTap: () => Get.to(HelpAndSupportScreen()),
+          onTap: () => Get.to(() => HelpAndSupportScreen()),
         ),
       ]),
     ];

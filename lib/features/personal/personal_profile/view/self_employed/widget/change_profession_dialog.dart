@@ -250,7 +250,7 @@
 //     } else if (firstIncompleteEntry.key == RiderProfileStep.addressInfo) {
 //       Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
 //     } else {
-//       Get.to(RiderProfileStatusScreen(
+//       Get.to(() => RiderProfileStatusScreen(
 //         screeName: '',
 //       ));
 //       // Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());

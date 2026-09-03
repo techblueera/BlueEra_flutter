@@ -178,7 +178,7 @@ class _CreateMessagePostScreenNewState
                         CustomText(AppStrings.yourLekha),
                         InkWell(
                           onTap: () {
-                            Get.to(SocialPostDescriptionScreen());
+                            Get.to(() => SocialPostDescriptionScreen());
                           },
                           child: LocalAssets(
                             height: 25,

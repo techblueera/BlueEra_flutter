@@ -439,7 +439,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                           0) >
                                                       0) {
                                                     Get.to(
-                                                        JobApplicationsScreen(
+                                                        () => JobApplicationsScreen(
                                                       jobsData: job,
                                                       onHeaderVisibilityChanged:
                                                           widget

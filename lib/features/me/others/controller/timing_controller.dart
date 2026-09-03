@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/model/timing_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
@@ -145,6 +146,10 @@ class TimingController extends GetxController {
         // Refresh data to ensure sync (optional, but good practice)
         // await fetchTimings();
         isFirstTime = false;
+        // The Overview tab's Timings card — and the timings GATE that hides the
+        // whole tab until hours exist — both read this off the full profile.
+        // See [OtherProfileDirty].
+        OtherProfileDirty.mark(OtherProfileSection.timings);
       } else {
         commonSnackBar(
             message: response.response?.data['message'] != null

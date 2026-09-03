@@ -311,9 +311,15 @@ class OtherRepo extends BaseService {
 
 
   // GET: Fetch property photos
+  /// `showProgress: false` — this is the gallery screen's OWN load, fired from
+  /// the controller's `onInit`. The screen already draws a shimmer of the card
+  /// list it is about to show ([OtherServicePhotosPhotoScreen]), so the global
+  /// blocking dialog on top of it was a second loader over the first, and it
+  /// greyed out an app bar the merchant could otherwise back out of.
   Future<ResponseModel> getOtherServicePhotosRepo() async {
     final response = await ApiBaseHelper().getHTTP(
       otherGallery,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

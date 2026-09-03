@@ -61,7 +61,7 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
     );
   }
 
-  void _openGallery() => Get.to(HospitalPhotosScreen());
+  void _openGallery() => Get.to(() => HospitalPhotosScreen());
 
   Widget _buildGalleryLayout(BuildContext context, List<String> images) {
     final display = images.length > 4 ? images.sublist(0, 4) : images;

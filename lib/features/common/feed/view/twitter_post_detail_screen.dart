@@ -630,7 +630,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                     InkWell(
                       onTap: () {
                         Get.back();
-                        Get.to(CreateMessagePostScreenRepost(
+                        Get.to(() => CreateMessagePostScreenRepost(
                           isEdit: false,
                           post: _post,
                         ));

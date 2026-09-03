@@ -1,6 +1,6 @@
 ﻿import 'dart:ui';
 
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -192,7 +192,7 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
               // nothing else. Overview (AutomotiveProductHomeScreen) and
               // Statistics already are their own screens.
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(AutomotiveProductsTab(onAddProduct: _onAddProduct))),
+                _tabScroll(withBannerAdBelow(AutomotiveProductsTab(onAddProduct: _onAddProduct))),
                 _tabScroll(const AutomotiveProductHomeScreen()),
                 // _tabScroll(const AutomotivePostTab()),
                 ProfileStatisticsScreen(userId: userId),

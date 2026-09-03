@@ -54,7 +54,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.to(CommonStudentCornerFormScreen(
+                      Get.to(() => CommonStudentCornerFormScreen(
                         title: widget.title,
                         screenName: widget.screenName,
                       ));
@@ -115,7 +115,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                           onTap: () {
                             final urlType = data.uploadPhoto ?? "";
                             if (urlType.isPdf) {
-                              Get.to(FullScreenPdfViewer(
+                              Get.to(() => FullScreenPdfViewer(
                                 fileUrl: data.uploadPhoto ?? "",
                                 title: data.description ?? "",
                               ));
@@ -209,7 +209,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                     cancelText: AppStrings.no);
               }, onNoticeNewsEdit: () {
                 StudentCornerItem data = dataList[noticeIndex];
-                Get.to(CommonStudentCornerFormScreen(
+                Get.to(() => CommonStudentCornerFormScreen(
                   isEdit: true,
                   studentItem: data,
                   title: widget.title,

@@ -310,7 +310,7 @@ class LocalMediaGrid extends StatelessWidget {
           onTap: isVideo
               ? () => onTapMedia?.call(index)
               : () => Get.to(
-                    ImageViewScreen(
+                    () => ImageViewScreen(
                       subTitle: "",
                       appBarTitle: AppStrings.imageViewer.tr,
                       imageUrls: [file.path],
@@ -440,7 +440,7 @@ class _InstaSliderState extends State<InstaSlider> {
                 right: 12,
                 child: GestureDetector(
                   onTap: () {
-                    Get.off(PhotoListingWidget());
+                    Get.off(() => PhotoListingWidget());
                     // Handle edit action
                   },
                   child: LocalAssets(imagePath: AppIconAssets.round_black_edit),

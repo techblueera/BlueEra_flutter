@@ -60,7 +60,7 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
                   controller: TextEditingController(),
                   isShowCursor: false,
                   onSearchTap: () {
-                    Get.to(SearchChannelScreen());
+                    Get.to(() => SearchChannelScreen());
                   },
                   onClearCallback: null,
                   hintText:AppStrings.searchByChannelName),

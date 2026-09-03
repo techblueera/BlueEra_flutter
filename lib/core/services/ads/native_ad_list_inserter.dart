@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/services/ads/native_ad_widget.dart';
 import 'package:flutter/widgets.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' show TemplateType;
 
 /// One row in a content list that has native ads interleaved: either a content
 /// item (carrying its index into the original data list) or a native ad slot
@@ -111,7 +112,7 @@ List<Widget> buildNativeAdGridSlivers({
   required int itemCount,
   required Widget Function(int start, int end) gridSliverBuilder,
   String keyPrefix = 'native_ad',
-  double adHeight = 300,
+  double? adHeight,
   EdgeInsetsGeometry adPadding = const EdgeInsets.symmetric(horizontal: 12),
 }) {
   final slivers = <Widget>[];
@@ -175,7 +176,8 @@ class NativeAdSlot extends StatelessWidget {
     super.key,
     required this.adOrdinal,
     this.keyPrefix = 'native_ad',
-    this.height = 300,
+    this.height,
+    this.templateType = TemplateType.small,
     this.factoryId = NativeAdWidget.defaultFactoryId,
     this.borderRadius = 12,
     this.bottomGap,
@@ -188,9 +190,15 @@ class NativeAdSlot extends StatelessWidget {
   final int adOrdinal;
   final String keyPrefix;
 
-  /// Slot height. Defaults to 300 — enough for the custom native layout's
-  /// >=120 media view plus header/body/CTA (smaller warns "media too small").
-  final double height;
+  /// Fixed slot height. Null (the default) sizes the slot from [templateType]
+  /// and the width the row is given, so the template's bottom-anchored CTA is
+  /// never clipped — a fixed number can only be right at one screen width.
+  final double? height;
+
+  /// Which AdMob native template renders the ad. Small by default: a single
+  /// list-row strip that sits in the same rhythm as the surrounding content
+  /// cards, rather than the 350dp media-led medium layout.
+  final TemplateType templateType;
 
   /// Which native layout renders the ad (defaults to the grocery card). Pass
   /// `'feedAdFactory'` for the feed-post-styled layout.
@@ -219,6 +227,7 @@ class NativeAdSlot extends StatelessWidget {
     return NativeAdWidget(
       key: ValueKey('${keyPrefix}_$adOrdinal'),
       height: height,
+      templateType: templateType,
       factoryId: factoryId,
       borderRadius: borderRadius,
       bottomGap: bottomGap,

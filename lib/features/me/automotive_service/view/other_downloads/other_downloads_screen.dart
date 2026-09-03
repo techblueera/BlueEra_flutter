@@ -51,7 +51,7 @@ class OtherDownloadsScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherDownloadsFormScreen());
+                  Get.to(() => OtherDownloadsFormScreen());
                 }),
               ),
             ),
@@ -118,7 +118,7 @@ class OtherDownloadsScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherDownloadsFormScreen(
+                    onPressed: () => Get.to(() => OtherDownloadsFormScreen(
                       item: item,
                     )),
                   ),

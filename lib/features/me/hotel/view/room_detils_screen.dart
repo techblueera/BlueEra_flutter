@@ -88,7 +88,7 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                             ),
                             InkWell(
                               onTap: () {
-                                Get.to(RoomListingScreen(
+                                Get.to(() => RoomListingScreen(
                                   roomType: keyId,
                                   roomName: (item['name'] as String).tr,
                                 ));

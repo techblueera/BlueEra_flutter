@@ -2361,23 +2361,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// Best-effort: deferred a beat so it overlays the post-call screen (chat /
   /// home) instead of the call UI mid-dismiss, and never blocks teardown.
   void _showCallEndedInterstitial() {
-    // NOTE: unconditional prints (not kDebugMode-gated) so they surface in
-    // logcat for RELEASE-build interstitial testing. Filter with the tag
-    // `[INTERSTITIAL_AD]`. Remove once ad delivery is verified.
-    //
     // Only fire for calls that were actually PICKED UP (connected) — never for
-    // missed / rejected / unanswered calls. Consume the flag so it fires once.
+    // missed / rejected / unanswered calls. Consume the flag so it fires once
+    // per call however many teardown paths reach here.
     final wasConnected = _wasCallConnected;
     _wasCallConnected = false;
-    print('[INTERSTITIAL_AD] call ended → _showCallEndedInterstitial '
-        'isFareCall=${isFareCall.value} wasConnected=$wasConnected');
-    if (!wasConnected) {
-      print('[INTERSTITIAL_AD] skipped — call was never connected (not picked up)');
-      return;
-    }
+    if (!wasConnected) return;
 
     Future.delayed(const Duration(milliseconds: 400), () {
-      print('[INTERSTITIAL_AD] requesting showInterstitial()');
       InterstitialAdManager.instance.showInterstitial();
     });
   }

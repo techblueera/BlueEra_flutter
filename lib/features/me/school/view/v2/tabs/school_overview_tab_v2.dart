@@ -146,7 +146,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
             _QuickInfoRequiredBanner(
               category: resolvedCategory,
               fieldLabels: fieldLabels,
-              onTap: () => Get.to(const SchoolQuickInfoFormScreen())
+              onTap: () => Get.to(() => const SchoolQuickInfoFormScreen())
                   ?.then((_) => widget.controller.getSchoolByIdController()),
             ),
             SizedBox(height: SizeConfig.size16),
@@ -177,7 +177,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
               : _SplitEmptyCard(
                   message: 'You Have Not Add Any Principal / Director Message',
                   icon: Icons.person_outline,
-                  onTap: () => Get.to(PrincipalMessageScreen())?.then(
+                  onTap: () => Get.to(() => PrincipalMessageScreen())?.then(
                       (_) => widget.controller.getSchoolByIdController()),
                 ),
           // ),
@@ -189,7 +189,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           //   child:
           SchoolQuickInfoCard(
             controller: widget.controller,
-            onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
+            onEditTap: () => Get.to(() => const SchoolQuickInfoFormScreen())
                 ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
           // ),
@@ -214,7 +214,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   message: 'You Have Not Add Any Management / Trust Info',
                   icon: Icons.groups_outlined,
                   showIconPanel: false,
-                  onTap: () => Get.to(ManagementTrustFormScreen(isEdit: false))
+                  onTap: () => Get.to(() => ManagementTrustFormScreen(isEdit: false))
                       ?.then(
                           (_) => widget.controller.getSchoolByIdController()),
                 ),
@@ -230,7 +230,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           //   child:
           SchoolAvailabilityCard(
             controller: widget.controller,
-            onEditTap: () => Get.to(const AvailabilityFormScreen())
+            onEditTap: () => Get.to(() => const AvailabilityFormScreen())
                 ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
           // ),
@@ -254,7 +254,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                 : _SectionEmptyCard(
                     title: AppStrings.campusLife.tr,
                     ctaLabel: AppStrings.campusLife.tr,
-                    onTap: () => Get.to(CampusLifeListingScreen())?.then(
+                    onTap: () => Get.to(() => CampusLifeListingScreen())?.then(
                         (_) => widget.controller.getSchoolByIdController()),
                   ),
           ),

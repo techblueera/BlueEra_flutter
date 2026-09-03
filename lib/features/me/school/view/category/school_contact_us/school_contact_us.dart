@@ -82,7 +82,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                 )),
                                 InkWell(
                                   onTap: () {
-                                    Get.to(BranchOnlyScreen(schoolContactUsData: data,));
+                                    Get.to(() => BranchOnlyScreen(schoolContactUsData: data,));
                                   },
                                   child: LocalAssets(
                                     imagePath: AppIconAssets.editIcon,
@@ -163,7 +163,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                           ),
                                           InkWell(
                                             onTap: () {
-                                              Get.to(DepartmentOnlyScreen(
+                                              Get.to(() => DepartmentOnlyScreen(
                                                 contactInfo: contactData,
                                                 isContactInfoEdit: true,
                                                 branchId: data.id,
@@ -263,7 +263,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  Get.to(DepartmentOnlyScreen(
+                                  Get.to(() => DepartmentOnlyScreen(
                                     branchId: data.id,
                                   ));
                                 },
@@ -290,7 +290,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
             /// Add More Course Button
             AddMoreIconButton(
               onTapEvent: () {
-                Get.to(BranchDetailsFormScreen());
+                Get.to(() => BranchDetailsFormScreen());
               },
               buttonName: AppStrings.addAnotherBranch
             ),

@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
-import 'package:BlueEra/core/services/ads/ad_debug.dart';
 import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -34,8 +34,6 @@ class AdMobInterstitialManager {
       // here first starts the SDK, the rest await the same future instead of
       // paying for a second start-up. See [AdsBootstrap].
       await AdsBootstrap.ensureInitialized();
-      // Register any test devices so Ad Inspector can launch on them.
-      // AdDebug.applyTestDevices();
     }
     _load();
   }
@@ -44,14 +42,11 @@ class AdMobInterstitialManager {
     if (!AdConfig.adsEnabled || _isLoading || _isLoaded) return;
     _isLoading = true;
     _loadCompleter ??= Completer<void>();
-    final unit = AdConfig.admobInterstitialUnit;
-    print('[ADMOB_INTERSTITIAL] loading unit=$unit');
     InterstitialAd.load(
-      adUnitId: unit,
+      adUnitId: AdConfig.admobInterstitialUnit,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          print('[ADMOB_INTERSTITIAL] loaded');
           _ad = ad;
           _isLoading = false;
           ad.fullScreenContentCallback = FullScreenContentCallback(
@@ -61,7 +56,7 @@ class AdMobInterstitialManager {
               _load(); // preload the next one
             },
             onAdFailedToShowFullScreenContent: (ad, err) {
-              print('[ADMOB_INTERSTITIAL] failed to show: $err');
+              logs('[ADMOB_INTERSTITIAL] failed to show: $err');
               ad.dispose();
               _ad = null;
               _load();
@@ -72,7 +67,7 @@ class AdMobInterstitialManager {
         onAdFailedToLoad: (err) {
           // AdMob backfills demand internally — a failure here is just "no ad
           // right now"; retry lazily on the next show, no cooldown needed.
-          print('[ADMOB_INTERSTITIAL] failed to load: ${err.code} ${err.message}');
+          logs('[ADMOB_INTERSTITIAL] failed to load: ${err.code} ${err.message}');
           _isLoading = false;
           _completeLoad();
         },
@@ -87,11 +82,39 @@ class AdMobInterstitialManager {
     _loadCompleter = null;
   }
 
+  /// Session-once keys that have already been spent — see
+  /// [showInterstitialOncePerSession].
+  final Set<String> _sessionShown = <String>{};
+
+  /// [showInterstitial], but at most ONCE per app session for [key].
+  ///
+  /// The call-end interstitial is deliberately not gated this way: a call is a
+  /// deliberate, bounded task and one ad per call is the accepted shape. Every
+  /// OTHER trigger shares a single budget, because an interstitial that appears
+  /// after each of a browsing session's several orders is the pattern AdMob
+  /// treats as excessive — and the one users uninstall over.
+  ///
+  /// The key is spent only when an ad ACTUALLY showed. A no-fill must not burn
+  /// the session's one slot, or the placement quietly stops earning on exactly
+  /// the days inventory is thin.
+  Future<bool> showInterstitialOncePerSession(
+    String key, {
+    Duration maxWait = const Duration(seconds: 5),
+  }) async {
+    if (_sessionShown.contains(key)) return false;
+    final shown = await showInterstitial(maxWait: maxWait);
+    if (shown) _sessionShown.add(key);
+    return shown;
+  }
+
   /// Show the interstitial if ready. If one isn't loaded yet, kick off a load
   /// and wait up to [maxWait] for it before giving up. Never throws.
-  Future<void> showInterstitial(
+  ///
+  /// Returns whether an ad was actually put on screen, so a caller rationing
+  /// its placement doesn't spend its budget on a no-fill.
+  Future<bool> showInterstitial(
       {Duration maxWait = const Duration(seconds: 5)}) async {
-    if (!AdConfig.adsEnabled) return;
+    if (!AdConfig.adsEnabled) return false;
     if (!_isLoaded) {
       _load();
       final completer = _loadCompleter;
@@ -105,18 +128,20 @@ class AdMobInterstitialManager {
     }
     final ad = _ad;
     if (ad == null) {
-      print('[ADMOB_INTERSTITIAL] nothing to show (preloading next)');
+      // No fill right now — start the next load so a later trigger has one.
       _load();
-      return;
+      return false;
     }
     // Clear our ref now; the dismiss callback disposes + preloads the next.
     _ad = null;
     try {
       await ad.show();
+      return true;
     } catch (e) {
-      print('[ADMOB_INTERSTITIAL] show threw: $e');
+      logs('[ADMOB_INTERSTITIAL] show threw: $e');
       ad.dispose();
       _load();
+      return false;
     }
   }
 }

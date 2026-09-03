@@ -94,7 +94,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
     ];
   }
 
-  void _openEdit() => Get.to(const HospitalEmergencyCareScreen());
+  void _openEdit() => Get.to(() => const HospitalEmergencyCareScreen());
 
   @override
   Widget build(BuildContext context) {

@@ -164,7 +164,6 @@ class _FeedScreenState extends State<FeedScreen> {
 
     final row = rows[index];
     if (row.isAd) {
-      print('[FEED_AD] building ad slot ordinal=${row.adOrdinal} index=$index');
       return NativeAdSlot(
         adOrdinal: row.adOrdinal,
         keyPrefix: 'feed_native_ad',
@@ -213,10 +212,6 @@ class _FeedScreenState extends State<FeedScreen> {
                 widget.postFilterType == PostType.saved) {
               List<Post> posts = feedController.getListByType(widget.postFilterType);
               final rows = buildNativeAdRows(posts.length);
-              // [FEED_AD] diagnostics — filter logcat by tag [FEED_AD].
-              print('[FEED_AD] type=${widget.postFilterType} '
-                  'posts=${posts.length} rows=${rows.length} '
-                  'ads=${rows.where((r) => r.isAd).length}');
 
               if (posts.isEmpty) {
                 // Polished "draft on a stack" empty state when the user

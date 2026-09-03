@@ -13,18 +13,71 @@ class MedicalGalleryController extends GetxController {
   var isLoading = true.obs;
   var isUploading = false.obs;
 
-  final List<String> categories = [
-    AppStrings.medicalGalleryExternalParking.tr,
-    AppStrings.medicalGalleryInteriorPhotos.tr,
-    AppStrings.medicalGalleryEquipmentPhotos.tr,
-    AppStrings.medicalGalleryTeamStaffPhotos.tr,
-    AppStrings.medicalGalleryMedicinesProducts.tr,
-    AppStrings.medicalGalleryBillingCounter.tr,
-  ];
+  /// The gallery categories THIS pharmacy has actually created, in the order
+  /// the API returned them, de-duplicated case-insensitively.
+  ///
+  /// This replaces a fixed six-entry list. Those entries were at least
+  /// medically sensible (unlike the hotel taxonomy the sibling galleries
+  /// inherited), but they carried a data problem the others didn't: they were
+  /// `AppStrings.medicalGallery*.tr`, so the string POSTed as the album
+  /// `title` was whatever the device language rendered. A Hindi phone filed
+  /// "उपकरण फ़ोटो" and an English one "Equipment Photos" — the same shelf,
+  /// stored as two different albums, and neither readable to the other. They
+  /// were also frozen at construction, since `.tr` in a field initializer is
+  /// evaluated once rather than re-read on a locale change.
+  ///
+  /// Titles are now whatever the pharmacy typed, stored verbatim and shown
+  /// back verbatim, with an "Other" option for the next one. There is no
+  /// server-side catalog to swap the list for: the gallery API stores a free
+  /// `title` per group. See [selectedCategory].
+  List<String> get existingCategories {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final photo in galleryList) {
+      final title = photo.title?.trim() ?? '';
+      if (title.isEmpty) continue;
+      if (!seen.add(title.toLowerCase())) continue;
+      result.add(title);
+    }
+    return result;
+  }
 
+  /// The album this upload will be filed under — either picked from
+  /// [existingCategories] or typed fresh. Free text, because that is exactly
+  /// what the API's `title` is.
   var selectedCategory = ''.obs;
   var selectedImages = <String>[].obs;
   final int maxImages = 6;
+
+  /// True while the "Other" option is chosen — the pharmacy is naming an album
+  /// of its own rather than filing under one it already has.
+  ///
+  /// Tracked separately from [selectedCategory] because the two mean different
+  /// things while the name is still being typed: "Other is chosen but nothing
+  /// entered yet" has to keep the text field on screen, and an empty
+  /// [selectedCategory] alone can't say that.
+  var isCustomCategory = false.obs;
+
+  /// Whether the upload form is complete enough to submit. `trim` so an album
+  /// name of nothing but spaces doesn't pass.
+  bool get canSubmitUpload =>
+      selectedCategory.value.trim().isNotEmpty && selectedImages.isNotEmpty;
+
+  /// How many more photos this upload can take.
+  int get remainingImageSlots => maxImages - selectedImages.length;
+
+  /// Files this upload under one of [existingCategories].
+  void selectExistingCategory(String category) {
+    isCustomCategory.value = false;
+    selectedCategory.value = category;
+  }
+
+  /// Switches to the "Other" option: clears whatever existing album was
+  /// selected and hands the naming over to the text field.
+  void chooseCustomCategory() {
+    isCustomCategory.value = true;
+    selectedCategory.value = '';
+  }
 
   @override
   void onInit() {
@@ -65,18 +118,42 @@ class MedicalGalleryController extends GetxController {
   // IMAGE SELECTION
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void onCategoryChanged(String? value) {
-    if (value != null) selectedCategory.value = value;
+    selectedCategory.value = value ?? '';
   }
 
   void addImage(String path) {
     if (selectedImages.length < maxImages) {
       selectedImages.add(path);
     } else {
-      commonSnackBar(
-          message:
-              '${AppStrings.medicalLimitReachedPrefix.tr} $maxImages ${AppStrings.medicalLimitReachedSuffix.tr}');
+      commonSnackBar(message: _limitReachedMessage);
     }
   }
+
+  /// Appends a batch from the multi-picker, keeping the total at or under
+  /// [maxImages].
+  ///
+  /// The picker is already told the cap, but it only knows how many were
+  /// picked in THAT pass — the pharmacy can come back and add more to a
+  /// selection that is already part-full, so the ceiling is re-checked here
+  /// against what is already held. Anything over the line is dropped with one
+  /// snackbar rather than one per file.
+  void addImages(List<String> paths) {
+    if (paths.isEmpty) return;
+    final room = remainingImageSlots;
+    if (room <= 0) {
+      commonSnackBar(message: _limitReachedMessage);
+      return;
+    }
+    selectedImages.addAll(paths.take(room));
+    if (paths.length > room) {
+      commonSnackBar(message: _limitReachedMessage);
+    }
+  }
+
+  /// Read at call time, not at construction, so it follows a locale change.
+  String get _limitReachedMessage =>
+      '${AppStrings.medicalLimitReachedPrefix.tr} $maxImages '
+      '${AppStrings.medicalLimitReachedSuffix.tr}';
 
   void removeImage(int index) {
     selectedImages.removeAt(index);
@@ -84,6 +161,7 @@ class MedicalGalleryController extends GetxController {
 
   void resetUploadForm() {
     selectedCategory.value = '';
+    isCustomCategory.value = false;
     selectedImages.clear();
   }
 
@@ -91,12 +169,12 @@ class MedicalGalleryController extends GetxController {
   // UPLOAD â†’ S3 â†’ CREATE GALLERY
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> uploadAndCreateGallery() async {
-    if (selectedCategory.value.isEmpty) {
-      commonSnackBar(message: AppStrings.medicalPleaseSelectCategory);
+    if (selectedCategory.value.trim().isEmpty) {
+      commonSnackBar(message: AppStrings.medicalPleaseSelectCategory.tr);
       return;
     }
     if (selectedImages.isEmpty) {
-      commonSnackBar(message: AppStrings.medicalPleaseSelectAtLeastOneImage);
+      commonSnackBar(message: AppStrings.medicalPleaseSelectAtLeastOneImage.tr);
       return;
     }
 
@@ -116,13 +194,15 @@ class MedicalGalleryController extends GetxController {
       }
 
       if (uploadedUrls.isEmpty) {
-        commonSnackBar(message: AppStrings.medicalFailedToUploadImages);
+        commonSnackBar(message: AppStrings.medicalFailedToUploadImages.tr);
         return;
       }
 
       // POST to gallery API
       Map<String, dynamic> body = {
-        'title': selectedCategory.value,
+        // Trimmed so "Equipment" and "Equipment " don't become two albums that
+        // read identically in the list.
+        'title': selectedCategory.value.trim(),
         'imageUrls': uploadedUrls,
       };
 

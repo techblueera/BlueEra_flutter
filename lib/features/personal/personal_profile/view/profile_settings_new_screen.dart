@@ -126,7 +126,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(CommonWebView(
+                                    Get.to(() => CommonWebView(
                                       urlLink: privacyLink,
                                       urlTitle: AppStrings.privacyPolicy.tr,
                                     ));

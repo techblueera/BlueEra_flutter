@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -126,12 +126,12 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(
+                _tabScroll(withBannerAdBelow(
                   const OtherServicesTabV2(),
                   // This tab scroll has no horizontal padding — the tab insets
                   // itself by size8, so the strip takes the same on both edges
                   // instead of running to the screen edge on the left.
-                  stripMargin: qurekaStripMarginFor(SizeConfig.size8),
+                  margin: bannerAdMarginFor(SizeConfig.size8),
                 )),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 // _tabScroll(const OtherPostsTabV2()),

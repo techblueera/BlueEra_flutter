@@ -63,13 +63,13 @@ class CampusPhotoGallery extends StatelessWidget {
                 ),
                 if (isEdit)
                   _AddPhotoPill(
-                      onTap: () => Get.to(CampusLifeListingScreen())),
+                      onTap: () => Get.to(() => CampusLifeListingScreen())),
               ],
             ),
             const SizedBox(height: 12),
             if (allImages.isEmpty)
               GestureDetector(
-                onTap: isEdit ? () => Get.to(CampusLifeListingScreen()) : null,
+                onTap: isEdit ? () => Get.to(() => CampusLifeListingScreen()) : null,
                 child: Container(
                   height: 160,
                   width: double.infinity,
@@ -91,7 +91,7 @@ class CampusPhotoGallery extends StatelessWidget {
                       if (isEdit) ...[
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
-                          onPressed: () => Get.to(CampusLifeListingScreen()),
+                          onPressed: () => Get.to(() => CampusLifeListingScreen()),
                           icon: const Icon(Icons.add, size: 16),
                           label: const Text("Add"),
                           style: OutlinedButton.styleFrom(

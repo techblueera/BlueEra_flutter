@@ -20,7 +20,7 @@ class LogoNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.to(VideoListScreen(
+        Get.to(() => VideoListScreen(
           channelID: channelID,
           channelName: channelName,
         ));

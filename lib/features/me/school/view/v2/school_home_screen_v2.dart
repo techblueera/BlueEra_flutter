@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -278,13 +278,13 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
                 _tabScroll(
-                  withQurekaPromoBelow(
+                  withBannerAdBelow(
                     SchoolAcademicsTabV2(controller: _schoolController),
                     // The scroll pads both edges by 10 (horizontalPadding
                     // below) and every card in the tab adds another size4 of
                     // its own, so the strip matches that 4 — at 0 it sat 4pt
                     // wider than the deck and the course list.
-                    stripMargin: qurekaStripMarginFor(SizeConfig.size4),
+                    margin: bannerAdMarginFor(SizeConfig.size4),
                   ),
                   horizontalPadding: 10,
                 ),

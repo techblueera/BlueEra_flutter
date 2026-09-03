@@ -66,7 +66,7 @@ class _JobSeekerResumeOverviewScreenState
               const EdgeInsets.only(right: 10, left: 10, bottom: 30, top: 10),
           child: PositiveCustomBtn(
               onTap: () {
-                Get.to(UpdateJobSeekerScreen());
+                Get.to(() => UpdateJobSeekerScreen());
               },
               title: AppStrings.createResume_.tr),
         ),

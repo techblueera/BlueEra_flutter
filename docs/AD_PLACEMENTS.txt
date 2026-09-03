@@ -1,0 +1,287 @@
+================================================================================
+ BLUEERA — AD PLACEMENT INVENTORY
+ Generated 2026-09-03. Update this file whenever a slot is added or removed.
+================================================================================
+
+AD SERVER
+  Google AdMob is the only ad server. Publisher ca-app-pub-4151367085462604.
+  App ids live in AndroidManifest.xml (~1499765338) and Info.plist
+  (~5043177104) and are never read from Dart.
+
+  Unit ids come from the obfuscated .env via lib/env.dart, split per platform,
+  and are selected in lib/core/services/ads/ad_config.dart:
+      AdConfig.admobNativeUnit
+      AdConfig.admobBannerUnit
+      AdConfig.admobInterstitialUnit
+
+  DEBUG / PROFILE builds serve Google TEST ads (AdConfig.admobTestMode).
+  RELEASE builds always serve LIVE ads.
+  AdConfig.showAdsInDebug = true  -> test ads render while debugging.
+                          = false -> no ads at all on non-release builds.
+
+  Qureka is NOT an ad server. It is a server-served promo creative bundle and
+  it now has exactly ONE placement in the app (see section 4).
+
+
+================================================================================
+ 1. NATIVE ADS  —  32 slots across 31 files
+================================================================================
+
+WIDGET      lib/core/services/ads/admob_native_ad_widget.dart
+ENTRY       NativeAdSlot  (lib/core/services/ads/native_ad_list_inserter.dart)
+TEMPLATE    TemplateType.small — a single list-row strip (icon + headline +
+            Ad badge + CTA). Height is derived from the slot width, NOT a
+            constant: (width - 20) / 4 + 20, floored at 96.
+            TemplateType.medium is still supported and is a fixed 350dp.
+
+CADENCE     Single-column lists : ad after item 1, then every 10  (1, 11, 21…)
+            Grids / masonry     : ad after item 10, then every 10 (10, 20, 30…)
+            Never after the final item.
+            Defined once in native_ad_list_inserter.dart — do not hand-roll.
+
+BEHAVIOUR   Zero height until an ad is live, and never shrinks back. Collapses
+            silently on failure. Keep-alive across scroll recycling. The load
+            is deferred until the route's push transition finishes.
+
+--- DISCOVER LISTINGS (11) -----------------------------------------------------
+  common/Discover/view/all_education_service_screen.dart .... education_service_native_ad
+  common/Discover/view/all_food_service_screen.dart ......... food_service_native_ad
+  common/Discover/view/all_rental_service_screen.dart ....... rental_service_native_ad
+  common/Discover/view/all_stay_service_screen.dart ......... stay_service_native_ad  (x2 slots)
+  common/Discover/view/finance/finance_listing_screen.dart .. finance_native_ad
+  common/Discover/view/healthcare/hospital_list_screen.dart . hospital_native_ad
+  common/Discover/view/near_you_all_screen.dart ............. near_you_native_ad      [NEW]
+  common/Discover/view/self_profession_discover_screen.dart . self_profession_native_ad
+  common/Discover/view/v2/profession_consultant_discover_screen_v2.dart
+                                                             consultant_v2_native_ad
+  common/Discover/view/v2/self_profession_discover_screen_v2.dart
+                                                             self_profession_v2_native_ad
+  common/Discover/widget/earn_profile_store_list.dart ....... (prefix passed in by caller)
+
+  NOTE on near_you_all_screen: the ad is inset by the ladder's 56px spine so it
+  lands in the CARD column and leaves the distance gutter clear. isFirst/isLast
+  stay keyed to the CONTENT index — isFirst also drives the single filled
+  marker on that page, so an ad row must not hand a second row that emphasis.
+
+--- FEED (2) -------------------------------------------------------------------
+  common/feed/view/feed_screen.dart ......................... feed_native_ad
+  common/feed/view/home_feed_screen_new.dart ................ home_feed_native_ad
+                                                              (factoryId feedAdFactory)
+
+--- JOBS (3) -------------------------------------------------------------------
+  common/jobs/view/all_job_post_screen.dart ................. job_all_native_ad
+  common/jobs/view/all_saved_job_post_screen.dart ........... job_saved_native_ad
+  common/jobs/view/applied_screen/applied_all_screen.dart ... applied_jobs_native_ad
+
+--- SEARCH & ORDERS (2) --------------------------------------------------------
+  common/search/view/global_search_screen.dart .............. search_native_ad_<query>  [NEW]
+  common/order_history/view/local_orders_list_screen.dart ... orders_native_ad          [NEW]
+
+  NOTE on global_search: the keyPrefix carries the committed query, so a NEW
+  search rebuilds its slots instead of a kept-alive ad from the previous query
+  surviving into unrelated results.
+
+  NOTE on order history: the SHOP LIST carries ads; the thread behind each row
+  (local_shop_orders_screen.dart) deliberately does NOT — it is drawn as message
+  bubbles, where an ad card would read as a message the shop sent.
+
+--- STORE / CUSTOMER LISTINGS (13) ---------------------------------------------
+  me/automotive_products/view/customer/automotive_category_discover_screen.dart
+                                                             automotive_store_native_ad
+  me/automotive_products/view/customer/automotive_customer_all_top_selling_products_screen.dart
+                                                             auto_top_native_ad
+  me/automotive_products/view/customer/automotive_visit_product_products_screen.dart
+                                                             auto_visit_native_ad
+  me/food/view/customer/all_offer_dish_screen.dart .......... offer_dish_native_ad
+  me/food/view/customer/food_customer_listing_screen.dart ... food_listing_native_ad
+  me/food/view/customer/restaurant_near_me_screen.dart ...... restaurant_near_native_ad
+  me/grocery/view/customer/grocery_stores_screen.dart ....... grocery_native_ad
+  me/grocery/view/customer/grocery_via_rider/all_grocery_product_screen.dart
+                                                             grocery_products_rider_native_ad
+  me/manufacturer/view/customer/manufacturer_products_store_screen.dart
+                                                             manufacturer_store_native_ad
+  me/manufacturer/view/customer/manufacturer_customer_all_top_selling_products_screen.dart
+                                                             mfr_top_native_ad
+  me/manufacturer/view/customer/manufacturer_visit_product_products_screen.dart
+                                                             mfr_visit_native_ad
+  me/medical/view/nearest_pharmacies_list_screen.dart ....... pharmacy_store_native_ad
+  me/product/view/customer/products_store_discover_screen.dart
+                                                             product_store_native_ad
+  me/product/view/customer/customer_all_top_selling_products_screen.dart
+                                                             product_top_native_ad
+
+
+================================================================================
+ 2. BANNER ADS  —  20 surfaces
+================================================================================
+
+WIDGET      lib/core/services/ads/admob_banner_ad_widget.dart
+HELPERS     withBannerAdBelow(content, {margin})       — single-child tab
+            withBannerAdBelowAll(content, {margin})    — List<Widget> tab
+            bannerAdMarginFor(contentInset)            — matches the tab's gutter
+            kBannerAdMargin                            — default (0, 16, 20, 4)
+
+SIZE        Anchored ADAPTIVE, computed from the width the slot actually gets
+            (AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize).
+            Falls back to AdSize.banner (320x50) if the platform returns null.
+
+BEHAVIOUR   Same rules as native: zero height until live, collapses on failure,
+            keep-alive, load deferred past the route transition. Because it
+            collapses, an unfilled slot leaves the layout exactly as it was.
+
+--- "ME" TAB STRIPS (18) — one per screen, on the FIRST tab, inside its scroll -
+  common/delivery_partner/view/tabs/rider_order_tab.dart:139   (margin size12)
+  me/automotive_products/view/admin/automotive_parts_screen.dart:195
+  me/automotive_service/view/v2/other_home_screen_v2.dart:129  (margin size8)
+  me/content_creator/content_creator_main.dart:156             (margin size12)
+  me/doctor/view/v2/doctor_home_screen_v2.dart:188             (margin size12)
+  me/food/view/admin/food_main_screen.dart:291
+  me/grocery/view/admin/grocery_home_screen_v2.dart:230
+  me/hospital/view/v2/hospital_home_screen_v2.dart:146         (margin size4)
+  me/hotel/view/v2/hotel_home_screen_v2.dart:130               (margin size8)
+  me/laboratory/view/v2/lab_home_screen_v2.dart:171            (margin 12)
+  me/manufacturer/view/admin/manufacturer_product_screen.dart:196
+  me/medical/view/medical_home_screen_v2.dart:298
+  me/others/view/v2/other_home_screen_v2.dart:180              (margin size8)
+  me/product/view/admin/product_screen.dart:194
+  me/professionals_consultant/view/professionals_main.dart:132 (margin 20)
+  me/school/view/v2/school_home_screen_v2.dart:281             (margin size4)
+  me/vehicle/v3/view/vehicle_home_screen_v3.dart:216
+  personal/personal_profile/view/self_employed/view/tabs/self_employee_service_tab.dart:21
+                                                               (margin 20)
+
+  The margin is how the strip lines up with the cards above it. Nothing can
+  measure a sibling's insets, so each screen states its own gutter. A screen
+  whose scroll already pads both edges passes bannerAdMarginFor(0).
+
+--- STANDALONE (2) -------------------------------------------------------------
+  common/notification/view/notification_screen.dart:258   BOTTOM of the screen
+      Safe at the bottom: pushed route with its own back app bar, no bottom nav
+      underneath for the strip to sit against.
+
+  common/connect/view/connect_main_page.dart:817          TOP of the Chat tab
+      Deliberately NOT at the bottom. The bottom nav is a Positioned overlay on
+      that route, so tab content runs underneath it — a strip at the Column's
+      bottom would be hidden by the bar, and any part that showed would sit
+      flush against it (mis-tap risk).
+
+
+================================================================================
+ 3. INTERSTITIAL ADS  —  3 triggers
+================================================================================
+
+MANAGER     lib/core/services/ads/admob_interstitial_manager.dart
+FORWARDER   lib/core/services/ads/interstitial_ad_manager.dart
+PRELOAD     main.dart:1096 and main.dart:1246 on app start;
+            call_controller.dart:3745 again on call connect.
+
+--- 3a. CALL ENDED — chat/auth/controller/call_controller.dart:2363 -------------
+  Trigger    _showCallEndedInterstitial(), reached from
+             _navigateBackFromCallScreen() (:2342), which 7 teardown paths call
+             (:1740, 1962, 1992, 2030, 2195, 2235, 2249) plus one direct call
+             at :2229 for a branch that returns before navigating.
+             Caller AND callee both reach it, on Android and iOS.
+
+  Gate       _wasCallConnected — set true in _startCallTimer() (:3745) the
+             moment the call actually connects, reset at :827 and :1093 when a
+             new call starts.
+               * PICKED UP + ended  -> ad shows
+               * missed / rejected / unanswered -> nothing
+             The flag is CONSUMED on read (:2367-2368), so however many of the
+             8 paths reach teardown, the ad fires exactly ONCE per call.
+
+  Timing     400 ms delay so it overlays the post-call screen (chat / home)
+             rather than the call UI mid-dismiss. Fire-and-forget — it can
+             never block teardown.
+
+  Frequency  NOT session-capped. One per connected call is the accepted shape
+             for a deliberate, bounded task.
+
+--- 3b. RIDE COMPLETED — ride_booking/view/ride_completed_screen.dart -----------
+  Trigger    _finish() — the single exit from the ride summary; both "Submit"
+             and "Skip" land there.
+  Timing     Fires as the customer LEAVES the summary, never over it. The fare
+             and rating prompt are the receipt for a ride just paid for.
+  Frequency  Session-capped, shared budget (see 3d).
+
+--- 3c. ORDER PLACED — chat/view/orders_chat/widget/waiting_for_payment_dialog.dart
+  Trigger    showOrderPlacedDialog(), after the dialog closes.
+  Timing     After dismissal, never over the confirmation — an ad over a payment
+             receipt is the pattern AdMob treats as interrupting a transaction.
+  Frequency  Session-capped, shared budget (see 3d).
+
+--- 3d. THE SHARED SESSION BUDGET ----------------------------------------------
+  API        InterstitialAdManager.instance
+                 .showInterstitialOncePerSession(kOrderBookingInterstitialKey)
+
+  3b and 3c share ONE key, so a customer who finishes a ride AND places an
+  order in the same session sees ONE ad, not two.
+
+  The key is spent only when an ad ACTUALLY showed (showInterstitial returns
+  bool). A no-fill must not burn the session's one slot, or the placement
+  quietly stops earning on exactly the days inventory is thin.
+
+
+================================================================================
+ 4. QUREKA PROMO  —  2 slots, Discover only
+================================================================================
+
+  common/Discover/view/discover_screen.dart:473  _promoStrip(index)
+
+  Two slim 320x50 strips BETWEEN catalogue sections:
+      _promoStrip(0) — a third of the way down, after four sections
+      _promoStrip(1) — two thirds down
+  Spaced that far apart on purpose: two strips a section apart read as one
+  banner block. Different creative each (creativeIndex), stable across repaints.
+
+  kQurekaReplacesNativeAds = false  (qureka_promo_banner.dart:34)
+      While false, PromoAdSlot serves real AdMob native ads. Flipping it true
+      would put promo cards back into the feed and the food listing.
+
+  The "Me" tab strip helpers (kQurekaStrip, kQurekaStripMargin,
+  qurekaStripMarginFor, withQurekaPromoBelow, withQurekaPromoBelowAll) were
+  DELETED, not left dormant — a second set of strip helpers is how a Qureka
+  strip finds its way back onto a tab by habit.
+
+
+================================================================================
+ 5. DELIBERATELY AD-FREE
+================================================================================
+
+  Reels / shorts player (common/reel/view/shorts/shorts_feed_screen.dart)
+      A banner over a full-bleed vertical video player is a mis-click factory
+      and native does not fit the format. If reels are to be monetized the
+      right unit is rewarded, or a native-in-feed card BETWEEN reels — its own
+      piece of work.
+
+  Order thread (common/order_history/view/local_shop_orders_screen.dart)
+      Message bubbles. An ad card there reads as a message from the shop.
+
+  Connect Inquiry / Order / call-history tabs
+      Only the Chat tab carries a banner. One per Connect screen is enough.
+
+  Any screen mid-transaction (checkout, payment, call UI)
+      Ads fire only AFTER the user leaves these.
+
+
+================================================================================
+ 6. DEBUGGING
+================================================================================
+
+  All verification prints were removed. What remains is failure-only logging
+  through logs() (lib/core/constants/common_methods.dart), searchable by tag:
+      [ADMOB] SDK init failed
+      [ADMOB_NATIVE] failed to load
+      [ADMOB_BANNER] failed to load
+      [ADMOB_INTERSTITIAL] failed to load / failed to show / show threw
+
+  On-device verification: LONG-PRESS the drawer entry at
+  common/home/widgets/drawer.dart:854 to open the AdMob Ad Inspector
+  (AdDebug.openInspector(), lib/core/services/ads/ad_debug.dart).
+
+  UNVERIFIED: AdConfig.admobBannerUnit had never served an impression before
+  the 20 banner slots above were added. Confirm the live Android and iOS banner
+  units exist and are active in the AdMob dashboard — the slots collapse on
+  no-fill, so an unconfigured unit shows nothing rather than erroring.
+
+================================================================================

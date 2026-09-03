@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -136,10 +136,10 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
     // band. This screen passes its tabs to HomeTabScaffold directly (no shared
     // `_tabScroll` helper), so the wrap goes here rather than at the scaffold.
     return RiderTabScroll(
-      children: withQurekaPromoBelowAll(
+      children: withBannerAdBelowAll(
         _buildOrderTab(),
         // The scroll has no horizontal padding; the tab guts itself at size12.
-        stripMargin: qurekaStripMarginFor(SizeConfig.size12),
+        margin: bannerAdMarginFor(SizeConfig.size12),
       ),
     );
   }

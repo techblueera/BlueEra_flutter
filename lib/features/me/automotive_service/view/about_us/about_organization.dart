@@ -52,7 +52,7 @@ class AboutOrganization extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(AboutOrganizationFormScreen());
+                  Get.to(() => AboutOrganizationFormScreen());
                 }),
               ),
             ),
@@ -119,7 +119,7 @@ class AboutOrganization extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(AboutOrganizationFormScreen(
+                    onPressed: () => Get.to(() => AboutOrganizationFormScreen(
                       item: item,
                     )),
                   ),

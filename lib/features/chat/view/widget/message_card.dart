@@ -2361,7 +2361,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
     return InkWell(
       onTap: () {
         if (widget.isFromChatCard == false) {
-          Get.to(FoodDetailsViewScreen(
+          Get.to(() => FoodDetailsViewScreen(
             productPriceFormat:
                 (serviceData?.priceType == "single") ? "${serviceData?.singlePrice ?? "0"}" : "$priceText",
             data: serviceData ?? GetFoodDetailsModel(),

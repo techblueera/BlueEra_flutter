@@ -28,7 +28,7 @@ class HospitalBookingScreen extends StatelessWidget {
       children: [
         _buildSection(
           title: AppStrings.opdDoctors,
-          openEditScreen: () => Get.to(const HospitalOpdScreen()),
+          openEditScreen: () => Get.to(() => const HospitalOpdScreen()),
           readDepartments: () => controller.filteredOpdDepartments,
           selectedRx: controller.selectedDeptIndex,
           readItems: () => controller.currentCategoryItems,
@@ -39,7 +39,7 @@ class HospitalBookingScreen extends StatelessWidget {
         ),
         _buildSection(
           title: AppStrings.ipdTitle,
-          openEditScreen: () => Get.to(const HospitalIpdScreen()),
+          openEditScreen: () => Get.to(() => const HospitalIpdScreen()),
           readDepartments: () => controller.filteredIpdDepartments,
           selectedRx: controller.selectedIpdDeptIndex,
           readItems: () => controller.currentCategoryItemsIpd,

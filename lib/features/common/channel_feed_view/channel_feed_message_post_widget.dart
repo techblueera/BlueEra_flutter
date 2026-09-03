@@ -422,7 +422,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                   onTap: () {
                                                     Get.back();
                                                     Get.to(
-                                                        CreateMessagePostScreenRepost(
+                                                        () => CreateMessagePostScreenRepost(
                                                       isEdit: false,
                                                       post: widget.post,
                                                     ));

@@ -433,7 +433,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                     height: SizeConfig.size32,
                                                     onTap: () {
                                                       if ((job?.applications?.length ?? 0) > 0) {
-                                                        Get.to(JobApplicationsScreen(
+                                                        Get.to(() => JobApplicationsScreen(
                                                           jobsData: job,
                                                           onHeaderVisibilityChanged:
                                                               widget.onHeaderVisibilityChanged,

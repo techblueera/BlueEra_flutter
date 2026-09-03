@@ -342,7 +342,7 @@ class _MessagePostPreviewScreenNewState
                                     videoThumbnails:
                                         msgPostController.videoThumbnails,
                                     onEditTap: (index) =>
-                                        Get.off(PhotoListingWidget()),
+                                        Get.off(() => PhotoListingWidget()),
                                     onTapMedia: (index) => openVideoPreview(
                                         msgPostController.imagesList[index]),
                                   ),

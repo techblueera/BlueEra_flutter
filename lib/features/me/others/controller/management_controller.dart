@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
@@ -144,6 +145,9 @@ class ManagementController extends GetxController {
     if (res.isSuccess) {
       Get.back(); // Go back to list
       commonSnackBar(message: res.message ?? AppStrings.genericSavedSuccess.tr);
+      // The Overview tab's Management card is now stale — see
+      // [OtherProfileDirty].
+      OtherProfileDirty.mark(OtherProfileSection.management);
       getManagementData();
     } else {
       commonSnackBar(message: res.message ?? AppStrings.labFailedToSave.tr);
@@ -158,6 +162,7 @@ class ManagementController extends GetxController {
     final res = await _repo.deleteManagementRepo(id);
     if (res.isSuccess) {
       commonSnackBar(message: res.message ?? AppStrings.genericDeletedSuccess.tr);
+      OtherProfileDirty.mark(OtherProfileSection.management);
       getManagementData();
     } else {
       commonSnackBar(message: res.message ?? AppStrings.labFailedToDelete.tr);

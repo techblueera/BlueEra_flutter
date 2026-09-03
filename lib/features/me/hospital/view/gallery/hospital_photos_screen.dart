@@ -30,7 +30,7 @@ class HospitalPhotosScreen extends StatelessWidget {
           child: PositiveCustomBtn(
             onTap: () {
               controller.clearUploadState();
-              Get.to(UploadHospitalPhotosScreen());
+              Get.to(() => UploadHospitalPhotosScreen());
             },
             title: AppStrings.uploadHospitalPhoto,
           ),
@@ -56,7 +56,7 @@ class HospitalPhotosScreen extends StatelessWidget {
     final firstImage = images.isNotEmpty ? images[0] : "";
 
     return InkWell(
-      onTap: () => Get.to(HospitalCategoryDetailsScreen(categoryData: item)),
+      onTap: () => Get.to(() => HospitalCategoryDetailsScreen(categoryData: item)),
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: const RoundedRectangleBorder(

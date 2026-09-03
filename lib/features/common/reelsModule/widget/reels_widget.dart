@@ -266,7 +266,7 @@
 //       onStopVideo();
 //
 //       ///show edit reel form....
-//       // await Get.to(CreateReelScreen(
+//       // await Get.to(() => CreateReelScreen(
 //       //   videoPath: '',
 //       //   videoUploadType: '',
 //       //   isEditReel: true,

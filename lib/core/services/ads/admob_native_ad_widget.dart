@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
@@ -16,7 +17,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 class AdMobNativeAdWidget extends StatefulWidget {
   const AdMobNativeAdWidget({
     super.key,
-    this.height = 140,
+    this.height,
+    this.templateType = TemplateType.small,
     this.borderRadius = 12,
     this.bottomGap,
     this.margin,
@@ -25,7 +27,17 @@ class AdMobNativeAdWidget extends StatefulWidget {
     this.backgroundColor,
   });
 
-  final double height;
+  /// Fixed slot height. Leave this null (the default) and the slot measures
+  /// itself from the template's own layout — see [_templateHeight], which is
+  /// the only way to be sure the ad isn't clipped on an arbitrary screen width.
+  final double? height;
+
+  /// Which AdMob native template renders the ad. [TemplateType.small] is a
+  /// single list-row strip (icon + headline + CTA, no media view);
+  /// [TemplateType.medium] adds a 190dp media view and is a FIXED 350dp tall on
+  /// Android, so it only fits a slot given at least that much room.
+  final TemplateType templateType;
+
   final double borderRadius;
   final double? bottomGap;
   final EdgeInsetsGeometry? margin;
@@ -115,14 +127,16 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
     await AdsBootstrap.ensureInitialized();
     if (!mounted) return;
 
-    final unit = AdConfig.admobNativeUnit;
-    print('[ADMOB_NATIVE] loading unit=$unit');
     _ad = NativeAd(
-      adUnitId: unit,
+      adUnitId: AdConfig.admobNativeUnit,
       request: const AdRequest(),
       nativeTemplateStyle: NativeTemplateStyle(
-        templateType: TemplateType.medium,
+        templateType: widget.templateType,
         mainBackgroundColor: widget.backgroundColor ?? AppColors.white,
+        // iOS only — `ad_instance_manager.dart` drops `cornerRadius` for
+        // Android, where the template paints the flat `gnt_outline_shape`
+        // (white fill, 2dp grey stroke, square corners) instead. The rounding
+        // Android does get comes from the clipping [Container] in [build].
         cornerRadius: widget.borderRadius,
         callToActionTextStyle: NativeTemplateTextStyle(
           textColor: AppColors.white,
@@ -144,7 +158,7 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
           setState(() => _loaded = true);
         },
         onAdFailedToLoad: (ad, err) {
-          print('[ADMOB_NATIVE] failed to load: ${err.code} ${err.message}');
+          logs('[ADMOB_NATIVE] failed to load: ${err.code} ${err.message}');
           ad.dispose();
           if (mounted) setState(() => _failed = true);
         },
@@ -187,21 +201,57 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
     return Padding(
       padding: widget.margin ??
           EdgeInsets.only(bottom: widget.bottomGap ?? SizeConfig.size10),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(widget.borderRadius),
-          border: widget.border,
-          boxShadow: widget.boxShadow,
-        ),
-        child: SizedBox(
-          height: widget.height,
-          width: double.infinity,
-          // Only reached with a loaded ad — see the guard above.
-          child: AdWidget(ad: _ad!),
-        ),
+      // The slot's height follows from the width it actually gets, so the same
+      // widget fits a padded list row, a full-bleed sliver and a tablet without
+      // anyone hand-tuning a number per screen. See [_templateHeight].
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
+          return Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              border: widget.border,
+              boxShadow: widget.boxShadow,
+            ),
+            child: SizedBox(
+              height: widget.height ??
+                  _templateHeight(widget.templateType, width),
+              width: double.infinity,
+              // Only reached with a loaded ad — see the guard above.
+              child: AdWidget(ad: _ad!),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  /// The height [type] needs when it is [width] wide, in logical pixels.
+  ///
+  /// Neither template sizes itself to the box it is handed. An [AdWidget] is a
+  /// platform view: it renders the native layout at whatever size we give it
+  /// and the surrounding clip eats the overflow. Both templates anchor the
+  /// call-to-action button to the BOTTOM, so a short slot slices off exactly
+  /// that — the button survives as a coloured bar with its label cut away,
+  /// which is what a 300dp slot did to the 350dp medium template.
+  ///
+  ///  * [TemplateType.medium] — `gnt_medium_template_view.xml` pins its root
+  ///    `NativeAdView` to a literal `350dp` (190dp media + 60dp headline row +
+  ///    body + a >=35dp CTA), independent of width.
+  ///  * [TemplateType.small] — `gnt_small_template_view.xml` is `wrap_content`
+  ///    around a `4:1` block inset by `gnt_default_margin` (10dp) on all four
+  ///    sides, so its natural height is `(width - 20) / 4 + 20`. Across phone
+  ///    widths that lands at 99-117dp, which brackets the iOS small template's
+  ///    own 101pt design height, so one formula serves both platforms. The
+  ///    floor covers unusually narrow layouts and keeps us clear of Google's
+  ///    documented 90dp minimum.
+  static double _templateHeight(TemplateType type, double width) {
+    if (type == TemplateType.medium) return 350;
+    final natural = (width - 20) / 4 + 20;
+    return natural < 96 ? 96 : natural;
   }
 }

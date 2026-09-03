@@ -37,7 +37,7 @@ class SchoolCourseSection extends StatelessWidget {
                   ServiceHomeTitleWidget(title: AppStrings.coursesPrograms),
                   if (isEdit)
                     IconButton(
-                      onPressed: () => Get.to(AddMoreCourseScreen()),
+                      onPressed: () => Get.to(() => AddMoreCourseScreen()),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                     ),
                 ],
@@ -56,7 +56,7 @@ class SchoolCourseSection extends StatelessWidget {
                   if (isEdit) ...[
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      onPressed: () => Get.to(AddMoreCourseScreen()),
+                      onPressed: () => Get.to(() => AddMoreCourseScreen()),
                       icon: const Icon(Icons.add, size: 16),
                       label: const Text("Add"),
                       style: OutlinedButton.styleFrom(
@@ -94,7 +94,7 @@ class SchoolCourseSection extends StatelessWidget {
                     if (courses.length > 5)
                       InkWell(
                         onTap: () {
-                          Get.to(CourseListScreen(isEdit: isEdit));
+                          Get.to(() => CourseListScreen(isEdit: isEdit));
                         },
                         child: const CustomText(
                           AppStrings.viewAll,
@@ -104,7 +104,7 @@ class SchoolCourseSection extends StatelessWidget {
                     if (isEdit)
                       IconButton(
                         onPressed: () =>
-                            Get.to(CourseListScreen(isEdit: isEdit)),
+                            Get.to(() => CourseListScreen(isEdit: isEdit)),
                         icon: const Icon(Icons.edit_outlined, size: 20),
                       ),
                   ],

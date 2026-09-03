@@ -42,7 +42,7 @@ class OverviewWidgetView extends StatelessWidget {
                       children: [
                         InkWell(
                             onTap: () {
-                              Get.to(CreateOverviewScreen(
+                              Get.to(() => CreateOverviewScreen(
                                 isEdit:
                                     (isTextNotEmpty ?? false) ? true : false,
                                 data: viewPersonaDetailsController

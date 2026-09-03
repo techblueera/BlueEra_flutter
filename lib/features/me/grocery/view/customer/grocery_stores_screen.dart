@@ -4,8 +4,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
-import 'package:BlueEra/widgets/measure_size.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -52,11 +50,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
 
-  /// Minimum height for a native ad slot. The native layout needs enough room
-  /// for the media view plus the header/body/CTA so the Meta native template
-  /// renders without clipping.
-  static const double _kMinNativeAdHeight = 300;
-
   /// Sentinel tag id for the leading "All Grocery" tab. Selecting it clears
   /// the category filter so the store API returns stores across every grocery
   /// category instead of a single one.
@@ -102,11 +95,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   /// Active sort chip. See [StoreSort] for why this is applied over the loaded
   /// list rather than sent to the API.
   StoreSort _sort = StoreSort.nearest;
-
-  /// Measured height of a real store card (its outer box, including the
-  /// `size10` bottom margin) so native ad slots can match the card height
-  /// exactly. Null until the first card has been laid out.
-  double? _measuredCardHeight;
 
   final List<String> _bannerImages = const [
     "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141353.jpg?w=1380",
@@ -424,9 +412,9 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       bottom: SizeConfig.paddingL + 70,
                     ),
                     // No promo row pinned at index 0: the ad rows interleaved
-                    // by [buildNativeAdRows] already carry the Qureka card at
-                    // the shared cadence, so a leading one made the list open
-                    // on a promo AND show another one a few cards later.
+                    // by [buildNativeAdRows] already carry an ad at the shared
+                    // cadence, so a leading one made the list open on an ad AND
+                    // show another one a few cards later.
                     itemBuilder: (context, index) {
                       if (index == rows.length) {
                         return Padding(
@@ -446,46 +434,27 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
                       final row = rows[index];
                       if (row.isAd) {
-                        // Track the card height (minus the card's own size12
-                        // bottom gap, which the ad re-adds itself), but never
-                        // go below _kMinNativeAdHeight — the native layout needs
-                        // room for the media view so the Meta native template
-                        // renders without clipping.
-                        final base = (_measuredCardHeight ?? 0) - SizeConfig.size12;
-                        final adHeight =
-                            base < _kMinNativeAdHeight ? _kMinNativeAdHeight : base;
+                        // No height passed: the small template sizes itself
+                        // from the row width, which lands it within a few dp of
+                        // a store card without this screen measuring one. (It
+                        // used to measure the first card and floor the result
+                        // at 300 for the media-led medium template — a number
+                        // that clipped that template's bottom CTA anyway.)
+                        //
                         // NativeAdSlot supplies the stable key (keyed on the
                         // ordinal) so the loaded ad survives list rebuilds
                         // (load-more, etc.) instead of reloading and burning
                         // impressions.
-                        return PromoAdSlot(
+                        return NativeAdSlot(
                           adOrdinal: row.adOrdinal,
                           keyPrefix: 'grocery_native_ad',
-                          height: adHeight,
                         );
                       }
-
-                      final store = stores[row.contentIndex];
 
                       // The card carries its own gap underneath, so nothing to
                       // pass here — every card is self-contained and the ad
                       // slots below inherit the same rhythm.
-                      final card = GroceryStoreCard(store: store);
-
-                      // Measure the first card so ad slots can mirror its
-                      // height. Only the first card is measured to avoid a
-                      // measure callback on every row.
-                      if (row.contentIndex == 0) {
-                        return MeasureSize(
-                          onChange: (size) {
-                            if (!mounted) return;
-                            if (_measuredCardHeight == size.height) return;
-                            setState(() => _measuredCardHeight = size.height);
-                          },
-                          child: card,
-                        );
-                      }
-                      return card;
+                      return GroceryStoreCard(store: stores[row.contentIndex]);
                     },
                   ),
                   );

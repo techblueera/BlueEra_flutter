@@ -836,7 +836,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     InkWell(
                       onTap: () {
                         Get.back();
-                        Get.to(CreateMessagePostScreenRepost(
+                        Get.to(() => CreateMessagePostScreenRepost(
                           isEdit: false,
                           post: widget.post,
                         ));

@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -213,7 +213,7 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
           topBar: _buildTopBar(),
           topBarHeight: topBarHeight,
           tabViews: [
-            _tabScroll(withQurekaPromoBelow(VehicleListingsTabV3(businessId: widget.businessId))),
+            _tabScroll(withBannerAdBelow(VehicleListingsTabV3(businessId: widget.businessId))),
             _tabScroll(const VehicleOverviewTabV3()),
             ProfileStatisticsScreen(userId: widget.businessId),
           ],

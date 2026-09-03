@@ -79,7 +79,7 @@
              docs/ads/ADMOB_MEDIATION_SETUP.md -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-8886065788013100~3740870813" />
+            android:value="ca-app-pub-4151367085462604~1499765338" />
 
         <!-- Main Flutter Activity -->
         <activity

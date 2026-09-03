@@ -1,5 +1,5 @@
 ﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -129,9 +129,9 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               topBarHeight: topBarHeight,
               // Order must match [_tabs].
               tabViews: [
-                _tabScroll(withQurekaPromoBelowAll(
+                _tabScroll(withBannerAdBelowAll(
                   _buildServiceTab(),
-                  stripMargin: qurekaStripMarginFor(20),
+                  margin: bannerAdMarginFor(20),
                 )),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(const [EarnStoreCards()]),

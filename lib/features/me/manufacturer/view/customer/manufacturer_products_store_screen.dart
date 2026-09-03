@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
@@ -287,6 +288,11 @@ class _ProductsStoreScreenState extends State<ManufacturerProductsStoreScreen> {
         );
       }
 
+      // Native ads interleaved between the store cards at the shared cadence
+      // (single source of truth in native_ad_list_inserter.dart), never after
+      // the last card.
+      final rows = buildNativeAdRows(controller.allStore.length);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -334,10 +340,10 @@ class _ProductsStoreScreenState extends State<ManufacturerProductsStoreScreen> {
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL + 70,
               ),
-              itemCount: controller.allStore.length +
+              itemCount: rows.length +
                   (controller.isAllStoreLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index >= controller.allStore.length) {
+                if (index >= rows.length) {
                   return const Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(
@@ -346,13 +352,24 @@ class _ProductsStoreScreenState extends State<ManufacturerProductsStoreScreen> {
                   );
                 }
 
-                final storeData = controller.allStore[index];
+                final row = rows[index];
+                if (row.isAd) {
+                  return NativeAdSlot(
+                    adOrdinal: row.adOrdinal,
+                    keyPrefix: 'manufacturer_store_native_ad',
+                  );
+                }
+
+                final storeData = controller.allStore[row.contentIndex];
 
                 return Padding(
                   padding: EdgeInsets.only(bottom: dynamicSize(10)),
                   child: ManufacturerProductStoreCard(
                     ds: dynamicSize,
-                    index: index,
+                    // The card's alternating palette keys off the store's own
+                    // position in the list, not the row's — ad rows must not
+                    // shift the colour rhythm.
+                    index: row.contentIndex,
                     getAllStoreResData: storeData,
                   ),
                 );

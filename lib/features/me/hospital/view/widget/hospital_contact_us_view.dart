@@ -46,7 +46,7 @@ class HospitalContactUsView extends StatelessWidget {
                 ),
                 if (!isReadOnly)
                   IconButton(
-                    onPressed: () => Get.to(HospitalContactUs()),
+                    onPressed: () => Get.to(() => HospitalContactUs()),
                     icon: const Icon(Icons.edit_outlined, size: 20),
                   ),
               ],

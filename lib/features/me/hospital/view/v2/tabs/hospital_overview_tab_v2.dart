@@ -154,7 +154,7 @@ class HospitalOverviewTabV2 extends StatelessWidget {
                 message:
                     'Please add at least one OPD or IPD department. This section is mandatory to complete your hospital profile.',
                 ctaLabel: 'Add Departments',
-                onTap: () => Get.to(const HospitalOpdScreen())?.then(
+                onTap: () => Get.to(() => const HospitalOpdScreen())?.then(
                     (_) => controller.getHospitalFullDetailsController()),
               ),
             ),
@@ -180,7 +180,7 @@ class HospitalOverviewTabV2 extends StatelessWidget {
                 message:
                     'Please mark at least one emergency care or other facility. This section is mandatory to complete your hospital profile.',
                 ctaLabel: 'Add Facilities',
-                onTap: () => Get.to(const HospitalEmergencyCareScreen())?.then(
+                onTap: () => Get.to(() => const HospitalEmergencyCareScreen())?.then(
                     (_) => controller.getHospitalFullDetailsController()),
               ),
             ),
@@ -213,7 +213,7 @@ class HospitalOverviewTabV2 extends StatelessWidget {
               padding: EdgeInsets.only(left: SizeConfig.size15),
               child: InkWell(
                 onTap: () {
-                  Get.to(const HospitalJobListingScreen(isReadOnly: false));
+                  Get.to(() => const HospitalJobListingScreen(isReadOnly: false));
                 },
                 child: cardViewWidget(title: AppStrings.jobVacancy.tr),
               ),

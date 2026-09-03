@@ -232,6 +232,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
             footerLabel: AppStrings.viewKitchenMenu.tr,
             emptyMessage: AppStrings.noHomeMadeFoodKitchens.tr,
             bottomPadding: 96,
+            adKeyPrefix: 'hmf_store_native_ad',
             onStoreTap: (store) => Get.to(
                 () => HmfStoreDetailsDiscoverScreen(userId: store.userId ?? '')),
           ),

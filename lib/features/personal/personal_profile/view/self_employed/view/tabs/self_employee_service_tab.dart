@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/tabs/self_employee_tab_scroll.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +18,12 @@ class SelfEmployeeServiceTab extends StatelessWidget {
     // [RiderOrderTab]; this screen also hands its tabs to HomeTabScaffold
     // directly, so the wrap belongs here.
     return SelfEmployeeTabScroll(
-      child: withQurekaPromoBelow(
+      child: withBannerAdBelow(
         const SelfProfessionServiceScreen(),
         // That scroll has no horizontal padding and this screen guts its own
         // content at 20, so the strip takes the same — otherwise it starts at
         // the screen edge while every card above it starts 20 in.
-        stripMargin: qurekaStripMarginFor(20),
+        margin: bannerAdMarginFor(20),
       ),
     );
   }

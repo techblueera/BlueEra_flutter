@@ -30,7 +30,7 @@ class FeedPopUpMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'Edit Post') {
           if (post.type?.toUpperCase() == AppConstants.MESSAGE_POST) {
-            Get.to(MessagePostPreviewScreenNew(
+            Get.to(() => MessagePostPreviewScreenNew(
               isEdit: true,
               post: post,
             ));

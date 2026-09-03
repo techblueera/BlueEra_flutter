@@ -341,7 +341,7 @@
 //             Obx(() {
 //               return InkWell(
 //                 onTap: () {
-//                   Get.to(KeyWordInputWidget(
+//                   Get.to(() => KeyWordInputWidget(
 //                       isSelectedSkills: reelsController.KeyWordList ?? []));
 //                 },
 //                 child: Container(

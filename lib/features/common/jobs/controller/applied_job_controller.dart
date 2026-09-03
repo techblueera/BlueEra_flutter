@@ -366,7 +366,7 @@ class AppliedJobController extends GetxController {
         ApiKeys.template: "resumeTemplate1"
       });
       if (responseModel.isSuccess) {
-        Get.to(ResumeWebPreview(
+        Get.to(() => ResumeWebPreview(
           htmlContent: '''${responseModel.response}''',
         ));
         candidateResumePreviewResponse.value =

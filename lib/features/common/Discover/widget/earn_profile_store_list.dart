@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
@@ -31,6 +32,13 @@ class EarnProfileStoreList extends StatelessWidget {
   final String emptyMessage;
   final double bottomPadding;
 
+  /// Key prefix for the native ad slots interleaved between the cards, unique
+  /// per host screen (the key is what lets a loaded ad survive a list rebuild
+  /// instead of reloading and burning an impression, so two screens must not
+  /// share one). Null leaves the list ad-free — this widget also backs
+  /// listings that are not ad surfaces.
+  final String? adKeyPrefix;
+
   const EarnProfileStoreList({
     super.key,
     required this.controller,
@@ -38,6 +46,7 @@ class EarnProfileStoreList extends StatelessWidget {
     required this.footerLabel,
     required this.emptyMessage,
     this.bottomPadding = 20,
+    this.adKeyPrefix,
   });
 
   @override
@@ -55,6 +64,13 @@ class EarnProfileStoreList extends StatelessWidget {
 
       final items = controller.stores;
       final showLoader = controller.isLoadingMore.value;
+      final adPrefix = adKeyPrefix;
+      // Native ads interleaved between the cards at the shared cadence (single
+      // source of truth in native_ad_list_inserter.dart), never after the last
+      // card. Ad-free hosts get one row per item.
+      final rows = adPrefix == null
+          ? [for (var i = 0; i < items.length; i++) NativeAdRow.content(i)]
+          : buildNativeAdRows(items.length);
 
       return ListView.builder(
         padding: EdgeInsets.only(
@@ -63,9 +79,9 @@ class EarnProfileStoreList extends StatelessWidget {
           top: 12,
           bottom: bottomPadding,
         ),
-        itemCount: items.length + (showLoader ? 1 : 0),
+        itemCount: rows.length + (showLoader ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == items.length) {
+          if (index == rows.length) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(8.0),
@@ -73,10 +89,18 @@ class EarnProfileStoreList extends StatelessWidget {
               ),
             );
           }
+          final row = rows[index];
+          if (row.isAd) {
+            return NativeAdSlot(
+              adOrdinal: row.adOrdinal,
+              keyPrefix: adPrefix!,
+            );
+          }
+          final store = items[row.contentIndex];
           return EarnProfileStoreCard(
-            store: items[index],
+            store: store,
             footerLabel: footerLabel,
-            onTap: () => onStoreTap(items[index]),
+            onTap: () => onStoreTap(store),
           );
         },
       );

@@ -271,6 +271,7 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
             footerLabel: 'View Products',
             emptyMessage: 'No home made product sellers found nearby.',
             bottomPadding: 96,
+            adKeyPrefix: 'hmp_store_native_ad',
             onStoreTap: (store) =>
                 Get.to(() => HmpStoreDetailsDiscoverScreen(store: store)),
           ),

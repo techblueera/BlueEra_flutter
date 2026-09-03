@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -372,6 +373,14 @@ class WaitingForPaymentDialog extends StatelessWidget {
   }
 }
 
+/// Order-placed confirmation, with an interstitial once the customer dismisses
+/// it.
+///
+/// The ad deliberately waits for the dialog to close rather than replacing it:
+/// this is the customer's receipt for a payment they just made, and an ad over
+/// it interrupts the transaction. Rationed to once per session across every
+/// order/booking completion ([kOrderBookingInterstitialKey]), so a customer who
+/// also finishes a ride in the same session still sees only one.
 Future<void> showOrderPlacedDialog(BuildContext context) async {
   Get.find<OrderNowController>();
 
@@ -501,4 +510,9 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
       );
     },
   );
+
+  // After the dialog closes — see this function's doc comment. Fire-and-forget
+  // so a slow fill never delays the customer's way back to their order.
+  InterstitialAdManager.instance
+      .showInterstitialOncePerSession(kOrderBookingInterstitialKey);
 }

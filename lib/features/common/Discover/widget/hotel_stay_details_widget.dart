@@ -300,7 +300,7 @@ final discoverController = Get.find<DiscoverController>();
                     ),
                     // const SizedBox(height: 16),
                     // InkWell(
-                    //   onTap: () => Get.to(RoomSelectionScreen()),
+                    //   onTap: () => Get.to(() => RoomSelectionScreen()),
                     //   child: Row(
                     //     mainAxisAlignment: MainAxisAlignment.end,
                     //     children: [

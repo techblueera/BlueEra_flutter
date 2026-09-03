@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
@@ -524,8 +525,19 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
     return name.split(' ').first;
   }
 
+  /// The single exit from this screen — both "Submit" and "Skip" land here.
+  ///
+  /// The interstitial fires as the customer LEAVES the summary, never over it:
+  /// the fare and the rating prompt are the receipt for a ride they just paid
+  /// for, and covering that with an ad is both the wrong moment for them and
+  /// the pattern AdMob treats as interrupting a transaction. Rationed to once
+  /// per session across every order/booking completion
+  /// ([kOrderBookingInterstitialKey]) and fire-and-forget, so a slow fill can
+  /// never hold the customer on a finished ride.
   void _finish() {
     widget.onDone?.call();
+    InterstitialAdManager.instance
+        .showInterstitialOncePerSession(kOrderBookingInterstitialKey);
   }
 
   // ── Bottom bar ─────────────────────────────────────────────────────

@@ -72,7 +72,7 @@ class HotelAmenitiesCard extends StatelessWidget {
           ? const <_AmenityChipSpec>[]
           : _hotelSpecs.where((s) => s.pick(source) == true).toList();
 
-      final onEdit = () => Get.to(HotelAmenitiesScreen())
+      final onEdit = () => Get.to(() => HotelAmenitiesScreen())
           ?.then((_) => controller.loadHotelData());
 
       if (active.isEmpty) {

@@ -5,6 +5,7 @@ import 'package:BlueEra/features/common/promo/model/promo_ad_models.dart';
 import 'package:BlueEra/features/common/promo/promo_ads_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' show TemplateType;
 import 'package:url_launcher/url_launcher.dart';
 
 /// Where a promo banner points when the creative itself carries no
@@ -21,17 +22,16 @@ import 'package:url_launcher/url_launcher.dart';
 const String kQurekaPromoUrl = 'https://qureka.com/';
 
 /// While true, the surfaces that opted in by using [PromoAdSlot] fill their ad
-/// rows with promo cards instead of Google/Meta native ads.
+/// rows with promo cards instead of Google AdMob native ads.
 ///
-/// This is the "for now" switch. Flip it to false and every one of those slots
-/// goes straight back to serving real native ads with no other edit — the call
-/// sites keep the exact same arguments, because [PromoAdSlot] takes the same
-/// ones [NativeAdSlot] does and simply forwards them.
-///
-/// Screens NOT using [PromoAdSlot] (jobs, education, healthcare, finance,
-/// rentals, stays, professions, the channel feed) are untouched by this and
-/// keep serving native ads regardless.
-const bool kQurekaReplacesNativeAds = true;
+/// **Now false.** Qureka is down to ONE placement in the app — the two strips
+/// between Discover's catalogue sections — and every other slot serves Google
+/// AdMob: native in the content lists, a banner under each "Me" tab
+/// ([withBannerAdBelow]), an interstitial after a connected call. Flipping this
+/// back to true would put promo cards into the feed and the food listing again;
+/// the call sites need no other edit either way, because [PromoAdSlot] takes
+/// the same arguments [NativeAdSlot] does and simply forwards them.
+const bool kQurekaReplacesNativeAds = false;
 
 /// An ad row that renders EITHER a promo card or a real native ad, decided by
 /// [kQurekaReplacesNativeAds].
@@ -50,7 +50,8 @@ class PromoAdSlot extends StatelessWidget {
     super.key,
     required this.adOrdinal,
     this.keyPrefix = 'native_ad',
-    this.height = 300,
+    this.height,
+    this.templateType = TemplateType.small,
     this.factoryId = 'groceryAdFactory',
     this.borderRadius = 12,
     this.bottomGap,
@@ -62,7 +63,8 @@ class PromoAdSlot extends StatelessWidget {
 
   final int adOrdinal;
   final String keyPrefix;
-  final double height;
+  final double? height;
+  final TemplateType templateType;
   final String factoryId;
   final double borderRadius;
   final double? bottomGap;
@@ -78,6 +80,7 @@ class PromoAdSlot extends StatelessWidget {
         adOrdinal: adOrdinal,
         keyPrefix: keyPrefix,
         height: height,
+        templateType: templateType,
         factoryId: factoryId,
         borderRadius: borderRadius,
         bottomGap: bottomGap,
@@ -98,74 +101,16 @@ class PromoAdSlot extends StatelessWidget {
   }
 }
 
-/// The slim 320x50 strip the "Me" tabs use, as a standalone widget.
-///
-/// [QurekaPromoBanner] with the strip placement — same tap behaviour, same
-/// "hidden when there is nothing to show" rule.
-///
-/// The default margin suits the tab scrolls that pad their content `left: 20`
-/// and nothing on the right (grocery, product, food, manufacturer, automotive
-/// parts): the scroll supplies the left inset, the strip supplies the matching
-/// right one. Screens laid out any other way must pass their own — see
-/// [withQurekaPromoBelow].
-const EdgeInsets kQurekaStripMargin = EdgeInsets.fromLTRB(0, 16, 20, 4);
-
-const Widget kQurekaStrip = QurekaPromoBanner(
-  strip: true,
-  margin: kQurekaStripMargin,
-);
-
-/// The strip's margin for a tab whose scroll has NO horizontal padding and
-/// whose content insets itself by [contentInset] — the strip then takes the
-/// same inset on both sides and lines up with the cards above it.
-EdgeInsets qurekaStripMarginFor(double contentInset) =>
-    EdgeInsets.fromLTRB(contentInset, 16, contentInset, 4);
-
-/// [content] with the promo STRIP appended under it, for use **inside** a
-/// scroll view.
-///
-/// This is how the "Me" screens carry the promo: each wraps its first tab in a
-/// `_tabScroll(...)` helper (a `SingleChildScrollView`), and passing the tab
-/// through here puts the strip in that scroll's CONTENT. It therefore scrolls
-/// with the tab and comes to rest after the last row, rather than being pinned
-/// as a separate band above or below the list — which is what it looked like
-/// while the wrapping was done from `HomeTabScaffold`, outside the scrollable.
-///
-/// [stripMargin] is how the strip lines up with the cards above it, and the
-/// caller has to say — nothing here can measure the insets its sibling applies.
-/// The default assumes the tab scroll pads `left: 20` with no right inset, so
-/// the strip contributes the matching right one (see [kQurekaStripMargin]).
-///
-/// A screen whose scroll has NO horizontal padding — its content insets itself
-/// instead — must pass `qurekaStripMarginFor(<that inset>)`, or the strip runs
-/// to the screen edge on the left while stopping 20 short on the right, which
-/// is exactly the misalignment this parameter exists to fix. A screen whose
-/// scroll already pads BOTH edges passes `qurekaStripMarginFor(0)`.
-Widget withQurekaPromoBelow(Widget content, {EdgeInsets? stripMargin}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      content,
-      QurekaPromoBanner(
-        strip: true,
-        margin: stripMargin ?? kQurekaStripMargin,
-      ),
-    ],
-  );
-}
-
-/// [withQurekaPromoBelow] for the two "Me" screens whose `_tabScroll` takes a
-/// `List<Widget>` (content creator, professionals) rather than a single child.
-List<Widget> withQurekaPromoBelowAll(List<Widget> content,
-    {EdgeInsets? stripMargin}) {
-  return [
-    ...content,
-    QurekaPromoBanner(
-      strip: true,
-      margin: stripMargin ?? kQurekaStripMargin,
-    ),
-  ];
-}
+// The "Me" tab strip helpers used to live here — `kQurekaStrip`,
+// `kQurekaStripMargin`, `qurekaStripMarginFor`, `withQurekaPromoBelow` and
+// `withQurekaPromoBelowAll`. Every one of those 18 tabs now carries a Google
+// AdMob banner instead, so they moved to
+// `core/services/ads/admob_banner_ad_widget.dart` as `kBannerAdMargin`,
+// `bannerAdMarginFor`, `withBannerAdBelow` and `withBannerAdBelowAll` — same
+// shapes, same alignment rules, same "collapses when there is nothing to show"
+// behaviour. They are NOT kept here as a dormant alternative on purpose: a
+// second set of strip helpers is how a Qureka strip finds its way back onto a
+// tab by habit. Qureka's only placement is Discover's two section strips.
 
 /// A tappable promo banner drawn from the SERVER-served creative bundle
 /// ([PromoAdsService]) — no bundled artwork, so a campaign can be swapped,

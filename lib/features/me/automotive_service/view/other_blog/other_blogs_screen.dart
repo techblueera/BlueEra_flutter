@@ -51,7 +51,7 @@ class OtherBlogsScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherBlogsFormScreen());
+                  Get.to(() => OtherBlogsFormScreen());
                 }),
               ),
             ),
@@ -124,7 +124,7 @@ class OtherBlogsScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherBlogsFormScreen(
+                    onPressed: () => Get.to(() => OtherBlogsFormScreen(
                       item: item,
                     )),
                   ),

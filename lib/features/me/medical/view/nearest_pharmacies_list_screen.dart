@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/medical/controller/nearest_pharmacies_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_category_selector_widget.dart';
@@ -77,6 +78,11 @@ class _NearestPharmaciesListScreenState extends State<NearestPharmaciesListScree
             ),
           );
         }
+        // Native ads interleaved between the pharmacy cards at the shared
+        // cadence (single source of truth in native_ad_list_inserter.dart),
+        // never after the last card.
+        final rows = buildNativeAdRows(controller.pharmacies.length);
+
         return RefreshIndicator(
           color: AppColors.primaryColor,
           onRefresh: () =>
@@ -92,11 +98,19 @@ class _NearestPharmaciesListScreenState extends State<NearestPharmaciesListScree
               // the grocery store list makes).
               bottom: SizeConfig.paddingL + 70,
             ),
-            itemCount: controller.pharmacies.length,
-            // No separator — the card carries its own bottom margin, and `index`
-            // drives the alternating teal/violet palette.
-            itemBuilder: (context, index) =>
-                PharmacyStoreCard(item: controller.pharmacies[index]),
+            itemCount: rows.length,
+            // No separator — the card carries its own bottom margin.
+            itemBuilder: (context, index) {
+              final row = rows[index];
+              if (row.isAd) {
+                return NativeAdSlot(
+                  adOrdinal: row.adOrdinal,
+                  keyPrefix: 'pharmacy_store_native_ad',
+                );
+              }
+              return PharmacyStoreCard(
+                  item: controller.pharmacies[row.contentIndex]);
+            },
           ),
         );
       }),

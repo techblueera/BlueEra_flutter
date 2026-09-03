@@ -49,7 +49,7 @@ class BookingsScreen extends StatelessWidget {
                         Get.to(()=>ReceivedBookingsScreen(channelId: channelId,));
                       }
                       else if(options[index] == "Received Enquiries"){
-                        Get.to(Get.to(()=>ReceivedEnquiriesScreen(channelId: channelId,)));
+                        Get.to(() => Get.to(()=>ReceivedEnquiriesScreen(channelId: channelId,)));
                       }
                       else if(options[index] == "Sent Enquiries"){
                         Get.toNamed(RouteHelper.getMyEnquiresRoute());

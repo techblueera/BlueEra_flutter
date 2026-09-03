@@ -77,7 +77,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                         if (!widget.isReadOnly)
                           IconButton(
                             onPressed: () =>
-                                Get.to(const HospitalAboutUsScreen()),
+                                Get.to(() => const HospitalAboutUsScreen()),
                             icon: const Icon(Icons.edit_outlined, size: 20),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),

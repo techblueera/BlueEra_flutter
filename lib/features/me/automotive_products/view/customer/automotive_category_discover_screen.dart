@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_selfpickup_controller.dart';
@@ -404,6 +405,10 @@ class _AutomotiveCategoryDiscoverScreenState
       // a page lands AND when the counts call answers (the products sort reads
       // `storeCounts`, which is observable).
       final stores = sortStores(controller.allStore, _sort);
+      // Native ads interleaved between the store cards at the shared cadence
+      // (single source of truth in native_ad_list_inserter.dart), never after
+      // the last card.
+      final rows = buildNativeAdRows(stores.length);
       final showFooter = controller.isAllStoreLoadingMore.value;
 
       return Column(
@@ -425,10 +430,17 @@ class _AutomotiveCategoryDiscoverScreenState
                   top: SizeConfig.size4,
                   bottom: SizeConfig.paddingL + 70,
                 ),
-                itemCount: stores.length + (showFooter ? 1 : 0),
+                itemCount: rows.length + (showFooter ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index >= stores.length) return _footerLoader();
-                  return AutomotiveStoreCard(store: stores[index]);
+                  if (index >= rows.length) return _footerLoader();
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'automotive_store_native_ad',
+                    );
+                  }
+                  return AutomotiveStoreCard(store: stores[row.contentIndex]);
                 },
               ),
             ),

@@ -40,7 +40,7 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
         return GestureDetector(
           onTap: isVideo
               ? () {
-                  Get.to(NetworkVideoPreviewScreen(
+                  Get.to(() => NetworkVideoPreviewScreen(
                     videoUrl: widget.post?.media?.firstOrNull ?? "",
                   ));
                 }

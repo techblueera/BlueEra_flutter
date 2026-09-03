@@ -73,7 +73,7 @@ class BloodTestEmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         InkWell(
-          onTap: () => Get.to(LabTestListScreen(
+          onTap: () => Get.to(() => LabTestListScreen(
             collection: _bloodCollection,
             title: _bloodTitle,
           )),

@@ -93,7 +93,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                                         ),
                                         InkWell(
                                           onTap: () {
-                                            Get.to(ManagementTrustFormScreen(
+                                            Get.to(() => ManagementTrustFormScreen(
                                               isEdit: true,management: data,
                                               editItemIndex: index,
                                             ));
@@ -171,7 +171,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                   horizontal: SizeConfig.size5, vertical: SizeConfig.size10),
               child: AddMoreIconButton(
                 onTapEvent: () {
-                  Get.to(ManagementTrustFormScreen(
+                  Get.to(() => ManagementTrustFormScreen(
                     isEdit: false,
                   ));
                 },

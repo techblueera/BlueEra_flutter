@@ -175,7 +175,7 @@ class _CategorySelectorState extends State<CategorySelector> {
   Widget _buildCategoryTile(_LabCategory category) {
     return InkWell(
       onTap: () => Get.to(
-        LabTestListScreen(
+        () => LabTestListScreen(
           collection: category.collection,
           title: category.title,
           labId: widget.labID,

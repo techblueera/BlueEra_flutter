@@ -22,7 +22,7 @@
 //           padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
 //           child: PositiveCustomBtn(
 //               onTap: () {
-//                 Get.to(UploadProfessionalsServicePhotosScreen());
+//                 Get.to(() => UploadProfessionalsServicePhotosScreen());
 //               },
 //               title: "Upload Other Service Photo"),
 //         ),
@@ -41,7 +41,7 @@
 //
 //             return InkWell(
 //               onTap: () {
-//                 Get.to(ProfessionalsServiceCategoryDetailsScreen(
+//                 Get.to(() => ProfessionalsServiceCategoryDetailsScreen(
 //                   // categoryData: item,
 //                 ));
 //               },

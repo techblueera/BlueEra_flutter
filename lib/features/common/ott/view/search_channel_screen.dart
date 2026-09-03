@@ -92,7 +92,7 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
 
                     return ListTile(
                       onTap: () {
-                        Get.to(VideoListScreen(
+                        Get.to(() => VideoListScreen(
                           channelID: channel.sId ?? "",
                           channelName: channel.name ?? "",
                         ));

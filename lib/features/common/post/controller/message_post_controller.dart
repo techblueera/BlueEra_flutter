@@ -321,7 +321,7 @@ class MessagePostController extends GetxController {
       return;
     }
 
-    final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+    final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
       print("✅ Trimmed Video Path: $trimmedPath");

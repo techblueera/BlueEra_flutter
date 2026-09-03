@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_photo_controller.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_service_gallery/food_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_service_gallery/upload_food_service_photos_screen.dart';
@@ -28,9 +29,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
         color: AppColors.white,
         child: SafeArea(
           child: PositiveCustomBtn(
-              onTap: () {
-                Get.to(()=> UploadFoodServicePhotosScreen());
-              },
+              onTap: () => _startUpload(context),
               title: AppStrings.foodUploadServicePhoto.tr),
         ),
       ),
@@ -133,6 +132,33 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
       }),
     );
   }
+  /// Photos first, category second.
+  ///
+  /// Tapping upload opens the multi-select picker straight away — up to
+  /// [FoodServicePhotoPhotoController.maxImages] in one pass — and only once
+  /// something has actually been picked does the next screen open to name the
+  /// category. Backing out of the picker leaves the restaurant where they
+  /// were instead of on an empty form they now have to abandon too.
+  ///
+  /// It used to run the other way round: the button opened a form whose first
+  /// field was the category, so a group had to be named before a single dish
+  /// was visible, and one could be named with nothing then picked.
+  Future<void> _startUpload(BuildContext context) async {
+    // Start from empty: this controller outlives the upload screen, so
+    // whatever a cancelled attempt left behind must not leak into this one.
+    controller.resetUploadForm();
+
+    final paths = await PhotoPickerService.pickMultiplePhotos(
+      context,
+      AppStrings.foodUploadServicePhoto.tr,
+      maxImages: controller.maxImages,
+    );
+    if (paths == null || paths.isEmpty) return;
+
+    controller.addImages(paths);
+    Get.to(() => const UploadFoodServicePhotosScreen());
+  }
+
   static String formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";
     DateTime dateTime = DateTime.parse(isoString);

@@ -425,7 +425,7 @@ class _JobServiceBottomSheetState extends State<JobServiceBottomSheet> {
                                                ?.length ??
                                                0) >
                                                0) {
-                                             Get.to(JobApplicationsScreen(
+                                             Get.to(() => JobApplicationsScreen(
                                                jobsData: job,
                                                onHeaderVisibilityChanged:
                                                widget

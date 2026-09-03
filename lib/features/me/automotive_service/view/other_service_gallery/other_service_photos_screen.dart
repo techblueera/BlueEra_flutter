@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/other_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/upload_other_service_photos_screen.dart';
@@ -22,9 +23,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
           child: PositiveCustomBtn(
-              onTap: () {
-                Get.to(UploadOtherServicePhotosScreen());
-              },
+              onTap: () => _startUpload(context),
               title: AppStrings.otherUploadServicePhoto.tr),
         ),
       ),
@@ -42,7 +41,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
 
             return InkWell(
               onTap: () {
-                Get.to(OtherServiceCategoryDetailsScreen(
+                Get.to(() => OtherServiceCategoryDetailsScreen(
                   categoryData: item,
                 ));
               },
@@ -124,6 +123,33 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
       }),
     );
   }
+  /// Photos first, category second.
+  ///
+  /// Tapping upload opens the multi-select picker straight away — up to
+  /// [OtherServicePhotoPhotoController.maxImages] in one pass — and only once
+  /// something has actually been picked does the next screen open to name the
+  /// category. Backing out of the picker leaves the merchant where they were
+  /// instead of on an empty form they now have to abandon too.
+  ///
+  /// It used to run the other way round: the button opened a form whose first
+  /// field was the category, so the merchant had to name a group before
+  /// seeing a single photo, and could name one and then pick nothing.
+  Future<void> _startUpload(BuildContext context) async {
+    // Start from empty: this controller outlives the upload screen, so
+    // whatever a cancelled attempt left behind must not leak into this one.
+    controller.resetUploadForm();
+
+    final paths = await PhotoPickerService.pickMultiplePhotos(
+      context,
+      AppStrings.otherUploadServicePhoto.tr,
+      maxImages: controller.maxImages,
+    );
+    if (paths == null || paths.isEmpty) return;
+
+    controller.addImages(paths);
+    Get.to(() => const UploadOtherServicePhotosScreen());
+  }
+
   static String formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";
     DateTime dateTime = DateTime.parse(isoString);

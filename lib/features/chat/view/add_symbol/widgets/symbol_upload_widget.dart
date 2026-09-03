@@ -1008,7 +1008,7 @@ class _SymbolTypeOption {
 }
 
 void openVideoPreview(File file) async {
-  final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: file.path));
+  final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: file.path));
   if (trimmedPath != null) {
     await Get.find<AddChatSymbolController>().setVideoFile(File(trimmedPath));
   }

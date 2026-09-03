@@ -51,7 +51,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(OtherPrivacyConditionFormScreen());
+                  Get.to(() => OtherPrivacyConditionFormScreen());
                 }),
               ),
             ),
@@ -92,7 +92,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(OtherPrivacyConditionFormScreen(
+                    onPressed: () => Get.to(() => OtherPrivacyConditionFormScreen(
                       item: item,
                     )),
                   ),

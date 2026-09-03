@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/order_history/service/local_order_store.dart';
 import 'package:BlueEra/features/common/order_history/view/local_shop_orders_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -51,15 +52,39 @@ class _LocalOrdersListScreenState extends State<LocalOrdersListScreen> {
           }
           final shops = snapshot.data ?? const [];
           if (shops.isEmpty) return _emptyState();
+          // Native ads at the shared list cadence. Only the SHOP LIST carries
+          // them — the thread behind each row (LocalShopOrdersScreen) is drawn
+          // as message bubbles, where an ad card would read as a message the
+          // shop sent.
+          final rows = buildNativeAdRows(shops.length);
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            itemCount: shops.length,
-            separatorBuilder: (_, __) => const Divider(
-              height: 1,
-              indent: 78,
-              color: Color(0xFFEDEDED),
-            ),
-            itemBuilder: (context, index) => _shopRow(shops[index]),
+            itemCount: rows.length,
+            separatorBuilder: (_, index) {
+              // The hairline is indented 78 to clear the avatar column, so
+              // against an ad card it reads as a rule starting from nowhere.
+              // Plain space on either side of a slot instead.
+              final touchesAd = rows[index].isAd ||
+                  (index + 1 < rows.length && rows[index + 1].isAd);
+              if (touchesAd) return SizedBox(height: SizeConfig.size8);
+              return const Divider(
+                height: 1,
+                indent: 78,
+                color: Color(0xFFEDEDED),
+              );
+            },
+            itemBuilder: (context, index) {
+              final row = rows[index];
+              if (row.isAd) {
+                return NativeAdSlot(
+                  adOrdinal: row.adOrdinal,
+                  keyPrefix: 'orders_native_ad',
+                  margin: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size12),
+                );
+              }
+              return _shopRow(shops[row.contentIndex]);
+            },
           );
         },
       ),

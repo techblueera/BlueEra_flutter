@@ -290,7 +290,7 @@ class JobCard extends StatelessWidget {
                               bgColor: AppColors.white,
                               height: SizeConfig.size32,
                               onTap: () {
-                                Get.to(JobApplicationsScreen(
+                                Get.to(() => JobApplicationsScreen(
                                   jobsData: job,
                                   headerHeight: headerHeight,
                                 ));

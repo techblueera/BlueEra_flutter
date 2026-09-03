@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -35,7 +36,7 @@ class AdsBootstrap {
     return _pending ??= MobileAds.instance.initialize().then<void>((_) {}).catchError(
       (Object e) {
         _pending = null;
-        print('[ADMOB] SDK init failed: $e');
+        logs('[ADMOB] SDK init failed: $e');
       },
     );
   }

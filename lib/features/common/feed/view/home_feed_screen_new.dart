@@ -416,8 +416,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
             final row = rows[rowIndex];
 
             if (row.isAd) {
-              print('[HOME_FEED_AD] building ad slot '
-                  'ordinal=${row.adOrdinal} index=$indexFeed');
               // Feed-styled native ad: the platform `feedAdFactory` layout
               // mirrors a post card (author header + media + CTA). The white
               // fill, 20dp rounded corners and 1px greyE5 border are drawn by

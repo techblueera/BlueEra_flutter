@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/hotel_property_photo_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/category_details_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/upload_property_photos_screen.dart';
@@ -27,7 +28,7 @@ class PropertyPhotoScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
           child: PositiveCustomBtn(
-            onTap: _openUploadScreen,
+            onTap: () => _startUpload(context),
             title: AppStrings.hotelUploadPropertyPhoto.tr,
           ),
         ),
@@ -46,9 +47,31 @@ class PropertyPhotoScreen extends StatelessWidget {
     );
   }
 
-  void _openUploadScreen() {
+  /// Photos first, album second.
+  ///
+  /// Tapping upload opens the multi-select picker straight away — up to
+  /// [PropertyPhotoController.maxImages] in one pass — and only once something
+  /// has actually been picked does the next screen open to name the album.
+  /// Backing out of the picker leaves the hotel where they were instead of on
+  /// an empty form they now have to abandon too.
+  ///
+  /// It used to run the other way round: the button opened a form whose first
+  /// field was the album category, so a group had to be named before a single
+  /// photo was visible, and one could be named with nothing then picked.
+  Future<void> _startUpload(BuildContext context) async {
+    // Start from empty: this controller outlives the upload screen, so
+    // whatever a cancelled attempt left behind must not leak into this one.
     controller.clearSelection();
-    Get.to(UploadPropertyPhotosScreen());
+
+    final paths = await PhotoPickerService.pickMultiplePhotos(
+      context,
+      AppStrings.hotelUploadPropertyPhoto.tr,
+      maxImages: controller.maxImages,
+    );
+    if (paths == null || paths.isEmpty) return;
+
+    controller.addImages(paths);
+    Get.to(() => const UploadPropertyPhotosScreen());
   }
 
   Widget _buildAlbumCard(HotelPropertyPhotoData item) {
@@ -56,7 +79,7 @@ class PropertyPhotoScreen extends StatelessWidget {
     final firstImage = images.isNotEmpty ? images.first : '';
 
     return InkWell(
-      onTap: () => Get.to(CategoryDetailsScreen(categoryData: item)),
+      onTap: () => Get.to(() => CategoryDetailsScreen(categoryData: item)),
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape:

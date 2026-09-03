@@ -49,10 +49,10 @@ class MedicalCategorySelectorWidget extends StatelessWidget {
             itemBuilder: (context, index) {
               return InkWell(
                 onTap: () {
-                  // Get.to(LabTestListScreen(
+                  // Get.to(() => LabTestListScreen(
                   //   collection: categories[index]['key'] ?? "",
                   //   title: categories[index]['title'],labId: labID,
-                  // ));  // Get.to(LabTestListScreen(
+                  // ));  // Get.to(() => LabTestListScreen(
                   //   collection: categories[index]['key'] ?? "",
                   //   title: categories[index]['title'],labId: labID,
                   // ));

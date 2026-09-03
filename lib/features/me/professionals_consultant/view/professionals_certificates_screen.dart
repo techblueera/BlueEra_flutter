@@ -76,7 +76,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                         if (controller.propertyPhotosList.length < 20)
                           InkWell(
                             onTap: () {
-                              Get.to(UploadProfessionalsServicePhotosScreen());
+                              Get.to(() => UploadProfessionalsServicePhotosScreen());
                             },
                             child: CustomText(
                               "+ ${AppStrings.addMore.tr}",

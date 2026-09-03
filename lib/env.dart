@@ -85,4 +85,17 @@ abstract class Env {
   @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_IOS')
   static String admobTestInterstitialAdUnitIos =
       _Env.admobTestInterstitialAdUnitIos;
+
+  @EnviedField(varName: 'ADMOB_BANNER_AD_UNIT_ANDROID')
+  static String admobBannerAdUnitAndroid = _Env.admobBannerAdUnitAndroid;
+
+  @EnviedField(varName: 'ADMOB_BANNER_AD_UNIT_IOS')
+  static String admobBannerAdUnitIos = _Env.admobBannerAdUnitIos;
+
+  @EnviedField(varName: 'ADMOB_TEST_BANNER_AD_UNIT_ANDROID')
+  static String admobTestBannerAdUnitAndroid =
+      _Env.admobTestBannerAdUnitAndroid;
+
+  @EnviedField(varName: 'ADMOB_TEST_BANNER_AD_UNIT_IOS')
+  static String admobTestBannerAdUnitIos = _Env.admobTestBannerAdUnitIos;
 }

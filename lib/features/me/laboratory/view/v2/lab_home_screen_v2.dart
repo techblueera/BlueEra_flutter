@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -168,9 +168,9 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
           topBar: _buildTopBar(),
           topBarHeight: MediaQuery.of(context).padding.top + 56,
           tabViews: [
-            _tabScroll(withQurekaPromoBelow(
+            _tabScroll(withBannerAdBelow(
               LabTestsTabV2(controller: _labController),
-              stripMargin: qurekaStripMarginFor(12),
+              margin: bannerAdMarginFor(12),
             )),
             _tabScroll(LabOverviewTabV2(controller: _labController)),
             _tabScroll(LabFacilitiesTabV2(controller: _labController)),

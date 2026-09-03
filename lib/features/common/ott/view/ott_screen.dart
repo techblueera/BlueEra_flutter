@@ -106,7 +106,7 @@ class _OttScreenState extends State<OttScreen> {
                             0) >
                         20,
                     onTap: () {
-                      Get.to(ViewAllJoinedChannelListScreen());
+                      Get.to(() => ViewAllJoinedChannelListScreen());
                     },
                   );
                 }),
@@ -126,7 +126,7 @@ class _OttScreenState extends State<OttScreen> {
                             0) >
                         20,
                     onTap: () {
-                      Get.to(ViewAllChannelScreen());
+                      Get.to(() => ViewAllChannelScreen());
                     },
                   );
                 }),

@@ -282,7 +282,7 @@ class RoomDesignScreen extends StatelessWidget {
         isValidate: isValid,
         title: AppStrings.next.tr,
         onTap: isValid
-            ? () => Get.to(HotelImageUploadScreen(
+            ? () => Get.to(() => HotelImageUploadScreen(
                   roomName: roomName,
                   roomType: roomType,
                 ))

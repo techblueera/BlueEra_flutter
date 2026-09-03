@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/promo/qureka_promo_banner.dart';
+import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -47,9 +47,16 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   // Built as a getter so `.tr` is re-evaluated on locale change rather
   // than frozen at class-load time. `statics` is reused for the Stats
   // tab to stay aligned with self-employee / rider dashboards.
+  //
+  // Overview leads here, Services second — deliberately the reverse of the
+  // other "Me" home screens, and specific to THIS screen. Sibling screens
+  // still open on their Order/Inquiry tab with Overview second; the deep-link
+  // constant that encodes that (`BottomBarController.meOverviewTabIndex`) is
+  // left alone and this screen declares its own index instead — see
+  // [_overviewTabIndex] and the `registerMeTabBackHandler` call below.
   List<String> get _tabs => [
-        AppStrings.services.tr,
         AppStrings.overview.tr,
+        AppStrings.services.tr,
         // Post tab removed for business accounts. Restore the label together
         // with the `OtherPostsTabV2` view below.
         // AppStrings.posts.tr,
@@ -74,7 +81,11 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
 
   /// Index of the Overview tab in [_tabs] — the tab that owns the live photos,
   /// and therefore the only place the live-photo sheet is asked for.
-  static const int _overviewTabIndex = 1;
+  ///
+  /// 0, not the app-wide default of 1: this screen leads with Overview. It is
+  /// handed to `registerMeTabBackHandler` so a deep link to "Me → Overview"
+  /// resolves against THIS order instead of assuming the common one.
+  static const int _overviewTabIndex = 0;
 
   /// One sheet per visit: `_tabController` fires twice per swipe (once on the
   /// index change, once when the animation settles) and the merchant can come
@@ -86,8 +97,24 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
-    registerMeTabBackHandler(_tabController);
+    registerMeTabBackHandler(_tabController,
+        overviewTabIndex: _overviewTabIndex);
+    // Overview is the tab this screen OPENS on, and a TabController fires no
+    // change notification for the tab it starts on — so the listener below
+    // would only ever see Overview on a return visit. Ask once the first frame
+    // is up instead, which is also late enough for `context` to be usable.
+    if (_overviewTabIndex == 0) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _maybeAskForLivePhotos());
+    }
     _otherController = getOrPut(() => BusinessProfileFullController());
+    // Overview is the tab this screen opens on, so its data has to be asked for
+    // HERE — no tab switch is going to do it. Conditional because the bottom bar
+    // rebuilds this screen on every visit to the Me tab (`_getScreen` is a plain
+    // switch behind a per-index key, not an IndexedStack) while the controller
+    // is a `Get.put` singleton that outlives it: without the guard, every tap on
+    // Me would refetch. A load that failed leaves the value null, so this still
+    // retries on the next visit.
     if (_otherController.businessProfile.value == null) {
       _otherController.getBusinessProfileFull();
     }
@@ -114,6 +141,11 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   /// checks; this only decides WHEN to ask.
   void _onTabChanged() {
     if (_tabController.index != _overviewTabIndex) return;
+    _maybeAskForLivePhotos();
+  }
+
+  /// Raises the sheet the first time Overview is on screen this visit.
+  void _maybeAskForLivePhotos() {
     if (_livePhotoSheetAsked || !mounted) return;
     _livePhotoSheetAsked = true;
     showBusinessLivePhotoBottomSheetIfNeeded(
@@ -142,8 +174,10 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               tabLabels: _tabs,
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
+              // Order must track [_tabs] exactly — Overview, Services, Stats.
               tabViews: [
-                _tabScroll(withQurekaPromoBelow(
+                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
+                _tabScroll(withBannerAdBelow(
                   const OtherServicesTabV2(),
                   // This tab scroll has no horizontal padding of its own, so
                   // the strip has to state the tab's gutter itself or it runs
@@ -151,9 +185,8 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
                   // ONLY one in the tab — the empty-state banner used to add 4
                   // on top of it (see `_ServiceRequiredBanner`), which left no
                   // single value the strip could line up with.
-                  stripMargin: qurekaStripMarginFor(SizeConfig.size8),
+                  margin: bannerAdMarginFor(SizeConfig.size8),
                 )),
-                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 // _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),
               ],

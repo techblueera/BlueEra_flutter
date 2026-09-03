@@ -22,46 +22,81 @@ class PropertyPhotoController extends GetxController {
   /// Existing albums returned by the API.
   final RxList<HotelPropertyPhotoData> propertyPhotosList = <HotelPropertyPhotoData>[].obs;
 
-  /// Available album categories shown in the upload dropdown.
+  /// The album categories THIS hotel has actually created, in the order the
+  /// API returned them, de-duplicated case-insensitively.
   ///
-  /// Each entry is the wire-key sent to the backend's `category` field —
-  /// kept in English so the API contract is stable across languages.
-  /// Use [categoryLabel] to resolve the localized display string at
-  /// render time.
-  final List<String> categories = [
-    AppStrings.photoCategoryExternalViewParking.tr,
-    AppStrings.photoCategoryLobbyGarden.tr,
-    AppStrings.photoCategoryRooms.tr,
-    AppStrings.photoCategoryRestaurantBar.tr,
-    AppStrings.photoCategoryGymSwimmingPool.tr,
-  ];
-
-  /// Resolves the localized display label for a category wire-key.
-  /// Falls back to the raw key if it's not one of the known options
-  /// (e.g. a server-added category we haven't translated yet).
-  String categoryLabel(String key) {
-    switch (key) {
-      case "External View & Parking":
-        return AppStrings.photoCategoryExternalViewParking.tr;
-      case "Lobby & Garden":
-        return AppStrings.photoCategoryLobbyGarden.tr;
-      case "Rooms":
-        return AppStrings.photoCategoryRooms.tr;
-      case "Restaurant & Bar":
-        return AppStrings.photoCategoryRestaurantBar.tr;
-      case "Gym & Swimming Pool":
-        return AppStrings.photoCategoryGymSwimmingPool.tr;
+  /// This replaces a fixed five-entry list ("External View & Parking", "Lobby
+  /// & Garden", "Rooms", "Restaurant & Bar", "Gym & Swimming Pool") — the
+  /// original that every other gallery in the app was copied from. Those five
+  /// are right for a hotel, but no hotel could add a sixth, and the list
+  /// carried a data bug: the entries were `.tr` lookups, so the string POSTed
+  /// as `category` was whatever the device language rendered. A Hindi phone
+  /// filed its rooms under a Hindi category and an English one under "Rooms",
+  /// so the same floor became two albums, and deletes — which match on that
+  /// same string — only ever found the half that matched the current locale.
+  ///
+  /// The retired `categoryLabel()` was meant to guard that, but it switched on
+  /// the ENGLISH literals while the list it was fed had already been
+  /// translated: on any non-English locale nothing matched and it returned its
+  /// argument unchanged, which is exactly what it would have returned anyway.
+  /// Its own doc claimed the entries were "kept in English so the API contract
+  /// is stable across languages" — the code had not done that for some time.
+  ///
+  /// Names are now entered by the hotel and stored verbatim, so what is sent,
+  /// shown and deleted are the same string in every locale.
+  List<String> get existingCategories {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final photo in propertyPhotosList) {
+      final title = photo.category?.trim() ?? '';
+      if (title.isEmpty) continue;
+      if (!seen.add(title.toLowerCase())) continue;
+      result.add(title);
     }
-    return key;
+    return result;
   }
 
   /// Max picks before [addImage] starts rejecting.
   static const int _maxImagesPerUpload = 6;
 
+  /// Cap on one upload, and how many more photos it can still take.
+  int get maxImages => _maxImagesPerUpload;
+
+  int get remainingImageSlots => _maxImagesPerUpload - selectedImages.length;
+
   // ---- Upload-form state -----------------------------------------------------
 
+  /// The album this upload will be filed under — either picked from
+  /// [existingCategories] or typed fresh.
   final RxString selectedCategory = "".obs;
   final RxList<String> selectedImages = <String>[].obs;
+
+  /// True while the "Other" option is chosen — the hotel is naming an album of
+  /// its own rather than filing under one it already has.
+  ///
+  /// Tracked separately from [selectedCategory] because the two mean different
+  /// things while the name is still being typed: "Other is chosen but nothing
+  /// entered yet" has to keep the text field on screen, and an empty
+  /// [selectedCategory] alone can't say that.
+  final RxBool isCustomCategory = false.obs;
+
+  /// Whether the upload form is complete enough to submit. `trim` so an album
+  /// name of nothing but spaces doesn't pass.
+  bool get canSubmitUpload =>
+      selectedCategory.value.trim().isNotEmpty && selectedImages.isNotEmpty;
+
+  /// Files this upload under one of [existingCategories].
+  void selectExistingCategory(String category) {
+    isCustomCategory.value = false;
+    selectedCategory.value = category;
+  }
+
+  /// Switches to the "Other" option: clears whatever existing album was
+  /// selected and hands the naming over to the text field.
+  void chooseCustomCategory() {
+    isCustomCategory.value = true;
+    selectedCategory.value = '';
+  }
 
   @override
   void onInit() {
@@ -94,7 +129,7 @@ class PropertyPhotoController extends GetxController {
   }
 
   void onCategoryChanged(String? value) {
-    if (value != null) selectedCategory.value = value;
+    selectedCategory.value = value ?? '';
   }
 
   void addImage(String path) {
@@ -103,6 +138,27 @@ class PropertyPhotoController extends GetxController {
       return;
     }
     selectedImages.add(path);
+  }
+
+  /// Appends a batch from the multi-picker, keeping the total at or under
+  /// [_maxImagesPerUpload].
+  ///
+  /// The picker is already told the cap, but it only knows how many were
+  /// picked in THAT pass — the hotel can come back and add more to a selection
+  /// that is already part-full, so the ceiling is re-checked here against what
+  /// is already held. Anything over the line is dropped with one snackbar
+  /// rather than one per file.
+  void addImages(List<String> paths) {
+    if (paths.isEmpty) return;
+    final room = remainingImageSlots;
+    if (room <= 0) {
+      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+      return;
+    }
+    selectedImages.addAll(paths.take(room));
+    if (paths.length > room) {
+      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+    }
   }
 
   void removeImage(int index) {
@@ -122,7 +178,10 @@ class PropertyPhotoController extends GetxController {
       }
 
       final ResponseModel response = await _repo.addHotelPropertyPhotosRepo(reqBody: {
-        "category": selectedCategory.value,
+        // Trimmed so "Rooms" and "Rooms " don't become two albums that read
+        // identically in the list — and, since deletes match on this same
+        // string, two albums only one of which a delete can find.
+        "category": selectedCategory.value.trim(),
         "images": urls,
       });
 
@@ -171,6 +230,9 @@ class PropertyPhotoController extends GetxController {
   void clearSelection() {
     selectedImages.clear();
     selectedCategory.value = "";
+    // Also cleared, or the next upload would open on the "Other" branch left
+    // over from this one.
+    isCustomCategory.value = false;
   }
 
   /// Uploads a batch of local file paths sequentially and returns the

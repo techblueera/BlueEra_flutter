@@ -37,7 +37,7 @@ class _CampusLifeListingScreenState extends State<CampusLifeListingScreen> {
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                Get.to(CreateCampusLifeScreen());
+                Get.to(() => CreateCampusLifeScreen());
               },
               title: AppStrings.addCampusLife),
         ),
@@ -95,7 +95,7 @@ class _CampusLifeListingScreenState extends State<CampusLifeListingScreen> {
 
                       return InkWell(
                         onTap: () {
-                          Get.to(CampusLifeDetailsScreen(
+                          Get.to(() => CampusLifeDetailsScreen(
                             subcategories: sub,
                           ));
                         },

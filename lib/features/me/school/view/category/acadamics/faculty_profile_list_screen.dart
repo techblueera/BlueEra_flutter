@@ -31,7 +31,7 @@ class FacultyProfileListScreen extends StatelessWidget {
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                Get.to(FacultyFormScreen());
+                Get.to(() => FacultyFormScreen());
               },
               title:  AppStrings.addFacility,),
         ),
@@ -81,7 +81,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                     PopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'edit') {
-                          Get.to(FacultyFormScreen(isEdit: true,facultyData: user,));
+                          Get.to(() => FacultyFormScreen(isEdit: true,facultyData: user,));
                         } else if (value == 'delete') {
                           await showCommonDialog(
                               context: context,

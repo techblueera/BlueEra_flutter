@@ -5,7 +5,7 @@
 	<!-- Google AdMob App ID (primary ad server; Meta Audience Network mediated
 	     behind it). See docs/ads/ADMOB_MEDIATION_SETUP.md -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-8886065788013100~9120060701</string>
+	<string>ca-app-pub-4151367085462604~5043177104</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>ai.bluecs.app.videoUploadTask</string>

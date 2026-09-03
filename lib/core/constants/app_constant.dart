@@ -613,7 +613,7 @@ redirectToProfileScreen(
     if (businessId == profileId) {
       openMeOverview();
 
-      // Get.to(BusinessOwnProfileScreen(
+      // Get.to(() => BusinessOwnProfileScreen(
       //   isScreenFrom: screenName,
       // ));
     } else {
