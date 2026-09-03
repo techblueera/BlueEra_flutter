@@ -36,6 +36,16 @@ import 'package:BlueEra/features/me/product/service/product_local_store.dart';
 import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_order_local_store.dart';
+import 'package:BlueEra/core/services/other_profile_dirty.dart';
+import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/automotive_service/controller/management_controller.dart';
+import 'package:BlueEra/features/me/automotive_service/controller/other_service_photo_controller.dart';
+import 'package:BlueEra/features/me/automotive_service/controller/timing_controller.dart';
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/others/controller/management_controller.dart';
+import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
+import 'package:BlueEra/features/me/others/controller/timing_controller.dart';
+import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
@@ -180,6 +190,54 @@ class LogoutHelper {
     _drop(deleteIfRegistered<ManufacturerInventoryController>);
     _drop(deleteIfRegistered<ManufacturerProductController>);
     _drop(deleteIfRegistered<VehicleV3Controller>);
+    _resetOtherServiceControllers();
+  }
+
+  /// Drops the "other service" business-profile controllers.
+  ///
+  /// These are the reason `GET other-service/business-profile` stopped firing
+  /// after a logout followed by a login. The lookup is reached from
+  /// `BusinessProfileFullController.getBusinessProfileFull()`, and the screen
+  /// only calls that when its cached profile is null:
+  ///
+  /// ```dart
+  /// if (_otherController.businessProfile.value == null) {
+  ///   _otherController.getBusinessProfileFull();
+  /// }
+  /// ```
+  ///
+  /// Logout wipes secure storage and the globals, but NOT the GetX registry —
+  /// `Get.deleteAll()` is never called anywhere — and this controller is a
+  /// plain `Get.put` singleton created by `getOrPut`. So it survived the
+  /// logout still holding the previous account's profile, the null guard saw
+  /// non-null, and the whole fetch was skipped: no id lookup, no
+  /// `/business-profile/<id>/full`, and the Overview tab rendered the PREVIOUS
+  /// account's management, gallery and timings to the account that just signed
+  /// in. Dropping the controller restores the null that makes the screen fetch.
+  ///
+  /// The section controllers alongside it leak the same way — each holds its
+  /// own copy of that profile's data — and [OtherProfileDirty] is cleared for
+  /// the same reason: a pending "gallery changed" flag from the previous
+  /// account would otherwise spend itself on the next account's first visit.
+  ///
+  /// Each fork is listed separately because they are now separately
+  /// addressable. The automotive controllers used to be declared under the
+  /// SAME simple names as their me/others originals, and GetX keys its registry
+  /// by the simple class name — so the two forks shared one slot, only one
+  /// could be registered at a time, and `Get.find<T>()` on the other one threw
+  /// on the cast. They carry an `Automotive` prefix now.
+  static void _resetOtherServiceControllers() {
+    _drop(deleteIfRegistered<BusinessProfileFullController>);
+    _drop(deleteIfRegistered<OtherServicePhotoPhotoController>);
+    _drop(deleteIfRegistered<ManagementController>);
+    _drop(deleteIfRegistered<TimingController>);
+
+    _drop(deleteIfRegistered<AutomotiveBusinessProfileFullController>);
+    _drop(deleteIfRegistered<AutomotiveServicePhotoController>);
+    _drop(deleteIfRegistered<AutomotiveManagementController>);
+    _drop(deleteIfRegistered<AutomotiveTimingController>);
+
+    _drop(OtherProfileDirty.clear);
   }
 
   /// Logout's local-storage step, in two halves.
@@ -256,6 +314,11 @@ class LogoutHelper {
       // the place that drops account data names it, and a new vertical's box
       // going missing from this list is an obvious omission.
       GroceryLocalStore.clearAll,
+      // The "other service" full-profile snapshot. Same reason as the rest:
+      // it is one account's profile, and the Overview tab is served from it
+      // rather than from the network, so leaving it behind would show the
+      // previous merchant's management, gallery and timings to the next one.
+      OtherProfileLocalStore.clearAll,
       // The locally-persisted order ids. There is no server order list for
       // self-pickup (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7), so this box is
       // the only record the device has — and for exactly that reason it must

@@ -1,19 +1,19 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/hotel_property_photo_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
-import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
 /// Drives the property-photos screen: lists existing albums per category,
 /// and handles the multi-image upload flow that batches local files through
 /// S3 then registers them under a category.
-class PropertyPhotoController extends GetxController {
+class PropertyPhotoController extends GetxController
+    with GalleryUploadGuard {
   final HotelServiceRepo _repo = HotelServiceRepo();
 
   final RxBool isLoading = false.obs;
@@ -167,10 +167,16 @@ class PropertyPhotoController extends GetxController {
 
   /// Uploads every picked file to S3 then posts the resulting URLs under
   /// [selectedCategory]. Clears the form on success.
+  /// Guarded so a repeated Submit can't start a second concurrent run — see
+  /// [GalleryUploadGuard].
   Future<void> buildRequestBody() async {
+    await guardGalleryUpload(() => _submitGallery());
+  }
+
+  Future<void> _submitGallery() async {
     try {
       isSaving.value = true;
-      final urls = await _uploadAll(selectedImages);
+      final urls = await uploadGalleryFilesOnce(selectedImages);
 
       if (urls.isEmpty) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -233,17 +239,6 @@ class PropertyPhotoController extends GetxController {
     // Also cleared, or the next upload would open on the "Other" branch left
     // over from this one.
     isCustomCategory.value = false;
-  }
-
-  /// Uploads a batch of local file paths sequentially and returns the
-  /// resulting S3 URLs for those that succeed.
-  Future<List<String>> _uploadAll(List<String> paths) async {
-    final urls = <String>[];
-    for (final path in paths) {
-      final result = await S3UploadService.uploadFile(File(path));
-      if (result.isSuccess) urls.add(result.url);
-    }
-    return urls;
   }
 
   void _refreshHotelHome() {

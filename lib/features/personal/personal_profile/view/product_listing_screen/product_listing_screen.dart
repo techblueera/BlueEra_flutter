@@ -152,7 +152,7 @@ class _ProductListingScreenState extends State<ProductListingScreen>
                       child: TextField(
                         controller: controller.productNameController,
                         decoration: const InputDecoration(
-                          hintText: 'e.g. Wireless Earbuds Boat Airdop....',
+                          hintText: 'e.g. Wireless Earbuds boAt Airdopes...',
                           hintStyle: TextStyle(
                             color: AppColors.grey9B,
                             fontSize: 16,

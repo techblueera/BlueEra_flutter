@@ -14,7 +14,7 @@ import 'package:get/get.dart';
 
 class ManagementFormScreen extends StatelessWidget {
 
-  final controller = Get.find<ManagementController>();
+  final controller = Get.find<AutomotiveManagementController>();
 
   ManagementFormScreen({super.key});
 

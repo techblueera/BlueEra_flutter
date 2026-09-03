@@ -9,7 +9,7 @@ import 'package:BlueEra/features/me/automotive_service/controller/business_profi
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
 
-class OtherBranchContactController extends GetxController {
+class AutomotiveBranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSchoolContactUsResponse =
@@ -110,7 +110,8 @@ class OtherBranchContactController extends GetxController {
 
   void _refreshHomeScreen() {
     try {
-      Get.find<AutomotiveBusinessProfileFullController>().getBusinessProfileFull();
+      Get.find<AutomotiveBusinessProfileFullController>()
+          .getBusinessProfileFull(forceRefresh: true);
     } catch (_) {}
   }
 

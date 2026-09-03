@@ -1,11 +1,11 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,11 +31,31 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
       body: Obx(() {
         if (controller.isLoading.value) return const _PhotosShimmer();
 
+        // `albumsWithPhotos`, not the raw list: an album with no images has no
+        // thumbnail and reads as a broken card. The controller deliberately
+        // KEEPS those albums so their category survives in the upload form —
+        // see `fetchPhotos`.
+        final albums = controller.albumsWithPhotos;
+
+        // Reachable by deleting the last photo out of the last album while
+        // standing here — the Overview tab routes an already-empty gallery
+        // straight to the upload form, so this is the only way in. Without it
+        // the body went blank white and the sole working control was the
+        // button pinned at the very bottom of the screen.
+        if (albums.isEmpty) {
+          return EmptyStateWidget(
+            message: AppStrings.noGalleryPhotosYet.tr,
+            actionText: AppStrings.otherUploadServicePhoto.tr,
+            actionCallback: () => _startUpload(context),
+            actionHighlight: true,
+          );
+        }
+
         return ListView.builder(
           padding: EdgeInsets.all(16),
-          itemCount: controller.propertyPhotosList.length,
+          itemCount: albums.length,
           itemBuilder: (context, index) {
-            var item = controller.propertyPhotosList[index];
+            var item = albums[index];
             List images = item.imageUrls ?? [];
             String firstImage = images.isNotEmpty ? images[0] : "";
 
@@ -123,30 +143,20 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
       }),
     );
   }
-  /// Photos first, category second.
+  /// Opens the upload form. It does NOT open a picker.
   ///
-  /// Tapping upload opens the multi-select picker straight away — up to
-  /// [OtherServicePhotoPhotoController.maxImages] in one pass — and only once
-  /// something has actually been picked does the next screen open to name the
-  /// category. Backing out of the picker leaves the merchant where they were
-  /// instead of on an empty form they now have to abandon too.
+  /// Tapping "Upload" used to fire the camera/gallery chooser immediately, from
+  /// the gallery list, before the merchant had seen the upload screen at all —
+  /// a button labelled "upload service photo" that answered with a camera. The
+  /// form is where photos belong: it already has an add tile that opens the
+  /// same picker, so the merchant lands on the screen, sees the empty box, and
+  /// asks for the picker when they are ready.
   ///
-  /// It used to run the other way round: the button opened a form whose first
-  /// field was the category, so the merchant had to name a group before
-  /// seeing a single photo, and could name one and then pick nothing.
-  Future<void> _startUpload(BuildContext context) async {
-    // Start from empty: this controller outlives the upload screen, so
-    // whatever a cancelled attempt left behind must not leak into this one.
+  /// The form starts blank because [resetUploadForm] runs here and this
+  /// controller outlives the screen — whatever a cancelled attempt left behind
+  /// must not leak into this one.
+  void _startUpload(BuildContext context) {
     controller.resetUploadForm();
-
-    final paths = await PhotoPickerService.pickMultiplePhotos(
-      context,
-      AppStrings.otherUploadServicePhoto.tr,
-      maxImages: controller.maxImages,
-    );
-    if (paths == null || paths.isEmpty) return;
-
-    controller.addImages(paths);
     Get.to(() => const UploadOtherServicePhotosScreen());
   }
 

@@ -11,7 +11,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class OtherServicePhotosPhotoScreen extends StatelessWidget {
-  final controller = Get.put(OtherServicePhotoPhotoController());
+  final controller = Get.put(AutomotiveServicePhotoController());
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +126,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
   /// Photos first, category second.
   ///
   /// Tapping upload opens the multi-select picker straight away — up to
-  /// [OtherServicePhotoPhotoController.maxImages] in one pass — and only once
+  /// [AutomotiveServicePhotoController.maxImages] in one pass — and only once
   /// something has actually been picked does the next screen open to name the
   /// category. Backing out of the picker leaves the merchant where they were
   /// instead of on an empty form they now have to abandon too.

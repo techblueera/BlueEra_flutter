@@ -150,7 +150,7 @@ class _AcademicCalenderFormScreenState
                       // The Reusable AI Widget
                       Obx(() {
                         return AIGeneratorButton(
-                          type: "Academic Calender",
+                          type: "Academic Calendar",
                           data: {
                             "for": "academic_calender",
                             if (academicCalenderController

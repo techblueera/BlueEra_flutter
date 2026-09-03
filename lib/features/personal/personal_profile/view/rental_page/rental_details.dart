@@ -161,7 +161,7 @@ class RentalDetailsScreen extends StatelessWidget {
                     SizedBox(height: SizeConfig.size10),
 
                     CustomText(
-                      "Sorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia n...Read More",
+                      "A well-kept property on a quiet, well-connected street, close to markets, schools and public transport. Comes with power backup and a 24x7 water supply...Read More",
                       color: Colors.black87,
                       fontSize: SizeConfig.size13,
                       maxLines: 4,
@@ -223,12 +223,16 @@ class RentalDetailsScreen extends StatelessWidget {
                       fontSize: SizeConfig.size16,
                     ),
                     SizedBox(height: SizeConfig.size12),
-                    ...List.generate(
-                      4,
-                          (index) => Padding(
+                    ...const [
+                      'Fully furnished with a modular kitchen',
+                      'Covered parking for one car',
+                      '24x7 water and power backup',
+                      'Walking distance from the metro station',
+                    ].map(
+                      (highlight) => Padding(
                         padding: EdgeInsets.only(bottom: SizeConfig.size6),
                         child: CustomText(
-                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                          highlight,
                           color: Colors.black87,
                           fontSize: SizeConfig.size14,
                         ),

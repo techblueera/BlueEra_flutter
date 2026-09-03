@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_service_photo_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -103,23 +102,18 @@ class _UploadProfessionalsServicePhotosScreenState extends State<UploadProfessio
 
             SizedBox(height: 40),
             Obx(() {
+              // `isLoading` is read here so the button DISABLES itself for the
+              // length of the upload. The screen now stays put until the
+              // uploads finish, so without this the merchant could tap Submit
+              // again and mint a second set of presigned urls — a whole second
+              // copy of every photo in S3. The controller guards this too; this
+              // is the half the user can see.
+              final canSubmit = controller.selectedImages.isNotEmpty &&
+                  !controller.isLoading.value;
               return CustomBtn(
                 title: "Submit",
-                isValidate:
-                    controller.selectedImages.isNotEmpty,
-                onTap:
-                        controller.selectedImages.isNotEmpty
-                    ? () {
-                       if (controller.selectedImages.isEmpty) {
-
-                          commonSnackBar(
-                              message: "Error Please upload at least 1 image");
-                        } else {
-                          controller.buildRequestBody();
-                          // Call your API upload logic here
-                        }
-                      }
-                    : null,
+                isValidate: canSubmit,
+                onTap: canSubmit ? controller.buildRequestBody : null,
               );
             }),
           ],

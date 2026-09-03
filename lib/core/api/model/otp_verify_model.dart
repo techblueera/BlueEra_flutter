@@ -63,7 +63,15 @@ class User {
     contactNo = json['contact_no'];
     username = json['username'];
     accountType = json['account_type'];
-    business = json['business'];
+    // `business` OR `business_id` — verify-otp is not consistent about which
+    // key carries the shop id, and the same user object embedded in the JWT's
+    // `_id` claim uses `business_id`. Reading only `business` silently parsed
+    // null, so `_persistLoginIdentity` had nothing to store: `businessId` came
+    // up empty for the whole session, `viewBusinessProfile` bailed before its
+    // request (view_business_details_controller.dart:311), and the profile
+    // fetch that would otherwise have re-saved the id could never run — the id
+    // it needed was the one that was missing.
+    business = json['business'] ?? json['business_id'];
     name = json['name'];
     profileImage = json['profile_image'];
   }

@@ -287,7 +287,7 @@ class JobRepo extends BaseService {
     return await ApiBaseHelper().postFileDownloadHTTP(
       (status?.isNotEmpty??false)? "${jobApplicationJob}$jobID/export?format=$fileExtensions&status=$status":"${jobApplicationJob}$jobID/export?format=$fileExtensions",
       isGetReq: true,
-      successMessage: "Candidate List Download successfully",
+      successMessage: "Candidate list downloaded successfully",
       fileExtensions: fileExtensions,
       containerName: '',
     );

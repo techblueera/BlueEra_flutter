@@ -109,18 +109,41 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     }
     _otherController = getOrPut(() => BusinessProfileFullController());
     // Overview is the tab this screen opens on, so its data has to be asked for
-    // HERE — no tab switch is going to do it. Conditional because the bottom bar
-    // rebuilds this screen on every visit to the Me tab (`_getScreen` is a plain
-    // switch behind a per-index key, not an IndexedStack) while the controller
-    // is a `Get.put` singleton that outlives it: without the guard, every tap on
-    // Me would refetch. A load that failed leaves the value null, so this still
-    // retries on the next visit.
-    if (_otherController.businessProfile.value == null) {
-      _otherController.getBusinessProfileFull();
-    }
-    if (_businessController.businessProfileDetails.value?.data == null) {
+    // HERE — no tab switch is going to do it.
+    //
+    // `viewBusinessProfile()` is called PLAIN, with no "already have it" guard:
+    // it is the profile-wide API every Me screen depends on, and the controller
+    // already coalesces concurrent non-silent callers onto a single request
+    // (view_business_details_controller.dart:292), so a repeat visit costs one
+    // refresh, not a duplicate in-flight fetch.
+    //
+    // `getBusinessProfileFull()` keeps its guard — that one is the
+    // other-service payload, served from the Hive snapshot, and the bottom bar
+    // rebuilds this screen on every visit to Me (`_getScreen` is a plain switch
+    // behind a per-index key, not an IndexedStack) while the controller is a
+    // `Get.put` singleton that outlives it. A load that failed leaves the value
+    // null, so this still retries on the next visit.
+    //
+    // Deferred to post-frame, NOT called straight from initState: both write to
+    // an `.obs` synchronously before their first await — `getBusinessProfileFull`
+    // sets `isLoading`, `_fetchBusinessProfile` sets `isMeProfileFetching` /
+    // `meProfileError` (view_business_details_controller.dart:303-304). initState
+    // runs DURING the build phase, so those writes marked an already-built `Obx`
+    // dirty mid-build — the bottom bar's `resolveBusinessScreen()` watches both
+    // flags — and Flutter threw:
+    //
+    //   "This Obx widget cannot be marked as needing to build because the
+    //    framework is already in the process of building widgets."
+    //
+    // A post-frame callback puts the writes in the frame AFTER the one that
+    // mounts this screen, the same trick `_maybeAskForLivePhotos` above uses.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_otherController.businessProfile.value == null) {
+        _otherController.getBusinessProfileFull();
+      }
       _businessController.viewBusinessProfile();
-    }
+    });
     // Hydrate the business chat list so the Inquiry tab has data ready
     // when the user switches to it. Mirrors what the other v2 screens
     // (Hospital, School, Medical, Lab) and `professionals_main.dart` do.
@@ -197,9 +220,32 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     );
   }
 
+  /// Pull-to-refresh dispatcher — mirrors `GroceryHomeScreenV2`
+  /// (`_onRefreshCurrentTab`): each tab owns a different data set, so a pull
+  /// fires only the API(s) backing the visible one.
+  Future<void> _onRefreshCurrentTab() async {
+    // `forceRefresh`: a pull-to-refresh must reach the network. Served from the
+    // Hive snapshot it would return instantly having changed nothing, which
+    // reads as a broken gesture — and it is the merchant's only way to pick up
+    // an edit made on another device.
+    if (_tabController.index != _overviewTabIndex) {
+      await _otherController.getBusinessProfileFull(forceRefresh: true);
+      return;
+    }
+    // Overview draws from BOTH APIs, so both have to be refreshed here: the
+    // other-service payload backs Management / Gallery / Timings / Banking,
+    // while the joined-profile card, live photos, contact map, website and QR
+    // come from `viewBusinessProfile` — the profile-wide API shared by every
+    // Me screen. Refreshing only the first left half the tab stale.
+    await Future.wait([
+      _otherController.getBusinessProfileFull(forceRefresh: true),
+      _businessController.viewBusinessProfile(),
+    ]);
+  }
+
   Widget _tabScroll(Widget child) {
     return RefreshIndicator(
-      onRefresh: _otherController.getBusinessProfileFull,
+      onRefresh: _onRefreshCurrentTab,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),

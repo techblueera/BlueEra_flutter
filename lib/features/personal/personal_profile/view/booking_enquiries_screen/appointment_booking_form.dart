@@ -353,7 +353,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                                 _selectedFromTime!.split(' - ');
                             if (timeSlotParts.length != 2) {
                               commonSnackBar(
-                                  message: 'Error Invalid time slot format');
+                                  message: 'Error: Invalid time slot format');
                               return;
                             }
 

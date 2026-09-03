@@ -22,7 +22,7 @@ class OtherPrivacyConditionFormScreen extends StatefulWidget {
 
 class _OtherPrivacyConditionFormScreenState
     extends State<OtherPrivacyConditionFormScreen> {
-  final controller = Get.find<OtherPrivacyConditionController>();
+  final controller = Get.find<AutomotivePrivacyConditionController>();
 
   @override
   void initState() {

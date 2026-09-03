@@ -146,7 +146,7 @@ Widget ComplaintCardList(){
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Nike Fashion Shoe Lorem Ipsum Ip....",
+                    "Nike Fashion Shoes - Men's Running Sneakers",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                       fontSize: 14,

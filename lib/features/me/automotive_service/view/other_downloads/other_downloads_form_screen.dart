@@ -25,7 +25,7 @@ class OtherDownloadsFormScreen extends StatefulWidget {
 
 class _OtherDownloadsFormScreenState
     extends State<OtherDownloadsFormScreen> {
-  final controller = Get.find<OtherDownloadsController>();
+  final controller = Get.find<AutomotiveDownloadsController>();
 
   @override
   void initState() {

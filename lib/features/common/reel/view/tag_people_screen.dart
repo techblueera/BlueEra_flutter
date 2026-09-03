@@ -223,7 +223,7 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
                               tagPeopleController.toggleSelection(id, name);
                             },
                           )
-                              : EmptyStateWidget(message: 'Not found any user')),
+                              : EmptyStateWidget(message: 'No users found')),
                         ),
                       ),
                       SizedBox(height: SizeConfig.size8),

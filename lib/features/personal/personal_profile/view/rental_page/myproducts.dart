@@ -28,7 +28,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
   final List<Map<String, String>> products = List.generate(8, (index) {
     return {
       "title": "Banerjee Inn - ${index + 1}",
-      "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "desc": "Furnished rooms with an attached bathroom, close to the main road.",
       "phone": "+91 1234567890",
       "image": "assets/images/rentalhome.png"
     };

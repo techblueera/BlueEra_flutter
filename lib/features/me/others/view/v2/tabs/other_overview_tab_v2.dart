@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
     hide Location;
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
@@ -20,6 +22,7 @@ import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_list
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -64,13 +67,34 @@ class OtherOverviewTabV2 extends StatelessWidget {
   void _openSection(Widget Function() page, OtherProfileSection section) {
     Get.to(page)?.then((_) {
       if (OtherProfileDirty.consume(section)) {
-        controller.getBusinessProfileFull();
+        // `forceRefresh`: the section was WRITTEN to, so the Hive snapshot the
+        // profile is otherwise served from is now stale by definition.
+        controller.getBusinessProfileFull(forceRefresh: true);
       }
     });
   }
 
-  void _openGallery() =>
-      _openSection(() => OtherServicePhotosPhotoScreen(), OtherProfileSection.gallery);
+  /// Opens the gallery — the album LIST when there is something to look at,
+  /// and the upload form DIRECTLY when there isn't.
+  ///
+  /// This tab already knows whether any album holds a photo, so sending a
+  /// merchant with an empty gallery through the list screen first just showed
+  /// them a blank page whose only working control was the button pinned at the
+  /// bottom. The decision belongs here, where the answer is already in hand.
+  void _openGallery({required bool hasPhotos}) {
+    if (hasPhotos) {
+      _openSection(
+          () => OtherServicePhotosPhotoScreen(), OtherProfileSection.gallery);
+      return;
+    }
+    // Skipping the list screen means skipping the `Get.put` that registers this
+    // controller — and the upload form does a `Get.find` for it — so register
+    // it here. Creating it also kicks off `fetchPhotos()`, which is what the
+    // form's category suggestions read.
+    getOrPut(() => OtherServicePhotoPhotoController()).resetUploadForm();
+    _openSection(() => const UploadOtherServicePhotosScreen(),
+        OtherProfileSection.gallery);
+  }
 
   void _openManagement() =>
       _openSection(() => const ManagementScreen(), OtherProfileSection.management);
@@ -92,6 +116,24 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
     return Obx(() {
       final data = controller.businessProfile.value;
+
+      // `data` is the OTHER-SERVICE payload
+      // (`other-service/business-profile/<id>/full`), and it backs only the
+      // four sections that come from it: Management, Gallery, Banking,
+      // Timings.
+      //
+      // Everything else on this tab — the joined profile card, live photos,
+      // Contact Us map, website, share banner, QR — is driven by
+      // `viewBusinessProfile`, the profile-wide API every Me screen shares.
+      // So this must NOT early-return while `data` is null: that blanked out
+      // the profile-wide widgets for the whole length of an other-service
+      // fetch, even though their own data had already arrived. Only the four
+      // sections that actually need it wait, via [isOtherLoading].
+      //
+      // `isLoading` starts true on the controller, so the very first frame
+      // (before the post-frame fetch has even begun) already reads as loading.
+      final isOtherLoading = data == null && controller.isLoading.value;
+
       final coordinates =
           data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
       final hasCoords = coordinates != null &&
@@ -114,10 +156,26 @@ class OtherOverviewTabV2 extends StatelessWidget {
       // and the relevant banner disappears automatically.
       final isFinance = businessTypeGlobal.toUpperCase() ==
           BusinessType.Finance.name.toUpperCase();
-      final needsBankingInfo = isFinance &&
-          data?.rbiRegistered == null &&
-          (data?.accountType?.isEmpty ?? true);
-      final needsTimings = !_hasAnyConfiguredTiming(data?.timings);
+      //
+      // Both gates require a LOADED other-service profile.
+      // `_hasAnyConfiguredTiming(null)` is false, so without the `data != null`
+      // guard a not-yet-arrived profile made `needsTimings` true and the tab
+      // told every merchant to "Set your Business Timings" for the length of
+      // the fetch — including merchants whose hours were already saved.
+      final needsBankingInfo = data != null &&
+          isFinance &&
+          data.rbiRegistered == null &&
+          (data.accountType?.isEmpty ?? true);
+      final needsTimings =
+          data != null && !_hasAnyConfiguredTiming(data.timings);
+
+      // Whether any album actually holds an image — NOT just whether the
+      // gallery list is non-empty. An album with no images renders `_Gallery`,
+      // which collapses to a `SizedBox.shrink()`, so `gallery.isNotEmpty` alone
+      // produced a Gallery card with a header and nothing underneath it. It is
+      // also what decides where the card's taps go — see [_openGallery].
+      final hasGalleryPhotos =
+          data?.gallery?.any((g) => g.imageUrls?.isNotEmpty ?? false) ?? false;
 
       if (needsBankingInfo || needsTimings) {
         return Column(
@@ -137,8 +195,11 @@ class OtherOverviewTabV2 extends StatelessWidget {
                 child: _BankingRequiredBanner(
                   onTap: () => _openBankingEditSheet(
                     context: context,
-                    initialRbi: data?.rbiRegistered,
-                    initialAccountTypes: data?.accountType ?? const [],
+                    // Promoted non-null: both `needsBankingInfo` and
+                    // `needsTimings` are `data != null && …`, so reaching this
+                    // branch proves the profile loaded.
+                    initialRbi: data.rbiRegistered,
+                    initialAccountTypes: data.accountType ?? const [],
                     onSave: (rbi, types) => controller.updateBankingInfo(
                       rbiRegistered: rbi,
                       accountType: types,
@@ -187,7 +248,9 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     onAction: _openManagement,
                   ),
                   const SizedBox(height: 10),
-                  if ((data?.management?.isNotEmpty ?? false))
+                  if (isOtherLoading)
+                    const _SectionSkeleton(height: 120)
+                  else if (data?.management?.isNotEmpty ?? false)
                     _ManagementList(items: data!.management!)
                   else
                     EmptySectionPlaceholder(
@@ -251,16 +314,18 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.gallery.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: _openGallery,
+                    onAction: () => _openGallery(hasPhotos: hasGalleryPhotos),
                   ),
                   const SizedBox(height: 10),
-                  if ((data?.gallery?.isNotEmpty ?? false))
+                  if (isOtherLoading)
+                    const _SectionSkeleton(height: 150)
+                  else if (hasGalleryPhotos)
                     _Gallery(galleryList: data!.gallery!)
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.gallery.tr,
-                      onTap: _openGallery,
+                      onTap: () => _openGallery(hasPhotos: false),
                     ),
                 ],
               ),
@@ -400,6 +465,25 @@ class OtherOverviewTabV2 extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+/// Placeholder for ONE other-service section while
+/// `other-service/business-profile/<id>/full` is still in flight.
+///
+/// Section-scoped on purpose: the profile-wide widgets on this tab come from
+/// `viewBusinessProfile` and must keep rendering on their own schedule, so a
+/// whole-tab skeleton is wrong here — it hid data that had already arrived.
+class _SectionSkeleton extends StatelessWidget {
+  final double height;
+
+  const _SectionSkeleton({required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return buildLoadingShimmer(
+      child: shimmerContainer(height: height, radius: 8),
+    );
   }
 }
 

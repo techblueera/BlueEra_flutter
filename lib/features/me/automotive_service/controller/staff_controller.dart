@@ -10,7 +10,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class StaffController extends GetxController {
+class AutomotiveStaffController extends GetxController {
   final OtherRepo _repo = OtherRepo();
 
   var staffList = <StaffData>[].obs;

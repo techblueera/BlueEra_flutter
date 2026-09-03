@@ -24,7 +24,7 @@ class OttHomeController extends GetxController {
     ),
     VideoModel(
       title: "Daily Current Affairs",
-      subtitle: "MCQs + Statics GK",
+      subtitle: "MCQs + Static GK",
       imageUrl:
       "https://img.freepik.com/free-vector/modern-youtube-thumbnail-with-flat-design_23-2147924446.jpg",
       channelIcon: "",
@@ -41,13 +41,13 @@ class OttHomeController extends GetxController {
   final List<VideoModel> recommended = [
     VideoModel(
       title: "Shrimad Bhagavad Gita Sar",
-      subtitle: "Corem ipsum dolor sit amet, consect adipiscing eli...",
+      subtitle: "Chapter-wise summary and commentary",
       imageUrl: "https://i.ytimg.com/vi/vCmpH-qQx_w/maxresdefault.jpg",
       channelIcon: "https://i.pravatar.cc/150?u=99",
     ),
     VideoModel(
       title: "PM MODI LIVE",
-      subtitle: "Corem ipsum dolor sit amet, consect adipiscing eli...",
+      subtitle: "Live coverage and highlights",
       imageUrl:
       "https://imgs.etvbharat.com/etvbharat/prod-images/17-09-2025/640-480-25029922-thumbnail-16x9-modi-thumbnail-live.jpg",
       channelIcon:

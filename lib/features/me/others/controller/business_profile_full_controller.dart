@@ -8,13 +8,19 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
+import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class BusinessProfileFullController extends GetxController {
   final OtherRepo _repo = OtherRepo();
-  var isLoading = false.obs;
+  /// Starts TRUE: nothing has been fetched yet, and the Overview tab uses this
+  /// to tell "still loading" apart from "loaded, and the profile really has no
+  /// timings". Getting that backwards is what made the tab accuse every
+  /// merchant of not setting their hours for the length of the first fetch.
+  var isLoading = true.obs;
+
   var businessProfile = Rx<BusinessProfileData?>(null);
   RxBool hasProfile = false.obs;
 
@@ -71,7 +77,21 @@ class BusinessProfileFullController extends GetxController {
   /// Reading the stored id first takes the lookup off the common path entirely;
   /// the request is now only the fallback for an account that has never
   /// resolved an id.
-  Future<void> getBusinessProfileFull() async {
+  ///
+  /// ## Cache-first
+  ///
+  /// The controller is an in-memory singleton, so `businessProfile` is null on
+  /// every cold start and the screen's "fetch when null" guard fired
+  /// `/business-profile/<id>/full` once per app launch — re-asking for a
+  /// profile that had not changed since the previous run. A Hive snapshot
+  /// ([OtherProfileLocalStore]) now answers that, and a cache hit REPLACES the
+  /// request rather than racing it, matching every other vertical in the app.
+  ///
+  /// Pass [forceRefresh] to go to the network anyway. Every write does: adding
+  /// or deleting a gallery photo, saving management, saving timings, updating
+  /// banking info. Those are the only things that change this profile from this
+  /// device, and each one rewrites the snapshot on the way back.
+  Future<void> getBusinessProfileFull({bool forceRefresh = false}) async {
     isLoading.value = true;
     try {
       if (otherServiceIDGlobal.isEmpty) {
@@ -91,15 +111,20 @@ class BusinessProfileFullController extends GetxController {
         return;
       }
 
-      // Always call the full profile API directly
+      if (!forceRefresh) {
+        final cached = await OtherProfileLocalStore.read(otherServiceIDGlobal);
+        if (cached != null && _applyProfile(cached)) return;
+      }
+
       final response =
           await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
       if (response != null && response.isSuccess) {
-        final model =
-            BusinessProfileFullModel.fromJson(response.response?.data);
-        if (model.success == true && model.data != null) {
-          businessProfile.value = model.data;
-          hasProfile.value = true;
+        final body = response.response?.data;
+        if (_applyProfile(body)) {
+          // Written only after the body has PARSED. Caching first would let a
+          // shape this app can't read pin itself on disk and reproduce the
+          // blank tab on every launch.
+          await OtherProfileLocalStore.write(otherServiceIDGlobal, body);
         }
       }
     } catch (e, s) {
@@ -110,6 +135,19 @@ class BusinessProfileFullController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Parses a full-profile response body and publishes it. Returns whether it
+  /// produced a usable profile — the caller uses that to decide whether the
+  /// body is worth caching, and whether a cache hit was good enough to skip the
+  /// network.
+  bool _applyProfile(dynamic body) {
+    if (body == null) return false;
+    final model = BusinessProfileFullModel.fromJson(body);
+    if (model.success != true || model.data == null) return false;
+    businessProfile.value = model.data;
+    hasProfile.value = true;
+    return true;
   }
 
   /// The persisted business-profile id, or `''` when there isn't one.
@@ -167,7 +205,7 @@ class BusinessProfileFullController extends GetxController {
         });
         if (response.isSuccess) {
           commonSnackBar(message: response.response?.data['message']);
-          getBusinessProfileFull();
+          getBusinessProfileFull(forceRefresh: true);
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
@@ -194,7 +232,7 @@ class BusinessProfileFullController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ?? 'Saved');
-        await getBusinessProfileFull();
+        await getBusinessProfileFull(forceRefresh: true);
         return true;
       }
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -223,7 +261,7 @@ class BusinessProfileFullController extends GetxController {
         }
         await getOtherServiceID();
         hasProfile.value = otherServiceIDGlobal.isNotEmpty;
-        await getBusinessProfileFull();
+        await getBusinessProfileFull(forceRefresh: true);
         await Future.delayed(Duration(milliseconds: 500));
       } else {
         final failure = _createFailureMessage(response);

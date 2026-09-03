@@ -1,23 +1,23 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
-import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
-class OtherServicePhotoPhotoController extends GetxController {
+class OtherServicePhotoPhotoController extends GetxController
+    with GalleryUploadGuard {
   // Use RxList to store your JSON data
   var propertyPhotosList = <OtherServiceGalleryData>[].obs;
   var isLoading = true.obs;
   final OtherRepo _repo = OtherRepo();
 
 
-  /// Loads the gallery groups.
+  /// Loads the gallery albums — EVERY album the server returned, unfiltered.
   ///
   /// The list is swapped in ONE assignment once the response lands, rather than
   /// cleared up front and refilled. This method runs on first open (where
@@ -27,24 +27,44 @@ class OtherServicePhotoPhotoController extends GetxController {
   /// trip, so the merchant watched their gallery blink to "nothing" and back.
   /// The global progress dialog used to cover that; it no longer runs here
   /// (`showProgress: false` on the repo call), which is what made it visible.
+  ///
+  /// ## Why nothing is filtered out here any more
+  ///
+  /// This list does TWO jobs: it draws the album cards, and it is the only
+  /// source of [existingCategories] — there is no categories endpoint, so a
+  /// category exists only because an album carries that `title`.
+  ///
+  /// It used to drop albums whose `imageUrls` was empty, which is right for the
+  /// cards (no thumbnail, reads as broken) and wrong for the categories. A
+  /// merchant who deleted the last photo out of "Reception" lost the category
+  /// too: the chip disappeared from the upload form and they had to retype the
+  /// name, where one typo ("reception", "Reception ") makes a second album that
+  /// reads identically to the first.
+  ///
+  /// So the filter moved to where it belongs — [albumsWithPhotos], read by the
+  /// card list — and the categories keep seeing every album.
   Future<void> fetchPhotos() async {
     final ResponseModel response = await _repo.getOtherServicePhotosRepo();
 
     if (response.isSuccess) {
       final model =
           OtherServiceGalleryResModel.fromJson(response.response?.data);
-      // Groups with no images are dropped — an empty group has nothing to
-      // show as its thumbnail and reads as a broken card.
-      final fresh = <OtherServiceGalleryData>[
-        for (final photo in model.data ?? const [])
-          if (photo.imageUrls?.isNotEmpty ?? false) photo,
-      ];
-      propertyPhotosList.assignAll(fresh);
+      propertyPhotosList.assignAll(model.data ?? const []);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
     isLoading.value = false;
   }
+
+  /// The albums that actually have something to show, for the card list.
+  ///
+  /// An album with no images has no thumbnail and renders as a broken card, so
+  /// the gallery screen skips it — but it keeps its category (see
+  /// [fetchPhotos]), so the merchant can still file new photos under that name.
+  List<OtherServiceGalleryData> get albumsWithPhotos => [
+        for (final album in propertyPhotosList)
+          if (album.imageUrls?.isNotEmpty ?? false) album,
+      ];
 
   final int maxImages = 6;
   final int minImages = 1;
@@ -66,6 +86,50 @@ class OtherServicePhotoPhotoController extends GetxController {
     final result = <String>[];
     for (final photo in propertyPhotosList) {
       final title = photo.title?.trim() ?? '';
+      if (title.isEmpty) continue;
+      if (!seen.add(title.toLowerCase())) continue;
+      result.add(title);
+    }
+    return result;
+  }
+
+  /// Generic sections every physical business has, offered as a STARTING
+  /// POINT so a merchant with an empty gallery isn't handed a blank text
+  /// field and asked to invent a taxonomy.
+  ///
+  /// These are suggestions, not a fixed catalogue. The API still stores a free
+  /// `title` per album, so tapping one just pre-fills that name and the "Other"
+  /// chip is always there to type something else. Nothing here is sent to the
+  /// server unless the merchant actually picks it.
+  ///
+  /// Deliberately business-AGNOSTIC. The fifteen hotel sections this screen
+  /// inherited ("Swimming Pool", "Spa & Wellness") were removed because they
+  /// described one vertical; these describe the parts of a shop, a garage, a
+  /// salon or a coaching centre equally.
+  static const List<String> _suggestedCategoryKeys = [
+    AppStrings.otherGalleryCategoryExterior,
+    AppStrings.otherGalleryCategoryInterior,
+    AppStrings.reception,
+    AppStrings.staff,
+    AppStrings.services,
+    AppStrings.products,
+    AppStrings.awards,
+  ];
+
+  /// [_suggestedCategoryKeys] resolved through the current locale. A getter,
+  /// not a stored list, so a language change is picked up on the next build.
+  List<String> get suggestedCategories =>
+      [for (final key in _suggestedCategoryKeys) key.tr];
+
+  /// What the upload form actually offers as chips: the merchant's OWN
+  /// categories first — those are real albums and matter more — then any
+  /// suggestion they haven't already used, de-duplicated case-insensitively so
+  /// a merchant who made "Reception" doesn't see it twice.
+  List<String> get categoryOptions {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final category in [...existingCategories, ...suggestedCategories]) {
+      final title = category.trim();
       if (title.isEmpty) continue;
       if (!seen.add(title.toLowerCase())) continue;
       result.add(title);
@@ -128,7 +192,10 @@ class OtherServicePhotoPhotoController extends GetxController {
     selectedCategory.value = '';
     isCustomCategory.value = false;
     selectedImages.clear();
-    urlList.clear();
+    // Drop the uploaded-url cache with the rest of the form, so re-picking the
+    // same file for a NEW album uploads it under that album rather than
+    // reusing the previous one's url.
+    clearGalleryUploadCache();
   }
 
   void addImage(String path) {
@@ -142,21 +209,41 @@ class OtherServicePhotoPhotoController extends GetxController {
   /// Appends a batch from the multi-picker, keeping the total at or under
   /// [maxImages].
   ///
-  /// The picker is already told the cap, but it only knows how many were
-  /// picked in THAT pass — the merchant can come back and add more to a
-  /// selection that is already part-full, so the ceiling is re-checked here
-  /// against what is already held. Anything over the line is dropped with one
-  /// snackbar rather than one per file.
+  /// The gallery picker is handed [remainingImageSlots] so it can stop the
+  /// merchant at selection time, but two paths still arrive over the line: the
+  /// CAMERA path takes an unbounded burst, and the merchant can come back and
+  /// add to a selection that is already part-full. So the ceiling is re-checked
+  /// here against what is already held.
+  ///
+  /// When something is dropped the merchant is told exactly WHAT — how many
+  /// went in, how many did not, and what the cap is. It used to answer any
+  /// overflow with a flat "You can upload a maximum of 6 images", which is
+  /// actively misleading when the real reason is that only two slots were left:
+  /// the merchant reads "6", counts five on screen, and cannot see what went
+  /// wrong.
   void addImages(List<String> paths) {
     if (paths.isEmpty) return;
     final room = remainingImageSlots;
     if (room <= 0) {
-      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+      commonSnackBar(
+        message: AppStrings.otherGalleryPhotosFullFmt
+            .trParams({'max': '$maxImages'}),
+      );
       return;
     }
-    selectedImages.addAll(paths.take(room));
-    if (paths.length > room) {
-      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+
+    final accepted = paths.take(room).toList();
+    selectedImages.addAll(accepted);
+
+    final skipped = paths.length - accepted.length;
+    if (skipped > 0) {
+      commonSnackBar(
+        message: AppStrings.otherGalleryPhotosSkippedFmt.trParams({
+          'added': '${accepted.length}',
+          'skipped': '$skipped',
+          'max': '$maxImages',
+        }),
+      );
     }
   }
 
@@ -164,49 +251,53 @@ class OtherServicePhotoPhotoController extends GetxController {
     selectedImages.removeAt(index);
   }
 
-  // Logic to build the JSON request body
-  List<String> urlList = [];
-
-  Future buildRequestBody() async {
-    try {
-      // Start from empty: `urlList` is a field, so without this a second
-      // upload in the same session re-sent the FIRST upload's S3 urls along
-      // with its own, filing those images under both categories.
-      urlList.clear();
-      for (var filePath in selectedImages) {
-        UploadResult? result = await S3UploadService.uploadFile(File(filePath));
-        if (result.isSuccess) {
-          urlList.add(result.url);
+  /// Uploads the picked files and registers them as ONE album.
+  ///
+  /// Wrapped in [guardGalleryUpload] and driven by [uploadGalleryFilesOnce], so
+  /// a repeated Submit can neither re-upload a file nor fire a second POST. See
+  /// [GalleryUploadGuard] for what went wrong without those two.
+  ///
+  /// The url list is a LOCAL, built fresh per run and handed straight to the
+  /// request. It used to be a field that each run cleared and refilled, which
+  /// is what let concurrent runs post each other's half-finished lists.
+  Future<void> buildRequestBody() async {
+    await guardGalleryUpload(() async {
+      // Owned here rather than by the caller: the submit button reads this to
+      // disable itself, so it has to be set before the first await.
+      isLoading.value = true;
+      try {
+        final urls = await uploadGalleryFilesOnce(selectedImages);
+        if (urls.isEmpty) {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          return;
         }
-      }
 
-      var requestBody = {
-        // Trimmed so "Reception" and "Reception " don't become two categories
-        // that read identically in the list.
-        "title": selectedCategory.value.trim(),
-        "imageUrls": urlList,
-      };
+        final ResponseModel response =
+            await _repo.addOtherServicePhotosRepo(reqBody: {
+          // Trimmed so "Reception" and "Reception " don't become two categories
+          // that read identically in the list.
+          "title": selectedCategory.value.trim(),
+          "imageUrls": urls,
+        });
 
-      ResponseModel response =
-          await _repo.addOtherServicePhotosRepo(reqBody: requestBody);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(message: response.response?.data['message']);
-        resetUploadForm();
-        // The Overview tab's gallery card is now stale — see
-        // [OtherProfileDirty].
-        OtherProfileDirty.mark(OtherProfileSection.gallery);
-        fetchPhotos();
-      } else {
+        if (response.isSuccess) {
+          Get.back();
+          commonSnackBar(message: response.response?.data['message']);
+          resetUploadForm();
+          // The Overview tab's gallery card is now stale — see
+          // [OtherProfileDirty].
+          OtherProfileDirty.mark(OtherProfileSection.gallery);
+          fetchPhotos();
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        }
+      } on Exception catch (e) {
+        logs('OtherServicePhotoPhotoController.buildRequestBody ERROR $e');
         commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        isLoading.value = false;
       }
-    } on Exception {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      // 5. Always hide loader at the end
-      isLoading.value = false;
-    }
+    });
   }
 
   ///DELETE NOTICE....

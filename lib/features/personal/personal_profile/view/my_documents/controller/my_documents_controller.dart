@@ -541,7 +541,7 @@ class MyDocumentsController extends GetxController {
     switch (docType) {
     // ----------------- PERSONAL DOCUMENTS -----------------
       case DocumentKeys.aadhar:
-        return "Aadhar Card";
+        return "Aadhaar Card";
       case DocumentKeys.pan:
         return "PAN Card";
       case DocumentKeys.drivingLicense:

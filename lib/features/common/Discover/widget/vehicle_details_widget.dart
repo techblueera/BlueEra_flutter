@@ -406,7 +406,7 @@ class VehicleDetailsWidget extends StatelessWidget {
                     if (vehicleDetails?.documentRequired?.adharCard ==
                         true) ...[
                       SizedBox(height: SizeConfig.size8),
-                      _buildRequirementRow('Aadhar Card required'),
+                      _buildRequirementRow('Aadhaar Card required'),
                     ],
                     if (vehicleDetails?.documentRequired?.addressProof ==
                         true) ...[

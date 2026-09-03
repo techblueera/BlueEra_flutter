@@ -48,7 +48,7 @@ class _CreateOverviewScreenState extends State<CreateOverviewScreen> {
                 children: [
                   CommonTextField(
                     title: "Career Objective",
-                    hintText: "Write about your self...",
+                    hintText: "Write about yourself...",
                     textEditController:
                         personalProfileController.addOverview.value,
                     maxLine: 5,

@@ -54,7 +54,7 @@ class _CreateMessagePostScreenNewState
     return WillPopScope(
       onWillPop: () async {
         if (msgController.isLoading.value) {
-          commonSnackBar(message: "Please wait Request is still processing...");
+          commonSnackBar(message: "Please wait, your request is still processing...");
           return false;
         }
         msgController.clearRepostData();

@@ -136,7 +136,7 @@ class ReferralRepoNew extends BaseService {
       'platform': platform,
       'title': title,
       'description':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+          'Preview details will load once the link is verified.',
       'thumbnail':
           'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600',
       'videoUrl':

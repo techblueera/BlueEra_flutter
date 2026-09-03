@@ -27,7 +27,7 @@ class OtherContactUs extends StatefulWidget {
 }
 
 class _OtherContactUsState extends State<OtherContactUs> {
-  final controller = Get.put(OtherBranchContactController());
+  final controller = Get.put(AutomotiveBranchContactController());
 
   @override
   void initState() {

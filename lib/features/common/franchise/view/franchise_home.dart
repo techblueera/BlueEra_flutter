@@ -141,11 +141,11 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                                         SizedBox(height: SizeConfig.size10,),
                                         CustomText("Grocery -",fontSize: 10,fontWeight: FontWeight.w600,),
                                         SizedBox(height: SizeConfig.size2,),
-                                        CustomText("Milk, Bread, Rice, Sugar, Salt, Ghee, Oil.....",fontSize: 10,color: AppColors.grayText,fontWeight: FontWeight.w400,),
+                                        CustomText("Milk, Bread, Rice, Sugar, Salt, Ghee, Oil...",fontSize: 10,color: AppColors.grayText,fontWeight: FontWeight.w400,),
                                         SizedBox(height: SizeConfig.size10,),
                                         CustomText("Vegetable & Fruit -",fontSize: 10,fontWeight: FontWeight.w600,),
                                         SizedBox(height: SizeConfig.size2,),
-                                        CustomText("Potato, Onion, Tomato, Palak, Mango....",fontSize: 10,color: AppColors.grayText,fontWeight: FontWeight.w400,),
+                                        CustomText("Potato, Onion, Tomato, Palak, Mango...",fontSize: 10,color: AppColors.grayText,fontWeight: FontWeight.w400,),
                                         SizedBox(height: SizeConfig.size10,),
                                         Row(mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
@@ -262,7 +262,7 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     ExpandableText(
-                                      text:"Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio matter lore...",
+                                      text:"The morning delivery did not arrive on two days last week and nobody from the store called to let me know. Please review the delivery schedule for this area.",
                                       trimLines: 2,
                                       isReadMoreNewLine: false,
                                       expandMode: ExpandMode.dialog,

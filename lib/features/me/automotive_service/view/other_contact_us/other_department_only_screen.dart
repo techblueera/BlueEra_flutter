@@ -22,7 +22,7 @@ class OtherDepartmentOnlyScreen extends StatefulWidget {
 }
 
 class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
-  final schoolAboutUsController = Get.find<OtherBranchContactController>();
+  final schoolAboutUsController = Get.find<AutomotiveBranchContactController>();
 
   final titleController = TextEditingController();
   final emailController = TextEditingController();

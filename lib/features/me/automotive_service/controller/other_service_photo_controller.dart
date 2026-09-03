@@ -1,15 +1,15 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
-import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
-class OtherServicePhotoPhotoController extends GetxController {
+class AutomotiveServicePhotoController extends GetxController
+    with GalleryUploadGuard {
   // Use RxList to store your JSON data
   var propertyPhotosList = <OtherServiceGalleryData>[].obs;
   var isLoading = true.obs;
@@ -120,7 +120,7 @@ class OtherServicePhotoPhotoController extends GetxController {
     selectedCategory.value = '';
     isCustomCategory.value = false;
     selectedImages.clear();
-    urlList.clear();
+    clearGalleryUploadCache();
   }
 
   void addImage(String path) {
@@ -156,46 +156,44 @@ class OtherServicePhotoPhotoController extends GetxController {
     selectedImages.removeAt(index);
   }
 
-  // Logic to build the JSON request body
-  List<String> urlList = [];
-
-  Future buildRequestBody() async {
-    try {
-      // Start from empty: `urlList` is a field, so without this a second
-      // upload in the same session re-sent the FIRST upload's S3 urls along
-      // with its own, filing those images under both categories.
-      urlList.clear();
-      for (var filePath in selectedImages) {
-        UploadResult? result = await S3UploadService.uploadFile(File(filePath));
-        if (result.isSuccess) {
-          urlList.add(result.url);
+  /// Uploads the picked files and registers them as ONE album.
+  ///
+  /// Same guard as the `me/others` fork this module was copied from — see
+  /// [GalleryUploadGuard]. Both post to `/other-service/gallery`, so both had
+  /// the duplicate-upload bug.
+  Future<void> buildRequestBody() async {
+    await guardGalleryUpload(() async {
+      isLoading.value = true;
+      try {
+        final urls = await uploadGalleryFilesOnce(selectedImages);
+        if (urls.isEmpty) {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          return;
         }
-      }
 
-      var requestBody = {
-        // Trimmed so "Bay 1" and "Bay 1 " don't become two categories that
-        // read identically in the list.
-        "title": selectedCategory.value.trim(),
-        "imageUrls": urlList,
-      };
+        final ResponseModel response =
+            await _repo.addOtherServicePhotosRepo(reqBody: {
+          // Trimmed so "Bay 1" and "Bay 1 " don't become two categories that
+          // read identically in the list.
+          "title": selectedCategory.value.trim(),
+          "imageUrls": urls,
+        });
 
-      ResponseModel response =
-          await _repo.addOtherServicePhotosRepo(reqBody: requestBody);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(message: response.response?.data['message']);
-        resetUploadForm();
-        fetchPhotos();
-      } else {
+        if (response.isSuccess) {
+          Get.back();
+          commonSnackBar(message: response.response?.data['message']);
+          resetUploadForm();
+          fetchPhotos();
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        }
+      } on Exception catch (e) {
+        logs('AutomotiveServicePhotoController.buildRequestBody ERROR $e');
         commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        isLoading.value = false;
       }
-    } on Exception {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      // 5. Always hide loader at the end
-      isLoading.value = false;
-    }
+    });
   }
 
   ///DELETE NOTICE....

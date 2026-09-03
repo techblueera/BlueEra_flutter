@@ -144,7 +144,7 @@ class ExperienceController extends GetxController {
     final formIsValid = basicFieldsValid && validDateOrder && validStartDate;
     if(basicFieldsValid==true){
       if(validDateOrder==false){
-        commonSnackBar(message: "End Data Must After Start Date");
+        commonSnackBar(message: "End date must be after start date");
       }
     }
 

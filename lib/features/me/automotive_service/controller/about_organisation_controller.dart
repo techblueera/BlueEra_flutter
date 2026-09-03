@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class AboutOrganisationController extends GetxController {
+class AutomotiveAboutOrganisationController extends GetxController {
   final OtherRepo _repo = OtherRepo();
 
   var aboutList = <AboutOrganisationData>[].obs;

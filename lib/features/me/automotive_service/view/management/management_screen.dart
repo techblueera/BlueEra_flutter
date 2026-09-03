@@ -20,7 +20,7 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ManagementController());
+    final controller = Get.put(AutomotiveManagementController());
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -63,7 +63,7 @@ class ManagementScreen extends StatelessWidget {
   }
 
   Widget _buildManagementCard(BuildContext context,
-      ManagementController controller, ManagementData item) {
+      AutomotiveManagementController controller, ManagementData item) {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(

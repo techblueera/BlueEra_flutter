@@ -724,7 +724,7 @@ class SchoolAboutUsController extends GetxController {
       qualifications.add(TextEditingController());
     } else {
       commonSnackBar(
-          message: "Limit Reached You can add maximum 5 qualifications");
+          message: "Limit reached. You can add a maximum of 5 qualifications.");
     }
   }
 

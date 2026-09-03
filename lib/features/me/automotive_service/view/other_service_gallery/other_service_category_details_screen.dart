@@ -50,8 +50,8 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
   /// screen — without first going through `AutomotiveServiceMain` —
   /// doesn't blow up with "controller not registered". When the parent
   /// already registered the instance, this is a no-op.
-  final OtherServicePhotoPhotoController controller =
-      getOrPut(() => OtherServicePhotoPhotoController());
+  final AutomotiveServicePhotoController controller =
+      getOrPut(() => AutomotiveServicePhotoController());
   final AutomotiveBusinessProfileFullController profileController =
       getOrPut(() => AutomotiveBusinessProfileFullController());
 

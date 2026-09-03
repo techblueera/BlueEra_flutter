@@ -20,7 +20,7 @@ class OtherNewsScreen extends StatelessWidget {
   OtherNewsScreen({super.key});
 
   final  controller =
-      Get.put(OtherNewsController());
+      Get.put(AutomotiveNewsController());
 
   @override
   Widget build(BuildContext context) {

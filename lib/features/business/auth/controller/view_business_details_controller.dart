@@ -316,16 +316,27 @@ logs("BUSINESS ID=== ${businessId}");
       meProfileError.value = AppStrings.businessProfileNotFound.tr;
       return;
     }
-    // 1. Show cached business profile (if any) immediately so the UI
-    //    isn't blank while the network call is in flight. Skipped in
-    //    `silent` mode — the caller (typically a post-update refresh)
-    //    already has fresher in-memory state than the cache, and
-    //    replaying the cache would visibly revert the change.
-    // final cacheKey = businessId.isNotEmpty ? businessId : userId;
-    // final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
-    // if (cached != null) {
-    //   _applyBusinessProfileData(cached, persistPrefs: false);
-    // }
+    // 1. Paint the cached business profile (if any) immediately so the UI
+    //    isn't blank while the network call is in flight.
+    //
+    //    Stale-while-revalidate, NOT cache-first: the snapshot only decides
+    //    what is on screen for the first few hundred milliseconds — step 2
+    //    below always runs and always replaces it. That is the opposite of
+    //    the per-vertical caches (e.g. other-service), where a cache hit
+    //    REPLACES the request; this profile is the one every Me screen reads,
+    //    so it must never be more than one round-trip stale.
+    //
+    //    `persistPrefs: false` — cached data must not overwrite the
+    //    shared-preference snapshot, which may hold newer values.
+    //
+    //    Skipped in `silent` mode: that caller is a post-update refresh and
+    //    already holds fresher in-memory state, so replaying the cache would
+    //    visibly revert the change it just made.
+    final cacheKey = businessId.isNotEmpty ? businessId : userId;
+    final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
+    if (cached != null) {
+      await _applyBusinessProfileData(cached, persistPrefs: false);
+    }
 
     // 2. Silently refresh from the server and replace state + cache on
     //    success.
@@ -345,7 +356,11 @@ logs("BUSINESS ID=== ${businessId}");
       if (businessTypeGlobal.trim().isEmpty) {
         meProfileError.value = AppStrings.businessProfileNotFound.tr;
       }
-    } else {
+    } else if (cached == null) {
+      // Only surface the failure when there is nothing on screen. With a cache
+      // hit the merchant is already looking at their profile, and flipping
+      // `meProfileError` would replace it with the Me tab's retry state —
+      // trading working (one-launch-old) data for an error screen.
       meProfileError.value =
           responseModel.message ?? AppStrings.somethingWentWrong.tr;
       // logs(

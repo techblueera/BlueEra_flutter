@@ -25,7 +25,7 @@ class OtherNewsFormScreen extends StatefulWidget {
 
 class _OtherNewsFormScreenState
     extends State<OtherNewsFormScreen> {
-  final controller = Get.find<OtherNewsController>();
+  final controller = Get.find<AutomotiveNewsController>();
 
   @override
   void initState() {

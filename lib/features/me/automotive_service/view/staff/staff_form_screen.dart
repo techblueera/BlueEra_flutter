@@ -15,7 +15,7 @@ import 'package:get/get.dart';
 
 class StaffFormScreen extends StatelessWidget {
 
-  final controller = Get.find<StaffController>();
+  final controller = Get.find<AutomotiveStaffController>();
 
   StaffFormScreen({super.key});
 

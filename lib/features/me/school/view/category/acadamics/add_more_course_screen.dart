@@ -120,7 +120,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 SizedBox(height: SizeConfig.paddingM),
                 CommonTextField(
                   textEditController: courseNameEditController,
-                  hintText: "E.g. B.Sc. Geography Honours....",
+                  hintText: "E.g. B.Sc. Geography Honours...",
                   title: AppStrings.courseName,
                   maxLength: 100,
                   onChange: (_) => _runValidation(),

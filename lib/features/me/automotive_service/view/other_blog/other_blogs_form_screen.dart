@@ -23,7 +23,7 @@ class OtherBlogsFormScreen extends StatefulWidget {
 }
 
 class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
-  final controller = Get.find<OtherBlogsController>();
+  final controller = Get.find<AutomotiveBlogsController>();
 
   @override
   void initState() {

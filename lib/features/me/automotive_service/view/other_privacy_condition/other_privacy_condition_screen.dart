@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 class OtherPrivacyConditionScreen extends StatelessWidget {
   OtherPrivacyConditionScreen({super.key});
 
-  final controller = Get.put(OtherPrivacyConditionController());
+  final controller = Get.put(AutomotivePrivacyConditionController());
 
   @override
   Widget build(BuildContext context) {

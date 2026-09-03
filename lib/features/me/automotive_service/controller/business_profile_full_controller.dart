@@ -8,13 +8,17 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
+import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AutomotiveBusinessProfileFullController extends GetxController {
   final OtherRepo _repo = OtherRepo();
-  var isLoading = false.obs;
+  /// Starts TRUE: nothing has been fetched yet, and the Overview tab uses this
+  /// to tell "still loading" apart from "loaded and genuinely empty". Same
+  /// reasoning as the `me/others` fork this module was copied from.
+  var isLoading = true.obs;
   var businessProfile = Rx<BusinessProfileData?>(null);
   RxBool hasProfile = false.obs;
 
@@ -70,7 +74,14 @@ class AutomotiveBusinessProfileFullController extends GetxController {
   /// Reading the stored id first takes the lookup off the common path; the
   /// request is now only the fallback for an account that has never resolved
   /// an id.
-  Future<void> getBusinessProfileFull() async {
+  ///
+  /// Cache-first, like the `me/others` fork: this controller is an in-memory
+  /// singleton, so `businessProfile` was null on every cold start and the
+  /// screen's "fetch when null" guard re-asked for a profile that had not
+  /// changed since the previous run. [OtherProfileLocalStore] answers that
+  /// instead, and a hit REPLACES the request. Pass [forceRefresh] after a write
+  /// — that is the only thing that makes the snapshot stale from this device.
+  Future<void> getBusinessProfileFull({bool forceRefresh = false}) async {
     isLoading.value = true;
     try {
       if (otherServiceIDGlobal.isEmpty) {
@@ -90,15 +101,19 @@ class AutomotiveBusinessProfileFullController extends GetxController {
         return;
       }
 
-      // Always call the full profile API directly
+      if (!forceRefresh) {
+        final cached = await OtherProfileLocalStore.read(otherServiceIDGlobal);
+        if (cached != null && _applyProfile(cached)) return;
+      }
+
       final response =
           await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
       if (response != null && response.isSuccess) {
-        final model =
-            BusinessProfileFullModel.fromJson(response.response?.data);
-        if (model.success == true && model.data != null) {
-          businessProfile.value = model.data;
-          hasProfile.value = true;
+        final body = response.response?.data;
+        if (_applyProfile(body)) {
+          // Only after it has PARSED — a shape this app can't read must not
+          // pin itself on disk and reproduce a blank tab on every launch.
+          await OtherProfileLocalStore.write(otherServiceIDGlobal, body);
         }
       }
     } catch (e, s) {
@@ -109,6 +124,18 @@ class AutomotiveBusinessProfileFullController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Parses a full-profile body and publishes it. Returns whether it produced a
+  /// usable profile, which is what decides both "is this worth caching" and
+  /// "was the cache hit good enough to skip the network".
+  bool _applyProfile(dynamic body) {
+    if (body == null) return false;
+    final model = BusinessProfileFullModel.fromJson(body);
+    if (model.success != true || model.data == null) return false;
+    businessProfile.value = model.data;
+    hasProfile.value = true;
+    return true;
   }
 
   /// The persisted business-profile id, or `''` when there isn't one.
@@ -166,7 +193,7 @@ class AutomotiveBusinessProfileFullController extends GetxController {
         });
         if (response.isSuccess) {
           commonSnackBar(message: response.response?.data['message']);
-          getBusinessProfileFull();
+          getBusinessProfileFull(forceRefresh: true);
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }

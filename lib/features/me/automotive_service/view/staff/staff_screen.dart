@@ -18,7 +18,7 @@ class StaffScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(StaffController());
+    final controller = Get.put(AutomotiveStaffController());
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -59,7 +59,7 @@ class StaffScreen extends StatelessWidget {
   }
 
   Widget _buildStaffCard(BuildContext context,
-      StaffController controller, StaffData item) {
+      AutomotiveStaffController controller, StaffData item) {
     String dateRange = "";
     try {
       if (item.joinedFrom != null) {

@@ -25,7 +25,7 @@ class AboutOrganizationFormScreen extends StatefulWidget {
 
 class _AboutOrganizationFormScreenState
     extends State<AboutOrganizationFormScreen> {
-  final controller = Get.find<AboutOrganisationController>();
+  final controller = Get.find<AutomotiveAboutOrganisationController>();
 
   @override
   void initState() {

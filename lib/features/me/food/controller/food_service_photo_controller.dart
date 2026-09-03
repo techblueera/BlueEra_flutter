@@ -1,17 +1,18 @@
-import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
-class FoodServicePhotoPhotoController extends GetxController {
+class FoodServicePhotoPhotoController extends GetxController
+    with GalleryUploadGuard {
   // Use RxList to store your JSON data
   var propertyPhotosList = <OtherServiceGalleryData>[].obs;
   var isLoading = true.obs;
@@ -159,16 +160,18 @@ class FoodServicePhotoPhotoController extends GetxController {
 
   // Logic to build the JSON request body
 
+  /// Guarded so a repeated Submit can't start a second concurrent run — each
+  /// run re-uploaded every picked file, and [S3UploadService] mints a new key
+  /// per call, so retries accumulate objects instead of overwriting. See
+  /// [GalleryUploadGuard].
   Future buildRequestBody() async {
+    await guardGalleryUpload(() => _submitGallery());
+  }
+
+  Future<void> _submitGallery() async {
     AppLoader.show();
     try {
-      List<String> urlList = [];
-      for (var filePath in selectedImages) {
-        UploadResult? result = await S3UploadService.uploadFile(File(filePath));
-        if (result.isSuccess) {
-          urlList.add(result.url);
-        }
-      }
+      final urlList = await uploadGalleryFilesOnce(selectedImages);
 
       var requestBody = {
         // Trimmed so "Desserts" and "Desserts " don't become two categories

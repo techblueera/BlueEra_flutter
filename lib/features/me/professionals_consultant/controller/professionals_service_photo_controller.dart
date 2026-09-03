@@ -5,13 +5,15 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professonals_gallery_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
-class ProfessionalsServicePhotoPhotoController extends GetxController {
+class ProfessionalsServicePhotoPhotoController extends GetxController
+    with GalleryUploadGuard {
   // Use RxList to store your JSON data
   var propertyPhotosList = <String>[].obs;
   var propertyPhotosIdsList = <String>[].obs;
@@ -76,7 +78,7 @@ class ProfessionalsServicePhotoPhotoController extends GetxController {
     if (selectedImages.length < 6) {
       selectedImages.add(path);
     } else {
-      commonSnackBar(message:"Limit Reached You can upload a maximum of 6 images.");
+      commonSnackBar(message:"Limit reached. You can upload a maximum of 6 images.");
     }
   }
 
@@ -86,80 +88,89 @@ class ProfessionalsServicePhotoPhotoController extends GetxController {
 
   // Logic to build the JSON request body
 
+  /// Uploads the picked photos through the PRESIGNED-URL flow: POST the list of
+  /// content types, get one presigned S3 url back per file, then PUT each file
+  /// to its own url.
+  ///
+  /// Guarded like the other gallery uploads ([GalleryUploadGuard]), for the
+  /// same reason and with an extra one specific to this flow: every POST here
+  /// MINTS A FRESH SET of presigned urls, so a second concurrent run doesn't
+  /// just re-upload the files — it uploads them to a different set of S3 keys
+  /// that the first run knows nothing about. The mixin's per-file url cache is
+  /// deliberately NOT used, because the urls are server-issued per request and
+  /// can't be reused across runs; the in-flight guard is what does the work.
+  ///
+  /// [GalleryUploadGuard.uploadGalleryFilesOnce] is bypassed here for the same
+  /// reason — this flow never touches [S3UploadService].
   Future buildRequestBody() async {
+    await guardGalleryUpload(() => _submitGallery());
+  }
+
+  Future<void> _submitGallery() async {
+    // Set before the first await so the Submit button can disable itself for
+    // the length of the upload — the same shape every other gallery module
+    // uses, and the visible half of the double-submit guard.
+    isLoading.value = true;
     try {
-      List<String> urlList = [];
+      // One entry per picked file, in the SAME order as [selectedImages] — the
+      // upload loop below pairs `uploadUrls[i]` with `selectedImages[i]`, so
+      // the content type for a file has to be found at its own index too.
+      final contentTypes = [
+        for (final filePath in selectedImages) getMimeType(filePath),
+      ];
 
-      Get.back();
-      for (var filePath in selectedImages) {
-        String mimeType = getMimeType(filePath);
-        urlList.add(mimeType);
-      }
-
-      var requestBody = {
-        "contentTypes": urlList,
-      };
-
-      ResponseModel response =
-          await _repo.addProfessionalsServicePhotosRepo(reqBody: requestBody);
-      // 1. Extract the list safely
-      List<dynamic> urls = response.response?.data['uploadUrls'] ?? [];
-
-// 2. Determine how many uploads we can actually perform
-// This prevents the RangeError if URL count != Image count
-      int uploadCount = min(urls.length, selectedImages.length);
-
-      final uploadTasks = Iterable<int>.generate(uploadCount).map((index) async {
-        String url = urls[index];
-
-        // Now this is safe because index < selectedImages.length
-        File fileUp = File(selectedImages[index]);
-
-        print("Uploading file ${index + 1} of $uploadCount...");
-
-        ResponseModel? uploadResponse = await ChannelRepo().uploadVideoToS3(
-          file: fileUp,
-          fileType: "image/png",
-          preSignedUrl: url,
-          onProgress: (sent) => print("Uploading file $index: $sent%"),
-        );
-
-        return uploadResponse?.statusCode == 200;
+      final ResponseModel response =
+          await _repo.addProfessionalsServicePhotosRepo(reqBody: {
+        "contentTypes": contentTypes,
       });
 
-      List<bool> results = await Future.wait(uploadTasks);
-      // List<dynamic> urls = response.response?.data['uploadUrls'];
-      // // Map each URL to an upload task
-      // final uploadTasks = urls.asMap().entries.map((entry) async {
-      //   int index = entry.key;
-      //   String url = entry.value;
-      //   File fileUp = File(selectedImages[index]);
-      //
-      //   print("Uploading file ${index + 1}...");
-      //   ResponseModel? uploadResponse = await ChannelRepo().uploadVideoToS3(
-      //     file: fileUp,
-      //     fileType: "image/png",
-      //     preSignedUrl: url,
-      //     onProgress: (sent) => print("Uploading: $sent"),
-      //   );
-      //
-      //   return uploadResponse?.statusCode == 200;
-      // });
-      //
-      // // Execute all uploads in parallel
-      // List<bool> results = await Future.wait(uploadTasks);
-      //
+      final List<dynamic> urls = response.response?.data['uploadUrls'] ?? [];
+      // Never index past either list: the server can answer with a different
+      // number of urls than files were sent.
+      final int uploadCount = min(urls.length, selectedImages.length);
+      if (uploadCount == 0) {
+        // `<bool>[].every(...)` is TRUE, so without this an empty url list fell
+        // straight through to the success branch and reported "All photos
+        // uploaded successfully!" having uploaded nothing at all.
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        return;
+      }
+
+      final List<bool> results = await Future.wait(
+        Iterable<int>.generate(uploadCount).map((index) async {
+          final ResponseModel? uploadResponse =
+              await ChannelRepo().uploadVideoToS3(
+            file: File(selectedImages[index]),
+            // The file's OWN type, not a hardcoded "image/png". The server was
+            // told the real content type in `contentTypes` above and minted the
+            // presigned url against it, so sending a different one here either
+            // fails the signature or — where the header isn't signed — stores a
+            // JPEG in S3 labelled as a PNG.
+            fileType: contentTypes[index],
+            preSignedUrl: urls[index],
+            onProgress: (sent) {},
+          );
+          return uploadResponse?.statusCode == 200;
+        }),
+      );
+
       if (results.every((success) => success)) {
-        print("All photos uploaded successfully!");
-        commonSnackBar(message: "All photos uploaded successfully!");
+        // Pop AFTER the work, like every other gallery module. This used to run
+        // before the first request, which returned the merchant to the previous
+        // screen instantly and then uploaded headless: no progress anywhere,
+        // and both the success and failure snackbars landed on whatever screen
+        // they had moved on to.
+        Get.back();
+        commonSnackBar(message: 'All photos uploaded successfully!');
+        selectedImages.clear();
         fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } on Exception catch (e) {
+      logs('ProfessionalsServicePhotoPhotoController._submitGallery ERROR $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      // 5. Always hide loader at the end
       isLoading.value = false;
     }
   }

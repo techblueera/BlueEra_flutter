@@ -222,7 +222,7 @@ class HotelAllDocumentsScreen extends StatelessWidget {
                         documentType:
                         DocumentKeys.hotelOwnerIdProof,
                         uploadSectionLabel:
-                        "Upload Aadhar Card (Both Side)",
+                        "Upload Aadhaar Card (Both Sides)",
                         backImage: true),
                   ),
                   isScrollControlled: true,

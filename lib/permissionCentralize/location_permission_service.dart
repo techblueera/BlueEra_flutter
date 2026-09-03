@@ -71,7 +71,7 @@ class PermissionService {
               if(Platform.isAndroid){
                 await openAppSettings();
               }else{
-                commonSnackBar(message: 'Location permission not given , enable it from setting');
+                commonSnackBar(message: 'Location permission not given. Enable it from Settings.');
 
                 await openAppSettings();
 

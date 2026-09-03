@@ -20,7 +20,7 @@ import 'package:get/get.dart';
 /// group before seeing a single picture. Now they choose pictures, then say
 /// what the pictures are — and the grid arrives populated, with an add tile
 /// for topping the selection up to
-/// [OtherServicePhotoPhotoController.maxImages].
+/// [AutomotiveServicePhotoController.maxImages].
 ///
 /// **The category is theirs.** It was a dropdown over fifteen hard-coded
 /// HOTEL sections ("Lobby & Reception", "Swimming Pool", "Spa & Wellness", …)
@@ -39,7 +39,7 @@ class UploadOtherServicePhotosScreen extends StatefulWidget {
 
 class _UploadOtherServicePhotosScreenState
     extends State<UploadOtherServicePhotosScreen> {
-  final controller = Get.find<OtherServicePhotoPhotoController>();
+  final controller = Get.find<AutomotiveServicePhotoController>();
   late final TextEditingController _categoryField;
 
   @override
@@ -124,7 +124,10 @@ class _UploadOtherServicePhotosScreenState
               );
             }),
 
-            SizedBox(height: 24),
+            // 12, not 24 — same reason as the `me/others` fork: the grid
+            // already reserves a full square row, so a 24 on top of it read as
+            // a hole between the photo step and the category step.
+            SizedBox(height: 12),
 
             // ── Step 2: the category ────────────────────────────────────
             CustomText(AppStrings.otherGalleryCategoryLabel.tr,
@@ -203,7 +206,14 @@ class _UploadOtherServicePhotosScreenState
               // `canSubmitUpload` trims the category, so a name of nothing but
               // spaces no longer enables the button (and can't be saved as a
               // blank-looking category).
-              final canSubmit = controller.canSubmitUpload;
+              // `isLoading` is read here so the button DISABLES itself for the
+              // length of the upload. Without it the merchant taps Submit
+              // again on a slow connection, and each tap used to start a fresh
+              // concurrent run that re-uploaded every file and posted its own
+              // cumulative list. The controller guards this too
+              // ([GalleryUploadGuard]) — this is the half the user can see.
+              final canSubmit =
+                  controller.canSubmitUpload && !controller.isLoading.value;
               return CustomBtn(
                 title: AppStrings.submit.tr,
                 isValidate: canSubmit,

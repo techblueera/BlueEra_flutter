@@ -168,7 +168,7 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
                 )
                   else
                     Center(
-                      child: CustomText("No Shops Found in This Product"),
+                      child: CustomText("No shops found for this product"),
                     )
               else
                 Center(

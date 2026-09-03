@@ -264,7 +264,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                     subtitle: 'Help clients find you easily',
                     child: CommonTextField(
                       textEditController: controller.landmarkController,
-                      hintText: "E.g: Near Gomti Nagar Metro, Durgabari...",
+                      hintText: "E.g. Near Gomti Nagar Metro, Durgabari...",
                       keyBoardType: TextInputType.text,
                     ),
                   ),

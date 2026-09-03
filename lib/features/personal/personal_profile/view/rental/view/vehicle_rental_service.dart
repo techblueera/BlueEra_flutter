@@ -734,7 +734,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                       // 1. Aadhar Card
                       CommonSwitchCard(
-                        title: 'Aadhar Card',
+                        title: 'Aadhaar Card',
                         value: controller.isAllowAadharCard.value,
                         onChanged: (val) {
                           controller.isAllowAadharCard.value = val;

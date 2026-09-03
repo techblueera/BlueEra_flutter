@@ -175,7 +175,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   isEdit: true,
                 )
               : _SplitEmptyCard(
-                  message: 'You Have Not Add Any Principal / Director Message',
+                  message: 'You have not added any principal / director message',
                   icon: Icons.person_outline,
                   onTap: () => Get.to(() => PrincipalMessageScreen())?.then(
                       (_) => widget.controller.getSchoolByIdController()),
@@ -211,7 +211,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   isEdit: true,
                 )
               : _SplitEmptyCard(
-                  message: 'You Have Not Add Any Management / Trust Info',
+                  message: 'You have not added any management / trust info',
                   icon: Icons.groups_outlined,
                   showIconPanel: false,
                   onTap: () => Get.to(() => ManagementTrustFormScreen(isEdit: false))

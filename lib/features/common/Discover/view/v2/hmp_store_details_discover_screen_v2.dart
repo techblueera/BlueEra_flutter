@@ -817,9 +817,9 @@ class _HmpStoreDetailsDiscoverScreenV2State
   // NOTE: placeholder content — no testimonials data on the model yet.
   static const List<({String text, String name, String role})> _testimonials = [
     (
-      text: 'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
-          'vulputate libero et velit interdum, ac aliquet odio mattis. '
-          'Class aptent taciti sociosqu ad litora torquent.',
+      text: 'Everything I have ordered has been exactly as described '
+          'and arrived on time. The quality is consistent and the '
+          'seller is always easy to reach.',
       name: 'Dr. Ramesh Gupta',
       role: 'Managing Director',
     ),

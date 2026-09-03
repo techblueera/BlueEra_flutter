@@ -1,4 +1,5 @@
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
@@ -566,6 +567,64 @@ getUserLoginBusinessId() async {
   // depends on it. Logout clears it explicitly via clearPreferenceDataOnly().
   if (stored is String && stored.trim().isNotEmpty) {
     businessId = stored;
+    return;
+  }
+  if (businessId.trim().isNotEmpty) return;
+
+  // Last resort: recover the id from the JWT.
+  //
+  // Nothing has it — not secure storage, not this session. That happens for an
+  // account whose login predates `_persistLoginIdentity`, or whose verify-otp
+  // came back with `business: null`, and it is silent and total:
+  // `viewBusinessProfile` logs `BUSINESS ID===` empty and returns BEFORE the
+  // request (view_business_details_controller.dart:311), so the profile-wide
+  // API every Me screen depends on simply never fires and every screen shows a
+  // retry state that a retry cannot fix.
+  //
+  // Our own token carries the id in its `_id.business_id` claim, so it is
+  // always recoverable while the session is alive. Persisted on the way out so
+  // the next read is an ordinary storage hit.
+  final recovered = await _businessIdFromAuthToken();
+  if (recovered != null && recovered.isNotEmpty) {
+    businessId = recovered;
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.userBusinessId, recovered);
+    debugPrint('BUSINESS ID recovered from JWT === $recovered');
+  }
+}
+
+/// The `_id.business_id` claim of the stored auth token, or null.
+///
+/// Decoded locally — no signature check, which is fine because this only reads
+/// back an id the server itself minted for this session and every request that
+/// then uses it is authorised by that same token. Kept private and duplicated
+/// rather than reusing `SessionGuard`'s decoder: `session_guard.dart` imports
+/// THIS file, and reaching back into it would close an import cycle.
+Future<String?> _businessIdFromAuthToken() async {
+  try {
+    final token = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.authToken);
+    if (token is! String || token.isEmpty) return null;
+    final parts = token.split('.');
+    if (parts.length < 2) return null;
+    var payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+    switch (payload.length % 4) {
+      case 2:
+        payload += '==';
+        break;
+      case 3:
+        payload += '=';
+        break;
+    }
+    final claims = jsonDecode(utf8.decode(base64.decode(payload)));
+    if (claims is! Map) return null;
+    final identity = claims['_id'];
+    if (identity is! Map) return null;
+    final id = identity['business_id']?.toString().trim() ?? '';
+    return id.isEmpty ? null : id;
+  } catch (e) {
+    debugPrint('businessId recovery from JWT failed: $e');
+    return null;
   }
 }
 
@@ -746,68 +805,73 @@ Future<void> clearSecureStorageIfFreshInstall() async {
 }
 
 ///SET SCHOOL ID....
-setSchoolID(String schoolIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setSchoolID(String schoolIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.schoolIDKey, schoolIDValue.toString());
 }
 
 getSchoolID() async {
   schoolIDGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.schoolIDKey);
+            SharedPreferenceUtils.schoolIDKey) ??
+        '';
 }
 
 ///SET OTHER SERVICE ID....
-setOtherServiceID(String serviceIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setOtherServiceID(String serviceIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.otherServiceIDKey, serviceIDValue.toString());
 }
 
 getOtherServiceID() async {
   otherServiceIDGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.otherServiceIDKey);
+            SharedPreferenceUtils.otherServiceIDKey) ??
+        '';
 }
 
 ///SET PRODUCT PROFILE ID....
-setProductBusinessProfileID(String productBusinessIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setProductBusinessProfileID(String productBusinessIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.productBusinessProfileIDIDKey,
       productBusinessIDValue.toString());
 }
 
 getProductBusinessProfileID() async {
   productBusinessProfileIDGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.productBusinessProfileIDIDKey);
+            SharedPreferenceUtils.productBusinessProfileIDIDKey) ??
+        '';
 }
 
 ///SET HOTEL ID....
-setHotelID(String schoolIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setHotelID(String schoolIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.hotelIDKey, schoolIDValue.toString());
 }
 
 getHotelID() async {
   hotelIDGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.hotelIDKey);
+            SharedPreferenceUtils.hotelIDKey) ??
+        '';
 }
 
 ///SET LAB ID....
-setLabID(String labIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setLabID(String labIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.labIDKey, labIDValue.toString());
 }
 
 getLabID() async {
   try {
     labIDGlobal = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.labIDKey);
+            SharedPreferenceUtils.labIDKey) ??
+        '';
   } on Exception {
     // TODO
   }
 }
 
 ///SET HOSPITAL ID....
-setHospitalID(String labIDValue) {
-  SharedPreferenceUtils.setSecureValue(
+Future<void> setHospitalID(String labIDValue) async {
+  await SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.hospitalIDKey, labIDValue.toString());
 }
 

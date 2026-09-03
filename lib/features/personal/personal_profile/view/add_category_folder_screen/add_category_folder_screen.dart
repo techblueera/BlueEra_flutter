@@ -89,7 +89,7 @@ class AddCategoryFolderScreen extends StatelessWidget {
                             controller: controller.categoryNameController,
                             validator: controller.validateCategoryName,
                             decoration: const InputDecoration(
-                              hintText: "e.g. Wireless Earbuds Boat Airdop....",
+                              hintText: "e.g. Wireless Earbuds boAt Airdopes...",
                               hintStyle: TextStyle(
                                 color: AppColors.grey9B,
                                 fontSize: 14,
@@ -130,7 +130,7 @@ class AddCategoryFolderScreen extends StatelessWidget {
                             maxLines: null,
                             expands: true,
                             decoration: const InputDecoration(
-                              hintText: "Sorem ipsum dolor sit amet, consectetur adipiscing e...",
+                              hintText: "Describe what this category contains...",
                               hintStyle: TextStyle(
                                 color: AppColors.grey9B,
                                 fontSize: 14,

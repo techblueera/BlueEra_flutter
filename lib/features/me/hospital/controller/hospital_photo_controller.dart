@@ -5,13 +5,15 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_gallery_res_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_gallery_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:get/get.dart';
 
-class HospitalPhotoController extends GetxController {
+class HospitalPhotoController extends GetxController
+    with GalleryUploadGuard {
   final hospitalServiceController = Get.find<HospitalServiceAiController>();
 
   // Use RxList to store your JSON data
@@ -97,7 +99,20 @@ class HospitalPhotoController extends GetxController {
 
 
 
+  /// Guarded so a repeated Submit can't start a second concurrent run — each
+  /// run re-uploaded every picked file, and [S3UploadService] mints a new key
+  /// per call, so retries accumulate objects instead of overwriting. See
+  /// [GalleryUploadGuard].
+  ///
+  /// The parallel `Future.wait` upload below is kept rather than moved to the
+  /// mixin's sequential helper: this screen takes up to 20 photos and going
+  /// sequential would make it markedly slower. The guard alone removes the
+  /// duplicate-run problem, which is what was actually costing storage.
   Future<void> buildRequestBody() async {
+    await guardGalleryUpload(() => _submitGallery());
+  }
+
+  Future<void> _submitGallery() async {
     try {
       isLoading.value = true;
 

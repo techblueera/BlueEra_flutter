@@ -149,11 +149,26 @@ Future<void> _awaitBusinessProfile(
     ViewBusinessDetailsController controller) async {
   if (businessTypeGlobal.isNotEmpty) return;
   if (controller.viewBusinessResponse.status != Status.COMPLETE) {
-    // Nothing loaded and nothing in flight — ask for it ourselves rather than
-    // waiting on a fetch that may never have started (deferred/deep-link open).
-    if (controller.viewBusinessResponse.status != Status.LOADING) {
-      unawaited(controller.viewBusinessProfile(silent: true));
-    }
+    // Ask for it ourselves rather than waiting on a fetch that may never have
+    // started (deferred/deep-link open).
+    //
+    // NOT `silent: true`, and no "is one already in flight?" guard of our own.
+    // Both were wrong here:
+    //
+    //  * `silent` skips the coalescer outright
+    //    (view_business_details_controller.dart:292) — that exemption exists so
+    //    a post-update refresh can't be handed a pre-update in-flight response,
+    //    which this is not.
+    //  * the guard was `status != Status.LOADING`, but `viewBusinessResponse`
+    //    is never assigned `ApiResponse.loading` anywhere in that controller —
+    //    it goes INITIAL → COMPLETE/ERROR — so the guard could never be false
+    //    and never suppressed anything.
+    //
+    // Together they fired a SECOND `GET user-service/business/<id>` alongside
+    // the bottom-nav boot fetch on every fresh login, for a profile this
+    // function then usually discards. Plain (non-silent) piggy-backs on the
+    // in-flight fetch instead.
+    unawaited(controller.viewBusinessProfile());
   }
   if (businessTypeGlobal.isNotEmpty) return;
 

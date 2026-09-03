@@ -20,8 +20,8 @@ import 'package:get/get.dart';
 class AboutOrganization extends StatelessWidget {
   AboutOrganization({super.key});
 
-  final AboutOrganisationController controller =
-      Get.put(AboutOrganisationController());
+  final AutomotiveAboutOrganisationController controller =
+      Get.put(AutomotiveAboutOrganisationController());
 
   @override
   Widget build(BuildContext context) {

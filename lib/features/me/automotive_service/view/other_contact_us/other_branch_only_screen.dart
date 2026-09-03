@@ -23,7 +23,7 @@ class OtherBranchOnlyScreen extends StatefulWidget {
 }
 
 class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
-  final schoolAboutUsController = Get.find<OtherBranchContactController>();
+  final schoolAboutUsController = Get.find<AutomotiveBranchContactController>();
 
   // Main Branch Controllers
   final branchNameController = TextEditingController();

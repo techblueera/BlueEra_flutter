@@ -19,8 +19,8 @@ import 'package:get/get.dart';
 class OtherBlogsScreen extends StatelessWidget {
   OtherBlogsScreen({super.key});
 
-  final OtherBlogsController controller =
-      Get.put(OtherBlogsController());
+  final AutomotiveBlogsController controller =
+      Get.put(AutomotiveBlogsController());
 
   @override
   Widget build(BuildContext context) {

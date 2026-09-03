@@ -2753,7 +2753,7 @@ class _BusinessToRiderOtpVerificationCardState
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
-              "Dorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
+              "Enter the verification code we sent to your registered mobile number.",
               textAlign: TextAlign.center,
               fontSize: SizeConfig.size14,
               color: AppColors.grayText,

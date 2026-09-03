@@ -1,12 +1,11 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
-import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
 /// Drives the laboratory's property-photos albums screen: lists existing
@@ -15,7 +14,8 @@ import 'package:get/get.dart';
 ///
 /// Class name doubles "Photo" intentionally — preserved for backwards
 /// compatibility with three existing view consumers.
-class LabServicePhotoPhotoController extends GetxController {
+class LabServicePhotoPhotoController extends GetxController
+    with GalleryUploadGuard {
   final LabServiceRepo _repo = LabServiceRepo();
 
   final RxBool isLoading = false.obs;
@@ -96,6 +96,7 @@ class LabServicePhotoPhotoController extends GetxController {
     selectedCategory.value = '';
     isCustomCategory.value = false;
     selectedImages.clear();
+    clearGalleryUploadCache();
   }
 
   @override
@@ -168,9 +169,16 @@ class LabServicePhotoPhotoController extends GetxController {
   /// Uploads every picked file to S3 then registers them under
   /// [selectedCategory]. Clears the form on success.
   Future<void> buildRequestBody() async {
+    // Guarded like the other-service galleries: this posts to the same
+    // `/other-service/gallery` endpoint, so a repeated Submit produced the same
+    // duplicate uploads and cumulative POSTs. See [GalleryUploadGuard].
+    await guardGalleryUpload(() => _submitGallery());
+  }
+
+  Future<void> _submitGallery() async {
     try {
       isSaving.value = true;
-      final urls = await _uploadAll(selectedImages);
+      final urls = await uploadGalleryFilesOnce(selectedImages);
       if (urls.isEmpty) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         return;
@@ -224,16 +232,5 @@ class LabServicePhotoPhotoController extends GetxController {
     } on Exception catch (e) {
       logs("LabServicePhotoController.deleteOtherService ERROR $e");
     }
-  }
-
-  /// Uploads a batch of local file paths sequentially and returns the
-  /// resulting S3 URLs for those that succeed.
-  Future<List<String>> _uploadAll(List<String> paths) async {
-    final urls = <String>[];
-    for (final path in paths) {
-      final result = await S3UploadService.uploadFile(File(path));
-      if (result.isSuccess) urls.add(result.url);
-    }
-    return urls;
   }
 }

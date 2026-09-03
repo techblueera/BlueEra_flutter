@@ -35,7 +35,7 @@ BusinessCategory getBusinessCategoryFromType(
 
 /*final List<BusinessCategory> typeOfBusinessList = [
   BusinessCategory(
-    title: "Grocerie /Food /Restaurant/Beverage",
+    title: "Grocery / Food / Restaurant / Beverage",
     subTitle:
         "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
     icon: AppIconAssets.food_service,

@@ -6,7 +6,7 @@ import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class OtherPrivacyConditionController extends GetxController {
+class AutomotivePrivacyConditionController extends GetxController {
   final OtherRepo _repo = OtherRepo();
 
   var aboutList = <OtherTNCData>[].obs;

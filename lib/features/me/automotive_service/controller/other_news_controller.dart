@@ -9,7 +9,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class OtherNewsController extends GetxController {
+class AutomotiveNewsController extends GetxController {
   final OtherRepo _repo = OtherRepo();
 
   var aboutList = <OtherNewsData>[].obs;

@@ -244,7 +244,7 @@ class ManufacturerProductController extends GetxController{
 
   void addTag() {
     if(tags.length == 10){
-      commonSnackBar(message: 'You can\'t add more than 10 tags/Keywords');
+      commonSnackBar(message: 'You can\'t add more than 10 tags/keywords');
       return;
     }
 

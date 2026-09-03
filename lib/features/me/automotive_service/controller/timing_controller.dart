@@ -23,7 +23,7 @@ class DayTiming {
     closeTime = closeTime.obs;
 }
 
-class TimingController extends GetxController {
+class AutomotiveTimingController extends GetxController {
   final OtherRepo _repo = OtherRepo();
   var timingList = <DayTiming>[].obs;
   final List<String> timeSlots = [];

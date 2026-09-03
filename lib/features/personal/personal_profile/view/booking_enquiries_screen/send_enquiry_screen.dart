@@ -112,7 +112,7 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
                 minLines: 3,
                 textEditController: enquiryController,
                 title: 'Your Enquiry',
-                hintText: "Type your message or question here..",
+                hintText: "Type your message or question here...",
               ),
 
               SizedBox(height: SizeConfig.size10),

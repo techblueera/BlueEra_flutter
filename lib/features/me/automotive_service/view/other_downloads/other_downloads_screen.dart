@@ -20,7 +20,7 @@ class OtherDownloadsScreen extends StatelessWidget {
   OtherDownloadsScreen({super.key});
 
   final  controller =
-      Get.put(OtherDownloadsController());
+      Get.put(AutomotiveDownloadsController());
 
   @override
   Widget build(BuildContext context) {

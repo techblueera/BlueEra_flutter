@@ -10,7 +10,7 @@ import '../controller/timing_controller.dart';
 
 class TimingScreen extends StatelessWidget {
    TimingScreen({Key? key}) : super(key: key);
-  final controller = Get.put(TimingController());
+  final controller = Get.put(AutomotiveTimingController());
 
   @override
   Widget build(BuildContext context) {

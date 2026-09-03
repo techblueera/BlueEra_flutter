@@ -49,7 +49,7 @@ class AiSuggestionController extends GetxController {
         commonSnackBar(message: response.message ?? "Something went wrong");
       }
     } catch (e) {
-      commonSnackBar(message: "Error Failed to fetch suggestions");
+      commonSnackBar(message: "Error: Failed to fetch suggestions");
     } finally {
       isLoading.value = false;
     }

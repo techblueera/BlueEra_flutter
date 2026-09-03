@@ -432,7 +432,7 @@ class MessagePostController extends GetxController {
     try {
       dio.FormData formData = dio.FormData();
       if (imagesList.length > 4) {
-        commonSnackBar(message: "Max 4 image are allowed");
+        commonSnackBar(message: "Max 4 images are allowed");
         return;
       }
       if (selectedType.value == MediaType.video) {

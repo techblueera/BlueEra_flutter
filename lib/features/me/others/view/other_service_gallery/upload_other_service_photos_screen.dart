@@ -48,12 +48,11 @@ class _UploadOtherServicePhotosScreenState
     super.initState();
     _categoryField =
         TextEditingController(text: controller.selectedCategory.value);
-    // A merchant with no categories yet has nothing to choose BETWEEN, so the
-    // "Other" branch is the only one there is — start on it rather than
-    // showing a lone option they have to tap first.
-    if (controller.existingCategories.isEmpty) {
-      controller.chooseCustomCategory();
-    }
+    // No longer forced onto the "Other" branch when the merchant has no albums
+    // of their own: `categoryOptions` always offers the generic suggestions, so
+    // there is something to choose between from the very first upload. Nothing
+    // is pre-selected — Submit stays disabled until they pick, which is clearer
+    // than opening on a text field they did not ask for.
   }
 
   @override
@@ -125,14 +124,23 @@ class _UploadOtherServicePhotosScreenState
               );
             }),
 
-            SizedBox(height: 24),
+            // 12, not 24. The grid always reserves a full square row — one
+            // add tile still costs a third of the screen width in height — so
+            // a 24 gap on top of that empty row read as a hole between the two
+            // steps. 12 matches the 10 that separates the "Category" label
+            // from its chips, so the two steps sit as one column.
+            SizedBox(height: 12),
 
             // ── Step 2: the category ────────────────────────────────────
             CustomText(AppStrings.otherGalleryCategoryLabel.tr,
                 color: AppColors.mainTextColor, fontWeight: FontWeight.bold),
             SizedBox(height: 10),
             Obx(() {
-              final categories = controller.existingCategories;
+              // `categoryOptions`, not `existingCategories`: the merchant's own
+              // albums first, then generic suggestions for the ones they have
+              // not made yet. A brand-new gallery used to offer NOTHING but the
+              // "Other" text field.
+              final categories = controller.categoryOptions;
               final isCustom = controller.isCustomCategory.value;
               final selected = controller.selectedCategory.value.trim();
               return Column(
@@ -204,7 +212,14 @@ class _UploadOtherServicePhotosScreenState
               // `canSubmitUpload` trims the category, so a name of nothing but
               // spaces no longer enables the button (and can't be saved as a
               // blank-looking category).
-              final canSubmit = controller.canSubmitUpload;
+              // `isLoading` is read here so the button DISABLES itself for the
+              // length of the upload. Without it the merchant taps Submit
+              // again on a slow connection, and each tap used to start a fresh
+              // concurrent run that re-uploaded every file and posted its own
+              // cumulative list. The controller guards this too
+              // ([GalleryUploadGuard]) — this is the half the user can see.
+              final canSubmit =
+                  controller.canSubmitUpload && !controller.isLoading.value;
               return CustomBtn(
                 title: AppStrings.submit.tr,
                 isValidate: canSubmit,

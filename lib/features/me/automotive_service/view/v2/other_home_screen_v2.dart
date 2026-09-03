@@ -76,12 +76,23 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     registerMeTabBackHandler(_tabController!);
     _otherController =
         getOrPut(() => AutomotiveBusinessProfileFullController());
-    if (_otherController.businessProfile.value == null) {
-      _otherController.getBusinessProfileFull();
-    }
-    if (_businessController.businessProfileDetails.value?.data == null) {
+    // `viewBusinessProfile()` is called PLAIN, with no "already have it" guard
+    // — it is the profile-wide API every Me screen depends on, and the
+    // controller coalesces concurrent non-silent callers onto one request.
+    // `getBusinessProfileFull()` keeps its guard: that one is the
+    // other-service payload and is served from the Hive snapshot.
+    //
+    // Deferred to post-frame for the same reason as the `me/others` fork this
+    // module was copied from: both calls write an `.obs` synchronously before
+    // their first await, and doing that from initState marks the bottom bar's
+    // `Obx` dirty while the framework is still building.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_otherController.businessProfile.value == null) {
+        _otherController.getBusinessProfileFull();
+      }
       _businessController.viewBusinessProfile();
-    }
+    });
     // Hydrate the business chat list so the Inquiry tab has data ready
     // when the user switches to it.
     _chatViewController.emitEvent(
@@ -144,9 +155,34 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     );
   }
 
+  /// Pull-to-refresh dispatcher — mirrors `GroceryHomeScreenV2`
+  /// (`_onRefreshCurrentTab`): each tab owns a different data set, so a pull
+  /// fires only the API(s) backing the visible one.
+  ///
+  /// Overview is index 1 in this module (Services leads), unlike the
+  /// `me/others` fork where it leads.
+  Future<void> _onRefreshCurrentTab() async {
+    // `forceRefresh`: a pull-to-refresh must reach the network. Served from the
+    // Hive snapshot it would return instantly having changed nothing, which
+    // reads as a broken gesture — and it is the merchant's only way to pick up
+    // an edit made on another device.
+    if (_tabController?.index != 1) {
+      await _otherController.getBusinessProfileFull(forceRefresh: true);
+      return;
+    }
+    // Overview draws from BOTH APIs: the other-service payload backs
+    // Management / Gallery / Timings, while the joined-profile card, live
+    // photos, contact map, website and QR come from `viewBusinessProfile`, the
+    // profile-wide API shared by every Me screen.
+    await Future.wait([
+      _otherController.getBusinessProfileFull(forceRefresh: true),
+      _businessController.viewBusinessProfile(),
+    ]);
+  }
+
   Widget _tabScroll(Widget child) {
     return RefreshIndicator(
-      onRefresh: _otherController.getBusinessProfileFull,
+      onRefresh: _onRefreshCurrentTab,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -50,6 +51,19 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
     return Obx(() {
       final data = controller.businessProfile.value;
+
+      // `data` is the OTHER-SERVICE payload
+      // (`other-service/business-profile/<id>/full`) and backs only the
+      // sections that come from it: Management, Gallery, Timings.
+      //
+      // The rest of this tab — joined profile card, contact, website, share
+      // banner, QR — comes from `viewBusinessProfile`, the profile-wide API
+      // shared by every Me screen, so it must NOT be gated on this fetch.
+      // Only the sections that need it wait, via [isOtherLoading]; that keeps
+      // "still loading" distinguishable from "empty workshop profile" without
+      // blanking widgets whose own data already arrived.
+      final isOtherLoading = data == null && controller.isLoading.value;
+
       final coordinates = data?.profile?.location?.coordinates;
       final hasCoords = coordinates != null &&
           coordinates.length >= 2 &&
@@ -83,10 +97,12 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     title: AppStrings.otherManagementTitle.tr,
                     actionLabel: AppStrings.viewAll,
                     onAction: () => Get.to(() => const ManagementScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                        ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                   ),
                   const SizedBox(height: 10),
-                  if ((data?.management?.isNotEmpty ?? false))
+                  if (isOtherLoading)
+                    const _SectionSkeleton(height: 120)
+                  else if (data?.management?.isNotEmpty ?? false)
                     _ManagementList(items: data!.management!)
                   else
                     EmptySectionPlaceholder(
@@ -94,7 +110,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                       ctaLabel: AppStrings.otherManagementTitle.tr,
                       ctaIcon: Icons.groups_outlined,
                       onTap: () => Get.to(() => const ManagementScreen())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                          ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                     ),
                 ],
               ),
@@ -117,7 +133,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     title: AppStrings.otherJobsTitle.tr,
                     actionLabel: AppStrings.viewAll,
                     onAction: () => Get.to(() => const OtherJobListingScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                        ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                   ),
                   const SizedBox(height: 10),
                   EmptySectionPlaceholder(
@@ -125,7 +141,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     ctaLabel: AppStrings.otherJobsTitle.tr,
                     ctaIcon: Icons.work_outline,
                     onTap: () => Get.to(() => const OtherJobListingScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                        ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                   ),
                 ],
               ),
@@ -155,17 +171,19 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     title: AppStrings.gallery.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
                     onAction: () => Get.to(() => OtherServicePhotosPhotoScreen())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                        ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                   ),
                   const SizedBox(height: 10),
-                  if ((data?.gallery?.isNotEmpty ?? false))
+                  if (isOtherLoading)
+                    const _SectionSkeleton(height: 150)
+                  else if (data?.gallery?.isNotEmpty ?? false)
                     _Gallery(galleryList: data!.gallery!)
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.gallery.tr,
                       onTap: () => Get.to(() => OtherServicePhotosPhotoScreen())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                          ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
                     ),
                 ],
               ),
@@ -180,7 +198,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
             child: _TimingCard(
               timings: data?.timings,
               onEditTap: () => Get.to(() => TimingScreen())
-                  ?.then((_) => controller.getBusinessProfileFull()),
+                  ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
             ),
           ),
 
@@ -208,7 +226,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
           //           title: AppStrings.contactUs.tr,
           //           actionLabel: AppStrings.otherAddEdit.tr,
           //           onAction: () => Get.to(() => OtherContactUs())
-          //               ?.then((_) => controller.getBusinessProfileFull()),
+          //               ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
           //         ),
           //         const SizedBox(height: 10),
           //         if ((data?.contactUs?.isNotEmpty ?? false))
@@ -221,7 +239,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
           //             ctaLabel: AppStrings.contactUs.tr,
           //             ctaIcon: Icons.contact_phone_outlined,
           //             onTap: () => Get.to(() => OtherContactUs())
-          //                 ?.then((_) => controller.getBusinessProfileFull()),
+          //                 ?.then((_) => controller.getBusinessProfileFull(forceRefresh: true)),
           //           ),
           //       ],
           //     ),
@@ -281,6 +299,25 @@ class OtherOverviewTabV2 extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+/// Placeholder for ONE other-service section while
+/// `other-service/business-profile/<id>/full` is still in flight.
+///
+/// Section-scoped on purpose: the profile-wide widgets on this tab come from
+/// `viewBusinessProfile` and must keep rendering on their own schedule, so a
+/// whole-tab skeleton is wrong here — it hid data that had already arrived.
+class _SectionSkeleton extends StatelessWidget {
+  final double height;
+
+  const _SectionSkeleton({required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return buildLoadingShimmer(
+      child: shimmerContainer(height: height, radius: 8),
+    );
   }
 }
 

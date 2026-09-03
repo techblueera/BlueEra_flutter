@@ -6442,6 +6442,22 @@ class AppStrings {
   // category is free text the merchant owns — there is no fixed taxonomy for a
   // business that is, by definition, not one of the modelled verticals.
   static const String otherGalleryCategoryLabel = "otherGalleryCategoryLabel";
+
+  /// Generic gallery sections offered as starting suggestions — see
+  /// `OtherServicePhotoPhotoController.suggestedCategories`. The rest of the
+  /// set reuses existing keys (`reception`, `staff`, `services`, `products`,
+  /// `awards`); only these two had no equivalent.
+  static const String otherGalleryCategoryInterior =
+      "otherGalleryCategoryInterior";
+  static const String otherGalleryCategoryExterior =
+      "otherGalleryCategoryExterior";
+
+  /// Gallery upload photo-cap feedback. `@max` is the per-album ceiling;
+  /// `@added` / `@skipped` say what actually happened to the batch, because a
+  /// flat "maximum 6" reads as wrong whenever the real limit was the room LEFT.
+  static const String otherGalleryPhotosFullFmt = "otherGalleryPhotosFullFmt";
+  static const String otherGalleryPhotosSkippedFmt =
+      "otherGalleryPhotosSkippedFmt";
   static const String otherGalleryCategoryHint = "otherGalleryCategoryHint";
   static const String otherGalleryYourCategories =
       "otherGalleryYourCategories";

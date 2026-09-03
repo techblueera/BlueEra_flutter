@@ -3,7 +3,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,6 +29,22 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
           orElse: () => categoryData,
         );
         List<String> images = currentCategory.imageUrls ?? [];
+
+        // Deleting the last photo leaves the album itself in place — the
+        // controller keeps empty albums so their category survives in the
+        // upload form — so this screen stays open on a grid with nothing in
+        // it. Say so, and offer the way to refill it, rather than going blank.
+        if (images.isEmpty) {
+          return EmptyStateWidget(
+            message: AppStrings.noPhotosYet.tr,
+            actionText: AppStrings.otherUploadServicePhoto.tr,
+            actionCallback: () {
+              controller.resetUploadForm();
+              Get.to(() => const UploadOtherServicePhotosScreen());
+            },
+            actionHighlight: true,
+          );
+        }
 
         return GridView.builder(
           padding: EdgeInsets.all(16),

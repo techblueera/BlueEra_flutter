@@ -58,7 +58,7 @@ class OverviewWidgetView extends StatelessWidget {
                             onTap: () async {
                               commonConformationDialog(
                                   context: context,
-                                  text: "Are you sure you want delete?",
+                                  text: "Are you sure you want to delete?",
                                   confirmCallback: () async {
                                     await Get.find<
                                             PersonalCreateProfileController>()

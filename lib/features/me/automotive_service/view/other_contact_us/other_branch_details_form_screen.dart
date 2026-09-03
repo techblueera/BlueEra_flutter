@@ -24,7 +24,7 @@ class OtherBranchDetailsFormScreen extends StatefulWidget {
 class _OtherBranchDetailsFormScreenState
     extends State<OtherBranchDetailsFormScreen> {
   // Initialize the specific controller
-  final controller = Get.find<OtherBranchContactController>();
+  final controller = Get.find<AutomotiveBranchContactController>();
 
   final branchNameController = TextEditingController();
   final websiteController = TextEditingController();
