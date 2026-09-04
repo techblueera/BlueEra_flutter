@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
@@ -74,6 +75,16 @@ class MessagePostController extends GetxController {
       final data = responseModel.response?.data;
       clearData();
       if (responseModel.isSuccess) {
+        // Logged BEFORE the `isMsgPostEdit = false` reset on the next line —
+        // reading the flag after it would report every edit as a create.
+        AnalyticsService.I.log(
+          isMsgPostEdit ? 'post_edited' : 'post_created',
+          AnalyticsService.params({
+            'post_type': AppConstants.MESSAGE_POST,
+            'nature_of_post': natureOfPostController.value.text,
+            'creation_mode': 'new',
+          }),
+        );
         isMsgPostEdit = false;
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
@@ -102,6 +113,14 @@ class MessagePostController extends GetxController {
       );
       final data = responseModel.response?.data;
       if (responseModel.isSuccess) {
+        AnalyticsService.I.log(
+          'post_created',
+          AnalyticsService.params({
+            'post_type': AppConstants.MESSAGE_POST,
+            'nature_of_post': natureOfPostController.value.text,
+            'creation_mode': 'new',
+          }),
+        );
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
             true;
@@ -131,6 +150,16 @@ class MessagePostController extends GetxController {
       final data = responseModel.response?.data;
       clearRepostData();
       if (responseModel.isSuccess) {
+        // A repost DOES create a post, but it is not authored content —
+        // `creation_mode` keeps the two separable instead of silently
+        // inflating the authored-post count.
+        AnalyticsService.I.log(
+          'post_created',
+          AnalyticsService.params({
+            'post_type': AppConstants.MESSAGE_POST,
+            'creation_mode': 'repost',
+          }),
+        );
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
             true;

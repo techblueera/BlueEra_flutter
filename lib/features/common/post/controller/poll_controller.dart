@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,14 @@ class PollController extends GetxController {
           : await PostRepo()
               .addPostRepo(bodyReq: params, isMultiPartPost: false);
       if (response.isSuccess) {
+        // Same branch handles a create and an edit — only the create is a new
+        // post, so the edit is reported separately rather than double-counted.
+        // Mirrors photo_post_controller. Logged before clearData() below, which
+        // wipes the fields this reads from.
+        AnalyticsService.I.log(
+          isPollPostEdit ? 'post_edited' : 'post_created',
+          AnalyticsService.params({'post_type': AppConstants.POLL_POST}),
+        );
         commonSnackBar(
           message:
               response.response?.data?['message'] ?? "Poll posted successfully",
