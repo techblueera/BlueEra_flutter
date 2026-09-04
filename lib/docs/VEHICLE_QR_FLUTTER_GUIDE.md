@@ -8,32 +8,120 @@ all in `VEHICLE_QR_ADMIN_PANEL_GUIDE.md`. Nothing there needs the app.
 
 ---
 
-## Status: the code change is already DONE
+## Status: complete
 
-Landed on `Development-BlueEra` in **`eb8868d50`** (27 Aug, "release prod
-build"), version **14.0.70+329** — `isNewChat`, the empty `conversationId`, the
-`vehicle_qr` prefilled message, and the `/v/*` bounce are all in. The
-implementation is more complete than this guide originally asked for.
+The routing landed on `Development-BlueEra` in **`eb8868d50`** (27 Aug), version
+**14.0.70+329** — `isNewChat`, the empty `conversationId`, the `vehicle_qr`
+prefilled message and the `/v/*` bounce.
 
-**If parking still does not open the chat, it is almost certainly not the code.**
-Jump to *Troubleshooting* below — the usual cause is App Links failing to verify
-on a debug-signed build.
+The last gap — **the deep link was dropped when the user was not signed in** —
+is now closed too. A link that arrives without a usable account is stashed in
+secure storage and replayed the moment one exists, so the person who taps
+*Report parking issue* on a stranger's windscreen lands on the owner's chat
+after signing up, not on home.
 
-The rest of this section documents what was built, for reference.
+Everything below this point is reference: what was built, and how to test it.
+
+---
+
+## What the signed-out / guest fix does
+
+Three files, one idea: **read the link on every launch, and never throw it away
+just because there is nobody to open it as yet.**
+
+### `lib/core/services/deep_link_router.dart` (new)
+
+The whole routing switch moved out of `SplashScreen` into `DeepLinkRouter`, so
+the same routing can run from more than one place — splash on a cold start, and
+the home shell when replaying a stashed link. Nothing in it touches
+`BuildContext` (it navigates with `Get`), which is what lets it run from a
+splash that is about to be torn down.
+
+Three decisions sit in front of the switch:
+
+| | |
+|---|---|
+| `isBrowserBounce(uri)` | the `emergency.beapp.in/v/{code}` sticker — handed to the browser, **before any session check**, because the scan page needs no BlueEra account |
+| `requiresRealAccount(uri)` | `app/chat/*` — a guest has no profile for the owner to reply to |
+| `routeOrDefer(uri)` | route it now, or stash it — used by the warm-state listener |
+
+`DeepLinkService` in the same file now owns the `app_links` subscription. It
+used to live on `SplashScreen` and survive only because it was never cancelled
+— a leak the app depended on, since splash is torn down seconds after launch
+and a link tapped an hour later still has to open. It is process-lifetime state
+now, held deliberately.
+
+### `SharedPreferenceUtils`
+
+`saveDeferredDeepLink` / `getDeferredDeepLink` / `clearDeferredDeepLink`, the
+same shape as the existing deferred referral code — plus a saved-at timestamp
+and a 24-hour `deferredDeepLinkMaxAge`. A link nobody came back to finish
+expires instead of reopening a stale parking report days later; a missing or
+garbled timestamp counts as expired, because a link that cannot be aged is a
+link that could reopen forever.
+
+### `splash_screen.dart`
+
+`_initDeepLinks()` now runs on **every** launch and **before every early
+return** in `_openNextScreen` (share intent, notification launch, language
+selection) — not inside the `isLoginStatus == "true"` branch. The link is then
+either bounced to the browser, routed, or stashed.
+
+### `chat_view_controller.dart` — the empty chat, and what `new` really means
+
+Two fixes here, both about what the reporter sees once the chat opens.
+
+**The message list sat on a spinner forever.** `getListOfMessageResponse` is
+controller-level state, and for a chat with no conversation nothing ever
+settles it: `loadOfflineMessages` returns early on an empty id, and no fetch
+completes. So the list read "still loading" and painted a spinner that never
+resolved — and on a warm app it would have painted the *previous* chat's
+messages, since that Rx still held them. `listenUserNewMessages` now publishes
+an empty `complete()` when the conversation id is empty, which both clears the
+stale list and lets the screen render its "say Namaste 🙏" starter. Both chat
+screens gate on the same condition, so the one change covers them.
+
+**`new` does not mean "these two have never talked".** It means the backend
+never looked — it has no conversation id to send. So the router no longer
+assumes a blank thread. It calls `checkChatConnectionAndOpenChat`, the same
+lookup behind every in-app "message this person" tap:
+
+| Who scans | What comes back | What opens |
+|---|---|---|
+| first-time reporter | no conversation | initial-message mode → "say Namaste" starter, plate prefilled |
+| repeat reporter, or the two have chatted before | the existing thread | that thread **with its history**, plate prefilled |
+
+It also fills in the owner's avatar and contact number, which the link does not
+carry. `checkChatConnectionAndOpenChat` now returns whether it opened anything,
+so if the lookup fails (offline, empty cache) the router falls through and
+opens the chat blind — a scanned sticker must never dead-end on a snackbar.
+
+### `bottom_navigation_bar_screen.dart`
+
+`_resumeDeferredDeepLink()` in the post-frame init. This is the one place every
+route into a real session converges — login, signup, and a guest upgrading
+their account all land on the home shell — so it is where the link is replayed.
+It clears the link **before** routing, so a failure inside routing cannot leave
+one that reopens on every launch. A guest hitting a chat link keeps the link
+stashed and gets `createProfileScreen()` instead, once per process.
 
 ---
 
 ## The short version
 
-**One change, in one file. Routing only.**
-
-`lib/features/common/onboarding/view/splash_screen.dart` — the deep-link
-handler, around line 212.
+**Five files:** `lib/core/services/deep_link_router.dart` (new),
+`lib/features/common/onboarding/view/splash_screen.dart`,
+`lib/core/constants/shared_preference_utils.dart`,
+`lib/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart`,
+`lib/features/chat/auth/controller/chat_view_controller.dart`.
 
 | | |
 |---|---|
-| Deep-link routing change | ✅ **this is the whole scope** |
-| Chat screen changes | ❌ none |
+| Deep-link routing (`chat/new`) | ✅ shipped |
+| Deferred link across login | ✅ shipped |
+| Guest → sign-up, then resume | ✅ shipped |
+| `new` resolves an existing thread | ✅ shipped |
+| Chat screen changes | ❌ none (the fix is in the controller) |
 | New screens | ❌ none |
 | AndroidManifest / iOS entitlements | ❌ none |
 | QR scanner in the app | ❌ none — the phone camera does it |
@@ -90,20 +178,25 @@ the backend cannot send a real `conversationId` and puts the literal `new` in
 that slot. chat-service creates the conversation when the first message is
 actually sent.
 
-Today that link opens nothing, because `_handleDeepLink` rejects `new` before it
-ever reaches the `case 'chat':` branch:
+Before the fix, `_handleDeepLink` rejected `new` before it ever reached the
+`case 'chat':` branch:
 
 ```dart
 final id = segments[2];
-if (!_isValidMongoId(id)) {   // "new" is not 24-hex → returns, nothing opens
+if (!_isValidMongoId(id)) {   // "new" is not 24-hex → returned, nothing opened
   logs('Invalid ID format in deep link: $id');
   return;
 }
 ```
 
+That is now handled — the section below records what was done.
+
 ---
 
-## The change
+## The change that already shipped
+
+Kept for reference. You do not need to do this again — it is in
+`eb8868d50` onward.
 
 **1 — let `new` past the ObjectId guard** (~line 215):
 
@@ -161,19 +254,23 @@ So this is a proven, working path — not something new being built.
 
 ---
 
-## Optional polish
+## The prefilled first message — shipped
 
-`prefilledMessage` is already a constructor parameter, so seeding the first
-message costs nothing beyond passing it:
+`prefilledMessage` was already a constructor parameter on both chat screens, so
+seeding the first message cost nothing beyond passing it. In `case 'chat':`:
 
 ```dart
-prefilledMessage: vehicleNumber != null
-    ? 'Regarding your vehicle $vehicleNumber…'
-    : null,
+final vehicleNumber = queryParams['vehicleNumber']?.trim() ?? '';
+final prefilledMessage = queryParams['source'] == 'vehicle_qr' &&
+        vehicleNumber.isNotEmpty
+    ? 'Regarding your vehicle $vehicleNumber - '
+    : null;
 ```
 
-Read `source`, `code` and `vehicleNumber` from `uri.queryParameters`. Nice to
-have, not required.
+Scoped to `source == 'vehicle_qr'` with a non-empty plate, so no other
+`chat/new` link inherits vehicle wording and the sentence never renders with a
+hole in it. `code` is carried by the link for support traceability; the app
+does not need to read it.
 
 ---
 
@@ -187,6 +284,73 @@ open in the browser.
 **Do not remove that bounce, and do not add a scoped filter that swallows
 `/v/*`.** The scan page is a full web journey — registration, OTP, terms, SOS —
 and none of it exists in the app. Intercepting it means a blank screen.
+
+---
+
+## Every case you have to handle
+
+The link only ever arrives in one shape. What differs is the state the app is in
+when it lands.
+
+| # | State when the link arrives | What must happen | Status |
+|---|---|---|---|
+| 1 | Signed in, app cold-started by the link | chat opens on the owner | ✅ works |
+| 2 | Signed in, app already running (warm) | chat opens on the owner | ✅ works |
+| 3 | **Signed out** | stash the link, open login, resume to the chat after sign-in | ✅ works |
+| 4 | **Guest account** | chat needs a real account — send to sign-up, then resume | ✅ works |
+| 5 | App not installed | web page shows the store link | ✅ web-side, nothing to do |
+| 6 | Owner has no BlueEra account | web page shows "owner not on the app" | ✅ web-side, no link is sent |
+
+Cases 5 and 6 never reach the app — the web page handles them and no deep link
+is generated. They are listed so nobody goes looking for an app-side bug that
+does not exist.
+
+### Case 4 — guest accounts
+
+`isLoginStatus == "true"` is also true for a **guest**, so a guest passes the
+login gate. Verified against the rest of the app: every in-app chat entry point
+already bounces a guest to account creation rather than into the chat (see
+`DiscoverChatIcon`), because a guest has no profile for the owner to reply to.
+
+The deep link now does the same. `DeepLinkRouter.requiresRealAccount` marks
+`app/chat/*`, the link stays stashed, and the guest is sent to
+`createProfileScreen()` — once per process, so backing out of account creation
+does not re-open it on a loop. Finish signing up and the home shell replays the
+link into the owner's chat.
+
+### Case 3 — what "resume" should look like
+
+The user tapped *Report parking issue* on someone's windscreen. After signing
+in, they should land **on the chat**, with the plate already in the input:
+
+```
+Regarding your vehicle UP16FL4618 - 
+```
+
+Not on home. Not on a toast saying "link expired". The whole point of the
+campaign is converting that scan into a first message.
+
+---
+
+### What the link carries
+
+```
+https://beapp.in/app/chat/new
+  ?userId=6a0a9367b3b8327f72a28ce6     ← the vehicle owner. 24-hex, always present
+  &chatType=personal                   ← "personal" | "business"
+  &name=Priyanka%20Kumari              ← owner display name, for the app bar
+  &source=vehicle_qr                   ← scopes the prefilled message
+  &code=MFYRG8CT                       ← the sticker, for support traceability
+  &vehicleNumber=UP16FL4618            ← the plate, seeds the first message
+```
+
+`userId` is guaranteed — the backend does not emit a link without one. If it is
+ever missing or not 24-hex, that is a backend bug worth reporting rather than
+working around; the current code correctly refuses to open a chat with nobody.
+
+`source`, `code` and `vehicleNumber` are extras. Treat them as optional: a
+future campaign may reuse `chat/new` without them, and the prefill is already
+correctly scoped to `source == 'vehicle_qr'` with a non-empty plate.
 
 ---
 
@@ -205,9 +369,38 @@ Paste this into Chrome on the device:
 https://beapp.in/app/chat/new?userId=6a0a9367b3b8327f72a28ce6&chatType=personal&name=Priyanka&source=vehicle_qr&code=MFYRG8CT&vehicleNumber=UP16FL4618
 ```
 
-Expected: the app opens on a chat with that user, empty, with *"Regarding your
-vehicle UP16FL4618 - "* already in the input. Sending creates the conversation
-and the owner gets the usual push.
+Expected: the app opens on a chat with that user, showing the **"say Namaste
+🙏" starter** (not a spinner), with *"Regarding your vehicle UP16FL4618 - "*
+already in the input. Sending creates the conversation and the owner gets the
+usual push.
+
+Send once, then open the same link again: the second time it must open the
+**existing thread with that first message in it**, not a blank chat.
+
+### The four states to test, not just the easy one
+
+Cases 1 and 2 are what you get by pasting the link with the app installed and
+signed in. The two that used to fail need setting up deliberately:
+
+| # | Setup | Expected |
+|---|---|---|
+| 1 | signed in, app killed | link opens the chat, prefilled |
+| 2 | signed in, app in background | same |
+| 3 | **signed out** (log out first, then paste the link) | login screen → sign in → **lands on the chat**, prefilled. Not home. |
+| 4 | **guest account** | account-creation screen → finish signup → **lands on the chat**, prefilled |
+
+For case 3 the link is only replayable for 24 hours
+(`SharedPreferenceUtils.deferredDeepLinkMaxAge`); abandon the login for longer
+than that and the app correctly opens on home with nothing pending.
+
+Also check the sticker URL itself still leaves the app while signed out:
+
+```
+https://emergency.beapp.in/v/MFYRG8CT
+```
+
+Expected: the browser opens the scan page. It must **not** be stashed for after
+login — that page needs no BlueEra account.
 
 ---
 
@@ -277,13 +470,17 @@ but worth fixing.
 
 ---
 
-## What breaks without this
+## What this used to break
 
-Only the parking button. Scanning, registration, OTP claim and the SOS flow all
-work without any app change — those are entirely browser-side.
+Only the parking button, and only for **signed-out users** — which was most of
+them, since the person scanning a stranger's windscreen is rarely signed in.
 
-Until this ships, tapping "Report parking issue" records the tap and hands the
-browser a link that opens nothing.
+They tapped *Report parking issue*, the app opened on login, they signed in, and
+landed on home with no chat and no explanation. From their side the button
+simply did not work. That is what the deferred-link fix above closes.
+
+Scanning, registration, OTP claim and SOS all work with no app involvement at
+all — those are entirely browser-side.
 
 ---
 

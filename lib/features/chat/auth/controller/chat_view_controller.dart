@@ -2882,6 +2882,21 @@ class ChatViewController extends GetxController {
     // offline and the socket emit below never gets a reply.
     if (conversationId.isNotEmpty) {
       unawaited(loadOfflineMessages(conversationId));
+    } else {
+      // A chat that does not exist yet — the vehicle-QR parking report, or any
+      // other "message this person" entry point that opens with an empty
+      // conversationId. There is no history to load and no fetch that will
+      // ever settle, so publish an empty COMPLETE list right away.
+      //
+      // Two things go wrong without this. [getListOfMessageResponse] is
+      // controller-level state, so it still holds whatever the LAST opened
+      // conversation left in it: on a fresh launch that is
+      // `ApiResponse.initial`, which the message list reads as "still loading"
+      // and paints a spinner that never resolves; on a warm app it is the
+      // previous chat's messages, which would render as this stranger's
+      // history. An empty complete() settles both — the screen shows its
+      // "say Namaste" starter instead.
+      getListOfMessageResponse.value = ApiResponse.complete(<Messages>[]);
     }
     emitEvent(ChatEmitEvents.screenRoom,
         {ApiKeys.conversation_id: "${conversationId}"});
@@ -4563,7 +4578,13 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<void> checkChatConnectionAndOpenChat({
+  /// Resolves the conversation with [userId] and opens the right chat screen.
+  ///
+  /// Returns whether a chat was actually opened. Almost every caller is a tap
+  /// handler that ignores it (a snackbar has already explained the failure);
+  /// the deep-link router reads it so a scanned QR can fall back to opening
+  /// the chat blind rather than dead-ending on that snackbar.
+  Future<bool> checkChatConnectionAndOpenChat({
     required String userId,
     bool? isFromContactList,
     bool? isWithProductSend,
@@ -4653,6 +4674,7 @@ class ChatViewController extends GetxController {
         isFromContactList: isFromContactList,
         prefilledMessage: prefilledMessage,
       );
+      return true;
     } else {
       // Offline fallback: try to open from local cache
       final opened = await _tryOpenChatFromLocalCache(
@@ -4663,6 +4685,7 @@ class ChatViewController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
+      return opened;
     }
   }
 
