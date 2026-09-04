@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/deep_link_router.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart';
@@ -579,6 +581,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // deep-link background host (deferHeavyInit), skip it until the user first
     // navigates a tab — it then runs from _ensureHeavyInit().
     final boot = !widget.deferHeavyInit;
+    // A deeplink that arrived before the user had an account to open it with
+    // (signed out, or on a guest account) was stashed rather than dropped.
+    // This is the one place every route into a real session converges —
+    // login, signup, and a guest upgrading their account all land here — so it
+    // is where the link gets replayed. Skipped on a deep-link background host,
+    // which already has its own target to open.
+    if (boot) unawaited(_resumeDeferredDeepLink());
     // Deposit → account-plan migration offer. Not account-type specific: both
     // businesses and individuals hold security deposits, so this sits outside
     // the branch below. The helper asks the backend whether this user is even
@@ -638,6 +647,51 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
       }
     }
+  }
+
+  /// Set once a guest has already been asked to finish signing up for a
+  /// stashed link, so backing out of account creation and returning to the
+  /// home shell does not re-open it on a loop. Process-lifetime, not
+  /// persisted: the ask is worth repeating on a later launch, just not on
+  /// every rebuild of this screen.
+  static bool _guestAskedToUpgradeForDeepLink = false;
+
+  /// Replays a deeplink that could not be routed when it arrived.
+  ///
+  /// The vehicle-safety QR is the case this exists for: whoever taps "Report
+  /// parking issue" on a stranger's windscreen is rarely signed in, so the
+  /// link lands on the login screen and used to die there. Now it waits in
+  /// secure storage and opens the owner's chat — with the plate already in the
+  /// input — the moment sign-in completes.
+  ///
+  /// A guest is still not a real account (chat has nobody to reply to), so a
+  /// link that [DeepLinkRouter.requiresRealAccount] stays stashed and the
+  /// guest is sent to account creation instead, matching every other in-app
+  /// chat entry point.
+  Future<void> _resumeDeferredDeepLink() async {
+    final pending = await SharedPreferenceUtils.getDeferredDeepLink();
+    if (pending == null || pending.isEmpty) return;
+
+    final uri = Uri.tryParse(pending);
+    if (uri == null) {
+      logs('Deferred deep link is not a valid URL, dropping: $pending');
+      await SharedPreferenceUtils.clearDeferredDeepLink();
+      return;
+    }
+
+    if (isGuestUser() && DeepLinkRouter.requiresRealAccount(uri)) {
+      if (_guestAskedToUpgradeForDeepLink) return;
+      _guestAskedToUpgradeForDeepLink = true;
+      // Keep the link stashed — it is replayed by this same method once the
+      // guest finishes and lands back on the home shell with a real account.
+      createProfileScreen();
+      return;
+    }
+
+    // Cleared BEFORE routing, never after: a failure inside the routing must
+    // not leave a link that reopens on every launch from here on.
+    await SharedPreferenceUtils.clearDeferredDeepLink();
+    await DeepLinkRouter.handle(uri);
   }
 
   /// App-open Quick Upload page for a catalogue business (grocery / food /

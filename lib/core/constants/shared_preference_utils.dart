@@ -159,6 +159,23 @@ class SharedPreferenceUtils {
   /// promo-code dialog. Cleared after onboarding consumes it.
   static const deferredReferralCodeKey = 'deferred_referral_code';
 
+  /// A deeplink that arrived while the user was signed out (or on a guest
+  /// account) and therefore could not be routed yet. Stored as the full URL
+  /// string, replayed once a real account exists. The vehicle-QR parking
+  /// report is the case that needs it most — whoever is blocked in by a
+  /// stranger's car is exactly the person least likely to be signed in.
+  static const deferredDeepLinkKey = 'deferred_deep_link';
+
+  /// `millisecondsSinceEpoch` the deferred deeplink was stashed at, so a link
+  /// nobody ever came back to finish expires instead of reopening a stale
+  /// parking report on some launch days later. See [deferredDeepLinkMaxAge].
+  static const deferredDeepLinkSavedAtKey = 'deferred_deep_link_saved_at';
+
+  /// How long a stashed deeplink stays replayable. Long enough to cover a
+  /// signup that needs OTP, a profile and a photo; short enough that the link
+  /// is still about something the user remembers doing.
+  static const deferredDeepLinkMaxAge = Duration(hours: 24);
+
   /// One-shot guard so the Google Play install referrer is queried only
   /// once per install. Set after the first successful query so a referral
   /// code already consumed (and cleared) by onboarding can't be revived
@@ -214,6 +231,49 @@ class SharedPreferenceUtils {
   /// stale referral.
   static Future<void> clearDeferredReferralCode() async {
     await _secureStorage.delete(key: deferredReferralCodeKey);
+  }
+
+  /// Persist a deeplink that arrived before the user had an account to open
+  /// it with. No-op for empty input. The newest link wins: if two arrive
+  /// before sign-in, the one the user acted on last is the one they expect.
+  static Future<void> saveDeferredDeepLink(String url) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return;
+    await setSecureValue(deferredDeepLinkKey, trimmed);
+    await setSecureValue(deferredDeepLinkSavedAtKey,
+        DateTime.now().millisecondsSinceEpoch.toString());
+  }
+
+  /// Read the stashed deeplink, or null when there is none / it has aged out
+  /// past [deferredDeepLinkMaxAge]. An expired link is cleared on the way out
+  /// so it is not re-checked on every launch forever.
+  static Future<String?> getDeferredDeepLink() async {
+    final value = await getSecureValue(deferredDeepLinkKey);
+    if (value is! String || value.isEmpty) return null;
+
+    final savedAtRaw = await getSecureValue(deferredDeepLinkSavedAtKey);
+    final savedAt = int.tryParse(savedAtRaw?.toString() ?? '');
+    // A missing/garbled timestamp is treated as expired rather than as
+    // "forever fresh" — a link we cannot age is a link that could reopen on
+    // every launch.
+    if (savedAt == null) {
+      await clearDeferredDeepLink();
+      return null;
+    }
+    final age = DateTime.now()
+        .difference(DateTime.fromMillisecondsSinceEpoch(savedAt));
+    if (age.isNegative || age > deferredDeepLinkMaxAge) {
+      await clearDeferredDeepLink();
+      return null;
+    }
+    return value;
+  }
+
+  /// Wipe the stashed deeplink. Callers clear it BEFORE routing, so a crash
+  /// inside the routing cannot leave a link that reopens on every launch.
+  static Future<void> clearDeferredDeepLink() async {
+    await _secureStorage.delete(key: deferredDeepLinkKey);
+    await _secureStorage.delete(key: deferredDeepLinkSavedAtKey);
   }
 
   static Future<void> userLoggedInIndividualGuest({
