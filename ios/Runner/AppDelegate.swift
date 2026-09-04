@@ -13,7 +13,7 @@ import flutter_callkit_incoming
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        GMSServices.provideAPIKey("AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU")
+        GMSServices.provideAPIKey("AIzaSyBCQC4611GnFpzFDGiMu1M_UXjCDFigt-Q")
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
 

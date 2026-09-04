@@ -496,25 +496,47 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   // Chip rows
   // ---------------------------------------------------------------------------
 
+  /// The WHOLE card opens the ride screen — not just the chips.
+  ///
+  /// [DiscoverBannerRowV2] wires its `onTap` to three sub-widgets only: the
+  /// leading plate, the title text, and the "More" chip. The card's padding,
+  /// the gaps between chips and the empty space after a short chip line were
+  /// all dead, so a tap that visibly landed on the transport section did
+  /// nothing. Every transport type lands on the same screen anyway — the type
+  /// is picked there, on the map, next to the fare — so there is no part of
+  /// this row where a tap should mean nothing.
+  ///
+  /// Wrapped HERE rather than inside the shared row widget: the other four
+  /// rows on this page carry per-chip destinations (finance opens a different
+  /// listing per category) and a CTA of their own, so making every banner row
+  /// tappable end-to-end is a different decision from this one.
+  ///
+  /// The chips keep their own [GestureDetector]s. Hit-testing runs
+  /// deepest-first, so a chip still wins its own tap; this only catches the
+  /// presses that would otherwise fall through to nothing.
   Widget _transportRow() {
-    return DiscoverBannerRowV2(
-      title: AppStrings.bookYourTransport.tr,
-      leadingIcon: AppImageAssets.gpsDiscover,
-      // Every transport type opens the same ride screen — the type is picked
-      // there, on the map, next to the fare. Same as v1's folder tap.
-      chips: [
-        for (final item in transportItemsCategories)
-          DiscoverBannerChip(
-            label: item.name,
-            icon: item.icon ?? '',
-            onTap: _openRide,
-          ),
-      ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _openRide,
-      // ONE line, as drawn: the transport types are five short words and the
-      // design keeps the whole row to a single box. Anything past the line
-      // collapses into "More", which opens the same ride screen the chips do.
-      maxLines: 1,
+      child: DiscoverBannerRowV2(
+        title: AppStrings.bookYourTransport.tr,
+        leadingIcon: AppImageAssets.gpsDiscover,
+        // Every transport type opens the same ride screen — the type is picked
+        // there, on the map, next to the fare. Same as v1's folder tap.
+        chips: [
+          for (final item in transportItemsCategories)
+            DiscoverBannerChip(
+              label: item.name,
+              icon: item.icon ?? '',
+              onTap: _openRide,
+            ),
+        ],
+        onTap: _openRide,
+        // ONE line, as drawn: the transport types are five short words and the
+        // design keeps the whole row to a single box. Anything past the line
+        // collapses into "More", which opens the same ride screen the chips do.
+        maxLines: 1,
+      ),
     );
   }
 

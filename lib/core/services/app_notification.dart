@@ -10,6 +10,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -3251,6 +3252,17 @@ class AppNotificationHandler {
     // body-tap routing works without disturbing the existing operations.
     final operation =
         (data['operation'] ?? data['type'] ?? '').toString().toLowerCase();
+
+    // Ties FCM engagement back to GA4: which push types actually get opened,
+    // and whether the open came from a cold start or a running app. Logged
+    // before routing so a route that throws still leaves the open recorded.
+    AnalyticsService.I.log(
+      'notification_opened',
+      AnalyticsService.params({
+        'operation': operation,
+        'from_cold_start': fromColdStart,
+      }),
+    );
 
     // When launched from terminated state, push home screen first so the user
     // has a proper back stack after viewing the notification target screen.

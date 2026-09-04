@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
@@ -78,6 +79,16 @@ class BottomBarController extends GetxController {
     }
   }
 
+  /// GA4 screen names for the bottom-nav tabs, indexed by tab position. A tab
+  /// switch pushes no route, so the FirebaseAnalyticsObserver never sees it —
+  /// [onChangeIndex] logs these by hand.
+  static const List<String> _tabScreenNames = <String>[
+    'me',
+    'discover',
+    'chat',
+    'reels',
+  ];
+
   void onChangeIndex(int index) {
     // Pause and release feed video when leaving Home tab to free GPU buffers
     if (currentIndex.value == 0 && index != 0) {
@@ -86,6 +97,14 @@ class BottomBarController extends GetxController {
     // Always reveal the bottom nav on a tab switch — otherwise a tab left
     // scrolled-down would hand the next tab a hidden bar.
     isBottomNavVisible.value = true;
+    // Only report a real switch: onChangeIndex is also called to re-assert the
+    // current tab (deep links, back handling), and logging those would inflate
+    // screen_view counts for whichever tab the user is already sitting on.
+    if (currentIndex.value != index &&
+        index >= 0 &&
+        index < _tabScreenNames.length) {
+      AnalyticsService.I.screen(_tabScreenNames[index]);
+    }
     currentIndex.value = index;
   }
   void _pauseFeedVideo() {

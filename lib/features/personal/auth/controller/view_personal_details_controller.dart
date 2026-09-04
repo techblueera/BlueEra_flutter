@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/shop_availability_sheet.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -196,7 +197,20 @@ class ViewPersonalDetailsController extends GetxController
     }
 
     final ok = await callApiForChangeStatus(isOpen: isOpen);
-    if (ok) return;
+    if (ok) {
+      // Only report a transition the SERVER accepted. `source` separates a
+      // deliberate pill tap from the scheduler / restore paths, which would
+      // otherwise inflate the go-live count with traffic no user generated.
+      AnalyticsService.I.log(
+        isOpen ? 'go_live' : 'go_offline',
+        AnalyticsService.params({
+          'account_type': AppConstants.individual,
+          'profile_type': userProfileTypeGlobal,
+          'source': userInitiated ? 'user' : 'auto',
+        }),
+      );
+      return;
+    }
 
     if (isOpen && userInitiated) {
       await _forceLocalOffline();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -7,6 +9,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/address_cache_service.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/chat_storage_paths.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -117,6 +120,11 @@ class LogoutHelper {
   static Future<void> _performLogout() async {
     if (Get.isDialogOpen ?? false) Get.back();
     AppLoader.showLogout();
+
+    // Detach the GA4 identity BEFORE the wipe, so nothing logged during the
+    // teardown is still attributed to the account signing out. Not awaited —
+    // analytics must never delay or fail a logout.
+    unawaited(AnalyticsService.I.setUser(null));
 
     // Phase 1 — non-reactive bulk wipe.
     try {

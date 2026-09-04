@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -231,6 +232,15 @@ class PhotoPostController extends GetxController {
       Navigator.of(Get.context!, rootNavigator: true).pop();
 
       if (response.isSuccess) {
+        // Same branch handles a create and an edit — only the create is a new
+        // post, so the edit is reported separately rather than double-counted.
+        AnalyticsService.I.log(
+          isPhotoPostEdit ? 'post_edited' : 'post_created',
+          AnalyticsService.params({
+            'post_type': AppConstants.PHOTO_POST,
+            'nature_of_post': natureOfPost.value,
+          }),
+        );
         commonSnackBar(
           message: response.response?.data?['message'] ??
               'Your Symbol Post has been created!',

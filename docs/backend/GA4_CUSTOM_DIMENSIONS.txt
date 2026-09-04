@@ -1,0 +1,145 @@
+================================================================================
+GA4 CUSTOM DEFINITIONS - BlueEra          (fill-in list, 13 entries)
+================================================================================
+Property : the one linked to Firebase project blueera-50c05
+Where    : analytics.google.com > Admin > Data display > Custom definitions
+Source   : lib/core/services/analytics_service.dart + its call sites
+
+The console form has exactly four fields. Copy each block below into it:
+
+    Dimension name    <- free text, must be UNIQUE across the property
+    Scope             <- dropdown: User / Event / Item
+    Description       <- free text, optional
+    Event parameter   <- MUST match the app string exactly (lower case,
+                         underscores). At Scope=User this field is instead
+                         labelled "User property".
+
+Scope "Item" is for ecommerce item arrays - BlueEra sends none, so it is
+never used below.
+
+Registration is NOT retroactive: data collected before you create these stays
+unqueryable in reports. Create them before gathering real traffic.
+
+
+================================================================================
+A. CUSTOM DIMENSIONS TAB  -  12 entries
+================================================================================
+
+-- 1 ---------------------------------------------------------------------
+Dimension name   : Account type (event)
+Scope            : Event
+Description      : Account type on a go-live event. BUSINESS or INDIVIDUAL.
+Event parameter  : account_type
+
+-- 2 ---------------------------------------------------------------------
+Dimension name   : Profile type (event)
+Scope            : Event
+Description      : Individual profile type on go-live. GIG_WORKER, SELF_EMPLOYED.
+Event parameter  : profile_type
+
+-- 3 ---------------------------------------------------------------------
+Dimension name   : Go-live source
+Scope            : Event
+Description      : Whether go-live/go-offline was a user tap or the scheduler.
+Event parameter  : source
+
+-- 4 ---------------------------------------------------------------------
+Dimension name   : Vehicle type
+Scope            : Event
+Description      : Vehicle selected on a ride request. BIKE, AUTO.
+Event parameter  : vehicle_type
+
+-- 5 ---------------------------------------------------------------------
+Dimension name   : Payment mode
+Scope            : Event
+Description      : Payment mode chosen for a ride. CASH or ONLINE.
+Event parameter  : payment_mode
+
+-- 6 ---------------------------------------------------------------------
+Dimension name   : Post type
+Scope            : Event
+Description      : Post created or edited. PHOTO_POST, MESSAGE_POST, POLL_POST.
+Event parameter  : post_type
+
+-- 7 ---------------------------------------------------------------------
+Dimension name   : Nature of post
+Scope            : Event
+Description      : Author-selected nature/category of the post.
+Event parameter  : nature_of_post
+
+-- 8 ---------------------------------------------------------------------
+Dimension name   : Creation mode
+Scope            : Event
+Description      : Message post authored new vs reposted. new or repost.
+Event parameter  : creation_mode
+
+-- 9 ---------------------------------------------------------------------
+Dimension name   : Notification operation
+Scope            : Event
+Description      : Push type that was opened. chat_message, incoming_call.
+Event parameter  : operation
+
+-- 10 --------------------------------------------------------------------
+Dimension name   : From cold start
+Scope            : Event
+Description      : 1 if the push opened the app from terminated state, else 0.
+Event parameter  : from_cold_start
+
+-- 11 --------------------------------------------------------------------
+Dimension name   : Account type (user)
+Scope            : User
+Description      : Current account type of the signed-in user.
+User property    : account_type
+
+-- 12 --------------------------------------------------------------------
+Dimension name   : Profile type (user)
+Scope            : User
+Description      : Current profile type of the signed-in individual.
+User property    : profile_type
+
+
+NOTE ON 1/11 AND 2/11: the parameter names repeat across scopes on purpose.
+User scope answers "how many gig workers do we have"; Event scope answers
+"which type went live". GA4 requires the DIMENSION NAME to be unique, which
+is what the "(event)" / "(user)" suffix is for.
+
+
+================================================================================
+B. CUSTOM METRICS TAB  -  1 entry
+================================================================================
+Different tab. `fare` is a number: as a dimension it becomes one text bucket
+per price and cannot be summed or averaged.
+
+-- 13 --------------------------------------------------------------------
+Metric name         : Ride fare
+Scope               : Event
+Description         : Fare quoted on a ride request, in INR.
+Event parameter     : fare
+Unit of measurement : Currency
+
+
+================================================================================
+C. DO NOT CREATE
+================================================================================
+Standard GA4 parameters - already in reports, creating them wastes quota:
+    search_term     (search)
+    method          (login, sign_up)
+    screen_name     (screen_view)
+
+Sent by the app but deliberately NOT registered - unique per event, so every
+value becomes its own row and GA4 collapses the excess into "(other)",
+corrupting totals. Use DebugView or the BigQuery export for these instead:
+    order_id        (ride_requested)
+    job_id          (job_post_published)
+
+
+================================================================================
+D. AFTER SAVING
+================================================================================
+Up to 24h before these populate reports, and only for data collected from
+now on. DebugView shows the raw parameters immediately whether registered or
+not - so use DebugView to confirm the app sends the right names, and the
+reports a day later to confirm registration took.
+
+Quota used: 10 of 50 event-scoped, 2 of 25 user-scoped, 1 of 50 metrics.
+================================================================================

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/repo/job_repo.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
@@ -279,6 +280,10 @@ class CreateJobPostController extends GetxController {
         params: {},
       );
       if (response.isSuccess) {
+        // Publish is the step that makes the post visible to seekers — the
+        // earlier draft steps are not a completed job posting.
+        AnalyticsService.I.log(
+            'job_post_published', AnalyticsService.params({'job_id': jobId}));
         commonSnackBar(message: response.message ?? AppStrings.success);
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),

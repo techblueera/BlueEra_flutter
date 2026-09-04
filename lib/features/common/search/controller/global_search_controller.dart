@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
@@ -188,6 +189,10 @@ class GlobalSearchController extends GetxController {
     if (queryController.text != q) queryController.text = q;
     _committedQuery = q;
     _addRecentSearch(q);
+    // GA4's recommended `search` event — logged on COMMIT only. The debounced
+    // suggest path fires per keystroke and would bury the real intent under
+    // partial terms.
+    AnalyticsService.I.logSearch(q);
     activeType.value = null;
     sortKey.value = null; // fresh query starts at relevance
     suggestions.clear();

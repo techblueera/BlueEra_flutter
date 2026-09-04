@@ -25,6 +25,7 @@ import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/ride_ring_notification.dart';
 import 'package:BlueEra/core/services/notifications/new_order_timer_notification.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -749,6 +750,13 @@ Future<void> main() async {
   /// is persisted by the plugin on first launch.
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+  /// GA4 analytics. Firebase is initialised above, so the SDK can start
+  /// collecting immediately — `first_open` / `session_start` / `screen_view`
+  /// are auto-collected from here on. Deliberately NOT awaited: enabling
+  /// collection is a platform round-trip and nothing on the first frame
+  /// depends on it. See docs/backend/GA4_ANALYTICS_INTEGRATION_GUIDE.md.
+  unawaited(AnalyticsService.I.init());
+
   if (kDebugMode) debugPrintKeys();
 
   if (Platform.isIOS) {
@@ -798,6 +806,19 @@ Future<void> main() async {
   // Token is in memory now — mirror it to native prefs so the incoming-call
   // notification's Decline button can reach the server with the app killed.
   unawaited(syncCallAuthToNative());
+
+  // Restore the GA4 identity for an already-signed-in user. Login sets this
+  // itself (auth_controller), but a returning user never passes through login,
+  // so without this every relaunch reports as an anonymous new user.
+  // `userId` / `accountTypeGlobal` / `userProfileTypeGlobal` are opaque —
+  // no PII, which GA4 forbids in user ids and properties.
+  if (userId.isNotEmpty) {
+    unawaited(AnalyticsService.I.setUser(
+      userId,
+      accountType: accountTypeGlobal,
+      profileType: userProfileTypeGlobal,
+    ));
+  }
 
   final locale = Locale(savedLangCode);
 
@@ -1330,7 +1351,13 @@ class _MyAppState extends State<MyApp> {
         theme: AppThemes.light,
         initialRoute: null,
         onGenerateRoute: RouteHelper.generateRoute,
-        navigatorObservers: [RouteHelper.routeObserver],
+        navigatorObservers: [
+          RouteHelper.routeObserver,
+// GA4 screen_view on every NAMED route push/pop (all routes go through
+// RouteHelper.generateRoute, so they carry a name). Bottom-nav tab switches
+// don't push a route — BottomBarController.onChangeIndex logs those manually.
+          AnalyticsService.I.observer,
+        ],
 // Publishes the visible route to CallController.currentRouteRx on every push /
 // pop / replace. The top call strip reads it to know whether a call screen is
 // on top — see CallController.onRouteChanged.

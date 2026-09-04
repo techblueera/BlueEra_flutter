@@ -19,6 +19,8 @@ import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -1192,6 +1194,12 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       final res = await BusinessProfileRepo().setTodayHours(body);
       if (res.isSuccess) {
         await loadHours();
+        // The today-override is what actually flips a business open or closed,
+        // so this is the one place both transitions are known to have landed.
+        AnalyticsService.I.log(
+          body['isOpen'] == true ? 'go_live' : 'go_offline',
+          AnalyticsService.params({'account_type': AppConstants.business}),
+        );
       } else {
         commonSnackBar(
             message: res.message ?? AppStrings.somethingWentWrong.tr);

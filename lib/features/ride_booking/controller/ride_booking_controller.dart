@@ -7,6 +7,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/core/services/ongoing_ride_signal.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
@@ -1507,6 +1508,18 @@ class RideBookingController extends GetxController {
         startOtp: (otp != null && otp.isNotEmpty) ? otp : null,
       );
       _startSearching();
+      // Broadcast accepted and the order has an id — this is a real ride
+      // request, not an abandoned quote. `fare` is a num so it lands as a GA4
+      // metric rather than a string dimension.
+      AnalyticsService.I.log(
+        'ride_requested',
+        AnalyticsService.params({
+          'order_id': rideId,
+          'vehicle_type': option.code,
+          'payment_mode': paymentMode.value,
+          'fare': option.fare,
+        }),
+      );
       return true;
     } catch (_) {
       return false;

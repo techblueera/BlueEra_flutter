@@ -18,6 +18,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -250,6 +251,7 @@ class AuthController extends GetxController {
               // connect while logged out; this is the first authenticated
               // connect, on which buffered call-event listeners replay.
               unawaited(ChatSocketService().connectToSocket());
+              _reportAuthToAnalytics(AppConstants.business);
               // Navigate-first: do NOT block the OTP screen on the
               // business-profile fetch (that added a full network round-trip
               // to perceived login time). BottomNavigationBarScreen's
@@ -314,6 +316,7 @@ class AuthController extends GetxController {
               unawaited(AppNotificationHandler.syncVoipToken(force: true));
               // First authenticated connect — see business branch above.
               unawaited(ChatSocketService().connectToSocket());
+              _reportAuthToAnalytics(AppConstants.individual);
               // Navigate-first (same as the business branch): don't block the
               // OTP screen on the personal-profile fetch. BottomNavigationBar's
               // post-frame init fetches it, resolveIndividualScreen shows a
@@ -481,6 +484,27 @@ class AuthController extends GetxController {
         'businessId=${loginBusinessId.isEmpty ? '<missing>' : loginBusinessId}');
   }
 
+  /// Publish the signed-in identity to GA4 and log the standard `login` /
+  /// `sign_up` event (Google's recommended names, which get their own reports).
+  ///
+  /// Opaque ids ONLY — GA4 forbids PII, so no name / phone / email goes in
+  /// here, just `userId` plus the two segmentation properties.
+  ///
+  /// Deliberately fire-and-forget: analytics must never add latency to, or
+  /// fail, the auth path. [AnalyticsService] swallows its own errors.
+  void _reportAuthToAnalytics(String accountType, {bool isSignUp = false}) {
+    unawaited(AnalyticsService.I.setUser(
+      userId,
+      accountType: accountType,
+      profileType: userProfileTypeGlobal,
+    ));
+    // Every entry point into the app is the OTP screen — there is no
+    // password / social sign-in to distinguish here.
+    unawaited(isSignUp
+        ? AnalyticsService.I.logSignUp('otp')
+        : AnalyticsService.I.logLogin('otp'));
+  }
+
   Future<void> addIndividualUser({required Map<String, dynamic>? reqData}) async {
     addUserResponse.value = ApiResponse.loading('loading');
     try {
@@ -524,6 +548,10 @@ class AuthController extends GetxController {
         personalController.viewPersonalProfile(forceRefresh: true),
       ];
       await Future.wait(pending);
+      // Guest → individual account just created. Reported AFTER the profile
+      // fetch above so `userProfileTypeGlobal` (GIG_WORKER / SELF_EMPLOYED /
+      // …) is populated and lands on the GA4 user property with the sign-up.
+      _reportAuthToAnalytics(AppConstants.individual, isSignUp: true);
       // https://be.beapp.in/api/map-service/api/stores?page=1&limit=20&lat=21.1902733&lng=72.8644417&type=Service&radius=1500&category_id=CONSULTING_BUSINESS_SERVICES
       // Cascade settled — only now surface the success message so the
       // user sees it as a confirmation, not while the spinner is still
@@ -597,6 +625,8 @@ class AuthController extends GetxController {
           // socket so call/chat events flow without an app restart. Fire
           // and forget — UI must not block on socket handshake.
           unawaited(ChatSocketService().connectToSocket());
+          // Guest → business account just created.
+          _reportAuthToAnalytics(AppConstants.business, isSignUp: true);
 
           final typeOfBusiness = reqData?[ApiKeys.type_of_business].toString().toUpperCase();
           final categoryOfBusiness = reqData?[ApiKeys.category_Of_Business].toString().toUpperCase();
