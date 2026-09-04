@@ -51,8 +51,6 @@ class RiderOnboardingStatusData {
     this.rcImage,
     this.rcImageBack,
     this.vehicleImageUrls = const [],
-    this.securityDepositPaid,
-    this.securityDepositPaymentStatus,
     this.freeRideUsed,
   });
 
@@ -171,18 +169,10 @@ class RiderOnboardingStatusData {
             : null) ??
         _documentFile(json, 'rc', 'back');
     vehicleImageUrls = _parseVehicleImages(json);
-    // Security deposit — the rider must have paid this before they can go
-    // online. The API returns a nested `securityDeposit` object; we surface
-    // just the `paid` flag and its `paymentStatus` string.
-    final deposit = json['securityDeposit'];
-    if (deposit is Map) {
-      securityDepositPaid = deposit['paid'] as bool?;
-      securityDepositPaymentStatus = deposit['paymentStatus'] as String?;
-    }
     // First-ride-free waiver: the rider's FIRST ride is on the house, so they
     // may go live without paying until they have used it.
     //
-    // Fail-CLOSED, unlike the deposit above: only an explicit `false` waives
+    // Fail-CLOSED: only an explicit `false` waives
     // payment, so a missing / null flag keeps the gate on rather than handing
     // every rider a free pass.
     freeRideUsed = json['freeRideUsed'] as bool?;
@@ -312,11 +302,6 @@ class RiderOnboardingStatusData {
   String? rcImageBack;
   // Uploaded vehicle photos for the view gallery (see [_parseVehicleImages]).
   List<RiderVehicleImage> vehicleImageUrls = const [];
-  // Security-deposit payment state. `securityDepositPaid` gates going online;
-  // `securityDepositPaymentStatus` carries the raw backend status (e.g.
-  // "unknown", "paid", "pending").
-  bool? securityDepositPaid;
-  String? securityDepositPaymentStatus;
 
   /// Whether the rider has already used their one free ride. `false` → still
   /// free → the payment gate is waived. Null / absent → enforce.
@@ -354,11 +339,6 @@ class RiderOnboardingStatusData {
     map['vehicleImageUrls'] =
         vehicleImageUrls.map((e) => e.toJson()).toList();
     // Round-trip the deposit fields under the same nested shape the API uses
-    // so the cached copy re-parses identically.
-    map['securityDeposit'] = {
-      'paid': securityDepositPaid,
-      'paymentStatus': securityDepositPaymentStatus,
-    };
     // Round-tripped too, or a cache replay loses the free-ride waiver and the
     // fail-closed default charges a rider who still has their free ride.
     map['freeRideUsed'] = freeRideUsed;

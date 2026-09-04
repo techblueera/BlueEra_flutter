@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/model/marketing_card.dart';
 import 'package:BlueEra/features/business/auth/model/ReleatedStoresList.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 
 class ViewBusinessProfileModel {
   ViewBusinessProfileModel({
@@ -170,16 +169,12 @@ class BusinessProfileDetails {
     userContactNo = json['userContactNo'];
     availability = json['availability'] != null ? AvailabilityData.fromJson(json['availability']) : null;
     dietaryType = json['dietaryType'];
-    final sd = json['securityDeposit'];
-    securityDeposit = sd is Map
-        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
-        : null;
     // Free intro quota — the business's first N orders / enquiries are on the
     // house, so it may go live without paying until the quota is spent.
     //
-    // Fail-CLOSED, unlike `securityDeposit` above: only an explicit `false`
-    // waives payment, so a missing / null flag enforces the plan gate rather
-    // than handing every business a free pass.
+    // Fail-CLOSED: only an explicit `false` waives payment, so a missing / null
+    // flag enforces the plan gate rather than handing every business a free
+    // pass.
     freeOrdersUsed = json['freeOrdersUsed'] as bool?;
     freeOrdersRemaining = json['freeOrdersRemaining'] is num
         ? (json['freeOrdersRemaining'] as num).toInt()
@@ -289,12 +284,6 @@ class BusinessProfileDetails {
   AvailabilityData? availability;
   String? dietaryType;
 
-  /// Security-deposit go-live gate for this business — a sibling field the
-  /// backend returns on the business profile (GET business profile). Null when
-  /// absent → treated as "allowed" (fail-open). Mirrors the selfWork gate; see
-  /// docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
-  SecurityDepositStatus? securityDeposit;
-
   /// Whether this business has spent its free intro quota (the first N orders /
   /// enquiries, N being a backend policy — the client never needs to know it).
   /// `false` → quota left → the payment gate is waived. Null / absent → enforce.
@@ -304,10 +293,6 @@ class BusinessProfileDetails {
   /// gate on this — [freeOrdersUsed] is the authority, so a backend that ships
   /// the boolean but not the count still behaves correctly.
   int? freeOrdersRemaining;
-
-  /// The go-live decision: allowed when there's no deposit info or the deposit
-  /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
-  bool get canGoLive => securityDeposit?.canGoLive ?? true;
 
   /// True while the business still has free intro quota, which waives the
   /// payment gate. Fail-closed: only an explicit `false` from the backend

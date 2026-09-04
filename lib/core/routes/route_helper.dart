@@ -1,4 +1,5 @@
 ﻿import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/discover_screen_v2.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/my_self_pickup_orders_screen.dart';
@@ -787,6 +788,12 @@ class RouteHelper {
 
   static String getGlobalSearchScreenRoute() =>
       RouteConstant.globalSearchScreen;
+
+  /// Discover **v2** — the new layout, on its OWN route so it can be opened
+  /// beside the live Discover tab rather than replacing it. The bottom nav
+  /// still mounts [DiscoverScreen]; this is how v2 gets looked at on a device
+  /// while both exist.
+  static String getDiscoverV2ScreenRoute() => RouteConstant.discoverV2Screen;
 
   // Business onboarding (WhatsApp-style) routes
   static String getBusinessOnboardingCategoryScreenRoute() =>
@@ -2550,6 +2557,11 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => NearByRidersScreen(),
             settings: RouteSettings(name: getNearByRidersScreenRoute()));
+
+      case RouteConstant.discoverV2Screen:
+        return MaterialPageRoute(
+            builder: (_) => const DiscoverScreenV2(),
+            settings: RouteSettings(name: getDiscoverV2ScreenRoute()));
 
       case RouteConstant.globalSearchScreen:
         final initialQuery = settings.arguments is String

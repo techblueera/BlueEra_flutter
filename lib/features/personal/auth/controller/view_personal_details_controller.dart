@@ -459,12 +459,6 @@ class ViewPersonalDetailsController extends GetxController
   Rx<PersonalProfileDetailsModel> personalProfileDetails =
       PersonalProfileDetailsModel().obs;
 
-  /// Security-deposit go-live gate for this individual/self-employed provider.
-  /// Sourced from the individual profile's `securityDeposit` (mirrors the
-  /// business profile gate). Fail-open: blocked ONLY when the backend reports
-  /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
-  bool get canGoLive => personalProfileDetails.value.canGoLive;
-
   /// First-service-free waiver: an individual / self-employed provider gets
   /// their FIRST service on the house, so they can go live and take that
   /// enquiry before paying anything. Once it is used the plan gate applies on
@@ -477,14 +471,19 @@ class ViewPersonalDetailsController extends GetxController
   bool get isFirstServiceFree =>
       personalProfileDetails.value.isFirstServiceFree;
 
-  /// The single go-live truth for individuals — an ACTIVE PLAN, the free first
-  /// service, or a satisfied legacy deposit. Every gate on the self-employed
-  /// and professional screens must read THIS, not bare [canGoLive], or the pill
-  /// and the gate disagree about whether the provider is live.
+  /// The single go-live truth for individuals — an ACTIVE PLAN, or the free
+  /// first service. Every gate on the self-employed and professional screens
+  /// must read THIS, or the pill and the gate disagree about whether the
+  /// provider is live.
+  ///
+  /// **The security-deposit term is gone.** It used to sit here as a third OR,
+  /// reading `securityDeposit?.canGoLive ?? true` — and that fail-open default
+  /// meant a payload with no `securityDeposit` (which is now every payload,
+  /// the concept having been removed from the product) evaluated to `true` and
+  /// short-circuited the whole expression. The plan gate was therefore never
+  /// actually reached. Removing the term is what puts it back in force.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value ||
-      isFirstServiceFree ||
-      canGoLive;
+      AccountPlanEntitlement.to.hasActivePlan.value || isFirstServiceFree;
 
   /// True when this account's identity has been established by a verified
   /// Aadhaar. Name, date of birth and gender are then READ-ONLY everywhere they
@@ -544,7 +543,7 @@ class ViewPersonalDetailsController extends GetxController
   final RxBool isAvailabilityUpdating = false.obs;
 
   /// Whether the shop is open right now (schedule ∩ clock). The pill also ANDs
-  /// this with [canGoLive] so an unpaid provider is never shown live.
+  /// this with [isGoLiveAllowed] so an unpaid provider is never shown live.
   final RxBool isShopOpenNow = false.obs;
 
   Timer? _availTimer;
@@ -602,7 +601,7 @@ class ViewPersonalDetailsController extends GetxController
   /// screen. First run (no schedule) opens the weekly editor via the sheet's
   /// empty state; otherwise the status sheet.
   Future<void> openAvailabilityControl({bool Function()? gate}) async {
-    if (!(gate != null ? gate() : canGoLive)) return;
+    if (!(gate != null ? gate() : isGoLiveAllowed)) return;
     if (!hasSchedule) await loadHours();
     await showShopAvailabilitySheet(this);
   }
@@ -649,7 +648,7 @@ class ViewPersonalDetailsController extends GetxController
     }
 
     // 2. Deposit — only now, with hours to be available in.
-    if (!(gate != null ? gate() : canGoLive)) return;
+    if (!(gate != null ? gate() : isGoLiveAllowed)) return;
 
     // 3. Flip today.
     if (shopStatus.value.isOpenNow) {

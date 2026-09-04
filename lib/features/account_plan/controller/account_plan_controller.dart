@@ -19,8 +19,7 @@ import '../view/upgrade_confirm_dialog.dart';
 import 'account_plan_entitlement.dart';
 
 /// Drives the Account Plan catalog and its purchase: initiate → Razorpay →
-/// verify → re-fetch. Mirrors `SecurityDepositController`, which is the
-/// closest working precedent in the app.
+/// verify → re-fetch.
 ///
 /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
 class AccountPlanController extends GetxController with WidgetsBindingObserver {

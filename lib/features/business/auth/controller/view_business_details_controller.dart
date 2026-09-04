@@ -126,33 +126,24 @@ class ViewBusinessDetailsController extends GetxController
   final Rx<ViewBusinessProfileModel?> businessProfileDetails =
       Rx<ViewBusinessProfileModel?>(null);
 
-  /// Security-deposit go-live gate for this business. Sourced from the business
-  /// profile's `securityDeposit` (GET business profile). Fail-open when absent:
-  /// blocked ONLY when the backend reports `required && !paid`. Mirrors the
-  /// selfWork gate — see docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
-  bool get canGoLive =>
-      businessProfileDetails.value?.data?.canGoLive ?? true;
-  // bool get canGoLive =>
-  //     businessProfileDetails.value?.data?.canGoLive ?? false;
-
-  /// The single go-live truth: an ACCOUNT PLAN is held, OR the legacy deposit
-  /// is satisfied. Every consumer of the gate must use THIS, not bare
-  /// [canGoLive] — the pill's live state, the sheet gate and the today-override
-  /// all read it, and if they disagree the pill lies about being live.
+  /// The single go-live truth: an ACCOUNT PLAN is held, OR the free intro quota
+  /// is unspent. Every consumer of the gate must use THIS — the pill's live
+  /// state, the sheet gate and the today-override all read it, and if they
+  /// disagree the pill lies about being live.
   ///
-  /// The plan is the gate going forward (the contribution screen sells plans
-  /// now, not deposits). The deposit term stays as an OR so a merchant who
-  /// already paid one is not knocked offline by the migration — there is no
-  /// longer any way for them to buy it back.
+  /// The plan is the gate: the contribution screen sells plans, and the FREE
+  /// INTRO QUOTA lets a business go live and start trading before it pays
+  /// anything. Once the quota is spent the plan gate applies on every
+  /// subsequent go-live.
   ///
-  /// The third term is the FREE INTRO QUOTA — a business gets its first N
-  /// orders / enquiries on the house, so it can go live and start trading
-  /// before it pays anything. Once the quota is spent the plan gate applies on
-  /// every subsequent go-live.
+  /// **The security-deposit term is gone.** It used to sit here as a third OR,
+  /// reading `securityDeposit?.canGoLive ?? true` — and that fail-open default
+  /// meant a payload with no `securityDeposit` (which is now every payload,
+  /// the concept having been removed from the product) evaluated to `true` and
+  /// short-circuited the whole expression. The plan gate was therefore never
+  /// actually reached. Removing the term is what puts it back in force.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value ||
-      isFreeQuotaAvailable ||
-      canGoLive;
+      AccountPlanEntitlement.to.hasActivePlan.value || isFreeQuotaAvailable;
 
   /// Free intro quota (first N orders / enquiries) — waives the payment gate
   /// while it lasts. Fail-CLOSED: only an explicit `freeOrdersUsed == false`
@@ -163,7 +154,6 @@ class ViewBusinessDetailsController extends GetxController
       businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
 
   /// Free orders / enquiries left, for display copy only — never gate on this
-  /// ([isFreeQuotaAvailable] is the authority). Null when the backend ships the
   /// boolean without a count.
   int? get freeOrdersRemaining =>
       businessProfileDetails.value?.data?.freeOrdersRemaining;

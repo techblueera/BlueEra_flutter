@@ -9,7 +9,7 @@ import 'package:BlueEra/features/account_plan/view/account_plan_catalog_view.dar
 import 'package:BlueEra/features/account_plan/view/account_plan_screen.dart'
     show hydrateAccountPlanBuyer;
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/contribution/controller/security_deposit_controller.dart';
+import 'package:BlueEra/features/contribution/controller/explainer_videos_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -32,16 +32,15 @@ import 'package:get/get.dart';
 /// explainer video, then the plan cards on a light-blue sheet, then a single
 /// pinned "Kindly Contribute Us" bar that buys the selected card.
 ///
-/// ## What is still deposit-shaped
-/// [SecurityDepositController] is still constructed, for ONE reason: the
-/// explainer videos at the top come from `/security-deposit/videos`, which is
-/// the only endpoint that serves them. Nothing else on this screen reads it.
+/// ## The security deposit is gone
+/// The deposit feature — catalog, checkout, refunds and the go-live gate that
+/// keyed off it — was removed from the product. Go-live is now gated on an
+/// Account Plan (or the free-first waiver), which is what THIS screen sells.
 ///
-/// > **Note for whoever wires enforcement:** the security deposit remains the
-/// > go-live gate for riders and self-employed accounts, and there is no
-/// > longer a way to PAY it from this screen. Those gates have to move onto
-/// > `/account-plan/my-plans` — see `docs/DEPOSIT_TO_PAID_PLAN_REDESIGN.txt`
-/// > §7–8.
+/// The only survivor is the explainer videos at the top, which are served from
+/// `/security-deposit/videos` and are not deposit-specific; they come from
+/// [ExplainerVideosController], all that is left of the old
+/// `SecurityDepositController`.
 /// The supported way to open [ContributionScreen] — **use this instead of
 /// `Get.to(() => const ContributionScreen())`.**
 ///
@@ -71,12 +70,12 @@ class _ContributionScreenState extends State<ContributionScreen> {
   late final AccountPlanController _plans;
 
   /// Videos only — see the class doc.
-  late final SecurityDepositController _videos;
+  late final ExplainerVideosController _videos;
 
   @override
   void initState() {
     super.initState();
-    _videos = getOrPut(() => SecurityDepositController());
+    _videos = getOrPut(() => ExplainerVideosController());
     _plans = getOrPut(() => AccountPlanController());
     _applyBuyerContext();
     _plans.fetchPlans();
@@ -211,12 +210,12 @@ class _ContributionScreenState extends State<ContributionScreen> {
 ///
 /// Reuses the shared [HorizontalVideoPlayer] (network streaming,
 /// tap-to-play/pause, pause-on-scroll-away, multi-video paging) instead of a
-/// bespoke player. Still served by the security-deposit videos endpoint — see
-/// the note on [ContributionScreen].
+/// bespoke player. Served by the videos endpoint — see the note on
+/// [ContributionScreen].
 class _ExplainerVideoSection extends StatelessWidget {
   const _ExplainerVideoSection({required this.controller});
 
-  final SecurityDepositController controller;
+  final ExplainerVideosController controller;
 
   @override
   Widget build(BuildContext context) {

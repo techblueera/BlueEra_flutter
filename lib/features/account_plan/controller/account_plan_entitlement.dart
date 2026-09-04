@@ -7,9 +7,10 @@ import '../repo/account_plan_repo.dart';
 
 /// "Does this account hold a paid plan?" — the go-live gate, in one place.
 ///
-/// Go-live used to key off the refundable security deposit, read from a
-/// server-computed flag on the profile / rider onboarding status. The
-/// contribution screen now sells Account Plans instead of that deposit, so the
+/// Go-live used to key off a refundable security deposit, read from a
+/// server-computed flag on the profile / rider onboarding status. That feature
+/// has been REMOVED from the product; the contribution screen sells Account
+/// Plans, so the
 /// entitlement moved with it: an account is allowed to go live once it holds
 /// an active plan (`GET /account-plan/my-plans?status=active`).
 ///
@@ -43,8 +44,7 @@ class AccountPlanEntitlement extends GetxController {
 
   /// The gate's answer, for the SYNCHRONOUS call sites.
   ///
-  /// Fail-open until the answer is known, matching every deposit gate it
-  /// replaces (`canGoLive => securityDeposit?.canGoLive ?? true`). A network
+  /// Fail-open until the answer is known. A network
   /// blip must not knock a paying merchant offline, and the client is not the
   /// enforcement point anyway — the server is, in the separate release the
   /// redesign doc covers.
@@ -95,7 +95,7 @@ class AccountPlanEntitlement extends GetxController {
   /// For the ASYNCHRONOUS gates: answers from cache when the plan is already
   /// known to be held, otherwise re-reads first.
   ///
-  /// The re-read matters for the same reason `ensureSecurityDepositPaid` had
+  /// The re-read matters for the same reason `ensureGoLiveAllowed` had
   /// one: activation is reconciled server-side by the Razorpay webhook, so
   /// nothing in the app refreshes the snapshot after a purchase completes and
   /// a stale `false` would bounce a paid user back to the payment screen.

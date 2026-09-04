@@ -13,6 +13,7 @@ class NearbyDiscoverRepo extends BaseService {
     double radius = 5,
     String? types, // e.g. "Grocery" — omit for all three
     int perCategory = 3,
+    int perSection = 10,
   }) async {
     return await ApiBaseHelper().getHTTP(
       nearbyDiscover,
@@ -22,6 +23,15 @@ class NearbyDiscoverRepo extends BaseService {
         'radius': radius,
         if (types != null && types.isNotEmpty) 'types': types,
         'per_category': perCategory,
+        // The SECTIONED response (`shops_near_me` / `services_near_me` /
+        // `recent_visited`) sizes itself off this — `meta.per_section` echoes
+        // it back. Sent alongside the legacy `per_category` because one
+        // endpoint answers both shapes and each ignores the other's knob.
+        //
+        // 10 rather than 3: the two rails scroll horizontally and
+        // "Recent Visited Stores" shows five rows before it defers to
+        // "View All", so a per-section cap of 3 would starve both.
+        'per_section': perSection,
       },
       showProgress: false,
       onError: (error) {},

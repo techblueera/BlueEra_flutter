@@ -353,14 +353,14 @@ Future<void> handleGoLiveTap() async {
   // (`freeRideUsed == true`). Fail-closed on an absent flag.
   //
   // The whole payment half of the gate lives in ONE getter now
-  // (DeliveryPartnerController.isDepositRequirementMet), shared with the auto
-  // go-live scheduler and ensureSecurityDepositPaid. It also accepts
+  // (DeliveryPartnerController.isGoLiveAllowed), shared with the auto
+  // go-live scheduler and ensureGoLiveAllowed. It also accepts
   // `isOnboardingComplete`, which the backend already satisfies from a deposit
   // OR an active account plan — without that, a rider on a plan reports
   // `securityDeposit.paid: false` and was sent to the payment page for
   // something they had already bought. See
   // docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4.
-  final depositBlocked = !riderCtrl.isDepositRequirementMet;
+  final depositBlocked = !riderCtrl.isGoLiveAllowed;
 
   if (depositBlocked) {
     // Straight to the payment page — no dialog on this path. Tapping Go Live is

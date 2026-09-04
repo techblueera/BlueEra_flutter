@@ -229,4 +229,22 @@ class DiscoverIcons {
   static const String collegeUniversity = '${_p}college_university.png';
   static const String coachingInstitute = '${_p}coaching_institute.png';
   static const String professionalLearn = '${_p}professional_learn.png';
+
+  // ── Quick Access grid (Discover v2 home) ────────────────────────────────
+  //
+  // The ten tiles at the top of DiscoverScreenV2, in the order the design
+  // draws them: five across, two rows. Same self-contained rounded-plate art
+  // as everything else under [_p] — each PNG carries its own tint and corner
+  // radius — so they render EDGE-TO-EDGE with no plate and no padding, which
+  // [isSelfContained] resolves from the path prefix.
+  static const String quickRide = '${_p}quick_ride.png';
+  static const String quickGroceryFood = '${_p}quick_grocery_food.png';
+  static const String quickShopping = '${_p}quick_shopping.png';
+  static const String quickHealthCare = '${_p}quick_health_care.png';
+  static const String quickProperties = '${_p}quick_properties.png';
+  static const String quickServices = '${_p}quick_services.png';
+  static const String quickAutomotive = '${_p}quick_automotive.png';
+  static const String quickHotelStay = '${_p}quick_hotel_stay.png';
+  static const String quickFinance = '${_p}quick_finance.png';
+  static const String quickCareer = '${_p}quick_career.png';
 }

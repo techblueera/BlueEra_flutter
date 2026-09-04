@@ -134,18 +134,24 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
       (_isRiderRole && Get.isRegistered<DeliveryPartnerController>()) ||
       (!isBusinessUser() && Get.isRegistered<ViewPersonalDetailsController>());
 
-  /// True once the deposit gate is satisfied (paid, or no deposit required) —
-  /// the "Contribute" card is then dropped from the deck. Mirrors the go-live
-  /// check used across the me-screens:
-  ///   • riders            → DeliveryPartnerController.isSecurityDepositPaid
-  ///   • other individuals → ViewPersonalDetailsController.canGoLive
+  /// True once the payment gate is satisfied — the "Contribute" card is then
+  /// dropped from the deck. Mirrors the go-live check used across the
+  /// me-screens:
+  ///   • riders            → DeliveryPartnerController.isGoLiveAllowed
+  ///   • other individuals → ViewPersonalDetailsController.isGoLiveAllowed
+  ///
+  /// Both used to read a bare security-deposit flag. That concept is gone, so
+  /// they now read the SAME composite the go-live pill does — which is what
+  /// they should always have read: the card offering to take a payment must
+  /// disappear on exactly the condition that stops the payment being needed.
+  ///
   /// Reads reactive controller state, so it must be evaluated inside an [Obx].
   bool get _depositGateSatisfied {
     if (_isRiderRole && Get.isRegistered<DeliveryPartnerController>()) {
-      return Get.find<DeliveryPartnerController>().isSecurityDepositPaid;
+      return Get.find<DeliveryPartnerController>().isGoLiveAllowed;
     }
     if (!isBusinessUser() && Get.isRegistered<ViewPersonalDetailsController>()) {
-      return Get.find<ViewPersonalDetailsController>().canGoLive;
+      return Get.find<ViewPersonalDetailsController>().isGoLiveAllowed;
     }
     // No deposit gate applies (e.g. a business account) → keep the card.
     return false;

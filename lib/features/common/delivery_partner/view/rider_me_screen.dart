@@ -469,11 +469,11 @@ class _RiderMeScreenState extends State<RiderMeScreen>
                   // After document verification, payment is required before
                   // going online. No profession check — this is a GIG_WORKER
                   // screen, so everyone who can tap this pill pays, exactly as
-                  // in handleGoLiveTap. ensureSecurityDepositPaid honours the
+                  // in handleGoLiveTap. ensureGoLiveAllowed honours the
                   // first-job-free waiver and re-fetches the onboarding status
                   // when the snapshot says unpaid, so a freshly paid worker is
                   // not re-routed to payment.
-                  if (!await _riderCtrl.ensureSecurityDepositPaid()) {
+                  if (!await _riderCtrl.ensureGoLiveAllowed()) {
                     commonSnackBar(
                         message:
                             'Your payment is incomplete. Please complete the payment process to go live.');

@@ -307,8 +307,11 @@ class DeliveryPartnerController extends GetxController {
   /// waits for the same approval, so the value is still expected to move.
   bool _isStatusSettled(RiderOnboardingStatusData? data) {
     if (data == null) return false;
-    return data.securityDepositPaid == true &&
-        data.verificationStatus?.toLowerCase() == 'approved';
+    // Approval is the only half left. This used to AND in
+    // `securityDepositPaid`, which no longer becomes true for anyone now the
+    // deposit is gone — so the cache would have been treated as never settled
+    // and re-checked on every single open, forever.
+    return data.verificationStatus?.toLowerCase() == 'approved';
   }
 
   /// Applies a parsed onboarding-status response (from cache or API) to the
@@ -448,34 +451,31 @@ class DeliveryPartnerController extends GetxController {
         .every((e) => e.value == true);
   }
 
-  /// Gate check used by the Go Live toggles. Returns true when the deposit is
-  /// paid. When the in-memory snapshot says unpaid/unknown, it FORCE-REFRESHES
-  /// the onboarding status once before deciding — the deposit is reconciled
-  /// server-side by the Razorpay webhook and nothing refreshed the snapshot
-  /// after the rider paid on the contribution screen, so the gate kept seeing
-  /// the stale pre-payment `paid:false` and bounced an already-paid rider
-  /// back to the payment page forever.
-  Future<bool> ensureSecurityDepositPaid() async {
-    // An active ACCOUNT PLAN is the gate going forward — the contribution
-    // screen sells plans now, not deposits. The deposit check stays as a
-    // fallback so a rider who already paid one is not knocked offline by the
-    // migration; there is no longer any way for them to buy it back.
+  /// Gate check used by the Go Live toggles. Returns true when this rider may
+  /// go online, and routes them to the plan screen when they may not.
+  ///
+  /// The rider analogue of `ViewBusinessDetailsController.ensureCanGoLive` and
+  /// the professionals `_ensureCanGoLive` — same name shape, same job.
+  ///
+  /// When the in-memory snapshot says not-allowed, it FORCE-REFRESHES the
+  /// onboarding status once before deciding. A purchase is reconciled
+  /// server-side by the Razorpay webhook, and nothing refreshes the snapshot
+  /// after the rider pays on the contribution screen — so without the re-read
+  /// the gate keeps seeing the stale pre-payment state and bounces an
+  /// already-paid rider back to the payment page forever.
+  Future<bool> ensureGoLiveAllowed() async {
+    // An active ACCOUNT PLAN is the gate: the contribution screen sells plans.
+    // This also OPENS that screen when there is no plan, which is why it runs
+    // first.
     if (await AccountPlanEntitlement.to.ensureAllowed()) return true;
     // Everything else the gate accepts, in one place — including
-    // `isOnboardingComplete`, which the backend already satisfies from a
-    // deposit OR an account plan (see [isDepositRequirementMet]). Checked
-    // before the refresh below so a covered rider never sees the payment
-    // screen at all.
-    if (isDepositRequirementMet) return true;
+    // `isOnboardingComplete`, which the backend satisfies from an account plan
+    // (see [isGoLiveAllowed]). Checked before the refresh below so a covered
+    // rider never sees the payment screen at all.
+    if (isGoLiveAllowed) return true;
     await ridersOnboardingStatusRepoApi(forceRefresh: true);
-    return isDepositRequirementMet;
+    return isGoLiveAllowed;
   }
-
-  /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
-  /// can go online only once this is true. Reads the `securityDeposit.paid`
-  /// flag from the latest onboarding-status response (null → treated as unpaid).
-  bool get isSecurityDepositPaid =>
-      riderOnboardingStatusData.value?.securityDepositPaid == true;
 
   /// First-ride-free waiver: the rider's FIRST ride is on the house, so they
   /// may go live and take it before paying anything. Once it is used the plan
@@ -499,30 +499,25 @@ class DeliveryPartnerController extends GetxController {
   /// Whether the rider has satisfied the PAYMENT half of the go-live gate.
   ///
   /// ONE definition, used by every gate — the go-live tap, the auto go-live
-  /// scheduler and [ensureSecurityDepositPaid]. Two places deciding what blocks
+  /// scheduler and [ensureGoLiveAllowed]. Two places deciding what blocks
   /// a rider is two places to get out of step.
   ///
-  /// `isOnboardingComplete` leads deliberately. Per
-  /// docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4, that flag is already
-  /// satisfied by a deposit **or** an account plan, so the backend has done this
-  /// arithmetic for us against `accountPlanCache.jobTypes`. The payload for a
-  /// plan-holding rider legitimately looks like:
-  ///
-  ///     "isOnboardingComplete": true,
-  ///     "securityDeposit": { "paid": false, "paymentStatus": "pending" }
-  ///
-  /// which is not a contradiction — they paid via a plan, not a deposit. The
-  /// guide is explicit that prompting off `securityDeposit.paid` alone nags all
-  /// 46 riders in that state, so it must never be the only signal.
+  /// `isOnboardingComplete` leads deliberately: per
+  /// docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4 the backend has
+  /// already done this arithmetic against `accountPlanCache.jobTypes`, so a
+  /// plan-holding rider is complete without the app re-deriving it.
   ///
   /// The client-side plan check stays as well rather than being replaced by it:
   /// AccountPlanEntitlement knows about a plan bought THIS session before the
   /// next status poll has reflected it.
-  bool get isDepositRequirementMet =>
+  ///
+  /// **The `securityDeposit.paid` term is gone** — the security-deposit concept
+  /// has been removed from the product, so the flag is never true and the
+  /// payment half of the gate is now the plan, or the free first ride.
+  bool get isGoLiveAllowed =>
       isOnboardingComplete ||
       AccountPlanEntitlement.to.hasActivePlan.value ||
-      isFirstRideFree ||
-      isSecurityDepositPaid;
+      isFirstRideFree;
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();

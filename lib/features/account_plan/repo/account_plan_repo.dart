@@ -3,7 +3,7 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 /// Repository for the Account Plan flow (dynamic paid plans → Razorpay → GST
-/// invoice). Mirrors [SecurityDepositRepo], which is the closest precedent.
+/// invoice).
 ///
 /// See docs/backend/ACCOUNT_PLAN_FLUTTER_INTEGRATION_GUIDE.md.
 class AccountPlanRepo extends BaseService {

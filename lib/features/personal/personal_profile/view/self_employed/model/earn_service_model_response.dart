@@ -430,51 +430,6 @@ class SocialLinks {
   }
 }
 
-/// Security-deposit go-live status for a selfWork service. Mirrors the backend
-/// `securityDeposit` object 1:1 (see
-/// docs/backend/SELF_WORK_GO_LIVE_GUIDE.md).
-///
-/// Fail-open by construction: [paid] defaults to `true`, so a missing/partial
-/// object never traps a provider offline.
-class SecurityDepositStatus {
-  /// `false` → this profession owes no deposit; never gate.
-  final bool required;
-
-  /// The gate. `true` → allow go-live; `false` → block + show the deposit CTA.
-  final bool paid;
-
-  /// Raw UserSecurityDeposit.status (created / held / refund_requested / …).
-  final String? paymentStatus;
-
-  /// The user's deposit id (deep-link into the deposit/refund screen).
-  final String? depositId;
-
-  /// ISO date the deposit becomes refundable once `held`.
-  final DateTime? refundEligibleAt;
-
-  SecurityDepositStatus({
-    this.required = false,
-    this.paid = true,
-    this.paymentStatus,
-    this.depositId,
-    this.refundEligibleAt,
-  });
-
-  factory SecurityDepositStatus.fromJson(Map<String, dynamic> j) {
-    return SecurityDepositStatus(
-      required: j['required'] ?? false,
-      paid: j['paid'] ?? true, // default true = fail-open
-      paymentStatus: j['paymentStatus'] as String?,
-      depositId: j['depositId'] as String?,
-      refundEligibleAt: j['refundEligibleAt'] != null
-          ? DateTime.tryParse(j['refundEligibleAt'].toString())
-          : null,
-    );
-  }
-
-  /// Block go-live ONLY when the deposit is required and unpaid.
-  bool get canGoLive => !required || paid;
-}
 
 class UserLocation {
   double? lat;

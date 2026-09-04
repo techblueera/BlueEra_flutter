@@ -22,7 +22,7 @@ import '../../auth/controller/view_personal_details_controller.dart';
 ///
 /// Guards baked in (mirror the MANUAL go-live gate in SelfEmployeeScreen):
 ///  • never opens a provider whose deposit is required-but-unpaid AND whose
-///    first-service-free waiver is used up (re-checks `canGoLive` /
+///    first-service-free waiver is used up (re-checks `isGoLiveAllowed` /
 ///    `isFirstServiceFree` every tick);
 ///  • never auto-opens without the required permissions already granted (it
 ///    can't prompt in the background);
@@ -190,7 +190,7 @@ class SelfWorkAutoGoLiveScheduler {
       final isOpen = viewCtrl.shopStatusOpenClose.value;
       final manualOffToday = _manualOffCache == _todayKey();
       log('[SelfWorkAutoGoLive] tick@${_nowLabel()}: eligible=$eligible '
-          '(canGoLive=${viewCtrl.canGoLive} '
+          '(planOrFree=${viewCtrl.isGoLiveAllowed} '
           'firstServiceFree=${viewCtrl.isFirstServiceFree}) inWindow=$inWindow '
           'isOpen=$isOpen autoOpened=$_autoOpenedThisSession '
           'manualOffToday=$manualOffToday');
@@ -232,7 +232,7 @@ class SelfWorkAutoGoLiveScheduler {
       }
       if (!eligible) {
         log('[SelfWorkAutoGoLive] not eligible '
-            '(canGoLive=${viewCtrl.canGoLive} '
+            '(planOrFree=${viewCtrl.isGoLiveAllowed} '
             'firstServiceFree=${viewCtrl.isFirstServiceFree}) → skip open');
         return;
       }

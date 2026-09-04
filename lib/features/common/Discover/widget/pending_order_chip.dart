@@ -44,7 +44,12 @@ import 'package:get/get.dart';
 /// Collapses to [SizedBox.shrink] when nothing is in flight, which is the
 /// common case for most people on most days.
 class PendingOrderChip extends StatefulWidget {
-  const PendingOrderChip({super.key, this.maxRows = 2});
+  const PendingOrderChip({super.key, this.maxRows = 2, this.padding});
+
+  /// Outer spacing. Null keeps the inset this chip has always drawn itself
+  /// with, so v1 is unaffected; Discover v2 passes [EdgeInsets.zero] and
+  /// spaces it from outside, on the same rule as every other section.
+  final EdgeInsets? padding;
 
   /// Orders shown before the rail stops. It sits above the entire Discover
   /// feed; a customer with nine live orders must not have to scroll past all
@@ -89,7 +94,7 @@ class _PendingOrderChipState extends State<PendingOrderChip>
       final shown = all.take(widget.maxRows).toList();
 
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        padding: widget.padding ?? const EdgeInsets.fromLTRB(12, 4, 12, 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

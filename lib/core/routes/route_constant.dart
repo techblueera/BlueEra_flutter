@@ -226,6 +226,7 @@ class RouteConstant {
 
   // Global search (Discover)
   static const String globalSearchScreen = "/GlobalSearchScreen";
+  static const String discoverV2Screen = "/DiscoverV2Screen";
 
   // Call screens
   static const String CallListScreen = "/CallListScreen";

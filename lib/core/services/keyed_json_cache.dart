@@ -148,7 +148,7 @@ Future<void> openSocialCaches() async {
 /// skips the videos API after the first successful fetch. Stores the raw master
 /// list as `{'videos': [<video json>, ...]}`. Auto-reset on logout
 /// (`Hive.deleteFromDisk()`), so a re-login refetches once.
-const KeyedJsonCache securityDepositVideosCache =
+const KeyedJsonCache explainerVideosCache =
     KeyedJsonCache('security_deposit_videos_box');
 
 /// Caches the Social-tab symbol story row (raw grouped-data JSON; the row

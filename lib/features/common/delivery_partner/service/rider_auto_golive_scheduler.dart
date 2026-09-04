@@ -269,7 +269,7 @@ class RiderAutoGoLiveScheduler {
       // from a deposit OR an account plan, and without it a plan-holding rider
       // (whose payload still reads `securityDeposit.paid: false`) was treated
       // as unpaid and auto-closed. See RIDER_AADHAAR_VERIFIED_APP_GUIDE §4.
-      final depositBlocked = !riderCtrl.isDepositRequirementMet;
+      final depositBlocked = !riderCtrl.isGoLiveAllowed;
       final eligible = verified && !depositBlocked;
 
       final inWindow = _inWindow(DateTime.now());

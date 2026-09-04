@@ -19,7 +19,11 @@ import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart'
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/social_main_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/discover_screen_v2.dart';
+// Discover v1, kept for the swap-back documented at the `case 1:` below.
+// Commented rather than deleted: with the import live but the widget only
+// named inside a comment, the analyzer reports it as an unused import.
+// import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -589,7 +593,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // which already has its own target to open.
     if (boot) unawaited(_resumeDeferredDeepLink());
     // Deposit → account-plan migration offer. Not account-type specific: both
-    // businesses and individuals hold security deposits, so this sits outside
+    // businesses and individuals share the go-live gate, so this sits outside
     // the branch below. The helper asks the backend whether this user is even
     // a deposit holder and shows nothing otherwise.
     if (boot) showDepositMigrationIfNeeded(context);
@@ -620,14 +624,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       if (boot) _maybeShowAddProductsKickstart();
     } else {
       // Individual own-profile fetch — the personal profile carries
-      // securityDeposit (Go-Live gate), joining_bounce, etc. Fetch directly
+      // the Go-Live gate, joining_bounce, etc. Fetch directly
       // here since we already know it's an individual, unless already loaded.
       if (boot &&
           viewPersonalDetailsController.viewPersonalResponse.value.status !=
               Status.COMPLETE) {
         // forceRefresh so we actually hit /user/get on every launch (the
         // method is cache-first and would otherwise skip the network on
-        // cached launches) — needed for fresh securityDeposit / go-live gate.
+        // cached launches) — needed for a fresh go-live gate.
         // It still shows the cached profile first, then updates from the API.
         final fetch = viewPersonalDetailsController.viewPersonalProfile(
             forceRefresh: true);
@@ -972,10 +976,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // screens in their own PopScope here registered a *second*
         // canPop:false handler on the same route, so a single back press
         // fired both callbacks and produced erratic navigation.
-        // Discover — the layout in `assets/Discover.png`. The "v2" in the name
-        // is history: the page it replaced (`discover_screen.dart`) has been
-        // deleted, so this is simply Discover now.
-        return const DiscoverScreen();
+        // Discover — now the v2 layout (`assets/discover.png`): the header +
+        // search, the ten-tile Quick Access launcher, the two near-me rails,
+        // recent stores, refer & earn, and the QR pair.
+        //
+        // The previous page ([DiscoverScreen], the chip-row + folder-grid
+        // catalogue) is NOT deleted — it is still in
+        // `Discover/view/discover_screen.dart` and still reachable, and every
+        // destination v2 offers is the same call it made. Swap the two lines
+        // below to put it back.
+        return const DiscoverScreenV2();
+      // return const DiscoverScreen();
       case 2:
         return const ConnectMainPage();
       case 3:

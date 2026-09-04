@@ -3721,12 +3721,15 @@ class AppNotificationHandler {
         );
         break;
 
-      // Security-deposit / subscription lifecycle → the contribution screen,
-      // which shows the held deposit or the plan catalog. It is not registered
-      // in RouteHelper, so it is pushed directly like its other call sites
-      // (drawer, account settings, rider service).
-      case 'security_deposit_held':
-      case 'security_deposit_reminder':
+      // Subscription lifecycle → the contribution screen, which shows the plan
+      // catalog. It is not registered in RouteHelper, so it is pushed directly
+      // like its other call sites (drawer, account settings, rider service).
+      //
+      // `security_deposit_held` / `security_deposit_reminder` used to share
+      // this group. They went with the security-deposit feature: the backend no
+      // longer sends them, and if a stale one ever arrived it now falls to the
+      // `default` below and lands on the notification hub rather than opening a
+      // screen about a payment that no longer exists.
       case 'trial_started':
       case 'subscription_activated':
       case 'subscription_charged':

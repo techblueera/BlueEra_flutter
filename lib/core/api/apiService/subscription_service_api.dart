@@ -6,37 +6,18 @@ mixin SubscriptionServiceApi {
   /// with the old contribution flow; buying happens on `accountPlan*` below.
   final String rechargeCurrent = 'subscription-service/recharge/current';
 
-  /// Security Deposit — the v2 "contribution" flow.
-  /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.
-  /// Base path for `plan/{tagId}` and `{depositId}/details`; the repo appends
-  /// the path segment.
-  final String securityDepositBase = 'subscription-service/security-deposit/';
-  final String securityDepositPlans =
-      'subscription-service/security-deposit/plans';
-  final String securityDepositInitiate =
-      'subscription-service/security-deposit/initiate';
-  final String securityDepositVerifyPayment =
-      'subscription-service/security-deposit/verify-payment';
-  final String securityDepositCurrent =
-      'subscription-service/security-deposit/current';
-  final String securityDepositMyDeposits =
-      'subscription-service/security-deposit/my-deposits';
-  final String securityDepositRefundRequest =
-      'subscription-service/security-deposit/refund/request';
-  final String securityDepositCancel =
-      'subscription-service/security-deposit/cancel';
-
-  /// `GET /security-deposit/videos` — explainer videos shown on top of the
-  /// security-deposit (contribution v2) screen.
-  final String securityDepositVideos =
+  /// Explainer videos on the Contribution screen.
+  ///
+  /// The ONLY endpoint left from the security-deposit feature, which was
+  /// removed from the product. The path keeps that segment because it is what
+  /// the server serves — the videos themselves are not deposit-specific, and
+  /// the constant is named for what they are. See `ExplainerVideosController`.
+  ///
+  /// The deposit endpoints that used to sit here (plans, initiate,
+  /// verify-payment, current, my-deposits, refund/request, cancel, gst) went
+  /// with the flow that called them.
+  final String explainerVideos =
       'subscription-service/security-deposit/videos';
-
-  /// `GET /security-deposit/gst` — the CURRENT tax rate for security deposits.
-  /// Display only: the amount actually charged is always `final_amount` off
-  /// `/initiate`, which the backend freezes per order.
-  /// See docs/backend/SECURITY_DEPOSIT_GST_INVOICE_FLUTTER_GUIDE.md.
-  final String securityDepositGst =
-      'subscription-service/security-deposit/gst';
 
   /// Account Plans — the dynamic paid plans that replace a flat deposit with
   /// what the account actually buys: visibility radius, gig call types,

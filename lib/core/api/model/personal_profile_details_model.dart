@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/model/marketing_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 
 PersonalProfileDetailsModel personalProfileDetailsModelFromJson(String str) =>
     PersonalProfileDetailsModel.fromJson(json.decode(str));
@@ -17,7 +16,6 @@ class PersonalProfileDetailsModel {
     this.isProfileCreated,
     this.isRiderServiceUser,
     this.isEarnServiceUser,
-    this.securityDeposit,
     this.earnProfileType = const <String>[],
   });
 
@@ -30,25 +28,17 @@ class PersonalProfileDetailsModel {
     isProfileCreated = json['isProfileCreated'];
     isRiderServiceUser = json['isRiderServiceUser'];
     isEarnServiceUser = json['isEarnServiceUser'];
-    // Security-deposit go-live gate — a sibling field on the individual profile
-    // (mirrors the business profile). Null / absent → treated as "allowed"
-    // (fail-open). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
-    final sd = json['securityDeposit'];
-    securityDeposit = sd is Map
-        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
-        : null;
     // First-service-free waiver: the provider's FIRST service is on the house,
     // so they may go live without paying until they have used it. Backend spells
     // it `freeServiceUsed`; `freeRideUsed` is accepted as a legacy alias because
     // the individual profile shipped the rider key first.
     //
-    // Fail-CLOSED, unlike `securityDeposit` above: only an explicit `false`
-    // waives payment. A missing / null flag means "no waiver known", which
-    // enforces the plan gate — a backend that doesn't ship the flag must not
-    // hand every account a free pass.
+    // Fail-CLOSED: only an explicit `false` waives payment. A missing / null
+    // flag means "no waiver known", which enforces the plan gate — a backend
+    // that doesn't ship the flag must not hand every account a free pass.
     freeServiceUsed =
         json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
-    // Referral promo clip — a TOP-LEVEL sibling of `user` / `securityDeposit`,
+    // Referral promo clip — a TOP-LEVEL sibling of `user`,
     // NOT part of `marketing_card` (that object is poster-only). The backend
     // key really is spelled `referal_video`, with one 'r'; `referral_video` is
     // accepted too so a future spelling fix doesn't silently drop the video.
@@ -70,7 +60,6 @@ class PersonalProfileDetailsModel {
   bool? isProfileCreated;
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
-  SecurityDepositStatus? securityDeposit;
 
   /// Whether this individual has already used their one free service. `false`
   /// → still free → the payment gate is waived. Null / absent → enforce.
@@ -85,11 +74,6 @@ class PersonalProfileDetailsModel {
   /// empty-checked so `""` never reaches a video player.
   String? get referalVideoUrl =>
       (referalVideo?.trim().isNotEmpty ?? false) ? referalVideo!.trim() : null;
-
-  /// Go-live decision for the individual/self-employed provider: allowed when
-  /// there's no deposit info or the deposit is paid / not required; blocked
-  /// ONLY when the backend explicitly reports `required && !paid`.
-  bool get canGoLive => securityDeposit?.canGoLive ?? true;
 
   /// True while the provider's FIRST service is still free, which waives the
   /// payment gate. Fail-closed: only an explicit `false` from the backend
@@ -106,10 +90,6 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
-    // securityDeposit is a read-only, server-computed go-live signal — not
-    // serialized back. On a cache replay it's absent, which is safe: canGoLive
-    // fail-opens (true) so go-live isn't blocked from cache, and the fresh read
-    // re-populates it.
     map['earnProfileTypes'] = earnProfileType;
     return map;
   }

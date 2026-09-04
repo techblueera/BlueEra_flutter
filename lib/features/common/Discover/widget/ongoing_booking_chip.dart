@@ -60,7 +60,12 @@ import 'package:get/get.dart';
 /// Collapses to [SizedBox.shrink] whenever there is no ride, so it costs a
 /// zero-height sliver on every other Discover render.
 class OngoingBookingChip extends StatelessWidget {
-  const OngoingBookingChip({super.key});
+  const OngoingBookingChip({super.key, this.padding});
+
+  /// Outer spacing. Null keeps the inset this chip has always drawn itself
+  /// with, so v1 is unaffected; Discover v2 passes [EdgeInsets.zero] and
+  /// spaces it from outside, on the same rule as every other section.
+  final EdgeInsets? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -91,12 +96,13 @@ class OngoingBookingChip extends StatelessWidget {
       final data = _resolve(rideCtrl, overlayCtrl);
       if (data == null) return const SizedBox.shrink();
       return Padding(
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size12,
-          SizeConfig.size12,
-          SizeConfig.size12,
-          0,
-        ),
+        padding: padding ??
+            EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              SizeConfig.size12,
+              SizeConfig.size12,
+              0,
+            ),
         child: _ChipCard(data: data),
       );
     });
