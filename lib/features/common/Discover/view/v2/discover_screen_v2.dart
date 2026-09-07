@@ -27,11 +27,14 @@ import 'package:BlueEra/features/common/Discover/view/v2/widget/discover_quick_a
 import 'package:BlueEra/features/common/Discover/view/v2/widget/discover_recent_stores_card.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/widget/discover_v2_section_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/find_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/health_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/professionals_consultant_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/self_profession_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
@@ -764,18 +767,26 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
       AppStrings.findServices.tr,
       [
         DiscoverGroupSubSection(
+          title: AppStrings.discoverBusinessServices.tr,
+          section: const FindServiceCardWidget(),
+        ),
+        DiscoverGroupSubSection(
+          title: AppStrings.bookHomeServices.tr,
+          section: const BookHomeServiceWidget(),
+        ),
+        DiscoverGroupSubSection(
+          title: AppStrings.professionalsConsultant.tr,
+          section: const ProfessionalsConsultantCardWidget(),
+        ),
+        DiscoverGroupSubSection(
           title: AppStrings.homeServices.tr,
           section: DiscoverCategorySection(
             title: AppStrings.homeServices.tr,
             items: discoverHomeServicesCategories,
             onItemTap: (item) => Get.to(
-              () => HomeServiceDiscoverScreenV2(initialCategoryName: item.name),
+                  () => HomeServiceDiscoverScreenV2(initialCategoryName: item.name),
             ),
           ),
-        ),
-        DiscoverGroupSubSection(
-          title: AppStrings.discoverBusinessServices.tr,
-          section: const FindServiceCardWidget(),
         ),
       ],
     );

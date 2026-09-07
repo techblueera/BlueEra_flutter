@@ -514,10 +514,23 @@ class DeliveryPartnerController extends GetxController {
   /// **The `securityDeposit.paid` term is gone** — the security-deposit concept
   /// has been removed from the product, so the flag is never true and the
   /// payment half of the gate is now the plan, or the free first ride.
-  bool get isGoLiveAllowed =>
-      isOnboardingComplete ||
-      AccountPlanEntitlement.to.hasActivePlan.value ||
-      isFirstRideFree;
+  bool get isGoLiveAllowed {
+    final approved = riderOnboardingStatusData.value?.verificationStatus == "approved";
+    final hasActivePlan = AccountPlanEntitlement.to.hasActivePlan.value;
+    final allowed = approved && (hasActivePlan);
+    // final allowed = approved && (!isFirstRideFree || hasActivePlan);
+
+    log(
+      'isGoLiveAllowed: $allowed | '
+          'verificationApproved: $approved | '
+          'status: ${riderOnboardingStatusData.value?.verificationStatus} | '
+          'firstRideUsed: $isFirstRideFree | '
+          'hasActivePlan: $hasActivePlan',
+      name: 'GoLiveCheck',
+    );
+
+    return allowed;
+  }
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();

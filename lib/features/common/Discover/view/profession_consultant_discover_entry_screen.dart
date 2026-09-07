@@ -342,7 +342,7 @@ class _ProfessionConsultantDiscoverEntryScreenState
 
   Widget _categoryTile(ProfessionTypeData c, double width) {
     final name = c.name ?? '';
-    final icon = getIndividualProfessionIcon(c.tagId);
+    final icon = c.imageUrl ?? getIndividualProfessionIcon(c.tagId);
     final iconPath = icon.isNotEmpty ? icon : (c.imageUrl ?? '');
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -353,9 +353,10 @@ class _ProfessionConsultantDiscoverEntryScreenState
           Container(
             width: width,
             height: width,
-            padding: EdgeInsets.all(width * 0.18),
+            // padding: EdgeInsets.all(width * 0.18),
             decoration: BoxDecoration(
               color: const Color(0xFFF3F5FA),
+              border: Border.all(color: AppColors.greyE5, width: 0.5),
               borderRadius: BorderRadius.circular(16),
             ),
             child: _tileIcon(iconPath),

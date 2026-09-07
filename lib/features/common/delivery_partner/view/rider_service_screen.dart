@@ -360,9 +360,9 @@ Future<void> handleGoLiveTap() async {
   // `securityDeposit.paid: false` and was sent to the payment page for
   // something they had already bought. See
   // docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4.
-  final depositBlocked = !riderCtrl.isGoLiveAllowed;
+  final canGoLive = riderCtrl.isGoLiveAllowed;
 
-  if (depositBlocked) {
+  if (!canGoLive) {
     // Straight to the payment page — no dialog on this path. Tapping Go Live is
     // already the rider asking to work, so the deposit prompt would just be a
     // gate in front of a gate. The DIALOG version of this lives on arrival at
