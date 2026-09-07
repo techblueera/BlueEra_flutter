@@ -483,7 +483,8 @@ class ViewPersonalDetailsController extends GetxController
   /// short-circuited the whole expression. The plan gate was therefore never
   /// actually reached. Removing the term is what puts it back in force.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value || isFirstServiceFree;
+      AccountPlanEntitlement.to.hasActivePlan.value;
+          // || isFirstServiceFree;
 
   /// True when this account's identity has been established by a verified
   /// Aadhaar. Name, date of birth and gender are then READ-ONLY everywhere they

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -310,9 +311,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
     return blocks;
   }
 
-  /// Cached output of [_buildBlocks] + [buildNativeAdRows], keyed on the post
-  /// list that produced it.
-  ///
   /// Both walk the whole feed and allocate two fresh lists, and they used to run
   /// inside the `Obx` — so they re-ran on EVERY rebuild, including the ones that
   /// have nothing to do with the feed's contents (the header collapsing, a
@@ -428,16 +426,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
                 adOrdinal: row.adOrdinal,
                 keyPrefix: 'home_feed_native_ad',
                 factoryId: 'feedAdFactory',
-                height: 380,
                 borderRadius: 20,
                 margin: const EdgeInsets.all(5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                  border: Border.all(color: AppColors.greyE5, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
               );
             }
 

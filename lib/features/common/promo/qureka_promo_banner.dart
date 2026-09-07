@@ -50,8 +50,7 @@ class PromoAdSlot extends StatelessWidget {
     super.key,
     required this.adOrdinal,
     this.keyPrefix = 'native_ad',
-    this.height,
-    this.templateType = TemplateType.small,
+    this.templateType = TemplateType.medium,
     this.factoryId = 'groceryAdFactory',
     this.borderRadius = 12,
     this.bottomGap,
@@ -63,7 +62,6 @@ class PromoAdSlot extends StatelessWidget {
 
   final int adOrdinal;
   final String keyPrefix;
-  final double? height;
   final TemplateType templateType;
   final String factoryId;
   final double borderRadius;
@@ -79,7 +77,6 @@ class PromoAdSlot extends StatelessWidget {
       return NativeAdSlot(
         adOrdinal: adOrdinal,
         keyPrefix: keyPrefix,
-        height: height,
         templateType: templateType,
         factoryId: factoryId,
         borderRadius: borderRadius,

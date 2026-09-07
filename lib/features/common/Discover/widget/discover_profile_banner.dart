@@ -132,9 +132,11 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
     // observable to read — a business account whose own controller isn't
     // registered on this entry path would otherwise touch no Rx at all and trip
     // GetX's "improper Obx use" check.
-    getOrPut(() => ViewPersonalDetailsController());
+    final personalCtrl = getOrPut(() => ViewPersonalDetailsController());
 
     return Obx(() {
+      final _ = personalCtrl.personalProfileDetails.value;
+
       final guest = isGuestUser();
       // Null once the account is live — the slot then simply isn't there.
       final goLive = _goLiveSlide();

@@ -143,7 +143,8 @@ class ViewBusinessDetailsController extends GetxController
   /// short-circuited the whole expression. The plan gate was therefore never
   /// actually reached. Removing the term is what puts it back in force.
   bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value || isFreeQuotaAvailable;
+      AccountPlanEntitlement.to.hasActivePlan.value;
+          // || isFreeQuotaAvailable;
 
   /// Free intro quota (first N orders / enquiries) — waives the payment gate
   /// while it lasts. Fail-CLOSED: only an explicit `freeOrdersUsed == false`
