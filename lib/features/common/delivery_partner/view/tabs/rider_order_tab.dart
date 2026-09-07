@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -500,23 +502,18 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
   // Card 1 â€” Service Preference (radio + Submit/Update).
   Widget _buildServicePreferenceCard() {
     final isUpdateMode = _submittedPreference != null;
-    // Enabled when: first submit needs any selection; updates need the
-    // selection to differ from what was already committed.
+    final isUnchanged = isUpdateMode && _servicePreference == _submittedPreference;
     final ctaEnabled = isUpdateMode
         ? _servicePreference != _submittedPreference
         : _servicePreference != null;
+
     return CustomFormCard(
-      // isBoxShadowAvail: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.tune_rounded,
-                size: 18,
-                color: AppColors.primaryColor,
-              ),
+              Icon(Icons.tune_rounded, size: 18, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size8),
               Expanded(
                 child: CustomText(
@@ -538,10 +535,8 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(height: SizeConfig.size12),
-          // Segmented selector — the options offered depend on the rider's
-          // profession (see [_allowedPreferences]): bike riders get
-          // Passenger / Goods / Both; auto & car taxis get Passenger only;
-          // goods taxis get Goods only.
+
+          // Segment selector
           Row(
             children: [
               for (int i = 0; i < _allowedPreferences.length; i++) ...[
@@ -556,29 +551,55 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
             ],
           ),
           SizedBox(height: SizeConfig.size16),
-          // CTA behaviour:
-          //   • Before first submit → "Submit", enabled once an option
-          //     is picked.
-          //   • After submit → "Update", enabled ONLY when the current
-          //     selection differs from the committed one (i.e. the user
-          //     chose a different option). When selection == committed,
-          //     it is disabled and not clickable (greyed out).
-          Obx(() {
-            final loading = controller.isRiderPreferenceUpdating.value;
-            return CustomBtn(
-              title: _submittedPreference != null
-                  ? AppStrings.update.tr
-                  : AppStrings.submit.tr,
-              radius: 10,
-              isValidate: ctaEnabled,
-              isLoading: loading,
-              bgColor:
-                  ctaEnabled ? AppColors.primaryColor : AppColors.grey9B,
-              onTap: ctaEnabled && !loading
-                  ? _onServicePreferenceSubmit
-                  : null,
-            );
-          }),
+
+          // Show note if already active on server; otherwise show the Submit/Update button
+          if (isUnchanged)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                vertical: SizeConfig.size10,
+                horizontal: SizeConfig.size12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 16,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Flexible(
+                    child: CustomText(
+                      'Already set to ${_submittedPreference?.label ?? ""}. Select another option to update.',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Obx(() {
+              final loading = controller.isRiderPreferenceUpdating.value;
+              return CustomBtn(
+                title: isUpdateMode ? AppStrings.update.tr : AppStrings.submit.tr,
+                radius: 10,
+                isValidate: ctaEnabled,
+                isLoading: loading,
+                bgColor: ctaEnabled ? AppColors.primaryColor : AppColors.grey9B,
+                onTap: ctaEnabled && !loading ? _onServicePreferenceSubmit : null,
+              );
+            }),
         ],
       ),
     );
