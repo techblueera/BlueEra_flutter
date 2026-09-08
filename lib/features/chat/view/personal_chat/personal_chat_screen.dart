@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -171,6 +173,31 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
   //   }
   // }
 
+  /// Whether the empty-state "View Profile" button has somewhere to go.
+  ///
+  /// Needs a peer id, and the thread must not be the Admin/BlueEra broadcast
+  /// lane — that "sender" is the platform, not a visitable profile. A thread
+  /// with yourself can't happen through the normal entry points, but the
+  /// resolver would silently reroute to the "Me" tab if it did, so exclude it.
+  bool get _canOpenPeerProfile {
+    final peerId = widget.userId?.trim() ?? '';
+    return peerId.isNotEmpty && peerId != userId && widget.type != "Admin";
+  }
+
+  /// Open the peer's profile through the app-wide resolver, so a contact who
+  /// signed up as a business lands on the business profile and everyone else
+  /// on the individual one. The push that brings the user here carries no
+  /// account type, so `individual` is the default — matching what the
+  /// notification hub already assumed for these rows.
+  void _openPeerProfile() {
+    final peerId = widget.userId?.trim() ?? '';
+    if (peerId.isEmpty) return;
+    redirectToProfileScreen(
+      accountType: AppConstants.individual,
+      profileId: peerId,
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -252,45 +279,87 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                           }
                           if (messages.isEmpty) {
                             return Center(
-                              child: InkWell(
-                                onTap: () {
-                                  Map<String, dynamic> data = {
-                                    ApiKeys.other_user_id: widget.userId,
-                                    ApiKeys.message: "Namaste \u{1F64F}",
-                                    ApiKeys.message_type: "text",
-                                  };
-                                  chatViewController.sendInitialMessage(data);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withValues(alpha: 0.5),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: RichText(
-                                    text: const TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: "No conversation yet. ",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // An empty thread is usually a first contact
+                                  // — most often reached from a "your contact
+                                  // joined BlueEra" tap, which lands here with
+                                  // nothing but a name. Offer the profile so
+                                  // the user can see who this is before they
+                                  // say anything. Hidden for Admin/broadcast
+                                  // threads (no profile to visit) and when the
+                                  // entry point gave us no peer id.
+                                  if (_canOpenPeerProfile)
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 16),
+                                      child: OutlinedButton.icon(
+                                        onPressed: _openPeerProfile,
+                                        icon: const Icon(Icons.person_outline,
+                                            size: 16),
+                                        label: Text(AppStrings.viewProfile.tr),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor:
+                                              AppColors.primaryColor,
+                                          side: BorderSide(
+                                              color: AppColors.primaryColor),
+                                          backgroundColor: Colors.white,
+                                          visualDensity: VisualDensity.compact,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
                                           ),
+                                          padding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 14, vertical: 6),
                                         ),
-                                        TextSpan(
-                                          text: "Say Namaste \u{1F64F}",
-                                          style: TextStyle(
-                                            color: Colors.blue,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                      ),
+                                    ),
+                                  InkWell(
+                                    onTap: () {
+                                      Map<String, dynamic> data = {
+                                        ApiKeys.other_user_id: widget.userId,
+                                        ApiKeys.message: "Namaste \u{1F64F}",
+                                        ApiKeys.message_type: "text",
+                                      };
+                                      chatViewController
+                                          .sendInitialMessage(data);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: RichText(
+                                        text: const TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: "No conversation yet. ",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: "Say Namaste \u{1F64F}",
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
                             );
                           }

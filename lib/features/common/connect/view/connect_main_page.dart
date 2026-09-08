@@ -73,8 +73,211 @@ enum SavedFeedTab {
   String get title => name[0].toUpperCase() + name.substring(1);
 }
 
+/// A "someone from your phonebook joined BlueEra" tap, resolved down to the
+/// peer whose personal chat should open.
+///
+/// Both push operations mean the same thing and carry the same peer id under
+/// different keys (see GUEST_CONTACT_JOINED_AND_CHAT_VIEW_PROFILE_GUIDE.md
+/// §5.1): `user_enrolled` (enrollment service, fires on GUEST signup too) uses
+/// `senderId` / `new_user_id`, `contact_joined` (contact service, real accounts
+/// only) uses `senderId` / `contactUserId`. [fromPayload] accepts every spelling
+/// so neither producer can drift the app into a dead tap.
+class JoinedContactChatRequest {
+  JoinedContactChatRequest({
+    required this.peerId,
+    this.name,
+    this.contactNo,
+    this.profileImage,
+  }) : createdAt = DateTime.now();
+
+  final String peerId;
+
+  /// The RECIPIENT's saved name for the joiner — both backends send their own
+  /// phonebook name, which is what the chat header should show.
+  final String? name;
+  final String? contactNo;
+  final String? profileImage;
+
+  /// When the tap happened. A request parked because the app had no session
+  /// yet is dropped rather than replayed if it goes stale — see
+  /// [ConnectMainPage.drainPendingJoinedContactChat].
+  final DateTime createdAt;
+
+  /// Build a request from an FCM `data` payload (or a notification-hub row
+  /// flattened into the same shape). Returns `null` when the payload names no
+  /// usable peer, so callers can fall back instead of opening a blank chat.
+  static JoinedContactChatRequest? fromPayload(Map<String, dynamic>? data) {
+    if (data == null || data.isEmpty) return null;
+    final peerId = _firstNonEmpty([
+      data['senderId'],
+      data['contactUserId'],
+      data['contact_user_id'],
+      data['new_user_id'],
+      data['newUserId'],
+      data['sentBy'],
+      data['sent_by'],
+    ]);
+    if (peerId == null) return null;
+    return JoinedContactChatRequest(
+      peerId: peerId,
+      name: _firstNonEmpty([data['senderName'], data['sender_name'], data['name']]),
+      contactNo:
+          _firstNonEmpty([data['contact_no'], data['contactNo'], data['phone']]),
+      profileImage: _firstNonEmpty(
+          [data['profileImage'], data['profile_image'], data['image']]),
+    );
+  }
+
+  /// First value that survives trimming. FCM data payloads are all-strings, so
+  /// an absent field commonly arrives as the literal `"null"` / `"undefined"`
+  /// rather than being missing — treat those as absent too.
+  static String? _firstNonEmpty(List<dynamic> values) {
+    for (final value in values) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isEmpty || text == 'null' || text == 'undefined') continue;
+      return text;
+    }
+    return null;
+  }
+}
+
 class ConnectMainPage extends StatefulWidget {
   const ConnectMainPage({super.key});
+
+  // ─── "Contact joined BlueEra" → open their chat ────────────────────────
+  // See lib/docs/GUEST_CONTACT_JOINED_AND_CHAT_VIEW_PROFILE_GUIDE.md §5.
+  // Every surface that can announce a joiner — the push tap
+  // (`AppNotificationHandler.routeNotificationData`) and the in-app
+  // notification hub row — funnels through [openJoinedContactChat] so the
+  // destination, the guards and the fallbacks are decided in exactly one
+  // place. The chat opens empty, which is why PersonalChatScreen's empty
+  // state carries a "View Profile" button (§5.3): the profile is one tap
+  // away, so routing to the chat costs the user nothing.
+
+  /// Bottom-nav index of the Chat tab (this page). Mirrors
+  /// `BottomBarController._tabScreenNames`.
+  static const int _connectTabIndex = 2;
+
+  /// A tap that arrived before the app could act on it — cold start where the
+  /// session hasn't hydrated out of secure storage yet. Drained by
+  /// [drainPendingJoinedContactChat] when this page mounts.
+  static JoinedContactChatRequest? _pendingJoinedChat;
+
+  /// Re-entrancy guard. A double tap on the push, or a push tapped while the
+  /// previous open is still resolving, must not stack two chat screens.
+  static bool _openingJoinedChat = false;
+
+  /// Open the personal chat with a contact who just joined BlueEra.
+  ///
+  /// Degrades in this order, never leaving the user on a dead screen:
+  /// no peer id / self-referential / unrecoverable error → notification hub;
+  /// no session yet → parked and replayed on mount; offline with nothing
+  /// cached → the Chat tab.
+  static Future<void> openJoinedContactChat(
+      JoinedContactChatRequest? request) async {
+    if (request == null || request.peerId.isEmpty) {
+      _fallbackToNotificationHub();
+      return;
+    }
+
+    // The joiner IS this user — an own-signup echo, or a payload whose
+    // `senderId` names the recipient rather than the joiner. There is no chat
+    // with yourself, so send them somewhere honest instead of opening a thread
+    // that can never receive a message.
+    if (request.peerId == userId) {
+      _fallbackToNotificationHub();
+      return;
+    }
+
+    if (_openingJoinedChat) return;
+
+    final chatViewController = getOrPut(() => ChatViewController());
+    // Already reading that exact thread (tapped the push from inside the
+    // chat) — nothing to do, and pushing again would duplicate the screen.
+    if (chatViewController.userOpenUserId.value == request.peerId) return;
+
+    _openingJoinedChat = true;
+    try {
+      // Cold start: the tap can beat the secure-storage read that populates
+      // `authTokenGlobal`. Park the request rather than firing an
+      // unauthenticated `checkChatConnection` that would only 401.
+      if (!await _awaitSession()) {
+        _pendingJoinedChat = request;
+        return;
+      }
+
+      chatViewController.connectSocket();
+      // `route_contact` pins the PERSONAL lane. Without it a joiner who also
+      // has a business thread with this user would open in the business
+      // conversation, which is not what "your contact joined" means.
+      final opened = await chatViewController.checkChatConnectionAndOpenChat(
+        userId: request.peerId,
+        name: request.name,
+        conductNo: request.contactNo,
+        profile: request.profileImage,
+        route: AppConstants.route_contact,
+      );
+      if (!opened) {
+        // Offline (or the API failed) and nothing cached for this peer.
+        // `checkChatConnectionAndOpenChat` has already surfaced the reason;
+        // land the user on their chat list so the tap still went somewhere.
+        _showConnectChatTab();
+      }
+    } catch (_) {
+      // Never let a malformed payload or a navigation race swallow the tap.
+      _fallbackToNotificationHub();
+    } finally {
+      _openingJoinedChat = false;
+    }
+  }
+
+  /// Replay a tap parked while the app had no session. Called once per mount.
+  /// A request that has gone stale is dropped — draining it hours later would
+  /// yank the user into a chat they no longer expect.
+  static void drainPendingJoinedContactChat() {
+    final pending = _pendingJoinedChat;
+    _pendingJoinedChat = null;
+    if (pending == null) return;
+    if (DateTime.now().difference(pending.createdAt) >
+        const Duration(minutes: 2)) {
+      return;
+    }
+    unawaited(openJoinedContactChat(pending));
+  }
+
+  /// Wait briefly for the session to hydrate. Returns immediately for the
+  /// common (warm) case; gives up after ~3s so a genuinely logged-out user
+  /// isn't held hostage by the poll.
+  static Future<bool> _awaitSession() async {
+    if (isLoggedIn()) return true;
+    for (var attempt = 0; attempt < 15; attempt++) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (isLoggedIn()) return true;
+    }
+    return false;
+  }
+
+  static void _fallbackToNotificationHub() {
+    // The hub row itself is one of the callers — don't push a second copy of
+    // the screen the user is already looking at.
+    if (Get.currentRoute == RouteHelper.getNotificationScreenRoute()) return;
+    Get.toNamed(RouteHelper.getNotificationScreenRoute());
+  }
+
+  /// Bring the user to this page's Chat tab, whether or not the bottom-nav
+  /// shell is already on the stack.
+  static void _showConnectChatTab() {
+    getOrPut(() => ChatViewController()).selectedChatTabIndex.value = 0;
+    if (Get.isRegistered<BottomBarController>()) {
+      Get.until((route) => route.isFirst);
+      Get.find<BottomBarController>().onChangeIndex(_connectTabIndex);
+    } else {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: _connectTabIndex},
+      );
+    }
+  }
 
   @override
   State<ConnectMainPage> createState() => _ConnectMainPageState();
@@ -186,6 +389,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncContactsIfNeeded();
       _askNotificationPermission();
+      // A "contact joined BlueEra" tap that landed before the session was
+      // ready now has a live shell to navigate from.
+      ConnectMainPage.drainPendingJoinedContactChat();
     });
   }
 

@@ -32,6 +32,7 @@ import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -3391,11 +3392,21 @@ class AppNotificationHandler {
       case 'received_connection_request':
       case 'accepted_connection_request':
       case 'followed_profile':
-      case 'user_enrolled':
-      // Someone in this user's phonebook completed their BlueEra account
-      // (contact-service). Same destination as the other connection pushes.
-      case 'contact_joined':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Someone in this user's phonebook joined BlueEra — `user_enrolled`
+      // (enrollment service, fires on GUEST signup too) and `contact_joined`
+      // (contact service, real accounts only) mean the same thing and are
+      // treated identically. These used to land on the notification hub, which
+      // is a dead end: the whole point of the announcement is to let the user
+      // say hello. Open the personal chat instead; its empty state carries a
+      // "View Profile" button so the profile stays one tap away.
+      // See lib/docs/GUEST_CONTACT_JOINED_AND_CHAT_VIEW_PROFILE_GUIDE.md §5.
+      case 'user_enrolled':
+      case 'contact_joined':
+        unawaited(ConnectMainPage.openJoinedContactChat(
+            JoinedContactChatRequest.fromPayload(data)));
         break;
 
       // Fare ride / broadcast incoming — open the rider order screen

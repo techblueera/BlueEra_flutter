@@ -124,9 +124,16 @@ class PendingDeepLink {
       case 'received_connection_request':
       case 'accepted_connection_request':
       case 'followed_profile':
+        return DeepLinkTarget.connection;
+
+      // "Someone you know joined BlueEra" now opens their chat thread, not the
+      // notification hub (see the matching cases in `AppNotificationHandler`
+      // and GUEST_CONTACT_JOINED_AND_CHAT_VIEW_PROFILE_GUIDE.md §5.2). This
+      // switch must mirror that one, and `chat` is also the target that makes
+      // `needsSocket` true so a cold-start tap warms the chat socket.
       case 'user_enrolled':
       case 'contact_joined':
-        return DeepLinkTarget.connection;
+        return DeepLinkTarget.chat;
 
       default:
         return DeepLinkTarget.notificationHub;
