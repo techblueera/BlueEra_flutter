@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart'
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:BlueEra/features/common/notification/model/notification_model.dart';
@@ -410,10 +411,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         _openSymbol(data);
                       }
                       else if (data.type == "CONTACT_JOINED" ||
-                          operation.toLowerCase() == "contact_joined") {
-                        // A phonebook contact completed their BlueEra account
-                        // (contact-service) — go straight to their profile.
-                        _openJoinedContactProfile(data);
+                          data.type == "USER_ENROLLED" ||
+                          operation.toLowerCase() == "contact_joined" ||
+                          operation.toLowerCase() == "user_enrolled") {
+                        // A phonebook contact joined BlueEra — open their chat
+                        // so the user can actually say hello. The empty chat
+                        // carries a "View Profile" button, so the profile this
+                        // used to open is still one tap away. Same destination
+                        // as the push tap; see
+                        // GUEST_CONTACT_JOINED_AND_CHAT_VIEW_PROFILE_GUIDE.md §5.
+                        _openJoinedContactChat(data);
                       }
                       else if (_isCallNotification(data)) {
                         // incoming_call / missed_call / call_cancelled share
@@ -606,19 +613,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  /// CONTACT_JOINED row tap → open the contact's profile. The contact id comes
-  /// from the push payload's `contactUserId`; falls back to the sender profile
-  /// when the backend only fills that in.
-  void _openJoinedContactProfile(NotificationDataList data) {
-    final profileId = (data.metadata?.contactUserId ??
-            data.senderProfile?.id ??
-            data.sentBy ??
-            '')
-        .trim();
-    if (profileId.isEmpty) return;
-    redirectToProfileScreen(
-      accountType: data.senderProfile?.account_type ?? AppConstants.individual,
-      profileId: profileId,
+  /// CONTACT_JOINED / USER_ENROLLED row tap → open the joiner's personal chat.
+  /// The contact id comes from the payload's `contactUserId`; falls back to the
+  /// sender profile when the backend only fills that in. Routed through
+  /// [ConnectMainPage.openJoinedContactChat] so this row and the push tap share
+  /// one set of guards and fallbacks (empty id, self, no session, offline).
+  void _openJoinedContactChat(NotificationDataList data) {
+    ConnectMainPage.openJoinedContactChat(
+      JoinedContactChatRequest.fromPayload({
+        'contactUserId': data.metadata?.contactUserId,
+        'senderId': data.senderProfile?.id,
+        'sentBy': data.sentBy,
+        'senderName': data.senderProfile?.name,
+        'profileImage': data.senderProfile?.profileImage,
+      }),
     );
   }
 
