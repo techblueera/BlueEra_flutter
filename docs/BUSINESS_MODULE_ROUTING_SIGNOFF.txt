@@ -1,0 +1,244 @@
+================================================================================
+RE: FLUTTER_BUSINESS_MODULE_ROUTING_GUIDE.md — CLIENT SIGN-OFF
+================================================================================
+Date    : 2026-09-09
+From    : Flutter client (Development-BlueEra)
+Re      : docs/backend/FLUTTER_BUSINESS_MODULE_ROUTING_GUIDE.md
+Answers : the 5 questions in "What we need from you"
+
+Nothing has been coded against `module` yet, per your request to wait for
+staging. This is sign-off only.
+
+
+================================================================================
+1. MODULE NAMES — CONFIRMED, WITH ONE CORRECTION
+================================================================================
+
+16 of the 17 names map 1:1 onto our dispatcher. Confirmed as the contract:
+
+  FOOD, GROCERY, EDUCATION, DOCTOR, HOSPITAL, DIAGNOSTIC, PHARMACY, HOTEL,
+  PRODUCT, AUTOMOTIVE_VEHICLE, AUTOMOTIVE_PARTS, AUTOMOTIVE_SERVICE,
+  MANUFACTURING_GROCERY, MANUFACTURING_PHARMA, MANUFACTURING_AUTOMOTIVE,
+  MANUFACTURING_PRODUCT, OTHERS
+
+Keeping the four MANUFACTURING_* distinct is right — please don't collapse them.
+We map two of them onto one screen today and that is our business, not yours.
+
+Note OTHERS is doing three jobs on our side (Service, Finance, and the
+Healthcare catch-all). That is fine and needs nothing from you.
+
+  >>> CORRECTION — ALTERNATIVE_HEALTH MUST MAP TO `HOSPITAL`, NOT null.
+
+You wrote: "It is unmapped on purpose — the app has no screen for ayurveda /
+homeopathy ... Tell us if you add a screen for it and we will map it."
+
+We already have one, and it is live today:
+
+    bottom_navigation_bar_screen.dart:1235-1237
+
+    } else if (category == BusinessCategoryTokens.hospitals ||
+        category == BusinessCategoryTokens.alternativeHealth) {
+      return const HospitalMain();
+    }
+
+ALTERNATIVE_HEALTH has routed to HospitalMain for as long as that branch has
+existed. Shipping it as `module: null` would move those merchants from a working
+hospital dashboard to the generic fallback — a REGRESSION introduced by a change
+whose whole purpose is to fix routing.
+
+Please map ALTERNATIVE_HEALTH -> HOSPITAL. That makes your live coverage 68/68
+and removes the only unmapped category.
+
+(If you would rather it had a module of its own later, we can add a screen and
+you can re-point it. Until then HOSPITAL is what it resolves to and what these
+merchants already use.)
+
+
+================================================================================
+2. FALLBACK CONTRACT — CONFIRMED
+================================================================================
+
+Confirmed, both halves:
+  * `module: null`                  -> generic screen
+  * an unrecognised module string   -> generic screen, never a guess, never a
+                                       crash
+
+We will treat an unknown module exactly like null. Note for your side: this
+means you can add a module tomorrow and old clients degrade quietly rather than
+breaking — which we agree is the right trade.
+
+One thing we are changing on our side while we are here: today an unrecognised
+BUSINESS TYPE lands on `_UnknownBusinessFallback`, which is a dead-end screen.
+When we move to `module` the fallback will be `OthersMain` — a real, working
+dashboard. An unmapped merchant should get something usable, not an apology.
+
+
+================================================================================
+3. GAP 6 — business_location 0,0 -> null: NOT NEEDED FOR US ANY MORE
+================================================================================
+
+Thank you for finding the schema default; that explains the volume.
+
+But do NOT schedule a coordinated release on our account. The client symptom we
+reported is already gone. The forced dialog lived at
+
+    business_profile_screen.dart:137-148
+
+and that entire file was deleted when we removed the legacy business own-profile
+screen (see PART 1 of the gaps document). Nothing auto-opens a location dialog
+any more. The only `updateLocationDialog` left is
+`business_contact_map_card.dart:591`, which is user-initiated — the merchant taps
+it.
+
+So: the `0,0` default is still conceptually wrong and worth fixing whenever you
+next touch that schema, but it is no longer blocking anything in the app. Low
+priority. Your call, on your timeline.
+
+
+================================================================================
+4. GAP 3 — "false" IS NOT COMING FROM THE CURRENT CLIENT EITHER
+================================================================================
+
+We checked, since you asked us to. Every place the app SENDS
+`Nature_of_Business`:
+
+  business_details_edit_page_one.dart:853
+      selectedBusiness == NatureOfBusiness.OTHERS
+          ? othersCatController.text
+          : selectedBusiness?.displayName ?? ''       -> a display name, or ''
+
+  create_business_account_new_step_one.dart:849
+      authController.selectedNatureOfBusiness?.name   -> an enum name, or null
+
+  auth_controller.dart:899
+      only sent when non-null
+
+None of them can produce a bool or the string "false". So the current client
+does not write it. Most likely an older app version did, and those rows are
+still sitting there — worth checking the `updated_at` on a few of the offending
+documents to confirm they predate the current build.
+
+ANSWERS:
+  * Normalise `"false"` -> null on write: YES PLEASE. Our parser already maps
+    it to '' (viewBusinessProfileModel.dart:120), so cleaning it changes nothing
+    for the shipped app and lets us delete that line later.
+  * Rename `Nature_of_Business`: NO. Not worth a breaking change and a
+    transition window for a casing inconsistency. Leave it.
+
+
+================================================================================
+5. GAP 2 — NO ACTION WANTED
+================================================================================
+
+Your explanation settles it: `category_of_business` is the gRPC proto field and
+HTTP always sends `category_Of_Business`. Our `??` is redundant but harmless,
+and we will drop it when we move to `slug`.
+
+  * Normalise `_id` / `id`: NO.
+  * Normalise `referal_video` / `referral_video`: NO.
+
+Both are already handled with a one-line `??` on our side. Neither is worth a
+deprecation window. If either is ever touched for another reason, tidy it then.
+
+
+================================================================================
+6. CORRECTION TO YOUR GAP 4 RESPONSE
+================================================================================
+
+You wrote:
+
+  "The lat/lon string-parsing you cited at viewBusinessProfileModel.dart:454 is
+   a DIFFERENT, nested object from `business_location` — worth confirming on
+   your side which payload that parser is actually reading."
+
+We confirmed. It is not a different object. Lines 448-465 of that file are:
+
+    class BusinessLocation {                 // line 448
+      BusinessLocation.fromJson(dynamic json) {
+        lat = double.parse((json['lat'] ?? '0.0').toString());   // line 454
+        lon = double.parse((json['lon'] ?? '0.0').toString());   // line 455
+
+and it is constructed from exactly one place:
+
+    businessLocation = json['business_location'] != null
+        ? BusinessLocation.fromJson(json['business_location']) : null;
+
+There is only one BusinessLocation class in the file. So that parser IS reading
+`business_location`.
+
+This does not necessarily mean the schema is wrong — `.toString()` then
+`double.parse` also succeeds on a real JSON number, so the coercion may simply
+be defensive and has never been exercised. But the reasoning you used to dismiss
+it ("that's a different payload") does not hold, so GAP 4 should be re-checked
+against an actual response body rather than the schema alone.
+
+Everything else in your GAP 4 answer we accept: if `referral_points` and
+`total_ratings` are Numbers on the wire, our coercions are belt-and-braces and
+we will leave them.
+
+
+================================================================================
+7. GAP 8 WAS NOT ANSWERED
+================================================================================
+
+The guide responds to GAPs 1-7. GAP 8 is not mentioned anywhere in it.
+
+It is the only gap in the document with a LIVE USER IMPACT that is reproducible
+today: a merchant opens the shop-availability editor, sets their weekly visiting
+hours, presses SAVE, and is told to buy a plan first. Saving hours is not a
+monetised action and does not put a shop online.
+
+Full client-side trace is in the gaps document under GAP 8 — there is no payment
+check anywhere on that path; the app is displaying the server's own 402 message.
+
+ASK, unchanged:
+  * PUT <business availability hours> and setIndividualHours -> accept for an
+    unpaid merchant.
+  * Keep the 402 on setTodayHours (the today-override), which is what actually
+    opens the shop. That one the client already gates too, so the two would
+    agree.
+
+Please pick this up — it is a smaller change than anything in the routing work
+and it is costing merchants their opening hours right now.
+
+
+================================================================================
+8. WHAT WE WILL DO, AND WHEN
+================================================================================
+
+Not started, per your "do not ship client code against `module` until we confirm
+it is live on staging".
+
+When you confirm staging, in this order:
+
+  1. Parse `category_details.slug`, `sub_category_details.slug` and `module`
+     (additive, so this is safe to ship before the fields are live — all three
+     are null-tolerant).
+  2. Route `_buildBusinessScreen` off `module` with a flat lookup, keeping the
+     existing type/category chain as the fallback for null/unknown.
+  3. Do the same for `VisitProfileResolver`, which is the second hand-maintained
+     copy of that mapping.
+  4. Only once both are proven on real traffic: delete `BusinessCategoryTokens`
+     and the `.contains()` chain.
+  5. `GET /business/module-vocabulary` to retire the hardcoded `BusinessType`
+     enum — last, and separately, since it is the only piece that changes app
+     startup.
+
+Steps 1-2 will not be merged until ALTERNATIVE_HEALTH is mapped, because
+shipping them before that would regress those merchants on the day we cut over.
+
+We will use sub-category `slug` as a normalised name only, never as an id, and
+`_id` where identity has to survive a rename — understood.
+
+
+================================================================================
+SUMMARY
+================================================================================
+  CONFIRMED : 16 module names; the null/unknown fallback contract
+  BLOCKING  : ALTERNATIVE_HEALTH must be HOSPITAL, not null (regression)
+  CORRECTED : GAP 4 — line 454 IS business_location; please re-check on the wire
+  DECLINED  : GAP 2 normalisations; renaming Nature_of_Business
+  WANTED    : "false" -> null on write
+  DROPPED   : GAP 6 urgency — the client screen that forced the dialog is gone
+  MISSING   : GAP 8 was not answered and has live user impact
+================================================================================

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -48,18 +49,31 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
   }
 
   void _onAddServiceTap() {
-    if (accountTypeGlobal == AppConstants.individual) {
-      if (userProfessionGlobal.trim().isEmpty ||
-          userDesignationGlobal.toString().trim().isEmpty) {
-        commonSnackBar(message: AppStrings.kindlyAddServicesProfession.tr);
-        return;
-      }
-    } else {
-      if (businessCategoryGlobal.trim().isEmpty ||
-          businessSubCategoryGlobal.trim().isEmpty) {
-        commonSnackBar(message: AppStrings.kindlyAddServicesCategory.tr);
-        return;
-      }
+    // This tab is BUSINESS-ONLY. It is reached exclusively through
+    // OthersMain / AutomotiveServiceMain, both of which are returned from
+    // `_buildBusinessScreen()`, which itself only runs under
+    // `if (isBusinessUser())` in `meScreens()`. There used to be an
+    // `accountTypeGlobal == individual` branch here checking profession /
+    // designation — it could never be taken, and it contradicted the
+    // `ProviderType.business` hardcoded two lines below, which would have
+    // uploaded an individual's service as a business one anyway.
+    final missingCategory = businessCategoryGlobal.trim().isEmpty;
+    final missingSubCategory = businessSubCategoryGlobal.trim().isEmpty;
+    logs('ADD SERVICE -> businessCategoryGlobal="$businessCategoryGlobal" '
+        'businessSubCategoryGlobal="$businessSubCategoryGlobal"');
+    if (missingCategory || missingSubCategory) {
+      // Name the one that is actually missing. Asking for "category and
+      // sub-category" when only the sub-category is blank sends the merchant
+      // to re-check a field that is already filled in.
+      commonSnackBar(
+        message: (missingCategory && missingSubCategory
+                ? AppStrings.serviceNeedsCategoryAndSubCategory
+                : missingCategory
+                    ? AppStrings.serviceNeedsCategory
+                    : AppStrings.serviceNeedsSubCategory)
+            .tr,
+      );
+      return;
     }
     Get.to(() => ServiceUploadScreen(providerType: ProviderType.business));
   }

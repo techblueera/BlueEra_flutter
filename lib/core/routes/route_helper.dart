@@ -74,7 +74,6 @@ import 'package:BlueEra/features/business/onboarding/view/business_onboarding_de
 import 'package:BlueEra/features/business/onboarding/view/business_onboarding_hours_type_screen.dart';
 import 'package:BlueEra/features/business/onboarding/view/business_onboarding_photo_screen.dart';
 import 'package:BlueEra/features/business/onboarding/view/business_onboarding_select_hours_screen.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/gst_verification_screen.dart';
@@ -902,9 +901,6 @@ class RouteHelper {
       //   // final companyData =
       //   //     args[ApiKeys.argCompanyData] != null ? args[ApiKeys.argCompanyData] as GetMyProfileModel : null;
       //   return MaterialPageRoute(builder: (_) => BusinessDetailsEditPageOne());
-      case RouteConstant.BusinessOwnProfileScreen:
-        return MaterialPageRoute(builder: (_) => BusinessOwnProfileScreen());
-
       case RouteConstant.BusinessOnboardingCategoryScreen:
         return MaterialPageRoute(
           builder: (_) => const BusinessOnboardingCategoryScreen(),

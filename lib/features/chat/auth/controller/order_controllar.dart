@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';

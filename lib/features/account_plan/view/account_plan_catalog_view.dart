@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -143,6 +144,22 @@ class AccountPlanCatalogView extends StatelessWidget {
     ];
   }
 
+  /// Active plans the user holds whose `option_code` is absent from [plans].
+  ///
+  /// `ownsPlan()` can only badge a card that exists, so these would otherwise
+  /// render nowhere at all. Matched on `option_code` — the same key `ownsPlan`
+  /// uses — so a plan is either decorated in the list below or surfaced here,
+  /// never both and never neither.
+  List<UserAccountPlan> _heldPlansNotInCatalog(List<PlanCard> plans) {
+    final codes = plans.map((p) => p.optionCode).toSet();
+    return controller.myPlans
+        .where((p) =>
+            p.isActive &&
+            p.optionCode.isNotEmpty &&
+            !codes.contains(p.optionCode))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -212,6 +229,12 @@ class AccountPlanCatalogView extends StatelessWidget {
               _CouponField(controller: controller),
               SizedBox(height: SizeConfig.size14),
             ],
+            // A plan the user HOLDS that this catalog has no card for — see
+            // [_HeldPlanCard]. Leads the list: what you already own is the one
+            // thing on this screen you do not have to decide about, and showing
+            // nothing made a paid plan look like it had vanished.
+            for (final held in _heldPlansNotInCatalog(catalog.plans))
+              _HeldPlanCard(plan: held),
             // Owned plans lead. What the merchant already has is the one thing
             // on this screen they don't have to decide about, and burying it
             // mid-catalog made them read every card to find it. The rest keep
@@ -595,7 +618,29 @@ class _CouponFieldState extends State<_CouponField> {
                     ),
                     decoration: InputDecoration(
                       isDense: true,
+                      // EVERY border state, not just `border`, and filled OFF.
+                      //
+                      // The app-wide `inputDecorationTheme` (themes.dart) sets
+                      // `filled: true` on a white fill plus OutlineInputBorder
+                      // for border / enabledBorder / focusedBorder /
+                      // disabledBorder. `border: InputBorder.none` alone only
+                      // replaces the `border` slot, so the theme's ENABLED
+                      // border kept painting — a white rounded box with a grey
+                      // outline, drawn inside the coupon card's own border. The
+                      // field read as a box nested in a box.
+                      filled: false,
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      // The row already sets the horizontal rhythm; the theme's
+                      // dense padding would otherwise indent the hint away from
+                      // the tag icon.
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size10,
+                      ),
                       hintText: AppStrings.couponHint.tr,
                       hintStyle: TextStyle(
                         fontSize: SizeConfig.size12,
@@ -2900,6 +2945,265 @@ class AccountPlanErrorState extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A plan the user HOLDS that the current catalog does not contain.
+///
+/// The normal Active-plan treatment ([_ActivePlanCard]) is a decorated catalog
+/// CARD — it needs a `PlanCard` to render, and `ownsPlan()` finds one by
+/// matching the held `option_code` against the codes the catalog returned. When
+/// the held plan is not in that catalog there is no card to decorate, so the
+/// screen showed nothing at all and the user was told, in effect, that the plan
+/// they are paying for does not exist.
+///
+/// That happens whenever the catalog is scoped to a different tag than the plan
+/// was bought under:
+///
+///   * a deposit-migrated plan whose `tag_id` no longer matches the profile
+///     (e.g. a `BIKE_RIDER` holding `GIG_BIKE_PASSENGER` while
+///     `AccountPlanTag.resolve()` returns a car tag);
+///   * a plan bought before a profile category change
+///     (docs/PROFILE_CATEGORY_CHANGE_CLIENT_VERIFICATION.txt §3);
+///   * a catalog entry retired server-side after purchase.
+///
+/// Those are real problems worth fixing at their source, and this does not fix
+/// them. It fixes the SYMPTOM that matters most to the person holding the plan:
+/// an active, paid entitlement is always visible on the screen that sells
+/// plans. Rendered from [UserAccountPlan] alone — no catalog data is involved,
+/// which is the whole point.
+class _HeldPlanCard extends StatefulWidget {
+  const _HeldPlanCard({required this.plan});
+
+  final UserAccountPlan plan;
+
+  @override
+  State<_HeldPlanCard> createState() => _HeldPlanCardState();
+}
+
+class _HeldPlanCardState extends State<_HeldPlanCard>
+    with SingleTickerProviderStateMixin {
+  /// The same 4.2s pass [_ActivePlanCard] uses. Shared timing on purpose: both
+  /// cards mean "you hold this", and two owned-plan treatments breathing at
+  /// different rates would read as two different states.
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  );
+
+  /// Whether the ticker is currently allowed to run. Read from MediaQuery so it
+  /// re-evaluates if the platform setting changes mid-session.
+  bool _animating = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final allowed = !MediaQuery.disableAnimationsOf(context);
+    if (allowed == _animating) return;
+    _animating = allowed;
+    if (allowed) {
+      _controller.repeat();
+    } else {
+      // Parked at 0, which puts the band off the left edge — the card simply
+      // has no sheen rather than a frozen streak across it.
+      _controller
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  UserAccountPlan get plan => widget.plan;
+
+  /// What the plan covers, when that is not simply its own name again.
+  ///
+  /// For a rider on `GIG_BIKE_PASSENGER` the label is "Passenger" and
+  /// `job_types` is `["passenger"]` — printing both says the same word twice.
+  /// So this returns null whenever the detail is already contained in the
+  /// title, and a line the reader has not been told yet otherwise.
+  String? get _covers {
+    final label = plan.optionLabel.toLowerCase();
+    final jobs = plan.jobTypes;
+    if (jobs != null && jobs.isNotEmpty) {
+      final fresh =
+          jobs.where((j) => j.isNotEmpty && !label.contains(j.toLowerCase()));
+      if (fresh.isEmpty) return null;
+      return fresh.map((j) => j[0].toUpperCase() + j.substring(1)).join(', ');
+    }
+    final km = plan.radiusKm;
+    if (km != null && km > 0) {
+      return AppStrings.planHeldRadiusFmt.trParams({'km': '$km'});
+    }
+    final tier = plan.tier;
+    return (tier != null && tier.isNotEmpty) ? tier : null;
+  }
+
+  /// One plain sentence covering what it cost and when it started.
+  ///
+  /// A zero amount is a real state rather than missing data — a deposit
+  /// migration grants the mapped plan free of charge — so it is said in words
+  /// instead of printed as a price of nothing.
+  String get _standing {
+    final paid = plan.totalAmount > 0;
+    final amount = '\u{20B9}${plan.totalAmount}';
+    final since = plan.activatedAt;
+    if (since == null) {
+      return paid
+          ? AppStrings.planHeldPaid.trParams({'amount': amount})
+          : AppStrings.planHeldFree.tr;
+    }
+    final date = DateFormat('d MMMM yyyy').format(since);
+    return paid
+        ? AppStrings.planHeldPaidSinceFmt
+            .trParams({'amount': amount, 'date': date})
+        : AppStrings.planHeldFreeSinceFmt.trParams({'date': date});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final covers = _covers;
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(SizeConfig.size18),
+        // The app's OWN owned-plan field, not a decorative wash: the same
+        // three-stop green [_ActivePlanCard] uses, so the two "you hold this"
+        // treatments are one thing wearing one colour.
+        //
+        // It is also what makes the sheen work at all. The sweep paints white
+        // at 14% alpha; over the white card this used to be, that is white on
+        // white and nothing appeared to happen. Light needs a surface to fall
+        // on — so the fix is the field, not a louder band.
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: AccountPlanPalette.activePanel,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AccountPlanPalette.activePanel.last.withValues(alpha: 0.32),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      // Clips the sheen to the rounded corners; without it the band runs past
+      // the card's edge.
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // The one piece of motion on this screen, and the reason it earns it:
+          // this card answers "have I already paid for this?", and it has to be
+          // findable in a list where everything else looks purchasable. A slow
+          // TILTED pass reads as light falling across a held object; a straight
+          // horizontal wipe would read as a loading shimmer and say the
+          // opposite — that the card is still resolving.
+          //
+          // Behind the content, so type never dims under it.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (_, __) => CustomPaint(
+                  painter: _SweepPainter(progress: _controller.value),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        plan.optionLabel.isNotEmpty
+                            ? plan.optionLabel
+                            : plan.optionCode,
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                        maxLines: 2,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    const _HeldBadge(),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size6),
+                CustomText(
+                  _standing,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w500,
+                  // Softened rather than a second colour: on a field this
+                  // saturated, a grey would go muddy while white-at-opacity
+                  // stays the same hue and simply steps back.
+                  color: AppColors.white.withValues(alpha: 0.82),
+                  height: 1.45,
+                  maxLines: 3,
+                ),
+                if (covers != null) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  CustomText(
+                    AppStrings.planHeldCoversFmt.trParams({'covers': covers}),
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                    maxLines: 2,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Active" pill for the held-plan card.
+///
+/// Not [_ActiveBadge], which is green-on-green-tint and would disappear against
+/// the panel behind this one. Same words, same tick, inverted for a dark field.
+class _HeldBadge extends StatelessWidget {
+  const _HeldBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size4,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(SizeConfig.size20),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.42)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_rounded,
+              size: SizeConfig.size14, color: AppColors.white),
+          SizedBox(width: SizeConfig.size4),
+          CustomText(
+            AppStrings.planActive.tr,
+            fontSize: SizeConfig.size11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+          ),
+        ],
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/screen_service.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -20,7 +20,6 @@ import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -689,7 +688,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       /// we don't have channel so will call profile
       if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual) {
         if (videoController.videoFeedItem?.author?.id == userId) {
-          openMeOverview();
+          MeProfileNavigator.openOverview();
 
           // navigatePushTo(context, PersonalProfileSetupNewScreen());
         } else {
@@ -697,7 +696,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         }
       }else{
         if (videoController.videoFeedItem?.author?.id == userId) {
-          navigatePushTo(context, BusinessOwnProfileScreen());
+          // Own business profile -> the "Me" tab, which resolves the per-business-
+          // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+          // BusinessOwnProfileScreen() is the single generic profile every business
+          // type used to share; the individual branch already routes this way.
+          MeProfileNavigator.openOverview();
         } else {
           Get.to(() => VisitBusinessProfileNew(businessId: videoController.videoFeedItem?.author?.id??'', screenName:  AppConstants.feedScreen,));
         }

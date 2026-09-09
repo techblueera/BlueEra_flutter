@@ -1,0 +1,234 @@
+================================================================================
+RE: FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md — CLIENT VERIFICATION
+================================================================================
+Date  : 2026-09-09
+Scope : what "change category" does to the "Me" screens, verified against code
+Status: feature NOT implemented yet — `/user/me/profile-category` appears
+        nowhere in lib/. This is a readiness check, not an integration report.
+
+
+================================================================================
+1. THE ME TAB RE-ROUTES CORRECTLY — VERIFIED
+================================================================================
+
+The headline risk was that changing category would leave a merchant on the OLD
+per-type dashboard (a grocer who became a restaurant still seeing GroceryScreen).
+It will not, PROVIDED §8.1 is followed exactly. Traced end to end:
+
+  BUSINESS
+    viewBusinessProfile()
+      -> _applyBusinessProfile()
+      -> SharedPreferenceUtils.userLoggedInBusiness(...)   :454
+           writes businessCategory / businessSubCategory / businessType
+      -> getUserLoginData()                                :471
+           re-reads all 18 keys and repopulates the globals
+      -> isBusinessProfileReady / isMeProfileFetching flip  :474
+      -> resolveBusinessScreen()'s Obx re-runs _buildBusinessScreen()
+           against the NEW globals -> the new per-type screen
+
+  INDIVIDUAL
+    viewPersonalProfile()
+      -> SharedPreferenceUtils.userLoggedInIndividualGuest(profileType,
+         profession, designation, ...)
+      -> getUserLoginData()                                :1052
+      -> resolveIndividualScreen() re-runs _buildIndividualScreen()
+
+So a plain profile re-fetch is sufficient. No extra invalidation call is needed
+for the Me tab itself.
+
+  >>> §8.1's "Don't patch it locally" is LOAD-BEARING FOR US, not hygiene.
+
+  `businessCategoryGlobal`, `businessTypeGlobal`, `userProfessionGlobal` and
+  `userProfileTypeGlobal` are plain non-reactive Strings, and the ONLY code that
+  ever assigns them is `getUserLoginData()` (shared_preference_utils.dart:788-805)
+  and the logout path that blanks them (:557-564). They are populated from
+  SECURE STORAGE, never from an API response object.
+
+  A client that patched the profile model in memory would therefore update the
+  screen's data and NOT the routing globals — the Me tab would keep rendering the
+  old category's dashboard until the next app launch. Please keep that sentence
+  in the guide; it is the one instruction that stops this feature shipping broken.
+
+
+================================================================================
+2. §5 NEEDS NO NEW NETWORKING — VERIFIED
+================================================================================
+
+Both catalogs the picker needs already exist in the API layer:
+
+    user_service_api.dart:149   business/getAllcategories
+    user_service_api.dart:335   individual-professions
+
+So `options_endpoint` maps onto calls the app already makes at onboarding, as
+the guide says. Only the two `/user/me/profile-category` endpoints are new.
+
+The isActive / deletedAt filtering warning for the professions list is noted and
+will be applied client-side.
+
+
+================================================================================
+3. GAP A — THE ACCOUNT PLAN IS TAG-SCOPED, AND §8.5 DOES NOT MENTION IT
+================================================================================
+                                                        *** NEEDS AN ANSWER ***
+
+§8.5 lists "home feed, discovery filters, go-live state, earn/service screens".
+It does not mention the Account Plan, and that is the one that breaks.
+
+The plan CATALOG is fetched per tag:
+
+    AccountPlanTag.resolve()      -> userProfessionGlobal (individual)
+                                  -> businessCategoryGlobal -> tag id (business)
+    AccountPlanController.fetchPlans(tagId: ...)
+
+and a card is marked owned by matching the HELD plan's `option_code` against the
+option codes that catalog returned (`ownsPlan`). After a category change the
+catalog is a DIFFERENT tag's, so a plan bought under the old tag is not in it.
+
+Concretely, for a Bike Rider holding `GIG_BIKE_PASSENGER` who switches
+profession:
+
+  * the Contribution screen shows no Active Plan card — the option_code is not
+    in the new catalog to badge;
+  * but `AccountPlanEntitlement.hasActivePlan` reads `my-plans`, which is NOT
+    tag-scoped, so it stays true and GO-LIVE REMAINS ALLOWED.
+
+The user therefore keeps working while appearing to have no plan. That is a
+paid-entitlement question, not a UI one, and we cannot answer it client-side.
+
+  ASK: when a user changes category, what happens to an active Account Plan
+  bought under the old tag?
+    (a) carries over and stays valid  -> then `my-plans` should keep returning
+        it and we need to know how to display it against a catalog that no
+        longer contains it;
+    (b) is voided / refunded          -> then `my-plans` must stop returning it,
+        and go-live must close;
+    (c) needs re-purchase             -> then say so in the confirmation sheet
+        BEFORE the change, because "some details will be cleared" does not
+        prepare anyone to lose a plan they paid for.
+
+Whichever it is, the §5 confirmation sheet copy probably needs to say it.
+
+
+================================================================================
+4. GAP B — STALE HOURS — HALF FIXED IN THE CLIENT
+================================================================================
+
+§8.3: "IndividualAvailability is deleted."
+
+Two separate problems. The dangerous one is fixed; the wiring waits on the
+feature.
+
+FIXED — `loadHours()` could not clear a DELETED document.
+  Both controllers early-returned unless the response carried a Map:
+
+      final data = (body is Map) ? body['data'] : null;
+      if (data is Map<String, dynamic>) {
+        _hydrateAvailability(AvailabilityData.fromJson(data));
+      }                                     // <- nothing happened otherwise
+
+  So when the document is gone, a successful "you have no hours" response left
+  the OLD schedule sitting in memory. Forcing a reload would not have helped;
+  the force itself was broken. Both now hydrate `null` in that case, which
+  clears `weeklySchedule`, drops the today-override and recomputes the shop
+  closed:
+
+      _hydrateAvailability(
+        data is Map<String, dynamic> ? AvailabilityData.fromJson(data) : null,
+      );
+
+  A FAILED request is still left alone, deliberately — a network blip must not
+  wipe a schedule that is still there. "The server said there is nothing" and
+  "the server did not answer" are different answers and are now treated
+  differently.
+
+  Files: view_business_details_controller.dart, view_personal_details_controller.dart
+
+STILL TO WIRE — calling it. Most callers reach hours through
+`if (!hasSchedule) await loadHours()`, which only hydrates when nothing is
+cached; a stale schedule satisfies that guard forever. `loadHours()` is the
+unconditional force path (now documented as such on both controllers), so the
+category-change flow must call it DIRECTLY on success rather than relying on the
+guard. That is one line in a feature that does not exist yet, and is listed in
+§8 below.
+
+  ASK: does a BUSINESS category change also clear business availability hours?
+  §8.3 only mentions INDIVIDUAL. The client now handles either answer safely —
+  a forced `loadHours()` clears if the document is gone and rehydrates if it is
+  not — but the change flow needs to know whether to bother calling it for
+  businesses.
+
+================================================================================
+5. §8.4 SUB-CATEGORY — ALREADY HANDLED, NO ACTION
+================================================================================
+
+"`sub_category_Of_Business` is now null unless you sent a new sub_category_id."
+
+That flows into `businessSubCategoryGlobal`, which the add-service guard reads:
+
+    me/others/view/v2/tabs/other_services_tab_v2.dart
+    me/automotive_service/view/v2/tabs/other_services_tab_v2.dart
+
+        if (missingCategory || missingSubCategory) -> "Your subcategory is
+        missing"
+
+So a merchant who changes category without picking a sub-category gets a precise
+message telling them which half is missing, and the prompt to go set it. This
+already behaves correctly; the change simply gives it a real trigger for the
+first time. No work needed.
+
+
+================================================================================
+6. CROSS-CHECK WITH THE MODULE ROUTING GUIDE
+================================================================================
+
+Same refetch covers the new `module` field once it ships — it arrives on the
+profile response and lands through the same path as everything else in §1.
+
+One inconsistency between the two backend documents, worth resolving on your
+side rather than ours:
+
+  * THIS guide (§6) lists ALTERNATIVE_HEALTH as one of the six medical
+    categories a business can change INTO, and requires a licence number for it.
+  * FLUTTER_BUSINESS_MODULE_ROUTING_GUIDE.md leaves ALTERNATIVE_HEALTH
+    deliberately unmapped (`module: null` -> generic screen).
+
+So a merchant can be sent through a licensed, one-time, irreversible change into
+a category that then routes them to a generic fallback dashboard. That
+strengthens the request already raised in
+BUSINESS_MODULE_ROUTING_SIGNOFF.txt §1: map ALTERNATIVE_HEALTH -> HOSPITAL. We
+already have that screen and it is what those merchants get today.
+
+
+================================================================================
+7. QA ADDITIONS — ME-TAB SPECIFIC
+================================================================================
+
+The §10 checklist covers the picker and the error paths well. It does not cover
+the thing this document is about. Please add:
+
+  [ ] BUSINESS Grocery -> Food & Restaurant: the Me tab shows FoodMainScreen
+      WITHOUT an app restart (this is the whole feature, from our side)
+  [ ] INDIVIDUAL Bike Rider -> a non-rider profession: the Me tab leaves the
+      rider dashboard, and the rider go-live prompt stops appearing
+  [ ] After the change, the go-live pill reflects the NEW profile's hours, not
+      the old ones (GAP B)
+  [ ] After the change, the Contribution screen's Active Plan state is correct
+      for whatever answer GAP A gets
+  [ ] Change into a category with no sub-category -> "Your subcategory is
+      missing" on Add Service, not a silent failure
+
+
+================================================================================
+SUMMARY
+================================================================================
+  VERIFIED : Me-tab re-routing works off the §8.1 refetch alone, both account
+             types. "Don't patch locally" is required, not advisory.
+  VERIFIED : the picker needs no new catalog endpoints.
+  BLOCKING : GAP A — what happens to a tag-scoped Account Plan on change?
+  FIXED    : GAP B — loadHours() could not clear a deleted document; both
+             controllers now hydrate null on an empty response. Calling it from
+             the change flow is the remaining one-liner.
+  ASK      : does a BUSINESS change clear business hours too?
+  ASK      : ALTERNATIVE_HEALTH is changeable-into here but unmapped in the
+             routing guide — reconcile the two documents.
+================================================================================

@@ -3868,10 +3868,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
       );
 
       await _notificationPlugin.show(
-        _ongoingNotificationId,
-        '${isVideo ? 'Video' : 'Voice'} call with $name',
-        'Connecting...',
-        NotificationDetails(android: androidDetails),
+        id: _ongoingNotificationId,
+        title: '${isVideo ? 'Video' : 'Voice'} call with $name',
+        body: 'Connecting...',
+        notificationDetails: NotificationDetails(android: androidDetails),
         payload: '{"action":"open_active_call"}',
       );
     } catch (e) {
@@ -3925,10 +3925,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
       );
 
       await _notificationPlugin.show(
-        _ongoingNotificationId,
-        '${isVideo ? 'Video' : 'Voice'} call with $name',
-        'Ongoing call · $duration',
-        NotificationDetails(android: androidDetails),
+        id: _ongoingNotificationId,
+        title: '${isVideo ? 'Video' : 'Voice'} call with $name',
+        body: 'Ongoing call · $duration',
+        notificationDetails: NotificationDetails(android: androidDetails),
         payload: '{"action":"open_active_call"}',
       );
     } catch (e) {
@@ -3940,7 +3940,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _notificationTimer?.cancel();
     _notificationTimer = null;
     try {
-      await _notificationPlugin.cancel(_ongoingNotificationId);
+      await _notificationPlugin.cancel(id: _ongoingNotificationId);
     } catch (_) {}
   }
 

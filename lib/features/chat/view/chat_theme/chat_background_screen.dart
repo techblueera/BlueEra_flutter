@@ -934,23 +934,10 @@ class _ChatBackgroundScreenState extends State<ChatBackgroundScreen>
   // ═══════════════════════════════════════════════════════════
   // TAB 3 — FONT STYLE (font family + font size)
   // ═══════════════════════════════════════════════════════════
-  static const _fonts = [
-    {'name': 'Default', 'display': 'System Default'},
-    {'name': 'Roboto', 'display': 'Roboto'},
-    {'name': 'Poppins', 'display': 'Poppins'},
-    {'name': 'Lato', 'display': 'Lato'},
-    {'name': 'Montserrat', 'display': 'Montserrat'},
-    {'name': 'OpenSans', 'display': 'Open Sans'},
-    {'name': 'Raleway', 'display': 'Raleway'},
-    {'name': 'NotoSans', 'display': 'Noto Sans'},
-    {'name': 'Ubuntu', 'display': 'Ubuntu'},
-    {'name': 'Nunito', 'display': 'Nunito'},
-    {'name': 'Quicksand', 'display': 'Quicksand'},
-    {'name': 'Comfortaa', 'display': 'Comfortaa'},
-    {'name': 'DancingScript', 'display': 'Dancing Script'},
-    {'name': 'Pacifico', 'display': 'Pacifico'},
-    {'name': 'CaveatBrush', 'display': 'Caveat Brush'},
-  ];
+  // Font options live on ChatThemeController.supportedFonts so the picker and
+  // the saved-value validation can never drift apart. Every entry there is a
+  // family actually declared in pubspec.yaml.
+  static const _fonts = ChatThemeController.supportedFonts;
 
   Widget _buildFontStyleTab() {
 

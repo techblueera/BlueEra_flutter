@@ -39,6 +39,27 @@ class ChatThemeController extends GetxController {
   RxString chatFontFamily = 'Default'.obs;
   RxDouble chatFontSize = 16.0.obs;
 
+  // The only font families the picker may offer, and the single source of
+  // truth for it -- ChatBackgroundScreen renders its grid straight from here.
+  //
+  // A family renders ONLY if it is declared in the pubspec fonts: section.
+  // An unbundled name is not an error -- Flutter quietly falls back to the
+  // device system font, so the option looks live and does nothing. This list
+  // used to carry 15 Google font names (Poppins, Lato, Montserrat, Raleway,
+  // Nunito, Pacifico, ...) of which only OpenSans was ever bundled: twelve
+  // dead options. Add an entry here only after dropping the .ttf into
+  // assets/fonts/ AND declaring the family in pubspec.yaml.
+  static const List<Map<String, String>> supportedFonts = [
+    {'name': 'Default', 'display': 'System Default'},
+    {'name': 'OpenSans', 'display': 'Open Sans'},
+    {'name': 'Arizonia', 'display': 'Arizonia'},
+    {'name': 'Artifika', 'display': 'Artifika'},
+    {'name': 'AsapCondensed', 'display': 'Asap Condensed'},
+  ];
+
+  static bool isSupportedFont(String family) =>
+      supportedFonts.any((f) => f['name'] == family);
+
 
   static const String _themeBoxName = 'chat_theme_settings';
 
@@ -57,7 +78,16 @@ class ChatThemeController extends GetxController {
     final fontFamily = box.get('chatFontFamily', defaultValue: 'Default') ?? 'Default';
     final fontSize = double.tryParse(box.get('chatFontSize', defaultValue: '16.0') ?? '16.0') ?? 16.0;
 
-    chatFontFamily.value = fontFamily;
+    // Fold a saved-but-unsupported family back to 'Default'. Anyone who picked
+    // one of the old unbundled fonts has been reading the system font all
+    // along, so this changes nothing on screen -- it just stops the picker
+    // opening with no chip selected. Persisted so the fixup runs once.
+    if (isSupportedFont(fontFamily)) {
+      chatFontFamily.value = fontFamily;
+    } else {
+      chatFontFamily.value = 'Default';
+      await box.put('chatFontFamily', 'Default');
+    }
     chatFontSize.value = fontSize;
     chatBgAsset.value = bgAsset;
     chatBgFilePath.value = bgFilePath;

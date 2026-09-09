@@ -23,17 +23,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
 
-void openMeOverview() {
-  if (Get.isRegistered<BottomBarController>()) {
-    Get.until((route) => route.isFirst);
-    Get.find<BottomBarController>().openMeOverviewTab();
-  } else {
-    Get.offAllNamed(
-      RouteHelper.getBottomNavigationBarScreenRoute(),
-      arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
-    );
-  }
-}
 /// The byline: avatar, then the display name and `@handle` sharing one line,
 /// with the designation chip on the line beneath.
 ///

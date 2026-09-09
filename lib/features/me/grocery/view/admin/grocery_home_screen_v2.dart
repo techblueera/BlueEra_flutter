@@ -106,7 +106,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           ctaKey: AppStrings.addProduct,
           icon: Icons.local_grocery_store_outlined,
         ),
-        onAddProduct: () => _tabController.animateTo(0),
+        // OPEN the add flow. It used to just `animateTo(0)` — switching to the
+        // Products tab the merchant was already on, so "Add Product" appeared
+        // to do nothing.
+        onAddProduct: _onAddProduct,
         // GroceryScreen pops the live-photo sheet on this same landing.
         livePhotoGate: _businessController,
       );
@@ -205,6 +208,26 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     }
   }
 
+  /// Bulk-upload entry point, owned here rather than in the tab so the
+  /// once-a-day add-product sheet and the tab's own banner run the same action.
+  ///
+  /// On the way back, reload the tab if the merchant actually published
+  /// something. `IfNeeded`, not a forced fetch: publishing already ran
+  /// [GroceryController.markInventoryChanged], which dropped the saved snapshot
+  /// and started the refetch, so the guarded call either finds that work
+  /// already done or does it once.
+  Future<void> _onAddProduct() async {
+    await Get.toNamed(
+      RouteHelper.getGrocerySuperCategoryScreenRoute(),
+      arguments: {ApiKeys.argBulkUpload: true},
+    );
+    if (_groceryController.groceryDataNeedsRefresh) {
+      _groceryController.groceryDataNeedsRefresh = false;
+      await _groceryController.fetchAllGroceryDataIfNeeded(widget.businessId,
+          otherStore: false);
+    }
+  }
+
   // the tab content scrolling underneath it. Mirrors the reference
   // mock at assets/img1.png: the chrome stays put while content moves.
   @override
@@ -227,7 +250,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
               // chrome (top bar, tab controller, per-tab fetch/refresh) and
               // nothing else. Statistics already is its own screen.
               tabViews: [
-                _tabScroll(withBannerAdBelow(GroceryProductsTab(businessId: widget.businessId))),
+                _tabScroll(withBannerAdBelow(GroceryProductsTab(
+                  businessId: widget.businessId,
+                  onAddProduct: _onAddProduct,
+                ))),
                 _tabScroll(const GroceryOverviewTab()),
                 // _tabScroll(const GroceryPostTab()),
                 ProfileStatisticsScreen(userId: widget.businessId),

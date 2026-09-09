@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -9,14 +10,12 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -893,7 +892,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               ?.toUpperCase() ==
           AppConstants.individual) {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
-          openMeOverview();
+          MeProfileNavigator.openOverview();
 
           // navigatePushTo(context, PersonalProfileSetupNewScreen());
         } else {
@@ -902,7 +901,11 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
         }
       } else {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, BusinessOwnProfileScreen());
+          // Own business profile -> the "Me" tab, which resolves the per-business-
+          // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+          // BusinessOwnProfileScreen() is the single generic profile every business
+          // type used to share; the individual branch already routes this way.
+          MeProfileNavigator.openOverview();
         } else {
           Get.to(() => VisitBusinessProfileNew(
               businessId:

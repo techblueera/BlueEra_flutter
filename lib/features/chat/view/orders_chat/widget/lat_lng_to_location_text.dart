@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 
 import '../../../../../widgets/custom_text_cm.dart';
 

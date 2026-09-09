@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/constants/discover_category_images.dart';
 import 'dart:core';
 import 'dart:math' hide log;
@@ -14,7 +15,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
@@ -70,7 +70,12 @@ class AppConstants {
 
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
-  static const String OpenSans = "Open Sans";
+  // MUST match the `family:` key in pubspec.yaml byte for byte. Flutter looks
+  // the family up by exact string, so the old "Open Sans" (with a space) matched
+  // nothing and every screen quietly fell back to the device system font --
+  // which is also why text jumped in weight on Android 16, where the system
+  // font is variable and honours w600/w800 literally. Do not re-space this.
+  static const String OpenSans = "OpenSans";
   static const String Regular = "Regular";
 
   // static const String arial = "Arial";
@@ -594,7 +599,7 @@ redirectToProfileScreen(
   if (accountTypeData == AppConstants.individual) {
     if (userId == profileId) {
       debugPrint("SEGMENTS==== IF");
-      openMeOverview();
+      MeProfileNavigator.openOverview();
 
       // Get.to(() => PersonalProfileSetupNewScreen(
       //       isScreenName: screenName,
@@ -611,7 +616,7 @@ redirectToProfileScreen(
   }
   if (accountTypeData == AppConstants.business) {
     if (businessId == profileId) {
-      openMeOverview();
+      MeProfileNavigator.openOverview();
 
       // Get.to(() => BusinessOwnProfileScreen(
       //   isScreenFrom: screenName,
@@ -684,7 +689,11 @@ List<String> years = ['YYYY'] +
 
 openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
-    Get.to(() => BusinessOwnProfileScreen());
+    // Own business profile -> the "Me" tab, which resolves the per-business-
+    // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+    // BusinessOwnProfileScreen() is the single generic profile every business
+    // type used to share; the individual branch already routes this way.
+    MeProfileNavigator.openOverview();
   } else {
     Get.to(() => VisitBusinessProfileNew(
           businessId: businessUserId ?? "",
@@ -695,7 +704,7 @@ openBusinessProfile({required String? businessUserId}) {
 
 openPersonalProfile({required String? userID}) {
   if (userId == userID) {
-    openMeOverview();
+    MeProfileNavigator.openOverview();
 
     // Get.to(() => PersonalProfileSetupNewScreen());
   } else {

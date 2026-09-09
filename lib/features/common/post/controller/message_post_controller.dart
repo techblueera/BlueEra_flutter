@@ -281,7 +281,7 @@ class MessagePostController extends GetxController {
       fileType = FileType.image;
       // if (selectedType.value == MediaType.video) fileType = FileType.video;
 
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
           allowMultiple: true, type: fileType, compressionQuality: 80);
       logs("imagesList  result  ${result?.paths}");
 
@@ -402,7 +402,7 @@ class MessagePostController extends GetxController {
 
     selectedType.value = MediaType.video;
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
         allowMultiple: false,
         type: FileType.custom,
         allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']);

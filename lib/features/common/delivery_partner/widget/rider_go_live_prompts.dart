@@ -1,7 +1,7 @@
+import 'package:BlueEra/widgets/go_live_nudge_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,120 +22,16 @@ import 'package:get/get.dart';
 /// handled by `handleGoLiveTap`, which says the right thing for each case. Two
 /// places deciding what blocks a rider is two places to get out of step, so
 /// this one just offers the button and lets that be the single authority.
+/// Rider wording for the shared "You're offline" nudge — see
+/// [showGoLiveNudgeSheet], which every other "Me" screen now uses too. The
+/// sheet body used to live here; only the copy is rider-specific.
 Future<void> showRiderGoLiveSheet({required VoidCallback onGoLive}) {
-  return Get.bottomSheet(
-    Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        10,
-        20,
-        20 + (Get.mediaQuery.padding.bottom),
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Grab handle — says "this is draggable" before anyone tries.
-          Container(
-            width: 44,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.greyE5,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          SizedBox(height: SizeConfig.size20),
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.green1A.withValues(alpha: 0.10),
-              border: Border.all(
-                color: AppColors.green1A.withValues(alpha: 0.22),
-                width: 1,
-              ),
-            ),
-            child: Icon(Icons.bolt_rounded, size: 30, color: AppColors.green1A),
-          ),
-          SizedBox(height: SizeConfig.size14),
-          Text(
-            "You're offline",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: AppConstants.OpenSans,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.mainTextColor,
-              letterSpacing: -0.2,
-            ),
-          ),
-          SizedBox(height: SizeConfig.size8),
-          Text(
-            'You will not receive any ride requests while you are offline. '
-            'Turn on Go Live to start earning.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: SizeConfig.size20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Close FIRST, then act. `onGoLive` can push the permission
-                // screen or the deposit page, and pushing over a live sheet
-                // leaves it underneath — backing out would land the rider right
-                // back on this prompt.
-                Get.back();
-                onGoLive();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.green1A,
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Turn on Go Live',
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: Get.back,
-            child: CustomText(
-              'Not now',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-            ),
-          ),
-        ],
-      ),
-    ),
-    isScrollControlled: true,
-    // Swipe-down and tap-outside both dismiss: nothing here is mandatory, and a
-    // rider who has decided not to go live yet should not have to hunt for the
-    // way out.
-    isDismissible: true,
-    enableDrag: true,
-    backgroundColor: Colors.transparent,
+  return showGoLiveNudgeSheet(
+    title: "You're offline",
+    message: 'You will not receive any ride requests while you are offline. '
+        'Turn on Go Live to start earning.',
+    ctaLabel: 'Turn on Go Live',
+    onGoLive: onGoLive,
   );
 }
 

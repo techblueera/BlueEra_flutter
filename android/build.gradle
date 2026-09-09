@@ -1,45 +1,56 @@
-buildscript {
-    ext.kotlin_version = '2.1.0'
-//    ext.kotlin_version = '2.0.21'
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-        maven { url "https://plugins.gradle.org/m2/" } // ➕ OneSignal plugin source
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.android.tools.build:gradle:8.7.0"
-        classpath 'com.google.gms:google-services:4.3.13'
-        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.14.0, 0.99.99]' // ➕ OneSignal plugin
-    }
-}
-
+// Plugin versions are declared ONCE, in settings.gradle's `plugins {}` block
+// (AGP, Kotlin, google-services). This file used to carry a second copy as a
+// `buildscript { classpath ... }` block, which is the pre-plugins-DSL style: it
+// pinned google-services to 4.3.13 here while settings.gradle asked for 4.3.15,
+// and it declared a OneSignal plugin that nothing ever applies — with an open
+// version range, so Gradle had to hit the network to re-resolve it on every
+// build. AGP 9 drops support for that style entirely, and the Flutter 3.47
+// template has no buildscript block at all. Add plugins in settings.gradle.
 allprojects {
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
-        maven { url "https://plugins.gradle.org/m2/" } // ➕ Safe for all plugins
+        maven { url "https://plugins.gradle.org/m2/" }
     }
 }
 
-rootProject.buildDir = '../build'
+// Flutter expects the build output at <repo>/build, not android/build, so the
+// root build directory is redirected one level up.
+//
+// This was `rootProject.buildDir = '../build'`. `Project.buildDir` is removed in
+// Gradle 9, so it now uses the provider API, matching the Flutter 3.47 template.
+//
+// NOTE the path is '../../build', not '../build'. The old setter resolved
+// relative to the PROJECT directory (android/ + ../build = <repo>/build);
+// layout.buildDirectory.dir() resolves relative to the BUILD directory
+// (android/build/ + ../../build = <repo>/build). Same destination, one more
+// level up. Getting this wrong silently moves every APK/AAB.
+def newBuildDir = rootProject.layout.buildDirectory.dir('../../build').get()
+rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {
+    project.layout.buildDirectory.value(newBuildDir.dir(project.name))
+
     afterEvaluate {
         if (it.hasProperty('android')) {
-            it.android.compileSdkVersion = 36
-            it.android.defaultConfig.targetSdkVersion = 36
+            // `compileSdkVersion` / `targetSdkVersion` as property setters are
+            // removed in AGP 9 — `compileSdk` / `targetSdk` are the current form
+            // and already work on AGP 8.
+            it.android.compileSdk = 37
+            it.android.defaultConfig.targetSdk = 36
             it.android.compileOptions.sourceCompatibility = JavaVersion.VERSION_17
             it.android.compileOptions.targetCompatibility = JavaVersion.VERSION_17
+
+            // `kotlinOptions` is removed in Kotlin 2.3; `compilerOptions` is the
+            // replacement and takes a typed JvmTarget rather than a string.
             tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                kotlinOptions.jvmTarget = JavaVersion.VERSION_17
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                }
             }
         }
     }
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
 subprojects {
@@ -47,5 +58,5 @@ subprojects {
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }

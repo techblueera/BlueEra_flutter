@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/journey_status_model.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
@@ -17,7 +18,6 @@ import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.da
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -30,7 +30,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
-import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
 
@@ -314,11 +313,15 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                         if (isGuestUser()) {
                           createProfileScreen();
                         } else if (isIndividualUser()) {
-                          openMeOverview();
+                          MeProfileNavigator.openOverview();
 
                           // Get.to(() => PersonalProfileSetupNewScreen());
                         } else if (isBusinessUser()) {
-                          navigatePushTo(context, BusinessOwnProfileScreen());
+                          // Own business profile -> the "Me" tab, which resolves the per-business-
+                          // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+                          // BusinessOwnProfileScreen() is the single generic profile every business
+                          // type used to share; the individual branch already routes this way.
+                          MeProfileNavigator.openOverview();
                         }
                       },
                       child: Padding(

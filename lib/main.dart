@@ -378,7 +378,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // this is a ride request, not a phone call.
       final plugin = FlutterLocalNotificationsPlugin();
       await plugin.initialize(
-        const InitializationSettings(
+        settings: const InitializationSettings(
           android: AndroidInitializationSettings('@drawable/ic_stat'),
           iOS: DarwinInitializationSettings(),
         ),
@@ -412,10 +412,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // timeoutAfter auto-dismisses so the insistent ring can't go on forever
       // (the request is stale by then anyway — customer reassigns/cancels).
       await plugin.show(
-        notifId,
-        notifTitle,
-        notifBody,
-        NotificationDetails(
+        id: notifId,
+        title: notifTitle,
+        body: notifBody,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             // Channel id and sound come from one place shared with
             // AppNotificationHandler.init — this isolate never runs init, so
@@ -533,7 +533,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // flutter_local_notifications instead of CallKit.
       final plugin = FlutterLocalNotificationsPlugin();
       await plugin.initialize(
-        const InitializationSettings(
+        settings: const InitializationSettings(
           android: AndroidInitializationSettings('@drawable/ic_stat'),
           iOS: DarwinInitializationSettings(),
         ),
@@ -656,7 +656,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // action buttons, BigPictureStyle, grouping, etc.
     final plugin = FlutterLocalNotificationsPlugin();
     await plugin.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: AndroidInitializationSettings('@drawable/ic_stat'),
         iOS: DarwinInitializationSettings(),
       ),

@@ -122,10 +122,53 @@ class AutomotiveProductsTab extends StatelessWidget {
   // across, and the block grid pushed the rest of the tab below the fold.
   Widget _categorySection(AutomotiveInventoryController controller) {
     return Obx(() {
-      final isLoading = controller.fetchProductCategoryResponse.value.status ==
-          Status.INITIAL;
+      final categoriesLoading =
+          controller.fetchProductCategoryResponse.value.status ==
+              Status.INITIAL;
+      final productsLoading =
+          controller.ownDraftAndPublicProductResponse.value.status ==
+              Status.INITIAL;
       final List<AutomotiveProductCategoryWithInventoryModel> categoryList =
           controller.productNestedCategoryList;
+
+      // NOTHING IN THE CATALOGUE — both fetches settled, no products and no
+      // categories. Headed "My Products" rather than "Manage Via Categories":
+      // there are no categories to manage yet, so that title described a thing
+      // that isn't there. This one still names the section for what it will
+      // hold. The "Add Product" masthead above is the call to action, so the
+      // empty state does not repeat it.
+      //
+      // Both flags are checked because the two APIs settle independently —
+      // heading off the categories response alone would flash this empty state
+      // while products were still arriving.
+      if (!categoriesLoading &&
+          !productsLoading &&
+          categoryList.isEmpty &&
+          controller.allProducts.isEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ProductsSectionHeader(title: AppStrings.myProducts.tr),
+            Padding(
+              padding: EdgeInsets.only(
+                right: SizeConfig.size20,
+                top: SizeConfig.size10,
+                bottom: SizeConfig.size10,
+              ),
+              child: EmptyStateWidget(
+                message: AppStrings.noProductsAddedYet.tr,
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Products exist but no categories yet. They are already on the
+      // top-selling rail above, so this section collapses instead of heading an
+      // empty rail — and an "add products" empty state would be a lie here.
+      if (!categoriesLoading && categoryList.isEmpty) {
+        return const SizedBox.shrink();
+      }
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,19 +178,8 @@ class AutomotiveProductsTab extends StatelessWidget {
             title: AppStrings.manageViaCategories.tr,
           ),
           SizedBox(height: SizeConfig.size12),
-          if (isLoading)
+          if (categoriesLoading)
             const ProductCategoryRailSkeleton()
-          else if (categoryList.isEmpty)
-            Padding(
-              padding: EdgeInsets.only(
-                right: SizeConfig.size20,
-                top: SizeConfig.size10,
-                bottom: SizeConfig.size10,
-              ),
-              child: EmptyStateWidget(
-                message: AppStrings.noProductYetCreateOne.tr,
-              ),
-            )
           else
             ProductsRail(
               height: ProductCategoryTile.railHeight,

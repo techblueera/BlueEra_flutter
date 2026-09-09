@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -217,7 +218,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
     return InkWell(
       onTap: () {
         if (userId == serviceData.id) {
-          openMeOverview();
+          MeProfileNavigator.openOverview();
 
           // Get.to(() => PersonalProfileSetupNewScreen());
         } else {

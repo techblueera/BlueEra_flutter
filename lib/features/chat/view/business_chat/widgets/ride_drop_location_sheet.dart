@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';

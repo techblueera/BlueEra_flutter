@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -60,7 +61,7 @@ void openFeedProfile(
       ? (authorBusinessId != null && authorBusinessId == businessId)
       : (authorId != null && authorId == userId);
   if (isSelf) {
-    openMeOverview();
+    MeProfileNavigator.openOverview();
     return;
   }
 

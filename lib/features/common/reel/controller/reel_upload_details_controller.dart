@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:developer';
 import 'dart:io';
 
@@ -11,7 +12,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/reel/models/video_category_response.dart
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -64,11 +63,15 @@ class ReelUploadDetailsController extends GetxController {
     } else {
       // No channel → go to profile
       if (accountTypeGlobal == AppConstants.individual) {
-        openMeOverview();
+        MeProfileNavigator.openOverview();
 
         // Get.to(() => PersonalProfileSetupNewScreen());
       } else {
-        Get.to(() => BusinessOwnProfileScreen());
+        // Own business profile -> the "Me" tab, which resolves the per-business-
+        // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+        // BusinessOwnProfileScreen() is the single generic profile every business
+        // type used to share; the individual branch already routes this way.
+        MeProfileNavigator.openOverview();
       }
     }
   }

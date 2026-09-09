@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Reverse geocoding for the map pin pickers, with the lookups actually paid

@@ -133,7 +133,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             ctaKey: AppStrings.addProduct,
             icon: Icons.medication_outlined,
           ),
-          onAddProduct: () => _tabController.animateTo(0),
+          // OPEN the add flow. It used to just `animateTo(0)` — switching to
+          // the Products tab the merchant was already on, so "Add Product"
+          // appeared to do nothing.
+          onAddProduct: _onAddProduct,
         );
       });
     }
@@ -296,7 +299,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     tabViews: [
                       _tabScroll(
                           withBannerAdBelow(
-                              MedicalProductsTab(businessId: widget.businessId))),
+                              MedicalProductsTab(
+                                businessId: widget.businessId,
+                                onAddProduct: _onAddProduct,
+                              ))),
                       // Overview waits on its OWN fetch rather than the whole
                       // screen doing so; once the profile lands the setState
                       // in [_fetchData] swaps this for the real tab.
@@ -519,6 +525,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       ),
     );
   }
+
+  /// Add-product entry point, owned here rather than in the tab so the
+  /// once-a-day add-product sheet and the tab's own banner run the same action.
+  void _onAddProduct() =>
+      Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
 
   void _openNotifications() {
     Navigator.pushNamed(context, RouteHelper.getNotificationScreenRoute());

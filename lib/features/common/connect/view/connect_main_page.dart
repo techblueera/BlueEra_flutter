@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui' show ImageFilter;
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -45,11 +43,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
-
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_flag_controller.dart';
@@ -162,7 +158,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     );
     _tabController.addListener(_handleTabChange);
     initPlatformState();
-    getPackageData();
 
     // Boot the chat list for whichever tab we're landing on. Without
     // this socket emit, the tab renders blank on first open until the
@@ -419,51 +414,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       _isHandlingShare = true;
       Get.to(() => ChatForwardScreen(sharedFiles: attachments))
           ?.then((_) => _isHandlingShare = false);
-    }
-  }
-
-  Future<void> getPackageData() async {
-    if (!mounted) return;
-    PackageInfo _packageInfo = await PackageManager.getPackageInfo();
-    _checkForUpdate(context, _packageInfo);
-  }
-
-  Future<void> _checkForUpdate(
-      BuildContext context, PackageInfo packageInfo) async {
-    try {
-      if (Platform.isAndroid) {
-        InAppUpdateManager manager = InAppUpdateManager();
-        AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
-        if (appUpdateInfo == null) return;
-        if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.developerTriggeredUpdateInProgress) {
-          //If an in-app update is already running, resume the update.
-          String? message =
-              await manager.startAnUpdate(type: AppUpdateType.immediate);
-          debugPrint(message ?? '');
-        } else if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.updateAvailable) {
-          ///Update available
-          if (appUpdateInfo.immediateAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.immediate);
-            debugPrint(message ?? '');
-          } else if (appUpdateInfo.flexibleAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.flexible);
-            debugPrint(message ?? '');
-          } else {
-            debugPrint(
-                'Update available. Immediate & Flexible Update Flow not allow');
-          }
-        }
-      } else if (Platform.isIOS) {
-        VersionInfo? _versionInfo = await UpgradeVersion.getiOSStoreVersion(
-            packageInfo: packageInfo, regionCode: "US");
-        debugPrint(_versionInfo.toJson().toString());
-      }
-    } catch (e) {
-      debugPrint("Error checking for update: $e");
     }
   }
 

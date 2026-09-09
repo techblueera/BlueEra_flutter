@@ -44,7 +44,7 @@ import 'package:BlueEra/features/me/others/controller/business_profile_full_cont
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';

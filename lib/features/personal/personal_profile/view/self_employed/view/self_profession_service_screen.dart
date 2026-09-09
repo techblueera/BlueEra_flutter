@@ -1577,42 +1577,61 @@ class _SelfProfessionServiceScreenState
       },
       content: Column(
         children: [
-          if (experienceStartingDate != null) ...[
-            Obx(() => Align(
-              alignment: Alignment.centerRight,
-              child: !controller.isGenerateDescLoading.value
-                  ? Align(
+          // AI "generate my description" — always offered.
+          //
+          // This whole block used to sit behind `if (experienceStartingDate !=
+          // null)`, and `experienceStartDate` stays null until the merchant
+          // fills in the separate Work Experience section. So the people most
+          // likely to want a description written for them — a brand new profile
+          // with every section empty — were the only ones who never saw the
+          // button. Experience is an INPUT to the prompt, not a precondition
+          // for it: with no start date on file we ask for 0y 0m, which is a
+          // truthful description of someone just starting out.
+          Obx(() {
+            if (controller.isGenerateDescLoading.value) {
+              return const Align(
                 alignment: Alignment.centerRight,
-                child: InkWell(
-                    onTap: () {
-                      final expData =
-                      calculateExperience(experienceStartingDate);
-
-                      final int years = expData['years']!;
-                      final int months = expData['months']!;
-
-                      controller.generateDescriptions(bodyRequest: {
-                        ApiKeys.category: designation,
-                        ApiKeys.expYears: years,
-                        ApiKeys.expMonths: months,
-                      });
-                    },
-                    child: LocalAssets(
-                      height: 25,
-                      width: 25,
-                      imgColor: AppColors.primaryColor,
-                      imagePath: AppIconAssets.ai_generative,
-                    )),
-              )
-                  : SizedBox(
+                child: SizedBox(
                   height: 25,
                   width: 25,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.0,
-                  )),
-            )),
-            SizedBox(height: SizeConfig.size8),
-          ],
+                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                ),
+              );
+            }
+            return Align(
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                onTap: () {
+                  // Same null/empty guard the section heading uses before
+                  // calling calculateExperience — an empty string parses to
+                  // nothing useful.
+                  int years = 0;
+                  int months = 0;
+                  final start = experienceStartingDate;
+                  if (start != null && start.isNotEmpty) {
+                    final expData = calculateExperience(start);
+                    years = expData['years'] ?? 0;
+                    months = expData['months'] ?? 0;
+                  }
+                  // POSTs ai-service/api/ai-earn/generate-about, then opens the
+                  // suggestion picker; choosing one writes straight into
+                  // `aboutController`, which is the field below.
+                  controller.generateDescriptions(bodyRequest: {
+                    ApiKeys.category: designation,
+                    ApiKeys.expYears: years,
+                    ApiKeys.expMonths: months,
+                  });
+                },
+                child: LocalAssets(
+                  height: 25,
+                  width: 25,
+                  imgColor: AppColors.primaryColor,
+                  imagePath: AppIconAssets.ai_generative,
+                ),
+              ),
+            );
+          }),
+          SizedBox(height: SizeConfig.size8),
 
           CommonTextField(
               textEditController: controller.aboutController,

@@ -5,7 +5,7 @@ import 'package:BlueEra/core/api/model/geo_coding_response.dart';
 import 'package:BlueEra/core/api/model/location_data_model.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:flutter/services.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
@@ -134,10 +134,12 @@ class LocationController extends GetxController {
     try {
       // en_IN keeps the strings in English regardless of device locale; the
       // Google path we're replacing was implicitly English too, and the
-      // address is sent to the backend as-is. In geocoding 4.x the locale is
-      // process-wide state rather than a per-call argument, so set it once.
+      // address is sent to the backend as-is. geocoding 5 dropped the
+      // process-wide `setLocaleIdentifier` for a per-call argument; the compat
+      // layer holds the choice and passes it on every lookup, so this is still
+      // set once.
       if (!_localeApplied) {
-        await setLocaleIdentifier('en_IN');
+        setGeocodingLocale(const Locale('en', 'IN'));
         _localeApplied = true;
       }
 

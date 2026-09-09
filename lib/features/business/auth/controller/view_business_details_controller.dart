@@ -1018,14 +1018,32 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   /// Re-read the availability document (schedule + override + effective hours)
   /// and recompute. Called after editing hours or changing today's override.
+  ///
+  /// UNCONDITIONAL — this is the force-refresh path. Most callers reach it
+  /// through `if (!hasSchedule) await loadHours()`, which is a cheap "hydrate
+  /// if we have nothing" guard; anything that knows the server-side document
+  /// may have CHANGED (or been deleted) must call this directly instead, because
+  /// a stale in-memory schedule satisfies that guard forever.
+  ///
+  /// A successful response carrying no document clears the cached state rather
+  /// than returning early. That case is real: a profile category change deletes
+  /// the availability document server-side, and the old behaviour left the
+  /// merchant's previous schedule sitting in memory — `hasSchedule` still true,
+  /// the go-live pill still reporting hours that no longer exist, and
+  /// `toggleLiveNow()` skipping its "set your hours" branch straight to the
+  /// payment gate for a profile with no hours at all.
+  ///
+  /// Only a FAILED request is left alone. A network blip must not wipe a
+  /// schedule that is still there — the distinction is "the server said there
+  /// is nothing" versus "the server did not answer".
   Future<void> loadHours() async {
     final res = await BusinessProfileRepo().getBusinessHours();
     if (!res.isSuccess) return;
     final body = res.response?.data;
     final data = (body is Map) ? body['data'] : null;
-    if (data is Map<String, dynamic>) {
-      _hydrateAvailability(AvailabilityData.fromJson(data));
-    }
+    _hydrateAvailability(
+      data is Map<String, dynamic> ? AvailabilityData.fromJson(data) : null,
+    );
   }
 
 
@@ -1045,24 +1063,30 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     return false;
   }
 
-  /// Entry point for the shared "Go live" pill. First run (no schedule yet)
-  /// opens the weekly hours editor; once hours exist it opens the availability
-  /// sheet (status + today override + edit hours). Deposit-gated up front.
-  /// [gate] overrides the deposit check — pass a custom gate for callers whose
-  /// deposit lives elsewhere (e.g. professionals gate on the personal profile,
-  /// not the business one). Defaults to the business [ensureCanGoLive].
-  Future<void> openAvailabilityControl({bool Function()? gate}) async {
-    // 1. Payment gate FIRST — an unpaid provider is told why and routed to the
-    //    security-deposit flow; the sheet never opens.
-    if (!(gate != null ? gate() : ensureCanGoLive())) return;
-
-    // 2. Safety net: hydrate the hours if the profile hasn't populated them yet
-    //    so the sheet shows the correct state (set-hours prompt vs live status).
+  /// Opens the availability sheet (status + today override + edit hours).
+  ///
+  /// NOT payment-gated. It used to be: a `gate`/`ensureCanGoLive()` check ran
+  /// before the sheet, so an unpaid merchant was bounced to the plans screen
+  /// and could never even reach the hours editor. That contradicted
+  /// [toggleLiveNow] in this same file, which deliberately puts hours BEFORE
+  /// payment — "setting them is free, is the merchant's own work, and is
+  /// required either way".
+  ///
+  /// Nothing is left unguarded by removing it. The sheet only *shows* state and
+  /// edits hours; the call that actually puts a shop online is
+  /// [_applyTodayOverride], which still opens with `ensureCanGoLive()`. Payment
+  /// gates GOING LIVE, not SETTING HOURS.
+  ///
+  /// (The `gate` parameter went with the check — it existed only to override
+  /// it. [toggleLiveNow] still takes one, because that is where it now bites.)
+  Future<void> openAvailabilityControl() async {
+    // Safety net: hydrate the hours if the profile hasn't populated them yet
+    // so the sheet shows the correct state (set-hours prompt vs live status).
     if (!hasSchedule) await loadHours();
 
-    // 3. Always open the shop-status sheet. With no weekly hours it shows a
-    //    "Set visiting hours" prompt; once hours exist it shows the live status
-    //    + the today-only override + edit-hours.
+    // Always open the shop-status sheet. With no weekly hours it shows a
+    // "Set visiting hours" prompt; once hours exist it shows the live status
+    // + the today-only override + edit-hours.
     await showShopAvailabilitySheet(this);
   }
 

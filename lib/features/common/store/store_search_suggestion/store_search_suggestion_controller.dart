@@ -1,9 +1,10 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -72,7 +73,9 @@ class StoreSearchSuggestionController extends GetxController {
   void onBusinessSelected(GetAllStoreResModel business, BuildContext context) {
     // Navigate to search screen with the selected business
     if (businessId == business.id) {
-      navigatePushTo(context, BusinessOwnProfileScreen());
+      // Own business profile -> the "Me" tab, which resolves the per-business-
+      // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+      MeProfileNavigator.openOverview();
     } else {
       Get.to(() => VisitBusinessProfileNew(
           businessId: business.id?? "", screenName:  AppConstants.feedScreen,));

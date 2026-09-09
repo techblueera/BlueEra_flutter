@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_ba
 import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/franchise/request_to_franchise.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -151,6 +152,11 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
         else if (goLive != null)
           goLive,
         AppImageAssets.groceryBanner,
+        // Book-a-ride promo. Always present, like the grocery slide — the ride
+        // flow is open to any signed-in account, and a guest tapping it lands
+        // on the same screen and is asked to sign in by the booking flow
+        // itself rather than being refused a slide.
+        AppImageAssets.rideBanner,
         if (canSeeFranchiseBanner) AppImageAssets.franchiseBanner,
       ];
 
@@ -305,6 +311,8 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
     } else if (slide == AppImageAssets.goLiveBusinessAccount ||
         slide == AppImageAssets.goLiveIndividualAccount) {
       onTap = _onGoLiveTap;
+    } else if (slide == AppImageAssets.rideBanner) {
+      onTap = () => Get.to(() => const RideHomeScreen());
     } else if (guest && slide == AppImageAssets.completeProfileBanner) {
       // The guest slide IS the call to action, so the whole artwork opens
       // sign-up.

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,7 +9,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_joined_user_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -18,7 +18,6 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/common/service/view/business_service_list.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -903,7 +902,7 @@ class _ChannelScreenState extends State<ChannelScreen>
     String authorId = widget.authorId;
     if (accountType.toUpperCase() == AppConstants.individual.toUpperCase()) {
       if (authorId == userId) {
-        openMeOverview();
+        MeProfileNavigator.openOverview();
 
         // Get.to(() => PersonalProfileSetupNewScreen());
       } else {
@@ -915,7 +914,11 @@ class _ChannelScreenState extends State<ChannelScreen>
       }
     } else {
       if (authorId == userId) {
-        Get.to(() => BusinessOwnProfileScreen());
+        // Own business profile -> the "Me" tab, which resolves the per-business-
+        // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+        // BusinessOwnProfileScreen() is the single generic profile every business
+        // type used to share; the individual branch already routes this way.
+        MeProfileNavigator.openOverview();
       } else {
         Get.to(() =>
             VisitBusinessProfileNew(

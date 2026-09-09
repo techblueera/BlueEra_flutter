@@ -30,7 +30,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';

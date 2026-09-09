@@ -65,6 +65,18 @@ class BottomBarController extends GetxController {
   /// screen consumes and clears this once it registers its select handler.
   bool pendingMeOverview = false;
 
+  /// A `business_go_live_reminder` / `go_live` notification tap that must open
+  /// the shop-availability sheet once the business "Me" screen is on screen.
+  ///
+  /// This used to be carried as a `{'open_go_live': true}` route argument to
+  /// BusinessOwnProfileScreen, whose initState consumed it. That screen is gone
+  /// (every business now lands on its own per-type "Me" screen), so the request
+  /// is parked here instead and consumed by the business "Me" host once the
+  /// profile has resolved. STATIC so a tap that lands before the controller
+  /// exists (cold start from a killed app) is still honoured — the host reads
+  /// it whenever it is eventually built.
+  static bool pendingBusinessGoLive = false;
+
   /// Deep-link entry point: bring the user to the "Me" tab's Overview screen.
   /// Used by notification taps (e.g. profile_completion_reminder). If the "Me"
   /// screen is already live it jumps straight there; otherwise it flags the
@@ -116,9 +128,6 @@ class BottomBarController extends GetxController {
 // already existing controller
   final RxBool adminVideoLoading = false.obs;
   final RxList<AdminVideo> adminVideos = <AdminVideo>[].obs;
-
-List<CategoryData> businessCategoriesList = [];
-
 
   Future<void> fetchAllAdminVideoApiMenu() async {
     try {

@@ -435,6 +435,15 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
                   p.discount!.code.toUpperCase() ==
                       couponCode.value.toUpperCase()));
       plansStatus.value = Status.COMPLETE;
+      // Diagnostic for "my active plan isn't shown / isn't first". The Active
+      // badge and the hoist-to-top both key off `ownsPlan()`, which matches the
+      // HELD option_code against the option_codes the CATALOG returned — so if
+      // the catalog was fetched for a different tag than the plan was bought
+      // under, there is simply no card to badge. Printing all three makes that
+      // visible instead of looking like the badge is broken.
+      logs('ACCOUNT_PLAN catalog tag_id="$tagId" accountType="$accountType" '
+          'catalog=${parsed.plans.map((p) => p.optionCode).toList()} '
+          'held=${activeOptionCodes.toList()}');
       // Owned plans decide how each card renders, so they are loaded
       // alongside — but a failure there must not blank the catalog.
       await fetchMyPlans();
@@ -452,10 +461,22 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
     final raw = res.response?.data;
     final list = (raw is Map ? raw['data'] : null);
     if (list is! List) return;
-    final parsed = list
-        .whereType<Map>()
-        .map((e) => UserAccountPlan.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+    // Parsed row by row rather than in one `.map().toList()`.
+    //
+    // A single malformed entry used to throw out of the whole method, and the
+    // damage was not limited to that row: `myPlans` stayed empty (so the Active
+    // Plan card vanished) AND `AccountPlanEntitlement.publish()` below never
+    // ran, so the go-live gate kept a stale answer. One bad field could
+    // therefore look exactly like "user has no plan". Skipping the bad row
+    // keeps every good one. See ACTIVE_PLAN_CARD_NOT_SHOWING_FIX.md §6.4.
+    final parsed = <UserAccountPlan>[];
+    for (final e in list.whereType<Map>()) {
+      try {
+        parsed.add(UserAccountPlan.fromJson(Map<String, dynamic>.from(e)));
+      } catch (err) {
+        debugPrint('⚠️ fetchMyPlans: skipping unparseable plan row: $err');
+      }
+    }
     myPlans.assignAll(parsed);
     // A plan just bought stops being selectable, so the pay bar has to move on.
     _syncSelection();

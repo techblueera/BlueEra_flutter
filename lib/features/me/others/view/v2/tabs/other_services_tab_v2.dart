@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -98,18 +99,20 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
   }
 
   void _onAddServiceTap() {
-    if (accountTypeGlobal == AppConstants.individual) {
-      if (userProfessionGlobal.trim().isEmpty ||
-          userDesignationGlobal.toString().trim().isEmpty) {
-        commonSnackBar(message: AppStrings.kindlyAddServicesProfession.tr);
-        return;
-      }
-    } else {
-      if (businessCategoryGlobal.trim().isEmpty ||
-          businessSubCategoryGlobal.trim().isEmpty) {
-        commonSnackBar(message: AppStrings.kindlyAddServicesCategory.tr);
-        return;
-      }
+    final missingCategory = businessCategoryGlobal.trim().isEmpty;
+    final missingSubCategory = businessSubCategoryGlobal.trim().isEmpty;
+    logs('ADD SERVICE -> businessCategoryGlobal="$businessCategoryGlobal" '
+        'businessSubCategoryGlobal="$businessSubCategoryGlobal"');
+    if (missingCategory || missingSubCategory) {
+      commonSnackBar(
+        message: (missingCategory && missingSubCategory
+                ? AppStrings.serviceNeedsCategoryAndSubCategory
+                : missingCategory
+                    ? AppStrings.serviceNeedsCategory
+                    : AppStrings.serviceNeedsSubCategory)
+            .tr,
+      );
+      return;
     }
     Get.to(() => ServiceUploadScreen(
           providerType: ProviderType.business,

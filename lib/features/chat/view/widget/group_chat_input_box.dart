@@ -892,7 +892,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
   }
 
   Future<void> _pickDocument() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
@@ -1380,7 +1380,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
   }
 
   // Future<void> _pickAudioFile() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //   FilePickerResult? result = await FilePicker.pickFiles(
   //     type: FileType.custom,
   //     allowedExtensions: ['mp3', 'wav', 'm4a'],
   //   );

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -6,13 +7,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -733,7 +732,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     final accountType = targetUser.accountType?.toUpperCase();
     if (accountType == AppConstants.individual) {
       if (isSelf) {
-        openMeOverview();
+        MeProfileNavigator.openOverview();
 
         // navigatePushTo(context, PersonalProfileSetupNewScreen());
       } else {
@@ -744,7 +743,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       }
     } else if (accountType == AppConstants.business) {
       if (isSelf) {
-        navigatePushTo(context, BusinessOwnProfileScreen());
+        // Own business profile -> the "Me" tab, which resolves the per-business-
+        // type screen (Food / Grocery / School / Hospital / Hotel / Product / ...).
+        // BusinessOwnProfileScreen() is the single generic profile every business
+        // type used to share; the individual branch already routes this way.
+        MeProfileNavigator.openOverview();
       } else {
         print('targetUser.sId--> ${targetUser.sId}');
 

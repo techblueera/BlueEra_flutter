@@ -264,7 +264,7 @@ Future<void> cancelAllExceptNewOrderAlerts(
     for (final notification in active) {
       final id = notification.id;
       if (id == null || protectedIds.contains(id)) continue;
-      await plugin.cancel(id, tag: notification.tag);
+      await plugin.cancel(id: id, tag: notification.tag);
     }
     newOrderTimerLog('tray cleared, kept ${protectedIds.length} order alert(s)');
   } catch (e) {
@@ -440,10 +440,10 @@ class NewOrderTimerNotification {
       );
 
       await notifications.show(
-        notificationId,
-        title,
-        body,
-        NotificationDetails(android: androidDetails, iOS: iosDetails),
+        id: notificationId,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(android: androidDetails, iOS: iosDetails),
         // The unchanged push payload, so a tap on the body routes through the
         // existing `_onTapNotificationFromStatusBar` switch exactly as it did
         // before this file existed.
@@ -493,7 +493,7 @@ class NewOrderTimerNotification {
     await NewOrderCallNotification.cancel(notificationId);
     try {
       await (plugin ?? FlutterLocalNotificationsPlugin())
-          .cancel(notificationId);
+          .cancel(id: notificationId);
     } catch (_) {
       // Best effort: a cancel for an already-gone notification is a no-op, and
       // must never break the tap/action path that called it.
@@ -556,10 +556,10 @@ class NewOrderTimerNotification {
       }
 
       await plugin.show(
-        notificationId,
-        title,
-        '$body • $kNewOrderTimerExpiredNote',
-        NotificationDetails(
+        id: notificationId,
+        title: title,
+        body: '$body • $kNewOrderTimerExpiredNote',
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             kNewOrderTimerChannelId,
             kNewOrderTimerChannelName,

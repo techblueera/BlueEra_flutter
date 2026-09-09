@@ -2,7 +2,7 @@ name: BlueEra
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 14.0.79+338
+version: 14.0.81+340
 
 environment:
   sdk: ">=3.3.3 <4.0.0"
@@ -21,28 +21,28 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_svg: ^2.2.3
   octo_image: ^2.1.0
-  shimmer: ^3.0.0
-  flutter_secure_storage: ^9.2.4
+  shimmer: ^4.0.0
+  flutter_secure_storage: ^10.3.1
   dio: ^5.8.0+1
   get: ^4.7.2
-  flutter_localization: ^0.3.1
+  flutter_localization: ^0.4.1
   sms_autofill: ^2.4.1
-  pinput: ^5.0.1
+  pinput: ^6.0.2
   image_picker: ^1.2.0
   url_launcher: ^6.3.1
-  camera: ^0.10.5+9
-  permission_handler: ^12.0.1
+  camera: ^0.12.1
+  permission_handler: ^13.0.2
   device_info_plus: ^12.1.0
   path_provider: ^2.1.5
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   intl: ^0.19.0
-  croppy: ^1.3.6
+  croppy: '>=1.4.1 <1.5.0'
   path: ^1.9.0
   readmore: ^3.0.0
   visibility_detector: ^0.4.0+2
   geolocator: ^14.0.1
-  geocoding: ^4.0.0
-  internet_connection_checker_plus: ^2.7.2
+  geocoding: ^5.0.0
+  internet_connection_checker_plus: ^3.1.2
   flutter_contacts: ^1.1.9+2
   audioplayers: ^6.5.0
   audio_waveforms: ^2.0.2
@@ -53,7 +53,7 @@ dependencies:
 #  onesignal_flutter: ^5.3.4
   mime: ^2.0.0
   video_player: ^2.10.0
-  file_picker: ^10.2.0
+  file_picker: ^11.0.3
   just_audio: ^0.10.5
   flutter_pdfview: ^1.4.1+1
   pdfx: ^2.9.2
@@ -62,10 +62,10 @@ dependencies:
   timeago: ^3.7.1
   razorpay_flutter: ^1.4.1
   webview_flutter: ^4.13.0
-  open_file: ^3.5.10
-  package_info_plus: ^8.3.0
-  share_plus: ^11.1.0
-  app_links: ^6.4.1
+  open_file: ^4.0.0
+  package_info_plus: ^9.0.1
+  share_plus: ^12.0.2
+  app_links: ^7.2.1
   # Google Play Install Referrer — reads the `referrer=` param from a
   # shared Play Store link after install so referral codes auto-fill at
   # signup (Android only; no-op on iOS).
@@ -76,13 +76,13 @@ dependencies:
   flutter_upgrade_version: ^1.1.8
   flutter_image_compress: ^2.4.0
   any_link_preview: ^3.0.3
-  pro_image_editor: ^11.3.0
+  pro_image_editor: ^14.0.0
   carousel_slider: ^5.1.1
   firebase_core: ^4.1.0
   firebase_messaging: ^16.0.1
   firebase_crashlytics: ^5.0.4
   firebase_analytics: ^12.5.0
-  flutter_local_notifications: ^19.4.2
+  flutter_local_notifications: ^22.3.0
   http_parser: ^4.1.2
   flutter_staggered_grid_view: ^0.7.0
   share_handler: ^0.0.25
@@ -94,7 +94,7 @@ dependencies:
   wakelock_plus: ^1.2.1
   flutter_overlay_window: ^0.5.0
   video_compress: ^3.1.4
-  syncfusion_flutter_pdfviewer: ^32.1.21
+  syncfusion_flutter_pdfviewer: ^33.2.13
   connectivity_plus: any
   http: any
   translator: ^1.0.4+1
@@ -103,7 +103,7 @@ dependencies:
   google_maps_flutter: ^2.14.2
   percent_indicator: ^4.2.5
   flutter_polyline_points: ^3.1.0
-  record: ^6.2.0
+  record: ^7.1.1
   google_generative_ai: ^0.4.7
   envied: ^1.3.3
   qr_flutter: ^4.1.0
@@ -119,7 +119,7 @@ dependencies:
   gal: ^2.3.2
   pdf: ^3.12.0
   flutter_cache_manager: any
-  google_mobile_ads: ^5.1.0           # Google AdMob
+  google_mobile_ads: ^9.1.0           # Google AdMob
 dependency_overrides:
   intl: ^0.19.0
   # Local patched fork: fixes createConfiguration so iOS can play the device's
@@ -176,14 +176,48 @@ flutter:
 
 
   fonts:
+    # Open Sans, full normal-width family. The app asks for w200-w900 across
+    # thousands of TextStyles, but only 400 and 700 used to be bundled, so
+    # every other weight got rounded to whichever of those two was nearest.
+    # All six real weights are declared here so w500 / w600 / w800 render as
+    # designed instead of snapping to Regular or Bold. Open Sans tops out at
+    # 800, so w900 maps to ExtraBold and w200 to Light -- that is the family's
+    # whole range. Italic faces are bundled alongside each weight: without an
+    # italic face, a `fontStyle: FontStyle.italic` TextStyle silently falls
+    # back to the upright face.
     - family: OpenSans
       fonts:
-        - asset: assets/fonts/OpenSans.ttf
+        - asset: assets/fonts/OpenSans-Light.ttf
+          weight: 300
+        - asset: assets/fonts/OpenSans-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/OpenSans-Regular.ttf
           weight: 400
+        - asset: assets/fonts/OpenSans-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/OpenSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/OpenSans-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
         - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700
+        - asset: assets/fonts/OpenSans-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/OpenSans-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/OpenSans-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
     - family: Arizonia
-
       fonts:
         - asset: assets/fonts/Arizonia.ttf
     - family: Artifika

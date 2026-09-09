@@ -2,7 +2,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral/view/tabs/creator_tab.dart';
+// HIDDEN: Creator (3rd) section is switched off for now. Keeping the import
+// commented too so nothing pulls the tab back in by accident.
+// import 'package:BlueEra/features/common/referral/view/tabs/creator_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/overview_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/statics_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/tutorial_tab.dart';
@@ -29,7 +31,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
   static const _tabs = [
     AppStrings.overviewTab,
     AppStrings.tutorialTab,
-    AppStrings.creatorTab,
+    // AppStrings.creatorTab, // HIDDEN: Creator section off
     AppStrings.staticsTab,
   ];
 
@@ -68,7 +70,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
             children: [
               OverviewTab(controller: widget.controller),
               TutorialTab(controller: widget.controller),
-              CreatorTab(controller: widget.controller),
+              // CreatorTab(controller: widget.controller),
               StaticsTab(controller: widget.controller),
             ],
           ),

@@ -80,7 +80,12 @@ class _ProductScreenState extends State<ProductScreen>
           ctaKey: AppStrings.addProduct,
           icon: Icons.inventory_2_outlined,
         ),
-        onAddProduct: () => _tabController?.animateTo(0),
+        // The sheet's CTA must OPEN the add flow. It used to just
+        // `animateTo(0)` — switching to the Products tab the merchant was
+        // already on, so "Add Product" appeared to do nothing. `_onAddProduct`
+        // pushes the add screen and handles the post-publish jump back to this
+        // tab itself.
+        onAddProduct: _onAddProduct,
       );
     });
   }

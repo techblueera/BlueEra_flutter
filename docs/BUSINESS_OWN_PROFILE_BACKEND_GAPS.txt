@@ -1,0 +1,334 @@
+================================================================================
+BUSINESS "OWN PROFILE" — WHAT WAS WRONG, WHAT WAS FIXED, AND WHAT THE BACKEND
+STILL NEEDS TO PROVIDE
+================================================================================
+Date        : 2026-09-09
+Screenshot  : assets/business_own_profile.jpeg
+Branch      : Development-BlueEra
+
+
+================================================================================
+PART 1 — THE BUG (client side, now fixed)
+================================================================================
+
+The page in the screenshot is BusinessOwnProfileScreen
+(lib/features/business/visiting_card/view/business_own_profile_screen.dart),
+which renders the single generic BusinessProfileScreen
+(lib/features/business/widgets/business_profile_screen.dart) for EVERY business
+type — Food, Grocery, School, Hospital, Hotel, Product, Manufacturing,
+Automotive, all of them.
+
+That is the old design. The app already has per-business-type "Me" screens and
+already has the dispatcher for them:
+
+  bottom_navigation_bar_screen.dart : resolveBusinessScreen()
+                                    -> _buildBusinessScreen()   (line ~1139)
+
+  Food                  -> FoodMainScreen
+  Grocery               -> GroceryScreen
+  Siksha                -> SchoolMain
+  Healthcare / DOCTORS  -> DoctorMain
+  Healthcare / HOSPITALS-> HospitalMain
+  Healthcare / DIAGNOSTIC -> LaboratoryMain
+  Healthcare / PHARMACY -> MedicalScreen
+  Motel                 -> HotelMain
+  Product               -> ProductScreen
+  Manufacturing         -> GroceryScreen / MedicalScreen /
+                           AutomotivePartsScreen / ManufacturerProductScreen
+  Automotive            -> VehicleScreenV3 / AutomotiveServiceMain /
+                           AutomotivePartsScreen
+  Service / Finance     -> OthersMain
+
+ROOT CAUSE
+----------
+The migration onto that dispatcher was only half applied. Every "open my own
+profile" call site has an individual branch and a business branch. The
+individual branch was migrated to openMeOverview() (which pops to root and
+switches to the Me tab, where the resolver runs). The business branch was left
+pushing the legacy generic screen. The pattern was identical in all ten places,
+e.g. comment_bottom_sheet.dart:
+
+    if (accountType == individual) {
+      if (isSelf) openMeOverview();            <- migrated
+      ...
+    } else if (accountType == business) {
+      if (isSelf) BusinessOwnProfileScreen();  <- NOT migrated
+    }
+
+You can see the abandoned migration in app_constant.dart:620, where the old
+business call is already commented out and replaced with openMeOverview() in
+navigateToProfile(), but the sibling helper openBusinessProfile() 70 lines
+below was never updated.
+
+FIXED — ten call sites now route to openMeOverview():
+  lib/core/constants/app_constant.dart:692            (openBusinessProfile)
+  lib/features/common/comment/view/comment_bottom_sheet.dart:747
+  lib/features/common/reel/view/channel/channel_screen.dart:918
+  lib/features/common/reel/controller/reel_upload_details_controller.dart:71
+  lib/features/common/reel/view/shorts/share_short_player_item.dart:905
+  lib/features/common/reel/view/video/video_player_screen.dart:700
+  lib/features/common/store/store_search_suggestion/
+      store_search_suggestion_controller.dart:75
+  lib/widgets/common_back_app_bar.dart:321
+  lib/widgets/profile_avatar_widget.dart:46
+  lib/widgets/user_profile_widget.dart:42
+
+THE LEGACY SCREEN IS NOW DELETED
+  BusinessOwnProfileScreen held two behaviours in its initState that existed
+  nowhere else, so both were re-homed before it could go:
+
+  1. The go-live deep link. 'go_live' (action button) and
+     'business_go_live_reminder' (push) used to Get.toNamed the screen with
+     {'open_go_live': true}. They now call _requestBusinessGoLive(), which sets
+     the STATIC BottomBarController.pendingBusinessGoLive and opens the Me tab.
+     Static because a killed-app tap arrives before the controller exists.
+     (The old route also carried business_id, which the screen never read — it
+     always refetched the logged-in user's own profile. Nothing lost.)
+
+  2. The once-a-day QR promo sheet — showBusinessQrPromoSheetIfNeeded() had
+     exactly one call site, that initState. It would have vanished silently.
+
+  Both now live in _BusinessMeHost (bottom_navigation_bar_screen.dart), which
+  wraps whichever per-type screen resolveBusinessScreen() picked. One host above
+  all fourteen screens rather than the hook copied into each. Mutual exclusion is
+  preserved: the go-live deep link returns early, so the promo never stacks on
+  top of it.
+
+  Deleted (all four verified unreferenced, full flutter analyze clean):
+    business/visiting_card/view/business_own_profile_screen.dart   (105 lines)
+    business/widgets/business_profile_screen.dart                  (309 lines)
+    business/widgets/business_profile_header.dart                  (628 lines)
+    business/widgets/business_profile_widget.dart                  (922 lines)
+  plus RouteConstant.BusinessOwnProfileScreen and its RouteHelper case.
+
+  The last three were reachable ONLY through the deleted screen. Note the
+  surviving BusinessProfileHeader in visit_business_profile/ is a DIFFERENT
+  class with the same name — it is still used by VisitBusinessProfileNew and was
+  not touched. A top-level updateLocationDialog() died with
+  business_profile_widget.dart; business_contact_map_card.dart has its own
+  method of that name and is unaffected.
+
+VERIFICATION
+  Full-project flutter analyze after the deletion: 0 errors (217 remaining
+  issues are all pre-existing deprecation/lint noise in unrelated files, the
+  vendored flutter_callkit_incoming package and tests).
+  Analyze restricted to the files changed here: clean, apart from three
+  pre-existing warnings that predate this work (two unawaited_return_in_try_block
+  in app_notification.dart:1779/1785 and an unused address_picker import in
+  bottom_navigation_bar_screen.dart:27).
+
+
+================================================================================
+PART 2 — WHAT THE BACKEND IS MISSING
+================================================================================
+
+Every per-type screen above is chosen from exactly two values:
+
+    businessTypeGlobal      <- profile.type_of_business
+    businessCategoryGlobal  <- profile.category_of_business
+
+Both are free-form strings, and the client is doing a lot of defensive work to
+make them usable. These are the concrete gaps, worst first.
+
+
+--------------------------------------------------------------------------------
+GAP 1 — CATEGORY HAS NO STABLE ID. THIS IS THE BIG ONE.
+--------------------------------------------------------------------------------
+Routing decisions are made by SUBSTRING MATCHING ON A DISPLAY NAME.
+
+Evidence — app_constant.dart:869-890 (BusinessCategoryTokens):
+
+    /// Substrings - not whole categories. A standalone doctor arrives as
+    /// "DOCTORS", "Doctors", "Clinic Doctors" or "CLINICS", so the category is
+    /// tested with `contains` against these.
+    static const String doctorToken = "DOCTOR";
+    static const String clinicToken = "CLINIC";
+
+    /// Also substrings: the value carries either the display name
+    /// ("Manufacturing Healthcare") or the tag id ("MANUFACTURING_HEALTHCARE")
+    static const String groceryToken = "GROCERY";
+    static const String healthcareToken = "HEALTHCARE";
+    static const String automotiveToken = "AUTOMOTIVE";
+
+So the SAME category reaches the app as at least four different strings, and
+the app decides which module a merchant lands in with .contains("DOCTOR").
+
+Why this is dangerous, not just ugly: any new category whose NAME happens to
+contain one of these tokens is silently mis-routed. A future
+"Automotive Insurance" under Manufacturing would open AutomotivePartsScreen.
+A "Doctor Referral Service" under Healthcare would open DoctorMain. Nothing
+errors — the merchant just gets the wrong dashboard.
+
+ASK: return a stable machine key on the profile, never localised, never
+renamed for display:
+
+    "category": {
+      "_id":  "665f...",
+      "slug": "HEALTHCARE_DOCTORS",     <-- NEW, immutable, SCREAMING_SNAKE
+      "name": "Doctors"                 <-- display only
+    }
+
+CategoryDetails (viewBusinessProfileModel.dart:372-392) currently parses only
+_id and name. There is no slug. The client already has the slug vocabulary
+hardcoded in its own catalogue (app_constant.dart:1533+ OnboardingCategoryModel
+.slugId) — the server just never sends it back on the profile, so the client
+cannot match on it and falls back to name matching.
+
+
+--------------------------------------------------------------------------------
+GAP 2 — THE SAME FIELD IS SENT UNDER TWO DIFFERENT KEY SPELLINGS
+--------------------------------------------------------------------------------
+viewBusinessProfileModel.dart:119
+
+    categoryOfBusiness = json['category_Of_Business'] ?? json['category_of_business'];
+
+Capital O in one code path, lowercase in another. The client guesses.
+ASK: pick one — category_of_business — and send it from every endpoint.
+
+Same class of problem elsewhere in the same model:
+  line 108   id = json['_id'] ?? json['id'];
+  line 150   sub_category_Of_Business          (capital O again)
+  line 24    json['referal_video'] ?? json['referral_video']    (typo + correct
+             spelling both live in production)
+
+
+--------------------------------------------------------------------------------
+GAP 3 — 'false' AS A STRING USED AS A NULL SENTINEL
+--------------------------------------------------------------------------------
+viewBusinessProfileModel.dart:120
+
+    natureOfBusiness = json['Nature_of_Business']=='false' ? '' : json['Nature_of_Business'];
+
+The backend sends the literal string "false" to mean "not set", and the key is
+Capitalised_Like_This unlike its neighbours.
+ASK: send null (or omit the key) and name it nature_of_business.
+
+
+--------------------------------------------------------------------------------
+GAP 4 — INCONSISTENT SCALAR TYPES
+--------------------------------------------------------------------------------
+The client coerces because it cannot trust the type:
+
+  line 115   referral_points = json['referral_points'].toString();
+  line 164   total_ratings   = num.tryParse(json['total_ratings'].toString()) ?? 0;
+  line 454   lat = double.parse((json['lat'] ?? '0.0').toString());
+  line 455   lon = double.parse((json['lon'] ?? '0.0').toString());
+
+ASK: numbers as JSON numbers, consistently. lat/lon as numbers, not strings.
+
+
+--------------------------------------------------------------------------------
+GAP 5 — type_of_business HAS NO SERVER-SIDE CONTRACT
+--------------------------------------------------------------------------------
+The client compares it against a hardcoded Dart enum
+(app_enum.dart:50 BusinessType: Food, Product, Service, Grocery, Manufacturing,
+Healthcare, Motel, Siksha, Automotive, Finance, Both).
+
+If the backend ever adds an eleventh type, the app falls through to
+_UnknownBusinessFallback — the merchant sees a dead screen, with no way for us
+to ship a fix without an app release.
+
+ASK (either is fine):
+  a) an endpoint listing valid type/category pairs and their slugs, so the app
+     can be told about new types instead of hardcoding them; OR
+  b) a documented, frozen enum for type_of_business, with a written commitment
+     that new values ship only alongside a client release.
+
+
+--------------------------------------------------------------------------------
+GAP 6 — LOCATION IS ROUTINELY MISSING, AND THE APP BLOCKS ON IT
+--------------------------------------------------------------------------------
+business_profile_screen.dart:137-148 force-opens a modal location dialog when
+business_location is null, or lat/lon are null, or lat/lon are 0.0.
+
+Four different "no location" shapes for one condition means the merchant gets
+an unskippable dialog on open. Worth checking why so many profiles have
+0.0 / null coordinates — if onboarding is not capturing them, that is a
+server-side data-quality problem, not a client one.
+
+
+--------------------------------------------------------------------------------
+GAP 7 — NOTHING TELLS THE CLIENT WHICH MODULE A BUSINESS SHOULD USE
+--------------------------------------------------------------------------------
+This is Gap 1 restated as the thing actually worth building.
+
+Today the mapping "this merchant runs a pharmacy, therefore show MedicalScreen"
+lives in a ~120-line if/else chain inside a Flutter widget
+(_buildBusinessScreen, bottom_navigation_bar_screen.dart:1139). It is duplicated
+in a second place for the customer-facing side
+(VisitProfileResolver.resolveScreen, lib/core/navigation/visit_profile_resolver.dart).
+The two lists are maintained by hand and can drift.
+
+BEST FIX: have the profile response state the module directly.
+
+    "module": "PHARMACY"
+
+The client then maps module -> screen with a flat lookup, one place, no
+substring guessing, and a new module can be routed by the backend without an
+app release (falling back to the generic screen when the client does not know
+the value yet).
+
+
+
+--------------------------------------------------------------------------------
+GAP 8 — SAVING VISITING HOURS IS REJECTED FOR UNPAID MERCHANTS
+--------------------------------------------------------------------------------
+Reported from the app: in the shop-availability editor, pressing SAVE returns a
+"purchase a plan first" error. Saving opening hours should not require payment.
+
+The client is NOT doing this. Traced end to end:
+
+  go-live pill
+    -> toggleLiveNow()                 view_business_details_controller.dart
+         no schedule yet -> openWeeklyEditor()      <-- NO payment check
+         (payment is step 3, and only runs once hours already exist)
+    -> ShopAvailabilityScreen._onSave()  shop_availability_screen.dart:440
+    -> _saveWeeklyHours()
+    -> PUT businessAvailabilityHours     business_profile_repo.dart:232
+
+There is no gate anywhere on that path. The screen simply surfaces whatever the
+server replies with:
+
+    final err = await widget.onSave(schedule);
+    if (err != null) { commonSnackBar(message: err); return; }
+
+and the comment above that call already anticipates the server behaviour:
+"A 402 (deposit unpaid) comes back as an error message and is surfaced as a
+snackbar."
+
+The client deliberately gates the OTHER call. `_applyTodayOverride()` — the one
+that actually flips the shop open or closed — opens with
+`if (!ensureCanGoLive()) return;`. So payment gates GOING LIVE, not SETTING
+HOURS, which is the documented intent:
+
+    "Hours come BEFORE payment because setting them is free, is the merchant's
+     own work, and is required either way: sending someone to a payment screen
+     first, taking their money and only then telling them the shop has no
+     opening hours is the wrong way round."
+
+ASK:
+  * PUT <business availability hours>  -> accept for an unpaid merchant.
+    Saving a schedule is not a monetised action; it does not put the shop
+    online. Same for the individual endpoint (setIndividualHours).
+  * Keep the 402 where it belongs: the today-override / go-live endpoint
+    (setTodayHours), which is what actually opens the shop.
+
+Until that changes there is no client-side fix. The app can only hide the error,
+which would make Save look successful while persisting nothing — strictly worse
+than the current behaviour.
+
+================================================================================
+PART 3 — SUGGESTED PRIORITY
+================================================================================
+  1. GAP 1 / GAP 7   category slug (or module) on the profile response.
+                     Everything else is cosmetic next to this — it is the
+                     difference between routing on data and routing on
+                     .contains() over a display name.
+  2. GAP 2           settle the key spellings.
+  3. GAP 3 + GAP 4   null instead of "false"; numbers as numbers.
+  4. GAP 5           publish the type/category vocabulary.
+  5. GAP 6           investigate why coordinates are missing at onboarding.
+
+Nothing in Part 2 blocks the Part 1 fix — that is shipped and analyzing clean.
+These are what would let us delete the token-matching layer and stop guessing.
+================================================================================

@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -484,6 +485,28 @@ class ViewPersonalDetailsController extends GetxController
   /// actually reached. Removing the term is what puts it back in force.
   bool get isGoLiveAllowed =>
       AccountPlanEntitlement.to.hasActivePlan.value;
+
+  /// Personal analogue of `ViewBusinessDetailsController.ensureCanGoLive()`.
+  /// True when this provider may go live; otherwise says why and routes to the
+  /// plan flow.
+  ///
+  /// Lives on the controller rather than in a screen because the go-live action
+  /// can be reached without passing through any screen's own gate: the
+  /// availability sheet's live SWITCH calls `setOpenToday()` directly, not
+  /// [toggleLiveNow]. Gating only at the screen left that switch open.
+  bool ensureCanGoLive() {
+    if (isGoLiveAllowed) return true;
+    commonSnackBar(
+      message:
+          'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
+    );
+    // Refresh on return so a freshly-bought plan is picked up.
+    openContributionScreen().then((_) {
+      viewPersonalProfile(forceRefresh: true);
+      AccountPlanEntitlement.to.refresh();
+    });
+    return false;
+  }
           // || isFirstServiceFree;
 
   /// True when this account's identity has been established by a verified
@@ -587,22 +610,45 @@ class ViewPersonalDetailsController extends GetxController
   }
 
   /// Read the individual availability document and recompute.
+  ///
+  /// UNCONDITIONAL — this is the force-refresh path. Most callers reach it via
+  /// `if (!hasSchedule) await loadHours()`, which only hydrates when nothing is
+  /// cached; anything that knows the server-side document may have CHANGED (or
+  /// been deleted) must call this directly, because a stale in-memory schedule
+  /// satisfies that guard forever.
+  ///
+  /// A successful response carrying no document clears the cached state instead
+  /// of returning early. That case is real and imminent: a profile category
+  /// change DELETES IndividualAvailability server-side (see
+  /// docs/backend/FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md §8.3), and the old
+  /// behaviour left the previous profession's schedule in memory — the go-live
+  /// pill still reporting hours that no longer exist.
+  ///
+  /// Only a FAILED request is left alone: a network blip must not wipe a
+  /// schedule that is still there. "The server said there is nothing" and "the
+  /// server did not answer" are different answers.
   Future<void> loadHours() async {
     final res = await PersonalProfileRepo().getIndividualHours();
     if (!res.isSuccess) return;
     final body = res.response?.data;
     final data = (body is Map) ? body['data'] : null;
-    if (data is Map<String, dynamic>) {
-      _hydrateAvailability(AvailabilityData.fromJson(data));
-    }
+    _hydrateAvailability(
+      data is Map<String, dynamic> ? AvailabilityData.fromJson(data) : null,
+    );
   }
 
-  /// Entry point for the professional Go-Live pill. [gate] defaults to the
-  /// personal deposit check; callers pass one that also routes to the deposit
-  /// screen. First run (no schedule) opens the weekly editor via the sheet's
-  /// empty state; otherwise the status sheet.
-  Future<void> openAvailabilityControl({bool Function()? gate}) async {
-    if (!(gate != null ? gate() : isGoLiveAllowed)) return;
+  /// Opens the availability sheet (status + today override + edit hours).
+  ///
+  /// NOT deposit-gated, matching the business
+  /// `ViewBusinessDetailsController.openAvailabilityControl`. The old
+  /// `gate`/`isGoLiveAllowed` check ran before the sheet, so a provider who had
+  /// not paid could never reach the hours editor at all — while [toggleLiveNow]
+  /// right below deliberately orders hours BEFORE payment.
+  ///
+  /// The deposit check still guards the action that actually goes live (the
+  /// today-override), so nothing is opened for free by this change; only the
+  /// editing of visiting hours is, which is what it always should have been.
+  Future<void> openAvailabilityControl() async {
     if (!hasSchedule) await loadHours();
     await showShopAvailabilitySheet(this);
   }
@@ -674,6 +720,10 @@ class ViewPersonalDetailsController extends GetxController
   }
 
   Future<void> _applyTodayOverride(Map<String, dynamic> body) async {
+    // The gate lives HERE, on the call that actually flips the profile live --
+    // not on opening the sheet. The sheet only edits visiting hours, which is
+    // free; this is the paid action. Mirrors the business controller.
+    if (!ensureCanGoLive()) return;
     isAvailabilityUpdating.value = true;
     try {
       final res = await PersonalProfileRepo().setIndividualTodayHours(body);

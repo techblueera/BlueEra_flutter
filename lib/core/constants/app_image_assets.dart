@@ -59,6 +59,7 @@ class AppImageAssets {
   static const String completeProfileBanner = "${imgPath}complete_profile_banner.png";
   static const String groceryBanner = "${imgPath}grocery_banner.jpeg";
   static const String franchiseBanner = "${imgPath}franchise_banner.jpeg";
+  static const String rideBanner = "${imgPath}ride_banner.png";
   static const String gpsDiscover = "${imgPath}gps_discover.png";
   static const String servicesDiscover = "${imgPath}services_discover.png";
   static const String professionalsDiscover = "${imgPath}professionals_discover.png";

@@ -17,7 +17,7 @@ import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

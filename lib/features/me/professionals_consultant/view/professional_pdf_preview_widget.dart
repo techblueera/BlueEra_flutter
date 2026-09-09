@@ -102,7 +102,7 @@ class ProfessionalPdfPickerController extends GetxController {
 
       // No permission request: file_picker uses the system document picker
       // (SAF), which grants access to the chosen file only.
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
         allowMultiple: false, // Strictly single file

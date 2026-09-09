@@ -29,7 +29,16 @@ class GroceryProductsTab extends StatelessWidget {
   /// and view-all screens are opened with.
   final String businessId;
 
-  const GroceryProductsTab({super.key, required this.businessId});
+  /// The bulk-upload add flow. Owned by the PARENT screen so the once-a-day
+  /// add-product sheet and this tab's banner run the same action — the sheet
+  /// used to only switch to this tab, which did nothing visible.
+  final VoidCallback onAddProduct;
+
+  const GroceryProductsTab({
+    super.key,
+    required this.businessId,
+    required this.onAddProduct,
+  });
 
   /// Skeleton height for the top-selling rail — an UPPER BOUND for
   /// [GroceryTopSellingProductCard] at [_topSellingCardWidth], not its exact
@@ -56,7 +65,7 @@ class GroceryProductsTab extends StatelessWidget {
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,
           ctaLabel: AppStrings.addGrocery.tr,
-          onAdd: () => _onAddMoreProducts(controller),
+          onAdd: onAddProduct,
           gradient: ProductsBannerGradient.grocery,
         ),
         SizedBox(height: SizeConfig.size20),
@@ -66,26 +75,6 @@ class GroceryProductsTab extends StatelessWidget {
         SizedBox(height: SizeConfig.size16),
       ],
     );
-  }
-
-  /// Bulk-upload entry point. On the way back, reload the tab if the merchant
-  /// actually published something.
-  ///
-  /// `IfNeeded`, not a forced fetch: publishing already ran
-  /// [GroceryController.markInventoryChanged], which dropped the saved snapshot
-  /// and started the refetch. Forcing a second full fetch here would duplicate
-  /// that request; the guarded call either finds that work already done or does
-  /// it once.
-  Future<void> _onAddMoreProducts(GroceryController controller) async {
-    await Get.toNamed(
-      RouteHelper.getGrocerySuperCategoryScreenRoute(),
-      arguments: {ApiKeys.argBulkUpload: true},
-    );
-    if (controller.groceryDataNeedsRefresh) {
-      controller.groceryDataNeedsRefresh = false;
-      await controller.fetchAllGroceryDataIfNeeded(businessId,
-          otherStore: false);
-    }
   }
 
   // TOP-SELLING PRODUCTS â€” editorial-style horizontal scroller. No white

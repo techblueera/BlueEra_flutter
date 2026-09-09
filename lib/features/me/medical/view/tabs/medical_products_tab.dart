@@ -34,7 +34,16 @@ class MedicalProductsTab extends StatelessWidget {
   /// Pharmacy whose catalog is being managed.
   final String businessId;
 
-  const MedicalProductsTab({super.key, required this.businessId});
+  /// The add-product flow. Owned by the PARENT screen so the once-a-day
+  /// add-product sheet and this tab's banner run the same action — the sheet
+  /// used to only switch to this tab, which did nothing visible.
+  final VoidCallback onAddProduct;
+
+  const MedicalProductsTab({
+    super.key,
+    required this.businessId,
+    required this.onAddProduct,
+  });
 
   /// Height of the Top Selling rail — tall enough for
   /// [GroceryTopSellingProductCard] at [_topSellingCardWidth]. Same numbers as
@@ -61,7 +70,7 @@ class MedicalProductsTab extends StatelessWidget {
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,
           ctaLabel: AppStrings.addProduct.tr,
-          onAdd: _onAddProduct,
+          onAdd: onAddProduct,
           gradient: ProductsBannerGradient.medical,
         ),
         SizedBox(height: SizeConfig.size20),
@@ -72,9 +81,6 @@ class MedicalProductsTab extends StatelessWidget {
       ],
     );
   }
-
-  void _onAddProduct() =>
-      Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute());
 
   /// Top Selling rail — store-wide products from
   /// `medical-service/inventory/business-products`.
@@ -205,7 +211,7 @@ class MedicalProductsTab extends StatelessWidget {
                 child: EmptyStateWidget(
                   message: AppStrings.medicalHaveNotPostedProducts.tr,
                   actionText: AppStrings.medicalAddProductsNow.tr,
-                  actionCallback: _onAddProduct,
+                  actionCallback: onAddProduct,
                 ),
               ),
             )

@@ -55,8 +55,8 @@ import 'ride_ring_notification.dart';
 import 'notifications/new_order_timer_notification.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
+import '../navigation/me_profile_navigator.dart';
 import '../routes/route_helper.dart';
-import '../routes/route_constant.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 
@@ -244,7 +244,7 @@ Future<void> _handleBackgroundNotificationResponse(
   // Initialize a local plugin instance (background isolate may not have the static one)
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
-    const InitializationSettings(
+    settings: const InitializationSettings(
       android: AndroidInitializationSettings('@drawable/ic_stat'),
       iOS: DarwinInitializationSettings(),
     ),
@@ -260,7 +260,7 @@ Future<void> _handleBackgroundNotificationResponse(
         orderIdFromRideActionId(actionId, kRideDeclineActionPrefixes) ??
             orderIdFromRidePayload(data);
     rideNotifLog('bg action: DECLINE orderId=${orderId ?? "(none)"}');
-    await plugin.cancel(ringNotificationIdFor(orderId));
+    await plugin.cancel(id: ringNotificationIdFor(orderId));
     if (orderId == null || orderId.isEmpty) {
       rideNotifLog('bg action: DECLINE has no orderId — cancelled ring only');
       return;
@@ -319,7 +319,7 @@ Future<void> _handleBackgroundNotificationResponse(
     final callId = (data['callId'] ?? '').toString();
     final roomId = (data['roomId'] ?? '').toString();
     if (callId.isNotEmpty) {
-      await plugin.cancel(incomingCallNotificationId(callId));
+      await plugin.cancel(id: incomingCallNotificationId(callId));
     }
     try {
       const storage = FlutterSecureStorage();
@@ -380,10 +380,10 @@ Future<void> _handleBackgroundNotificationResponse(
         conversationId: conversationId, message: response.input!);
     // Update notification to show sent reply (no sound/vibration)
     await plugin.show(
-      response.id ?? 0,
-      data['senderName'] ?? data['title'] ?? '',
-      'You: ${response.input}',
-      const NotificationDetails(
+      id: response.id ?? 0,
+      title: data['senderName'] ?? data['title'] ?? '',
+      body: 'You: ${response.input}',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'default',
           'General Notifications',
@@ -400,7 +400,7 @@ Future<void> _handleBackgroundNotificationResponse(
 
   // --- Mark as read — dismiss notification silently ---
   if (actionId.startsWith('mark_read_')) {
-    await plugin.cancel(response.id ?? 0);
+    await plugin.cancel(id: response.id ?? 0);
     return;
   }
 
@@ -695,7 +695,7 @@ Future<void> showIncomingCallLocalNotification({
   // with the app killed). Both already existed and both work.
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
-    const InitializationSettings(
+    settings: const InitializationSettings(
       android: AndroidInitializationSettings('@drawable/ic_stat'),
       iOS: DarwinInitializationSettings(),
     ),
@@ -763,10 +763,10 @@ Future<void> showIncomingCallLocalNotification({
   );
 
   await plugin.show(
-    notifId,
-    callerName.isNotEmpty ? callerName : 'Incoming Call',
-    isVideo ? 'Incoming video call' : 'Incoming voice call',
-    NotificationDetails(android: details),
+    id: notifId,
+    title: callerName.isNotEmpty ? callerName : 'Incoming Call',
+    body: isVideo ? 'Incoming video call' : 'Incoming voice call',
+    notificationDetails: NotificationDetails(android: details),
     payload: payload,
   );
 
@@ -841,7 +841,7 @@ Future<void> cancelIncomingCallLocalNotification(String callId) async {
   try {
     // Also cancel from flutter_local_notifications as fallback
     final plugin = FlutterLocalNotificationsPlugin();
-    await plugin.cancel(incomingCallNotificationId(callId));
+    await plugin.cancel(id: incomingCallNotificationId(callId));
   } catch (_) {}
 }
 
@@ -863,7 +863,7 @@ Future<void> cancelRideRingNotification(String? orderId) async {
     ringNotificationIdFor(null),
   }) {
     try {
-      await plugin.cancel(id);
+      await plugin.cancel(id: id);
     } catch (_) {
       // Best-effort: a missing/duplicate cancel must never break teardown.
     }
@@ -1468,7 +1468,7 @@ class AppNotificationHandler {
     // Drop the superseded channel so it stops showing as a stale, silent
     // "Ride Requests" entry in Android's per-app notification settings.
     await androidPlugin
-        ?.deleteNotificationChannel('fare_ride_incoming_ringtone_v2');
+        ?.deleteNotificationChannel(channelId: 'fare_ride_incoming_ringtone_v2');
 
     // Order alerts: dedicated channel carrying the order chime as a raw
     // resource. This is what makes the sound play in BACKGROUND/TERMINATED —
@@ -1503,7 +1503,7 @@ class AppNotificationHandler {
       // v2 channel created above carries `new_order_sound`.
       kNewOrderTimerLegacyChannelId,
     ]) {
-      await androidPlugin?.deleteNotificationChannel(legacyId);
+      await androidPlugin?.deleteNotificationChannel(channelId: legacyId);
     }
 
     ///IOS Setup
@@ -1516,7 +1516,7 @@ class AppNotificationHandler {
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
         ?.initialize(
-          initializationSettings,
+          settings: initializationSettings,
         );
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -1880,7 +1880,7 @@ class AppNotificationHandler {
   /// `showIncomingCallLocalNotification` without losing functionality.
   void getInitialMsg() {
     flutterLocalNotificationsPlugin.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: AndroidInitializationSettings('@drawable/ic_stat'),
         iOS: DarwinInitializationSettings(),
       ),
@@ -1888,22 +1888,6 @@ class AppNotificationHandler {
       onDidReceiveBackgroundNotificationResponse:
           onBackgroundNotificationResponse,
     );
-  }
-
-  /// Open the user's own "Me" → Overview tab, which hosts the profile /
-  /// Go Live surface for individuals (GIG_WORKER / SELF_EMPLOYED).
-  /// Reuses the live bottom-nav shell when present (pop any pushed screens,
-  /// then switch tab); otherwise routes to it fresh.
-  static void _openMeOverview() {
-    if (Get.isRegistered<BottomBarController>()) {
-      Get.until((route) => route.isFirst);
-      Get.find<BottomBarController>().openMeOverviewTab();
-    } else {
-      Get.offAllNamed(
-        RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
-      );
-    }
   }
 
   /// Handle action button taps from notification
@@ -1952,20 +1936,16 @@ class AppNotificationHandler {
     // SELF_EMPLOYED). Distinct from 'go_live' below, which is the business
     // reminder and deep-links using a business_id an individual does not have.
     if (actionId == 'go_live_now') {
-      _openMeOverview();
+      MeProfileNavigator.openOverview();
       return;
     }
 
-    // Business go-live action button — deep-link to the business own profile
-    // and auto-prompt go-live. Covers foreground, background, and killed taps.
+    // Business go-live action button — flag the request, then open the "Me"
+    // tab, whose business host consumes the flag and opens the availability
+    // sheet once the profile has resolved. Covers foreground, background and
+    // killed taps (the flag simply waits for the host to be built).
     if (actionId == 'go_live') {
-      Get.toNamed(
-        RouteConstant.BusinessOwnProfileScreen,
-        arguments: {
-          'business_id': data['business_id'],
-          'open_go_live': true,
-        },
-      );
+      MeProfileNavigator.openForBusinessGoLive();
       return;
     }
 
@@ -2444,7 +2424,7 @@ class AppNotificationHandler {
 
     // 1. Kill the ringing notification (FLAG_INSISTENT repeats until cancelled).
     try {
-      await flutterLocalNotificationsPlugin.cancel(notifId);
+      await flutterLocalNotificationsPlugin.cancel(id: notifId);
       rideNotifLog('dismiss: ring cancelled (id=$notifId)');
     } catch (e) {
       rideNotifLog('dismiss: ring cancel FAILED (id=$notifId): $e');
@@ -2627,20 +2607,20 @@ class AppNotificationHandler {
     );
 
     await flutterLocalNotificationsPlugin.show(
-      numId,
-      title,
-      body,
-      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      id: numId,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(android: androidDetails, iOS: iosDetails),
       payload: jsonEncode(data),
     );
 
     // Show group summary notification on Android (bundles multiple notifications)
     if (groupKey.isNotEmpty && Platform.isAndroid) {
       await flutterLocalNotificationsPlugin.show(
-        groupKey.hashCode.abs() % 2147483647,
-        title,
-        body,
-        NotificationDetails(
+        id: groupKey.hashCode.abs() % 2147483647,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             effChannelId,
             effChannelName,
@@ -3680,7 +3660,7 @@ class AppNotificationHandler {
       // hosts the completion card. Reuse the live bottom-nav shell when present
       // (pop any pushed screens, then switch tab); otherwise route to it fresh.
       case 'profile_completion_reminder':
-        _openMeOverview();
+        MeProfileNavigator.openOverview();
         break;
 
       // Daily 08:00 go-live nudge for GIG_WORKER / SELF_EMPLOYED individuals →
@@ -3688,7 +3668,7 @@ class AppNotificationHandler {
       // These users have no business_id, so this must NOT reuse the business
       // go-live route.
       case 'go_live_daily_reminder':
-        _openMeOverview();
+        MeProfileNavigator.openOverview();
         break;
 
       // Reports
@@ -3709,16 +3689,11 @@ class AppNotificationHandler {
       // where it actually signs the user out — so this second case was
       // unreachable and only served to suggest the signal was ignored.
 
-      // Business go-live reminder — deep-link to the business own profile
-      // (which hosts the Go Live button) and ask it to auto-prompt go-live.
+      // Business go-live reminder — same path as the 'go_live' action button:
+      // flag the request and open the "Me" tab, whose business host opens the
+      // availability sheet once the profile has resolved.
       case 'business_go_live_reminder':
-        Get.toNamed(
-          RouteConstant.BusinessOwnProfileScreen,
-          arguments: {
-            'business_id': data['business_id'],
-            'open_go_live': true,
-          },
-        );
+        MeProfileNavigator.openForBusinessGoLive();
         break;
 
       // Subscription lifecycle → the contribution screen, which shows the plan
@@ -3928,7 +3903,7 @@ class AppNotificationHandler {
   Future<void> _declineRideFromNotification(String? orderId) async {
     try {
       await flutterLocalNotificationsPlugin.cancel(
-        ringNotificationIdFor(orderId),
+        id: ringNotificationIdFor(orderId),
       );
     } catch (_) {}
 

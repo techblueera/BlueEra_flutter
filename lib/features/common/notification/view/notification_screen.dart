@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -392,7 +393,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           (data.metadata?.originalOperation ?? data.type ?? '')
                               .trim();
                       if (operation == "profile_completion_reminder") {
-                        _redirectToMeOverview();
+                        MeProfileNavigator.openOverviewIfLoggedIn();
                       }
                       else if (operation == "admin_broadcast") {
                         // Open the in-app "BlueEra" broadcast thread via the
@@ -633,23 +634,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // not messages, so they are excluded from the hide rule.
   bool _isChatMessageNotification(NotificationDataList data) {
     return data.notification_type == "chat" && !_isCallNotification(data);
-  }
-
-  // profile_completion_reminder → the logged-in user's own "Me" → Overview
-  // tab, which hosts the profile-completion card. No-op for logged-out users
-  // (nothing to complete without a session). When the bottom-nav shell is live
-  // we pop back to it and switch tabs; otherwise we route to the shell fresh.
-  void _redirectToMeOverview() {
-    if (!isLoggedIn()) return;
-    if (Get.isRegistered<BottomBarController>()) {
-      Get.until((route) => route.isFirst);
-      Get.find<BottomBarController>().openMeOverviewTab();
-    } else {
-      Get.offAllNamed(
-        RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
-      );
-    }
   }
 
   void redirectToChat(NotificationDataList data) {

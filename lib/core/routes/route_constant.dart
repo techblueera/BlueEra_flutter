@@ -12,7 +12,6 @@ class RouteConstant {
   static const String HomeScreen = "/HomeScreen";
   // static const String BusinessAccount = "/BusinessAccount";
   // static const String AddEditVisitingCardScreen = "/AddEditVisitingCardScreen";
-  static const String BusinessOwnProfileScreen = "/BusinessOwnProfileScreen";
   static const String PersonalProfileCreateScreen =
       "/PersonalProfileCreateScreen";
   static const String FeedScreen = "/FeedScreen";

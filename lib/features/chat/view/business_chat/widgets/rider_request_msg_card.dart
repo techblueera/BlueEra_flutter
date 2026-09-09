@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/api/apiService/api_keys.dart';

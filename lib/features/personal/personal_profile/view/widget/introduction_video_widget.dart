@@ -208,7 +208,7 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
   Future<void> _pickVideo() async {
     introVideoController.resetVideo();
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.video,
     );
 

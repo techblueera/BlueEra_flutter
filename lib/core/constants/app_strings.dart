@@ -23,6 +23,15 @@ class AppStrings {
   static const String profileLoadFailedHint =
       "Check your connection and try again. If this keeps happening, please contact support.";
   static const String tryAgain = "Try again";
+
+  /// iOS App Store update prompt — see ios_update_dialog.dart. Android never
+  /// uses these: Play's in-app update flow supplies its own UI and copy.
+  static const String updateAvailableTitle = "Update available";
+  static const String updateAvailableMessage =
+      "A newer version of BlueEra is on the App Store. Update to get the "
+      "latest features and fixes.";
+  static const String updateNow = "Update";
+  static const String updateNotNow = "Not now";
   static const success = "success";
   static const tokenIsNull = "Token is null";
   static const storagePermissionDenied = "Storage permission is denied";
@@ -2247,6 +2256,14 @@ class AppStrings {
 
   static const String kindlyAddServicesProfession = 'kindlyAddServicesProfession';
   static const String kindlyAddServicesCategory = 'kindlyAddServicesCategory';
+
+  // Adding a service needs both a category and a sub-category on the business
+  // profile. Three separate strings so the snackbar names exactly what is
+  // missing instead of asking for both when only one is absent.
+  static const String serviceNeedsCategory = 'serviceNeedsCategory';
+  static const String serviceNeedsSubCategory = 'serviceNeedsSubCategory';
+  static const String serviceNeedsCategoryAndSubCategory =
+      'serviceNeedsCategoryAndSubCategory';
   static const String shortDescription = 'shortDescription';
   static const String hintShortDescription = 'hintShortDescription';
   static const String serviceDescriptionRequired = 'serviceDescriptionRequired';
@@ -6808,6 +6825,16 @@ class AppStrings {
   static const String planAlreadyFree = "planAlreadyFree";
   static const String planAlreadyActive = "planAlreadyActive";
   static const String planActive = "planActive";
+
+  /// instead of "20B90", which reads like missing data rather than a real state.
+  // Copy for the held-plan card. Full sentences rather than label+value pairs:
+  // the card states a fact the reader does not have to assemble.
+  static const String planHeldFree = "planHeldFree";
+  static const String planHeldPaid = "planHeldPaid";
+  static const String planHeldFreeSinceFmt = "planHeldFreeSinceFmt";
+  static const String planHeldPaidSinceFmt = "planHeldPaidSinceFmt";
+  static const String planHeldCoversFmt = "planHeldCoversFmt";
+  static const String planHeldRadiusFmt = "planHeldRadiusFmt";
   static const String planActivated = "planActivated";
 
   /// ACTIVE PLAN panel at the top of the contribution catalog — the eyebrow
@@ -7162,6 +7189,14 @@ class AppStrings {
   static const String topSelling = "topSelling";
   static const String customersFavoritesThisMonth = "customersFavoritesThisMonth";
   static const String noProductYetCreateOne = "noProductYetCreateOne";
+  static const String noProductsAddedYet = "noProductsAddedYet";
+
+  // Shared "You're offline" go-live nudge (every Me screen). One title and CTA;
+  // the body differs by account type because what they miss while offline does.
+  static const String goLiveNudgeTitle = 'goLiveNudgeTitle';
+  static const String goLiveNudgeCta = 'goLiveNudgeCta';
+  static const String goLiveNudgeBusinessBody = 'goLiveNudgeBusinessBody';
+  static const String goLiveNudgeIndividualBody = 'goLiveNudgeIndividualBody';
 
   /// ADD-PRODUCT PROMPT — the once-a-day nudge on the me-section admin
   /// homes. One title per business field so the sheet names what the

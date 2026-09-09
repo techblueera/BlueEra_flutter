@@ -83,12 +83,41 @@ class AccountPlanEntitlement extends GetxController {
   /// loads it to mark owned cards, so a purchase updates the gate with no
   /// second round trip.
   ///
-  /// A FREE plan does not satisfy the gate: `A0_SOCIAL_FREE` is the default
-  /// entitlement every social profile has, so counting it would open go-live
-  /// to everyone and make the gate meaningless.
+  /// Active = `isActive` AND not the default `A0_SOCIAL_FREE` plan. A free plan
+  /// granted by deposit migration COUNTS; the default social-free profile does
+  /// NOT.
+  ///
+  /// Do not reduce this back to `totalAmount > 0`. That was the original test,
+  /// and the intent was right — stop the default free social profile every
+  /// account carries from counting as an entitlement, which would open go-live
+  /// to everyone — but the test was too broad. When the refundable Security
+  /// Deposit was replaced by Account Plans, migrated users were granted their
+  /// mapped plan at ₹0 (the deposit stays refundable), so a real, active,
+  /// earned entitlement arrives with `total_amount == 0` and was silently
+  /// discarded. Those users held a plan the server confirmed
+  /// (`has_active_plan: true`) and were still refused go-live.
+  ///
+  /// Price is the wrong discriminator: after migration, free no longer means
+  /// fake. The archetype is the right one — `A0_SOCIAL_FREE` is the only shape
+  /// that should ever be ignored, and every purchased or migrated plan carries
+  /// a real archetype (`A1_…`, `A2_…`, …).
+  ///
+  /// The third clause is a guard, not part of the rule. `archetype` defaults to
+  /// `''` when the field is absent, and `'' != A0_SOCIAL_FREE` is true — so a
+  /// payload that ever stopped sending `archetype` would make EVERY account,
+  /// including plain social ones, pass the gate, silently. When the archetype is
+  /// missing we therefore fall back to the old price test: a paid plan still
+  /// counts, a free one does not. The live API does always send `archetype`
+  /// (verified against a migrated account returning `A2_GIG_CALLS`), so this
+  /// should never fire; it costs nothing and the failure it prevents is both
+  /// silent and revenue-affecting.
+  ///
+  /// See docs/backend/ACTIVE_PLAN_CARD_NOT_SHOWING_FIX.md.
   void publish(List<UserAccountPlan> plans) {
-    hasActivePlan.value =
-        plans.any((p) => p.isActive && p.totalAmount > 0);
+    hasActivePlan.value = plans.any((p) =>
+        p.isActive &&
+        p.archetype != PlanArchetype.socialFree &&
+        (p.archetype.isNotEmpty || p.totalAmount > 0));
     _known = true;
   }
 

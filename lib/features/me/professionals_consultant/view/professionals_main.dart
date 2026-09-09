@@ -1,4 +1,3 @@
-﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
@@ -10,8 +9,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -282,20 +279,9 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// passes without paying — [ViewPersonalDetailsController.isGoLiveAllowed]
   /// ORs plan + free service + legacy deposit. Mirrors the self-employed and
   /// business gates.
-  bool _ensureCanGoLive() {
-    if (_viewCtrl.isGoLiveAllowed) return true;
-    commonSnackBar(
-      message:
-          'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
-    );
-    // Refresh on return so a freshly-paid deposit + updated freeServiceUsed
-    // are picked up.
-    openContributionScreen().then((_) {
-      _viewCtrl.viewPersonalProfile(forceRefresh: true);
-      AccountPlanEntitlement.to.refresh();
-    });
-    return false;
-  }
+  /// Now identical to the controller's own gate, so it just delegates rather
+  /// than keeping a fourth copy of the same payment check.
+  bool _ensureCanGoLive() => _viewCtrl.ensureCanGoLive();
 
   void _openDrawer(BuildContext context) {
     showDialog(

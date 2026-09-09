@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/go_live_nudge_sheet.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -31,8 +32,10 @@ import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_mode
 import 'package:BlueEra/features/common/joining_bounce/view/claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/joining_bounce/view/guest_claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
+import 'package:BlueEra/features/business/widgets/business_qr_promo_sheet.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/ios_update_dialog.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_shimmer.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
@@ -67,8 +70,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/location_permission_banner.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,20 +105,23 @@ class BottomNavigationBarScreen extends StatefulWidget {
   /// settles. Kept login-only so it doesn't re-prompt on every app-open.
   final bool runRiderGoLiveGate;
 
-  /// Land on Discover regardless of account type — set ONLY by the post-OTP
-  /// login navigation.
+  /// Land on Discover after signing in — set ONLY by the post-OTP login
+  /// navigation.
   ///
-  /// Riders and gig workers normally open straight onto their Me dashboard, on
-  /// app start and after signup alike. Signing in is the one moment that isn't
-  /// about their own dashboard: they have just come from outside the app, and
-  /// Discover is what shows them what happened while they were gone. They are
-  /// still one tab away from Me.
+  /// Applies to every account type EXCEPT gig workers (riders included, since
+  /// the rider professions live under the GIG_WORKER profile type). A gig
+  /// worker's whole use of the app is their own dashboard — jobs, go-live,
+  /// earnings — so login drops them there like every other entry point does.
+  /// Everyone else has just come from outside the app, and Discover is what
+  /// shows them what happened while they were gone; their Me tab is one tap
+  /// away.
   ///
-  /// Suppresses BOTH halves of the rider/gig routing — the initState decision
+  /// Both halves of the routing honour that exception — the initState decision
   /// in [_resolveLandingIndex] and the deferred snap in
-  /// [_maybeCorrectLandingTabForMeProfile] — because on a fresh login the
-  /// profile type isn't known yet and it is the deferred one that would
-  /// actually move the tab.
+  /// [_maybeCorrectLandingTabForMeProfile]. The deferred one is what actually
+  /// moves a gig worker on a fresh login: the profile fetch is deliberately
+  /// deferred past this navigation, so `userProfileTypeGlobal` is still empty
+  /// when the shell is built and there is nothing to decide on yet.
   final bool landOnDiscover;
 
   const BottomNavigationBarScreen(
@@ -197,6 +205,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // below commits it to the Rx, where notifying is safe.
     _pendingLandingIndex = _resolveLandingIndex();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Store update check — once per process, and never on a deep-link
+      // background host. Both gates live in _getPackageData.
+      _getPackageData();
       _commitLandingTab();
       _handlePostFrameInitialization();
       // One-shot per launch: surface the joining-bonus claim popup when the
@@ -448,6 +459,123 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     });
   }
 
+  /// One-shot PER PROCESS, not per mount. This shell is mounted more than once
+  /// in a session — `Get.offAllNamed` after OTP login, backing out of account
+  /// creation, and the notification re-navigation all rebuild it — and without
+  /// this guard each remount fired another store check and could re-throw the
+  /// full-screen Play update sheet at someone who had just dismissed it.
+  static bool _updateCheckStarted = false;
+
+  /// Store update check, run once after the first frame. Android hands the
+  /// whole flow to Play; iOS gets [showIosUpdateDialog].
+  Future<void> _getPackageData() async {
+    // Deep-link background host: this screen only exists behind the screen the
+    // notification actually opened, so don't drop a store prompt on top of it.
+    // The check simply waits for the next real app open.
+    if (widget.deferHeavyInit) return;
+    if (_updateCheckStarted) return;
+    _updateCheckStarted = true;
+    await _checkForUpdate();
+  }
+
+  /// Verbose update logging, debug builds only — `debugPrint` is NOT compiled
+  /// out of release, and this path is chatty enough to be noise in a prod
+  /// logcat.
+  void _updateLog(String message) {
+    if (kDebugMode) debugPrint("[UpdateCheck] $message");
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      _updateLog("START (platform=${Platform.operatingSystem})");
+
+      if (Platform.isAndroid) {
+        // Play owns the entire Android flow — its own UI, its own download and
+        // install. `packageInfo` isn't needed here at all, so it is fetched
+        // only on the iOS branch below.
+        final InAppUpdateManager manager = InAppUpdateManager();
+        final AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
+
+        if (appUpdateInfo == null) {
+          // Normal on any build Play doesn't own: sideloaded APKs, debug
+          // builds, devices without Play Services.
+          _updateLog("Android: checkForUpdate returned null");
+          return;
+        }
+
+        _updateLog("Android availability=${appUpdateInfo.updateAvailability} "
+            "immediateAllowed=${appUpdateInfo.immediateAllowed} "
+            "flexibleAllowed=${appUpdateInfo.flexibleAllowed} "
+            "availableVersionCode=${appUpdateInfo.availableVersionCode}");
+
+        if (appUpdateInfo.updateAvailability ==
+            UpdateAvailability.developerTriggeredUpdateInProgress) {
+          _updateLog("Resuming in-progress immediate update…");
+          _logUpdateFlowResult('immediate',
+              await manager.startAnUpdate(type: AppUpdateType.immediate));
+        } else if (appUpdateInfo.updateAvailability ==
+            UpdateAvailability.updateAvailable) {
+          if (appUpdateInfo.immediateAllowed) {
+            _updateLog("Starting immediate update flow…");
+            _logUpdateFlowResult('immediate',
+                await manager.startAnUpdate(type: AppUpdateType.immediate));
+          } else if (appUpdateInfo.flexibleAllowed) {
+            _updateLog("Starting flexible update flow…");
+            _logUpdateFlowResult('flexible',
+                await manager.startAnUpdate(type: AppUpdateType.flexible));
+          } else {
+            _updateLog(
+                "Update available, but neither flow is permitted by Play");
+          }
+        } else {
+          _updateLog("No update available");
+        }
+      } else if (Platform.isIOS) {
+        final PackageInfo packageInfo = await PackageManager.getPackageInfo();
+        if (packageInfo.packageName.isEmpty) {
+          // PackageManager swallows failures into an empty PackageInfo(); an
+          // empty bundle id would just make the iTunes lookup return nothing.
+          _updateLog("iOS: no bundle id — skipping store lookup");
+          return;
+        }
+        // The iTunes lookup is per STOREFRONT: querying a country the app
+        // isn't published in comes back empty and the plugin reports no store
+        // version at all. Use the device's own region (the plugin reads it
+        // from NSLocale) and fall back to the home market.
+        final String region =
+            packageInfo.regionCode.isNotEmpty ? packageInfo.regionCode : 'IN';
+        _updateLog("iOS: querying App Store (region=$region)…");
+        final VersionInfo versionInfo = await UpgradeVersion.getiOSStoreVersion(
+            packageInfo: packageInfo, regionCode: region);
+        _updateLog("iOS local=${versionInfo.localVersion} "
+            "store=${versionInfo.storeVersion} "
+            "canUpdate=${versionInfo.canUpdate}");
+        if (!versionInfo.canUpdate) return;
+        if (versionInfo.appStoreLink.isEmpty) {
+          // Nothing for the Update button to open — a prompt that can't act
+          // is worse than no prompt.
+          _updateLog("iOS: update available but no App Store link returned");
+          return;
+        }
+        if (!mounted) return;
+        await showIosUpdateDialog(context, versionInfo);
+      }
+      _updateLog("COMPLETE");
+    } catch (e, stackTrace) {
+      _updateLog("ERROR: $e");
+      _updateLog("StackTrace: $stackTrace");
+    }
+  }
+
+  /// `startAnUpdate` returns NULL on success and a message only when the flow
+  /// failed or the user cancelled it — logging the raw value made a completed
+  /// update read as "result: null" and a cancellation read like a success.
+  void _logUpdateFlowResult(String type, String? message) {
+    _updateLog(message == null
+        ? "$type update accepted by user"
+        : "$type update did not start: $message");
+  }
+
   void _initializeControllers() {
     getOrPut(() => ChatThemeController());
   }
@@ -567,18 +695,40 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // passes a non-null initialIndex.
       return widget.initialIndex ?? 1;
     }
-    // Signing in is the exception: everyone lands on Discover, riders and gig
-    // workers included. See [BottomNavigationBarScreen.landOnDiscover].
-    if (widget.landOnDiscover) return widget.initialIndex ?? 1;
+    // Signing in used to be a blanket exception: EVERYONE landed on Discover,
+    // gig workers included. Gig workers are now excluded from that exception —
+    // they go to their Me dashboard on login like they do on every other entry
+    // point. Every other account type (business, and the other three individual
+    // profile types) still lands on Discover.
+    //
+    // On a FRESH login this still returns Discover, because the profile fetch
+    // is deferred and `userProfileTypeGlobal` is empty at this moment. It is
+    // [_maybeCorrectLandingTabForMeProfile] that actually moves a gig worker
+    // across once their type lands. On a cold start the globals are already in
+    // prefs, so [_wantsMeTab] is true here and the tab is right immediately.
+    if (widget.landOnDiscover && !_wantsMeTab) {
+      return widget.initialIndex ?? 1;
+    }
     // Otherwise riders (bike rider / car-taxi driver) and gig workers always
     // land on the Me tab (index 0) — regardless of whether their profile has
     // been created yet — so their dashboard / onboarding is front and centre.
     // Every other individual type uses the requested initial tab (Discover by
     // default).
-    final isRider = isRiderProfession(userProfessionGlobal);
-    final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
-    return (isRider || isGigWorker) ? 0 : (widget.initialIndex ?? 1);
+    return _wantsMeTab ? 0 : (widget.initialIndex ?? 1);
   }
+
+  /// Whether this account's home is the Me tab rather than Discover.
+  ///
+  /// Riders are a PROFESSION (bike rider, car-taxi driver, …) that lives under
+  /// the GIG_WORKER profile type, so the second test already covers them; the
+  /// first is kept because `userProfessionGlobal` and `userProfileTypeGlobal`
+  /// are populated from different payloads and can land out of step.
+  ///
+  /// False whenever the globals are still empty — which is the case for the
+  /// whole of a fresh login until the deferred profile fetch settles.
+  bool get _wantsMeTab =>
+      isRiderProfession(userProfessionGlobal) ||
+      userProfileTypeGlobal == GIG_WORKER;
 
   void _handlePostFrameInitialization() {
     // Own-profile fetch is part of the home boot. When this screen is only the
@@ -732,9 +882,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (!mounted) return;
     if (_userPickedTab) return;
     if (widget.initialIndex != null) return;
-    // A login mount is MEANT to sit on Discover — this correction is the only
-    // thing that would move it, since the profile type lands after navigation.
-    if (widget.landOnDiscover) return;
+    // A login mount sits on Discover for everyone EXCEPT gig workers, who are
+    // sent to their Me dashboard. On a fresh login this correction is the only
+    // thing that can move them, because the profile type lands after
+    // navigation — `_resolveLandingIndex()` had nothing to decide on when the
+    // shell was built. Every other account type keeps the Discover landing.
+    if (widget.landOnDiscover && !_wantsMeTab) return;
     if (bottomBarController.currentIndex.value != 1) return;
     if (_resolveLandingIndex() != 0) return;
     logs("LANDING_TAB: profile resolved to "
@@ -1043,7 +1196,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // _buildBusinessScreen).
         return const MeTabShimmer();
       }
-      return _buildBusinessScreen();
+      // Wrapped so the two behaviours that used to live in
+      // BusinessOwnProfileScreen's initState still happen: the go-live deep
+      // link and the once-a-day QR promo. The host sits ABOVE the per-type
+      // screen, so it runs once for whichever of Food / Grocery / School /
+      // Hospital / Hotel / Product / ... was resolved, instead of being
+      // duplicated into every one of them.
+      return _BusinessMeHost(
+        controller: businessCtrl,
+        child: _buildBusinessScreen(),
+      );
     });
   }
 
@@ -1224,7 +1386,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // _buildIndividualScreen).
         return const MeTabShimmer();
       }
-      return _buildIndividualScreen();
+      // Same host the business branch uses, so the "You're offline" nudge
+      // reaches individual Me screens too. Riders are excluded inside it — the
+      // rider dashboard runs its own copy with its own gating and copy.
+      return _IndividualMeHost(
+        controller: viewPersonalDetailsController,
+        child: _buildIndividualScreen(),
+      );
     });
   }
 
@@ -1678,4 +1846,205 @@ class _RiderLiveBarState extends State<_RiderLiveBar>
       ),
     );
   }
+}
+
+/// Host for the business "Me" tab. Sits above whichever per-type screen
+/// [_buildBusinessScreen] resolved (Food / Grocery / School / Hospital /
+/// Hotel / Product / Manufacturing / Automotive / ...) and owns the two
+/// once-per-open behaviours that used to live in the deleted
+/// BusinessOwnProfileScreen's `initState`:
+///
+///   1. the `business_go_live_reminder` / `go_live` notification deep link,
+///      which arrives as [BottomBarController.pendingBusinessGoLive] and opens
+///      the shop-availability sheet; and
+///   2. the once-a-day "your QR code" promo sheet.
+///
+/// They are mutually exclusive, exactly as before — when the go-live deep link
+/// is opening its own sheet the promo is skipped, so the two never stack.
+///
+/// This is built inside the `resolveBusinessScreen()` Obx, which re-runs on
+/// every profile fetch. Because the host keeps its type and position across
+/// those rebuilds, Flutter reuses this State and `initState` fires only on the
+/// first build that has a resolved business type — i.e. once the profile is
+/// actually available, which is what both behaviours need.
+class _BusinessMeHost extends StatefulWidget {
+  const _BusinessMeHost({required this.controller, required this.child});
+
+  final ViewBusinessDetailsController controller;
+  final Widget child;
+
+  @override
+  State<_BusinessMeHost> createState() => _BusinessMeHostState();
+}
+
+class _BusinessMeHostState extends State<_BusinessMeHost> {
+  Worker? _meTabWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runEntryActions());
+    _watchMeTabEntry();
+  }
+
+  @override
+  void dispose() {
+    _meTabWorker?.dispose();
+    super.dispose();
+  }
+
+  /// Re-runs the arrival checks whenever the bottom nav lands back on Me.
+  ///
+  /// This host is kept alive between tab switches, so coming back rebuilds
+  /// nothing and fires no lifecycle callback — the bottom bar's index is the
+  /// only signal that the merchant is looking at this screen again. Without it
+  /// `initState` would be the one and only check, and a merchant who bounced to
+  /// Discover and back would never be asked again however long they then sat
+  /// there offline. Mirrors the rider dashboard's `_watchMeTabEntry`.
+  void _watchMeTabEntry() {
+    if (!Get.isRegistered<BottomBarController>()) return;
+    final bar = Get.find<BottomBarController>();
+    _meTabWorker = ever<int>(bar.currentIndex, (index) {
+      if (index != BottomBarController.meTabIndex || !mounted) return;
+      // After the frame that swaps the tab in, so nothing goes up against a
+      // half-built screen.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _runEntryActions());
+    });
+  }
+
+  /// At most ONE prompt per arrival, in priority order. Stacking sheets on a
+  /// screen the merchant just opened is how a dashboard becomes a queue of
+  /// modals to dismiss before any of it can be read.
+  Future<void> _runEntryActions() async {
+    if (!mounted) return;
+    // Something is already up — another sheet, a dialog, a pushed screen.
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) return;
+
+    // 1. Deep-link from the go-live notification. Consumed (not just read) so a
+    //    later tab switch doesn't re-open the sheet. Explicit user intent, so
+    //    it outranks anything this screen would have volunteered.
+    if (BottomBarController.pendingBusinessGoLive) {
+      BottomBarController.pendingBusinessGoLive = false;
+      await widget.controller.openAvailabilityControl();
+      return;
+    }
+
+    // 2. Offline nudge. Ranked above the QR promo because being offline means
+    //    the shop is invisible and earning nothing, which is worth more than a
+    //    share prompt. When the shop IS live this falls through, so the promo
+    //    still gets its once-a-day slot.
+    if (_maybeNudgeGoLive()) return;
+
+    // 3. The once-a-day "your QR code" promo. Self-gating (own day key +
+    //    waits for the profile), so calling it on every arrival is free.
+    if (!mounted) return;
+    await showBusinessQrPromoSheetIfNeeded(
+      context: context,
+      controller: widget.controller,
+    );
+  }
+
+  /// Offers the shared "You're offline" sheet. Returns true when it was shown,
+  /// so the caller knows a prompt has already claimed this arrival.
+  ///
+  /// Deliberately shallow, exactly like the rider version: it asks only "can
+  /// this shop be live, and isn't it?". It does NOT work out WHY — no hours
+  /// yet, plan unpaid, nothing in the catalogue are all diagnosed by
+  /// [ViewBusinessDetailsController.toggleLiveNow], which the button routes
+  /// through and which says the right thing for each. Two places deciding what
+  /// blocks a merchant is two places to get out of step.
+  bool _maybeNudgeGoLive() {
+    if (!GoLiveNudgeCooldown.isDue) return false;
+    // Wait for the profile before claiming anything about the shop's state —
+    // an unfetched profile reads as closed and would nudge every merchant on
+    // every cold start, live ones included.
+    if (!widget.controller.isBusinessProfileReady.value) return false;
+    if (widget.controller.isLive.value) return false;
+
+    GoLiveNudgeCooldown.markShown();
+    showGoLiveNudgeSheet(
+      title: AppStrings.goLiveNudgeTitle.tr,
+      message: AppStrings.goLiveNudgeBusinessBody.tr,
+      ctaLabel: AppStrings.goLiveNudgeCta.tr,
+      // The SAME entry point the go-live pill uses, so the sheet's button is
+      // not a second way to go live with its own rules.
+      onGoLive: widget.controller.toggleLiveNow,
+    );
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Individual counterpart to [_BusinessMeHost]. Wraps whichever per-profile-type
+/// screen `_buildIndividualScreen()` resolved and owns the one arrival
+/// behaviour they share: the "You're offline" go-live nudge.
+///
+/// RIDERS ARE EXCLUDED. `RiderServiceScreen` runs its own copy of this prompt
+/// with rider-specific gating (onboarding must be submitted or approved) and
+/// rider-specific copy ("ride requests"), and it re-checks on app resume as
+/// well as Me-tab entry. Nudging from here as well would show two sheets, so
+/// this defers to it.
+class _IndividualMeHost extends StatefulWidget {
+  const _IndividualMeHost({required this.controller, required this.child});
+
+  final ViewPersonalDetailsController controller;
+  final Widget child;
+
+  @override
+  State<_IndividualMeHost> createState() => _IndividualMeHostState();
+}
+
+class _IndividualMeHostState extends State<_IndividualMeHost> {
+  Worker? _meTabWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeNudgeGoLive());
+    if (Get.isRegistered<BottomBarController>()) {
+      final bar = Get.find<BottomBarController>();
+      _meTabWorker = ever<int>(bar.currentIndex, (index) {
+        if (index != BottomBarController.meTabIndex || !mounted) return;
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _maybeNudgeGoLive());
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _meTabWorker?.dispose();
+    super.dispose();
+  }
+
+  void _maybeNudgeGoLive() {
+    if (!mounted) return;
+    // The rider dashboard prompts for itself — see the class doc.
+    if (isRiderProfession(userProfessionGlobal)) return;
+    // A social profile has no go-live at all; there is nothing to turn on.
+    if (userProfileTypeGlobal == SOCIAL_PROFILE) return;
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) return;
+    if (!GoLiveNudgeCooldown.isDue) return;
+    // An unfetched profile reads as closed and would nudge everyone on a cold
+    // start, live ones included.
+    if (!widget.controller.isPersonalProfileReady.value) return;
+    if (widget.controller.shopStatus.value.isOpenNow) return;
+
+    GoLiveNudgeCooldown.markShown();
+    showGoLiveNudgeSheet(
+      title: AppStrings.goLiveNudgeTitle.tr,
+      message: AppStrings.goLiveNudgeIndividualBody.tr,
+      ctaLabel: AppStrings.goLiveNudgeCta.tr,
+      // Routed through the same entry point the Go-Live pill uses, with the
+      // controller's own gate so an unpaid provider is told why and routed to
+      // the plan flow rather than the tap doing nothing.
+      onGoLive: () => widget.controller
+          .toggleLiveNow(gate: widget.controller.ensureCanGoLive),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

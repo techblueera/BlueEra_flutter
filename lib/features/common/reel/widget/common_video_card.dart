@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -247,7 +248,7 @@ class CommonVideoCard extends StatelessWidget {
         AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
       if (isMyProfile) {
-        _openMeOverview();
+        MeProfileNavigator.openOverview();
       } else {
         Get.to(() => NewVisitProfileScreen(
               authorId: videoItem.author?.id ?? '',
@@ -261,7 +262,7 @@ class CommonVideoCard extends StatelessWidget {
     if (videoItem.author?.accountType?.toUpperCase() == AppConstants.business) {
       final isMyBusiness = videoItem.author?.id == userId;
       if (isMyBusiness) {
-        _openMeOverview();
+        MeProfileNavigator.openOverview();
       } else {
         Get.to(() => VisitBusinessProfileNew(
               businessId: videoItem.author?.id ?? '',
@@ -269,21 +270,6 @@ class CommonVideoCard extends StatelessWidget {
             ));
       }
       return;
-    }
-  }
-
-  /// Own profile → the bottom-nav "Me" tab's Overview screen instead of a
-  /// pushed profile screen. Reuses the live nav shell when present (pop any
-  /// pushed screens, then switch tab); otherwise routes to it fresh.
-  void _openMeOverview() {
-    if (Get.isRegistered<BottomBarController>()) {
-      Get.until((route) => route.isFirst);
-      Get.find<BottomBarController>().openMeOverviewTab();
-    } else {
-      Get.offAllNamed(
-        RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
-      );
     }
   }
 }

@@ -1428,7 +1428,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   }
 
   Future<void> _pickAudioFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'wma', 'flac'],
     );
@@ -1481,7 +1481,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   }
 
   Future<void> _pickDocument() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
@@ -1583,7 +1583,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   }
 
   // Future<void> _pickAudioFile() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //   FilePickerResult? result = await FilePicker.pickFiles(
   //     type: FileType.custom,
   //     allowedExtensions: ['mp3', 'wav', 'm4a'],
   //   );
