@@ -40,16 +40,13 @@ android {
     ndkVersion "28.2.13676358"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
         // ✅ This enables core library desugaring
         coreLibraryDesugaringEnabled true
     }
     lint {
         checkReleaseBuilds = false
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
     }
 
     sourceSets {
@@ -75,10 +72,6 @@ android {
             storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
             storePassword = keystoreProperties['storePassword']
         }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
     }
     buildTypes {
         release {
@@ -120,9 +113,14 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
     implementation platform('com.google.firebase:firebase-bom:31.0.2')
     implementation 'com.google.firebase:firebase-messaging:23.2.1'
     implementation 'com.google.android.material:material:1.11.0'
