@@ -31,7 +31,7 @@ class PassengerOrderScreen extends StatefulWidget {
 }
 
 class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
-  final controller = getOrPut(() => DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {

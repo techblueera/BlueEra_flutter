@@ -16,7 +16,7 @@ class NearByRidersScreen extends StatefulWidget {
 }
 
 class _NearByRidersScreenState extends State<NearByRidersScreen> {
-  final controller = getOrPut(() => DeliveryPartnerController());
+  final controller = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   initState(){

@@ -42,7 +42,7 @@ class RiderLinkStoresScreen extends StatefulWidget {
 
 class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
   final controller = getOrPut(() => StoreController());
-  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final AuthController _authController = Get.find<AuthController>();
   final ScrollController _scrollController = ScrollController();
 

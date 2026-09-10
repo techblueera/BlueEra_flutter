@@ -50,7 +50,15 @@ class HomeFeedScreenNew extends StatefulWidget {
     this.onHeaderVisibilityChanged,
     this.headerHeight,
     this.isInParentScroll = false, // Default to false for individual page
+    this.bottomInset = 0,
   });
+
+  /// Space kept below the last post, for a floating bar the feed scrolls under.
+  ///
+  /// The Social tab passes the nav bar's extent: tab content is laid out
+  /// full-screen BEHIND that bar, so without it the last post ends underneath
+  /// and cannot be scrolled clear. Zero anywhere the feed owns its full height.
+  final double bottomInset;
 
   @override
   State<HomeFeedScreenNew> createState() => _HomeFeedScreenNewState();
@@ -394,8 +402,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
           // what the scroll needs to stay ahead of the finger; more than that
           // and the extra cards are decoding images nobody is going to see.
           cacheExtent: MediaQuery.sizeOf(context).height,
-          // 1. Set padding to zero if you want it flush, or keep only what is necessary
-          padding: EdgeInsets.zero,
+          // Flush on every other edge; the bottom is the caller's — see
+          // [HomeFeedScreenNew.bottomInset].
+          padding: EdgeInsets.only(bottom: widget.bottomInset),
           itemCount: rows.length + (showStories ? 1 : 0),
           shrinkWrap: widget.isInParentScroll,
           physics: widget.isInParentScroll

@@ -26,6 +26,13 @@ mixin UserServiceApi {
       'user-service/user/get?contact_no=$userMobileGlobal';
   final String allUsers =
       'user-service/user/getAllKindOfUser';
+
+  /// One-time profile-category change — read the state, then perform it.
+  /// Both act on the TOKEN's own account; there is no userId in either.
+  /// See docs/backend/FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md.
+  final String profileCategory = 'user-service/user/me/profile-category';
+  final String profileCategoryChange =
+      'user-service/user/me/profile-category/change';
   final String getUserByIdUrlForAddress =
       "user-service/user/getUserById";
   final String getUserProfileOverviewById =

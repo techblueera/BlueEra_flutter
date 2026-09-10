@@ -15,7 +15,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/near_you_all_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/stores_near_you_all_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/profession_consultant_discover_entry_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/self_profession_discover_entry_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_listing_screen.dart';
@@ -430,7 +430,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           // "Near You" — self-managing: it carries its own card and spacing
           // when it has data and collapses to nothing when it doesn't.
           NearestStoresSection(
-            onViewAll: () => Get.to(() => const NearYouAllScreen()),
+            onViewAll: () => Get.to(() => const StoresNearYouAllScreen()),
           ),
           _bannerRow(_transportRow()),
           _folderRow(_groceryAndFoodFolder(context), _shoppingFolder(context)),

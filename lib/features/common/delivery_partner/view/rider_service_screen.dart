@@ -42,8 +42,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver,
         MeTabBackHandlerMixin {
-  final controller = getOrPut(() => DeliveryPartnerController());
-  final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliveryPartnerController(), permanent: true);
+  final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   late final TabController _tabController;
@@ -91,7 +91,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
       // Runs after the line above, so the live/offline check reads the real
       // status rather than the Rx's initial value.
-      _maybeShowGoLivePrompt();
+      _onMeArrival();
     });
   }
 
@@ -125,6 +125,33 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   Worker? _goLivePromptWorker;
   Worker? _meTabWorker;
 
+  /// True between "the rider arrived on this screen" and "we answered that
+  /// arrival with a prompt (or decided not to)".
+  ///
+  /// Only an ARRIVAL may open the sheet — the first mount, or the bottom nav
+  /// landing back on Me. Everything else that used to reach
+  /// [_maybeShowGoLivePrompt] can now only COMPLETE a pending arrival, never
+  /// create one:
+  ///
+  ///  * the onboarding-status worker, which fires whenever the status is
+  ///    refetched — including on every app resume, which is how a background
+  ///    round trip turned into a sheet;
+  ///  * a sub-tab change inside this screen, which is not an arrival at all —
+  ///    the rider never left.
+  ///
+  /// Without this flag the cooldown was doing all the work, and a
+  /// 15-minute window is no defence against being asked every time you come
+  /// back from the phone dialler.
+  bool _arrivalPending = false;
+
+  /// Marks a genuine arrival and answers it once this frame has settled.
+  void _onMeArrival() {
+    _arrivalPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeShowGoLivePrompt();
+    });
+  }
+
   /// Re-runs the prompt check whenever the bottom nav lands on the Me tab.
   ///
   /// This screen is kept alive between tab switches, so arriving back on Me
@@ -141,19 +168,31 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       if (index != BottomBarController.meTabIndex || !mounted) return;
       // After the frame that swaps the tab in, so the dialog never goes up
       // against a half-built screen.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _maybeShowGoLivePrompt();
-      });
+      _onMeArrival();
     });
   }
 
   void _maybeShowGoLivePrompt() {
     if (!mounted) return;
+    // Only an arrival opens this. See [_arrivalPending].
+    if (!_arrivalPending) return;
     final shownAt = _promptShownAt;
     if (shownAt != null &&
         DateTime.now().difference(shownAt) < _promptCooldown) {
       return;
     }
+    // Cold open: the status has not landed yet, so we cannot tell a rider who
+    // is mid-onboarding from one who is approved and idle. Stay PENDING and let
+    // the status worker complete this arrival when the answer arrives — that is
+    // the one case the worker exists for.
+    if (controller.riderOnboardingStatusData.value == null) return;
+
+    // From here the arrival is answered whatever we decide, so it stops being
+    // pending. Without this a rider who was live on arrival (no prompt) and
+    // then tapped themselves offline would have the sheet appear on the next
+    // status refresh — being asked to go live one second after choosing not to.
+    _arrivalPending = false;
+
     // Profile submitted (in review) or approved. `pending` means the documents
     // are in and being looked at; anything before that has no onboarding record
     // at all and the screen is still a form.
@@ -197,10 +236,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // once there is nothing left to change.
     if (state == AppLifecycleState.resumed) {
       controller.ridersOnboardingStatusRepoApi();
-      // Coming back to the app is an arrival too. Direct rather than relying on
-      // the status worker — that call is cache-first and may not change the
-      // observable at all, in which case nothing would fire.
-      _maybeShowGoLivePrompt();
+      // Deliberately NOT a prompt trigger. Coming back from the background is
+      // not arriving at the Me section — the rider was already here, looking at
+      // this screen, and had already decided. Answering a call, checking a map,
+      // replying to a message and coming back would each throw the sheet up
+      // again, which is what made it feel like nagging rather than an offer.
+      //
+      // The status refresh above stays: it is cache-first and free, and it is
+      // what makes an approval that landed while the phone was in a pocket show
+      // up. It no longer drags the sheet along with it (see [_arrivalPending]).
     }
   }
 
@@ -302,8 +346,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
 }
 
+/// Shared Go-Live handler for the rider pill and the "You're offline" sheet.
+///
+/// TOP-LEVEL on purpose — the sheet's callback and the pill both need it — but
+/// that also means it CANNOT assume [_RiderServiceScreenState] is still alive.
+/// Its controllers are registered by that State with `getOrPut`, which is
+/// `Get.put(permanent: false)`, so GetX disposes them when the screen's route
+/// goes away. A tap arriving after that (the nudge sheet outliving its host,
+/// a queued gesture during a tab swap) hit `Get.find` on a deleted controller
+/// and crashed with "DeliveryPartnerController not found".
+///
+/// So both controllers are get-OR-PUT here rather than found. Re-creating one
+/// is cheap and safe: they hold no screen state, only fetched account state.
 Future<void> handleGoLiveTap() async {
-  final _viewCtrl = Get.find<ViewPersonalDetailsController>();
+  final _viewCtrl =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   // Already online → going OFF.
   if (_viewCtrl.shopStatusOpenClose.value) {
@@ -334,7 +391,14 @@ Future<void> handleGoLiveTap() async {
   // riderVerificationState is `completed` exactly when the backend's
   // `verificationStatus` is "approved" (see DeliveryPartnerController).
   // Anything else (pending review, rejected, documents missing) is blocked.
-  final riderCtrl = Get.find<DeliveryPartnerController>();
+  final wasRegistered = Get.isRegistered<DeliveryPartnerController>();
+  final riderCtrl = getOrPut(() => DeliveryPartnerController(), permanent: true);
+  if (!wasRegistered) {
+    // Freshly built, so it holds no onboarding status yet and every gate below
+    // would read as "not verified" — telling an approved rider to go and
+    // finish an onboarding they completed weeks ago. Load it before deciding.
+    await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
+  }
   if (riderCtrl.riderVerificationState != RiderVerificationState.completed) {
     commonSnackBar(
         message: 'Finish your onboarding and get verified before going live.');
@@ -344,23 +408,32 @@ Future<void> handleGoLiveTap() async {
   // After document verification, payment is required before going online.
   //
   // No profession check: this screen is reached only by GIG_WORKER accounts
-  // (via GigWorkOptionsScreen / the Me tab), so everyone who can tap Go Live
-  // here pays. The old `BIKE_RIDER || CAR_TAXI_DRIVER` narrowing let every
-  // other gig profession — mechanic, tailor, beautician — go live for free.
+  // (via GigWorkOptionsScreen / the Me tab), and the GigWork bucket is exactly
+  // the five dispatch professions — see [GigProfession]. So everyone who can
+  // tap Go Live here has been through rider onboarding and pays. The old
+  // `BIKE_RIDER || CAR_TAXI_DRIVER` narrowing let auto, goods and bicycle
+  // riders go live for free.
   //
-  // FIRST ONE FREE: a gig worker whose free job is still unused goes online
-  // without paying — the payment page only appears once it is done
-  // (`freeRideUsed == true`). Fail-closed on an absent flag.
+  // ONE condition, and only one: an ACTIVE ACCOUNT PLAN. The free-first-job
+  // waiver and the refundable security deposit are both gone from the product,
+  // so there is nothing else that can open this gate.
   //
-  // The whole payment half of the gate lives in ONE getter now
-  // (DeliveryPartnerController.isGoLiveAllowed), shared with the auto
-  // go-live scheduler and ensureGoLiveAllowed. It also accepts
-  // `isOnboardingComplete`, which the backend already satisfies from a deposit
-  // OR an active account plan — without that, a rider on a plan reports
-  // `securityDeposit.paid: false` and was sent to the payment page for
-  // something they had already bought. See
-  // docs/backend/RIDER_AADHAAR_VERIFIED_APP_GUIDE.md §4.
-  final canGoLive = riderCtrl.isGoLiveAllowed;
+  // It lives in ONE getter (DeliveryPartnerController.isGoLiveAllowed), shared
+  // with the auto go-live scheduler and ensureGoLiveAllowed, so the manual tap
+  // and the background scheduler can never disagree about who may work.
+  // ensureGoLiveAllowed, NOT the bare `isGoLiveAllowed` getter.
+  //
+  // The entitlement is an in-memory snapshot that nothing populates on app
+  // start, so an approved rider holding a plan — the server answering
+  // `has_active_plan: true` — opened the app, tapped Go Live, and was sent to
+  // the contribution screen to buy a plan they already owned. The snapshot had
+  // simply never been read.
+  //
+  // The gate now fails open while unread, so that alone no longer refuses
+  // anyone; this still awaits, because ASKING is better than assuming. It
+  // re-reads the plan, then the onboarding status, and only then decides —
+  // the same gate the rider dashboard's own pill uses.
+  final canGoLive = await riderCtrl.ensureGoLiveAllowed();
 
   if (!canGoLive) {
     // Straight to the payment page — no dialog on this path. Tapping Go Live is

@@ -51,7 +51,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
   final controller = getOrPut(() => VehicleRentalServiceController());
   final langController = getOrPut(() => LanguageListController());
   final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
-  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final emailVerificationController = getOrPut(() => EmailVerificationController());
   final myDocumentsController = getOrPut(() => MyDocumentsController());
 

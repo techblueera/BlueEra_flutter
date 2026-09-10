@@ -279,37 +279,6 @@ class OtherRepo extends BaseService {
   }
 
 
-  // Timings APIs
-  Future<dynamic> createTimingRepo(Map<String, dynamic> body) async {
-    return await ApiBaseHelper().postHTTP(
-      otherTimings,
-      params: body,
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-  Future<ResponseModel> getTimingRepo() async {
-    return await ApiBaseHelper().getHTTP(
-      otherTimings,
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-  Future<dynamic> updateTimingRepo(Map<String, dynamic> body) async {
-    return await ApiBaseHelper().putHTTP(
-      otherTimings,
-      params: body,
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-
   // GET: Fetch property photos
   /// `showProgress: false` — this is the gallery screen's OWN load, fired from
   /// the controller's `onInit`. The screen already draws a shimmer of the card

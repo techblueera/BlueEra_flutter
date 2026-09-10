@@ -1,0 +1,66 @@
+import 'package:BlueEra/core/api/model/service_option_model.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/automotive_service/view/other_blog/automotive_blogs_screen.dart';
+import 'package:BlueEra/features/me/automotive_service/view/other_downloads/automotive_downloads_screen.dart';
+import 'package:BlueEra/features/me/automotive_service/view/other_news/automotive_news_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+
+class AutomotiveAnnouncementsScreen extends StatefulWidget {
+  const AutomotiveAnnouncementsScreen({super.key});
+
+  @override
+  State<AutomotiveAnnouncementsScreen> createState() => _AutomotiveAnnouncementsScreenState();
+}
+
+class _AutomotiveAnnouncementsScreenState extends State<AutomotiveAnnouncementsScreen> {
+  List<ServiceMenuItem> get serviceMenus => [
+    ServiceMenuItem(
+      title: AppStrings.otherBlogLabel.tr,
+      icon: AppIconAssets.other_blog,
+      page: () => AutomotiveBlogsScreen(),
+    ),
+    ServiceMenuItem(
+      title: AppStrings.otherNewsFieldLabel.tr,
+      icon: AppIconAssets.other_news,
+      page: () => AutomotiveNewsScreen(),
+    ),
+    ServiceMenuItem(
+      title: AppStrings.otherDownloadsTitle.tr,
+      icon: AppIconAssets.other_download,
+      page: () => AutomotiveDownloadsScreen(),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: AppStrings.otherAnnouncements.tr,
+      ),
+      body: Column(
+        children: [
+          SizedBox(height: 12),
+          ...serviceMenus.map((item) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              // Spacing between cards
+              child: InkWell(
+                onTap: () => Get.to(item.page),
+                child: MeMenuCardDesign(
+                  title: item.title,
+                  icon: item.icon,
+                ),
+              ),
+            );
+          }).toList(),
+          SizedBox(height: SizeConfig.size14),
+        ],
+      ),
+    );
+  }
+}

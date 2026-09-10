@@ -42,9 +42,9 @@ enum _OrderPeriodFilter { today, week, month, all }
 class _RiderMeScreenState extends State<RiderMeScreen>
     with WidgetsBindingObserver, RouteAware {
   final DeliveryPartnerController _riderCtrl =
-      getOrPut(() => DeliveryPartnerController());
+      getOrPut(() => DeliveryPartnerController(), permanent: true);
   final DeliverPartnerOrdersController _ordersCtrl =
-      getOrPut(() => DeliverPartnerOrdersController());
+      getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
   final ViewPersonalDetailsController _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
@@ -129,8 +129,11 @@ class _RiderMeScreenState extends State<RiderMeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
-        userProfessionGlobal == CAR_TAXI_DRIVER;
+    // Every dispatch profession, not just bike and cab: an auto or goods
+    // driver landing on their own dashboard used to get the "you're not a
+    // rider" placeholder. [kRiderProfessions] is the single source of truth,
+    // and it now includes Bicycle Rider.
+    final isRiderRole = isRiderProfession(userProfessionGlobal);
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(

@@ -26,7 +26,7 @@ class DeliveryPickupShopsList extends StatefulWidget {
 }
 
 class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
-  final controller = getOrPut(() => DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
 
   @override
   void initState() {

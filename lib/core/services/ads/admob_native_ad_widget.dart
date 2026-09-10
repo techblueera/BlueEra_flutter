@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -212,7 +213,20 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
           return Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: widget.backgroundColor,
+              // Filled, never transparent — and with the SAME white the
+              // template is told to paint itself in (`mainBackgroundColor`
+              // above), so this is the ad's own colour, not a second surface.
+              //
+              // The platform template is `wrap_content` and measures itself;
+              // when it comes out shorter than the slot we hand it, the unused
+              // strip at the bottom used to be transparent. The page showed
+              // through it, so the card LOOKED like it ended at the template's
+              // own square-cornered edge — square bottom corners against
+              // rounded top ones, and a bottom gap visibly wider than the top
+              // one, even though the margins on either side were equal.
+              // Painting the slot itself makes the rounded rect the card's
+              // real edge on all four corners.
+              color: widget.backgroundColor ?? AppColors.white,
               borderRadius: BorderRadius.circular(widget.borderRadius),
               border: widget.border,
               boxShadow: widget.boxShadow,
@@ -242,16 +256,38 @@ class _AdMobNativeAdWidgetState extends State<AdMobNativeAdWidget>
   ///  * [TemplateType.medium] — `gnt_medium_template_view.xml` pins its root
   ///    `NativeAdView` to a literal `350dp` (190dp media + 60dp headline row +
   ///    body + a >=35dp CTA), independent of width.
-  ///  * [TemplateType.small] — `gnt_small_template_view.xml` is `wrap_content`
-  ///    around a `4:1` block inset by `gnt_default_margin` (10dp) on all four
-  ///    sides, so its natural height is `(width - 20) / 4 + 20`. Across phone
-  ///    widths that lands at 99-117dp, which brackets the iOS small template's
-  ///    own 101pt design height, so one formula serves both platforms. The
-  ///    floor covers unusually narrow layouts and keeps us clear of Google's
-  ///    documented 90dp minimum.
+  ///  * [TemplateType.small] — `gnt_small_template_view.xml` is a
+  ///    `wrap_content` [ConstraintLayout] (the white `gnt_outline_shape` card)
+  ///    wrapped around a child that is `0dp` wide, constrained to both parent
+  ///    edges, with `layout_constraintDimensionRatio="H,4:1"`. So the card's
+  ///    height is **exactly a quarter of the slot's width** — the 10dp
+  ///    `gnt_default_margin` is that child's PADDING, inside the ratio, not
+  ///    added around it.
+  ///
+  /// This used to read `(width - 20) / 4 + 20`, which treated the margin as
+  /// outside the ratio and so asked for ~15dp more than the template ever
+  /// draws. The root `NativeAdView` is `match_parent` but the white card
+  /// inside it is `wrap_content` and sits at the TOP, so those 15dp came out
+  /// as a dead strip along the bottom of every native ad in the app: a wider
+  /// gap under the ad than over it, and — before the slot painted its own
+  /// fill — the page showing through below a square-cornered white card.
+  ///
+  /// Nothing is at risk of clipping at `width / 4`: that IS the layout's own
+  /// measurement, so the bottom-anchored call-to-action lands exactly on the
+  /// card's bottom edge. Ask for LESS than this and the CTA is what gets cut.
+  ///
+  /// iOS ships a fixed ~101pt design for the same template rather than a
+  /// ratio, so it takes that as a floor: on a narrow slot a quarter of the
+  /// width would be shorter than the layout it has to hold.
   static double _templateHeight(TemplateType type, double width) {
     if (type == TemplateType.medium) return 350;
-    final natural = (width - 20) / 4 + 20;
-    return natural < 96 ? 96 : natural;
+    final natural = width / 4;
+    if (defaultTargetPlatform != TargetPlatform.iOS) return natural;
+    return natural < _kIosSmallTemplateHeight
+        ? _kIosSmallTemplateHeight
+        : natural;
   }
+
+  /// The iOS small template's own design height, in points.
+  static const double _kIosSmallTemplateHeight = 101;
 }

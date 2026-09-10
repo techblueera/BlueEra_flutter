@@ -269,7 +269,11 @@ class RiderAutoGoLiveScheduler {
       // from a deposit OR an account plan, and without it a plan-holding rider
       // (whose payload still reads `securityDeposit.paid: false`) was treated
       // as unpaid and auto-closed. See RIDER_AADHAAR_VERIFIED_APP_GUIDE §4.
-      final depositBlocked = !riderCtrl.isGoLiveAllowed;
+      // Awaited, like the manual tap: `isGoLiveAllowed` reads an entitlement
+      // snapshot that starts false and nothing populates at app start, so a
+      // plan-holding rider read as "unpaid" here — the scheduler would never
+      // auto-open them, and would force-close a session it had opened earlier.
+      final depositBlocked = !await riderCtrl.ensureGoLiveAllowed();
       final eligible = verified && !depositBlocked;
 
       final inWindow = _inWindow(DateTime.now());

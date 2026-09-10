@@ -86,7 +86,8 @@ class VisitProfileResolver {
     if (type == BusinessType.Automotive.name.toUpperCase()) {
       // Only the Sales / Parts sectors have a product-style visit screen;
       // Service / Transport / Rental / Support fall back to the generic one
-      // (matches `_isSpecificProductAutomotive` in the own-profile resolver).
+      // (matches MeSectionKind.automotiveParts / .vehicleSales in the own-profile
+      // classifier, me_section_kind.dart).
       final isAutoProduct = [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
           .any((s) => s.toUpperCase() == cat);
       if (isAutoProduct) {

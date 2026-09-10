@@ -6,6 +6,10 @@ import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/features/common/account_deletion/controller/account_deletion_controller.dart';
+import 'package:BlueEra/features/common/profile_category/controller/profile_category_controller.dart';
+import 'package:BlueEra/features/common/profile_category/view/change_category_screen.dart';
+import 'package:BlueEra/features/common/profile_category/widget/change_category_row.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/two_step_verify_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -33,10 +37,45 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final LiveLocationService locationService = LiveLocationService();
 
   final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+
+  /// Drives the one-time "Change category" row. Held here rather than created
+  /// inside the row so the fetched state survives a rebuild of this screen.
+  final profileCategoryController = getOrPut(() => ProfileCategoryController());
+
   @override
   void initState() {
     super.initState();
+    // §5 — decides whether the row shows at all and whether it is still
+    // tappable. Never throws: a failure leaves the row hidden, which is the
+    // same outcome as an account that has no category.
+    profileCategoryController.loadState();
+  }
 
+  /// Opens the picker and, if a change went through, does the rest of §9.
+  ///
+  /// §9.2 — the globals — is already done inside the controller, because
+  /// forgetting it is what leaves the rider tab serving the old profession.
+  /// What is left here is §9.1: re-fetch the profile from the authenticated
+  /// endpoint the app already uses, so the profile screen, the completion
+  /// meter and the me-tab router all rebuild against the new category rather
+  /// than a patched-up local copy.
+  ///
+  /// The satellite fields the backend deliberately WIPED — designation,
+  /// specialization, department, skills, sector, and the individual's working
+  /// hours — come back empty from that re-fetch. That is expected, not a bug:
+  /// they described the category the user just left.
+  Future<void> _onChangeCategory(BuildContext context) async {
+    final changed =
+        await openChangeCategoryPicker(context, profileCategoryController);
+    if (!changed || !mounted) return;
+
+    if (accountTypeGlobal == "BUSINESS") {
+      await viewBusinessProfileController.viewBusinessProfile();
+    } else {
+      await getOrPut(() => ViewPersonalDetailsController())
+          .viewPersonalProfile(forceRefresh: true);
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -139,6 +178,15 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                 },
                 slugId: "Verification Status",
                   isVerified: viewBusinessProfileController.isBusinessVerified.value
+              ),
+
+              // One-time profile-category change (§4 of
+              // FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md). The row hides
+              // itself for GUEST / BLUEFLY and while the state is still
+              // loading, so it needs no `if` here.
+              ChangeCategoryRow(
+                controller: profileCategoryController,
+                onChangeRequested: () => _onChangeCategory(context),
               ),
 
               _helpServiceCard(

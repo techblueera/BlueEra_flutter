@@ -6,8 +6,9 @@ import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_sections_models.dart';
-import 'package:BlueEra/features/common/Discover/view/near_you_all_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/stores_near_you_all_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/widget/discover_v2_section_card.dart';
+import 'package:BlueEra/features/common/Discover/widget/nearby_entry.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -175,7 +176,17 @@ class _RowData {
             categoryOfBusiness: s.categoryName,
           );
         },
-        onViewAll: () => Get.to(() => const NearYouAllScreen()),
+        // Visit history is a history of SHOPS, so its View All is the shops
+        // half of the neighbourhood — not the merged list, which would answer
+        // "the stores you keep going back to" with a page of riders and
+        // services the user never visited.
+        onViewAll: () {
+          final nearby = getOrPut(() => NearbyStoresController());
+          Get.to(() => StoresNearYouAllScreen(
+                section: NearbySection.shops,
+                title: nearby.shopsTitle.value,
+              ));
+        },
       );
 
   factory _RowData.fromChat(ChatList chat, int lane) {

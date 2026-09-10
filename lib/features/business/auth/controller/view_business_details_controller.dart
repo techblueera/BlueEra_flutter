@@ -142,17 +142,15 @@ class ViewBusinessDetailsController extends GetxController
   /// the concept having been removed from the product) evaluated to `true` and
   /// short-circuited the whole expression. The plan gate was therefore never
   /// actually reached. Removing the term is what puts it back in force.
-  bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value;
-          // || isFreeQuotaAvailable;
+  /// Reads [AccountPlanEntitlement.allowsGoLive], which fails OPEN until a
+  /// `my-plans` read has actually completed — the raw `hasActivePlan.value`
+  /// starts false and cannot tell "no plan" from "never asked", so it closed
+  /// a paying merchant's shop on an app start or a network blip.
+  bool get isGoLiveAllowed => AccountPlanEntitlement.to.allowsGoLive;
 
-  /// Free intro quota (first N orders / enquiries) — waives the payment gate
-  /// while it lasts. Fail-CLOSED: only an explicit `freeOrdersUsed == false`
-  /// waives, so an absent flag leaves payment required. The individual
-  /// analogue is `ViewPersonalDetailsController.isFirstServiceFree`; the rider
-  /// one is `DeliveryPartnerController.isFirstRideFree`.
-  bool get isFreeQuotaAvailable =>
-      businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
+  // REMOVED: isFreeQuotaAvailable. The free intro quota no longer waives the
+  // payment gate — an ACTIVE PLAN is the only thing that opens go-live. The
+  // model still exposes the flag for display copy; nothing gates on it.
 
   /// Free orders / enquiries left, for display copy only — never gate on this
   /// boolean without a count.
@@ -1047,8 +1045,13 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   }
 
 
-  bool ensureCanGoLive() {
+  Future<bool> ensureCanGoLive() async {
     if (isGoLiveAllowed) return true;
+    // A recorded "no plan" can be STALE — bought on another device, or
+    // granted server-side by a deposit migration since the last read. Ask
+    // once before sending a merchant to pay for something they may already
+    // own; this is the same re-check the rider tap does.
+    if (await AccountPlanEntitlement.to.refresh()) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
@@ -1134,7 +1137,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   ///
   /// [gate] overrides the deposit check for callers whose deposit lives
   /// elsewhere (see [openAvailabilityControl]).
-  Future<void> toggleLiveNow({bool Function()? gate}) async {
+  Future<void> toggleLiveNow({Future<bool> Function()? gate}) async {
     if (isAvailabilityUpdating.value) return;
 
     // 2. Hydrate before deciding — an un-loaded schedule looks identical to an
@@ -1152,7 +1155,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     }
 
     // 3. Payment — only now, with something to sell and hours to sell it in.
-    if (!(gate != null ? gate() : ensureCanGoLive())) return;
+    if (!(gate != null ? await gate() : await ensureCanGoLive())) return;
 
     // 4. Flip today.
     if (shopStatus.value.isOpenNow) {
@@ -1203,7 +1206,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   }
 
   Future<void> _applyTodayOverride(Map<String, dynamic> body) async {
-    if (!ensureCanGoLive()) return;
+    if (!await ensureCanGoLive()) return;
     isAvailabilityUpdating.value = true;
     try {
       final res = await BusinessProfileRepo().setTodayHours(body);

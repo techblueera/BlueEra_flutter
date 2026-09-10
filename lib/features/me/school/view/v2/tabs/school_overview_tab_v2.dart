@@ -13,7 +13,6 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/view/category/about_school/availability_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/managment_trust_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/principal_message_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
@@ -229,9 +228,13 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           // _hPad(
           //   child:
           SchoolAvailabilityCard(
-            controller: widget.controller,
-            onEditTap: () => Get.to(() => const AvailabilityFormScreen())
-                ?.then((_) => widget.controller.getSchoolByIdController()),
+            // The business availability record, not the school's own
+            // `schoolTimings` — one store for opening hours app-wide.
+            businessController: _businessController,
+            // The same weekly-hours editor Go Live uses. Nothing is refetched
+            // on return: openWeeklyEditor reloads the hours itself, into the
+            // observable this card reads.
+            onEditTap: _businessController.openWeeklyEditor,
           ),
           // ),
 

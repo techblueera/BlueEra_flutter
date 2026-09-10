@@ -460,17 +460,8 @@ class ViewPersonalDetailsController extends GetxController
   Rx<PersonalProfileDetailsModel> personalProfileDetails =
       PersonalProfileDetailsModel().obs;
 
-  /// First-service-free waiver: an individual / self-employed provider gets
-  /// their FIRST service on the house, so they can go live and take that
-  /// enquiry before paying anything. Once it is used the plan gate applies on
-  /// every subsequent go-live.
-  ///
-  /// Fail-CLOSED: only an explicit `freeServiceUsed == false` waives, so an
-  /// absent flag leaves payment required. The business analogue is
-  /// `ViewBusinessDetailsController.isFreeQuotaAvailable`; the rider one is
-  /// `DeliveryPartnerController.isFirstRideFree`.
-  bool get isFirstServiceFree =>
-      personalProfileDetails.value.isFirstServiceFree;
+  // REMOVED: isFirstServiceFree. No free-first-service waiver — go-live is
+  // gated on an ACTIVE PLAN alone.
 
   /// The single go-live truth for individuals — an ACTIVE PLAN, or the free
   /// first service. Every gate on the self-employed and professional screens
@@ -483,8 +474,11 @@ class ViewPersonalDetailsController extends GetxController
   /// the concept having been removed from the product) evaluated to `true` and
   /// short-circuited the whole expression. The plan gate was therefore never
   /// actually reached. Removing the term is what puts it back in force.
-  bool get isGoLiveAllowed =>
-      AccountPlanEntitlement.to.hasActivePlan.value;
+  /// Reads [AccountPlanEntitlement.allowsGoLive], which fails OPEN until a
+  /// `my-plans` read has actually completed — the raw `hasActivePlan.value`
+  /// starts false and cannot tell "no plan" from "never asked", so it took a
+  /// paying provider offline on an app start or a network blip.
+  bool get isGoLiveAllowed => AccountPlanEntitlement.to.allowsGoLive;
 
   /// Personal analogue of `ViewBusinessDetailsController.ensureCanGoLive()`.
   /// True when this provider may go live; otherwise says why and routes to the
@@ -494,8 +488,13 @@ class ViewPersonalDetailsController extends GetxController
   /// can be reached without passing through any screen's own gate: the
   /// availability sheet's live SWITCH calls `setOpenToday()` directly, not
   /// [toggleLiveNow]. Gating only at the screen left that switch open.
-  bool ensureCanGoLive() {
+  Future<bool> ensureCanGoLive() async {
     if (isGoLiveAllowed) return true;
+    // A recorded "no plan" can be STALE — bought on another device, or
+    // granted server-side by a deposit migration since the last read. Ask
+    // once before sending a provider to pay for something they may already
+    // own; this is the same re-check the rider tap does.
+    if (await AccountPlanEntitlement.to.refresh()) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please choose a plan to go live and receive service enquiries.',
@@ -507,7 +506,6 @@ class ViewPersonalDetailsController extends GetxController
     });
     return false;
   }
-          // || isFirstServiceFree;
 
   /// True when this account's identity has been established by a verified
   /// Aadhaar. Name, date of birth and gender are then READ-ONLY everywhere they
@@ -545,7 +543,7 @@ class ViewPersonalDetailsController extends GetxController
   /// concurrent callers onto a single request, so a screen that already fetched
   /// it costs nothing and two opening at once still make one call.
   Future<void> ensureAadhaarStatusLoaded() async {
-    final rider = getOrPut(() => DeliveryPartnerController());
+    final rider = getOrPut(() => DeliveryPartnerController(), permanent: true);
     if (rider.riderOnboardingStatusData.value != null) return;
     await rider.ridersOnboardingStatusRepoApi();
   }
@@ -678,7 +676,7 @@ class ViewPersonalDetailsController extends GetxController
   /// the provider taps the pill again when they actually want to be available,
   /// and from then on the clock button beside the pill ([openScheduleControl])
   /// is where hours are edited.
-  Future<void> toggleLiveNow({bool Function()? gate}) async {
+  Future<void> toggleLiveNow({Future<bool> Function()? gate}) async {
     if (isAvailabilityUpdating.value) return;
 
     // 1. Hours. Hydrate first — an un-loaded schedule looks identical to an
@@ -695,7 +693,7 @@ class ViewPersonalDetailsController extends GetxController
     }
 
     // 2. Deposit — only now, with hours to be available in.
-    if (!(gate != null ? gate() : isGoLiveAllowed)) return;
+    if (!(gate != null ? await gate() : isGoLiveAllowed)) return;
 
     // 3. Flip today.
     if (shopStatus.value.isOpenNow) {
@@ -723,7 +721,7 @@ class ViewPersonalDetailsController extends GetxController
     // The gate lives HERE, on the call that actually flips the profile live --
     // not on opening the sheet. The sheet only edits visiting hours, which is
     // free; this is the paid action. Mirrors the business controller.
-    if (!ensureCanGoLive()) return;
+    if (!await ensureCanGoLive()) return;
     isAvailabilityUpdating.value = true;
     try {
       final res = await PersonalProfileRepo().setIndividualTodayHours(body);

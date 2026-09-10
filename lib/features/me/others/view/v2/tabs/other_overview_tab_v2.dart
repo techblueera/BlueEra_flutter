@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
@@ -27,7 +28,6 @@ import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_de
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
-import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -103,8 +103,20 @@ class OtherOverviewTabV2 extends StatelessWidget {
   void _openManagement() =>
       _openSection(() => const ManagementScreen(), OtherProfileSection.management);
 
-  void _openTimings() =>
-      _openSection(() => TimingScreen(), OtherProfileSection.timings);
+  /// Business hours are edited in ONE place: the weekly-hours editor behind
+  /// Go Live, which writes the business availability record.
+  ///
+  /// This used to open the other-service [TimingScreen], a SECOND store with
+  /// its own endpoints. Two records for one fact meant a merchant could set
+  /// hours in either and have the other stay empty — most visibly, hours set
+  /// through Go Live left this tab demanding "Set your Business Timings" for
+  /// hours that were already saved, and hours set here never reached the
+  /// open/closed pill, because that reads the availability record.
+  ///
+  /// Nothing is refetched on return: [ViewBusinessDetailsController.openWeeklyEditor]
+  /// reloads the hours itself, into the observable this tab reads.
+  void _openTimings(ViewBusinessDetailsController businessController) =>
+      businessController.openWeeklyEditor();
 
   /// The Jobs card is a permanent call to action — it renders an
   /// [EmptySectionPlaceholder] unconditionally and reads nothing off the
@@ -170,8 +182,27 @@ class OtherOverviewTabV2 extends StatelessWidget {
           isFinance &&
           data.rbiRegistered == null &&
           (data.accountType?.isEmpty ?? true);
-      final needsTimings =
-          data != null && !_hasAnyConfiguredTiming(data.timings);
+
+      // Business hours have ONE source: the business availability record
+      // (`availability.schedule`), written by the weekly-hours editor behind Go
+      // Live. The other-service profile's own `timings` object is no longer
+      // read anywhere in this tab — see [_openTimings].
+      //
+      // `weeklySchedule` first, the profile payload as the fallback: the editor
+      // reloads into that observable on save, so the card and this gate update
+      // the moment hours are saved rather than waiting for the next profile
+      // fetch. Reading it here is also what makes this Obx rebuild then.
+      final businessSchedule = businessController.weeklySchedule.isNotEmpty
+          ? businessController.weeklySchedule.toList()
+          : businessController
+              .businessProfileDetails.value?.data?.availability?.schedule;
+
+      // NOT gated on `data != null` any more. The old gate was, because it read
+      // the other-service profile; this one reads the business record, which is
+      // already loaded by the time this tab paints. Keeping the guard would
+      // have hidden the banner from exactly the merchants who need it — those
+      // whose other-service profile hasn't arrived (or doesn't exist).
+      final needsTimings = !_hasAnyOpenScheduleDay(businessSchedule);
 
       // Whether any album actually holds an image — NOT just whether the
       // gallery list is non-empty. An album with no images renders `_Gallery`,
@@ -217,7 +248,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(
                     right: SizeConfig.size12, left: SizeConfig.size25),
-                child: _TimingsRequiredBanner(onTap: _openTimings),
+                child: _TimingsRequiredBanner(
+                    onTap: () => _openTimings(businessController)),
               ),
             SizedBox(height: SizeConfig.size16),
           ],
@@ -366,8 +398,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
             padding: EdgeInsets.only(
                 right: SizeConfig.size12, left: SizeConfig.size25),
             child: _TimingCard(
-              timings: data?.timings,
-              onEditTap: _openTimings,
+              schedule: businessSchedule,
+              onEditTap: () => _openTimings(businessController),
             ),
           ),
 
@@ -790,10 +822,16 @@ class _GalleryLayout extends StatelessWidget {
 }
 
 class _TimingCard extends StatelessWidget {
-  final Timings? timings;
+  /// The BUSINESS availability schedule — the single source of business hours.
+  ///
+  /// The other-service profile used to carry a `timings` object of its own and
+  /// this card read that first. Two records for one fact could not stay in
+  /// step, so the second one is gone: hours are read from, and written to, the
+  /// business availability record only.
+  final List<Schedule>? schedule;
   final VoidCallback onEditTap;
 
-  const _TimingCard({required this.timings, required this.onEditTap});
+  const _TimingCard({required this.schedule, required this.onEditTap});
 
   /// Canonical (untranslated) day keys — used for the [_slotFor] lookup. The
   /// visible label goes through [_dayLabelKey] so only the display text is
@@ -828,22 +866,14 @@ class _TimingCard extends StatelessWidget {
     return day;
   }
 
-  DayTiming? _slotFor(String day) {
-    switch (day) {
-      case 'Monday':
-        return timings?.monday;
-      case 'Tuesday':
-        return timings?.tuesday;
-      case 'Wednesday':
-        return timings?.wednesday;
-      case 'Thursday':
-        return timings?.thursday;
-      case 'Friday':
-        return timings?.friday;
-      case 'Saturday':
-        return timings?.saturday;
-      case 'Sunday':
-        return timings?.sunday;
+  /// The schedule row for [day], matched case-insensitively — the payload
+  /// spells the day exactly as this list does, but it comes from another
+  /// service and there is no reason to depend on its casing.
+  Schedule? _rowFor(String day) {
+    final rows = schedule;
+    if (rows == null) return null;
+    for (final s in rows) {
+      if ((s.day ?? '').toLowerCase() == day.toLowerCase()) return s;
     }
     return null;
   }
@@ -869,12 +899,12 @@ class _TimingCard extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size12),
           ..._weekDays.map((day) {
-            final slot = _slotFor(day);
+            final row = _rowFor(day);
             return _TimingRow(
               day: _dayLabelKey(day).tr,
-              isOpen: slot?.isOpen ?? false,
-              openTime: slot?.openTime ?? '10:00',
-              closeTime: slot?.closeTime ?? '10:00',
+              isOpen: row?.isOpen ?? false,
+              openTime: row?.shopOpenTime ?? '10:00',
+              closeTime: row?.shopCloseTime ?? '10:00',
             );
           }),
         ],
@@ -1422,27 +1452,22 @@ Future<void> _openBankingEditSheet({
   );
 }
 
-/// "Business is meaningfully open" check for the timings gate. A single
-/// weekday flagged open with valid open/close times is enough — the user
-/// doesn't have to fill all seven days, they just have to prove they've
-/// engaged with the timings form. Matches the school gate rule where any
+/// "Business is meaningfully open" check for the timings gate: one weekday
+/// flagged open with real open/close times.
+///
+/// The merchant doesn't have to fill all seven days — they just have to have
+/// engaged with the hours form. Matches the school gate rule, where any
 /// non-empty required field flips the banner off.
-bool _hasAnyConfiguredTiming(Timings? t) {
-  if (t == null) return false;
-  final days = <DayTiming?>[
-    t.monday,
-    t.tuesday,
-    t.wednesday,
-    t.thursday,
-    t.friday,
-    t.saturday,
-    t.sunday,
-  ];
-  return days.any((d) =>
-      d != null &&
-      d.isOpen == true &&
-      (d.openTime?.isNotEmpty ?? false) &&
-      (d.closeTime?.isNotEmpty ?? false));
+///
+/// Reads the BUSINESS availability schedule, the single source of hours. The
+/// other-service profile's `timings` object is no longer consulted anywhere on
+/// this tab.
+bool _hasAnyOpenScheduleDay(List<Schedule>? schedule) {
+  if (schedule == null || schedule.isEmpty) return false;
+  return schedule.any((s) =>
+      s.isOpen == true &&
+      (s.shopOpenTime?.isNotEmpty ?? false) &&
+      (s.shopCloseTime?.isNotEmpty ?? false));
 }
 
 /// Profile-completion gate for Finance businesses. Mirrors

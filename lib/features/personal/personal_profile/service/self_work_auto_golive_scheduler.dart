@@ -21,9 +21,9 @@ import '../../auth/controller/view_personal_details_controller.dart';
 /// self-work yet, so this is purely a while-the-app-is-open convenience.
 ///
 /// Guards baked in (mirror the MANUAL go-live gate in SelfEmployeeScreen):
-///  • never opens a provider whose deposit is required-but-unpaid AND whose
-///    first-service-free waiver is used up (re-checks `isGoLiveAllowed` /
-///    `isFirstServiceFree` every tick);
+///  • never opens a provider without an ACTIVE PLAN (re-checks
+///    `isGoLiveAllowed` every tick — that is the whole payment gate now; the
+///    free-first-service waiver was removed from the product);
 ///  • never auto-opens without the required permissions already granted (it
 ///    can't prompt in the background);
 ///  • respects a manual opt-out — if the provider taps offline during the
@@ -190,8 +190,7 @@ class SelfWorkAutoGoLiveScheduler {
       final isOpen = viewCtrl.shopStatusOpenClose.value;
       final manualOffToday = _manualOffCache == _todayKey();
       log('[SelfWorkAutoGoLive] tick@${_nowLabel()}: eligible=$eligible '
-          '(planOrFree=${viewCtrl.isGoLiveAllowed} '
-          'firstServiceFree=${viewCtrl.isFirstServiceFree}) inWindow=$inWindow '
+          '(hasPlan=${viewCtrl.isGoLiveAllowed}) inWindow=$inWindow '
           'isOpen=$isOpen autoOpened=$_autoOpenedThisSession '
           'manualOffToday=$manualOffToday');
 
@@ -232,8 +231,7 @@ class SelfWorkAutoGoLiveScheduler {
       }
       if (!eligible) {
         log('[SelfWorkAutoGoLive] not eligible '
-            '(planOrFree=${viewCtrl.isGoLiveAllowed} '
-            'firstServiceFree=${viewCtrl.isFirstServiceFree}) → skip open');
+            '(hasPlan=${viewCtrl.isGoLiveAllowed}) → skip open');
         return;
       }
       if (!inWindow) return; // outside 08:00–22:00 — nothing to open

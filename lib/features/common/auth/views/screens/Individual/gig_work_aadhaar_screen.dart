@@ -120,7 +120,7 @@ class _GigWorkAadhaarScreenState extends State<GigWorkAadhaarScreen> {
     File? front,
     File? back,
   }) async {
-    await getOrPut(() => DeliveryPartnerController())
+    await getOrPut(() => DeliveryPartnerController(), permanent: true)
         .recordAadhaarForRiderOnboarding(
       aadhaarNumber: aadhaarNumber,
       front: front,

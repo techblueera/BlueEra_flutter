@@ -789,12 +789,21 @@ const String MAID_FEMALE = "MAID_FEMALE";
 const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
 const String BIKE_RIDER = "BIKE_RIDER";
-const String CAR_TAXI = "CAR_DRIVER_TAXI";
+
+/// Pedal delivery — a rider with no motor, and therefore no RC and no driving
+/// licence. Reachable only through the profile-category change flow (a user
+/// who picked Bike Rider and meant this); the app has no other way in yet.
+const String BICYCLE_RIDER = "BICYCLE_RIDER";
 // Values must match the `tag_id` the professions API returns for the GigWork
 // bucket — the app compares them against `userProfessionGlobal`, which is that
 // same tagId (see personal_profile_setup_new_screen.dart's profession submit).
 // These two used to read "GOODS_TAXI"/"AUTO_TAXI", which the backend never
 // sends, so every check against them silently failed.
+//
+// `CAR_TAXI = "CAR_DRIVER_TAXI"` was the third of that same family and has
+// been REMOVED: the catalog serves the cab profession as CAR_TAXI_DRIVER, so
+// nothing could ever equal it. Use [CAR_TAXI_DRIVER]. See [GigProfession],
+// which is now the single list of what this bucket actually contains.
 const String GOODS_TAXI = "GOODS_SUPPLY";
 const String AUTO_TAXI = "AUTO_ERICKSHAW";
 const String MECHANIC = "MECHANIC";
@@ -812,19 +821,71 @@ const String TUTOR = "TUTOR";
 const String CONSULTANT = "CONSULTANT";
 const String OTHER = "OTHER";
 
+/// The GigWork bucket of the professions catalog, as the server actually
+/// serves it — one enum value per `tag_id`, and the single place that list
+/// lives.
+///
+/// It exists because the loose `const String`s drifted from the catalog three
+/// times: `GOODS_TAXI` and `AUTO_TAXI` once held values the backend never
+/// sends (fixed by pointing them at GOODS_SUPPLY / AUTO_ERICKSHAW), and
+/// `CAR_TAXI = "CAR_DRIVER_TAXI"` sat next to `CAR_TAXI_DRIVER` as a second
+/// spelling of the same job — one real, one dead — so `kRiderProfessions`
+/// carried both and the Discover icon map keyed the cab icon off the dead one,
+/// which is why cab drivers had no icon there. An enum makes "which tags exist"
+/// answerable in one place instead of by grepping constants.
+///
+/// Verified against `GET user-service/individual-professions`, which returns
+/// exactly these five for `profileType: "GigWork"`.
+enum GigProfession {
+  bikeRider(BIKE_RIDER, 'Bike Rider'),
+  bicycleRider(BICYCLE_RIDER, 'Bicycle Rider'),
+  carTaxiDriver(CAR_TAXI_DRIVER, 'Car / Taxi Driver'),
+  autoERickshaw(AUTO_TAXI, 'Auto / E-Rickshaw'),
+  goodsSupply(GOODS_TAXI, 'Goods Supply');
+
+  const GigProfession(this.tag, this.catalogName);
+
+  /// The catalog `tag_id`, and the value stored in `userProfessionGlobal`.
+  final String tag;
+
+  /// The catalog's own display name. Kept for reference and debugging — screens
+  /// should render the name from the API response, which is translated and can
+  /// change without an app release.
+  final String catalogName;
+
+  /// The enum value for a stored profession, or null when it isn't a gig
+  /// profession (a plumber, a tutor) or hasn't loaded yet.
+  static GigProfession? fromTag(String? tag) {
+    if (tag == null || tag.isEmpty) return null;
+    for (final p in values) {
+      if (p.tag == tag) return p;
+    }
+    return null;
+  }
+
+  /// True for the professions that need an RC and a driving licence. A bicycle
+  /// has neither, which is the one distinction the rest of the app must not
+  /// flatten — see [kRiderProfessions].
+  bool get isMotorVehicle => this != GigProfession.bicycleRider;
+}
+
 /// Canonical set of GIG_WORKER "rider" professions — live-dispatch drivers that
 /// need the go-live device permissions (background location + overlay) and land
 /// on their Me-tab dashboard on login. Single source of truth for rider checks;
 /// prefer [isRiderProfession] over ad-hoc `x == BIKE_RIDER || x == ...` chains
-/// (which are inconsistent across the app — some omit AUTO_TAXI/GOODS_TAXI/
-/// CAR_TAXI). Covers all five: bike, auto, car (both CAR_TAXI/CAR_TAXI_DRIVER),
-/// and goods.
-const Set<String> kRiderProfessions = {
-  BIKE_RIDER,
-  AUTO_TAXI,
-  CAR_TAXI,
-  CAR_TAXI_DRIVER,
-  GOODS_TAXI,
+/// (which were inconsistent across the app — some omitted AUTO_TAXI/
+/// GOODS_TAXI).
+///
+/// Derived from [GigProfession] rather than listed again, so a profession added
+/// to the enum is a rider everywhere without a second edit.
+///
+/// [BICYCLE_RIDER] belongs here for the same reason as the rest — it is
+/// dispatched live and needs the same permissions — but it is NOT a motor
+/// vehicle. Gates that mean "has an RC and a driving licence" must keep naming
+/// [BIKE_RIDER] explicitly, or test [GigProfession.isMotorVehicle], rather than
+/// reaching for this set.
+final Set<String> kRiderProfessions = {
+  for (final p in GigProfession.values) p.tag,
 };
 
 /// True when [profession] is one of the live-dispatch rider professions
@@ -2587,7 +2648,12 @@ final Map<String, String> individualProfessionIcons = {
   CLEANER: DiscoverIcons.cleaner,
   // Gig Work
   BIKE_RIDER: DiscoverIcons.twoWheeler,
-  CAR_TAXI: DiscoverIcons.passenger,
+  // Was keyed off CAR_TAXI ("CAR_DRIVER_TAXI"), a tag the catalog never sends,
+  // so this lookup never hit and cab drivers rendered without an icon.
+  CAR_TAXI_DRIVER: DiscoverIcons.passenger,
+  // Placeholder: there is no bicycle asset yet, and the two-wheeler tile is
+  // the closest thing. Swap it when one is drawn.
+  BICYCLE_RIDER: DiscoverIcons.twoWheeler,
   GOODS_TAXI: DiscoverIcons.goods,
   AUTO_TAXI: OnboardingIndividualAssets.autoERickshaw, // no 2026 tile
   // Professional / Consultation

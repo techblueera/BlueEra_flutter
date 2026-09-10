@@ -140,6 +140,23 @@ class DeliverPartnerOrdersController extends GetxController {
     isStreaming = false;
   }
 
+  /// Last-resort teardown, for the paths that delete this controller rather
+  /// than navigate away from it — chiefly LOGOUT.
+  ///
+  /// The screens that open the stream close it again in their own `dispose`,
+  /// and that is still the normal path. But this controller is now registered
+  /// `permanent: true` (so a transient route popping can't delete a live SSE
+  /// connection out from under the screens still using it), which means the
+  /// only thing that ever disposes it is an explicit `Get.delete` on logout.
+  /// Without this the connection would survive that logout and keep streaming
+  /// the previous rider's orders against a token that no longer belongs to
+  /// whoever is now using the device.
+  @override
+  void onClose() {
+    stopStream();
+    super.onClose();
+  }
+
 
 
   void updateOrders(List<RiderOrdersDetailsModel> list) {

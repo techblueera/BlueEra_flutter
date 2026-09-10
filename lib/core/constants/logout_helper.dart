@@ -30,6 +30,8 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
 import 'package:BlueEra/features/me/automotive_products/service/automotive_local_store.dart';
 import 'package:BlueEra/features/me/food/service/food_local_store.dart';
@@ -40,29 +42,24 @@ import 'package:BlueEra/features/me/vehicle/v3/service/vehicle_local_store.dart'
 import 'package:BlueEra/features/me/grocery/service/grocery_local_store.dart';
 import 'package:BlueEra/features/me/grocery/service/grocery_order_local_store.dart';
 import 'package:BlueEra/core/services/other_profile_dirty.dart';
-// The `me/others` and `me/automotive_service` forks are line-for-line twins,
-// so the two halves below collide on every name they did NOT prefix — most
-// of all `DayTiming`, which both timing controllers declare. Unprefixed, the
-// pair compiles only for as long as nobody writes `DayTiming` in this file;
-// the day someone does it becomes an ambiguous-import error with no obvious
-// cause. Each import is therefore narrowed to the one controller this file
-// actually drops, which is all it ever wanted from them.
-import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart'
+// The `me/others` and `me/automotive_service` forks are near-twins. The
+// automotive half now prefixes every public class with `Automotive`, so the
+// name collisions that used to make these imports hazardous are gone — but the
+// `show` clauses stay: this file wants exactly one controller from each of six
+// libraries, and narrowing the import is what keeps a future collision from
+// becoming an ambiguous-import error here rather than at its source.
+import 'package:BlueEra/features/me/automotive_service/controller/automotive_business_profile_full_controller.dart'
     show AutomotiveBusinessProfileFullController;
-import 'package:BlueEra/features/me/automotive_service/controller/management_controller.dart'
+import 'package:BlueEra/features/me/automotive_service/controller/automotive_management_controller.dart'
     show AutomotiveManagementController;
-import 'package:BlueEra/features/me/automotive_service/controller/other_service_photo_controller.dart'
+import 'package:BlueEra/features/me/automotive_service/controller/automotive_service_photo_controller.dart'
     show AutomotiveServicePhotoController;
-import 'package:BlueEra/features/me/automotive_service/controller/timing_controller.dart'
-    show AutomotiveTimingController;
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart'
     show BusinessProfileFullController;
 import 'package:BlueEra/features/me/others/controller/management_controller.dart'
     show ManagementController;
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart'
     show OtherServicePhotoPhotoController;
-import 'package:BlueEra/features/me/others/controller/timing_controller.dart'
-    show TimingController;
 import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -157,6 +154,18 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ChatViewController>());
     _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
     _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
+    // Rider pair: both are registered `permanent: true`, because their
+    // lifetime is the SESSION, not whichever transient route happened to
+    // create them first. GetX used to delete them when that route popped —
+    // taking a live controller away from screens still holding it, which is
+    // what made the Go-Live pill throw "DeliveryPartnerController not found".
+    //
+    // Permanent means smart-management will never reclaim them, so logout has
+    // to. Deleting DeliverPartnerOrdersController also closes its SSE
+    // connection (see its `onClose`), which would otherwise keep streaming the
+    // previous rider's orders into the next session on this device.
+    _drop(() => deleteIfRegistered<DeliveryPartnerController>());
+    _drop(() => deleteIfRegistered<DeliverPartnerOrdersController>());
     _resetMeSectionControllers();
   }
 
@@ -273,12 +282,19 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<BusinessProfileFullController>());
     _drop(() => deleteIfRegistered<OtherServicePhotoPhotoController>());
     _drop(() => deleteIfRegistered<ManagementController>());
-    _drop(() => deleteIfRegistered<TimingController>());
+    // TimingController / AutomotiveTimingController are NOT dropped, because
+    // they can no longer be registered: business hours moved to the single
+    // business-availability record, and nothing constructs the other-service
+    // timing screens any more.
+    //
+    // Their drops had to go with them. A `_drop(() => deleteIfRegistered<T>())`
+    // holds a const reference to T, and with no reachable construction site
+    // the AOT tree shaker deletes the class out from under it — the release
+    // build then fails with the "Lookup failed" error described above.
 
     _drop(() => deleteIfRegistered<AutomotiveBusinessProfileFullController>());
     _drop(() => deleteIfRegistered<AutomotiveServicePhotoController>());
     _drop(() => deleteIfRegistered<AutomotiveManagementController>());
-    _drop(() => deleteIfRegistered<AutomotiveTimingController>());
 
     _drop(OtherProfileDirty.clear);
   }

@@ -607,23 +607,4 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-  ///GET SCHOOL TIMINGS REPO....
-  Future<ResponseModel> getSchoolTimingsRepo({String? schoolID}) async {
-    final response = await ApiBaseHelper().getHTTP(
-        "$schoolUserID${schoolID ?? schoolIDGlobal}/timings",
-        onError: (error) {},
-        onSuccess: (data) {});
-    return response;
-  }
-
-  ///UPDATE SCHOOL TIMINGS REPO....
-  Future<ResponseModel> updateSchoolTimingsRepo(
-      {String? schoolID, required Map<String, dynamic> reqBODY}) async {
-    final response = await ApiBaseHelper().putHTTP(
-        "$schoolUserID${schoolID ?? schoolIDGlobal}/timings",
-        params: reqBODY,
-        onError: (error) {},
-        onSuccess: (data) {});
-    return response;
-  }
 }

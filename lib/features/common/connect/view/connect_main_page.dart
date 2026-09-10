@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show ImageFilter;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -30,6 +29,7 @@ import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/contacts/controller/contact_sync_controller.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/orders_tab_body.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
@@ -963,18 +963,26 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     Column(
                       children: [
                         const CustomerOngoingRideCard(),
-                        // Banner ABOVE the list, not below it. The bottom nav
-                        // is a Positioned overlay on this route, so the tab's
-                        // content runs underneath it — a strip at the Column's
-                        // bottom would be hidden by the bar, and any part that
-                        // showed would sit flush against it. Collapses to zero
-                        // height with no fill, so the list is unchanged when
-                        // there is no ad.
-                        const AdMobBannerAdWidget(
-                          margin: EdgeInsets.only(bottom: 6),
-                        ),
+                        // No banner strip here any more. A fixed band between
+                        // the tabs and the first chat pushed every conversation
+                        // down the screen and read as chrome the user had to
+                        // look past to reach their own messages.
+                        //
+                        // Ads now ride INSIDE the list as native rows, on the
+                        // same cadence the discover lists use — see the
+                        // `adSlots` map in personal_chat_list.dart. They scroll
+                        // away with the content instead of holding the top of
+                        // the tab.
                         Expanded(
-                          child: PersonalChatsList(isForwardUI: false),
+                          // The tab is laid out full-screen behind the shell's
+                          // floating nav bar, so the list ends above it —
+                          // otherwise the last conversation stays under the
+                          // bar however far you scroll. (The Inquiry tab's
+                          // list already reserves its own bottom margin.)
+                          child: PersonalChatsList(
+                            isForwardUI: false,
+                            bottomInset: kFloatingBottomNavExtent,
+                          ),
                         ),
                       ],
                     ),
@@ -1053,6 +1061,11 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   /// such tab here, so we hop to the Me tab where it lives.
   Widget _buildOrderTab() {
     return SingleChildScrollView(
+      // This scroll view is the one that ends at the shell's floating nav bar,
+      // so it is the one that reserves for it — [OrdersTabBody] builds with
+      // `isInParentScroll: true` and leaves the bottom to whoever owns the
+      // scroll, exactly as the me dashboards' own tab scrollers do.
+      padding: const EdgeInsets.only(bottom: kFloatingBottomNavExtent),
       child: OrdersTabBody(
         onAddProducts: () {
           final bottomBar = getOrPut(() => BottomBarController());
@@ -1930,7 +1943,10 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
     _pageController = PageController(initialPage: selectedIndex);
 
     initPlatformState();
-    getPackageData();
+    // No store check here. It lives in bottom_navigation_bar_screen.dart, which
+    // hosts this page — the copy that used to run from this initState fired a
+    // SECOND check on every mount of the Connect tab and always chose Play's
+    // full-screen immediate flow, overriding the update sheet.
     searchController.addListener(() {
       setState(() {});
     });
@@ -1998,51 +2014,6 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
         }
       }
     });
-  }
-
-  Future<void> getPackageData() async {
-    if (!mounted) return;
-    PackageInfo _packageInfo = await PackageManager.getPackageInfo();
-    _checkForUpdate(context, _packageInfo);
-  }
-
-  Future<void> _checkForUpdate(
-      BuildContext context, PackageInfo packageInfo) async {
-    try {
-      if (Platform.isAndroid) {
-        InAppUpdateManager manager = InAppUpdateManager();
-        AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
-        if (appUpdateInfo == null) return;
-        if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.developerTriggeredUpdateInProgress) {
-          //If an in-app update is already running, resume the update.
-          String? message =
-              await manager.startAnUpdate(type: AppUpdateType.immediate);
-          debugPrint(message ?? '');
-        } else if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.updateAvailable) {
-          ///Update available
-          if (appUpdateInfo.immediateAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.immediate);
-            debugPrint(message ?? '');
-          } else if (appUpdateInfo.flexibleAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.flexible);
-            debugPrint(message ?? '');
-          } else {
-            debugPrint(
-                'Update available. Immediate & Flexible Update Flow not allow');
-          }
-        }
-      } else if (Platform.isIOS) {
-        VersionInfo? _versionInfo = await UpgradeVersion.getiOSStoreVersion(
-            packageInfo: packageInfo, regionCode: "US");
-        debugPrint(_versionInfo.toJson().toString());
-      }
-    } catch (e) {
-      debugPrint("Error checking for update: $e");
-    }
   }
 
   void _calculateHeaderHeight() {

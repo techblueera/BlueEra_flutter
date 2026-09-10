@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart' show kFloatingBottomNavExtent;
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -32,6 +33,16 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   final CallController _callController = getOrPut(() => CallController());
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
+
+  /// Space under the last call row.
+  ///
+  /// [CallHistoryScreen.showAppBar] is what separates this screen's two lives:
+  /// with the app bar it was pushed as its own route, which covers the shell
+  /// and its floating nav bar; without it, it is the Connect page's third tab,
+  /// laid out full-screen BEHIND that bar — so the last row needs to end above
+  /// it or it can never be scrolled clear.
+  double get _bottomInset =>
+      widget.showAppBar ? 24 : 24 + kFloatingBottomNavExtent;
 
   final RxBool _isLoading = true.obs;
   final RxList<CallModel> _calls = <CallModel>[].obs;
@@ -393,7 +404,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: _bottomInset),
       children: grouped.entries.expand((entry) {
         return [
           Padding(

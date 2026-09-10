@@ -18,7 +18,7 @@ class SelfEmployeeOrders extends StatefulWidget {
 
 class _SelfEmployeeOrdersState extends State<SelfEmployeeOrders>  {
   final controller = getOrPut(() => EarnServiceController());
-  // final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  // final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   // @override
   // void initState() {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/constants/profile_identity.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
@@ -194,6 +195,12 @@ class SharedPreferenceUtils {
   /// it only ever lands on one of those screens.
   static const addProductPromptLastShownKey = 'add_product_prompt_last_shown';
 
+  /// `<availableVersion>|<yyyy-MM-dd>` of the last app-update prompt, so the
+  /// sheet offers a given release at most once a day. The version half is what
+  /// lets a NEW release prompt immediately instead of inheriting the silence
+  /// of a version the user dismissed earlier the same day.
+  static const updatePromptLastShownKey = 'update_prompt_last_shown';
+
   /// `yyyy-MM-dd` of the last day the business-profile QR promo sheet was
   /// shown, so it pops at most once per calendar day (not on every profile
   /// mount / bottom-nav re-entry).
@@ -292,7 +299,12 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(userName, getUserName);
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
-    await SharedPreferenceUtils.setSecureValue(userProfileType, profileType);
+    // Normalized on the way IN, so storage only ever holds the app's own
+    // vocabulary — see [normalizeProfileType]. Login already sent the app
+    // constant; this matters for accounts whose profileType was derived from
+    // the backend catalog by a profile-category change ("GigWork").
+    await SharedPreferenceUtils.setSecureValue(
+        userProfileType, normalizeProfileType(profileType));
     await SharedPreferenceUtils.setSecureValue(userProfession, profession);
     await SharedPreferenceUtils.setSecureValue(userDesignation, designation);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
@@ -303,6 +315,48 @@ class SharedPreferenceUtils {
       NetworkImage(userProfileGlobal),
       Get.context!,
     );
+  }
+
+  /// Updates the three globals that gate individual UI — profession, profile
+  /// type and designation — in secure storage AND in memory, together.
+  ///
+  /// Until this existed they were written in exactly one place
+  /// ([userLoggedInIndividualGuest]) and read into memory in exactly one other
+  /// ([initGlobals], at app start). Nothing in a running session could change
+  /// them. That is fine while the only way to acquire a profession is
+  /// onboarding, and wrong the moment a user can change their category from
+  /// inside the app: re-fetching the profile updates the profile screen, but
+  /// the rider tab, gig-work options, delivery orders, inventory, contribution
+  /// type and drawer label all read these globals, so they would keep showing
+  /// the OLD profession until the next full restart *and* re-login.
+  ///
+  /// Call it right after a successful category change, with the values from
+  /// the change response (`data.current`). Then rebuild whatever branches on
+  /// them — writing the globals does not itself trigger a rebuild; they are
+  /// plain `String`s, not observables.
+  ///
+  /// A null argument leaves that field alone; pass `''` to clear one. That
+  /// distinction matters for [designation], which the backend clears when a
+  /// change doesn't re-send it — `null` would otherwise silently preserve a
+  /// designation that no longer exists server-side.
+  static Future<void> applyProfileGlobals({
+    String? professionTagId,
+    String? profileType,
+    String? designation,
+  }) async {
+    if (professionTagId != null) {
+      await setSecureValue(userProfession, professionTagId);
+      userProfessionGlobal = professionTagId;
+    }
+    if (profileType != null) {
+      final normalized = normalizeProfileType(profileType);
+      await setSecureValue(userProfileType, normalized);
+      userProfileTypeGlobal = normalized;
+    }
+    if (designation != null) {
+      await setSecureValue(userDesignation, designation);
+      userDesignationGlobal = designation;
+    }
   }
 
   static Future<void> guestUserLoggedIn({
@@ -785,7 +839,10 @@ getUserLoginData() async {
   userMobileGlobal = values[4] ?? "";
   userProfileGlobal = values[5] ?? "";
   userNameGlobal = values[6] ?? "";
-  userProfileTypeGlobal = values[7] ?? "";
+  // Normalized on read as well as on write: an account that changed category
+  // on ANOTHER device, or before this normalization shipped, still has the
+  // catalog spelling ("GigWork") sitting in secure storage.
+  userProfileTypeGlobal = normalizeProfileType(values[7]);
   userProfessionGlobal = values[8] ?? "";
   userDesignationGlobal = values[9] ?? "";
   has_reel_profile_status = values[10] ?? "false";

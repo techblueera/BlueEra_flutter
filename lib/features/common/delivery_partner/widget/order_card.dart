@@ -215,7 +215,7 @@ class _OrderCardState extends State<OrderCard> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPut(() => DeliverPartnerOrdersController());
+    final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
 
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -1590,7 +1590,7 @@ class _OrderCardState extends State<OrderCard> {
     // ongoing tab and disposes this card — often before the call even returns.
     final customerName = (widget.order.user?.name ?? '').trim();
 
-    final completed = await getOrPut(() => DeliverPartnerOrdersController())
+    final completed = await getOrPut(() => DeliverPartnerOrdersController(), permanent: true)
         .completePickupRiderApi(orderId);
     if (!completed) return;
 

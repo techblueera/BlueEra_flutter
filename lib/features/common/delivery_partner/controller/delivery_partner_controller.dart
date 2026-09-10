@@ -440,9 +440,15 @@ class DeliveryPartnerController extends GetxController {
   /// RC & Driving-Licence only need their number (image upload is optional),
   /// so their completion is driven by the backend `rc` / `dl` flags here.
   bool get mandatoryStepsCompleted {
+    // Deliberately NOT [isRiderProfession]: this names the professions the PAN
+    // step is hidden for, and auto / goods drivers are not among them. Bicycle
+    // riders are added because the step is hidden for them too — leaving them
+    // out would make "Submit for verification" un-completable against a card
+    // they are never shown.
     final optionalSteps = <RiderProfileStep>{
       RiderProfileStep.vehicleImagesInfo,
       if (userProfessionGlobal == BIKE_RIDER ||
+          userProfessionGlobal == BICYCLE_RIDER ||
           userProfessionGlobal == CAR_TAXI_DRIVER)
         RiderProfileStep.panInfo,
     };
@@ -477,16 +483,9 @@ class DeliveryPartnerController extends GetxController {
     return isGoLiveAllowed;
   }
 
-  /// First-ride-free waiver: the rider's FIRST ride is on the house, so they
-  /// may go live and take it before paying anything. Once it is used the plan
-  /// gate applies on every subsequent go-live.
-  ///
-  /// Fail-CLOSED: only an explicit `freeRideUsed == false` waives, so an absent
-  /// flag leaves payment required. The individual analogue is
-  /// `ViewPersonalDetailsController.isFirstServiceFree`; the business one is
-  /// `ViewBusinessDetailsController.isFreeQuotaAvailable`.
-  bool get isFirstRideFree =>
-      riderOnboardingStatusData.value?.freeRideUsed == false;
+  // REMOVED: isFirstRideFree. There is no free-first-ride waiver in the
+  // product any more — go-live is gated on an ACTIVE PLAN and nothing else.
+  // The backend still sends `freeRideUsed`; nothing reads it.
 
   /// The backend's own verdict that this rider has satisfied everything —
   /// all six onboarding sections PLUS *either* a paid security deposit *or* an
@@ -516,16 +515,38 @@ class DeliveryPartnerController extends GetxController {
   /// payment half of the gate is now the plan, or the free first ride.
   bool get isGoLiveAllowed {
     final approved = riderOnboardingStatusData.value?.verificationStatus == "approved";
-    final hasActivePlan = AccountPlanEntitlement.to.hasActivePlan.value;
-    final allowed = approved && (hasActivePlan);
-    // final allowed = approved && (!isFirstRideFree || hasActivePlan);
+    // [AccountPlanEntitlement.allowsGoLive], not the raw `hasActivePlan.value`.
+    //
+    // The raw flag starts FALSE and cannot tell "this account has no plan"
+    // apart from "we have never managed to ask". Reading it here meant an
+    // unreachable plans API — or simply an app start where nothing had asked
+    // yet — knocked a paying rider offline and sent them to buy a plan they
+    // already held. `allowsGoLive` fails OPEN until a `my-plans` read has
+    // actually completed, which is what that getter exists for. The server is
+    // the enforcement point regardless; the client is a convenience gate.
+    final hasActivePlan = AccountPlanEntitlement.to.allowsGoLive;
+    // The WHOLE gate: approved onboarding + an active plan. No free-ride
+    // waiver and no deposit term — both were removed from the product.
+    //
+    // The `approved` half is GIG_WORKER-ONLY, and correctly lives here rather
+    // than in the shared entitlement: GigWork is exactly the five dispatch
+    // professions ([GigProfession]), every one of which goes through rider
+    // verification, so there is a verificationStatus to read for all of them.
+    // Business and self-employed / professional accounts have no such step —
+    // their gates (ViewBusinessDetailsController / ViewPersonalDetailsController
+    // .isGoLiveAllowed) are the ACTIVE PLAN alone. Adding an approval term
+    // there would block every one of them permanently.
+    final allowed = approved && hasActivePlan;
 
     log(
       'isGoLiveAllowed: $allowed | '
           'verificationApproved: $approved | '
           'status: ${riderOnboardingStatusData.value?.verificationStatus} | '
-          'firstRideUsed: $isFirstRideFree | '
-          'hasActivePlan: $hasActivePlan',
+          // Both, so a fail-open decision is legible in the log:
+          // planKnown=false with hasActivePlan=true means "never asked", not
+          // "holds a plan".
+          'hasActivePlan: $hasActivePlan | '
+          'planKnown: ${AccountPlanEntitlement.to.isKnown}',
       name: 'GoLiveCheck',
     );
 

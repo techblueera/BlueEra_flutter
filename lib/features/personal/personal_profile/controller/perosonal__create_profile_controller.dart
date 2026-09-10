@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/profile_identity.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -111,8 +114,81 @@ class PersonalCreateProfileController extends GetxController {
     descriptionController.clear();
   }
 
+  /// Which of the profile-category fields [params] would actually CHANGE.
+  ///
+  /// Presence alone is not the offence — the backend compares the profession
+  /// through the catalog and the profileType across both vocabularies, so a
+  /// screen echoing back the value it just read is explicitly not a change and
+  /// does not 409. Several screens do exactly that (the bio card, the AI-bio
+  /// screen, the profile header) and asserting on presence would fail every one
+  /// of them for nothing.
+  ///
+  /// Comparison is done on a squashed key — letters and digits only, uppercased
+  /// — because `user.profession` exists in the live data as BOTH `"Bike Rider"`
+  /// and `"BIKE_RIDER"` depending on which onboarding path created the account.
+  /// Comparing raw strings would report a change where there is none.
+  static List<String> _profileCategoryFieldsChangedBy(
+      Map<String, dynamic> params) {
+    String squash(String? v) =>
+        (v ?? '').toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
+    final changed = <String>[];
+
+    for (final key in [ApiKeys.profession]) {
+      if (!params.containsKey(key)) continue;
+      final sent = squash(params[key]?.toString());
+      // A blank clears nothing here; treat it as "not asserting a value".
+      if (sent.isEmpty) continue;
+      if (sent != squash(userProfessionGlobal)) changed.add(key);
+    }
+
+    for (final key in [ApiKeys.profileType, ApiKeys.profile_type]) {
+      if (!params.containsKey(key)) continue;
+      final sent = normalizeProfileType(params[key]?.toString());
+      if (sent.isEmpty) continue;
+      if (sent != normalizeProfileType(userProfileTypeGlobal)) changed.add(key);
+    }
+
+    return changed;
+  }
+
+  /// Every write to `PUT /user/updateIndividualAccountUser/:id` funnels through
+  /// here, which makes it the one place that can police what may go in it.
+  ///
+  /// A PROFESSION or PROFILE-TYPE change is no longer allowed on this endpoint:
+  /// it answers `409 use_profile_category_endpoint` for a non-GUEST account,
+  /// because those changes are one-per-account and need the counter and audit
+  /// trail that `POST /user/me/profile-category/change` carries. See §3.4 of
+  /// docs/backend/FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md.
+  ///
+  /// The assertion below is the enforcement. It is DEBUG-ONLY — `assert` is
+  /// compiled out of release — and it is deliberately loud: a straggler caller
+  /// that still sends `profession` fails here, on the developer's machine, with
+  /// the fix in the message, instead of silently 409-ing in production where it
+  /// reads to the user as "saving my profile is broken".
+  ///
+  /// Satellite edits are unaffected: bio, designation, photo, DOB,
+  /// specialization, sector, department and the rest still belong here.
+  /// GUEST accounts are exempt — first-time profile fill is not a change, and
+  /// the backend guard does not fire for them either.
   Future<void> updateUserProfileDetails(
       {required Map<String, dynamic> params, bool isFromProfileOnly = false, bool? showProgress}) async {
+    assert(() {
+      if (isGuestUser()) return true;
+      final offending = _profileCategoryFieldsChangedBy(params);
+      if (offending.isEmpty) return true;
+      throw FlutterError(
+        'updateUserProfileDetails was given a CHANGED $offending for a '
+        'non-GUEST account.\n'
+        'The legacy endpoint answers 409 use_profile_category_endpoint for a '
+        'profession / profileType change.\n'
+        'Route it through ProfileCategoryController.changeCategory() '
+        '(POST /user/me/profile-category/change) and send the satellite fields '
+        'here AFTERWARDS — the change wipes them server-side.\n'
+        'See update_personal_profession_dialog.dart for the worked example.',
+      );
+    }());
+
     try {
       updateBtnLoading.value = true;
       print("Params being sent to API: $params");

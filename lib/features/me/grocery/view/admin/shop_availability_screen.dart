@@ -71,6 +71,19 @@ class _ShopAvailabilityScreenState
   // (the availability endpoints no longer show the global progress dialog).
   bool _isSaving = false;
 
+  /// Whether this screen opened on hours that already exist.
+  ///
+  /// The caller passes [ShopAvailabilityScreen.initialSchedule] when there is
+  /// something to edit, so it doubles as the answer to "is this a first-time
+  /// setup or a change?" — and the header and button should say which. "Save"
+  /// over a form already filled with a merchant's own hours reads like it is
+  /// about to create a second set.
+  ///
+  /// Read from the WIDGET, not from [_weekly]: the rows are always populated
+  /// (they default to 09:00–21:00 when nothing was passed), so the form's own
+  /// state cannot tell the two cases apart.
+  bool get _isEditing => widget.initialSchedule?.isNotEmpty ?? false;
+
   @override
   void initState() {
     super.initState();
@@ -132,7 +145,10 @@ class _ShopAvailabilityScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                AppStrings.setYourShopTimings.tr,
+                (_isEditing
+                        ? AppStrings.updateYourShopTimings
+                        : AppStrings.setYourShopTimings)
+                    .tr,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -420,7 +436,7 @@ class _ShopAvailabilityScreenState
             SizeConfig.size16,
           ),
           child: CustomBtn(
-            title: AppStrings.save.tr,
+            title: (_isEditing ? AppStrings.update : AppStrings.save).tr,
             radius: 10,
             bgColor: AppColors.primaryColor,
             isLoading: _isSaving,

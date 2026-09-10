@@ -10,6 +10,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+/// How much of the screen's bottom edge the floating nav bar covers, above the
+/// system inset.
+///
+/// The bar is `Positioned(bottom: 0)` in the shell's [Stack] while the tab
+/// content is `Positioned.fill` underneath it, so a tab's own list runs BEHIND
+/// the bar — which is what lets content scroll under the glass, and also what
+/// leaves the final rows unreachable unless the list ends this far above its
+/// own bottom.
+///
+/// Roughly the bar's own height (bar padding 6x2 + pill padding 8x2 + icon 18
+/// + gap 2 + label line) plus [BottomNavigationBarWidget]'s bottom inset. A
+/// number rather than a measurement: a list has to know its padding while it
+/// lays out, long before the bar has been built.
+const double kFloatingBottomNavExtent = 82;
+
 class BottomNavigationBarWidget extends StatelessWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
   final bool isBottomNavVisible;

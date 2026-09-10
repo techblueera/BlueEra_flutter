@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart' show kFloatingBottomNavExtent;
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -251,6 +252,20 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   late final ChatPinArchiveController pinArchiveController;
   late final ChatLockController lockController;
 
+  /// Space left under the list for the shell's floating nav bar.
+  ///
+  /// Only the scroll view that actually ENDS at the bar should reserve for it,
+  /// and with [BusinessChatsList.isInParentScroll] that is not this list — it
+  /// is a `Column` inside someone else's `SingleChildScrollView`, and that
+  /// parent already pads its own bottom (the me dashboards' `_tabScroll`, the
+  /// Connect page's Order tab). Reserving here as well stacked a second bar's
+  /// worth of blank under those tabs.
+  ///
+  /// When this list owns its scroll (the Connect page's Inquiry tab) nobody
+  /// else can do it, so it reserves the full extent.
+  double get _bottomReserve =>
+      widget.isInParentScroll ? 0 : kFloatingBottomNavExtent;
+
   // Date-range filter state — only surfaced when [widget.showDateFilter]
   // is true (provider/seller order tabs). `_selectedDateFilter` drives the
   // chip row; `_customRange` holds the calendar picker result for `custom`.
@@ -348,7 +363,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
         return SizedBox();
       } else {
         return Container(
-          margin: EdgeInsets.only(bottom: SizeConfig.size70),
+          margin: EdgeInsets.only(bottom: _bottomReserve),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -464,7 +479,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       }
 
       final listBody = Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        margin: EdgeInsets.only(bottom: _bottomReserve),
         child: ListView.builder(
           itemCount: chatList.length,
           shrinkWrap: true,
@@ -631,7 +646,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     // reachable.
     if (widget.showEmptyState && itemCount == 0) {
       return Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        margin: EdgeInsets.only(bottom: _bottomReserve),
         child: noChatsFound(),
       );
     }
@@ -683,7 +698,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     final bool isMeSide = widget.excludeSenderId != null;
     if (isPicker || !isMeSide) {
       return Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        margin: EdgeInsets.only(bottom: _bottomReserve),
         child: listView,
       );
     }
@@ -739,7 +754,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       margin: EdgeInsets.only(
         left: SizeConfig.size12,
         right: SizeConfig.size12,
-        bottom: SizeConfig.size70,
+        bottom: _bottomReserve,
       ),
       decoration: glass
           ? glassSheetDecoration(

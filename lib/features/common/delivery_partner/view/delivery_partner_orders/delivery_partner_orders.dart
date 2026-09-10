@@ -26,8 +26,8 @@ class DeliveryPartnerOrders extends StatefulWidget {
 }
 
 class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
-  final controller = getOrPut(() => DeliverPartnerOrdersController());
-  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   void initState() {
@@ -60,7 +60,10 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
   @override
   Widget build(BuildContext context) {
 
-    final body = (userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == CAR_TAXI_DRIVER)
+    // All six dispatch professions — see [kRiderProfessions]. The old
+    // bike-or-cab pair silently hid the orders body from auto, goods and
+    // bicycle riders.
+    final body = isRiderProfession(userProfessionGlobal)
             ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
                 ? Center(
                     child: CircularProgressIndicator(),

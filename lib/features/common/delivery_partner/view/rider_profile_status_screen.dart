@@ -37,7 +37,7 @@ class RiderProfileStatusScreen extends StatefulWidget {
 }
 
 class _RiderProfileStatusScreenState extends State<RiderProfileStatusScreen> {
-  final controller = getOrPut(() => DeliveryPartnerController());
+  final controller = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   void initState() {

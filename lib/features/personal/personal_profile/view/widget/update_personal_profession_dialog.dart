@@ -6,7 +6,9 @@ import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/regular_expression.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_drop_down-dialoge.dart';
@@ -14,6 +16,9 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/auth/controller/auth_controller.dart';
 import '../../../../common/auth/model/personal_profession_model.dart';
+import '../../../../common/profile_category/controller/profile_category_controller.dart';
+import '../../../../common/profile_category/model/category_option.dart';
+import '../../../../common/profile_category/widget/change_category_confirm_sheet.dart';
 import '../../../auth/controller/view_personal_details_controller.dart';
 import '../../controller/perosonal__create_profile_controller.dart';
 class UpdatePersonalProfessionDialog extends StatefulWidget {
@@ -646,6 +651,65 @@ setState(() {
     );
   }
 
+  /// Routes a PROFESSION change through the one-time profile-category
+  /// endpoint, per §3.4 of FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md.
+  ///
+  /// `PUT /user/updateIndividualAccountUser/:id` now answers
+  /// `409 use_profile_category_endpoint` when a non-GUEST account tries to
+  /// change its profession there — there is no flag and no opt-out. So this
+  /// dialog can still write every satellite field the old way, but the
+  /// profession itself has to go through `POST /user/me/profile-category/change`.
+  ///
+  /// Returns true when the caller should carry on and write the satellite
+  /// fields, false when it must stop (the user backed out, or the change was
+  /// refused).
+  ///
+  /// ORDER MATTERS. The change endpoint deliberately WIPES the fields that
+  /// described the old profession — specialization, department, sector, art,
+  /// skills — so the satellite write has to happen AFTER it. Doing it the
+  /// other way round writes them and then deletes them.
+  Future<bool> _routeProfessionChangeIfNeeded(String? selectedProf) async {
+    // Onboarding is untouched: the guard never fires for GUEST accounts, and
+    // first-time profile fill still goes through the legacy endpoint.
+    if (isGuestUser()) return true;
+    if (selectedProf == null || selectedProf.isEmpty) return true;
+
+    final categoryCtrl = getOrPut(() => ProfileCategoryController());
+    if (!categoryCtrl.hasFetched.value) await categoryCtrl.loadState();
+
+    // No category to change (BLUEFLY, or the state could not be read) — leave
+    // the legacy path alone rather than blocking an edit on a failed GET.
+    if (!categoryCtrl.isVisible) return true;
+
+    // Same profession → not a change at all. The backend compares through the
+    // catalog, so re-sending it is explicitly safe; this is also what stops an
+    // account stored as "Bike Rider" being treated as changed when the picker
+    // hands back "BIKE_RIDER".
+    if (categoryCtrl.currentTagId == selectedProf) return true;
+
+    // A real change, but the one allowance is gone. Say so rather than letting
+    // the legacy endpoint reject it with a code the user can't act on.
+    if (!categoryCtrl.canChange) {
+      commonSnackBar(message: AppStrings.changeCategoryLimitReached.tr);
+      return false;
+    }
+
+    if (!mounted) return false;
+    final option = CategoryOption(
+      tagId: selectedProf,
+      name: personalCreateProfileController.selectedProfessionObj.value?.name ??
+          selectedProf,
+    );
+    final changed = await showChangeCategoryConfirmSheet(
+      context: context,
+      controller: categoryCtrl,
+      option: option,
+    );
+    // The sheet owns the submit, the §8 error handling and the §9.2 globals
+    // refresh. Anything other than a confirmed success stops here.
+    return changed == true;
+  }
+
   Future<void> saveProfessionDetails() async {
     final selectedProf = personalCreateProfileController.selectedProfession.value;
 
@@ -654,9 +718,21 @@ setState(() {
         ? personalCreateProfileController.selectedSubProfessionObj.value?.name ?? ""
         : designationController.text.trim();
 
-    // Base params always sent
+    if (!await _routeProfessionChangeIfNeeded(selectedProf)) return;
+
+    // `profession` goes in ONLY for a GUEST, whose first-time profile fill is
+    // still the legacy endpoint's job.
+    //
+    // For everyone else it is never sent from here, in either case: if the
+    // profession changed, the profile-category endpoint has already written it
+    // and would be the only thing allowed to; if it did not change, there is
+    // nothing to write. Re-sending an identical value is documented as safe,
+    // but "safe" and "correct" are different — and the debug assertion in
+    // [PersonalCreateProfileController.updateUserProfileDetails] holds this
+    // file to the stricter line so a future edit can't quietly reintroduce the
+    // 409.
     Map<String, dynamic> params = {
-      ApiKeys.profession: selectedProf ?? "",
+      if (isGuestUser()) ApiKeys.profession: selectedProf ?? "",
       ApiKeys.designation: designation,
     };
 

@@ -2324,7 +2324,10 @@ class _PersonalProfileSetupNewScreenState
             } else {
 
 
-              if (userProfessionGlobal == BIKE_RIDER) {
+              // Any dispatch profession belongs on the gig-work options
+              // screen, not just a motorbike rider — an auto or goods driver
+              // was being routed to the self-employed screen instead.
+              if (isRiderProfession(userProfessionGlobal)) {
                 Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
               } else {
                 Get.toNamed(

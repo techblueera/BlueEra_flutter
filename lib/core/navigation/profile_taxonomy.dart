@@ -25,6 +25,7 @@
 /// resolve.
 library;
 
+import 'package:BlueEra/core/constants/profile_identity.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:get/get.dart';
@@ -89,7 +90,7 @@ String? individualProfileTypeFor(String? value) {
   // Direct / display spellings first — no controller needed, and it keeps
   // callers that already hold a real profile type working while the master
   // lists are still loading.
-  final alias = _profileTypeAliases[key];
+  final alias = _profileTypeAlias(key);
   if (alias != null) return alias;
 
   final controller = _auth;
@@ -108,26 +109,24 @@ String? individualProfileTypeFor(String? value) {
         // `profileType` string is the fallback for a Hive-restored item that
         // hasn't been through that pass yet (enums don't round-trip JSON).
         return profession.individualProfileType?.tagId ??
-            _profileTypeAliases[normalizeTaxonomyKey(profession.profileType)];
+            _profileTypeAlias(normalizeTaxonomyKey(profession.profileType));
       }
     }
   }
   return null;
 }
 
-const Map<String, String> _profileTypeAliases = {
-  'SELF_EMPLOYED': 'SELF_EMPLOYED',
-  'SELFEMPLOYED': 'SELF_EMPLOYED',
-  'SKILL_WORK': 'SELF_EMPLOYED',
-  'SKILL_WORKER': 'SELF_EMPLOYED',
-  'PROFESSIONAL': 'PROFESSIONAL',
-  'CONSULTANT': 'PROFESSIONAL',
-  'GIG_WORKER': 'GIG_WORKER',
-  'GIGWORK': 'GIG_WORKER',
-  'GIG_WORK': 'GIG_WORKER',
-  'SOCIAL_PROFILE': 'SOCIAL_PROFILE',
-  'SOCIALPROFILE': 'SOCIAL_PROFILE',
-};
+/// Alias lookup for a profile type, keyed the way [kProfileTypeAliases] is —
+/// letters and digits only — so `SKILL_WORK`, `Skill Work` and `skillwork` all
+/// hit the same entry.
+///
+/// The table itself lives in `lib/core/constants/profile_identity.dart`, which
+/// is also what normalizes the LOGGED-IN user's `profileType` on the way into
+/// storage. This file had its own copy; two tables for one vocabulary is how
+/// the visited-profile side and the me side end up disagreeing about what
+/// "GigWork" means.
+String? _profileTypeAlias(String key) =>
+    kProfileTypeAliases[key.replaceAll(RegExp(r'[^A-Z0-9]'), '')];
 
 /// Master-list entry whose `tag_id` or display `name` matches [category].
 CategoryData? _findBusinessCategory(String? category) {

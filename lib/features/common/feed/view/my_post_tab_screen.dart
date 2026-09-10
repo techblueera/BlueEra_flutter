@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart' show kFloatingBottomNavExtent;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -226,8 +227,12 @@ class _MyPostTabScreenState extends State<MyPostTabScreen>
               )
             else
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                    SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size20),
+                // The bottom clears the shell's floating nav bar, which this
+                // tab is laid out behind — the grid's last row used to end
+                // under it. This screen is only ever the Social section's My
+                // Post tab, so the inset is not a caller's to pass.
+                padding: EdgeInsets.fromLTRB(SizeConfig.size8, 0,
+                    SizeConfig.size8, kFloatingBottomNavExtent),
                 sliver: SliverGrid(
                   gridDelegate:
                       const SliverGridDelegateWithFixedCrossAxisCount(

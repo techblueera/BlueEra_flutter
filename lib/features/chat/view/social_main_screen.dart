@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart' show kFloatingBottomNavExtent;
 import 'dart:ui' show ImageFilter;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -315,6 +316,9 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                             postFilterType: PostType.all,
                             headerHeight: 0,
                             isInParentScroll: false,
+                            // This tab sits behind the shell's floating nav
+                            // bar, so the feed has to end above it.
+                            bottomInset: kFloatingBottomNavExtent,
                           ),
                           ReelsTabScreen(
                             key: const ValueKey('reels_tab_screen'),

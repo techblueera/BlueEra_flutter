@@ -24,14 +24,59 @@ class AppStrings {
       "Check your connection and try again. If this keeps happening, please contact support.";
   static const String tryAgain = "Try again";
 
-  /// iOS App Store update prompt — see ios_update_dialog.dart. Android never
-  /// uses these: Play's in-app update flow supplies its own UI and copy.
-  static const String updateAvailableTitle = "Update available";
-  static const String updateAvailableMessage =
-      "A newer version of BlueEra is on the App Store. Update to get the "
-      "latest features and fixes.";
-  static const String updateNow = "Update";
-  static const String updateNotNow = "Not now";
+  /// App-open update prompt — see app_update_bottom_sheet.dart. BOTH platforms
+  /// use the sheet now; only the body copy differs, because tapping Update
+  /// means "Play downloads in the background" on Android and "you leave for
+  /// the App Store" on iOS.
+  ///
+  /// Translation KEYS, like the goLiveNudge* block below. They were literal
+  /// English until the sheet shipped, which meant `.tr` had nothing to look up
+  /// and every user got English however their app was set.
+  static const String updateAvailableTitle = 'updateAvailableTitle';
+  static const String updateAvailableMessage = 'updateAvailableMessage';
+  static const String updateAvailableMessageAndroid =
+      'updateAvailableMessageAndroid';
+  static const String updateDownloadingInBackground =
+      'updateDownloadingInBackground';
+  static const String updateNow = 'updateNow';
+  static const String updateNotNow = 'updateNotNow';
+
+  /// Second half of the Android flexible flow: the download has finished and
+  /// installing it restarts the app, so the sheet asks first.
+  /// Settings → Account → Change category — the one-time profile-category
+  /// change. See docs/backend/FLUTTER_PROFILE_CATEGORY_CHANGE_GUIDE.md.
+  static const String changeCategoryTitle = 'changeCategoryTitle';
+  static const String changeCategoryOneLeft = 'changeCategoryOneLeft';
+  static const String changeCategoryUsed = 'changeCategoryUsed';
+  static const String changeCategoryLimitReached =
+      'changeCategoryLimitReached';
+  static const String changeCategoryOneTimeWarning =
+      'changeCategoryOneTimeWarning';
+  static const String changeCategoryCurrent = 'changeCategoryCurrent';
+  static const String changeCategoryNoOptions = 'changeCategoryNoOptions';
+
+  /// Carries a `{category}` placeholder, replaced with the chosen name.
+  static const String changeCategoryConfirmTitle =
+      'changeCategoryConfirmTitle';
+  static const String changeCategoryConfirmBody = 'changeCategoryConfirmBody';
+  static const String changeCategoryConfirmCta = 'changeCategoryConfirmCta';
+  static const String changeCategorySubCategory =
+      'changeCategorySubCategory';
+  static const String changeCategoryLicense = 'changeCategoryLicense';
+  static const String changeCategoryLicenseRequired =
+      'changeCategoryLicenseRequired';
+  static const String changeCategorySuccess = 'changeCategorySuccess';
+  static const String changeCategorySameCategory =
+      'changeCategorySameCategory';
+  static const String changeCategoryOptionGone = 'changeCategoryOptionGone';
+  static const String changeCategoryCompleteProfile =
+      'changeCategoryCompleteProfile';
+  static const String changeCategoryRetry = 'changeCategoryRetry';
+
+  static const String updateReadyTitle = 'updateReadyTitle';
+  static const String updateReadyMessage = 'updateReadyMessage';
+  static const String updateRestartNow = 'updateRestartNow';
+  static const String updateLater = 'updateLater';
   static const success = "success";
   static const tokenIsNull = "Token is null";
   static const storagePermissionDenied = "Storage permission is denied";
@@ -7198,6 +7243,28 @@ class AppStrings {
   static const String goLiveNudgeBusinessBody = 'goLiveNudgeBusinessBody';
   static const String goLiveNudgeIndividualBody = 'goLiveNudgeIndividualBody';
 
+  /// Per-line-of-business bodies for that same sheet, picked by
+  /// `goLiveNudgeBodyForBusiness()` / `goLiveNudgeBodyForIndividual()` in
+  /// go_live_nudge_copy.dart. What an offline account is MISSING differs —
+  /// orders, appointments, bookings, enquiries, work — and naming the right
+  /// one is the whole reason these exist. The two generic bodies above remain
+  /// the fallback for anything unrecognised.
+  static const String goLiveNudgeBodyFood = 'goLiveNudgeBodyFood';
+  static const String goLiveNudgeBodyGrocery = 'goLiveNudgeBodyGrocery';
+  static const String goLiveNudgeBodyPharmacy = 'goLiveNudgeBodyPharmacy';
+  static const String goLiveNudgeBodyAppointments =
+      'goLiveNudgeBodyAppointments';
+  static const String goLiveNudgeBodyHotel = 'goLiveNudgeBodyHotel';
+  static const String goLiveNudgeBodySchool = 'goLiveNudgeBodySchool';
+  static const String goLiveNudgeBodyProduct = 'goLiveNudgeBodyProduct';
+  static const String goLiveNudgeBodyVehicle = 'goLiveNudgeBodyVehicle';
+  static const String goLiveNudgeBodyService = 'goLiveNudgeBodyService';
+  static const String goLiveNudgeBodyGigWork = 'goLiveNudgeBodyGigWork';
+  static const String goLiveNudgeBodySelfEmployed =
+      'goLiveNudgeBodySelfEmployed';
+  static const String goLiveNudgeBodyProfessional =
+      'goLiveNudgeBodyProfessional';
+
   /// ADD-PRODUCT PROMPT — the once-a-day nudge on the me-section admin
   /// homes. One title per business field so the sheet names what the
   /// merchant actually sells; the body copy is shared across all of them.
@@ -8390,6 +8457,11 @@ class AppStrings {
   static const String today = "today";
   static const String shopAvailability = "shopAvailability";
   static const String setYourShopTimings = "setYourShopTimings";
+
+  /// Same screen, but opened on hours that already exist — see
+  /// `ShopAvailabilityScreen._isEditing`. The button beside it switches from
+  /// Save to Update for the same reason.
+  static const String updateYourShopTimings = "updateYourShopTimings";
   static const String shopTimingsSubtitle = "shopTimingsSubtitle";
   static const String openEveryDay = "openEveryDay";
   static const String openingTime = "openingTime";

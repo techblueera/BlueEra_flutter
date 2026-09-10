@@ -281,7 +281,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// business gates.
   /// Now identical to the controller's own gate, so it just delegates rather
   /// than keeping a fourth copy of the same payment check.
-  bool _ensureCanGoLive() => _viewCtrl.ensureCanGoLive();
+  Future<bool> _ensureCanGoLive() => _viewCtrl.ensureCanGoLive();
 
   void _openDrawer(BuildContext context) {
     showDialog(

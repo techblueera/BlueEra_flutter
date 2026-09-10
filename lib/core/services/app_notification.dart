@@ -3896,7 +3896,7 @@ class AppNotificationHandler {
   /// See docs/backend/NEW_NOTIFICATIONS_FRONTEND_GUIDE.md.
   static Future<void> _handleClaimOrder(String orderId) async {
     if (orderId.isEmpty) return;
-    final controller = getOrPut(() => DeliverPartnerOrdersController());
+    final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
     final claimed = await controller.claimRouteOrder(orderId);
     if (claimed) {
       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());

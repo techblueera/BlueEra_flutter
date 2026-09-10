@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart' show kFloatingBottomNavExtent;
 import 'dart:async';
 import 'dart:io';
 
@@ -230,6 +231,15 @@ class _ReelsTabScreenState extends State<ReelsTabScreen>
                     ),
                   ),
                 ),
+              // Clears the shell's floating nav bar. This tab is laid out
+              // full-screen behind it, so without this the bottom row of
+              // covers — and the load-more spinner under them — sit under the
+              // bar and cannot be scrolled out from behind it. After the
+              // spinner rather than as the grid's own padding, so both clear
+              // it. This screen is only ever the Social section's Bites tab.
+              const SliverToBoxAdapter(
+                child: SizedBox(height: kFloatingBottomNavExtent),
+              ),
             ],
           ),
         ),

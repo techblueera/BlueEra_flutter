@@ -71,7 +71,7 @@ class MultiShopOrderCard extends StatefulWidget {
 }
 
 class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
-  final controller = getOrPut(() => DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
 
   // Per-shop local UI state, keyed by businessId. These ride on top of the
   // server truth (`item.isPickedUp`) so the checklist reacts instantly while

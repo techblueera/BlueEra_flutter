@@ -1,6 +1,6 @@
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/view/v2/other_home_screen_v2.dart';
+import 'package:BlueEra/features/me/automotive_service/controller/automotive_business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/automotive_service/view/v2/automotive_home_screen_v2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -51,10 +51,11 @@ class _AutomotiveServiceMainState extends State<AutomotiveServiceMain>
 
   @override
   Widget build(BuildContext context) {
-    // Return the home screen directly (no wrapper Scaffold), mirroring
-    // `grocery_screen.dart`, so this screen stays out of the way of the
-    // app-wide themeable background painted in `GetMaterialApp.builder`
-    // (driven by AppBackgroundController).
-    return const OtherHomeScreenV2();
+    // Returned directly, with NO wrapper Scaffold: the app-wide themeable
+    // background is painted by `GetMaterialApp.builder` (driven by
+    // AppBackgroundController), and a Scaffold here would paint its own opaque
+    // surface over it. Every Me home does the same — this is about the
+    // background, not about what the business sells.
+    return const AutomotiveHomeScreenV2();
   }
 }

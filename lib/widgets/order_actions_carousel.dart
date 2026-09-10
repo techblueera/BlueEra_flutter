@@ -119,13 +119,11 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
     super.dispose();
   }
 
-  /// Riders (bike / car / auto / goods) pay the security deposit via the
-  /// onboarding gate; other individuals via the personal-profile go-live gate.
-  bool get _isRiderRole =>
-      userProfessionGlobal == BIKE_RIDER ||
-      userProfessionGlobal == CAR_TAXI_DRIVER ||
-      userProfessionGlobal == AUTO_TAXI ||
-      userProfessionGlobal == GOODS_TAXI;
+  /// Riders (bike / bicycle / car / auto / goods) pay the security deposit via
+  /// the onboarding gate; other individuals via the personal-profile go-live
+  /// gate. Uses [kRiderProfessions] rather than repeating the list — the local
+  /// copy had already drifted, omitting the bicycle rider entirely.
+  bool get _isRiderRole => isRiderProfession(userProfessionGlobal);
 
   /// Whether a security-deposit / go-live gate even applies to this user — used
   /// to decide whether to wrap the deck in an [Obx] (GetX forbids an Obx that

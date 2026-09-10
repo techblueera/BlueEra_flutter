@@ -67,6 +67,8 @@ class ProfessionTypeData {
       });
     }
     individualProfileType = json['individualProfileType'];
+    isActive = json['isActive'];
+    deletedAt = json['deletedAt']?.toString();
   }
 
   String? id;
@@ -76,6 +78,20 @@ class ProfessionTypeData {
   String? imageUrl;
   List<SubcategoriesFiledName>? subcategoriesFiledName;
   IndividualProfileType? individualProfileType;  // custom Individual Profile type
+
+  /// Retired professions come back with `isActive: false`, soft-deleted ones
+  /// with a non-null `deletedAt`. `GET individual-professions` returns BOTH —
+  /// it does not filter server-side the way the business categories endpoint
+  /// does — and the profile-category change endpoint rejects them with
+  /// `422 unknown_category`. Any picker built on this list must drop them
+  /// (see [isSelectable]) or it offers options that always fail.
+  bool? isActive;
+  String? deletedAt;
+
+  /// Whether this profession may be OFFERED to a user. Absent flags mean
+  /// active: the field is omitted for ordinary rows, so defaulting the other
+  /// way would empty the picker.
+  bool get isSelectable => isActive != false && deletedAt == null;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -90,6 +106,11 @@ class ProfessionTypeData {
           subcategoriesFiledName?.map((v) => v.toJson()).toList();
     }
     map['individualProfileType'] = individualProfileType;
+    // Round-tripped so the Hive cache keeps them: the catalog is persisted and
+    // read back cache-first, and a cached row that lost these flags would let
+    // a retired profession back into the picker on the next cold start.
+    map['isActive'] = isActive;
+    map['deletedAt'] = deletedAt;
     return map;
   }
 }

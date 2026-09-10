@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
+import 'package:BlueEra/features/common/Discover/model/nearby_sections_models.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/quick_rider_book_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
@@ -307,15 +308,127 @@ class _DistanceChip extends StatelessWidget {
 /// people"* (2.4, 7). This flattens several buckets into one list so it must
 /// re-sort — but only *within* that rule, never across it. Stores have no live
 /// concept and sort by distance among themselves.
+/// ## Why this reads two shapes
+///
+/// `nearby/discover` answers in one of two shapes, and the controller parses
+/// BOTH from every response — each yielding empty against the other's payload
+/// (see the note above `shopCategories` in `nearby_stores_controller.dart`):
+///
+///  * **v1** — raw buckets, which land in `stores` / `services` / `riders`;
+///  * **v2** — ready-made sections, which land in `shopCategories` /
+///    `serviceCategories`.
+///
+/// This function used to read only the v1 lists. Against a v2 response they are
+/// all empty, so it returned NOTHING — and everything built on it went blank
+/// while the v2 sections beside it were full. That is the "Near you shows no
+/// shops even though the Discover rails just showed me some" report: the rails
+/// read the sections, this read the buckets, and the server was sending
+/// sections.
+///
+/// So the section businesses are the FALLBACK, used only when the v1 lists are
+/// empty. Never merged: both shapes describe the same neighbourhood, so a
+/// response that somehow carried both would otherwise list every shop twice.
 List<NearbyEntry> buildNearbyEntries(NearbyStoresController controller) {
-  return <NearbyEntry>[
+  final v1 = <NearbyEntry>[
     ...controller.stores.map(NearbyEntry.store),
     ...controller.services.map(NearbyEntry.worker),
     ...controller.riders.map(NearbyEntry.worker),
-  ]..sort((a, b) {
+  ];
+
+  final entries = v1.isNotEmpty
+      ? v1
+      : <NearbyEntry>[
+          ...controller.shopBusinesses.map(_entryFromSection),
+          ...controller.serviceBusinesses.map(_entryFromSection),
+        ];
+
+  return entries
+    ..sort((a, b) {
       if (a.isLive != b.isLive) return a.isLive ? -1 : 1;
       return a.distance.compareTo(b.distance);
     });
+}
+
+/// Which half of the neighbourhood a "View All" was tapped on.
+///
+/// The Discover page offers "Shops Near Me" and "Services Near Me" as two
+/// separate rails over two separate lists. Their View All buttons both used to
+/// open one screen built from [buildNearbyEntries] — the MERGED set — so
+/// whichever rail you came from, you landed on the same page showing the other
+/// one's businesses alongside your own.
+enum NearbySection { shops, services }
+
+/// The entries behind ONE rail, in the same order and shape [buildNearbyEntries]
+/// produces.
+///
+/// Reads whichever payload shape arrived, exactly as [buildNearbyEntries] does —
+/// v1 buckets first, v2 sections as the fallback (see the note there):
+///
+/// | section  | v1                    | v2                  |
+/// |----------|-----------------------|---------------------|
+/// | shops    | `stores`              | `shopBusinesses`    |
+/// | services | `services` + `riders` | `serviceBusinesses` |
+///
+/// Riders belong under services: a rider is someone you hire, not a shopfront.
+List<NearbyEntry> buildNearbySectionEntries(
+  NearbyStoresController controller,
+  NearbySection section,
+) {
+  final v1 = switch (section) {
+    NearbySection.shops => controller.stores.map(NearbyEntry.store).toList(),
+    NearbySection.services => <NearbyEntry>[
+        ...controller.services.map(NearbyEntry.worker),
+        ...controller.riders.map(NearbyEntry.worker),
+      ],
+  };
+
+  final entries = v1.isNotEmpty
+      ? v1
+      : (switch (section) {
+          NearbySection.shops => controller.shopBusinesses,
+          NearbySection.services => controller.serviceBusinesses,
+        })
+          .map(_entryFromSection)
+          .toList();
+
+  return entries
+    ..sort((a, b) {
+      if (a.isLive != b.isLive) return a.isLive ? -1 : 1;
+      return a.distance.compareTo(b.distance);
+    });
+}
+
+/// A v2 section business, in the shape the rest of this file already draws.
+///
+/// Mapped onto [NearbyStoreCard] rather than given a third variant on
+/// [NearbyEntry]: every consumer — the rail tile, the Near-you card, the tap
+/// routing — is written against store/worker, and a third case would have to be
+/// handled in each of them for a payload that carries the same facts under
+/// different names.
+///
+/// The section payload has no product/category counts, so those go to zero —
+/// which is exactly how the card already treats "not known" (it hides the
+/// "N items listed" line rather than claiming zero).
+NearbyEntry _entryFromSection(NearbySectionItem item) {
+  return NearbyEntry.store(
+    NearbyStoreCard(
+      id: item.id,
+      userId: item.userId.isEmpty ? null : item.userId,
+      businessName: item.name,
+      logo: item.displayImage,
+      type: item.type,
+      typeOfBusiness: item.type,
+      address: item.address,
+      distance: item.distance,
+      avgRating: item.avgRating,
+      totalRatings: item.totalRatings,
+      totalProductCount: 0,
+      totalCategoryCount: 0,
+      subCategoryName: item.subCategoryName,
+      categoryName: item.categoryName,
+      categoryImageUrl: '',
+    ),
+  );
 }
 
 /// How far away one item is, split into the number and its unit so a caller can

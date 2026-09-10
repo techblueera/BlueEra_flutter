@@ -47,8 +47,6 @@ class SchoolAboutUsController extends GetxController {
 
   final isQuickInfoLoading = false.obs;
   final isQuickInfoSaving = false.obs;
-  final isTimingsLoading = false.obs;
-  final isTimingsSaving = false.obs;
 
   // Dropdown suggestions served by GET /schools/options — cached in memory
   // for the lifetime of the controller.
@@ -99,7 +97,9 @@ class SchoolAboutUsController extends GetxController {
     if (!skipQuickInfoFetch) {
       fetchSchoolQuickInfo(schoolID: schoolID);
     }
-    fetchSchoolTimings(schoolID: schoolID);
+    // School timings are no longer a store of their own: opening hours live
+    // in the business availability record, which the profile-wide
+    // ViewBusinessDetailsController already loads. Nothing to fetch here.
 
     schoolDetailsData?.refresh();
   }
@@ -1101,61 +1101,6 @@ class SchoolAboutUsController extends GetxController {
       return false;
     } finally {
       isQuickInfoSaving.value = false;
-    }
-  }
-
-  ///GET SCHOOL TIMINGS....
-  Future<void> fetchSchoolTimings({String? schoolID}) async {
-    try {
-      isTimingsLoading.value = true;
-      final res = await SchoolRepo().getSchoolTimingsRepo(schoolID: schoolID);
-      if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
-        if (schoolDetailsData?.value != null) {
-          schoolDetailsData!.value.availability =
-              data.map((v) => Availability.fromJson(v)).toList();
-          schoolDetailsData?.refresh();
-        }
-      }
-    } catch (e) {
-      logs("ERROR fetchSchoolTimings: $e");
-    } finally {
-      isTimingsLoading.value = false;
-    }
-  }
-
-  ///UPDATE SCHOOL TIMINGS....
-  Future<bool> updateSchoolTimings(List<Availability> slots) async {
-    try {
-      isTimingsSaving.value = true;
-      final payload = slots.map((s) {
-        final open = s.isOpen ?? false;
-        return open
-            ? {
-                'day': s.day,
-                'isOpen': true,
-                'openTime': s.openTime,
-                'closeTime': s.closeTime,
-              }
-            : {'day': s.day, 'isOpen': false};
-      }).toList();
-      final res = await SchoolRepo().updateSchoolTimingsRepo(reqBODY: {
-        'schoolTimings': payload,
-      });
-      if (res.isSuccess) {
-        commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.successful);
-        await fetchSchoolTimings();
-        return true;
-      }
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    } catch (e) {
-      logs("ERROR updateSchoolTimings: $e");
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    } finally {
-      isTimingsSaving.value = false;
     }
   }
 }

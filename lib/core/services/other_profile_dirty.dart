@@ -37,10 +37,13 @@ enum OtherProfileSection {
 
   /// Management / team members — `ManagementController`.
   management,
-
-  /// Weekly business hours — `TimingController`.
-  timings,
 }
+
+// REMOVED: `timings`. Weekly business hours are no longer part of the
+// other-service profile — they live in the single business availability record
+// (`availability.schedule`), written by the weekly-hours editor behind Go Live.
+// Nothing here can go stale from an hours edit any more, so there is nothing to
+// mark. See docs/backend/BUSINESS_HOURS_SINGLE_SOURCE_GUIDE.md.
 
 /// See [OtherProfileSection].
 class OtherProfileDirty {

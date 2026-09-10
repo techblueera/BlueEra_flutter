@@ -83,27 +83,6 @@ class ProfessionalsRepo extends BaseService {
   }
 
 
-  Future<dynamic> updateTimingRepo(Map<String, dynamic> body) async {
-    return await ApiBaseHelper().putHTTP(
-      "${professionalsTiming}/timings",
-      params: {"schedule":body},
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-
-  Future<ResponseModel> getTimingRepo() async {
-    return await ApiBaseHelper().getHTTP(
-      "${professionalsTiming}/${userId}/timings",
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-  // POST: Upload/Add a new photo
   Future<ResponseModel> addProfessionalsServicePhotosRepo({
     required Map<String, dynamic> reqBody,
   }) async {

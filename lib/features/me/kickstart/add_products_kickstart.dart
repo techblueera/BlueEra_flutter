@@ -357,7 +357,7 @@ class _CatalogueProbe {
     // catalogue; vehicle SALES sells listings out of the vehicle service and
     // vehicle SERVICE sells no goods at all, so neither has anything this page
     // could help them add. Same category test the Me tab routes on
-    // (`_isSpecificProductAutomotive`).
+    // (`MeSectionKind.automotiveParts`, me_section_kind.dart).
     if (t == BusinessType.Automotive.name.toUpperCase() &&
         businessCategoryGlobal.toUpperCase().contains('AUTO PARTS')) {
       final c = getOrPut(() => AutomotiveInventoryController());

@@ -54,8 +54,8 @@ class RiderOrderTab extends StatefulWidget {
 }
 
 class _RiderOrderTabState extends State<RiderOrderTab> {
-  final controller = getOrPut(() => DeliveryPartnerController());
-  final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliveryPartnerController(), permanent: true);
+  final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final _locationCtrl = getOrPut(() => LocationController());

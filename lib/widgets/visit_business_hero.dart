@@ -174,10 +174,27 @@ class _VisitBusinessHeroState extends State<VisitBusinessHero> {
     final lng = o?.longitude ?? d?.businessLocation?.lon?.toDouble() ?? 0.0;
     final distanceKm = calculateDistance(lat, lng);
     final hasDistance = distanceKm != null && distanceKm > 0;
+    // The profile `availability` record WINS. It is the single source of
+    // opening hours app-wide — the one the merchant edits, the one that drives
+    // `liveState` and the open/closed pill.
+    //
+    // The precedence used to be the other way round, and that is what made a
+    // customer see stale hours: the per-vertical timings stores (school
+    // `schoolTimings`, other-service/finance `timings`) are no longer written
+    // by any app screen, so a merchant could update their hours and this hero
+    // would keep rendering whatever those frozen records still held.
+    //
+    // [scheduleOverride] survives only as the FALLBACK, for payloads the
+    // backend has not migrated yet — a listing whose `availability` is absent
+    // still shows its old hours rather than none. Once every payload carries
+    // `availability` (see docs/backend/BUSINESS_HOURS_SINGLE_SOURCE_GUIDE.md
+    // §5.3) the parameter and its per-screen converters can go.
     final override = widget.scheduleOverride;
-    final effectiveSchedule = (override != null && override.isNotEmpty)
-        ? override
-        : d?.availability?.schedule;
+    final profileSchedule = d?.availability?.schedule;
+    final effectiveSchedule = (profileSchedule != null &&
+            profileSchedule.isNotEmpty)
+        ? profileSchedule
+        : override;
     final hasAvailability =
         effectiveSchedule != null && effectiveSchedule.isNotEmpty;
 

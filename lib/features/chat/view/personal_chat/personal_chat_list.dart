@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart' show NativeAdSlot;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -31,10 +32,22 @@ class PersonalChatsList extends StatefulWidget {
     this.isForwardUI,
     this.isNewGroupUI,
     this.hideSubTabs,
+    this.bottomInset = 0,
   });
 
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+
+  /// Space kept below the last row, for a floating bar the list scrolls under.
+  ///
+  /// Zero everywhere the list owns its full height (forward picker, search).
+  /// The Connect page passes the nav bar's extent: its tab content is laid out
+  /// full-screen BEHIND the floating bar, so without this the last
+  /// conversation sits under the bar and cannot be scrolled clear of it. Given
+  /// as padding INSIDE the scroll view rather than a margin around it, so rows
+  /// still pass under the glass on the way through — they just don't end
+  /// there.
+  final double bottomInset;
   /// When `true`, the All / Group / Pinned / Flagged / Records sub-tab
   /// strip is hidden and only the personal chat list is rendered.
   final bool? hideSubTabs;
@@ -754,6 +767,48 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     final int todayHeaderCount = showTodayHeader ? 1 : 0;
     final int historyHeaderCount = showHistoryHeader ? 1 : 0;
 
+    // Which chat positions get a native ad after them: `contentIndex -> ad
+    // ordinal`.
+    //
+    // Cadence is the discover lists' every-10 spacing, but the FIRST ad lands
+    // after the 4th chat rather than the 1st. Discover is a browsing surface
+    // where row 2 is just another result; a chat list's top rows are the
+    // conversations the user opened this app to reach, and an ad sitting in
+    // them is in the way of the task rather than alongside it. Four rows down
+    // is far enough to be past that and still inside the first screenful.
+    //
+    // A list shorter than five chats therefore gets no ad at all — there is no
+    // "in between" to put one in.
+    //
+    // Riding on the chat rows rather than being separate list entries is
+    // deliberate: this builder walks a hand-rolled index across four sections
+    // (records row, Today header, today rows, History header, history rows,
+    // suggestions), and adding ad entries to `itemCount` would mean threading
+    // an offset through every one of those branches. Attaching the ad to the
+    // row it follows leaves that arithmetic untouched.
+    //
+    // NEVER in a picker: forward-a-message and new-group are selection UIs
+    // where every row is a tap target, and an ad among them is both a misclick
+    // waiting to happen and an interruption of a task the user is mid-way
+    // through.
+    const int kChatFirstAdAfter = 4;
+    const int kChatAdEveryAfter = 10;
+    final Map<int, int> adSlots = {};
+    if (widget.isForwardUI != true && widget.isNewGroupUI != true) {
+      final int chatCount = todayList.length + historyList.length;
+      var adOrdinal = 0;
+      for (var i = 0; i < chatCount; i++) {
+        final pos = i + 1; // 1-indexed
+        final isLast = i == chatCount - 1;
+        // Never after the last row: an ad with nothing under it is a footer,
+        // not something "in between".
+        if (isLast || pos < kChatFirstAdAfter) continue;
+        if ((pos - kChatFirstAdAfter) % kChatAdEveryAfter == 0) {
+          adSlots[i] = adOrdinal++;
+        }
+      }
+    }
+
     return Container(
       // Still render the list when there are no real chats but pinned system
       // rows exist (AI / BlueEra notifications), so those stay visible for a
@@ -766,8 +821,9 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
           : ListView.builder(
         // Kill the top inset ListView auto-injects when it's the primary
         // scrollable (it adds MediaQuery.padding.top), which showed up as an
-        // empty strip above the first chat row.
-        padding: EdgeInsets.zero,
+        // empty strip above the first chat row. The bottom is the caller's —
+        // see [PersonalChatsList.bottomInset].
+        padding: EdgeInsets.only(bottom: widget.bottomInset),
         itemCount: topRowCount +
             todayHeaderCount +
             todayList.length +
@@ -849,14 +905,51 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
           // together into one column of text. Inset past the avatar so the line
           // separates entries rather than cutting across the sheet
           // (docs/chat_new.jpeg). The solid look keeps its undivided rows.
-          if (!GlassScope.isActive(context)) return tile;
+          final Widget row = !GlassScope.isActive(context)
+              ? tile
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    tile,
+                    const Padding(
+                      padding: EdgeInsets.only(left: 78, right: 16),
+                      child: Divider(
+                          height: 1, thickness: 1, color: kGlassDivider),
+                    ),
+                  ],
+                );
+
+          // Native ad AFTER this row, when this chat's overall position is a
+          // cadence point. The ordinal is the position across BOTH sections —
+          // Today rows come first, History continues the count — so the
+          // spacing doesn't restart at the History header.
+          final int chatOrdinal = identical(section, todayList)
+              ? chatIndex
+              : todayList.length + chatIndex;
+          final int? adOrdinal = adSlots[chatOrdinal];
+          if (adOrdinal == null) return row;
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              tile,
-              const Padding(
-                padding: EdgeInsets.only(left: 78, right: 16),
-                child: Divider(height: 1, thickness: 1, color: kGlassDivider),
+              row,
+              NativeAdSlot(
+                adOrdinal: adOrdinal,
+                keyPrefix: 'chat_list_native_ad',
+                // The small template is a single list-row strip, so it sits in
+                // the chat list's own rhythm instead of interrupting it with a
+                // block. It carries AdMob's "Ad" attribution badge, which is
+                // what keeps a chat-shaped ad from reading as a conversation.
+                //
+                // 16 on both sides puts the card's edges on the row column —
+                // the avatars' left edge and the divider's right end — rather
+                // than a few pixels outside it, which read as the ad being a
+                // wider object than the list. It also takes a little height
+                // off: the small template is a fixed 4:1 ratio, so its height
+                // is a quarter of whatever width the slot is given.
+                //
+                // Equal top and bottom so the ad is spaced off the row above
+                // and the row below by the same amount.
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               ),
             ],
           );

@@ -2,7 +2,8 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -19,19 +20,31 @@ const List<String> kSchoolWeekDays = [
 ];
 
 class SchoolAvailabilityCard extends StatelessWidget {
-  final SchoolAboutUsController controller;
+  /// The BUSINESS availability record — the single source of opening hours
+  /// app-wide, written by the weekly-hours editor behind Go Live.
+  ///
+  /// This card used to read `schoolDetailsData.availability`, a SECOND store
+  /// fed by `PUT school/<id>/timings`. Two records for one fact could not stay
+  /// in step: hours saved there never reached the open/closed pill, and hours
+  /// set through Go Live left this card showing seven closed days.
+  final ViewBusinessDetailsController businessController;
   final VoidCallback onEditTap;
 
   const SchoolAvailabilityCard({
     super.key,
-    required this.controller,
+    required this.businessController,
     required this.onEditTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final availability = controller.schoolDetailsData?.value.availability ??
-        const <Availability>[];
+    // `weeklySchedule` first so the card refreshes the moment the editor saves
+    // into it; the profile payload is the first-paint fallback.
+    final availability = businessController.weeklySchedule.isNotEmpty
+        ? businessController.weeklySchedule.toList()
+        : (businessController
+                .businessProfileDetails.value?.data?.availability?.schedule ??
+            const <Schedule>[]);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -60,8 +73,8 @@ class SchoolAvailabilityCard extends StatelessWidget {
               return _AvailabilityRow(
                 day: day,
                 isOpen: slot?.isOpen ?? false,
-                openTime: slot?.openTime ?? '10:00',
-                closeTime: slot?.closeTime ?? '10:00',
+                openTime: slot?.shopOpenTime ?? '10:00',
+                closeTime: slot?.shopCloseTime ?? '10:00',
               );
             }),
           ],

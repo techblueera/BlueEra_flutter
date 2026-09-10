@@ -26,7 +26,7 @@ class VehicleRentalServiceController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadImagesResponse = ApiResponse.initial('Initial').obs;
 
-  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   String? rentalId;
   final currentStep = 0.obs;

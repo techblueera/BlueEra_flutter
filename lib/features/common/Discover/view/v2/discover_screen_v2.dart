@@ -17,7 +17,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_sections_models.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/near_you_all_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/stores_near_you_all_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/widget/discover_group_sheet_v2.dart';
@@ -40,6 +40,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_category_sectio
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_banner.dart';
+import 'package:BlueEra/features/common/Discover/widget/nearby_entry.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/pending_order_chip.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
@@ -507,7 +508,12 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
       return _gapped(DiscoverV2Card(
         title: _nearby.shopsTitle.value,
         trailingLabel: 'View All',
-        onTrailingTap: () => Get.to(() => const NearYouAllScreen()),
+        // Scoped to THIS rail. Without the section both View Alls opened the
+        // merged list, so the shops one also listed services and vice versa.
+        onTrailingTap: () => Get.to(() => StoresNearYouAllScreen(
+              section: NearbySection.shops,
+              title: _nearby.shopsTitle.value,
+            )),
         child: DiscoverNearMeRail(items: businesses, onTap: _openBusiness),
       ));
     });
@@ -521,7 +527,10 @@ class _DiscoverScreenV2State extends State<DiscoverScreenV2> {
       return _gapped(DiscoverV2Card(
         title: _nearby.servicesTitle.value,
         trailingLabel: 'View All',
-        onTrailingTap: () => Get.to(() => const NearYouAllScreen()),
+        onTrailingTap: () => Get.to(() => StoresNearYouAllScreen(
+              section: NearbySection.services,
+              title: _nearby.servicesTitle.value,
+            )),
         child: DiscoverNearMeRail(items: businesses, onTap: _openBusiness),
       ));
     });

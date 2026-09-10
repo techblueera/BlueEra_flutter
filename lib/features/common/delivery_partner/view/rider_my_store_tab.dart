@@ -22,7 +22,7 @@ class RiderMyStoreTab extends StatefulWidget {
 }
 
 class _RiderMyStoreTabState extends State<RiderMyStoreTab> {
-  final controller = getOrPut(() => DeliveryPartnerController());
+  final controller = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final ScrollController _scrollController = ScrollController();
 
   int _selectedFilterIndex = 0;

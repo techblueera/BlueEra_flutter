@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/go_live_action.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
@@ -88,11 +89,19 @@ class _GoLivePillState extends State<GoLivePill>
     );
     _pulse = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _syncAnimation();
+    // Publish this screen's go-live action so the "You're offline" nudge sheet
+    // runs exactly what tapping this pill runs — catalogue gate included. See
+    // [GoLiveAction] for why it is registered here rather than in each of the
+    // thirteen screens that own a pill.
+    GoLiveAction.register(this, widget.onTap);
   }
 
   @override
   void didUpdateWidget(covariant GoLivePill old) {
     super.didUpdateWidget(old);
+    // The host rebuilds with a fresh closure on most frames, so keep the
+    // published action pointing at the current one.
+    GoLiveAction.register(this, widget.onTap);
     // `blink` or `isUpdating` may flip at any time (e.g. the status call starts).
     if (widget.blink != old.blink || widget.isUpdating != old.isUpdating) {
       _syncAnimation();
@@ -114,6 +123,7 @@ class _GoLivePillState extends State<GoLivePill>
 
   @override
   void dispose() {
+    GoLiveAction.unregister(this);
     _controller.dispose();
     super.dispose();
   }

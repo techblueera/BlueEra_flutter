@@ -1,3 +1,6 @@
+import 'package:BlueEra/core/navigation/me_section_kind.dart';
+import 'package:BlueEra/widgets/go_live_action.dart';
+import 'package:BlueEra/widgets/go_live_nudge_copy.dart';
 import 'package:BlueEra/widgets/go_live_nudge_sheet.dart';
 import 'dart:async';
 import 'dart:io';
@@ -6,10 +9,10 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
@@ -35,7 +38,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_g
 import 'package:BlueEra/features/business/widgets/business_qr_promo_sheet.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/widget/ios_update_dialog.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/app_update_bottom_sheet.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_shimmer.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
@@ -73,9 +76,16 @@ import 'package:BlueEra/widgets/location_permission_banner.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
-import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
+// Both plugins export AppUpdateInfo/UpdateAvailability/AppUpdateType. Android
+// now runs on in_app_update (it is the one exposing completeFlexibleUpdate),
+// so flutter_upgrade_version is kept ONLY for the iOS App Store lookup and its
+// clashing Android types are hidden.
+import 'package:flutter_upgrade_version/flutter_upgrade_version.dart'
+    hide AppUpdateInfo, AppUpdateType, UpdateAvailability;
+import 'package:in_app_update/in_app_update.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
@@ -146,7 +156,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
-  final orderController = getOrPut(() => DeliverPartnerOrdersController());
+  final orderController = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
   final dialogService = Get.put(DialogService());
 
   void handleRejectOrder(String orderId) {
@@ -463,11 +473,23 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// in a session — `Get.offAllNamed` after OTP login, backing out of account
   /// creation, and the notification re-navigation all rebuild it — and without
   /// this guard each remount fired another store check and could re-throw the
-  /// full-screen Play update sheet at someone who had just dismissed it.
+  /// update prompt at someone who had just dismissed it. The persisted
+  /// once-a-day cadence in [showAppUpdateBottomSheet] covers the same thing
+  /// ACROSS launches; this covers remounts within one.
   static bool _updateCheckStarted = false;
 
-  /// Store update check, run once after the first frame. Android hands the
-  /// whole flow to Play; iOS gets [showIosUpdateDialog].
+  /// Play's install-status feed, live only while a flexible download is in
+  /// flight. Cancelled in [dispose] as well as at the end of the download —
+  /// the shell can be torn down (notification re-navigation, logout) while
+  /// Play is still fetching bytes.
+  StreamSubscription<InstallStatus>? _installStatusSub;
+
+  /// One "downloading in the background" notice per download, not one per
+  /// status event — Play emits `downloading` repeatedly as progress advances.
+  bool _downloadNoticeShown = false;
+
+  /// Store update check, run once after the first frame. Both platforms open
+  /// [showAppUpdateBottomSheet]; only what the Update button does differs.
   Future<void> _getPackageData() async {
     // Deep-link background host: this screen only exists behind the screen the
     // notification actually opened, so don't drop a store prompt on top of it.
@@ -490,46 +512,90 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _updateLog("START (platform=${Platform.operatingSystem})");
 
       if (Platform.isAndroid) {
-        // Play owns the entire Android flow — its own UI, its own download and
-        // install. `packageInfo` isn't needed here at all, so it is fetched
-        // only on the iOS branch below.
-        final InAppUpdateManager manager = InAppUpdateManager();
-        final AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
+        // Throws on any build Play doesn't own — sideloaded APKs, debug
+        // builds, devices without Play Services. The catch below logs it and
+        // the app carries on; there is nothing to offer on those installs.
+        final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
 
-        if (appUpdateInfo == null) {
-          // Normal on any build Play doesn't own: sideloaded APKs, debug
-          // builds, devices without Play Services.
-          _updateLog("Android: checkForUpdate returned null");
+        _updateLog("Android availability=${info.updateAvailability} "
+            "immediateAllowed=${info.immediateUpdateAllowed} "
+            "flexibleAllowed=${info.flexibleUpdateAllowed} "
+            "installStatus=${info.installStatus} "
+            "availableVersionCode=${info.availableVersionCode}");
+
+        // A flexible download from an earlier session that never got
+        // installed — the user tapped Later, or the process died before we
+        // could ask. The bytes are already on the device, so skip straight to
+        // the install prompt rather than offering the update again.
+        if (info.installStatus == InstallStatus.downloaded) {
+          await _promptFlexibleInstall();
           return;
         }
 
-        _updateLog("Android availability=${appUpdateInfo.updateAvailability} "
-            "immediateAllowed=${appUpdateInfo.immediateAllowed} "
-            "flexibleAllowed=${appUpdateInfo.flexibleAllowed} "
-            "availableVersionCode=${appUpdateInfo.availableVersionCode}");
-
-        if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.developerTriggeredUpdateInProgress) {
-          _updateLog("Resuming in-progress immediate update…");
-          _logUpdateFlowResult('immediate',
-              await manager.startAnUpdate(type: AppUpdateType.immediate));
-        } else if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.updateAvailable) {
-          if (appUpdateInfo.immediateAllowed) {
-            _updateLog("Starting immediate update flow…");
-            _logUpdateFlowResult('immediate',
-                await manager.startAnUpdate(type: AppUpdateType.immediate));
-          } else if (appUpdateInfo.flexibleAllowed) {
-            _updateLog("Starting flexible update flow…");
-            _logUpdateFlowResult('flexible',
-                await manager.startAnUpdate(type: AppUpdateType.flexible));
-          } else {
-            _updateLog(
-                "Update available, but neither flow is permitted by Play");
-          }
-        } else {
-          _updateLog("No update available");
+        // Play is already working on it: a flexible download from an earlier
+        // session still fetching bytes, or an install underway. This has to be
+        // checked BEFORE the branch below, because Play reports an in-progress
+        // FLEXIBLE download as developerTriggeredUpdateInProgress too — and
+        // escalating that to an immediate update would throw the full-screen
+        // flow at someone whose background download was going along fine.
+        // There is no way to re-attach a status listener to a download this
+        // process didn't start, so leave it: the next open sees `downloaded`
+        // and offers the install.
+        if (info.installStatus == InstallStatus.pending ||
+            info.installStatus == InstallStatus.downloading ||
+            info.installStatus == InstallStatus.installing) {
+          _updateLog("Play already has this update in flight — leaving it");
+          return;
         }
+
+        if (info.updateAvailability ==
+            UpdateAvailability.developerTriggeredUpdateInProgress) {
+          // An immediate update Play already started and we came back to. It
+          // has to finish as an immediate update — there is no downgrading a
+          // half-applied one to flexible, and skipping it strands the user on
+          // a build Play considers mid-upgrade. No sheet: the user consented
+          // to this flow the first time round.
+          _updateLog("Resuming in-progress immediate update…");
+          _logUpdateFlowResult(
+              'immediate', await InAppUpdate.performImmediateUpdate());
+          return;
+        }
+
+        if (info.updateAvailability != UpdateAvailability.updateAvailable) {
+          _updateLog("No update available");
+          return;
+        }
+
+        // Flexible first: the download runs in the background and the user
+        // stays in the app. Immediate is only the fallback for a build where
+        // Play refuses the flexible flow — better a full-screen update than
+        // none at all.
+        final bool flexible = info.flexibleUpdateAllowed;
+        if (!flexible && !info.immediateUpdateAllowed) {
+          _updateLog("Update available, but neither flow is permitted by Play "
+              "(flexible preconditions=${info.flexibleAllowedPreconditions}, "
+              "immediate preconditions=${info.immediateAllowedPreconditions})");
+          return;
+        }
+        if (!mounted) return;
+
+        final accepted = await showAppUpdateBottomSheet(
+          context: context,
+          versionTag: 'android-${info.availableVersionCode}',
+          message: AppStrings.updateAvailableMessageAndroid.tr,
+        );
+        if (!accepted) {
+          _updateLog("User dismissed the update sheet (or it was throttled)");
+          return;
+        }
+
+        if (!flexible) {
+          _updateLog("Starting immediate update flow…");
+          _logUpdateFlowResult(
+              'immediate', await InAppUpdate.performImmediateUpdate());
+          return;
+        }
+        await _startFlexibleUpdate();
       } else if (Platform.isIOS) {
         final PackageInfo packageInfo = await PackageManager.getPackageInfo();
         if (packageInfo.packageName.isEmpty) {
@@ -558,7 +624,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           return;
         }
         if (!mounted) return;
-        await showIosUpdateDialog(context, versionInfo);
+        final accepted = await showAppUpdateBottomSheet(
+          context: context,
+          versionTag: 'ios-${versionInfo.storeVersion}',
+          message: AppStrings.updateAvailableMessage.tr,
+          currentVersion: versionInfo.localVersion,
+          newVersion: versionInfo.storeVersion,
+        );
+        if (accepted) await _openAppStore(versionInfo.appStoreLink);
       }
       _updateLog("COMPLETE");
     } catch (e, stackTrace) {
@@ -567,13 +640,96 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  /// `startAnUpdate` returns NULL on success and a message only when the flow
-  /// failed or the user cancelled it — logging the raw value made a completed
-  /// update read as "result: null" and a cancellation read like a success.
-  void _logUpdateFlowResult(String type, String? message) {
-    _updateLog(message == null
-        ? "$type update accepted by user"
-        : "$type update did not start: $message");
+  /// Opens the App Store listing for the iOS half of the flow. The sheet is
+  /// already gone by the time this runs, so a link that can't be handled is
+  /// only logged — there is nothing left on screen to keep open.
+  Future<void> _openAppStore(String link) async {
+    try {
+      final opened = await launchUrl(Uri.parse(link),
+          mode: LaunchMode.externalApplication);
+      if (!opened) _updateLog("iOS: could not open App Store link '$link'");
+    } catch (e) {
+      _updateLog("iOS: could not open App Store link '$link' — $e");
+    }
+  }
+
+  /// Runs Play's flexible download to completion, then offers the install.
+  ///
+  /// The subtlety worth knowing: [InAppUpdate.startFlexibleUpdate] does NOT
+  /// settle when the user accepts Play's consent dialog — it settles when the
+  /// download has FINISHED (or throws if it failed), which can be minutes
+  /// later, with the user deep in some other screen the whole time. That's why
+  /// the "downloading" notice comes off the status stream rather than from
+  /// this future, and why the install prompt is a separate step: nothing is
+  /// installed, and nothing restarts, until the user says so.
+  Future<void> _startFlexibleUpdate() async {
+    _downloadNoticeShown = false;
+    // Subscribe BEFORE starting the flow: the plugin registers its Play
+    // listener inside startFlexibleUpdate and the first states arrive right
+    // after consent, so a later subscription would miss them.
+    await _installStatusSub?.cancel();
+    _installStatusSub = InAppUpdate.installUpdateListener.listen(
+      (status) {
+        _updateLog("Flexible install status=$status");
+        // The download itself is invisible — no Play UI, no notification. One
+        // notice, on the first state that means "it started", so the Update
+        // tap doesn't look like it did nothing.
+        if (!_downloadNoticeShown &&
+            (status == InstallStatus.pending ||
+                status == InstallStatus.downloading)) {
+          _downloadNoticeShown = true;
+          commonSnackBar(message: AppStrings.updateDownloadingInBackground.tr);
+        }
+      },
+      onError: (e) => _updateLog("Flexible install status stream error: $e"),
+    );
+
+    try {
+      _updateLog("Starting flexible update flow…");
+      final AppUpdateResult result = await InAppUpdate.startFlexibleUpdate();
+      _logUpdateFlowResult('flexible', result);
+      if (result != AppUpdateResult.success) return;
+      await _promptFlexibleInstall();
+    } catch (e) {
+      // A failed download surfaces as a raw PlatformException from the plugin
+      // rather than an AppUpdateResult. Nothing to tell the user — they didn't
+      // ask for a report on a background download, and the next app open will
+      // simply offer the update again.
+      _updateLog("flexible update failed: $e");
+    } finally {
+      await _installStatusSub?.cancel();
+      _installStatusSub = null;
+    }
+  }
+
+  /// Asks before installing a downloaded update, because installing it
+  /// restarts the app — mid-chat, mid-call, mid-order if we just did it. The
+  /// downloaded APK keeps until they agree; [_checkForUpdate] finds it again
+  /// on the next open and re-offers it.
+  Future<void> _promptFlexibleInstall() async {
+    if (!mounted) return;
+    final restartNow = await showUpdateReadyBottomSheet(context: context);
+    if (!restartNow) {
+      _updateLog("User deferred the install");
+      return;
+    }
+    _updateLog("Completing flexible update — the app restarts from here");
+    try {
+      await InAppUpdate.completeFlexibleUpdate();
+    } catch (e) {
+      _updateLog("completeFlexibleUpdate failed: $e");
+    }
+  }
+
+  void _logUpdateFlowResult(String type, AppUpdateResult result) {
+    switch (result) {
+      case AppUpdateResult.success:
+        _updateLog("$type update accepted by user");
+      case AppUpdateResult.userDeniedUpdate:
+        _updateLog("$type update declined at Play's consent dialog");
+      case AppUpdateResult.inAppUpdateFailed:
+        _updateLog("$type update failed inside Play");
+    }
   }
 
   void _initializeControllers() {
@@ -911,7 +1067,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// screen on top of the home shell. Gates on areRequiredGranted (NOT
   /// areAllGranted) — battery optimization can't be reliably granted on
   /// Android 13+/16. Covers all five rider professions via [isRiderProfession]
-  /// (BIKE_RIDER, AUTO_TAXI, CAR_TAXI, CAR_TAXI_DRIVER, GOODS_TAXI).
+  /// (see [GigProfession] for the catalog's five gig tags).
   Future<void> _maybeRunRiderGoLiveGate() async {
     if (!isRiderProfession(userProfessionGlobal)) return;
     if (await GoLivePermissionService.areRequiredGranted()) return;
@@ -956,6 +1112,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   void dispose() {
+    _installStatusSub?.cancel();
     _bottomNavVisibilityWorker?.dispose();
     _joiningBonusWorker?.dispose();
     bottomBarVisibleNotifier.dispose(); // Clean up
@@ -1209,152 +1366,57 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     });
   }
 
+  /// Picks the Me screen for a business account.
+  ///
+  /// The type/category tests that used to sprawl through here now live in
+  /// [resolveMeSectionKind] (me_section_kind.dart), so this is purely
+  /// kind → screen. The go-live nudge reads the SAME classifier for its copy,
+  /// which is what stops a merchant seeing a restaurant screen and being told
+  /// about a catalogue. The switch is exhaustive on purpose: a new
+  /// [MeSectionKind] fails to compile here until it is given a screen.
   Widget _buildBusinessScreen() {
     logs("businessTypeGlobal=== ${businessTypeGlobal}");
     logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
-    // 1. First, check if it is a Food business
-    if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Food.name.toUpperCase()) {
-      return const FoodMainScreen(fromBottomNavBar: true);
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Grocery.name.toUpperCase()) {
-      return const GroceryScreen(fromBottomNavBar: true);
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Siksha.name.toUpperCase()) {
-      return const SchoolMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Healthcare.name.toUpperCase()) {
-      // DOCTORS / CLINICS are STANDALONE DOCTORS — independent practitioners
-      // with their own listing, professional profile and appointment inbox
-      // (hospital-service/doctors*). They get their own module; everything
-      // else in Healthcare keeps its existing destination, so the hospital
-      // OPD flow below is unchanged.
-      final category = businessCategoryGlobal.toUpperCase();
-      if (_isStandaloneDoctor()) {
-        return const DoctorMain();
-      } else if (category == BusinessCategoryTokens.hospitals ||
-          category == BusinessCategoryTokens.alternativeHealth) {
-        return const HospitalMain();
-      } else if (category == BusinessCategoryTokens.diagnostic) {
-        return const LaboratoryMain();
-      } else if (category == BusinessCategoryTokens.pharmacy) {
-        return const MedicalScreen(fromBottomNavBar: true);
-      }
-      return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Motel.name.toUpperCase()) {
-      return const HotelMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Product.name.toUpperCase()) {
-      return const ProductScreen();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Finance.name.toUpperCase()) {
-      return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Service.name.toUpperCase()) {
-      return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Manufacturing.name.toUpperCase()) {
-      // return const ManufactureMain();
-      //
-      // Manufacturing splits by WHAT IS MADE. The onboarding API serves four
-      // categories under it — grocery & stationary, product, healthcare and
-      // automotive — and each one's goods already have a catalogue screen in the
-      // app, so the merchant lands on the one built for their own stock instead
-      // of every manufacturer sharing the generic product screen.
-      //
-      // Matched on a token rather than an exact string, for the same reason the
-      // automotive helpers below are: `businessCategoryGlobal` carries the
-      // display name ("Manufacturing Healthcare") on some paths and the tag id
-      // ("MANUFACTURING_HEALTHCARE") on others. Each of these three tokens
-      // appears in exactly one manufacturing category, so either shape lands.
-      final category = businessCategoryGlobal.toUpperCase();
-      logs("MANUFACTURING -> category= $category");
-      if (category.contains(BusinessCategoryTokens.groceryToken)) {
+    final kind = resolveMeSectionKind();
+    logs("meSectionKind=== ${kind.name}");
+
+    switch (kind) {
+      case MeSectionKind.food:
+        return const FoodMainScreen(fromBottomNavBar: true);
+      case MeSectionKind.grocery:
         return const GroceryScreen(fromBottomNavBar: true);
-      } else if (category.contains(BusinessCategoryTokens.healthcareToken)) {
+      case MeSectionKind.pharmacy:
         return const MedicalScreen(fromBottomNavBar: true);
-      } else if (category.contains(BusinessCategoryTokens.automotiveToken)) {
+      case MeSectionKind.doctor:
+        return const DoctorMain();
+      case MeSectionKind.hospital:
+        return const HospitalMain();
+      case MeSectionKind.laboratory:
+        return const LaboratoryMain();
+      case MeSectionKind.hotel:
+        return const HotelMain();
+      case MeSectionKind.school:
+        return const SchoolMain();
+      case MeSectionKind.product:
+        return const ProductScreen();
+      case MeSectionKind.manufacturerProduct:
+        return const ManufacturerProductScreen();
+      case MeSectionKind.automotiveParts:
         return const AutomotivePartsScreen();
-      }
-      // MANUFACTURING_PRODUCT — and deliberately also anything added
-      // server-side later. A new manufacturing category then gets the general
-      // goods catalogue, which is where every manufacturer landed until now,
-      // rather than the unknown-business fallback.
-      return const ManufacturerProductScreen();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Automotive.name.toUpperCase()) {
-      // All Automotive sub-categories route from this single branch based on
-      // the business category. Order matters — a category can satisfy more
-      // than one check (e.g. VEHICLE_SALES), and the first match wins, same
-      // precedence as the previous separate else-if chain.
-      final category = businessCategoryGlobal.toUpperCase();
-      logs("AUTOMOTIVE -> category= $category");
-      if (_isSpecificServiceAutomotive()) {
-        // VEHICLE_SALES → vehicle showroom, on the rebuilt (v3) service.
-        // VehicleHomeScreenV2 is left in the tree but no longer routed to:
-        // it reads the `/vehicles/*` API that the service replaced, so its
+      case MeSectionKind.vehicleSales:
+        // VehicleHomeScreenV2 is left in the tree but no longer routed to: it
+        // reads the `/vehicles/*` API that the v3 service replaced, so its
         // tabs would sit on 404s.
         return const VehicleScreenV3(fromBottomNavBar: true);
-      } else if (_isSpecificServiceSpecialAutomotive()) {
-        // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT — their own
-        // module entry that currently reuses the OthersMain UI (other_repo.dart
-        // APIs), in a separate directory so the UI can diverge later.
+      case MeSectionKind.automotiveService:
+        // Its own module entry, currently reusing the OthersMain UI
+        // (other_repo.dart APIs), in a separate directory so it can diverge.
         return const AutomotiveServiceMain();
-      } else if (_isSpecificProductAutomotive()) {
-        // "AUTO PARTS" category → product/parts catalog screen.
-        return const AutomotivePartsScreen();
-      }
-      return const _UnknownBusinessFallback();
-    } else {
-      return const _UnknownBusinessFallback();
+      case MeSectionKind.service:
+        return const OthersMain();
+      case MeSectionKind.unknown:
+        return const _UnknownBusinessFallback();
     }
-  }
-
-  /// True for a Healthcare business whose category is DOCTORS or CLINICS —
-  /// the standalone-doctor module.
-  ///
-  /// The category arrives from the API in several shapes ("DOCTORS",
-  /// "Doctors", "Clinic Doctors", "CLINICS"), so this normalises case and
-  /// matches on the token rather than an exact string, the same way the
-  /// automotive helpers below do.
-  bool _isStandaloneDoctor() {
-    if (businessTypeGlobal.toUpperCase() !=
-        BusinessType.Healthcare.name.toUpperCase()) {
-      return false;
-    }
-    final category = businessCategoryGlobal.toUpperCase().trim();
-    return category.contains(BusinessCategoryTokens.doctorToken) ||
-        category.contains(BusinessCategoryTokens.clinicToken);
-  }
-
-  bool _isSpecificServiceAutomotive() {
-    final category = businessCategoryGlobal.toUpperCase();
-
-    // Automotive AND one of the showroom (vehicle-sales) categories.
-    return businessTypeGlobal.toUpperCase() ==
-            BusinessType.Automotive.name.toUpperCase() &&
-        BusinessCategoryTokens.automotiveVehicleSales.contains(category);
-  }
-
-  bool _isSpecificServiceSpecialAutomotive() {
-    final category = businessCategoryGlobal.toUpperCase();
-    logs("category=== ${category}");
-
-    // Automotive AND one of the service / support / transport categories.
-    return businessTypeGlobal.toUpperCase() ==
-            BusinessType.Automotive.name.toUpperCase() &&
-        BusinessCategoryTokens.automotiveServiceAndSupport.contains(category);
-  }
-
-  bool _isSpecificProductAutomotive() {
-    final category = businessCategoryGlobal.toUpperCase();
-
-    // The "AUTO PARTS" category (with its space, as the API returns it) maps
-    // to the parts catalog screen.
-    return businessTypeGlobal.toUpperCase() ==
-            BusinessType.Automotive.name.toUpperCase() &&
-        category.contains(BusinessCategoryTokens.autoPartsToken);
   }
 
   Widget resolveIndividualScreen() {
@@ -1964,11 +2026,24 @@ class _BusinessMeHostState extends State<_BusinessMeHost> {
     GoLiveNudgeCooldown.markShown();
     showGoLiveNudgeSheet(
       title: AppStrings.goLiveNudgeTitle.tr,
-      message: AppStrings.goLiveNudgeBusinessBody.tr,
+      // Named for what THIS shop is missing while it's dark — orders, covers,
+      // appointments, bookings, enquiries. See go_live_nudge_copy.dart.
+      message: goLiveNudgeBodyForBusiness().tr,
       ctaLabel: AppStrings.goLiveNudgeCta.tr,
-      // The SAME entry point the go-live pill uses, so the sheet's button is
-      // not a second way to go live with its own rules.
-      onGoLive: widget.controller.toggleLiveNow,
+      // Literally the pill's own callback, published by [GoLivePill] on the
+      // screen underneath this sheet — so the sheet is not a second way to go
+      // live with its own rules.
+      //
+      // It used to be a bare `toggleLiveNow`, which SKIPPED the empty-catalogue
+      // gate that the catalogue screens (food, grocery, product, manufacturing,
+      // pharmacy, auto parts, vehicles) run before it. A merchant with nothing
+      // to sell could go live from this sheet but not from the pill two inches
+      // above it, and end up listed with an empty shop.
+      //
+      // The fallback covers a screen that renders no pill, and is exactly right
+      // for the un-gated ones (school, hotel, lab, hospital, other services)
+      // whose pill IS the plain toggle.
+      onGoLive: GoLiveAction.current ?? widget.controller.toggleLiveNow,
     );
     return true;
   }
@@ -2035,13 +2110,17 @@ class _IndividualMeHostState extends State<_IndividualMeHost> {
     GoLiveNudgeCooldown.markShown();
     showGoLiveNudgeSheet(
       title: AppStrings.goLiveNudgeTitle.tr,
-      message: AppStrings.goLiveNudgeIndividualBody.tr,
+      // Work requests for a gig worker, service requests for a tradesperson,
+      // consultations for a professional. See go_live_nudge_copy.dart.
+      message: goLiveNudgeBodyForIndividual().tr,
       ctaLabel: AppStrings.goLiveNudgeCta.tr,
-      // Routed through the same entry point the Go-Live pill uses, with the
-      // controller's own gate so an unpaid provider is told why and routed to
-      // the plan flow rather than the tap doing nothing.
-      onGoLive: () => widget.controller
-          .toggleLiveNow(gate: widget.controller.ensureCanGoLive),
+      // The pill's own callback where the screen published one (see
+      // [GoLiveAction]); otherwise the same entry point it would have used,
+      // with the controller's gate so an unpaid provider is told why and
+      // routed to the plan flow rather than the tap doing nothing.
+      onGoLive: GoLiveAction.current ??
+          () => widget.controller
+              .toggleLiveNow(gate: widget.controller.ensureCanGoLive),
     );
   }
 
