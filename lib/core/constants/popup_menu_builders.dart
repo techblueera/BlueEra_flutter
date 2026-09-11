@@ -23,7 +23,15 @@ import '../../features/personal/personal_profile/view/manage_notification/notifi
 import '../../features/chat/view/wallet_chat/wallet_chat_screen.dart';
 
 class PopupMenuBuilders {
-  static List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
+  /// The create-post entries this account may use, in menu order.
+  ///
+  /// [only] narrows the list to a specific slice — the My Post empty states use
+  /// it to offer just the kind of post the tab is missing (Bites on Shorts, a
+  /// message post on Videos) — while still honouring the account-type rules
+  /// below, so a business never gets a reel entry through the back door.
+  static List<PostCreationMenu> postCreationMenus({
+    Set<PostCreationMenu>? only,
+  }) {
     final bool isBusiness =
         accountTypeGlobal.toUpperCase() == AppConstants.business;
 
@@ -44,6 +52,15 @@ class PopupMenuBuilders {
       // PostCreationMenu.place,
       // PostCreationMenu.travel,
     ];
+
+    if (only == null) return items;
+    return items.where(only.contains).toList();
+  }
+
+  static List<PopupMenuEntry<PostCreationMenu>> popupMenuItems({
+    Set<PostCreationMenu>? only,
+  }) {
+    final List<PostCreationMenu> items = postCreationMenus(only: only);
 
     const iconMap = {
       PostCreationMenu.message: AppIconAssets.message_post,

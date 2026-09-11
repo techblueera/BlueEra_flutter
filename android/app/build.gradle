@@ -36,8 +36,8 @@ if (!mapApiKey || mapApiKey.isEmpty()) {
 
 android {
     namespace "ai.bluecs.app"
-    compileSdk 36
-    ndkVersion "29.0.14033849 rc4"
+    compileSdk 37
+    ndkVersion "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

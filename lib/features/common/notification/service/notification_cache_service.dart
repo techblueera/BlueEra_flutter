@@ -142,6 +142,11 @@ class NotificationCacheService extends GetxController {
     List<String> images = const [],
     String senderName = '',
     String senderImage = '',
+    String videoId = '',
+    String videoType = '',
+    String videoThumbnail = '',
+    String videoTitle = '',
+    String broadcastId = '',
   }) async {
     if (title.trim().isEmpty && body.trim().isEmpty) return;
     final now = DateTime.now();
@@ -157,6 +162,15 @@ class NotificationCacheService extends GetxController {
         message: body,
         senderName: senderName,
         originalOperation: operation,
+        // admin_video_promo: carry the video through so a row inserted from
+        // the push (before any server sync) is tappable and renders its
+        // thumbnail. Without these the local row would look identical to the
+        // server one but open nothing.
+        videoId: videoId.isNotEmpty ? videoId : null,
+        videoType: videoType.isNotEmpty ? videoType : null,
+        videoThumbnail: videoThumbnail.isNotEmpty ? videoThumbnail : null,
+        videoTitle: videoTitle.isNotEmpty ? videoTitle : null,
+        broadcastId: broadcastId.isNotEmpty ? broadcastId : null,
       ),
       senderProfile: (senderName.isNotEmpty || senderImage.isNotEmpty)
           ? SenderProfile(name: senderName, profileImage: senderImage)

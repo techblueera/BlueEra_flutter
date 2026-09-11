@@ -21,6 +21,8 @@ import 'package:BlueEra/features/common/notification/notification_repo.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/deeplink_network_resources.dart';
+import 'package:BlueEra/widgets/fallback_network_image.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -360,6 +362,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ? bodyText
                           : (data.metadata?.senderName ?? ''));
                   final String status = data.status ?? '';
+                  // Backend operation key, hoisted out of onTap so the row can
+                  // also be DRAWN differently for the operations that need it.
+                  final String operation =
+                      (data.metadata?.originalOperation ?? data.type ?? '')
+                          .trim();
+                  // admin_video_promo rows lead with the video still instead of
+                  // a sender avatar: a promo that looks like a plain text row
+                  // reads as noise and gets ignored.
+                  final bool isVideoPromo =
+                      operation.toLowerCase() == 'admin_video_promo';
+                  final String promoThumbnail =
+                      (data.metadata?.videoThumbnail ?? '').trim();
                   String time = '';
                   try {
                     if (data.createdAt != null && data.createdAt!.isNotEmpty) {
@@ -383,16 +397,34 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               .notificationReadRepo(notificationId: id);
                         }
                       }
-                      // Redirect off the backend operation key first: it's
-                      // present even when `notification_type` is null (e.g.
-                      // profile_completion_reminder), so it drives routing more
-                      // reliably than the coarse type. Falls through to the
-                      // existing type-based handling when the operation isn't one
-                      // we redirect explicitly (or is missing entirely).
-                      final String operation =
-                          (data.metadata?.originalOperation ?? data.type ?? '')
-                              .trim();
-                      if (operation == "profile_completion_reminder") {
+                      // Redirect off the backend operation key first (hoisted
+                      // above): it's present even when `notification_type` is
+                      // null (e.g. profile_completion_reminder), so it drives
+                      // routing more reliably than the coarse type. Falls
+                      // through to the existing type-based handling when the
+                      // operation isn't one we redirect explicitly (or is
+                      // missing entirely).
+                      if (isVideoPromo) {
+                        // Same destination as the push tap and the
+                        // https://beapp.in/app/video/<id> deep link: fetch, then
+                        // branch shorts → reels player / longs → watch page.
+                        // The id is read through the shared resolver because the
+                        // stored row uses `video_id` while the push uses
+                        // `videoId`.
+                        final promoId =
+                            AppNotificationHandler.videoIdFromNotification(
+                                data.metadata?.toJson() ?? {});
+                        if (promoId != null) {
+                          deepLinkNetworkResources
+                              .navigateToVideoDetail(promoId);
+                        } else {
+                          // Nothing to open — leave the user on the list rather
+                          // than firing a fetch against an empty id.
+                          commonSnackBar(
+                              message: AppStrings.somethingWentWrong.tr);
+                        }
+                      }
+                      else if (operation == "profile_completion_reminder") {
                         _redirectToMeOverview();
                       }
                       else if (operation == "admin_broadcast") {
@@ -464,36 +496,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       ? AppColors.primaryColor
                                       : AppColors.transparent,
                                 )),
-                                Padding(
-                                  padding:
-                                      EdgeInsets.only(left: SizeConfig.size5),
-                                  child: InkWell(
-                                    onTap: () {
-                                      navigatePushTo(
-                                        context,
-                                        ImageViewScreen(
-                                          appBarTitle: title,
-                                          imageUrls: [imageUrl],
-                                          initialIndex: 0,
+                                if (isVideoPromo)
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.only(left: SizeConfig.size5),
+                                    child: _VideoPromoThumbnail(
+                                      thumbnailUrl: promoThumbnail,
+                                    ),
+                                  )
+                                else
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.only(left: SizeConfig.size5),
+                                    child: InkWell(
+                                      onTap: () {
+                                        navigatePushTo(
+                                          context,
+                                          ImageViewScreen(
+                                            appBarTitle: title,
+                                            imageUrls: [imageUrl],
+                                            initialIndex: 0,
+                                          ),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                            top: SizeConfig.size2),
+                                        child: CachedAvatarWidget(
+                                          imageUrl: imageUrl,
+                                          size: SizeConfig.size45,
+                                          borderRadius: SizeConfig.size30,
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: AppColors.black1F,
+                                                offset: Offset(0, 2))
+                                          ],
                                         ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                          top: SizeConfig.size2),
-                                      child: CachedAvatarWidget(
-                                        imageUrl: imageUrl,
-                                        size: SizeConfig.size45,
-                                        borderRadius: SizeConfig.size30,
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: AppColors.black1F,
-                                              offset: Offset(0, 2))
-                                        ],
                                       ),
                                     ),
                                   ),
-                                ),
                                 SizedBox(width: SizeConfig.size10),
                                 Expanded(
                                   child: Column(
@@ -852,4 +893,50 @@ class NotificationData {
     required this.title,
     required this.timeAgo,
   });
+}
+
+/// Leading 16:9 still for an `admin_video_promo` row.
+///
+/// Video promos are the one notification whose whole point is a piece of media,
+/// so the row leads with the thumbnail rather than the sender's avatar — and
+/// carries a play badge so it reads as "tap to watch" at a glance. A missing or
+/// broken thumbnail falls through to the shared placeholder inside
+/// [FallbackNetworkImage] instead of collapsing the row's layout.
+class _VideoPromoThumbnail extends StatelessWidget {
+  final String thumbnailUrl;
+
+  const _VideoPromoThumbnail({required this.thumbnailUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(SizeConfig.size6),
+      child: SizedBox(
+        width: SizeConfig.size80,
+        // 16:9 — matches the `thumbnails.high` still the video service stores,
+        // so nothing is cropped away.
+        height: SizeConfig.size45,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            FallbackNetworkImage(urls: [thumbnailUrl]),
+            Center(
+              child: Container(
+                padding: EdgeInsets.all(SizeConfig.size4),
+                decoration: BoxDecoration(
+                  color: AppColors.black1F.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  size: SizeConfig.size16,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
