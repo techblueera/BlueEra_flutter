@@ -635,6 +635,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       }
       _updateLog("COMPLETE");
     } catch (e, stackTrace) {
+      // ERROR_APP_NOT_OWNED (-10): Play has no record of this install — a
+      // sideloaded APK, a debug build, an internal-test build pushed over
+      // adb. There is no update to offer such a copy and there never will be,
+      // so on those devices this is an expected skip rather than a failure;
+      // it gets a line, not an "ERROR" with a stack trace behind it.
+      if (e.toString().contains('ERROR_APP_NOT_OWNED')) {
+        _updateLog("Skipped: this install isn't owned by Play "
+            "(sideloaded or debug build)");
+        return;
+      }
       _updateLog("ERROR: $e");
       _updateLog("StackTrace: $stackTrace");
     }

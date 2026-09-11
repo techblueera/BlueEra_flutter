@@ -40,6 +40,7 @@ class DiscoverNearMeRail extends StatelessWidget {
     if (items.isEmpty) return const SizedBox.shrink();
     final shown = items.length > maxItems ? items.sublist(0, maxItems) : items;
 
+
     return SizedBox(
       // Avatar + the two text lines. Measured, not guessed: a SizedBox this
       // list overflows clips the category line.

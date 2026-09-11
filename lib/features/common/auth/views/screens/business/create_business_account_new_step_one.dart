@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -820,18 +821,23 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     // GPS fix + reverse geocode — the slow part of submitting, and the reason
     // the button has to say so itself: nothing else reports progress until the
     // create request goes out below.
-    setState(() => _resolvingLocation = true);
-    LocationDataModel? locationData;
-    try {
-      locationData = await locationController.checkPermissionAndSetData(
-        preferNativeGeocoding: true,
-      );
-    } finally {
-      // Cleared before the request starts, which is where `addUserResponse`
-      // takes over the spinner — and on the permission-denied path below, so a
-      // refusal leaves a live button rather than one stuck spinning.
-      if (mounted) setState(() => _resolvingLocation = false);
-    }
+    //
+    // On failure this explains WHICH of the four possible reasons it was and
+    // walks the user through the fix for that one, then retries here — so a
+    // refused permission is a detour rather than a dead end on a form that is
+    // otherwise completely filled in. `onBusyChanged` keeps the spinner tied
+    // to the actual attempts: it stops while the user is reading the sheet,
+    // and on the way out so a refusal leaves a live button rather than one
+    // stuck spinning.
+    final LocationDataModel? locationData = await resolveLocationWithGuidance(
+      context: context,
+      controller: locationController,
+      preferNativeGeocoding: true,
+      purpose: AppStrings.locationWhyBusinessSetup.tr,
+      onBusyChanged: (busy) {
+        if (mounted) setState(() => _resolvingLocation = busy);
+      },
+    );
     if (locationData != null) {
       log("Business Type    : ${authController.selectedTypeOfBusiness}");
       log("Category Slug Id  : ${authController.selectedCategorySlugId}");
@@ -909,6 +915,8 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
 
       await authController.addBusinessUser(reqData: requestData);
     } else {
+      // The user read the guidance and chose Not now. One line confirming the
+      // tap didn't go through, and the form is left exactly as it was.
       commonSnackBar(
           message:
               AppStrings.enableLocationPermission.tr);

@@ -8927,4 +8927,48 @@ class AppStrings {
   static const String orderCardDeleted = "orderCardDeleted";
   static const String orderCardCollectFromShop = "orderCardCollectFromShop";
   static const String orderCardDoorstep = "orderCardDoorstep";
+
+  // ── Location access guidance (location_help_sheet.dart) ───────────────
+  //
+  // One title + one set of steps per WAY the location can fail. They are kept
+  // separate on purpose: the fix for a blocked permission is the app's
+  // settings page, the fix for a dead GPS is the device settings page, and
+  // telling someone the wrong one leaves them hunting through a screen that
+  // does not contain the switch they are looking for.
+
+  static const String locationAllowTitle = "locationAllowTitle";
+  static const String locationBlockedTitle = "locationBlockedTitle";
+  static const String locationGpsOffTitle = "locationGpsOffTitle";
+  static const String locationNotFoundTitle = "locationNotFoundTitle";
+
+  /// Fallback "why we're asking" line, used when a screen passes no reason of
+  /// its own. Prefer a specific one — see [locationWhyAccountSetup].
+  static const String locationWhyGeneric = "locationWhyGeneric";
+  static const String locationWhyAccountSetup = "locationWhyAccountSetup";
+  static const String locationWhyBusinessSetup = "locationWhyBusinessSetup";
+  static const String locationWhyPickupPoint = "locationWhyPickupPoint";
+  static const String locationWhyAvailability = "locationWhyAvailability";
+
+  static const String locationStepsHeading = "locationStepsHeading";
+
+  static const String locationAllowStep1 = "locationAllowStep1";
+  static const String locationAllowStep2 = "locationAllowStep2";
+  static const String locationAllowStep3 = "locationAllowStep3";
+
+  static const String locationBlockedStep1 = "locationBlockedStep1";
+  static const String locationBlockedStep2 = "locationBlockedStep2";
+  static const String locationBlockedStep3 = "locationBlockedStep3";
+  static const String locationBlockedStep4 = "locationBlockedStep4";
+
+  static const String locationGpsStep1 = "locationGpsStep1";
+  static const String locationGpsStep2 = "locationGpsStep2";
+  static const String locationGpsStep3 = "locationGpsStep3";
+
+  static const String locationRetryStep1 = "locationRetryStep1";
+  static const String locationRetryStep2 = "locationRetryStep2";
+  static const String locationRetryStep3 = "locationRetryStep3";
+
+  static const String locationAllowAction = "locationAllowAction";
+  static const String locationTurnOnGps = "locationTurnOnGps";
+  static const String locationTryAgain = "locationTryAgain";
 }

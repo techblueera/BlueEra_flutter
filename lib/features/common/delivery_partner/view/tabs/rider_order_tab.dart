@@ -4,6 +4,7 @@ import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -1022,8 +1023,17 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
   // geocode) and fills the pickup address + coordinates from it. Used by
   // the Current Location radio and the tile's refresh tap.
   Future<void> _fetchCurrentPickupLocation() async {
-    setState(() => _fetchingCurrentPickup = true);
-    final data = await _locationCtrl.checkPermissionAndSetData();
+    // Both callers are taps (the Current Location radio, the tile's refresh),
+    // so a failure gets explained and retried rather than reduced to a
+    // three-second snackbar the rider can't act on.
+    final data = await resolveLocationWithGuidance(
+      context: context,
+      controller: _locationCtrl,
+      purpose: AppStrings.locationWhyPickupPoint.tr,
+      onBusyChanged: (busy) {
+        if (mounted) setState(() => _fetchingCurrentPickup = busy);
+      },
+    );
     if (!mounted) return;
     if (data == null) {
       setState(() => _fetchingCurrentPickup = false);

@@ -279,6 +279,7 @@ class _CreateBusinessAccountNewStepTwoState
                             CommonLocationFetcher(
                               locationController: locationController,
                               preferNativeGeocoding: true,
+                              purpose: AppStrings.locationWhyBusinessSetup.tr,
                               onLocationFetched: (locationData) {
                                 _updateLocationData(locationData);
                               },
@@ -392,6 +393,7 @@ class _CreateBusinessAccountNewStepTwoState
                           CommonLocationFetcher(
                             locationController: locationController,
                             preferNativeGeocoding: true,
+                            purpose: AppStrings.locationWhyBusinessSetup.tr,
                             onLocationFetched: (locationData) {
                               _updateLocationData(locationData);
                             },

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
@@ -362,7 +363,11 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
   /// "Use my current location" — runs the standard reverse-geocode
   /// pipeline and fills the address + coords + pincode in one tap.
   Future<void> _useCurrentLocation() async {
-    final data = await _locationCtrl.checkPermissionAndSetData();
+    final data = await resolveLocationWithGuidance(
+      context: context,
+      controller: _locationCtrl,
+      purpose: AppStrings.locationWhyAccountSetup.tr,
+    );
     if (data == null || !mounted) return;
     setState(() {
       if (data.fullAddress.isNotEmpty) {

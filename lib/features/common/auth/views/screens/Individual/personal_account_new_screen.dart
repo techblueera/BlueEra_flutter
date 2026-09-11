@@ -29,6 +29,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -1338,8 +1339,19 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       // than when the request finally goes out.
       _isSubmitting.value = true;
       try {
-        final locationData = await locationController.checkPermissionAndSetData(
+        // Not a bare fetch: when the location can't be read this explains
+        // which of the four possible reasons it was, walks the user through
+        // the fix for that one, and comes back here to retry — so a refused
+        // permission is a detour rather than a dead end on a form that is
+        // otherwise completely filled in.
+        final locationData = await resolveLocationWithGuidance(
+          context: context,
+          controller: locationController,
           preferNativeGeocoding: true,
+          // `.tr` rather than `langController.tr` for this one: the latter
+          // renders the raw key when the server's language payload hasn't
+          // caught up yet, and GetX falls back to the bundled asset instead.
+          purpose: AppStrings.locationWhyAccountSetup.tr,
         );
         if (locationData != null) {
           final imageFile = (UserSession().imagePath != null)
@@ -1466,6 +1478,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           logs("requestData PERSONAL ==== ${requestData}");
           await authController.addIndividualUser(reqData: requestData);
         } else {
+          // The user read the guidance and chose Not now. One line confirming
+          // the tap didn't go through, and the form is left exactly as it was.
           commonSnackBar(message: AppStrings.enableLocationPermission.tr);
           return;
         }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
@@ -74,8 +75,19 @@ class _BusinessLocationBottomSheetState
     }
   }
 
-  Future<void> updateAddressFromLocation() async {
-    final locationData = await locationController.checkPermissionAndSetData();
+  /// [guided] separates the two ways in here. The tap on "tap to fetch
+  /// business location" is a request, and a request that fails deserves an
+  /// explanation. The auto-fill when the sheet opens with an empty address is
+  /// not — throwing a modal at someone who has only just opened the sheet, to
+  /// tell them about a fetch they never asked for, is worse than the silence.
+  Future<void> updateAddressFromLocation({bool guided = false}) async {
+    final locationData = guided
+        ? await resolveLocationWithGuidance(
+            context: context,
+            controller: locationController,
+            purpose: AppStrings.locationWhyBusinessSetup.tr,
+          )
+        : await locationController.checkPermissionAndSetData();
     if (locationData != null) {
       final lat = double.tryParse(locationData.lat);
       final lng = double.tryParse(locationData.long);
@@ -142,7 +154,7 @@ class _BusinessLocationBottomSheetState
                 hintText: AppStrings.fullBusinessAddress,
               ),
               TextButton(
-                onPressed: () =>  updateAddressFromLocation(),
+                onPressed: () => updateAddressFromLocation(guided: true),
                 child: CustomText(
                   AppStrings.tapToFetchBusinessLocation,
                   fontSize: SizeConfig.small,

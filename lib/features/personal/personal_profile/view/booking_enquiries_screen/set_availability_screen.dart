@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -194,7 +195,14 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   }
 
   Future<void> updateAddressFromLocation() async {
-    final locationData = await locationController.checkPermissionAndSetData();
+    // Every caller is a tap — the two "use current location" rows and the
+    // Current mode chip — so an unreadable location is explained and retried
+    // rather than leaving the field blank with no reason given.
+    final locationData = await resolveLocationWithGuidance(
+      context: context,
+      controller: locationController,
+      purpose: AppStrings.locationWhyAvailability.tr,
+    );
     if (locationData != null) {
       controller.currentAddress.value = locationData.fullAddress;
       controller.latitude = double.parse(locationData.lat);

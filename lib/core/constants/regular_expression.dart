@@ -781,7 +781,19 @@ class VehicleNumber {
   const VehicleNumber._();
 
   /// Hard cap on the field, matching the `maxLength` the forms pass.
-  static const int maxLength = 10;
+  ///
+  /// Counts characters AS TYPED, separators included — which is why it is not
+  /// 10, the length of a canonical plate like `MH12AB1234`. Four of the five
+  /// fields use [relaxedInputFormatters], where the whole point is that
+  /// `MH 12 AB 1234` can be typed the way it is written; that is 13 characters,
+  /// and a cap of 10 truncates it to `MH 12 AB 1` mid-plate. It was briefly 10
+  /// and did exactly that.
+  ///
+  /// [validate] applies the same bound AFTER [normalize] has stripped the
+  /// separators, so a canonical plate has room to spare and the outliers the
+  /// rule deliberately admits — a longer series, a trailing character — still
+  /// fit.
+  static const int maxLength = 15;
 
   /// Two leading letters, then anything — run against the normalised value.
   ///

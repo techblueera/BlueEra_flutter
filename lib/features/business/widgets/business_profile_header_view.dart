@@ -789,6 +789,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
                   // Fetch location button
                   CommonLocationFetcher(
                     locationController: locationController,
+                    purpose: AppStrings.locationWhyBusinessSetup.tr,
                     onLocationFetched: (LocationDataModel locationData) {
                       addressController.text = locationData.fullAddress;
                       cityController.text = locationData.city;

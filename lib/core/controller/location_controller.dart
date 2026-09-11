@@ -15,6 +15,15 @@ class LocationController extends GetxController {
   final isFetchingAddress = false.obs;
   final fetchAddressFromGeo = false.obs;
 
+  /// Why the last [checkPermissionAndSetData] came back null.
+  ///
+  /// The method returns a nullable model, which tells a caller that it failed
+  /// but not what to say about it — and "please enable location permission" is
+  /// the wrong instruction for three of the four ways it can fail. Screens that
+  /// want to guide the user read this straight after a null (see
+  /// `resolveLocationWithGuidance`); everyone else can keep ignoring it.
+  LocationErrorType lastErrorType = LocationErrorType.none;
+
   /// [preferNativeGeocoding] resolves lat/lng → address through the OS
   /// geocoder (the `geocoding` package: Android Geocoder / iOS CLGeocoder)
   /// instead of the billed Google Geocoding API. Callers on the new-account
@@ -27,6 +36,7 @@ class LocationController extends GetxController {
     bool preferNativeGeocoding = false,
   }) async {
     isFetchingAddress.value = true;
+    lastErrorType = LocationErrorType.none;
     HapticFeedback.lightImpact();
 
     final locationResult = await LocationPermissionHandler().getCurrentLocation();
@@ -38,9 +48,16 @@ class LocationController extends GetxController {
         position: pos,
         preferNativeGeocoding: preferNativeGeocoding,
       );
+      // A fix we couldn't turn into an address is a different problem from a
+      // fix we never got: permissions are fine, and retrying (or moving) is
+      // the whole of the advice.
+      if (locationDataModel == null) {
+        lastErrorType = LocationErrorType.addressLookupFailed;
+      }
       return locationDataModel;
     } else {
       log("❌ Location error: ${locationResult.message}");
+      lastErrorType = locationResult.errorType;
       fetchAddressFromGeo.value = false;
       isFetchingAddress.value = false;
       return null;

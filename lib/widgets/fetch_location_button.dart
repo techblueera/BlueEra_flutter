@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/location_data_model.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
+import 'package:BlueEra/widgets/location_help_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -16,17 +17,30 @@ class CommonLocationFetcher extends StatelessWidget {
   /// Google Geocoding API. Set on the account-creation screens.
   final bool preferNativeGeocoding;
 
+  /// One line on why THIS screen wants the location, shown at the top of the
+  /// guidance sheet when the fetch fails. Null falls back to the generic line.
+  final String? purpose;
+
   const CommonLocationFetcher({
     super.key,
     required this.locationController,
     required this.onLocationFetched,
     required this.childBuilder,
     this.preferNativeGeocoding = false,
+    this.purpose,
   });
 
-  Future<void> _fetchLocation() async {
-    final locationData = await locationController.checkPermissionAndSetData(
+  /// Every route into here is a deliberate tap — the button the host screen
+  /// builds, or the red "location not found" line below — so a failure is
+  /// explained rather than swallowed: the sheet names what went wrong, walks
+  /// the user through the fix, and retries without them having to find this
+  /// button again.
+  Future<void> _fetchLocation(BuildContext context) async {
+    final locationData = await resolveLocationWithGuidance(
+      context: context,
+      controller: locationController,
       preferNativeGeocoding: preferNativeGeocoding,
+      purpose: purpose,
     );
     if (locationData != null) {
       onLocationFetched(locationData);
@@ -53,7 +67,7 @@ class CommonLocationFetcher extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: GestureDetector(
-            onTap: _fetchLocation,
+            onTap: () => _fetchLocation(context),
             child: CustomText(
               AppStrings.gpsLocationNotFound,
               fontSize: SizeConfig.small,
@@ -66,7 +80,7 @@ class CommonLocationFetcher extends StatelessWidget {
         );
       }
 
-      return childBuilder(_fetchLocation);
+      return childBuilder(() => _fetchLocation(context));
     });
   }
 }
