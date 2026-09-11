@@ -1,0 +1,9 @@
+# Template for android/local.properties (which is machine-specific and NOT
+# committed — see android/.gitignore). Copy this to local.properties and fill in
+# the paths for your machine.
+#
+# Note: Gradle does not read this file for `org.gradle.java.home`. To pin a JDK,
+# use ~/.gradle/gradle.properties or JAVA_HOME.
+sdk.dir=/path/to/Android/sdk
+flutter.sdk=/path/to/flutter
+MAP_API_KEY=your-google-maps-api-key
