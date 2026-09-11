@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/post_creation_plus_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -161,6 +163,26 @@ class _MyPostTabScreenState extends State<MyPostTabScreen>
     };
   }
 
+  /// Which create-post entries the empty state's "+" offers, per tab. Null
+  /// means "the whole menu".
+  ///
+  /// Each tab points at the one way to fill it: Shorts takes Bites, Videos
+  /// takes a message post (that is where a video is attached), and All offers
+  /// everything. Reposts never reaches this — see [_showEmptyStateCreate].
+  Set<PostCreationMenu>? get _emptyStateMenu => switch (_filter) {
+        MyPostFilter.shorts => const {PostCreationMenu.reel},
+        MyPostFilter.videos => const {PostCreationMenu.message},
+        MyPostFilter.all || MyPostFilter.reposts => null,
+      };
+
+  /// Reposts gets no "+": a repost is made from someone else's post, so there
+  /// is nothing to create from here — the tab only ever shows what the user
+  /// has already reposted. Elsewhere the button appears only if this account
+  /// may actually post the slice (a business has no Bites entry, for one).
+  bool get _showEmptyStateCreate =>
+      _filter != MyPostFilter.reposts &&
+      PopupMenuBuilders.postCreationMenus(only: _emptyStateMenu).isNotEmpty;
+
   // ------------------------------------------------------------------ tapping
 
   void _openItem(List<Post> visible, int index) {
@@ -214,14 +236,25 @@ class _MyPostTabScreenState extends State<MyPostTabScreen>
                 hasScrollBody: false,
                 child: Padding(
                   padding: EdgeInsets.only(top: SizeConfig.size40),
-                  child: Center(
-                    child: CustomText(
-                      _filter == MyPostFilter.all
-                          ? AppStrings.noPostAvailable.tr
-                          : AppStrings.noPostAvailable.tr,
-                      color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.medium,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomText(
+                        AppStrings.noPostAvailable.tr,
+                        color: AppColors.secondaryTextColor,
+                        fontSize: SizeConfig.medium,
+                      ),
+                      // Offer the create menu right here instead of sending the
+                      // user back to the header "+" — same widget, same
+                      // actions, narrowed to what this tab is missing.
+                      if (_showEmptyStateCreate) ...[
+                        SizedBox(height: SizeConfig.size16),
+                        PostCreationPlusButton(
+                          size: 48,
+                          only: _emptyStateMenu,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               )

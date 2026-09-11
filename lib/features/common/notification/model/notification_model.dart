@@ -126,6 +126,20 @@ class Metadata {
   // CONTACT_JOINED (contact-service): the BlueEra user id of the phonebook
   // contact who just joined, so the row can open their profile.
   String? contactUserId;
+  // admin_video_promo: the promoted video. Note the casing — the stored inbox
+  // row uses snake_case (`video_id`) while the FCM push uses camelCase
+  // (`videoId`); they are written by different services, so accept either.
+  String? videoId;
+  // Snapshot of the type at compose time. Kept for the row's UI only (a short
+  // gets a portrait-ish badge, a long a duration) — NEVER route off it: a
+  // scheduled campaign can fire days later, so `navigateToVideoDetail` decides
+  // from the live fetch instead.
+  String? videoType;
+  // 16:9 still. A video promo rendered as a plain text row gets ignored.
+  String? videoThumbnail;
+  String? videoTitle;
+  // Campaign this row belongs to, for open-rate analytics.
+  String? broadcastId;
 
   Metadata({
     this.jobId,
@@ -137,6 +151,11 @@ class Metadata {
     this.body,
     this.originalOperation,
     this.contactUserId,
+    this.videoId,
+    this.videoType,
+    this.videoThumbnail,
+    this.videoTitle,
+    this.broadcastId,
   });
 
   Metadata.fromJson(Map<String, dynamic> json) {
@@ -149,6 +168,11 @@ class Metadata {
     body = json['body'];
     originalOperation = json['originalOperation'];
     contactUserId = json['contactUserId'] ?? json['contact_user_id'];
+    videoId = json['video_id'] ?? json['videoId'];
+    videoType = json['video_type'] ?? json['videoType'];
+    videoThumbnail = json['video_thumbnail'] ?? json['videoThumbnail'];
+    videoTitle = json['video_title'] ?? json['videoTitle'];
+    broadcastId = json['broadcast_id'] ?? json['broadcastId'];
   }
 
   Map<String, dynamic> toJson() {
@@ -162,6 +186,11 @@ class Metadata {
     data['body'] = this.body;
     data['originalOperation'] = this.originalOperation;
     data['contactUserId'] = this.contactUserId;
+    data['video_id'] = this.videoId;
+    data['video_type'] = this.videoType;
+    data['video_thumbnail'] = this.videoThumbnail;
+    data['video_title'] = this.videoTitle;
+    data['broadcast_id'] = this.broadcastId;
     return data;
   }
 }

@@ -5,18 +5,15 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
-import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/view/my_post_tab_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/post_creation_plus_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -495,48 +492,8 @@ class _SocialMainScreenState extends State<SocialMainScreen>
         ),
         SizedBox(width: SizeConfig.size8),
         // "+" — same PostCreationMenu popup (message / poll / job post / symbol).
-        PopupMenuButton<PostCreationMenu>(
-          padding: EdgeInsets.zero,
-          offset: const Offset(0, 36),
-          color: AppColors.white,
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          onSelected: (value) async {
-            if (isGuestUser()) {
-              createProfileScreen();
-            } else if (value == PostCreationMenu.message ||
-                value == PostCreationMenu.poll ||
-                value == PostCreationMenu.reel) {
-              // Straight to the composer as a profile post — no channel /
-              // profile chooser. `postVia()` would still raise that dialog for
-              // an individual who happens to have a channel; the Social section
-              // is the user's own feed, so everything created here is attributed
-              // to the profile. Other entry points (the global app bar, the Me
-              // dashboards) keep the chooser.
-              postNavigations(context, value, PostVia.profile);
-            } else if (value == PostCreationMenu.jobPost) {
-              Get.toNamed(
-                RouteHelper.getCreateJobPostScreenRoute(),
-                arguments: {
-                  'isEditMode': false,
-                  'jobId': '',
-                  'createJobVia': 'business',
-                },
-              );
-            } else if (value == PostCreationMenu.symbol) {
-              Get.to(() => AddChatSymbolScreen());
-            }
-          },
-          itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
-          child: LocalAssets(
-            imagePath: AppIconAssets.addOutlinedIcon,
-            width: 32,
-            height: 32,
-            // imgColor: AppColors.primaryColor,
-          ),
-        ),
+        // Shared with the My Post empty state so both open the identical menu.
+        const PostCreationPlusButton(),
       ],
     );
   }

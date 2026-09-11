@@ -80,7 +80,20 @@ class NotificationSettingScreen extends StatelessWidget {
     );
   }
 
+  /// Categories whose auto-formatted key would be too vague to switch off with
+  /// confidence get an explicit label. `promotions` is the one that matters
+  /// today: it carries admin video promos, and "Promotions" alone doesn't tell
+  /// a user what actually goes quiet when they turn it off.
+  ///
+  /// Everything else still falls through to [_formatTitle], so a category the
+  /// backend adds tomorrow appears without a client release.
+  static const Map<String, String> _categoryLabels = {
+    'promotions': AppStrings.promotionsAndVideoHighlights,
+  };
+
   String _formatTitle(String key) {
+    final labelKey = _categoryLabels[key.toLowerCase()];
+    if (labelKey != null) return labelKey;
     if (key.isEmpty) return key;
     final normalized = key.replaceAll(RegExp(r'[_\-]+'), ' ');
     final spaced = normalized.replaceAllMapped(

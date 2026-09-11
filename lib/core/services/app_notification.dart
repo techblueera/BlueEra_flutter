@@ -19,6 +19,7 @@ import 'package:BlueEra/core/services/session_guard.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
+import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -1970,6 +1971,24 @@ class AppNotificationHandler {
       return;
     }
 
+    // "Watch now" on an admin video promo — same destination as the body tap.
+    // Action ids are resolved here, BEFORE the payload reaches the body-tap
+    // switch, so without this branch the button would silently do nothing.
+    // The id carries the video id (`watch_video_<id>`); the payload is used as
+    // a fallback for a truncated/legacy id.
+    if (actionId.startsWith('watch_video_')) {
+      final actionVideoId = actionId.substring('watch_video_'.length).trim();
+      final videoId = actionVideoId.isNotEmpty
+          ? actionVideoId
+          : videoIdFromNotification(data);
+      if (videoId != null && videoId.isNotEmpty) {
+        unawaited(deepLinkNetworkResources.navigateToVideoDetail(videoId));
+      } else {
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+      }
+      return;
+    }
+
     // Post/Reel actions
     if (actionId.startsWith('view_post_') ||
         actionId.startsWith('view_comment_') ||
@@ -2176,6 +2195,57 @@ class AppNotificationHandler {
 
     final metadata = payload['metadata'];
     if (metadata is Map) return pick(metadata);
+    return null;
+  }
+
+  /// The video id an `admin_video_promo` names, from wherever the layer that
+  /// produced it put the key.
+  ///
+  /// The FCM push and the stored inbox row are written by different services
+  /// and disagree on casing: the push sends `videoId`, the notification-service
+  /// document sends `metadata.video_id`. A tap can arrive through either, so
+  /// read both rather than making the caller guess. The nested `payload` (a
+  /// JSON string on the wire) is checked last so a flat key always wins.
+  ///
+  /// Returns null when the payload genuinely names no video — the caller then
+  /// falls back to the notification hub instead of fetching an empty id.
+  static String? videoIdFromNotification(Map<String, dynamic> data) {
+    String? pick(Map source) {
+      for (final key in const ['videoId', 'video_id']) {
+        final v = source[key]?.toString().trim();
+        if (v != null && v.isNotEmpty && v != 'null') return v;
+      }
+      return null;
+    }
+
+    final flat = pick(data);
+    if (flat != null) return flat;
+
+    final flatMeta = data['metadata'];
+    if (flatMeta is Map) {
+      final fromMeta = pick(flatMeta);
+      if (fromMeta != null) return fromMeta;
+    }
+
+    Map<String, dynamic>? payload;
+    final raw = data['payload'];
+    try {
+      if (raw is String && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) payload = Map<String, dynamic>.from(decoded);
+      } else if (raw is Map) {
+        payload = Map<String, dynamic>.from(raw);
+      }
+    } catch (_) {
+      // A payload that will not decode simply carries no id.
+    }
+    if (payload == null) return null;
+
+    final fromPayload = pick(payload);
+    if (fromPayload != null) return fromPayload;
+
+    final payloadMeta = payload['metadata'];
+    if (payloadMeta is Map) return pick(payloadMeta);
     return null;
   }
 
@@ -2505,6 +2575,7 @@ class AppNotificationHandler {
       body: body,
       isChatMessage: isChatMessage,
       images: extractBroadcastImages(data),
+      data: data,
     );
 
     // New-order pushes get the countdown presentation instead of the generic
@@ -2702,6 +2773,7 @@ class AppNotificationHandler {
     required String body,
     required bool isChatMessage,
     List<String> images = const [],
+    Map<String, dynamic> data = const {},
   }) async {
     try {
       if (isChatMessage) return;
@@ -2723,11 +2795,28 @@ class AppNotificationHandler {
       // this push without an API round-trip. Same guard as above (no chat /
       // call / ride / greeting); ride/call statuses the hub also shows are
       // reconciled on the next server sync instead of inserted here.
+      // Video promos carry their target with them: the hub row is inserted
+      // from the push, so without these the local row would sit there looking
+      // like a promo and open nothing until the next server sync replaced it.
+      // Scoped to the promo operation — every other push writes exactly the
+      // row it wrote before.
+      final isVideoPromo = operation == 'admin_video_promo';
       await NotificationCacheService.to.upsertFromPush(
         operation: operation,
         title: title,
         body: body,
         images: images,
+        videoId: isVideoPromo ? (videoIdFromNotification(data) ?? '') : '',
+        videoType: isVideoPromo ? (data['videoType'] ?? '').toString() : '',
+        // `imageUrl` is the fallback: it is the same thumbnail the bigPicture
+        // banner renders, so a payload that omits `videoThumbnail` still gets
+        // a still in the hub instead of a placeholder.
+        videoThumbnail: isVideoPromo
+            ? (data['videoThumbnail'] ?? data['imageUrl'] ?? '').toString()
+            : '',
+        videoTitle: isVideoPromo ? (data['videoTitle'] ?? '').toString() : '',
+        broadcastId:
+            isVideoPromo ? (data['broadcastId'] ?? '').toString() : '',
       );
     } catch (_) {}
   }
@@ -3242,6 +3331,14 @@ class AppNotificationHandler {
       AnalyticsService.params({
         'operation': operation,
         'from_cold_start': fromColdStart,
+        // Ties an open back to the campaign that sent it, and to the video it
+        // promoted — without these you can see that promos get opened but not
+        // WHICH promo. Both keys are conditional, so every other push type
+        // logs exactly the same event it logged before.
+        if ((data['broadcastId'] ?? '').toString().trim().isNotEmpty)
+          'broadcast_id': data['broadcastId'].toString(),
+        if ((data['videoId'] ?? '').toString().trim().isNotEmpty)
+          'video_id': data['videoId'].toString(),
       }),
     );
 
@@ -3517,6 +3614,33 @@ class AppNotificationHandler {
         // transition above), so it's safe to drop the guard for the next
         // legitimate backgrounding-driven teardown.
         suppressSocketDisposeForRenav = false;
+        break;
+
+      // Admin promoted a creator's video/short to this user. Open the video
+      // itself — the whole point of the push is the video, so landing on the
+      // notification list would be a dead end.
+      //
+      // Routes through the SAME helper as the https://beapp.in/app/video/<id>
+      // deep link (deep_link_router.dart → 'video'), so the two entry points
+      // can never drift apart. The helper fetches the video and branches on the
+      // type it gets BACK — deliberately not on `videoType` from the payload,
+      // which is a snapshot taken when the admin composed the broadcast and can
+      // be days stale by the time a scheduled campaign fires.
+      //
+      // No extra cold-start handling here: the `fromColdStart` block above has
+      // already put the bottom-nav host on the stack and awaited it, so the
+      // navigator is live and the player pushes ON TOP of home — back returns
+      // to the app instead of exiting.
+      case 'admin_video_promo':
+        final promoVideoId = videoIdFromNotification(data);
+        if (promoVideoId == null) {
+          // No id means nothing to open. The notification hub at least shows
+          // the message rather than swallowing the tap entirely.
+          logs('VIDEO_PROMO: payload had no videoId — falling back to hub');
+          Get.toNamed(RouteHelper.getNotificationScreenRoute());
+          break;
+        }
+        unawaited(deepLinkNetworkResources.navigateToVideoDetail(promoVideoId));
         break;
 
       // Admin notifications
