@@ -362,6 +362,10 @@ class AppStrings {
   static const notificationSetting = "notificationSetting";
   static const noNotificationSettingsAvailable = "noNotificationSettingsAvailable";
   static const pushLabel = "pushLabel";
+  // The `promotions` preference category covers admin video promos. Labelled
+  // explicitly (not auto-formatted from the key) so a user who mutes it knows
+  // exactly what goes quiet.
+  static const promotionsAndVideoHighlights = "promotionsAndVideoHighlights";
   static const comment = "comment";
   static const like = "like";
   static const tag = "tag";

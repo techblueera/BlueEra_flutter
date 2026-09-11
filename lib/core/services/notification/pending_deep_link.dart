@@ -96,6 +96,12 @@ class PendingDeepLink {
       case 'commented_on_reel':
       case 'reposted_reel':
       case 'tagged_in_reel':
+      // Admin video promo opens the player directly (see the matching case in
+      // `AppNotificationHandler._onTapNotificationFromStatusBar`). `reel` has
+      // `needsSocket == false`, which is right: the player fetches over HTTP,
+      // so a cold-start promo tap does not pay for a chat-socket handshake it
+      // will never use.
+      case 'admin_video_promo':
         return DeepLinkTarget.reel;
 
       // Rider order surfaced on an active route / fare-ride incoming
@@ -158,6 +164,11 @@ class PendingDeepLink {
             data['post_id'] ??
             data['orderId'] ??
             data['callId'] ??
+            // Video promos name their target with `videoId` (push) or
+            // `video_id` (inbox row); neither matches the keys above, so a
+            // promo would otherwise record an empty entity id.
+            data['videoId'] ??
+            data['video_id'] ??
             '')
         .toString();
 
