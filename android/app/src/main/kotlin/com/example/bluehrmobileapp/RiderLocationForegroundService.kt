@@ -1,6 +1,7 @@
 package ai.bluecs.app
 
 import android.app.AlarmManager
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +9,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -15,7 +17,9 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -48,6 +52,7 @@ import java.net.URL
 class RiderLocationForegroundService : Service() {
 
     companion object {
+        const val TAG = "RiderLocationFgs"
         const val CHANNEL_ID = "rider_live_location"
         const val NOTIFICATION_ID = 99003
         const val PREFS = "rider_live_location_prefs"
@@ -55,6 +60,14 @@ class RiderLocationForegroundService : Service() {
         const val KEY_USER = "userId"
         const val KEY_BASE = "baseUrl"
         const val KEY_ACTIVE = "active"
+
+        /// Why the last foreground promotion was refused, or absent when the
+        /// service last started cleanly. Read by Dart on resume so a rider who
+        /// silently stopped publishing is re-prompted for "Allow all the time"
+        /// instead of believing they are live while the map service has already
+        /// closed them.
+        const val KEY_BLOCKED_REASON = "fgsBlockedReason"
+        const val KEY_BLOCKED_AT = "fgsBlockedAt"
 
         /// Wall-clock of the last accepted publish. The watchdog reads it to
         /// tell "running" apart from "actually working".
@@ -111,7 +124,32 @@ class RiderLocationForegroundService : Service() {
                 .apply()
         }
 
-        startForeground(NOTIFICATION_ID, buildNotification())
+        // MUST be the first thing that can fail, and it MUST NOT throw.
+        //
+        // Android 14+ (this app targets 36) rejects `startForeground()` for a
+        // `location` service unless the app holds FOREGROUND_SERVICE_LOCATION,
+        // holds fine/coarse location, AND is in an eligible state to use a
+        // while-in-use permission. The last clause is the one that fired in
+        // production: the rider had granted "While using the app" only, and
+        // the watchdog/boot receiver/restart alarm started this service with
+        // the app 100% in the background. The throw landed here, in
+        // onStartCommand, NOT in the caller's try/catch — which is why the
+        // watchdog's `catch` around startForegroundService never saw it.
+        if (!promoteToForeground()) {
+            // Give up cleanly. Two things matter here:
+            //
+            //  * stopSelf() must happen — a service started with
+            //    startForegroundService() that never reaches startForeground()
+            //    is killed with ForegroundServiceDidNotStartInTimeException
+            //    after ~5s, which is a second crash on top of the first.
+            //  * START_NOT_STICKY, not START_STICKY — a sticky restart of a
+            //    service that cannot go foreground is an infinite crash loop.
+            //    The rider is brought back by the next app open (see
+            //    KEY_BLOCKED_REASON), not by a retry that cannot succeed.
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
         isRunning = true
 
         // Only ever runs while the rider is live — the flag is cleared the
@@ -128,6 +166,99 @@ class RiderLocationForegroundService : Service() {
         return START_STICKY
     }
 
+    /**
+     * Promotes this service to the foreground, returning false instead of
+     * throwing when the platform refuses.
+     *
+     * Defence in depth, in this order:
+     *
+     *  1. Ask [LocationFgsGuard] first, so the ordinary "rider revoked Allow
+     *     all the time" case is a logged no-op rather than a caught throwable.
+     *  2. Call through `ServiceCompat`, which passes the type on API 29+ and
+     *     omits it below, so one call site covers every supported API level.
+     *  3. Catch anyway. The eligibility rule includes exemptions no app can
+     *     introspect, so step 1 can be wrong in both directions; this is the
+     *     only layer that is guaranteed to hold.
+     */
+    private fun promoteToForeground(): Boolean {
+        val reason = LocationFgsGuard.ineligibilityReason(
+            this,
+            // A visible process may use a while-in-use permission without the
+            // background grant; an invisible one may not.
+            requireBackgroundGrant = !LocationFgsGuard.isAppVisible(this)
+        )
+        if (reason != null) {
+            recordBlocked(reason)
+            Log.w(TAG, "not promoting to foreground: $reason")
+            return false
+        }
+
+        return try {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                } else {
+                    0
+                }
+            )
+            clearBlocked()
+            true
+        } catch (e: SecurityException) {
+            // Missing permission, or ineligible app state, on API 34+.
+            recordBlocked("SecurityException: ${e.message?.take(180)}")
+            Log.w(TAG, "startForeground denied: $e")
+            false
+        } catch (e: Exception) {
+            // API 31+ ForegroundServiceStartNotAllowedException is the common
+            // one; it is referenced by name only where it exists so this file
+            // still compiles against older platforms.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                e is ForegroundServiceStartNotAllowedException
+            ) {
+                recordBlocked("background start not allowed")
+                Log.w(TAG, "foreground start not allowed: $e")
+            } else {
+                recordBlocked("startForeground failed: ${e.javaClass.simpleName}")
+                Log.w(TAG, "startForeground failed: $e")
+            }
+            false
+        }
+    }
+
+    /**
+     * Leaves a breadcrumb the app can read on next launch.
+     *
+     * Without this the failure is invisible: the rider believes they are live,
+     * the service is gone, and the map service closes them five minutes later.
+     * The Dart side reads this on resume and can re-prompt for "Allow all the
+     * time" instead of silently never publishing again.
+     */
+    private fun recordBlocked(reason: String) {
+        try {
+            getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_BLOCKED_REASON, reason)
+                .putLong(KEY_BLOCKED_AT, System.currentTimeMillis())
+                .apply()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun clearBlocked() {
+        try {
+            val prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            if (prefs.contains(KEY_BLOCKED_REASON)) {
+                prefs.edit()
+                    .remove(KEY_BLOCKED_REASON)
+                    .remove(KEY_BLOCKED_AT)
+                    .apply()
+            }
+        } catch (_: Exception) {
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     /**
@@ -142,7 +273,15 @@ class RiderLocationForegroundService : Service() {
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         val prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_ACTIVE, false)) {
+        // The alarm fires with the task gone, so the restarted service will be
+        // promoting itself from a fully background state. Without the "Allow
+        // all the time" grant that restart is guaranteed to be refused — and
+        // before the guard existed, guaranteed to crash. Don't arm an alarm
+        // whose only possible outcome is a failed start.
+        if (prefs.getBoolean(KEY_ACTIVE, false) &&
+            LocationFgsGuard.hasBackgroundLocationPermission(this) &&
+            LocationFgsGuard.hasForegroundLocationPermission(this)
+        ) {
             scheduleRestart()
         }
         super.onTaskRemoved(rootIntent)

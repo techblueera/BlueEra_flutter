@@ -49,10 +49,20 @@ class LiveLocationService {
     _isRunning = true;
     _warnedUnavailable = false;
 
-    // Android: hold the foreground service so this timer keeps firing while
-    // the app is backgrounded. Without it, pings stop the moment Android
-    // freezes the process, the map-service auto-closes the provider after
-    // 5 minutes of silence, and "go live" silently turns itself off.
+    // iOS-only, despite the name. `setRiderLiveHold` starts the 10s
+    // socket-health timer (alive under CallKit's VoIP entitlement) and makes a
+    // later call-end `stop()` a no-op there, so ending a call while still live
+    // does not tear down the provider's socket.
+    //
+    // It deliberately does NOT touch the Android call keep-alive
+    // (`CallKeepAliveService`, a `phoneCall` foreground service): that posts a
+    // "Call in progress" notification, which a rider who is merely online is
+    // not on. Backgrounded pings on Android are covered instead by
+    // [_startNativeKillModePinger] below, which drives
+    // `RiderLocationForegroundService` — a `location` foreground service that
+    // reads GPS and POSTs without the Flutter engine, so it survives the
+    // process being frozen or killed. That is what actually keeps the provider
+    // from being auto-closed after 5 minutes of silence.
     SocketKeepAliveService.setRiderLiveHold(true);
 
     // Android KILL-mode coverage: hand the native foreground-location service
@@ -91,14 +101,65 @@ class LiveLocationService {
     final token = authTokenGlobal ?? '';
     final base = baseUrl ?? '';
     if (userId.isEmpty || token.isEmpty || base.isEmpty) return;
+
+    // Gate on the runtime grant BEFORE asking the platform to start a
+    // `location` foreground service.
+    //
+    // Declaring ACCESS_BACKGROUND_LOCATION in the manifest is not the same as
+    // holding it: it is a runtime permission that, on Android 11+, the user can
+    // only grant from the system Settings page ("Allow all the time"). Without
+    // it, Android 14+ refuses to promote the service to the foreground from a
+    // background state and throws SecurityException inside the service — which
+    // is the production crash. The native side now defends itself, but asking
+    // for something we know will be refused just burns a process start and
+    // leaves the rider thinking they are live.
+    if (!await GoLivePermissionService.isBackgroundLocationGranted()) {
+      _nativeKillModeUnavailableReason =
+          'Background location ("Allow all the time") is not granted';
+      return;
+    }
+
     try {
       await _nativeLocationChannel.invokeMethod('start', {
         'token': token,
         'userId': userId,
         'baseUrl': base,
       });
+      _nativeKillModeUnavailableReason = null;
+    } on PlatformException catch (e) {
+      // FGS_NOT_ELIGIBLE / FGS_START_REFUSED — the native pre-check or the
+      // platform refused. Recorded rather than swallowed so the rider can be
+      // told, instead of silently losing killed-state coverage.
+      _nativeKillModeUnavailableReason = e.message ?? e.code;
     } catch (_) {
       // Native side unavailable — the Dart timer still covers fg/bg.
+      _nativeKillModeUnavailableReason = 'native location service unavailable';
+    }
+  }
+
+  /// Why killed-state location coverage is not running, or null when it is.
+  ///
+  /// The Dart timer still covers foreground and (briefly) background, so this
+  /// is a degradation rather than a failure — but it is one the rider needs to
+  /// know about, because the map service closes them five minutes after the
+  /// process is killed.
+  String? get nativeKillModeUnavailableReason =>
+      _nativeKillModeUnavailableReason;
+  String? _nativeKillModeUnavailableReason;
+
+  /// Whether a previous start was refused by the platform, and why.
+  ///
+  /// Call on resume: a non-null `lastBlockedReason` means the service was
+  /// refused while the app was away, so the rider has been invisible to
+  /// customers since then without any signal in the UI.
+  Future<Map<String, dynamic>?> nativeLocationEligibility() async {
+    if (!Platform.isAndroid) return null;
+    try {
+      final raw = await _nativeLocationChannel.invokeMethod('eligibility');
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 

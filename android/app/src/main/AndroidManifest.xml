@@ -51,6 +51,15 @@
          READ_MEDIA_IMAGES, which the app no longer declares. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <!-- Prerequisite for a `phoneCall` foreground service: Android 14+ requires
+         the app to either declare MANAGE_OWN_CALLS or hold ROLE_DIALER. It
+         already arrives via the vendored flutter_callkit_incoming manifest, but
+         is declared here too: IncomingCallService and CallKeepAliveService both
+         fail to start with SecurityException the moment a plugin bump drops it,
+         and a transitive dependency is not somewhere a crash-prevention
+         requirement should live. Normal permission — no runtime grant, so it
+         cannot be revoked by the user. -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
     <!-- Android 14+ requires a typed foreground-service permission; the rider
          live-location service runs as a `location` foreground service. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
@@ -266,6 +275,22 @@
         -->
         <service
             android:name=".IncomingCallService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
+        <!--
+          Holds the process (and with it the Flutter engine + chat WebSocket)
+          alive while a call is CONNECTED, which is the phase IncomingCallService
+          above does not cover — it only spans the ringing. Without it, Android
+          freezes a backgrounded call and the socket drops.
+
+          `phoneCall` rather than `microphone`: the prerequisite is the declared
+          MANAGE_OWN_CALLS permission, which cannot be revoked, whereas
+          `microphone` depends on the while-in-use RECORD_AUDIO runtime grant and
+          would reintroduce the SecurityException class that crashed the rider
+          location service.
+        -->
+        <service
+            android:name=".CallKeepAliveService"
             android:exported="false"
             android:foregroundServiceType="phoneCall" />
         <!--

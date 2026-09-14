@@ -47,6 +47,12 @@ class MainActivity: FlutterActivity() {
     private val APP_SHARE_CHANNEL = "ai.bluecs.app/app_share"
     private val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
     private val RIDER_LOCATION_CHANNEL = "ai.bluecs.app/rider_location"
+    // The channel SocketKeepAliveService (Dart) has been calling since it was
+    // written. Nothing ever registered it, so every invocation threw
+    // MissingPluginException into an empty catch and the Android call
+    // keep-alive silently did nothing. Name kept as-is so the Dart side does
+    // not have to change.
+    private val SOCKET_KEEPALIVE_CHANNEL = "com.bluehr.socket/service"
 
     // Target size for the downsampled chat-shortcut launcher icon (px). Adaptive
     // launcher icons top out around 108dp; 256px covers xxxhdpi with headroom.
@@ -105,6 +111,24 @@ class MainActivity: FlutterActivity() {
             }
 
         // ------------------------------
+        // CALL KEEP-ALIVE CHANNEL — holds the process up while a call is
+        // connected, so backgrounding the app does not freeze the Flutter
+        // engine and drop the chat WebSocket. See CallKeepAliveService.
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SOCKET_KEEPALIVE_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "startService" -> result.success(CallKeepAliveService.start(this))
+                    "stopService" -> {
+                        CallKeepAliveService.stop(this)
+                        result.success(true)
+                    }
+                    "isRunning" -> result.success(CallKeepAliveService.isRunning)
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ------------------------------
         // RIDER LIVE-LOCATION CHANNEL — starts/stops the native foreground
         // service that pings the rider's location every 60s in
         // foreground/background/killed state (a Dart timer dies on kill).
@@ -116,20 +140,73 @@ class MainActivity: FlutterActivity() {
                         val token = call.argument<String>("token")
                         val userId = call.argument<String>("userId")
                         val baseUrl = call.argument<String>("baseUrl")
+                        val blocked = LocationFgsGuard.ineligibilityReason(
+                            this,
+                            // This channel is only reachable with an Activity
+                            // attached, so a while-in-use grant is enough to
+                            // start. Background location is still required for
+                            // the service to SURVIVE backgrounding — Dart gates
+                            // "go live" on it — but it is not what decides
+                            // whether starting right now is legal.
+                            requireBackgroundGrant = false
+                        )
                         if (token.isNullOrEmpty() || userId.isNullOrEmpty() || baseUrl.isNullOrEmpty()) {
                             result.error("INVALID", "token, userId and baseUrl are required", null)
+                        } else if (blocked != null) {
+                            // A structured error, not a crash and not a silent
+                            // success: Dart re-prompts for the permission rather
+                            // than showing the rider as live while nothing
+                            // publishes.
+                            result.error("FGS_NOT_ELIGIBLE", blocked, null)
                         } else {
                             val intent = Intent(this, RiderLocationForegroundService::class.java)
                                 .putExtra("token", token)
                                 .putExtra("userId", userId)
                                 .putExtra("baseUrl", baseUrl)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                startForegroundService(intent)
-                            } else {
-                                startService(intent)
+                            try {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    startForegroundService(intent)
+                                } else {
+                                    startService(intent)
+                                }
+                                result.success(true)
+                            } catch (e: Exception) {
+                                // Refused background start (Android 12+) — can
+                                // still happen if the Activity went away between
+                                // the check and the call.
+                                result.error("FGS_START_REFUSED", e.message, null)
                             }
-                            result.success(true)
                         }
+                    }
+                    // Lets Dart ask, before showing the rider as live, whether a
+                    // background-surviving location FGS is actually possible on
+                    // this device right now — and why not, if not.
+                    "eligibility" -> {
+                        val prefs = getSharedPreferences(
+                            RiderLocationForegroundService.PREFS,
+                            Context.MODE_PRIVATE
+                        )
+                        result.success(
+                            mapOf(
+                                "canStartNow" to
+                                    LocationFgsGuard.canStartFromForeground(this),
+                                "canRunInBackground" to
+                                    LocationFgsGuard.canStartFromBackground(this),
+                                "hasForegroundLocation" to
+                                    LocationFgsGuard.hasForegroundLocationPermission(this),
+                                "hasBackgroundLocation" to
+                                    LocationFgsGuard.hasBackgroundLocationPermission(this),
+                                // Why the LAST start was refused, if it was.
+                                // Non-null here means the rider believed they
+                                // were live while nothing was publishing.
+                                "lastBlockedReason" to prefs.getString(
+                                    RiderLocationForegroundService.KEY_BLOCKED_REASON, null
+                                ),
+                                "lastBlockedAt" to prefs.getLong(
+                                    RiderLocationForegroundService.KEY_BLOCKED_AT, 0L
+                                )
+                            )
+                        )
                     }
                     "stop" -> {
                         // Clear the active flag so neither a START_STICKY

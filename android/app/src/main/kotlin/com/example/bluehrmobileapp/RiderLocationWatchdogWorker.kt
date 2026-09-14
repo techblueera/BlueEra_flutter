@@ -3,6 +3,7 @@ package ai.bluecs.app
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -37,6 +38,7 @@ class RiderLocationWatchdogWorker(
 ) : Worker(context, params) {
 
     companion object {
+        const val TAG = "RiderLocationWatchdog"
         const val WORK_NAME = "rider_live_location_watchdog"
 
         /// WorkManager's floor. Asking for less is silently raised to this.
@@ -84,6 +86,29 @@ class RiderLocationWatchdogWorker(
             return Result.success()
         }
 
+        // Pre-flight before waking the service.
+        //
+        // The `try/catch` below CANNOT protect against the Android 14+ location
+        // eligibility rule, and used to read as though it could. `startForeground
+        // Service()` returns normally; the `SecurityException` is thrown later,
+        // on a different stack, inside the service's own `onStartCommand`. That
+        // is precisely how this worker kept crashing the process while its catch
+        // block sat there looking defensive.
+        //
+        // WorkManager runs with the app in the background, so the "Allow all the
+        // time" grant is required unless the process happens to be visible.
+        val blocked = LocationFgsGuard.ineligibilityReason(
+            applicationContext,
+            requireBackgroundGrant = !LocationFgsGuard.isAppVisible(applicationContext)
+        )
+        if (blocked != null) {
+            Log.w(TAG, "not restarting rider location service: $blocked")
+            // success(), not retry(): a missing permission does not resolve by
+            // trying again in ten minutes. The periodic schedule stays in place,
+            // so the moment the rider grants it the next window picks it up.
+            return Result.success()
+        }
+
         return try {
             val intent = Intent(applicationContext, RiderLocationForegroundService::class.java)
             // Creds are already in SharedPreferences, so a bare start is enough;
@@ -94,9 +119,10 @@ class RiderLocationWatchdogWorker(
                 applicationContext.startService(intent)
             }
             Result.success()
-        } catch (_: Exception) {
-            // Android 12+ blocks some background foreground-service starts. Retry
-            // on the next window rather than dropping the watchdog.
+        } catch (e: Exception) {
+            // Still worth keeping for what it genuinely does catch: the Android
+            // 12+ background-start refusal, which IS thrown by the call above.
+            Log.w(TAG, "startForegroundService refused: $e")
             Result.retry()
         }
     }
