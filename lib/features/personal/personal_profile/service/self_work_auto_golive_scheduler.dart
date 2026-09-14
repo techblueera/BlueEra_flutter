@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../permissionCentralize/go_live_permission_service.dart';
+import '../../../account_plan/controller/account_plan_entitlement.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
 /// Best-effort **client-side** daily auto go-live for self-employed / selfWork
@@ -180,17 +181,26 @@ class SelfWorkAutoGoLiveScheduler {
 
       final viewCtrl = Get.find<ViewPersonalDetailsController>();
 
-      // ── Evaluate the SAME go-live gate as the manual tap (_handleGoLiveTap):
-      //    an active plan, an unspent FREE FIRST SERVICE, or a satisfied legacy
-      //    deposit. Reading the shared [isGoLiveAllowed] keeps the scheduler
-      //    from auto-closing a provider who would pass the manual gate.
-      final eligible = viewCtrl.isGoLiveAllowed;
+      // ── Evaluate the SAME go-live gate as the manual tap (_handleGoLiveTap).
+      //
+      // AWAITED, like the rider scheduler. This read the SYNCHRONOUS
+      // `isGoLiveAllowed`, which is [AccountPlanEntitlement.allowsGoLive] and
+      // FAILS OPEN until a `my-plans` read has completed. Nothing populated
+      // that at app start, so on a cold launch the gate answered "allowed"
+      // without anyone having checked — and this scheduler would auto-open a
+      // provider whose plan had expired, which is the one thing an automatic
+      // go-live must never do. Failing open is right for a manual tap (the tap
+      // then re-checks properly); it is wrong for an unattended one.
+      //
+      // `ensureAllowed` only issues a request while the answer is "no plan",
+      // so a provider holding one costs nothing per tick.
+      final eligible = await AccountPlanEntitlement.to.ensureAllowed();
 
       final inWindow = _inWindow(DateTime.now());
       final isOpen = viewCtrl.shopStatusOpenClose.value;
       final manualOffToday = _manualOffCache == _todayKey();
       log('[SelfWorkAutoGoLive] tick@${_nowLabel()}: eligible=$eligible '
-          '(hasPlan=${viewCtrl.isGoLiveAllowed}) inWindow=$inWindow '
+          '(hasPlan=$eligible) inWindow=$inWindow '
           'isOpen=$isOpen autoOpened=$_autoOpenedThisSession '
           'manualOffToday=$manualOffToday');
 
@@ -231,7 +241,7 @@ class SelfWorkAutoGoLiveScheduler {
       }
       if (!eligible) {
         log('[SelfWorkAutoGoLive] not eligible '
-            '(hasPlan=${viewCtrl.isGoLiveAllowed}) → skip open');
+            '(hasPlan=$eligible) → skip open');
         return;
       }
       if (!inWindow) return; // outside 08:00–22:00 — nothing to open

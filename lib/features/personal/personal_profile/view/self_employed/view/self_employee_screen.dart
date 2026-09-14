@@ -149,7 +149,17 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // [ViewPersonalDetailsController.isGoLiveAllowed], which ORs plan + free
     // service + legacy deposit and is the same gate the professionals screen
     // and the auto-go-live scheduler read.
-    final depositBlocked = !_viewCtrl.isGoLiveAllowed;
+    // AWAITED, not the bare `_viewCtrl.isGoLiveAllowed`.
+    //
+    // That getter is `AccountPlanEntitlement.allowsGoLive`, which fails OPEN
+    // until a `my-plans` read has completed. On a cold launch nothing had read
+    // it, so this tap let a provider with no active plan straight through the
+    // payment gate. The rider's equivalent tap has always awaited
+    // (`ensureGoLiveAllowed`); this one did not, and the two disagreed.
+    //
+    // `ensureAllowed` answers from cache when a plan is held and only issues a
+    // request when the answer is "no", so a paying provider pays no latency.
+    final depositBlocked = !await AccountPlanEntitlement.to.ensureAllowed();
     if (depositBlocked) {
       // Tell the provider why go-live is blocked, then route them to the
       // security-deposit flow to complete payment — go-live stays blocked

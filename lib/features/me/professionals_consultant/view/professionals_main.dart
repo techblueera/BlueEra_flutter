@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'dart:ui';
 
@@ -98,6 +100,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     // Hydrate the weekly schedule + today override (individual endpoints) so
     // the Go-Live pill reflects the real auto open/close state on entry.
     _viewCtrl.loadHours();
+    // The Go-Live pill below reads `isGoLiveAllowed`, which fails OPEN until a
+    // `my-plans` read completes — and nothing on this screen performed one, so
+    // the pill showed a provider as live on the strength of an entitlement
+    // nobody had checked. `ensureKnown` no-ops once the answer is in.
+    unawaited(AccountPlanEntitlement.to.ensureKnown());
   }
 
   @override

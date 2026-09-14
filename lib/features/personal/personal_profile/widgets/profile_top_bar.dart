@@ -112,8 +112,25 @@ class ProfileTopBar extends StatelessWidget {
   Widget _goLivePill() {
     final viewCtrl = Get.find<ViewPersonalDetailsController>();
     return Obx(
+      // ANDed with the plan gate, not the shop status alone.
+      //
+      // `shopStatusOpenClose` is only the server's OPEN/CLOSE flag. On its own
+      // it says "you were last recorded as live", which stays true after a plan
+      // expires — so the pill sat in the ON position for an account that could
+      // no longer take work, and only corrected itself once something else
+      // happened to rebuild the screen.
+      //
+      // [ViewPersonalDetailsController.isGoLiveAllowed] is the plan gate and
+      // nothing else, so this matches what the TAP already enforces
+      // (`ensureGoLiveAllowed`) and what the professional dashboard has always
+      // shown (`professionals_main.dart` — `isShopOpenNow && isGoLiveAllowed`).
+      // The pill and the tap now answer the same question.
+      //
+      // Safe on the screens that never read the entitlement: `allowsGoLive`
+      // fails OPEN until a `my-plans` read completes, so this changes nothing
+      // for them until something asks.
       () => GoLivePill(
-        value: viewCtrl.shopStatusOpenClose.value,
+        value: viewCtrl.shopStatusOpenClose.value && viewCtrl.isGoLiveAllowed,
         isUpdating: viewCtrl.isShopStatusUpdating.value,
         onTap: onGoLiveTap,
       ),

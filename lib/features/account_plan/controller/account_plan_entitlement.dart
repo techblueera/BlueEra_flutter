@@ -37,8 +37,19 @@ class AccountPlanEntitlement extends GetxController {
   /// False until a `my-plans` read has actually completed. Distinguishes
   /// "we know there is no plan" from "we have not looked yet", which is what
   /// [allowsGoLive] hangs on.
-  bool _known = false;
-  bool get isKnown => _known;
+  ///
+  /// **Rx, not a plain bool.** It used to be a plain field, which made the one
+  /// transition that matters invisible to the UI: going from "not looked yet"
+  /// (gate open) to "looked, and there is no plan" (gate shut) leaves
+  /// [hasActivePlan] sitting at `false` the whole way, so that Rx emits
+  /// nothing and every `Obx` reading [allowsGoLive] keeps the stale, open
+  /// answer until something else happens to rebuild it. That is exactly the
+  /// "Go Live still looks available, then is correctly disabled after I visit
+  /// the plan screen and come back" report — the screen had been rebuilt by
+  /// the pop, not updated by the answer.
+  final RxBool _known = false.obs;
+
+  bool get isKnown => _known.value;
 
   bool _inFlight = false;
 
@@ -48,7 +59,35 @@ class AccountPlanEntitlement extends GetxController {
   /// blip must not knock a paying merchant offline, and the client is not the
   /// enforcement point anyway — the server is, in the separate release the
   /// redesign doc covers.
-  bool get allowsGoLive => !_known || hasActivePlan.value;
+  bool get allowsGoLive => !_known.value || hasActivePlan.value;
+
+  /// Calls [cb] whenever the gate's answer could have changed — including the
+  /// unknown → known transition, which [hasActivePlan] alone cannot express.
+  ///
+  /// For the gates that CACHE their answer into another observable rather than
+  /// reading [allowsGoLive] inside an `Obx`
+  /// (`ViewBusinessDetailsController._recomputeShopStatus` computes
+  /// `isOpenNow && isGoLiveAllowed` into `isLive`). Those do not rebuild when
+  /// the entitlement lands, so they have to be told.
+  ///
+  /// The returned [Worker] is the caller's to dispose.
+  Worker onChanged(void Function() cb) =>
+      everAll([_known, hasActivePlan], (_) => cb());
+
+  /// Reads `my-plans` ONCE if it has never been read.
+  ///
+  /// [allowsGoLive] fails open until that read completes, which is the right
+  /// default for a gate the server enforces anyway — but it means a screen that
+  /// never asks shows an entitlement it has not checked. Nothing populated this
+  /// at app start, so the very first answer usually arrived only when the user
+  /// opened the plan catalogue, which is why the gate looked open until then.
+  ///
+  /// Cheap to call from any `initState`: it no-ops once known and is guarded
+  /// against overlapping reads.
+  Future<void> ensureKnown() async {
+    if (_known.value || _inFlight) return;
+    await refresh();
+  }
 
   /// Re-reads `my-plans`. Returns [allowsGoLive] afterwards.
   ///
@@ -118,7 +157,7 @@ class AccountPlanEntitlement extends GetxController {
         p.isActive &&
         p.archetype != PlanArchetype.socialFree &&
         (p.archetype.isNotEmpty || p.totalAmount > 0));
-    _known = true;
+    _known.value = true;
   }
 
   /// For the ASYNCHRONOUS gates: answers from cache when the plan is already

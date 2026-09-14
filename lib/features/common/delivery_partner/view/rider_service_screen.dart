@@ -1,4 +1,5 @@
-﻿import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
+import 'dart:async';
+import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -74,6 +75,18 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _tabController.addListener(_onTabChanged);
     WidgetsBinding.instance.addObserver(this);
     _checkRiderStatus();
+    // Ask ONCE whether this account still holds a plan.
+    //
+    // Nothing populated the entitlement at app start, and the gate fails open
+    // until a `my-plans` read completes — so on a cold launch the rider was
+    // shown as able to go live whatever the state of their plan, and the first
+    // real answer only arrived when they happened to open the plan catalogue.
+    // That is why the pill corrected itself only after a trip to Contribution
+    // and back.
+    //
+    // `ensureKnown` no-ops once the answer is in, so this costs one request per
+    // launch at most.
+    unawaited(AccountPlanEntitlement.to.ensureKnown());
     // Resume the best-effort daily auto go-live scheduler if the rider opted in
     // on a previous session (08:00–22:00 auto open/close while the app is open;
     // backend cron is authoritative — see the scheduler doc).

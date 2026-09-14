@@ -1005,12 +1005,37 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       const Duration(minutes: 1),
       (_) => _recomputeShopStatus(),
     );
+
+    // Ask whether this account still holds a plan, ONCE per launch.
+    //
+    // [isGoLiveAllowed] is `AccountPlanEntitlement.allowsGoLive`, which fails
+    // OPEN until a `my-plans` read has completed — and nothing on the business
+    // path ever performed one. So `isLive` was computed as
+    // `isOpenNow && <unchecked>` and a shop whose plan had expired showed as
+    // live for the whole session, however many times the minute timer ran.
+    _planEntitlementWorker ??= () {
+      unawaited(AccountPlanEntitlement.to.ensureKnown());
+      // Recompute the MOMENT the answer lands rather than waiting for the next
+      // minute tick. The timer would eventually correct it, but "eventually"
+      // is up to 60 seconds of showing a shop as open for business it cannot
+      // actually take.
+      return AccountPlanEntitlement.to.onChanged(_recomputeShopStatus);
+    }();
   }
+
+  /// Recomputes [isLive] when the plan entitlement changes. See
+  /// [_ensureStatusTimer].
+  Worker? _planEntitlementWorker;
 
   @override
   void onClose() {
     _statusTimer?.cancel();
     _statusTimer = null;
+    // The entitlement is a PERMANENT controller, so a worker left listening to
+    // it outlives this one and keeps a disposed controller's `_recomputeShopStatus`
+    // reachable.
+    _planEntitlementWorker?.dispose();
+    _planEntitlementWorker = null;
     super.onClose();
   }
 
