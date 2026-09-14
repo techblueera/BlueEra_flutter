@@ -1,5 +1,7 @@
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.6'
+# Single source of truth for the pod deployment target; see post_install.
+IOS_DEPLOYMENT_TARGET = '15.6'
 # platform :ios, '18.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -59,7 +61,35 @@ post_install do |installer|
        ]
         config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'x86_64'
         config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+
+        # Firebase pods declare a 15.0 minimum, which podhelper keeps as-is while
+        # pods below 15 inherit the project's 15.6. Swift modules built at 15.6
+        # (PromisesSwift) then fail to import into them, so raise everything to
+        # the app's minimum.
+        deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if deployment_target.nil? || Gem::Version.new(deployment_target) < Gem::Version.new(IOS_DEPLOYMENT_TARGET)
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_DEPLOYMENT_TARGET
+        end
+
+        # google_mobile_ads imports <GoogleMobileAds/GoogleMobileAds_Beta.h>, which the
+        # GoogleMobileAds XCFramework ships in PrivateHeaders without declaring it in its
+        # module map. use_modular_headers! turns that into an error, so exempt this pod.
+        if target.name == 'google_mobile_ads'
+          config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        end
      end
      # End of the permission_handler configuration
+  end
+
+  # GeneratedPluginRegistrant.m does `@import google_mobile_ads;`, so Xcode builds that
+  # module in the app target's context -- the exemption above, set on the pod target,
+  # does not apply there. Repeat it on the app targets.
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.user_project.native_targets.each do |native_target|
+      native_target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+    aggregate_target.user_project.save
   end
 end
