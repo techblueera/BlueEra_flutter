@@ -1724,13 +1724,36 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // caller's phone reported an instant reject and this device never rang
     // again until the app was restarted. That is the auto-reject loop.
     try {
-      if (targetCallId.isNotEmpty && targetRoomId.isNotEmpty) {
-        await _callRepo.declineCall({
+      if (targetCallId.isEmpty || targetRoomId.isEmpty) {
+        // Nothing to tell the server with. Logged because the symptom —
+        // ring stops here, caller keeps ringing — is identical to a dead
+        // button, and this is one of the few ways to reach it.
+        logs('DECLINE: not posted — callId="$targetCallId" '
+            'roomId="$targetRoomId" (both are required)');
+      } else {
+        final res = await _callRepo.declineCall({
           'call_id': targetCallId,
           'room_id': targetRoomId,
         });
+        // CHECKED, not fired and forgotten.
+        //
+        // `CallRepo._post` catches DioException and returns a ResponseModel
+        // carrying the failing status instead of throwing — so a 401, a 400 or
+        // a 500 never reached the `catch` below and this call ignored the
+        // result entirely. The decline silently did not happen, at two layers,
+        // with nothing in the log. From the user's side that is a button that
+        // does nothing; from the caller's side the phone just keeps ringing
+        // until the server's own timeout.
+        if (!res.isSuccess) {
+          logs('DECLINE REJECTED by server: status=${res.statusCode} '
+              'body=${res.response?.data} '
+              '(call=$targetCallId room=$targetRoomId)');
+        } else {
+          logs('DECLINE accepted by server for call $targetCallId');
+        }
       }
     } catch (e) {
+      logs('DECLINE: server decline threw: $e');
       if (kDebugMode) print('declineCall: server decline failed: $e');
       // Swallowed on purpose. The ring must stop and the state must reset
       // whether or not the server heard us — the server's own 20s ring timeout

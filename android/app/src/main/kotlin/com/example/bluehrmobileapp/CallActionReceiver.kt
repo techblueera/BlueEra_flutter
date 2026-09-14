@@ -98,15 +98,40 @@ class CallActionReceiver : BroadcastReceiver() {
      * to, and the server's own ring timeout is the backstop.
      */
     private fun postDecline(context: Context, callId: String, roomId: String) {
-        if (callId.isEmpty() || roomId.isEmpty()) {
-            Log.w(TAG, "decline skipped — missing ids (call=$callId room=$roomId)")
+        // Only `callId` is required.
+        //
+        // This used to also require `roomId`, which the Dart decline path
+        // (`incoming_call_decline_` in the background isolate) does not — it
+        // gates on `callId.isNotEmpty` alone and posts `room_id` as whatever it
+        // has, empty included. The two paths hit the SAME endpoint with the
+        // same body, so the stricter check here bought nothing and cost the
+        // case it was meant to cover: a push that arrives without `roomId`
+        // silently skipped the POST, the ring stopped locally, and the caller
+        // went on ringing until the server's own timeout called it "no answer"
+        // — indistinguishable, from the user's side, from a dead button.
+        if (callId.isEmpty()) {
+            Log.w(TAG, "decline skipped — no callId in the notification extras")
             return
+        }
+        if (roomId.isEmpty()) {
+            // Worth knowing about (the server may reject it) but not worth
+            // refusing to try.
+            Log.w(TAG, "decline for $callId has no roomId — posting anyway")
         }
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
         val base = (prefs.getString(KEY_CALL_BASE_URL, "") ?: "").trim()
         if (token.isEmpty() || base.isEmpty()) {
-            Log.w(TAG, "decline skipped — no mirrored credentials")
+            // `syncCallAuth` has not run for this install/session, or the user
+            // is logged out. Named individually because the two have different
+            // fixes and this is the log line you will be reading at 2am.
+            Log.w(
+                TAG,
+                "decline skipped — no mirrored credentials " +
+                    "(token=${if (token.isEmpty()) "MISSING" else "ok"}, " +
+                    "baseUrl=${if (base.isEmpty()) "MISSING" else base}). " +
+                    "syncCallAuthToNative() must have run since login."
+            )
             return
         }
 

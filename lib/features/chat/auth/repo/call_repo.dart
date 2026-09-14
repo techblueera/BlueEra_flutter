@@ -19,8 +19,20 @@ class CallRepo extends BaseService {
   static Dio get callDio {
     if (_callDio == null) {
       _callDio = Dio(BaseOptions(
+        // NOTE: captured ONCE into a cached static. If this getter is ever
+        // first touched before `projectKeys()` has run, every call-service
+        // request for the life of the process goes to a relative path with no
+        // host. It is safe today only because `projectKeys()` runs at the top
+        // of `main()`; a new early caller would break it silently.
         baseUrl: callBaseUrl ?? '',
         responseType: ResponseType.json,
+        // Only `receiveTimeout` was set. That is the least useful of the three
+        // here: it guards the wait for response HEADERS, so an unreachable or
+        // blackholed call service left a decline hanging on the OS socket
+        // timeout — minutes on Android — while the caller kept ringing.
+        // A decline is small and urgent; 15s to connect is already generous.
+        connectTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 60),
         headers: {
           ApiKeys.authorization: 'Bearer $authTokenGlobal',
