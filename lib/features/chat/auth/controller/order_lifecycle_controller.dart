@@ -384,6 +384,29 @@ class OrderLifecycleController extends GetxController {
 
     try {
       final res = await call();
+
+      // Transport failure — no socket, DNS, TLS, or a timeout. `ApiBaseHelper`
+      // used to signal this by THROWING a raw String, which the catch below
+      // turned into a `network` result. It now reports it as a value, so the
+      // same decision is made here instead. The distinction still matters more
+      // than for any other screen: an order action is not idempotent, so a
+      // request that may or may not have reached the server must offer Retry
+      // rather than claim the action failed.
+      final failure = res.exception;
+      if (failure != null && failure.isTransport) {
+        log('order action $action failed for $orderId: ${failure.debugDescription}');
+        networkFailedOrders.add(orderId);
+        networkFailedOrders.refresh();
+        if (toastOnError) {
+          commonSnackBar(message: 'Network problem. Please try again.');
+        }
+        return OrderCallResult(
+          ok: false,
+          code: OrderErrorCode.network,
+          message: failure.message,
+        );
+      }
+
       final body = res.response?.data;
       final json = body is Map ? Map<String, dynamic>.from(body) : null;
 
@@ -432,9 +455,10 @@ class OrderLifecycleController extends GetxController {
       await handleError(orderId, result, toast: toastOnError, action: action);
       return result;
     } catch (e) {
-      // `ApiBaseHelper.handleError` rethrows a plain String for transport
-      // failures (timeout / DNS / airplane mode). The request may or may not
-      // have reached the server, so we never guess — we surface Retry.
+      // Defence in depth. `ApiBaseHelper` no longer throws for transport
+      // failures — those are handled as values above — but `fromJson` in the
+      // success path can still throw on an unexpected payload, and that must
+      // not escape into the caller either.
       log('order action $action failed for $orderId: $e');
       networkFailedOrders.add(orderId);
       networkFailedOrders.refresh();

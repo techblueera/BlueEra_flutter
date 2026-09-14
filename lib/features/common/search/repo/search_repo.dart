@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_exceptions.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/search/model/search_category.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
@@ -31,8 +32,10 @@ class SearchRepo {
   /// It must be legal for the category or the API answers `400` — see the
   /// per-category table in `docs/SEARCH_API_INTEGRATION.md` §2.
   ///
-  /// Throws (via [ApiBaseHelper.handleError]) on network failure — callers
-  /// wrap in try/catch.
+  /// Throws on failure — callers wrap in try/catch. Network failures no longer
+  /// throw out of [ApiBaseHelper]; they arrive as an unsuccessful
+  /// [ResponseModel] and are converted to a throw at the bottom of this method,
+  /// carrying the classified message rather than a bare "search failed".
   /// [lat]/[lng] are the searcher's position and give every located row an
   /// `address` + `distanceMeters`/`distanceText`. They are sent **both or
   /// neither** — one alone is a `400`, and so is `0,0` (what an unset location
@@ -71,7 +74,11 @@ class SearchRepo {
     if (res.isSuccess && raw is Map) {
       return SearchResponse.fromJson(Map<String, dynamic>.from(raw));
     }
-    throw (raw is Map ? raw['message'] : null) ?? 'search failed';
+    // A typed exception, not the bare String this used to throw. A String is
+    // not an Exception, so `on Exception catch` in a caller silently missed it
+    // and `catch (e)` was the only thing that worked.
+    throw res.exception ??
+        ApiException.fromResponse(res.response, endpoint: _searchPath);
   }
 
   /// Content-only search — posts and videos, never catalogue entities.

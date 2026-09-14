@@ -374,10 +374,12 @@ class FeedController extends GetxController {
     }
 
     ResponseModel response;
-    // The API call must live inside this try/catch: on network failures
-    // (timeout / no internet) the repo throws from ApiBaseHelper.handleError.
-    // If the call sits outside the try, that throw bubbles up through
-    // getPostsByType as an unhandled exception (feed crash on getAllMyPosts).
+    // Network failures (timeout / no internet) no longer throw — they come
+    // back as a ResponseModel with `isSuccess` false and `exception` set, and
+    // fall into the non-success branch below. The try/catch stays because
+    // `PostResponse.fromJson` further down can still throw on a payload shape
+    // it does not expect, and that would bubble through getPostsByType as an
+    // unhandled exception (the original feed crash on getAllMyPosts).
     try {
       switch (type) {
         case PostType.all:
