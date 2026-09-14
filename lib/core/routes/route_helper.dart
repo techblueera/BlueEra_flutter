@@ -78,7 +78,6 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/gst_verification_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/create_account_type_v2_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
@@ -682,9 +681,6 @@ class RouteHelper {
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
-
-  static String getCreateAccountTypeV2ScreenRoute() =>
-      RouteConstant.createAccountTypeV2Screen;
 
   static String getGigWorkerOptionsScreenRoute() =>
       RouteConstant.gigWorkerOptionsScreen;
@@ -2057,12 +2053,8 @@ class RouteHelper {
             settings: RouteSettings(name: getAddSelfServiceRoute()));
       case RouteConstant.createAccountTypeScreen:
         return MaterialPageRoute(
-            builder: (_) => CreateAccountTypeScreen(),
+            builder: (_) => const CreateAccountTypeScreen(),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute()));
-      case RouteConstant.createAccountTypeV2Screen:
-        return MaterialPageRoute(
-            builder: (_) => const CreateAccountTypeV2Screen(),
-            settings: RouteSettings(name: getCreateAccountTypeV2ScreenRoute()));
       case RouteConstant.gigWorkerOptionsScreen:
         return MaterialPageRoute(
             builder: (_) => GigWorkOptionsScreen(),

@@ -642,12 +642,9 @@ String getInitials(String? name) {
       .toUpperCase();
 }
 
+/// The one way into account creation — the "How You Earn" list.
 Future createProfileScreen() async {
-  Get.toNamed(RouteHelper.getCreateAccountTypeV2ScreenRoute());
-
-  // New PDF-based onboarding flow. Legacy route kept as a fallback:
-  // Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
-  // Get.to(() => const ChooseAccountTypeScreen());
+  Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
 }
 
 void navigatePushTo(BuildContext context, Widget destination) {

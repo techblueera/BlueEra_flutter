@@ -45,7 +45,7 @@ import 'package:get/get.dart';
 /// those are forwarded to [PersonalAccountNewScreen] to save retyping what the
 /// Aadhaar already stated.
 ///
-/// Only the gig-work branch of `create_account_type_v2_screen.dart` routes
+/// Only the gig-work branch of `create_account_type_screen.dart` routes
 /// here; every other profession goes straight to the profile form, and rider
 /// onboarding (`rider_service_screen.dart`) is untouched.
 class GigWorkAadhaarScreen extends StatefulWidget {

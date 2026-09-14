@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,164 +10,144 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/auth/views/screens/Individual/gig_work_aadhaar_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+
 // Only the leave-this-screen confirmation used this — restore it alongside
 // `_confirmExit` below if the dialog ever comes back.
 // import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
-import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+
+// Screen text now goes through AppStrings keys + GetX `.tr` (asset JSON +
+// language pack + `en` fallback) instead of LanguageListController.tr, which
+// resolved only against the downloaded pack.
 import '../../model/get_categories_model.dart';
 
-enum _AccountTab { business, professional, manufacturing }
+/// The six top-level "How You Earn" options shown on the first screen.
+/// Each maps to a set of onboarding category buckets already loaded by
+/// [AuthController]. See [_earnConfig] for the mapping.
+enum _EarnType {
+  businessShop,
+  businessStore,
+  selfWork,
+  gigWork,
+  notEarning,
+  doingJob,
+  manufacturing,
+}
 
+/// True when the earn type resolves to BUSINESS category buckets
+/// (`CategoryData`); false when it resolves to INDIVIDUAL profession
+/// buckets (`ProfessionTypeData`).
+bool _isBusinessEarnType(_EarnType type) =>
+    type == _EarnType.businessShop ||
+    type == _EarnType.businessStore ||
+    type == _EarnType.manufacturing;
+
+/// Static presentation config for a "How You Earn" row.
+///
+/// [title] and [subtitle] are TRANSLATION KEYS ([AppStrings]), not display
+/// text. Every widget that renders them ([CustomText], [CommonBackAppBar])
+/// applies `.tr` itself, so they translate wherever they are shown without the
+/// call site remembering to do it.
+class _EarnConfig {
+  final String title;
+  final String subtitle;
+  final String icon;
+
+  const _EarnConfig(this.title, this.subtitle, this.icon);
+}
+
+const Map<_EarnType, _EarnConfig> _earnConfig = {
+  _EarnType.businessShop: _EarnConfig(
+    AppStrings.earnBusinessShop,
+    AppStrings.earnBusinessShopSub,
+    "assets/onboarding/onboring_business.png",
+  ),
+  _EarnType.businessStore: _EarnConfig(
+    AppStrings.earnBusinessStore,
+    AppStrings.earnBusinessStoreSub,
+    "assets/onboarding/onbording_store.png",
+  ),
+  _EarnType.selfWork: _EarnConfig(
+    AppStrings.earnSelfWork,
+    AppStrings.earnSelfWorkSub,
+    "assets/onboarding/onbording_self_work.png",
+  ),
+  _EarnType.gigWork: _EarnConfig(
+    AppStrings.earnGigWork,
+    AppStrings.earnGigWorkSub,
+    "assets/onboarding/onbording_gig_worker.png",
+  ),
+  _EarnType.notEarning: _EarnConfig(
+    AppStrings.earnNotEarning,
+    AppStrings.earnNotEarningSub,
+    "assets/onboarding/onbording_not_earning.png",
+  ),
+  _EarnType.doingJob: _EarnConfig(
+    AppStrings.earnDoingJob,
+    AppStrings.earnDoingJobSub,
+    "assets/onboarding/onbording_doing_a_job.png",
+  ),
+  _EarnType.manufacturing: _EarnConfig(
+    AppStrings.earnManufacturing,
+    AppStrings.earnManufacturingSub,
+    "assets/onboarding/onbording_manufacturing.png",
+  ),
+};
+
+/// ---------------------------------------------------------------------------
+/// SCREEN 1 — "Choose Your Account Type" → "How You Earn" list.
+///
+/// The onboarding entry screen: a flat list of "How You Earn" rows, each
+/// opening [_AccountCategoryScreen] for the matching [AuthController] buckets.
+///
+/// The ONLY entry into account creation — `createProfileScreen()` routes here.
+/// An earlier tabbed screen of the same name was replaced by this one (briefly
+/// carrying a `V2` suffix while both existed) and has since been deleted.
+/// ---------------------------------------------------------------------------
 class CreateAccountTypeScreen extends StatefulWidget {
   final String? accountType;
 
-  /// Kept for call-site compatibility. With Personal merged into the
-  /// Professional tab, this no longer changes the entry tab.
-  final int initialIndividualIndex;
-
-  const CreateAccountTypeScreen({
-    super.key,
-    this.accountType,
-    this.initialIndividualIndex = 0,
-  });
+  const CreateAccountTypeScreen({super.key, this.accountType});
 
   @override
-  State<CreateAccountTypeScreen> createState() => _CreateAccountTypeScreenState();
+  State<CreateAccountTypeScreen> createState() =>
+      _CreateAccountTypeScreenState();
 }
 
-class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
-    with TickerProviderStateMixin {
+class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   final authController = getOrPut(() => AuthController());
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
-
-  /// Currently selected pill — `CategoryData` for business or
-  /// `ProfessionTypeData` for individual.
-  final Rxn<Object> selectedItem = Rxn<Object>();
-
-  /// Sub-category picked in the bottom sheet alongside a business pill.
-  /// Null for individual pills, manufacturing, or categories with no subs.
-  final Rxn<SubCategories> selectedSubCategory = Rxn<SubCategories>();
-
-  late final List<_AccountTab> _tabs;
-  late final TabController _tabController;
-
-  /// Single scroll view holding ALL tabs' content stacked vertically, so a
-  /// scroll flows continuously from one tab straight into the next.
-  final ScrollController _scrollController = ScrollController();
-
-  /// One key per tab block — used to measure each block's scroll offset so the
-  /// active tab can follow the scroll position (and a tab tap can scroll to it).
-  late final List<GlobalKey> _tabKeys;
-
-  /// The tab whose block is currently aligned to the top of the viewport.
-  /// Tracked so we only react when scrolling actually crosses into a new tab.
-  int _activeTab = 0;
-
-  /// True while we animate the scroll in response to a TAB TAP, so the scroll
-  /// listener doesn't fight the animation.
-  bool _isAnimatingToTab = false;
 
   @override
   void initState() {
     super.initState();
+    // Same cache-first master-list load the legacy screen uses; the second
+    // screen reads the resulting buckets.
     authController.loadCategoriesCacheFirstThenRefresh();
-
-    _tabs = _buildTabs();
-    _tabKeys = List.generate(_tabs.length, (_) => GlobalKey());
-    _activeTab = _initialTabIndex();
-    _tabController = TabController(
-      length: _tabs.length,
-      vsync: this,
-      initialIndex: _activeTab,
-    );
-    // Scroll position drives the active tab (scroll-spy).
-    _scrollController.addListener(_onContentScroll);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _onTabChanged(_tabs[_activeTab]);
-      // Land on the requested initial tab's section (no animation on entry).
-      if (_activeTab != 0) _scrollToTab(_activeTab, animate: false);
-    });
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  List<_AccountTab> _buildTabs() {
-    final showBusiness =
-        widget.accountType == null || widget.accountType == AppConstants.business;
-    final showIndividual =
-        widget.accountType == null || widget.accountType == AppConstants.individual;
-    return [
-      if (showBusiness) _AccountTab.business,
-      if (showIndividual) _AccountTab.professional,
-      if (showBusiness) _AccountTab.manufacturing,
-    ];
-  }
-
-  int _initialTabIndex() {
+  List<_EarnType> get _rows {
+    // Honour the optional accountType filter used by some call sites: only
+    // business-kind rows for BUSINESS, only individual rows for INDIVIDUAL.
+    if (widget.accountType == AppConstants.business) {
+      return _EarnType.values.where(_isBusinessEarnType).toList();
+    }
     if (widget.accountType == AppConstants.individual) {
-      final idx = _tabs.indexOf(_AccountTab.professional);
-      return idx < 0 ? 0 : idx;
+      return _EarnType.values.where((t) => !_isBusinessEarnType(t)).toList();
     }
-    return 0;
-  }
-
-  String _labelFor(_AccountTab tab) {
-    switch (tab) {
-      case _AccountTab.business:
-        return langController.tr('Business');
-      case _AccountTab.professional:
-        return langController.tr('Social / Professional');
-      case _AccountTab.manufacturing:
-        return langController.tr('Manufacturing');
-    }
-  }
-
-  IconData _iconFor(_AccountTab tab) {
-    switch (tab) {
-      case _AccountTab.business:
-        return Icons.storefront_outlined;
-      case _AccountTab.professional:
-        return Icons.person_outline;
-      case _AccountTab.manufacturing:
-        return Icons.precision_manufacturing_outlined;
-    }
-  }
-
-  void _onTabChanged(_AccountTab tab) {
-    selectedItem.value = null;
-    selectedSubCategory.value = null;
-    switch (tab) {
-      case _AccountTab.business:
-      case _AccountTab.manufacturing:
-        authController.selectedParentSlug.value = AppConstants.business;
-        authController.selectedIndividualOnboardingProfile.value = null;
-        break;
-      case _AccountTab.professional:
-        authController.selectedParentSlug.value = AppConstants.individual;
-        authController.selectedBusinessOnboardingProfile.value = null;
-        break;
-    }
+    return _EarnType.values;
   }
 
   /* Back is a plain pop now — see the note on [build].
-  /// Confirmation dialog shown for every exit attempt (app-bar back, system
-  /// back button, and edge-swipe gesture). "Yes" lands the user on the main
-  /// bottom-navigation home; "No" keeps them on this screen.
+  /// Confirmation dialog shown for every exit attempt — mirrors the legacy
+  /// screen so backing out of account creation always lands on home.
   void _confirmExit() {
     commonConformationDialog(
       context: context,
@@ -182,130 +163,212 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
   }
   */
 
-  /// Scroll-spy: as the single scroll view moves, pick the tab whose block is
-  /// currently at the top of the viewport and select it (so the indicator
-  /// follows the scroll). Ignored while a tab-tap animation is driving the
-  /// scroll, so the two don't fight.
-  void _onContentScroll() {
-    if (_isAnimatingToTab || !_scrollController.hasClients) return;
-    final active = _computeActiveTab();
-    if (active != _activeTab) _setActiveTab(active);
-  }
-
-  /// The tab whose block top has scrolled nearest to (but not past) the top of
-  /// the viewport. Reaching the very bottom always selects the last tab, so a
-  /// short final section still activates its tab.
-  int _computeActiveTab() {
-    final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 4) {
-      return _tabKeys.length - 1;
-    }
-    int active = 0;
-    for (int i = 0; i < _tabKeys.length; i++) {
-      final off = _tabScrollOffset(_tabKeys[i]);
-      if (off == null) continue;
-      if (position.pixels >= off - SizeConfig.size48) active = i;
-    }
-    return active;
-  }
-
-  /// The scroll offset at which [key]'s block reaches the top of the viewport,
-  /// or null when it can't be measured yet.
-  double? _tabScrollOffset(GlobalKey key) {
-    final ctx = key.currentContext;
-    if (ctx == null) return null;
-    final box = ctx.findRenderObject();
-    if (box == null || !box.attached) return null;
-    try {
-      final viewport = RenderAbstractViewport.of(box);
-      return viewport.getOffsetToReveal(box, 0.0).offset;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Make [index] the active tab: slide the indicator and run the tab-change
-  /// side effects (reset selection, switch the parent slug).
-  void _setActiveTab(int index) {
-    _activeTab = index;
-    if (_tabController.index != index) _tabController.animateTo(index);
-    _onTabChanged(_tabs[index]);
-  }
-
-  /// Scrolls the content so [index]'s block sits at the top — used when a tab
-  /// is tapped. Clamps to the scroll range so the last/short tab still lands.
-  Future<void> _scrollToTab(int index, {bool animate = true}) async {
-    if (!_scrollController.hasClients) return;
-    final off = _tabScrollOffset(_tabKeys[index]);
-    if (off == null) return;
-    final position = _scrollController.position;
-    final target =
-        off.clamp(position.minScrollExtent, position.maxScrollExtent);
-    _isAnimatingToTab = true;
-    _setActiveTab(index);
-    try {
-      if (animate) {
-        await _scrollController.animateTo(
-          target,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        _scrollController.jumpTo(target);
-      }
-    } finally {
-      _isAnimatingToTab = false;
-    }
+  void _openCategoryScreen(_EarnType type) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _AccountCategoryScreen(earnType: type),
+      ),
+    );
   }
 
   /// Back — system gesture, hardware button and the app bar arrow alike — is a
-  /// plain pop, so the user lands back wherever they opened this from. Matches
-  /// [CreateAccountTypeV2Screen], which replaced this screen.
+  /// plain pop, so the user lands back wherever they opened this from.
   ///
   /// It used to be wrapped in a [PopScope] with `canPop: false` that asked "Are
   /// you sure you want to leave this screen?" and, on confirm, cleared the
-  /// whole stack to the bottom nav. That made sense when this was the landing
-  /// screen straight after signup, where there was nothing behind it to go back
-  /// to. It isn't any more: guest signup goes to the bottom nav directly
-  /// (`AuthController`), and the account-type screens are opened from inside
-  /// the app via `createProfileScreen()`. Nothing is entered here — it's a list
-  /// of links — so there is no work to lose and nothing to confirm.
+  /// whole stack to the bottom nav. Nothing has been entered on this screen —
+  /// it's a list of links — so there was no work to lose and nothing to
+  /// confirm; and dropping the stack sent people who arrived from Discover or a
+  /// profile back to home instead of to what they were looking at.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: const Color(0xFFF1F5FB),
       appBar: CommonBackAppBar(
         isLeading: true,
         appBarColor: Colors.white,
         title: AppStrings.chooseYourAccountType,
       ),
       body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16,
+              vertical: SizeConfig.size20,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(SizeConfig.size16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  AppStrings.accountTypeHowYouEarn,
+                  fontSize: SizeConfig.size24,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size4),
+                CustomText(
+                  AppStrings.accountTypeSelectProfession,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(height: SizeConfig.size16),
+                for (final type in _rows) ...[
+                  _earnRow(type),
+                  SizedBox(height: SizeConfig.size12),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _earnRow(_EarnType type) {
+    final config = _earnConfig[type]!;
+    return InkWell(
+      borderRadius: BorderRadius.circular(SizeConfig.size12),
+      onTap: () => _openCategoryScreen(type),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size14,
+          vertical: SizeConfig.size14,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(SizeConfig.size12),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: SizeConfig.size44,
+              width: SizeConfig.size44,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: AppColors.skyBlueE4,
+                shape: BoxShape.circle,
+              ),
+              child: LocalAssets(
+                imagePath: config.icon,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    config.title,
+                    fontSize: SizeConfig.size16,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size2),
+                  CustomText(
+                    config.subtitle,
+                    fontSize: SizeConfig.size12,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xff66727E),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.secondaryTextColor,
+              size: SizeConfig.size22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ---------------------------------------------------------------------------
+/// SCREEN 2 — sectioned category pills for the chosen earn type.
+///
+/// Pill icons are rendered from the API `image_url` on each category /
+/// profession. Selecting a pill (business) opens a sub-category sheet when the
+/// category has one; "Next" reuses the exact legacy downstream navigation.
+/// ---------------------------------------------------------------------------
+class _AccountCategoryScreen extends StatefulWidget {
+  final _EarnType earnType;
+
+  const _AccountCategoryScreen({required this.earnType});
+
+  @override
+  State<_AccountCategoryScreen> createState() => _AccountCategoryScreenState();
+}
+
+class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
+  final authController = getOrPut(() => AuthController());
+
+  /// `CategoryData` (business) or `ProfessionTypeData` (individual).
+  final Rxn<Object> selectedItem = Rxn<Object>();
+
+  /// Sub-category picked alongside a business pill. Null for individual pills,
+  /// manufacturing, or categories without sub-categories.
+  final Rxn<SubCategories> selectedSubCategory = Rxn<SubCategories>();
+
+  bool get _isBusiness => _isBusinessEarnType(widget.earnType);
+
+  @override
+  void initState() {
+    super.initState();
+    // Keep the parent-slug state consistent with the legacy flow so any
+    // downstream reader sees the right value.
+    authController.selectedParentSlug.value =
+        _isBusiness ? AppConstants.business : AppConstants.individual;
+    if (_isBusiness) {
+      authController.selectedIndividualOnboardingProfile.value = null;
+    } else {
+      authController.selectedBusinessOnboardingProfile.value = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final config = _earnConfig[widget.earnType]!;
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: CommonBackAppBar(
+        isLeading: true,
+        appBarColor: Colors.white,
+        title: config.title,
+      ),
+      body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            _buildTopTabs(),
             Expanded(
               child: Container(
                 width: double.infinity,
                 color: const Color(0xFFF1F5FB),
                 child: Obx(() {
-                  // Subscribe to every onboarding bucket so the silent
-                  // network refresh repaints the category grid even on the
-                  // cache-hit path (where isInitialCategoriesLoading never
-                  // flips again). The grid items are read across a build
-                  // boundary, so this explicit read is what registers the dep.
+                  // Subscribe to bucket changes so the silent network refresh
+                  // repaints the grid, and to the selection Rx so pill
+                  // highlight updates.
                   authController.onboardingBucketsWatch;
+                  selectedItem.value;
                   if (authController.isInitialCategoriesLoading.value) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  // Touch the selection Rx so the body rebuilds when a
-                  // pill is tapped (so its highlight state updates).
-                  selectedItem.value;
-                  // All tabs' content in ONE scroll view, each block keyed so
-                  // the scroll-spy can track / scroll to it. Scrolling flows
-                  // continuously from one tab straight into the next.
                   return SingleChildScrollView(
-                    controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics(),
                     ),
@@ -315,16 +378,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
                       SizeConfig.size16,
                       SizeConfig.size20,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (int i = 0; i < _tabs.length; i++)
-                          KeyedSubtree(
-                            key: _tabKeys[i],
-                            child: _buildBodyForTab(_tabs[i]),
-                          ),
-                      ],
-                    ),
+                    child: _isBusiness ? _businessBody() : _individualBody(),
                   );
                 }),
               ),
@@ -336,152 +390,72 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: AppColors.white,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size20,
-        SizeConfig.size8,
-        SizeConfig.size20,
-        SizeConfig.size12,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            langController.tr('Pick what describes you best'),
-            fontSize: SizeConfig.size18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor,
-          ),
+  // --- Business ------------------------------------------------------------
 
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopTabs() {
-    return Container(
-      color: AppColors.white,
-      child: TabBar(
-        controller: _tabController,
-        onTap: (index) => _scrollToTab(index),
-        isScrollable: true,
-        tabAlignment: TabAlignment.start,
-        labelColor: AppColors.primaryColor,
-        unselectedLabelColor: AppColors.secondaryTextColor,
-        indicatorColor: AppColors.primaryColor,
-        indicatorWeight: 3,
-        labelPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-        labelStyle: TextStyle(
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w600,
+  /// Section titles are [AppStrings] keys — [_sectionCard] renders them through
+  /// [CustomText], which translates.
+  List<_Section> _businessSections() {
+    if (widget.earnType == _EarnType.manufacturing) {
+      return [
+        _Section(
+          title: AppStrings.accountSectionManufacturing,
+          items: authController.businessOnboardingManufacturingCategories,
         ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w500,
-        ),
-        tabs: _tabs
-            .map(
-              (t) => Tab(
-                height: SizeConfig.size48,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(_iconFor(t), size: SizeConfig.size18),
-                    SizedBox(width: SizeConfig.size6),
-                    Text(_labelFor(t)),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildBodyForTab(_AccountTab tab) {
-    Widget body;
-    switch (tab) {
-      case _AccountTab.business:
-        body = _sectionedBusinessBody([
-          _Section(
-            title: langController.tr('Grocery & Stationary Stores'),
-            items: authController.businessOnboardingGroceriesCategories,
-          ),
-          _Section(
-            title: langController.tr('Food & Restaurant'),
-            items: authController.businessOnboardingFoodsCategories,
-          ),
-          _Section(
-            title: langController.tr('Shop & Store'),
-            items: authController.businessOnboardingProductsCategories,
-          ),
-          _Section(
-            title: langController.tr('Services'),
-            items: authController.businessOnboardingServicesCategories,
-          ),
-          _Section(
-            title: langController.tr('Automotive Services'),
-            items: authController.businessOnboardingAutomotiveServicesCategories,
-          ),
-          _Section(
-            title: langController.tr('Health Care'),
-            items: authController.businessOnboardingHealthcareSectorsCategories,
-          ),
-          _Section(
-            title: langController.tr('Hospitality & Stay'),
-            items: authController.businessOnboardingHospitalityStayCategories,
-          ),
-          _Section(
-            title: langController.tr('Education & Training Sectors'),
-            items: authController.businessOnboardingEducationTrainingCategories,
-          ),
-          _Section(
-            title: langController.tr('Financial Sectors'),
-            items: authController.businessOnboardingFinancialSectorsCategories,
-          ),
-        ]);
-        break;
-      case _AccountTab.manufacturing:
-        body = _sectionedBusinessBody([
-          _Section(
-            title: langController.tr('Manufacturing'),
-            items: authController.businessOnboardingManufacturingCategories,
-          ),
-        ]);
-        break;
-      case _AccountTab.professional:
-        body = _sectionedIndividualBody([
-          _IndividualSection(
-            title: langController.tr('Skill Work'),
-            items: authController.individualOnboardingSkillWorkList,
-          ),
-          _IndividualSection(
-            title: langController.tr('Self Employed'),
-            items: authController.individualOnboardingGigWorkList,
-          ),
-          _IndividualSection(
-            title: langController.tr('Consultant'),
-            items: authController.individualOnboardingConsultationList,
-          ),
-          _IndividualSection(
-            title: langController.tr('Social Profile'),
-            items: authController.individualOnboardingSocialProfileList,
-          ),
-        ]);
-        break;
+      ];
     }
-    // Content-only — the single parent scroll view (in build) owns the scroll
-    // so all tabs flow together.
-    return body;
+    // businessShop / businessStore → every business bucket except
+    // manufacturing (and except finance on the Non-GST row, below).
+    return [
+      _Section(
+        title: AppStrings.accountSectionGrocery,
+        items: authController.businessOnboardingGroceriesCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionFood,
+        items: authController.businessOnboardingFoodsCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionShopStore,
+        items: authController.businessOnboardingProductsCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionServices,
+        items: authController.businessOnboardingServicesCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionAutomotive,
+        items: authController.businessOnboardingAutomotiveServicesCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionHealthCare,
+        items: authController.businessOnboardingHealthcareSectorsCategories,
+      ),
+      _Section(
+        title: AppStrings.accountSectionHospitality,
+        items: authController.businessOnboardingHospitalityStayCategories,
+      ),
+      if (widget.earnType == _EarnType.businessStore)
+        _Section(
+          title: AppStrings.accountSectionEducation,
+          items: authController.businessOnboardingEducationTrainingCategories,
+        ),
+      // Banking / finance is a GST-registered vertical, so the whole Financial
+      // Sectors bucket is offered on Business/Shop (GST) only — the Non-GST
+      // small-shop row must not be able to onboard as a finance business.
+      // Manufacturing never reaches here (it returns its own section above).
+      if (widget.earnType != _EarnType.businessStore)
+        _Section(
+          title: AppStrings.accountSectionFinancial,
+          items: authController.businessOnboardingFinancialSectorsCategories,
+        ),
+    ];
   }
 
-  Widget _sectionedBusinessBody(List<_Section> sections) {
-    final nonEmpty = sections.where((s) => s.items.isNotEmpty).toList();
+  Widget _businessBody() {
+    final nonEmpty =
+        _businessSections().where((s) => s.items.isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
-      return EmptyStateWidget(message: langController.tr('No category found'));
+      return EmptyStateWidget(message: AppStrings.accountTypeNoCategory);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -502,10 +476,85 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     );
   }
 
-  Widget _sectionedIndividualBody(List<_IndividualSection> sections) {
-    final nonEmpty = sections.where((s) => s.items.isNotEmpty).toList();
+  Widget _businessPill(CategoryData c) {
+    final selected = identical(selectedItem.value, c);
+    return _pill(
+      label: c.name ?? '',
+      iconUrl: c.imageUrl,
+      selected: selected,
+      onTap: () => _onBusinessPillTap(c),
+    );
+  }
+
+  Future<void> _onBusinessPillTap(CategoryData c) async {
+    if (c.businessType == BusinessType.Manufacturing) {
+      selectedItem.value = c;
+      selectedSubCategory.value = null;
+      return;
+    }
+    final tagId = c.tagId;
+    if (tagId == null) {
+      selectedItem.value = c;
+      selectedSubCategory.value = null;
+      return;
+    }
+    final picked = await showModalBottomSheet<_SubCategoryPickResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _BusinessSubCategoryBottomSheet(
+        authController: authController,
+        categorySlugId: tagId,
+        categoryName: c.name ?? '',
+      ),
+    );
+    if (picked == null) return; // dismissed
+    selectedItem.value = c;
+    selectedSubCategory.value = picked.subCategory;
+  }
+
+  // --- Individual ----------------------------------------------------------
+
+  List<_IndividualSection> _individualSections() {
+    switch (widget.earnType) {
+      case _EarnType.selfWork:
+        return [
+          _IndividualSection(
+            title: AppStrings.accountSectionSkillWork,
+            items: authController.individualOnboardingSkillWorkList,
+          ),
+          _IndividualSection(
+            title: AppStrings.accountSectionConsultant,
+            items: authController.individualOnboardingConsultationList,
+          ),
+        ];
+      case _EarnType.gigWork:
+        return [
+          _IndividualSection(
+            title: AppStrings.accountSectionSelfEmployed,
+            items: authController.individualOnboardingGigWorkList,
+          ),
+        ];
+      case _EarnType.notEarning:
+      case _EarnType.doingJob:
+        return [
+          _IndividualSection(
+            title: AppStrings.accountSectionSocialProfile,
+            items: authController.individualOnboardingSocialProfileList,
+          ),
+        ];
+      case _EarnType.businessShop:
+      case _EarnType.businessStore:
+      case _EarnType.manufacturing:
+        return const [];
+    }
+  }
+
+  Widget _individualBody() {
+    final nonEmpty =
+        _individualSections().where((s) => s.items.isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
-      return EmptyStateWidget(message: langController.tr('No profession found'));
+      return EmptyStateWidget(message: AppStrings.accountTypeNoProfession);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -525,6 +574,21 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       ],
     );
   }
+
+  Widget _individualPill(ProfessionTypeData p) {
+    final selected = identical(selectedItem.value, p);
+    return _pill(
+      label: p.name ?? '',
+      iconUrl: p.imageUrl,
+      selected: selected,
+      onTap: () {
+        selectedItem.value = p;
+        selectedSubCategory.value = null;
+      },
+    );
+  }
+
+  // --- Shared UI -----------------------------------------------------------
 
   Widget _sectionCard({required String title, required Widget child}) {
     return Container(
@@ -561,58 +625,10 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     );
   }
 
-
-  Widget _businessPill(CategoryData c) {
-    final selected = identical(selectedItem.value, c);
-    return _pill(
-      label: c.name ?? '',
-      selected: selected,
-      onTap: () => _onBusinessPillTap(c),
-    );
-  }
-
-  Widget _individualPill(ProfessionTypeData p) {
-    final selected = identical(selectedItem.value, p);
-    return _pill(
-      label: p.name ?? '',
-      selected: selected,
-      onTap: () {
-        selectedItem.value = p;
-        selectedSubCategory.value = null;
-      },
-    );
-  }
-
-  Future<void> _onBusinessPillTap(CategoryData c) async {
-    // Manufacturing has no sub-categories — select directly.
-    if (c.businessType == BusinessType.Manufacturing) {
-      selectedItem.value = c;
-      selectedSubCategory.value = null;
-      return;
-    }
-    final tagId = c.tagId;
-    if (tagId == null) {
-      selectedItem.value = c;
-      selectedSubCategory.value = null;
-      return;
-    }
-    final picked = await showModalBottomSheet<_SubCategoryPickResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BusinessSubCategoryBottomSheet(
-        authController: authController,
-        categorySlugId: tagId,
-        categoryName: c.name ?? '',
-      ),
-    );
-    if (picked == null) return; // dismissed
-    selectedItem.value = c;
-    selectedSubCategory.value = picked.subCategory;
-  }
-
+  /// Pill with an API-driven leading icon (`image_url`).
   Widget _pill({
     required String label,
+    required String? iconUrl,
     required bool selected,
     required VoidCallback onTap,
   }) {
@@ -629,9 +645,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
           color: selected ? AppColors.primaryColor : AppColors.white,
           borderRadius: BorderRadius.circular(SizeConfig.size30),
           border: Border.all(
-            color: selected
-                ? AppColors.primaryColor
-                : AppColors.greyE5,
+            color: selected ? AppColors.primaryColor : AppColors.greyE5,
             width: 1,
           ),
           boxShadow: selected
@@ -647,23 +661,37 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (selected) ...[
-              Icon(
-                Icons.check_circle,
-                size: SizeConfig.size16,
-                color: AppColors.white,
-              ),
-              SizedBox(width: SizeConfig.size6),
-            ],
+            _pillIcon(iconUrl, selected),
+            SizedBox(width: SizeConfig.size6),
             CustomText(
               label,
-              fontSize: SizeConfig.medium,
+              fontSize: 13.0,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: selected ? AppColors.white : AppColors.mainTextColor,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Renders the category icon from the API `image_url`. Falls back to a
+  /// neutral glyph when no URL is provided or the image fails to load.
+  Widget _pillIcon(String? url, bool selected) {
+    final double size = SizeConfig.size18;
+    final Color fallbackColor =
+        selected ? AppColors.white : AppColors.secondaryTextColor;
+    if (url == null || url.trim().isEmpty) {
+      return Icon(Icons.category_outlined, size: size, color: fallbackColor);
+    }
+    return CachedNetworkImage(
+      imageUrl: url,
+      height: size,
+      width: size,
+      fit: BoxFit.contain,
+      placeholder: (context, _) => SizedBox(height: size, width: size),
+      errorWidget: (context, _, __) =>
+          Icon(Icons.category_outlined, size: size, color: fallbackColor),
     );
   }
 
@@ -684,7 +712,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
               isValidate: canProceed,
               bgColor: canProceed ? AppColors.primaryColor : AppColors.whiteF3,
               textColor: canProceed ? AppColors.white : AppColors.grey9B,
-              title: 'Next',
+              title: AppStrings.next,
               onTap: canProceed ? _onNext : null,
             );
           }),
@@ -701,18 +729,78 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       final tagId = item.tagId;
       final name = item.name;
       if (type == null || tagId == null || name == null) return;
-      navigateToGstScreen(
+
+      // Small Business/Shop (NON GST) never sees the GST screen. The row is the
+      // user saying they have no GST, so asking again on the next screen is the
+      // same question twice — they go straight to the account form.
+      //
+      // The GST screen is not only about GST though: its initState is what
+      // hands the chosen category to [AuthController], which every later step
+      // (the summary card on step one, the create payload on step four) reads.
+      // Skipping the screen means doing that here, or the category is lost.
+      //
+      // The GST flags are reset for the same reason the screen's own "No I
+      // don't" / Skip paths reset them: `isHaveGstApprove` is what LOCKS the
+      // business name and address on step one to the GST-verified values, and
+      // it is a permanent controller, so a GST attempt earlier in this session
+      // would otherwise leave those fields locked to the wrong business.
+      if (widget.earnType == _EarnType.businessStore) {
+        authController
+          ..selectedTypeOfBusiness = type
+          ..selectedCategoryName = name
+          ..selectedCategorySlugId = tagId
+          ..selectedSubCategoryData = selectedSubCategory.value;
+        authController.hasGstNumber.value = false;
+        authController.isHaveGstApprove.value = false;
+        authController.isValidate.value = false;
+        Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
+        return;
+      }
+
+      Navigator.pushNamed(
         context,
-        businessType: type,
-        categorySlugId: tagId,
-        categoryName: name,
-        subCategory: selectedSubCategory.value,
+        RouteHelper.getGstNumberScreenRoute(),
+        arguments: {
+          ApiKeys.argAccountType: AppConstants.business,
+          ApiKeys.argBusinessType: type,
+          ApiKeys.argCategoryId: tagId,
+          ApiKeys.argCategoryName: name,
+          ApiKeys.argSubCategory: selectedSubCategory.value,
+          // Business/Shop (GST) → GST is compulsory. Small Business/Shop
+          // (Non GST) and Manufacturing keep GST optional.
+          ApiKeys.argIsGstMandatory: widget.earnType == _EarnType.businessShop,
+        },
       );
     } else if (item is ProfessionTypeData) {
       log('---------------- LOG DATA ----------------');
       log('${ApiKeys.argProfileType} : ${item.individualProfileType?.tagId}');
       log('${ApiKeys.argProfessionTagId}    : ${item.tagId}');
       log('${ApiKeys.argProfession}    : ${item.name}');
+
+      final profileType = item.individualProfileType;
+      final professionTagId = item.tagId;
+      final profession = item.name;
+
+      // Gig work goes through Aadhaar FIRST — it puts someone in a customer's
+      // vehicle or at their door, so the identity is established before the
+      // profile exists rather than as a document uploaded later. That screen
+      // owns the hop to the profile form and carries the verified name and
+      // date of birth into it. Every other profession still goes straight
+      // through, and rider onboarding is unaffected.
+      if (widget.earnType == _EarnType.gigWork &&
+          profileType != null &&
+          professionTagId != null &&
+          profession != null) {
+        Get.to(
+          () => GigWorkAadhaarScreen(
+            accountType: AppConstants.individual,
+            profileType: profileType,
+            profession: profession,
+            professionTagId: professionTagId,
+          ),
+        );
+        return;
+      }
 
       Get.toNamed(
         RouteHelper.getPersonalAccountNewScreenRoute(),
@@ -725,66 +813,48 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       );
     }
   }
-
-  void navigateToGstScreen(
-    BuildContext context, {
-    required BusinessType businessType,
-    required String categorySlugId,
-    required String categoryName,
-    SubCategories? subCategory,
-  }) {
-    Navigator.pushNamed(
-      context,
-      RouteHelper.getGstNumberScreenRoute(),
-      arguments: {
-        ApiKeys.argAccountType: AppConstants.business,
-        ApiKeys.argBusinessType: businessType,
-        ApiKeys.argCategoryId: categorySlugId,
-        ApiKeys.argCategoryName: categoryName,
-        ApiKeys.argSubCategory: subCategory,
-      },
-    );
-  }
 }
 
 class _Section {
   final String title;
   final List<CategoryData> items;
+
   _Section({required this.title, required this.items});
 }
 
 class _IndividualSection {
   final String title;
   final List<ProfessionTypeData> items;
+
   _IndividualSection({required this.title, required this.items});
 }
 
 class _SubCategoryPickResult {
   final SubCategories? subCategory;
+
   _SubCategoryPickResult(this.subCategory);
 }
 
-class BusinessSubCategoryBottomSheet extends StatefulWidget {
+/// Self-contained copy of the legacy business sub-category picker so this new
+/// flow stays fully decoupled from `create_account_type_screen.dart`.
+class _BusinessSubCategoryBottomSheet extends StatefulWidget {
   final AuthController authController;
   final String categorySlugId;
   final String categoryName;
 
-  const BusinessSubCategoryBottomSheet({
-    super.key,
+  const _BusinessSubCategoryBottomSheet({
     required this.authController,
     required this.categorySlugId,
     required this.categoryName,
   });
 
   @override
-  State<BusinessSubCategoryBottomSheet> createState() =>
+  State<_BusinessSubCategoryBottomSheet> createState() =>
       _BusinessSubCategoryBottomSheetState();
 }
 
 class _BusinessSubCategoryBottomSheetState
-    extends State<BusinessSubCategoryBottomSheet> {
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
+    extends State<_BusinessSubCategoryBottomSheet> {
   SubCategories? _selectedSubCat;
 
   @override
@@ -853,8 +923,8 @@ class _BusinessSubCategoryBottomSheetState
               Divider(height: 1, color: AppColors.greyE5),
               Expanded(
                 child: Obx(() {
-                  if (widget.authController
-                      .isBusinessSubCategoriesLoading.value) {
+                  if (widget
+                      .authController.isBusinessSubCategoriesLoading.value) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (widget.authController.subCategoryErrorMessage.value !=
@@ -872,14 +942,13 @@ class _BusinessSubCategoryBottomSheetState
                       ),
                     );
                   }
-                  final subs =
-                      widget.authController.businessSubCategoriesList;
+                  final subs = widget.authController.businessSubCategoriesList;
                   if (subs.isEmpty) {
                     return Center(
                       child: Padding(
                         padding: EdgeInsets.all(SizeConfig.size20),
                         child: CustomText(
-                          langController.tr('No sub-categories found.'),
+                          AppStrings.accountTypeNoSubCategory,
                           fontSize: SizeConfig.medium,
                           color: AppColors.secondaryTextColor,
                         ),
@@ -927,8 +996,8 @@ class _BusinessSubCategoryBottomSheetState
                         widget.authController.businessSubCategoriesList;
                     final loading = widget
                         .authController.isBusinessSubCategoriesLoading.value;
-                    final canConfirm = !loading &&
-                        (subs.isEmpty || _selectedSubCat != null);
+                    final canConfirm =
+                        !loading && (subs.isEmpty || _selectedSubCat != null);
                     return CustomBtn(
                       radius: SizeConfig.size30,
                       isValidate: canConfirm,
@@ -937,7 +1006,7 @@ class _BusinessSubCategoryBottomSheetState
                           : AppColors.whiteF3,
                       textColor:
                           canConfirm ? AppColors.white : AppColors.grey9B,
-                      title: 'Done',
+                      title: AppStrings.done,
                       onTap: canConfirm
                           ? () => Navigator.of(context)
                               .pop(_SubCategoryPickResult(_selectedSubCat))
