@@ -9,4 +9,12 @@ mixin NotificationServiceApi {
   final String notificationRead = 'notification-service/notifications/';
   final String notificationSettingsApi =
       'notification-service/notifications/settings';
+
+  /// Campaign engagement reporting (open / click / convert).
+  ///
+  /// Idempotent server-side — a repeat answers `counted:false` — so the client
+  /// never has to de-duplicate. Until this is called, `opened`, `clicked` and
+  /// `converted` read zero for every campaign on the admin dashboard.
+  final String notificationTrackApi =
+      'notification-service/notifications/track';
 }

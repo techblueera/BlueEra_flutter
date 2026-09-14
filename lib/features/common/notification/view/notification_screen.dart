@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/tab_model.dart';
+import 'package:BlueEra/core/services/deep_link_router.dart';
+import 'package:BlueEra/core/services/notification_tracking_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -333,8 +335,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
               final data = visible[index];
               final isLast = index == visible.length - 1;
 
-                  final String imageUrl =
-                      data.senderProfile?.profileImage ?? '';
+                  // Admin campaign rows have no sender profile, so their
+                  // leading slot would otherwise be an empty placeholder and
+                  // the row would read as plain text — which is what gets
+                  // scrolled past. Fall back to the campaign artwork (a video
+                  // promo's still, or a promotion's `imageUrl`). Sender avatar
+                  // still wins wherever there is one, so no person-to-person
+                  // notification changes.
+                  final String imageUrl = [
+                    data.senderProfile?.profileImage ?? '',
+                    data.metadata?.videoThumbnail ?? '',
+                    data.metadata?.imageUrl ?? '',
+                  ].firstWhere((s) => s.trim().isNotEmpty, orElse: () => '');
                   final String id = data.sId ?? "";
                   // Display text resolution: many notifications (AI greetings,
                   // ride status updates, profile reminders) leave the top-level
@@ -395,6 +407,34 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               .trim();
                       if (operation == "profile_completion_reminder") {
                         MeProfileNavigator.openOverviewIfLoggedIn();
+                      }
+                      // A user who opens the LIST instead of the banner must
+                      // reach the same screen — otherwise an engagement push
+                      // works and the inbox row it left behind is a dead end.
+                      // Same resolver, same tracking as the push tap.
+                      else if (operation == "admin_promotion") {
+                        final meta = data.metadata?.toJson() ?? {};
+                        unawaited(NotificationTracking.report(
+                          meta,
+                          kind: 'open',
+                        ));
+                        final link = NotificationTracking.deepLinkOf(meta);
+                        final uri = link == null ? null : Uri.tryParse(link);
+                        if (uri != null) {
+                          unawaited(
+                            DeepLinkRouter.routeOrDefer(uri).then(
+                              (_) => NotificationTracking.report(
+                                meta,
+                                kind: 'convert',
+                              ),
+                            ),
+                          );
+                        }
+                        // No link: the user is already on the list the push
+                        // would have sent them to, so the read-flip above is
+                        // the whole interaction. Deliberately no `Get.back()` —
+                        // closing the inbox on a nudge with nowhere to go
+                        // would look like the tap failed.
                       }
                       else if (operation == "admin_broadcast") {
                         // Open the in-app "BlueEra" broadcast thread via the

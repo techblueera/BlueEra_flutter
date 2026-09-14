@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/services/notification_tracking_service.dart';
+
 class NotificationDataModel {
   bool? success;
   List<NotificationDataList>? data;
@@ -140,6 +142,16 @@ class Metadata {
   String? videoTitle;
   // Campaign this row belongs to, for open-rate analytics.
   String? broadcastId;
+  // Where the row should go when tapped.
+  //
+  // Casing differs BY LAYER, not by accident: the FCM push writes `deepLink`,
+  // the stored inbox row writes `deep_link` — different producers. Both are
+  // read, plus the pre-normalisation `link` / `url` spellings, so a row and its
+  // push can never route differently.
+  String? deepLink;
+  // Campaign artwork. A promotion row rendered as plain text gets scrolled
+  // past, so it stands in for the (absent) sender avatar on admin rows.
+  String? imageUrl;
 
   Metadata({
     this.jobId,
@@ -156,6 +168,8 @@ class Metadata {
     this.videoThumbnail,
     this.videoTitle,
     this.broadcastId,
+    this.deepLink,
+    this.imageUrl,
   });
 
   Metadata.fromJson(Map<String, dynamic> json) {
@@ -173,6 +187,15 @@ class Metadata {
     videoThumbnail = json['video_thumbnail'] ?? json['videoThumbnail'];
     videoTitle = json['video_title'] ?? json['videoTitle'];
     broadcastId = json['broadcast_id'] ?? json['broadcastId'];
+    // Resolved through the SHARED reader, not a local copy of the key list.
+    //
+    // This has to happen here, at parse time: `toJson()` only emits the fields
+    // this class knows about, so a spelling the model did not recognise is
+    // dropped and can never reach a reader further down. The stored row's exact
+    // key is still unconfirmed (see OPEN_BACKEND_QUESTIONS.md), which is
+    // precisely why the tolerant reader has to run against the RAW json.
+    deepLink = NotificationTracking.deepLinkOf(json);
+    imageUrl = json['image_url'] ?? json['imageUrl'];
   }
 
   Map<String, dynamic> toJson() {
@@ -191,6 +214,8 @@ class Metadata {
     data['video_thumbnail'] = this.videoThumbnail;
     data['video_title'] = this.videoTitle;
     data['broadcast_id'] = this.broadcastId;
+    data['deep_link'] = this.deepLink;
+    data['image_url'] = this.imageUrl;
     return data;
   }
 }

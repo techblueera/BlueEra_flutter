@@ -19,8 +19,10 @@ import 'package:BlueEra/core/services/session_guard.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
+import 'package:BlueEra/core/services/deep_link_router.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
+import 'package:BlueEra/core/services/notification_tracking_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
@@ -793,7 +795,26 @@ Future<void> showIncomingCallLocalNotification({
       'callType': callType,
       'callerName': callerName,
     });
-  } catch (_) {}
+  } on MissingPluginException {
+    // EXPECTED when the app was KILLED, and worth saying out loud.
+    //
+    // This channel is registered in `MainActivity.configureFlutterEngine`. A
+    // push that arrives with the app killed runs in the FCM BACKGROUND
+    // ISOLATE, where no Activity — and therefore no handler for this channel —
+    // exists, so the call can never reach Kotlin and `IncomingCallService`
+    // never starts. What the user gets in that state is the
+    // flutter_local_notifications notification above and nothing else: no
+    // CallStyle entry, and none of the undismissable-while-ringing behaviour
+    // the `phoneCall` foreground service provides.
+    //
+    // Swallowed silently before, which is why the difference between a killed
+    // and a backgrounded ring was invisible in the logs.
+    logs('[CALL_DEBUG] startRingService unavailable — no MainActivity engine '
+        '(app killed?). The plugin notification is the only ring for this '
+        'call; IncomingCallService did NOT start.');
+  } catch (e) {
+    logs('[CALL_DEBUG] startRingService failed: $e');
+  }
 }
 
 /// Cancel the incoming-call notification once the call is accepted, declined,
@@ -1895,6 +1916,16 @@ class AppNotificationHandler {
   /// Handle action button taps from notification
   static void _handleActionButtonTap(String actionId, Map<String, dynamic> data,
       {String? replyText}) {
+    // An action-button tap is a `click`, distinct from the body tap's `open`:
+    // it says the user chose the CTA rather than the notification itself, which
+    // is what tells the admin whether an action button earned its place.
+    // Reported before the branching below, every one of which returns early.
+    unawaited(NotificationTracking.report(
+      data,
+      kind: 'click',
+      actionId: actionId,
+    ));
+
     // Inline reply from notification (WhatsApp-style)
     if (actionId.startsWith('reply_message_') &&
         replyText != null &&
@@ -3342,6 +3373,20 @@ class AppNotificationHandler {
       }),
     );
 
+    // Report the open to the campaign dashboard. GA4 above answers "which push
+    // TYPES get opened"; this answers "did THIS campaign get opened", which is
+    // the half the admin's engagement view is built on and which reads zero
+    // until the app sends it. No-ops for transactional pushes (no campaign id).
+    //
+    // Beside the analytics log and before routing for the same reason: a route
+    // that throws must still leave the open recorded. Fire-and-forget so the
+    // request never sits between the tap and the screen.
+    unawaited(NotificationTracking.report(
+      data,
+      kind: 'open',
+      fromColdStart: fromColdStart,
+    ));
+
     // When launched from terminated state, push home screen first so the user
     // has a proper back stack after viewing the notification target screen.
     //
@@ -3641,6 +3686,43 @@ class AppNotificationHandler {
           break;
         }
         unawaited(deepLinkNetworkResources.navigateToVideoDetail(promoVideoId));
+        break;
+
+      // Engagement engine + Custom Notification. Marketing, so it is mutable
+      // (the `promotions` toggle) and rate-capped server-side at 3/user/day.
+      //
+      // Routes off `deepLink`, which the backend normalises from link / url /
+      // deep_link / the video link — so this one case covers every destination
+      // a theme can point at (a category, jobs, a product) without knowing any
+      // of them. Before it existed, an engagement push carrying `/app/jobs`
+      // fell through to `default:` and landed on the hub, which for a
+      // notification whose entire purpose is to open a screen is a wasted send.
+      //
+      // No deepLink is normal and NOT a failure: plenty of engagement copy is a
+      // nudge to open the app at all, and the hub is the right landing for it.
+      case 'admin_promotion':
+        final promoLink = NotificationTracking.deepLinkOf(data);
+        if (promoLink == null) {
+          Get.toNamed(RouteHelper.getNotificationScreenRoute());
+          break;
+        }
+        final promoUri = Uri.tryParse(promoLink);
+        if (promoUri == null) {
+          // A malformed link must not swallow the tap. `Uri.parse` would throw
+          // here and take the whole handler — including the cold-start path —
+          // down with it.
+          logs('ADMIN_PROMOTION: unparseable deepLink "$promoLink" — hub');
+          Get.toNamed(RouteHelper.getNotificationScreenRoute());
+          break;
+        }
+        // The SAME resolver App Links go through, so a notification and a
+        // shared link can never route differently. `routeOrDefer` (not
+        // `handle`) because it also covers the signed-out and guest cases by
+        // stashing the link for replay after account creation.
+        await DeepLinkRouter.routeOrDefer(promoUri);
+        // Arrival, not just the tap. The gap between `open` and `convert` is
+        // what exposes a destination that is broken or gated behind login.
+        unawaited(NotificationTracking.report(data, kind: 'convert'));
         break;
 
       // Admin notifications

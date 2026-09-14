@@ -101,7 +101,22 @@ bool isStaleCallPush(RemoteMessage message) {
   final sentTime = message.sentTime;
   if (sentTime == null) return false;
   final age = DateTime.now().difference(sentTime);
-  return age > kIncomingCallPushMaxAge;
+  final stale = age > kIncomingCallPushMaxAge;
+  if (stale) {
+    // Logged with the NUMBERS, because this drop is silent and indistinguishable
+    // from "the push never arrived" — and it is the first thing to rule out when
+    // a killed device stops ringing.
+    //
+    // `age` is device-clock minus SERVER send time, so it measures clock skew as
+    // well as delay. A device running a few minutes fast computes a large age for
+    // a push that arrived instantly, and every call is dropped here with nothing
+    // on screen. If this line shows an age far larger than the cold-start time
+    // you actually observed, the clock is the problem, not the network.
+    logs('[CALL_DEBUG] DROPPING call push as stale: age=${age.inSeconds}s '
+        '(limit ${kIncomingCallPushMaxAge.inSeconds}s, '
+        'sentTime=$sentTime, now=${DateTime.now()})');
+  }
+  return stale;
 }
 
 /// `callerData.businessData`, which arrives as either a JSON string or an

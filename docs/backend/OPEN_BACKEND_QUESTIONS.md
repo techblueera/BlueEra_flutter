@@ -1,4 +1,4 @@
-# Open backend questions — ride fares & food inventory
+# Open backend questions — ride fares, food inventory & notifications
 
 Written for the backend team. Each item is either a **gap** (app is correct, response
 is missing something) or a **question** (app needs a contract confirmed before the
@@ -136,6 +136,64 @@ impossible from any screen fed by it.
 
 ---
 
+## 3. Notifications — what key does a STORED inbox row use for its deep link?
+
+### 3a. QUESTION — two guides disagree, and nobody has captured a real row
+
+`FLUTTER_NOTIFICATION_ROUTING_GUIDE.md` §5 says the stored inbox metadata uses
+snake_case `deep_link`, and gives this reader:
+
+```dart
+(m['deepLink'] ?? m['deep_link'] ?? m['link'] ?? m['url'] ?? '')
+```
+
+But the only **captured** stored row anywhere in our repo —
+`FLUTTER_VIDEO_PROMO_NOTIFICATION_GUIDE.md` §7 — shows a *per-operation prefix*:
+
+```jsonc
+"metadata": {
+  "video_id": "68f0a1b2c3d4e5f60718293a",
+  "video_thumbnail": "https://…",
+  "video_deep_link": "https://beapp.in/app/video/68f0…",   // ← not `deep_link`
+  "broadcast_id": "68f1…"
+}
+```
+
+The §5 reader would **not** match `video_deep_link`. Video promos are unaffected
+because they route off `video_id`, not the link — but `admin_promotion` has no
+id to fall back on. Its destination *is* the link, so if the stored key is
+`promotion_deep_link` (or anything else prefixed), the push opens the right
+screen and the inbox row it leaves behind silently dead-ends on the list the
+user tapped it from.
+
+We have shipped a tolerant reader — exact keys first, then any key ending in
+`deep_link` / `deepLink` — so the app is correct under either answer. We would
+still like the contract confirmed rather than inferred.
+
+**Ask — a one-line answer to each:**
+
+1. For an `admin_promotion` row from `GET /notification-service/notifications`,
+   what is the exact `metadata` key holding the destination?
+2. Is it flat inside `metadata`, or nested (e.g. `metadata.data.deep_link`)?
+3. Is the value absolute (`https://beapp.in/app/jobs`) or a path (`/app/jobs`)?
+   We currently pass it straight to the App-Links resolver, which expects the
+   absolute form.
+4. Same three for `broadcast_id` — we read `broadcast_id` / `broadcastId` /
+   `bulkNotificationId`, and campaign open-rates depend on hitting the right one.
+
+**Better than an answer:** paste one real `admin_promotion` row from the list
+endpoint, with `metadata` intact. That settles all four at once, and we will
+pin it as a fixture so it cannot drift again.
+
+### 3b. GAP — two referenced guides are not in the repo
+
+`FLUTTER_NOTIFICATION_ROUTING_GUIDE.md` links to
+`ADMIN_NOTIFICATION_CENTER_GUIDE.md` and `ENGAGEMENT_ENGINE_PLAN.md`. Neither
+exists under `docs/backend/`. If the stored shape is documented in either,
+that alone likely answers §3a.
+
+---
+
 ## Reference: what the app calls, and when
 
 | Screen | Endpoint | Notes |
@@ -145,3 +203,5 @@ impossible from any screen fed by it.
 | Food — owner variant sheet | `PATCH food-service/api/kitchen-inventory/stock/flip-out-of-stock` | inverts; sends ids only, no value |
 | Food — owner variant sheet | `PATCH food-service/api/kitchen-inventory/{inventoryId}` | **§2a — unconfirmed** |
 | Food — owner variant sheet | `DELETE food-service/api/kitchen-inventory/{inventoryId}` | working |
+| Notifications — inbox list | `GET notification-service/notifications` | **§3a — `metadata` deep-link key unconfirmed** |
+| Notifications — campaign engagement | `POST notification-service/notifications/track` | open / click / convert |

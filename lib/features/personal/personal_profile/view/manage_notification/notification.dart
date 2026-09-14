@@ -82,8 +82,13 @@ class NotificationSettingScreen extends StatelessWidget {
 
   /// Categories whose auto-formatted key would be too vague to switch off with
   /// confidence get an explicit label. `promotions` is the one that matters
-  /// today: it carries admin video promos, and "Promotions" alone doesn't tell
-  /// a user what actually goes quiet when they turn it off.
+  /// today, and it matters more than it used to: alongside admin video promos
+  /// it now carries `admin_promotion`, an automated engine sending up to three
+  /// marketing pushes a day. This toggle is the pressure valve — a user who
+  /// cannot find it disables notifications at OS level instead, and on iOS that
+  /// is permanent. The label has to make clear both what stops (promotions AND
+  /// suggestions) and, by omission, what does not: orders, chats and calls sit
+  /// in other categories and keep arriving.
   ///
   /// Everything else still falls through to [_formatTitle], so a category the
   /// backend adds tomorrow appears without a client release.
