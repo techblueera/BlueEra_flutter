@@ -34,8 +34,6 @@ class AppStrings {
   /// and every user got English however their app was set.
   static const String updateAvailableTitle = 'updateAvailableTitle';
   static const String updateAvailableMessage = 'updateAvailableMessage';
-  static const String updateAvailableMessageAndroid =
-      'updateAvailableMessageAndroid';
   static const String updateDownloadingInBackground =
       'updateDownloadingInBackground';
   static const String updateNow = 'updateNow';
@@ -8784,7 +8782,7 @@ class AppStrings {
   static const String globalSearchLocationUnavailable =
       "globalSearchLocationUnavailable";
 
-  // ─── Account creation — "How You Earn" (CreateAccountTypeV2Screen) ────────
+  // ─── Account creation — "How You Earn" (CreateAccountTypeScreen) ────────
   //
   // These used to be English literals passed through `LanguageListController.tr`,
   // which resolves ONLY against the downloaded language pack and falls back to

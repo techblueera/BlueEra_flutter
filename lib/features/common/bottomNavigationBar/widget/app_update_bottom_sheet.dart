@@ -13,17 +13,22 @@ import 'package:get/get.dart';
 /// FULL-SCREEN immediate flow and iOS got a centre dialog. Nothing here decides
 /// how an update is fetched — these are the prompts either side of it:
 ///
-///  1. [showAppUpdateBottomSheet] — "a new version is out". Taps through to
-///     Play's flexible download on Android (background, user stays in the app)
-///     or the App Store listing on iOS.
+///  1. [showAppUpdateBottomSheet] — "a new version is out", **iOS only**. It
+///     taps through to the App Store listing. Android no longer shows it:
+///     Play's in-app update API asks for consent itself, so this sheet only
+///     added a second prompt in a different design ahead of the real one.
+///     Android keeps the cadence via [shouldOfferUpdate] and nothing else.
 ///  2. [showUpdateReadyBottomSheet] — Android only, once the flexible download
 ///     has finished. Installing restarts the app, so it is asked, not done.
+///     This one has no Play equivalent and is genuinely ours.
 ///
-/// The immediate flow is deliberately no longer the default: it takes the
-/// screen away with no way back until the update finishes, which is the wrong
-/// trade for a routine release. It survives in exactly two places, both in
-/// `_checkForUpdate` — resuming an update Play itself already started, and the
-/// fallback for a build where Play reports the flexible flow isn't permitted.
+/// The immediate (full-screen) flow is never STARTED any more. It takes the
+/// screen away with no way back until the update downloads, installs and
+/// restarts, which is the wrong trade for a routine release. It survives in
+/// exactly one place in `_checkForUpdate` — resuming an update Play itself
+/// already has in progress, which cannot be downgraded to flexible. When Play
+/// refuses the flexible flow the update is skipped for the day rather than
+/// escalated.
 
 /// Opens the "update available" sheet, unless this version has already been
 /// offered today.
@@ -37,6 +42,23 @@ import 'package:get/get.dart';
 /// Returns true only when the user actually tapped Update. False covers all
 /// three of "throttled", "dismissed" and "tapped Not now", because the caller
 /// does the same thing in every one of those cases: nothing.
+/// The throttle on its own, without a sheet.
+///
+/// **Android does not need our "update?" prompt.** Google Play's in-app update
+/// API shows its own consent UI — a dialog for the flexible flow, a full-screen
+/// page for the immediate one — so asking first meant the user answered the
+/// same question twice, in two different designs, before anything downloaded.
+/// That path now calls this and goes straight to Play.
+///
+/// What it must NOT lose is the cadence. The sheet was carrying both jobs, and
+/// dropping it wholesale would have let Play's dialog reappear on every single
+/// cold start — a worse nag than the one being removed, and one we would no
+/// longer own the timing of.
+///
+/// Returns true at most once per [versionTag] per calendar day, and records the
+/// offer as made before returning. See [_shouldPrompt].
+Future<bool> shouldOfferUpdate(String versionTag) => _shouldPrompt(versionTag);
+
 Future<bool> showAppUpdateBottomSheet({
   required BuildContext context,
   required String versionTag,

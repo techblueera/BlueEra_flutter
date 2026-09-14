@@ -474,8 +474,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// creation, and the notification re-navigation all rebuild it — and without
   /// this guard each remount fired another store check and could re-throw the
   /// update prompt at someone who had just dismissed it. The persisted
-  /// once-a-day cadence in [showAppUpdateBottomSheet] covers the same thing
-  /// ACROSS launches; this covers remounts within one.
+  /// once-a-day cadence in [shouldOfferUpdate] covers the same thing ACROSS
+  /// launches; this covers remounts within one.
   static bool _updateCheckStarted = false;
 
   /// Play's install-status feed, live only while a flexible download is in
@@ -488,8 +488,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// status event — Play emits `downloading` repeatedly as progress advances.
   bool _downloadNoticeShown = false;
 
-  /// Store update check, run once after the first frame. Both platforms open
-  /// [showAppUpdateBottomSheet]; only what the Update button does differs.
+  /// Store update check, run once after the first frame.
+  ///
+  /// The two platforms diverge on purpose. **Android** hands straight to Play's
+  /// in-app update flow, which brings its own consent UI — so there is no sheet
+  /// of ours in front of it, only the once-a-day [shouldOfferUpdate] throttle.
+  /// **iOS** has no system flow to hand to, just a link out to the App Store
+  /// listing, so it still opens [showAppUpdateBottomSheet] — otherwise nothing
+  /// would ask at all.
   Future<void> _getPackageData() async {
     // Deep-link background host: this screen only exists behind the screen the
     // notification actually opened, so don't drop a store prompt on top of it.
@@ -550,11 +556,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
         if (info.updateAvailability ==
             UpdateAvailability.developerTriggeredUpdateInProgress) {
-          // An immediate update Play already started and we came back to. It
-          // has to finish as an immediate update — there is no downgrading a
-          // half-applied one to flexible, and skipping it strands the user on
-          // a build Play considers mid-upgrade. No sheet: the user consented
-          // to this flow the first time round.
+          // The ONLY immediate update left in this file, and it is a resume,
+          // never a start.
+          //
+          // Play reports this when an immediate update was already triggered
+          // and we came back to it. It has to finish as an immediate update —
+          // there is no downgrading a half-applied one to flexible — and
+          // skipping it strands the user on a build Play considers mid-upgrade.
+          // Nothing here starts one any more, so in practice this can only be
+          // reached from a build that shipped before the flexible-only change.
           _updateLog("Resuming in-progress immediate update…");
           _logUpdateFlowResult(
               'immediate', await InAppUpdate.performImmediateUpdate());
@@ -566,35 +576,54 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           return;
         }
 
-        // Flexible first: the download runs in the background and the user
-        // stays in the app. Immediate is only the fallback for a build where
-        // Play refuses the flexible flow — better a full-screen update than
-        // none at all.
+        // FLEXIBLE ONLY. A routine release never takes the screen away.
+        //
+        // Play's flexible flow is the sheet-style consent dialog plus a
+        // background download — the user answers once and carries on using the
+        // app. The immediate flow is a full-screen page with no way back until
+        // the update has downloaded, installed and restarted, which is the
+        // wrong trade for a version bump nobody asked for.
+        //
+        // This used to fall back to immediate whenever Play refused flexible,
+        // on the reasoning that a full-screen update beats none at all. It does
+        // not: an optional update that hijacks the app is how people learn to
+        // force-quit on launch. If Play will not do the flexible flow on this
+        // build, we simply try again tomorrow — the throttle below makes that
+        // cheap, and the next release usually resolves it anyway.
         final bool flexible = info.flexibleUpdateAllowed;
-        if (!flexible && !info.immediateUpdateAllowed) {
-          _updateLog("Update available, but neither flow is permitted by Play "
-              "(flexible preconditions=${info.flexibleAllowedPreconditions}, "
-              "immediate preconditions=${info.immediateAllowedPreconditions})");
+        if (!flexible) {
+          _updateLog("Update available but Play won't allow the flexible flow "
+              "(preconditions=${info.flexibleAllowedPreconditions}) — "
+              "skipping rather than escalating to the full-screen flow");
+          return;
+        }
+        // Straight to Play — NO sheet of our own first.
+        //
+        // Play's in-app update API brings its own consent UI: a dialog for the
+        // flexible flow, a full-screen page for the immediate one. Asking
+        // beforehand meant the user was asked the same question twice, in two
+        // different designs, and the first one told them nothing Play's didn't
+        // — no download size, no release notes, and no way to actually start
+        // the update. Two taps where Play only needs one.
+        //
+        // The throttle stays, because that part was never redundant: without it
+        // Play's dialog would come back on every cold start, which is a worse
+        // nag than the sheet being removed and one whose timing we would no
+        // longer control.
+        //
+        // iOS still uses the sheet (below) and must: there is no equivalent
+        // system flow there, only a link out to the App Store listing, so
+        // without a prompt of our own nothing would ask at all.
+        if (!await shouldOfferUpdate('android-${info.availableVersionCode}')) {
+          _updateLog("Update offer throttled for this version today");
           return;
         }
         if (!mounted) return;
 
-        final accepted = await showAppUpdateBottomSheet(
-          context: context,
-          versionTag: 'android-${info.availableVersionCode}',
-          message: AppStrings.updateAvailableMessageAndroid.tr,
-        );
-        if (!accepted) {
-          _updateLog("User dismissed the update sheet (or it was throttled)");
-          return;
-        }
-
-        if (!flexible) {
-          _updateLog("Starting immediate update flow…");
-          _logUpdateFlowResult(
-              'immediate', await InAppUpdate.performImmediateUpdate());
-          return;
-        }
+        // Play shows its own consent dialog here, then downloads in the
+        // background while the user keeps using the app. When the bytes land,
+        // [showUpdateReadyBottomSheet] asks about the restart — that one is
+        // ours because Play has no equivalent, and installing restarts the app.
         await _startFlexibleUpdate();
       } else if (Platform.isIOS) {
         final PackageInfo packageInfo = await PackageManager.getPackageInfo();

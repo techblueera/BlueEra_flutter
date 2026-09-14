@@ -7285,7 +7285,6 @@
   "update_your_test": "Update Your Test",
   "updateAddress": "Update Address",
   "updateAvailableMessage": "A newer version of BlueEra is on the App Store. Update to get the latest features and fixes.",
-  "updateAvailableMessageAndroid": "A newer version of BlueEra is on the Play Store. It downloads in the background — you can keep using the app.",
   "updateAvailableTitle": "Update available",
   "updateBankAccount": "Update Bank Account",
   "updateBusinessHours": "Update Business Hours",
@@ -7748,5 +7747,5 @@
   "youtube": "YouTube",
   "youtubeHint": "Your YouTube URL here",
   "youvereachedtheendofthefeed": "You've reached the end of the feed",
-  "promotionsAndVideoHighlights": "Promotions & Video Highlights"
+  "promotionsAndVideoHighlights": "Promotions & suggestions"
 }
