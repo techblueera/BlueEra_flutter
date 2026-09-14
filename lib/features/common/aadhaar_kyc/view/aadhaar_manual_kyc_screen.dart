@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -47,7 +46,11 @@ class _AadhaarManualKycScreenState extends State<AadhaarManualKycScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Verify Aadhaar Manually',
+        // Not "Verify Aadhaar Manually" any more: "manually" only meant
+        // anything while an automatic OKYC (OTP) path existed to contrast it
+        // with. That flow and its `/user/aadhaar/*` endpoints were removed, so
+        // this is simply how Aadhaar is verified.
+        title: 'Verify Aadhaar',
         isLeading: true,
       ),
       body: SafeArea(
@@ -77,9 +80,13 @@ class _AadhaarManualKycScreenState extends State<AadhaarManualKycScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Was "Couldn't verify with OTP? Upload your Aadhaar card instead…",
+          // which described this screen as a fallback from an OTP flow that no
+          // longer exists — it read as though the user had already failed
+          // something before they had done anything.
           CustomText(
-            "Couldn't verify with OTP? Upload your Aadhaar card instead and "
-            "we'll verify the details on it.",
+            'Enter your Aadhaar number and upload photos of both sides of the '
+            "card. We'll check the details on it match.",
             fontSize: SizeConfig.small,
             color: AppColors.coloGreyText,
             maxLines: 3,
@@ -147,6 +154,13 @@ class _AadhaarManualKycScreenState extends State<AadhaarManualKycScreen> {
                       onChanged: (v) =>
                           controller.consentGiven.value = v ?? false,
                       activeColor: AppColors.primaryColor,
+                      // Without this the tick renders BLACK on the blue fill.
+                      // Checkbox defaults `checkColor` to
+                      // `colorScheme.onPrimary`, and this app's *light* theme is
+                      // built from `ColorScheme.dark(...)` (themes.dart), whose
+                      // `onPrimary` defaults to black. Every other Checkbox in
+                      // the codebase sets this explicitly for the same reason.
+                      checkColor: AppColors.white,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),

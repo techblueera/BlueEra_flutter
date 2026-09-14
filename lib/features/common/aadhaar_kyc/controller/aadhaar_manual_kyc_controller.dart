@@ -14,13 +14,13 @@ enum AadhaarManualStage {
   verified,
 }
 
-/// Drives the manual Aadhaar verification fallback, used when OKYC (OTP) can't
-/// complete — no Aadhaar-linked mobile, OTP undelivered, provider down, or the
-/// number rejected by UIDAI.
+/// Drives Aadhaar verification: the user's Aadhaar number and card images are
+/// checked by the AI document verifier, which confirms the images really are an
+/// Aadhaar card and that the number on them matches what was typed.
 ///
-/// Instead of an OTP, the user's Aadhaar number and card images are checked by
-/// the AI document verifier, which confirms the images really are an Aadhaar
-/// card and that the number on them matches what was typed.
+/// This was once the fallback for when OKYC (OTP) couldn't complete. That flow
+/// and its `/user/aadhaar/*` endpoints were removed, so it is now the only
+/// path — the "Manual" in the name is historical.
 ///
 /// Host-agnostic: it performs the AI check and
 /// hands the validated result to [onManualVerified] for the host to record.
@@ -89,8 +89,9 @@ class AadhaarManualKycController extends GetxController {
   }
 
   /// Same check, driven from a host that owns the number and the consent
-  /// itself — the photo section sitting on the OTP screen, where this
-  /// controller's own [formKey] was never mounted and `currentState` is null.
+  /// itself — the gig-work onboarding step, which renders [AadhaarPhotoSection]
+  /// against its own form, so this controller's [formKey] was never mounted and
+  /// `currentState` is null.
   ///
   /// The number is validated as a string here for the same reason: there is no
   /// field of ours to ask.

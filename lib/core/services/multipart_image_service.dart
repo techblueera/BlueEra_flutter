@@ -43,6 +43,49 @@ Future<MultipartFile?> multiPartImage({required String? imagePath}) async {
   return imageByPart;
 }
 
+/// Maps a file extension to a real IANA media type.
+///
+/// The previous form was `'image/${fileName.split('.').last}'`, which produces
+/// **`image/jpg`** for the `.jpg` files this app's own picker writes
+/// (`PhotoPickerService.compressImage` saves `compressed_<ts>.jpg`).
+/// `image/jpg` is not a registered media type — the correct one is
+/// `image/jpeg` — and server-side upload validators that whitelist media types
+/// (multer, NestJS `FileTypeValidator`, DRF, …) reject it. That rejection is
+/// indistinguishable from a malformed request at the client, and surfaces as a
+/// generic "invalid payload"-class error.
+///
+/// It degraded in two other ways as well: a file with no extension yielded
+/// `image/<whole filename>`, and `PHOTO.JPG` yielded `image/JPG`.
+MediaType _mediaTypeForFile(String fileName) {
+  final dot = fileName.lastIndexOf('.');
+  final ext = dot == -1 ? '' : fileName.substring(dot + 1).toLowerCase();
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+    case 'png':
+      return MediaType('image', 'png');
+    case 'webp':
+      return MediaType('image', 'webp');
+    case 'heic':
+      return MediaType('image', 'heic');
+    case 'heif':
+      return MediaType('image', 'heif');
+    case 'gif':
+      return MediaType('image', 'gif');
+    case 'bmp':
+      return MediaType('image', 'bmp');
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    default:
+      // Unknown or absent extension. JPEG rather than
+      // `application/octet-stream`: every producer feeding this helper is an
+      // image picker or the app's own compressor, and a whitelist that accepts
+      // images will reject the octet-stream fallback outright.
+      return MediaType('image', 'jpeg');
+  }
+}
+
 Future<List<MultipartFile>> multiPartMultipleImages({
   required List<File>? arrImages,
 }) async {
@@ -51,15 +94,16 @@ Future<List<MultipartFile>> multiPartMultipleImages({
   if (arrImages != null && arrImages.isNotEmpty) {
     for (final file in arrImages) {
       final path = file.path;
-      final fileName = path.split('/').last;
-
-      final mimeType = 'image/${fileName.split('.').last}';
+      // Split on BOTH separators: on Windows-authored paths — and anything
+      // that reaches here via a plugin using backslashes — `split('/').last`
+      // returns the whole path, which then becomes the upload's filename.
+      final fileName = path.split(RegExp(r'[/\\]')).last;
 
       imageParts.add(
         await MultipartFile.fromFile(
           path,
           filename: fileName,
-          contentType: MediaType.parse(mimeType),
+          contentType: _mediaTypeForFile(fileName),
         ),
       );
     }

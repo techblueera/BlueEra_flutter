@@ -181,6 +181,16 @@ class AiDocumentVerificationService extends BaseService {
       );
 
       if (!response.isSuccess) {
+        // The server rejected the REQUEST — it never got as far as looking at
+        // the card. Log what we sent alongside what came back: a payload the
+        // server refuses is indistinguishable at the UI from a card it read and
+        // failed, and the two have completely different fixes.
+        log('document verification rejected — '
+            'status=${response.statusCode} '
+            'sent document_name="$documentName" '
+            'document_number="${documentNumber.length} digits" '
+            'images=${imageParts.map((p) => '${p.filename} (${p.contentType})').toList()} '
+            'body=${response.response?.data}');
         return AiDocumentVerificationResult.invalid(
           _messageOf(response.message) ?? AppStrings.documentVerificationFailed,
         );
@@ -195,10 +205,27 @@ class AiDocumentVerificationService extends BaseService {
       final body = response.response?.data;
       final Map verifyData = (body is Map)
           ? (body['data'] is Map ? body['data'] as Map : body)
-          : <String, dynamic>{};
+          : const <String, dynamic>{};
+
+      // A body we cannot read is NOT a pass.
+      //
+      // This used to fall through to an empty map, and because every flag below
+      // defaults to true when absent, an empty map meant *every check passed* —
+      // so a 200 carrying an HTML page, an undecoded string, or any shape that
+      // wasn't the verification payload came back `valid`, with no number check
+      // and no extracted identity. On a KYC gate that is the one direction the
+      // failure must never go.
+      if (verifyData.isEmpty) {
+        log('document verification: unreadable 2xx body '
+            '(${body.runtimeType}) — $body');
+        return const AiDocumentVerificationResult.invalid(
+            AppStrings.documentVerificationFailed);
+      }
 
       // A missing flag defaults to true so a document without that check (e.g.
-      // no number entered) isn't blocked by an absent field.
+      // no number entered) isn't blocked by an absent field. Safe only because
+      // the empty-body case above is already rejected, so "absent" here means
+      // the server genuinely ran no such check — not that we failed to parse.
       bool flag(String key) {
         final v = verifyData[key];
         return v is bool ? v : true;
