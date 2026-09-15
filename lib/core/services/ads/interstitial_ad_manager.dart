@@ -30,7 +30,23 @@ class InterstitialAdManager {
   }) =>
       AdMobInterstitialManager.instance
           .showInterstitialOncePerSession(key, maxWait: maxWait);
+
+  /// Whether [key]'s one-per-session ad has already been shown — see
+  /// [AdMobInterstitialManager.hasSpentSessionKey].
+  bool hasSpentSessionKey(String key) =>
+      AdMobInterstitialManager.instance.hasSpentSessionKey(key);
 }
+
+/// The symbol rail's "Sponsored" tile, capped at one ad per app session.
+///
+/// Its own budget, NOT shared with [kOrderBookingInterstitialKey]: that key
+/// rations ads the app shows on its own initiative after an order or booking,
+/// and spending it here would mean a viewer who tapped this tile silently gets
+/// no ad after their next order — two unrelated placements cancelling each
+/// other out. This one is user-initiated and is rationed for a different
+/// reason: the tile is the only control in the app that summons an
+/// interstitial, so without a cap it can be tapped all day.
+const String kSymbolRailInterstitialKey = 'symbol_rail_tile';
 
 /// The one session budget every order/booking completion shares. A customer who
 /// finishes a ride AND places an order in the same session sees ONE ad, not two.

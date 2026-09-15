@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -11,6 +13,22 @@ import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart'
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+
+/// How many shorts to watch before the next interstitial break.
+///
+/// Centred on [base] with [jitter] either side — 8 to 12 by default, for the
+/// requested "roughly every 10". The spread is the point: a break that lands on
+/// exactly the 10th, 20th and 30th short reads as a meter running, and a viewer
+/// who can feel the count coming starts closing the app before it.
+///
+/// Never returns less than 1, whatever it is handed. A zero or negative
+/// interval would fire an interstitial on every single swipe, which is the
+/// pattern AdMob suspends a unit for.
+int rollShortsAdInterval(Random random, {int base = 10, int jitter = 2}) {
+  final spread = jitter.abs();
+  final rolled = spread == 0 ? base : base - spread + random.nextInt(spread * 2 + 1);
+  return rolled < 1 ? 1 : rolled;
+}
 
 class ShortsPlayerScreen extends StatefulWidget {
   final Shorts shorts;
@@ -59,6 +77,36 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   /// Mirrors the platform wake lock so a swipe doesn't re-issue a call that
   /// changes nothing. `keepOn`/`keepOff` are channel round-trips.
   bool _wakeLockHeld = false;
+
+  // ── Interstitial break, roughly every 10 shorts ────────────────────────
+
+  /// Shorts swiped through since the last break.
+  int _shortsSinceAd = 0;
+
+  /// How many more to watch before the next one. Re-rolled after every break so
+  /// the ad never lands on the same ordinal twice in a session — a break that
+  /// arrives on exactly the 10th, 20th, 30th short reads as a meter running.
+  late int _nextAdAfter = _rollAdInterval();
+
+  /// True from the moment we ask for an interstitial until the viewer is back
+  /// on the feed. Suppresses [ShortPlayerItem]'s own autoplay, so a rebuild
+  /// while the ad is up cannot start a video playing behind it.
+  bool _isAdShowing = false;
+
+  /// Whether the short that was interrupted should start again afterwards. A
+  /// video the viewer had already paused stays paused.
+  bool _resumeAfterAd = false;
+
+  static const int _kAdIntervalBase = 10;
+  static const int _kAdIntervalJitter = 2;
+
+  final Random _random = Random();
+
+  int _rollAdInterval() => rollShortsAdInterval(
+        _random,
+        base: _kAdIntervalBase,
+        jitter: _kAdIntervalJitter,
+      );
 
   @override
   void initState() {
@@ -130,16 +178,82 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         print('🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
       }
     }
-    // else if (state == AppLifecycleState.resumed) {
-      // if (!_isAdShowing) {
-      //   final controller = _videoCache[currentIndex]?.controller;
-      //   if (controller != null) {
-      //     controller.play();
-      //     _acquireWakeLock();
-      //     print('▶️ LIFECYCLE: Resumed video at index $currentIndex');
-      //   }
-      // }
-     // }
+    // Coming back from an INTERSTITIAL, and only from one.
+    //
+    // `showInterstitial()` completes when the ad is put on screen, not when it
+    // is dismissed, so the resume cannot hang off that future — doing so
+    // restarts the video's audio underneath an ad that is still up. The ad is a
+    // full-screen activity, so its dismissal is exactly what brings this route
+    // back to `resumed`, which makes the lifecycle the reliable signal.
+    //
+    // Gated on [_isAdShowing] so an ordinary return from the background still
+    // leaves playback where the viewer left it, as it always has.
+    else if (state == AppLifecycleState.resumed && _isAdShowing) {
+      _endAdBreak();
+    }
+  }
+
+  /// Clears the ad flags and restarts the interrupted short if it had been
+  /// playing.
+  void _endAdBreak() {
+    if (!mounted) {
+      _isAdShowing = false;
+      _resumeAfterAd = false;
+      return;
+    }
+    final resume = _resumeAfterAd;
+    setState(() {
+      _isAdShowing = false;
+      _resumeAfterAd = false;
+    });
+    if (!resume) return;
+    // Re-read the controller rather than capturing it before the ad: a decode
+    // error can rebuild the slot on the mp4 fallback while the ad is up, which
+    // leaves the captured one disposed.
+    final controller = _videoCache[currentIndex]?.controller;
+    if (controller == null) return;
+    controller.play();
+    _acquireWakeLock();
+    print('▶️ ADS: Resumed short at index $currentIndex after interstitial');
+  }
+
+  /// Runs the interstitial break if enough shorts have gone by.
+  ///
+  /// The counter is reset BEFORE the ad is requested, so a no-fill costs one
+  /// interval rather than re-asking on every subsequent swipe — AdMob treats a
+  /// request per swipe as abuse, and the placement would stop filling at all.
+  Future<void> _maybeShowInterstitial() async {
+    if (_isAdShowing || !mounted) return;
+
+    _shortsSinceAd = 0;
+    _nextAdAfter = _rollAdInterval();
+
+    final controller = _videoCache[currentIndex]?.controller;
+    final wasPlaying = controller?.value.isPlaying ?? false;
+
+    // Flags set before the request: showing the ad drives this route through
+    // `inactive`, and the lifecycle handler has to already know an ad is the
+    // reason.
+    setState(() {
+      _isAdShowing = true;
+      _resumeAfterAd = wasPlaying;
+    });
+
+    // Silence the short first. The lifecycle handler would also pause it, but
+    // only once the platform reports `inactive` — a beat later, which is long
+    // enough to hear.
+    controller?.pause();
+    await _releaseWakeLock();
+
+    print('📺 ADS: Interstitial break; next in $_nextAdAfter shorts');
+    final shown = await InterstitialAdManager.instance.showInterstitial();
+
+    // No fill: nothing took over the screen, so no `resumed` is coming and the
+    // break has to be closed here or the feed stays paused forever.
+    if (!shown) {
+      print('📺 ADS: No interstitial available — resuming immediately');
+      _endAdBreak();
+    }
   }
 
   Future<void> _acquireWakeLock() async {
@@ -463,6 +577,16 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (index >= (list?.length ?? 0) - 3) {
       _onScrollToEnd(shortsFeedController!);
     }
+
+    /* Counted per SWIPE, not per page built: `allowImplicitScrolling` mounts
+       the neighbours ahead of time, so anything tied to construction would run
+       the counter at roughly double speed. Counting here also means the short
+       the screen opens on is free — the break falls between shorts the viewer
+       chose to move through, never on arrival. */
+    _shortsSinceAd++;
+    if (_shortsSinceAd >= _nextAdAfter) {
+      unawaited(_maybeShowInterstitial());
+    }
   }
 
   /// Runs the deferred preload for whichever page we last landed on, as long as
@@ -564,8 +688,10 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                         child: ShortPlayerItem(
                         key: ValueKey(item.video?.id ?? index),
                         videoItem: item,
-                        autoPlay: index == currentIndex,
-                        // autoPlay: !_isAdShowing && index == currentIndex,
+                        // `!_isAdShowing`: a rebuild while the interstitial is
+                        // up must not hand this page an autoplay instruction,
+                        // or the short's audio runs underneath the ad.
+                        autoPlay: !_isAdShowing && index == currentIndex,
                         shorts: widget.shorts,
                         onTapOption: () => openBlockSelectionDialog(
                           context: context,

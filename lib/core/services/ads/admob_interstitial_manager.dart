@@ -86,6 +86,14 @@ class AdMobInterstitialManager {
   /// [showInterstitialOncePerSession].
   final Set<String> _sessionShown = <String>{};
 
+  /// Whether [key]'s one-per-session ad has already been shown.
+  ///
+  /// For placements that are a visible ENTRY POINT rather than an automatic
+  /// trigger — the symbol rail's "Sponsored" tile — so they can take themselves
+  /// off screen once spent instead of sitting there as a control that silently
+  /// does nothing.
+  bool hasSpentSessionKey(String key) => _sessionShown.contains(key);
+
   /// [showInterstitial], but at most ONCE per app session for [key].
   ///
   /// The call-end interstitial is deliberately not gated this way: a call is a

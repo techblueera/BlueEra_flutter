@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/services/ads/ad_config.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -15,6 +17,46 @@ import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// The story-card index behind a rail ROW, once the ad card has taken a row of
+/// its own.
+///
+/// Pure and public so the remap can be tested directly. Every index bug this
+/// rail has had has been of exactly this shape — the card that opens the
+/// NEXT person's symbols — and it is invisible until someone taps.
+///
+/// [adIndex] is the row the ad occupies, or negative when there is no ad.
+int symbolRowToStoryIndex(int rowIndex, {required int adIndex}) =>
+    (adIndex >= 0 && rowIndex > adIndex) ? rowIndex - 1 : rowIndex;
+
+/// Which row the rail's ad tile occupies — [kSymbolRailAdSlot] when it belongs
+/// in the rail at all, otherwise -1.
+///
+/// Third slot, not first: row 0 is the viewer's own card (their symbols, and
+/// the way in to posting one), and a rail that opens on an ad buries the thing
+/// the rail is for. Third is still on screen without scrolling at any phone
+/// width — 3 x 88 plus gaps is roughly 280pt.
+///
+/// All three conditions have to hold, and each is here for its own reason:
+///
+/// * [adsEnabled] — a build with ads switched off must show the rail exactly as
+///   it was; a tile that opens nothing is worse than no tile.
+/// * [sessionSpent] — the session's one interstitial is gone, so the row goes
+///   back to being a real story rather than a zero-width card sitting between
+///   two separators.
+/// * [storyCount] — a rail with only a couple of storytellers in it must not
+///   read as mostly advertising.
+int symbolRailAdIndex({
+  required bool adsEnabled,
+  required bool sessionSpent,
+  required int storyCount,
+}) {
+  if (!adsEnabled || sessionSpent) return -1;
+  return storyCount > kSymbolRailAdSlot ? kSymbolRailAdSlot : -1;
+}
+
+/// The row the ad tile takes when it is shown. See [symbolRailAdIndex].
+const int kSymbolRailAdSlot = 3;
 
 class SymbolStoryRow extends StatelessWidget {
   const SymbolStoryRow({super.key});
@@ -49,6 +91,16 @@ class SymbolStoryRow extends StatelessWidget {
       // Total = self card (always) + others
       final int othersCount = raw.length;
       final int totalCount = (userId.isNotEmpty ? 1 : 0) + othersCount;
+
+      // Where the ad tile sits among the story cards — see [symbolRailAdIndex]
+      // for why each condition is there.
+      final int adIndex = symbolRailAdIndex(
+        adsEnabled: AdConfig.adsEnabled,
+        sessionSpent: InterstitialAdManager.instance
+            .hasSpentSessionKey(kSymbolRailInterstitialKey),
+        storyCount: totalCount,
+      );
+      final bool showAd = adIndex >= 0;
 
       // Trailing slot: while a page is loading show shimmer placeholder cards
       // for the upcoming data; otherwise show a single arrow the user taps to
@@ -88,9 +140,19 @@ class SymbolStoryRow extends StatelessWidget {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          itemCount: totalCount + trailingCount,
+          itemCount: totalCount + (showAd ? 1 : 0) + trailingCount,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
+          itemBuilder: (context, rowIndex) {
+            // The ad occupies one row of its own; every story card after it
+            // shifts down by one. Resolving that here keeps the index maths
+            // below — which already juggles the self-card offset against the
+            // viewer's own ordering — working on story indices alone.
+            if (showAd && rowIndex == adIndex) {
+              return const _SymbolAdCard();
+            }
+            final int index =
+                symbolRowToStoryIndex(rowIndex, adIndex: adIndex);
+
             // Trailing slot sits after all the user cards: shimmer placeholders
             // while paging, otherwise the tappable "load more" arrow.
             if (index >= totalCount) {
@@ -532,6 +594,201 @@ class _StatusCard extends StatelessWidget {
     if (clean.length == 6) clean = 'FF$clean';
     final parsed = int.tryParse('0x$clean');
     return parsed == null ? null : Color(parsed);
+  }
+}
+/// An ad card in the story rail, cut to exactly the same 88x146 / radius-12
+/// footprint as [_StatusCard] so it sits in the row as one of the cards rather
+/// than as a banner wedged between them.
+///
+/// **It is an entry point to an ad, not an ad.** A Google AdMob native template
+/// lays itself out at roughly 320dp wide at minimum — nearly four times this
+/// card — so no real ad can render inside it. Tapping opens a full-screen
+/// interstitial instead, which is where the impression actually happens.
+///
+/// That is also why the tile carries the app's own artwork and no advertiser's.
+/// Showing a served creative here and then opening an unrelated Google ad on
+/// tap would be a bait: the picture would promise one destination and the tap
+/// would deliver another. A plain "Sponsored" tile promises exactly what it
+/// does.
+///
+/// Because the ad is USER-INITIATED, it is the shape Google asks for — nobody
+/// gets an interstitial thrown at them mid-scroll; they get one when they
+/// choose to tap a tile that says it is an ad.
+///
+/// **One ad per app session** ([kSymbolRailInterstitialKey]). This tile is the
+/// only control in the app that can summon an interstitial, and without a cap
+/// it can be tapped all day. Once spent the tile REMOVES itself rather than
+/// staying put as a button that quietly does nothing — and the rail's own gate
+/// drops the row on the next rebuild, so the slot goes back to a real story.
+class _SymbolAdCard extends StatefulWidget {
+  const _SymbolAdCard();
+
+  static const double cardWidth = 88;
+  static const double cardHeight = 146;
+  static const double _radius = 12;
+
+  @override
+  State<_SymbolAdCard> createState() => _SymbolAdCardState();
+}
+
+class _SymbolAdCardState extends State<_SymbolAdCard> {
+  /// True from the tap until the interstitial has shown or given up.
+  ///
+  /// `showInterstitial` waits up to five seconds for a fill, and without this
+  /// an impatient double-tap queues a second ad to appear the moment the first
+  /// is dismissed.
+  bool _busy = false;
+
+  Future<void> _showAd() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      // The session cap lives in the manager, and the key is spent only when an
+      // ad ACTUALLY showed — a no-fill leaves the tile usable rather than
+      // burning the session's one slot on nothing.
+      await InterstitialAdManager.instance
+          .showInterstitialOncePerSession(kSymbolRailInterstitialKey);
+    } finally {
+      // The ad is a full-screen activity, so by the time this runs the viewer
+      // is either looking at it or it never arrived. The rebuild is what takes
+      // the tile off screen if the cap is now spent.
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Spent for this session — the rail's gate will drop the whole row on its
+    // next rebuild; until then the tile simply isn't drawn.
+    if (InterstitialAdManager.instance
+        .hasSpentSessionKey(kSymbolRailInterstitialKey)) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: _showAd,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: _SymbolAdCard.cardWidth,
+        height: _SymbolAdCard.cardHeight,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(_SymbolAdCard._radius),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // The app's own gradient rather than a photo: this tile stands
+              // for "an ad is behind this", so it should look like part of the
+              // product, not like somebody's story.
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1E4B8F), AppColors.primaryColor],
+                  ),
+                ),
+              ),
+              // Same bottom scrim the story cards carry, so the label sits on
+              // the same footing as a user's name.
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 80,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black54],
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: _busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.18),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+              ),
+              // Top-left, where a story card puts its avatar ring — the one
+              // spot in this layout the eye already goes to.
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: const Text(
+                    'Ad',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Text(
+                  'Sponsored',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(0, 1),
+                        blurRadius: 2,
+                        color: Colors.black54,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
