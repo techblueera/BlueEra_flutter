@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/image_upload_response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/service/aadhaar_record_service.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -302,7 +303,13 @@ class MyDocumentsController extends GetxController {
 
         // ---------- 5️⃣ PREPARE PAYLOAD ----------
         final params = {
-          ApiKeys.documentType: documentType,
+          // Wire spelling — BANK_DETAILS / BANKER_CANCEL_CHECK are both
+          // rejected as-is. See [DocumentKeys.apiType].
+          //
+          // `value` keeps its own shape here (account number + IFSC) rather
+          // than being keyed by the document type, so only the type is
+          // translated.
+          ApiKeys.documentType: DocumentKeys.apiType(documentType),
           ApiKeys.value: {
             "accountNumber": bankAccountNumberController.text.trim(),
             "ifscCode": IFSCCodeController.text.trim(),
@@ -368,23 +375,32 @@ class MyDocumentsController extends GetxController {
         throw Exception('Aadhaar image upload failed');
       }
 
-      final params = {
-        ApiKeys.documentType: DocumentKeys.aadhar,
-        ApiKeys.files: {
-          ApiKeys.front: frontUrl,
-          ApiKeys.back: backUrl,
-        },
-        ApiKeys.value: jsonEncode({DocumentKeys.aadhar: aadhaarNumber}),
-      };
+      // Writes the document record AND ticks the rider onboarding step, so an
+      // Aadhaar entered here is never asked for again in the rider flow.
+      final result = await AadhaarRecordService.recordEverywhere(
+        aadhaarNumber: aadhaarNumber,
+        frontUrl: frontUrl,
+        backUrl: backUrl,
+      );
 
-      final response = await MyDocumentRepo().addDocument(params: params);
-      if (!response.isSuccess) {
+      // Only the DOCUMENT half is fatal here: it is the record this screen
+      // exists to create and the one the user is watching for. The rider half
+      // is bookkeeping for a flow they may never open — failing the whole
+      // submit over it would keep them on the form with nothing to fix.
+      if (!result.documentRecorded) {
         genericDocumentUploadResponse.value = ApiResponse.error('error');
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        throw Exception('addDocument failed: ${response.message}');
+            message: result.documentFailureMessage ??
+                AppStrings.somethingWentWrong);
+        throw Exception(
+            'addDocument failed: ${result.documentFailureMessage}');
       }
-      genericDocumentUploadResponse.value = ApiResponse.complete(response);
+      if (!result.riderOnboardingRecorded) {
+        debugPrint(
+            'ℹ️ Aadhaar saved to documents but the rider onboarding step was '
+            'not ticked; the rider flow may ask for it again.');
+      }
+      genericDocumentUploadResponse.value = ApiResponse.complete(null);
     } finally {
       // Refresh so the Aadhaar tile picks up its new status, whether or not the
       // record landed.
@@ -466,14 +482,19 @@ class MyDocumentsController extends GetxController {
 
 
       // ---------- 4️⃣ PREPARE PAYLOAD ----------
+      // [documentType] arrives as a LOCAL key and has to be translated — every
+      // UPPER_SNAKE_CASE one (PAN, DRIVING_LICENSE, ADDRESS_PROOF, NOC,
+      // BANK_DETAILS, the business certificates) was being rejected with
+      // `400 Invalid document payload`. See [DocumentKeys.apiType].
+      final apiType = DocumentKeys.apiType(documentType);
       final params = {
-        ApiKeys.documentType: documentType,
+        ApiKeys.documentType: apiType,
          ApiKeys.files: {
           ApiKeys.front: frontImageUrl,
          if(backImage && backImageUrl!=null) ApiKeys.back: backImageUrl
         },
       };
-      if(hasInput) params[ApiKeys.value] = jsonEncode({documentType: genericDocumentController.text.trim()});
+      if(hasInput) params[ApiKeys.value] = jsonEncode({apiType: genericDocumentController.text.trim()});
 
       // ---------- 5️⃣ API CALL ----------
       final response = await MyDocumentRepo().addDocument(params: params);

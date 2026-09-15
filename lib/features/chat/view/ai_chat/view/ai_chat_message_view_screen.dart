@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -409,7 +410,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
     }
   }
   Future<void> _pickFromCamera() async {
-    final pickedFile = await ImagePicker().pickImage(
+    final pickedFile = await SafeImagePicker().pickImage(
       source: ImageSource.camera,
     );
     if (pickedFile != null) {

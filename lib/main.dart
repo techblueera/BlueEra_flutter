@@ -14,6 +14,8 @@ import 'package:BlueEra/core/services/ads/ads_bootstrap.dart';
 import 'package:BlueEra/features/common/promo/promo_ads_service.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/app_services.dart';
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/session_guard.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -1076,6 +1078,10 @@ Future<void> main() async {
 // GetMaterialApp built inside that guarded zone — breaking localization
 // in release mode. FlutterError.onError + PlatformDispatcher.instance.onError
 // already cover all uncaught errors, so runZonedGuarded is unnecessary.
+  // Attaches the picker lifecycle observer. Must be before runApp so a pick
+  // launched on the very first screen is already guarded.
+  LostMediaRecovery.init();
+
   runApp(MyApp(initialLocale: locale));
   _initDeferred(localizationService, savedLangCode);
 }
@@ -1124,7 +1130,7 @@ Future<void> _initDeferred(
     /// firing both at once makes the two system dialogs race (Android shows
     /// one and silently drops the other).
     unawaited(LocationService.fetchLocation().whenComplete(
-        () => unawaited(_requestNotificationPermissionIfNeeded())));
+        () => unawaited(_requestStartupPermissions())));
 
     /// Initialise the Google AdMob SDK + preload the first
     /// interstitial. Fire-and-forget — ads must never block startup; the
@@ -1273,12 +1279,25 @@ Future<void> _requestNotificationPermissionIfNeeded() async {
   }
 }
 
+/// The full cold-start permission chain, run once the location flow settles.
+///
+/// Strictly sequential for the reason documented on
+/// [_requestNotificationPermissionIfNeeded]: Android shows one permission
+/// dialog at a time and silently drops any raised while another is up, so
+/// firing these concurrently loses grants. [AppServices.permissionHandler]
+/// re-checks notification status itself, so the overlap with the call above is
+/// a no-op rather than a second prompt.
+Future<void> _requestStartupPermissions() async {
+  await _requestNotificationPermissionIfNeeded();
+  await AppServices.permissionHandler();
+}
+
 /// Heavy, first-frame-irrelevant startup work. On a normal launch this runs
 /// inline inside [_initDeferred]; on a notification open it is postponed via a
 /// post-frame callback so the deep-link target renders first.
 Future<void> _initBackgroundBatch() async {
   unawaited(LocationService.fetchLocation().whenComplete(
-      () => unawaited(_requestNotificationPermissionIfNeeded())));
+      () => unawaited(_requestStartupPermissions())));
   unawaited(InterstitialAdManager.instance.initialize());
   await Future.wait<void>([
     getDeviceInfo(),

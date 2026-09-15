@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -181,7 +182,7 @@ class _OrderPaymentSheetState extends State<_OrderPaymentSheet> {
   }
 
   Future<void> _pick(ImageSource source) async {
-    final picked = await ImagePicker().pickImage(source: source);
+    final picked = await SafeImagePicker().pickImage(source: source);
     if (picked == null || !mounted) return;
     setState(() {
       _screenshot = File(picked.path);

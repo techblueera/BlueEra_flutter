@@ -2,7 +2,10 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discovery_video_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_video_slide.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/referral/service/referral_share.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -12,6 +15,7 @@ import 'package:BlueEra/widgets/go_live_product_gate.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -28,6 +32,16 @@ import 'package:get/get.dart';
 ///      to take live and gets the complete-profile artwork in that slot
 ///      instead: same box, so the header measures the same before and after
 ///      sign-up and nothing shifts under the user as they create a profile.
+///
+///      For a guest, the INTRO CLIP from `discovery/video` takes this slot once
+///      its URL arrives, replacing the complete-profile artwork rather than
+///      joining it — a guest has nothing of their own to show here, and the
+///      clip is the one thing on the page that can explain what the app is
+///      before they commit to signing up. It plays muted, holds the carousel
+///      until it has been watched (see `_videoWatched`), is torn down whenever
+///      the banner is not in front of the user (see `_videoAlive`), and falls
+///      back to the artwork it replaced — so a guest with no clip sees exactly
+///      the old carousel.
 ///
 ///      This replaced the account's backend marketing card (`marketing_card
 ///      .ready_url`). The card was the profile the user could already see;
@@ -124,8 +138,146 @@ Future<void> shareDiscoverReferral({String? posterAsset}) async {
   );
 }
 
-class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
+/// The artwork for the banner's LEADING slot, or null when nothing belongs
+/// there.
+///
+/// Extracted as a pure function because the rule is easy to get wrong in the
+/// collection-literal that consumes it. Written inline as
+/// `if (guest) if (...) a else b`, Dart's dangling-else binds the `else` to the
+/// INNER `if` — which silently drops [goLiveSlide] for every signed-in account
+/// while looking correct. The tests pin all four combinations.
+///
+/// * **Guest with a clip** — null. The clip REPLACES the complete-profile
+///   artwork rather than being added ahead of it, so the same slot is never
+///   shown twice. The artwork is still what the clip falls back to, so a clip
+///   that fails or is buffering leaves the slide exactly where it always was.
+/// * **Guest without a clip** — the complete-profile artwork, as before.
+/// * **Signed in** — [goLiveSlide], which is itself null once the account is
+///   live.
+String? discoverBannerLeadingSlide({
+  required bool guest,
+  required String? videoUrl,
+  required String? goLiveSlide,
+}) {
+  if (!guest) return goLiveSlide;
+  return videoUrl == null ? AppImageAssets.completeProfileBanner : null;
+}
+
+/// Whether the carousel's auto-advance should be HELD on the intro clip.
+///
+/// A 4-second rotation would slide the clip away before a guest saw any of it,
+/// so the one slide with something to say would get the least time to say it.
+///
+/// Derived from the current index rather than latched when playback starts.
+/// A "video is playing" flag set on play and cleared on finish never gets
+/// cleared when the viewer swipes away mid-clip — the slide is deactivated and
+/// the end is never reached — so auto-advance would stay switched off for the
+/// rest of the session. Deriving it means leaving the slide releases the
+/// carousel immediately, and returning re-holds it only while the clip is still
+/// unwatched.
+bool discoverBannerHoldsForVideo({
+  required String? videoUrl,
+  required bool watched,
+  required int index,
+}) {
+  // The clip, when present, is always the first slide.
+  return videoUrl != null && !watched && index == 0;
+}
+
+class _DiscoverProfileBannerState extends State<DiscoverProfileBanner>
+    with WidgetsBindingObserver, RouteAware {
   int _current = 0;
+
+  /// True once the guest intro clip has played through (or failed).
+  ///
+  /// Until then the carousel's auto-advance is HELD while the clip's slide is
+  /// on screen: a 4-second rotation would slide the clip away before a guest
+  /// saw any of it, so the one slide with something to say would get the least
+  /// time to say it.
+  ///
+  /// The hold is derived from this flag plus the CURRENT INDEX rather than
+  /// being a "video is playing" flag of its own. A flag set on play and cleared
+  /// on finish never gets cleared when the viewer swipes away mid-clip — the
+  /// slide is deactivated and the end is never reached — so auto-advance would
+  /// stay switched off for the rest of the session. Deriving it means leaving
+  /// the slide releases the carousel immediately, and coming back re-holds it
+  /// only if the clip still has not been watched.
+  bool _videoWatched = false;
+
+  // ── Is the banner actually in front of the user? ───────────────────────
+  //
+  // Three independent ways it can stop being, none of which unmount this
+  // widget — so without all three the clip keeps decoding, and keeps talking
+  // once it has been unmuted, behind whatever the user is now looking at.
+  //
+  // Switching bottom-nav TABS is deliberately not among them: the nav swaps
+  // `_getScreen()`'s child outright, so the banner is unmounted and `dispose`
+  // already tears the player down.
+
+  /// Scrolled out of the Discover page's own viewport. The banner sits in the
+  /// header, so this goes false as soon as the user scrolls down the page.
+  bool _pageVisible = true;
+
+  /// Another route is covering Discover (a chip opened the ride screen, a
+  /// folder opened a sheet). [RouteAware] rather than the visibility detector:
+  /// an opaque route on top does not reliably change the covered route's
+  /// reported visibility, so this is the signal that actually fires.
+  bool _routeCovered = false;
+
+  /// The app is backgrounded. Nothing else here catches it — a widget in a
+  /// paused app stays mounted, visible and un-covered.
+  bool _appForeground = true;
+
+  /// Whether the clip's player should exist at all. False tears it down; true
+  /// builds it again from scratch.
+  bool get _videoAlive => _pageVisible && !_routeCovered && _appForeground;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Guests only — nobody else gets this slide, so nobody else pays for the
+    // request. The controller no-ops on every call after the first.
+    if (isGuestUser()) {
+      getOrPut(() => DiscoveryVideoController()).ensureLoaded();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      RouteHelper.routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    RouteHelper.routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// A route was pushed ON TOP of the one holding this banner.
+  @override
+  void didPushNext() => _setRouteCovered(true);
+
+  /// That route popped and Discover is frontmost again.
+  @override
+  void didPopNext() => _setRouteCovered(false);
+
+  void _setRouteCovered(bool covered) {
+    if (!mounted || _routeCovered == covered) return;
+    setState(() => _routeCovered = covered);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final foreground = state == AppLifecycleState.resumed;
+    if (!mounted || _appForeground == foreground) return;
+    setState(() => _appForeground = foreground);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,15 +294,28 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
       // Null once the account is live — the slot then simply isn't there.
       final goLive = _goLiveSlide();
 
+      // The guest intro clip. Resolved BEFORE the slide list because it decides
+      // what goes in the leading slot.
+      //
+      // Null for a signed-in account, and null for a guest until the URL
+      // arrives — in both cases the card is exactly what it was before, so it
+      // never holds an empty slot waiting on the network.
+      final String? videoUrl = guest
+          ? getOrPut(() => DiscoveryVideoController()).videoUrl.value
+          : null;
+
+      final leadingSlide = discoverBannerLeadingSlide(
+        guest: guest,
+        videoUrl: videoUrl,
+        goLiveSlide: goLive,
+      );
+
       // Built as a list rather than inline so the tap handler can key off WHICH
       // slide was tapped instead of a position: the leading slide is present
       // for a guest and for an offline account but absent for a live one, so
       // every index below it shifts.
       final slides = <String>[
-        if (guest)
-          AppImageAssets.completeProfileBanner
-        else if (goLive != null)
-          goLive,
+        if (leadingSlide != null) leadingSlide,
         AppImageAssets.groceryBanner,
         // Book-a-ride promo. Always present, like the grocery slide — the ride
         // flow is open to any signed-in account, and a guest tapping it lands
@@ -166,22 +331,60 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
       // to sign-up instead; here the button simply isn't drawn.)
       final VoidCallback? onShare = guest ? null : shareDiscoverReferral;
 
-      final index = _current.clamp(0, slides.length - 1);
+      // Widgets, not paths: every image slide resolves through `_slide` /
+      // `_tappable` by path as it always did, but the clip is not a path and
+      // cannot go through that lookup. Composing the final list here keeps the
+      // string dispatch intact for the slides it was written for.
+      final items = <Widget>[
+        if (videoUrl != null)
+          DiscoverVideoSlide(
+            key: ValueKey(videoUrl),
+            url: videoUrl,
+            // The slide the clip replaced — shown while it buffers and kept if
+            // it fails, so this slot is never blank or black and a guest who
+            // never gets the clip still gets the sign-up call to action that
+            // has always been here.
+            fallback: _tappable(
+              AppImageAssets.completeProfileBanner,
+              guest,
+              _slide(AppImageAssets.completeProfileBanner),
+            ),
+            // Torn down whenever the banner is not in front of the user, and
+            // rebuilt when it is again — see [_videoAlive].
+            alive: _videoAlive,
+            // Sound follows the CURRENT slide. Scrolling the carousel to any
+            // other slide silences the clip without disturbing playback, so a
+            // viewer who unmuted never hears it narrating a different promo.
+            hasFocus: _current == 0,
+            onFinished: () {
+              if (mounted) setState(() => _videoWatched = true);
+            },
+          ),
+        for (final slide in slides) _tappable(slide, guest, _slide(slide)),
+      ];
 
-      return ClipRRect(
+      final index = _current.clamp(0, items.length - 1);
+
+      final holdForVideo = discoverBannerHoldsForVideo(
+        videoUrl: videoUrl,
+        watched: _videoWatched,
+        index: index,
+      );
+
+      final card = ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
           aspectRatio: DiscoverProfileBanner._aspect,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (slides.length == 1)
+              if (items.length == 1)
                 // One slide has nothing to slide to: draw it flat and skip the
                 // carousel (and its auto-play timer) altogether.
-                _tappable(slides.first, guest, _slide(slides.first))
+                items.first
               else
                 CarouselSlider.builder(
-                  itemCount: slides.length,
+                  itemCount: items.length,
                   options: CarouselOptions(
                     viewportFraction: 1.0,
                     aspectRatio: DiscoverProfileBanner._aspect,
@@ -193,7 +396,7 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
                     // full-bleed banner it is. Off, the page's tight
                     // constraints reach the image and it fills the box.
                     disableCenter: true,
-                    autoPlay: true,
+                    autoPlay: !holdForVideo,
                     autoPlayInterval: const Duration(seconds: 4),
                     autoPlayAnimationDuration:
                         const Duration(milliseconds: 800),
@@ -204,8 +407,7 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
                       if (mounted) setState(() => _current = i);
                     },
                   ),
-                  itemBuilder: (_, i, __) =>
-                      _tappable(slides[i], guest, _slide(slides[i])),
+                  itemBuilder: (_, i, __) => items[i],
                 ),
               // The "Share It, Get 100 Rupees" hook used to sit here, on the
               // marketing-card slide. It went with that slide: every remaining
@@ -218,16 +420,34 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner> {
               // stays. Top-right, clear of the page dots.
               if (onShare != null)
                 Positioned(top: 8, right: 8, child: _shareButton(onShare)),
-              if (slides.length > 1)
+              if (items.length > 1)
                 Positioned(
                   left: 0,
                   right: 0,
                   bottom: 8,
-                  child: _dots(slides.length, index),
+                  child: _dots(items.length, index),
                 ),
             ],
           ),
         ),
+      );
+
+      // Only the clip needs to know whether the banner is on screen, so the
+      // detector is skipped entirely when there is no clip — every signed-in
+      // account keeps exactly the widget tree it had.
+      if (videoUrl == null) return card;
+
+      return VisibilityDetector(
+        // Unique per instance: the page mounts this banner in the header AND
+        // again above the QR row, and VisibilityDetector keys a global
+        // registry — two live detectors sharing a key report over each other.
+        key: ValueKey('discover-banner-$hashCode'),
+        onVisibilityChanged: (info) {
+          final visible = info.visibleFraction > 0;
+          if (!mounted || _pageVisible == visible) return;
+          setState(() => _pageVisible = visible);
+        },
+        child: card,
       );
     });
   }

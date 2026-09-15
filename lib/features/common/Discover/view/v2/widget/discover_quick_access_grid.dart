@@ -21,7 +21,7 @@ class QuickAccessItem {
   final VoidCallback onTap;
 }
 
-/// The ten-tile launcher across the top of `DiscoverScreenV2`: five per row,
+/// The ten-tile launcher across the top of `DiscoverScreen`: five per row,
 /// two rows, as drawn.
 ///
 /// Fixed at five columns rather than a wrapping grid. The design's rhythm is

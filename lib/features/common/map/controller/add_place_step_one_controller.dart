@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/location/user_address.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ class AddPlaceStepOneController extends GetxController {
   }
 
   Future<String?> captureImageFromCamera() async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {

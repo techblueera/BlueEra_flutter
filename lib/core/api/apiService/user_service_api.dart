@@ -408,4 +408,11 @@ mixin UserServiceApi {
   String loanApplicationById(String id) => 'user-service/loan-applications/$id';
 
   final String myLoanApplications = 'user-service/loan-applications/me';
+
+  /// The Discover intro clip, as `{ success, data: { video_url } }`.
+  ///
+  /// **Public** — verified answering 200 with no Authorization header, which is
+  /// what makes it usable at all: the clip is shown to GUESTS, who have no
+  /// token. Do not move it behind an auth-gated helper.
+  final String discoveryVideo = 'user-service/discovery/video';
 }

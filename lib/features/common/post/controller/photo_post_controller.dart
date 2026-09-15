@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:developer';
 import 'dart:io';
 
@@ -28,7 +29,7 @@ class PhotoPostController extends GetxController {
   TextEditingController descriptionTextEdit = TextEditingController();
   TextEditingController natureOfPostTextEdit = TextEditingController();
 
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
   final Rx<PhotoPost> photoPost = PhotoPost(photoUrls: []).obs;
   RxList<String> selectedPhotos = <String>[].obs;
   RxList<File> selectedPhotoFiles = <File>[].obs;

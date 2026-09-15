@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -395,7 +396,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
             children: [
               ElevatedButton.icon(
                 onPressed: () async {
-                  final x = await ImagePicker()
+                  final x = await SafeImagePicker()
                       .pickImage(source: ImageSource.gallery);
                   if (x != null) {
                     certController.selectedFile.value = File(x.path);

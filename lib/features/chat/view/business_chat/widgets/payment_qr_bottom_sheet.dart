@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -657,7 +658,7 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
     final amount = _amountCtrl.text.trim();
     final note = 'Payment of ₹$amount';
 
-    final XFile? picked = await ImagePicker().pickImage(source: source);
+    final XFile? picked = await SafeImagePicker().pickImage(source: source);
     if (picked == null) return;
 
     if (!mounted) return;

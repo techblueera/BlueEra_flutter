@@ -202,9 +202,18 @@ class _AadhaarManualKycScreenState extends State<AadhaarManualKycScreen> {
       title: title,
       imageFile: target,
       context: context,
+      // The slot is the card's own shape, so the cropped Aadhaar fills it edge
+      // to edge and the Front and Back tiles stay the same size whether or not
+      // either has been picked yet. Matches the crop passed below — the two
+      // have to agree or the preview letterboxes again.
+      previewAspectRatio: CommonImageUploadTile.documentCropAspectRatio.ratio,
       onImageSelected: () async {
         final selectedPath = await CommonImageUploadTile.pickImage(
           context: context,
+          // Names the side being captured, so the picker's chooser says
+          // "Front" / "Back" rather than the generic "Select Photo" — the
+          // gig-work Aadhaar step already did this.
+          title: title,
           cropAspectRatio: CommonImageUploadTile.documentCropAspectRatio,
         );
         if (selectedPath != null) {

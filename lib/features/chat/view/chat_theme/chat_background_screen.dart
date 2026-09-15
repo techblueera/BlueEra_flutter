@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -907,7 +908,7 @@ class _ChatBackgroundScreenState extends State<ChatBackgroundScreen>
   }
 
   Future<void> _pickWallpaperFromGallery() async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     final XFile? picked =
         await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;

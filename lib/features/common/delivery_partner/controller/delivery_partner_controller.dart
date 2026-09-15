@@ -8,6 +8,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/image_upload_response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/service/aadhaar_record_service.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -1108,20 +1109,29 @@ class DeliveryPartnerController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         return;
       }
-      final params = {
-        ApiKeys.aadharNo: aadhaar,
-        ApiKeys.aadharImages: {
-          ApiKeys.front: frontUrl,
-          ApiKeys.back: backUrl,
-        },
-        // Photo-submitted: no OKYC behind this number, so the backend routes it
-        // to manual review rather than treating it as UIDAI-verified.
-      };
-      final response = await DeliveryPartnerRepo()
-          .ridersOnboardingPersonalIdentificationRepo(params: params);
-      if (response.isSuccess) {
+      // Writes BOTH records. This sheet used to tick the rider step only, so a
+      // rider who verified here was asked for the same Aadhaar again the first
+      // time they opened My Documents.
+      //
+      // Photo-submitted: no OKYC behind this number, so the backend routes it
+      // to manual review rather than treating it as UIDAI-verified.
+      final result = await AadhaarRecordService.recordEverywhere(
+        aadhaarNumber: aadhaar,
+        frontUrl: frontUrl!,
+        backUrl: backUrl!,
+      );
+      if (!result.documentRecorded) {
+        debugPrint(
+            'ℹ️ Rider Aadhaar step ticked but the document record failed; '
+            'My Documents may ask for it again.');
+      }
+      // Only the RIDER half gates this sheet's success state — it is the step
+      // the user is standing on. The document record is for a screen they are
+      // not looking at, and failing the submit over it would send them back to
+      // re-shoot a card that was accepted.
+      if (result.riderOnboardingRecorded) {
         ridersOnboardingPersonalIdentificationResponse.value =
-            ApiResponse.complete(response);
+            ApiResponse.complete(null);
         // Show the SAME success/verified state the OTP path lands on, rather
         // than closing the sheet. The image submission carries no OKYC name, so
         // we surface the masked number from the entered Aadhaar for the row.
@@ -1129,14 +1139,12 @@ class DeliveryPartnerController extends GetxController {
         aadhaarMaskedNumber.value = _maskAadhaar(aadhaar);
         aadhaarVerifiedAt.value = DateTime.now().toIso8601String();
         aadhaarStage.value = AadhaarStage.verified;
-        commonSnackBar(
-            message: response.message ?? 'Aadhaar submitted successfully');
+        commonSnackBar(message: 'Aadhaar submitted successfully');
         await ridersOnboardingStatusRepoApi(forceRefresh: true);
       } else {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
       debugPrint('❌ submitAadhaarImages error: $e\n$s');
@@ -1180,20 +1188,34 @@ class DeliveryPartnerController extends GetxController {
         frontUrl = await _uploadToS3(front);
         backUrl = await _uploadToS3(back);
       }
-      final params = <String, dynamic>{
-        ApiKeys.aadharNo: aadhaarNumber,
-        // Only when BOTH uploaded: a half-uploaded card would reach the
-        // reviewer as an incomplete record, and the number alone is the
-        // better fallback.
-        if ((frontUrl ?? '').isNotEmpty && (backUrl ?? '').isNotEmpty)
-          ApiKeys.aadharImages: {
-            ApiKeys.front: frontUrl,
-            ApiKeys.back: backUrl,
-          },
-      };
-      final response = await DeliveryPartnerRepo()
-          .ridersOnboardingPersonalIdentificationRepo(params: params);
-      return response.isSuccess;
+
+      // Without both images there is no document record to make — the
+      // document-service record is the card, not the number — so this falls
+      // back to ticking the rider step alone, which is what it always did.
+      if ((frontUrl ?? '').isEmpty || (backUrl ?? '').isEmpty) {
+        // Awaited, not returned bare: an un-awaited return escapes this try,
+        // so a throw would bypass the catch below and surface as an unhandled
+        // async error mid-signup.
+        return await AadhaarRecordService.recordRiderOnboarding(
+          aadhaarNumber: aadhaarNumber,
+        );
+      }
+
+      // Writes BOTH records. Signup used to tick the rider step only, so the
+      // same worker was asked for the same Aadhaar again the first time they
+      // opened My Documents — the mirror of the problem this bridge was
+      // written to solve.
+      final result = await AadhaarRecordService.recordEverywhere(
+        aadhaarNumber: aadhaarNumber,
+        frontUrl: frontUrl!,
+        backUrl: backUrl!,
+      );
+      if (!result.documentRecorded) {
+        debugPrint(
+            'ℹ️ Rider Aadhaar step ticked but the document record failed; '
+            'My Documents may ask for it again.');
+      }
+      return result.riderOnboardingRecorded;
     } catch (e, s) {
       debugPrint('❌ recordAadhaarForRiderOnboarding error: $e\n$s');
       return false;

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -49,7 +50,7 @@ class _MyPaymentQrSheetState extends State<_MyPaymentQrSheet> {
 
   Future<void> _pickQrImage() async {
     final XFile? picked =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+        await SafeImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) _pickedQr.value = File(picked.path);
   }
 

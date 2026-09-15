@@ -3,7 +3,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_glass.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-/// The one surface every block on `DiscoverScreenV2` sits on.
+/// The one surface every block on `DiscoverScreen` sits on.
 ///
 /// Glassmorphic, the same recipe v1 paints: a translucent white wash behind a
 /// real [BackdropFilter], inside a solid white rim. Content scrolling under a
@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 /// [DiscoverGlassPanel] plus the heading row the v2 sections need.
 ///
 /// **Two things the blur demands of the page around it**, both handled by
-/// `DiscoverScreenV2`:
+/// `DiscoverScreen`:
 ///
 ///  * overscroll must not STRETCH — Android 12+ implements stretch by moving
 ///    the scroll content into its own layer, and a `BackdropFilter` can only

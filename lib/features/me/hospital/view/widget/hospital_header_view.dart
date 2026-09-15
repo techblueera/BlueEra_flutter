@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -22,7 +23,7 @@ class HospitalHeaderView extends StatefulWidget {
 
 class _HospitalHeaderViewState extends State<HospitalHeaderView> {
   final controller = Get.find<HospitalServiceAiController>();
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
   File? _logoImage;
 
   /// `isBanner` selects between `coverUrl` and `logoUrl` uploads. Currently

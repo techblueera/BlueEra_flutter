@@ -23,7 +23,7 @@ import 'package:BlueEra/features/account_plan/view/deposit_migration_sheet.dart'
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/social_main_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/v2/discover_screen_v2.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 // Discover v1, kept for the swap-back documented at the `case 1:` below.
 // Commented rather than deleted: with the import live but the widget only
 // named inside a comment, the analyzer reports it as an unused import.
@@ -1334,7 +1334,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // `Discover/view/discover_screen.dart` and still reachable, and every
         // destination v2 offers is the same call it made. Swap the two lines
         // below to put it back.
-        return const DiscoverScreenV2();
+        return const DiscoverScreen();
       // return const DiscoverScreen();
       case 2:
         return const ConnectMainPage();

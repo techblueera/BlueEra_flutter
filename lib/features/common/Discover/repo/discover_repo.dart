@@ -7,6 +7,20 @@ import 'package:dio/dio.dart';
 
 class DiscoverRepo extends BaseService {
 
+  /// GET the Discover intro clip.
+  ///
+  /// Answers `{ success, data: { video_url } }`. Public — it is fetched for
+  /// GUESTS, who carry no auth token, so this must not be gated behind a
+  /// logged-in check on the client.
+  Future<ResponseModel> fetchDiscoveryVideo() async {
+    return ApiBaseHelper().getHTTP(
+      discoveryVideo,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// GET EARN SERVICES
   Future<ResponseModel> fetchSelfWorkServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

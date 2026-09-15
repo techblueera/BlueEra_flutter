@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -23,7 +24,7 @@ class FranchiseHeader extends StatefulWidget {
 }
 
 class _FranchiseHeaderState extends State<FranchiseHeader> {
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);

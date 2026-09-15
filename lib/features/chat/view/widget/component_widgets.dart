@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -1648,7 +1649,7 @@ void showAiChatProfileEditSheet(
   final RxString previewPath = controller.customImagePath.value.obs;
 
   Future<void> pickImage() async {
-    final picked = await ImagePicker()
+    final picked = await SafeImagePicker()
         .pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (picked == null) return;
     // Copy into app documents so the path survives cache clears / restarts.

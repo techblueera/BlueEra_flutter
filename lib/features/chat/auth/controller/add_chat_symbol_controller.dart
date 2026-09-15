@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:developer';
 import 'dart:io';
 
@@ -30,7 +31,7 @@ enum PostVisibility { public, private, custom }
 
 class AddChatSymbolController extends GetxController {
   // Post type selection
-  final ImagePicker picker = ImagePicker();
+  final SafeImagePicker picker = SafeImagePicker();
   RxList<File> imagesList = <File>[].obs;
   RxList<SymbolDetailsModel> mySymbols = <SymbolDetailsModel>[].obs;
   final SymbolRepo symbolRepo = SymbolRepo();

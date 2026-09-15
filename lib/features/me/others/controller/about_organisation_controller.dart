@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -42,7 +43,7 @@ class AboutOrganisationController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
+    final SafeImagePicker picker = SafeImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       selectedImage.value = File(image.path);

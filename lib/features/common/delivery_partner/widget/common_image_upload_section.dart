@@ -22,6 +22,20 @@ class CommonImageUploadTile extends StatelessWidget {
   final VoidCallback? onImageSelected;
   final VoidCallback? onImageRemove;
 
+  /// Locks the tile to a fixed shape — pass the ratio the caller CROPS to, so
+  /// the picked image fills the slot exactly: nothing letterboxed, nothing
+  /// trimmed.
+  ///
+  /// Document uploads pass [documentCropAspectRatio]. It also fixes the slot's
+  /// height before anything is picked, so a Front tile holding a card and an
+  /// empty Back tile beside it stay the same size instead of one towering over
+  /// the other.
+  ///
+  /// Left null by callers that upload ordinary photos (school notices,
+  /// portfolios, activity pictures), which have no single shape — those size
+  /// the preview to the image's own ratio instead of cropping it to a card.
+  final double? previewAspectRatio;
+
   const CommonImageUploadTile({
     super.key,
     required this.title,
@@ -29,6 +43,7 @@ class CommonImageUploadTile extends StatelessWidget {
     required this.context,
     this.onImageSelected,
     this.onImageRemove,
+    this.previewAspectRatio,
   });
 
   /// Shared crop ratio for all KYC document cards (Aadhaar, PAN, Driving
@@ -81,38 +96,62 @@ class CommonImageUploadTile extends StatelessWidget {
             border: Border.all(color: AppColors.greyE5),
           ),
           child: file == null
-              ? Padding(
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
-                      SizedBox(width: SizeConfig.size8),
-                      Flexible(
-                        child: CustomText(
-                          title,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+              ? _shaped(
+                  Padding(
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
+                        SizedBox(width: SizeConfig.size8),
+                        Flexible(
+                          child: CustomText(
+                            title,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
-              : SizedBox(
-                  height: SizeConfig.size150,
-                  child: Stack(
+              // The preview is shaped by the CROP, never by a fixed height.
+              //
+              // This was `SizedBox(height: 150)` around a default (loose)
+              // Stack, which cannot work: a loose Stack hands its children
+              // unbounded height, so `Image.file(width: double.infinity)` laid
+              // itself out at the photo's own ratio and `BoxFit.cover` never
+              // had a box to cover. On a half-width tile that is ~96pt of card
+              // stranded inside a 150pt box — the picked document sat at the
+              // top with a band of empty white under it, and the Front slot
+              // towered over an empty Back slot beside it.
+              //
+              // With [previewAspectRatio] set to the ratio the caller crops to,
+              // the card fills the tile EXACTLY: no dead space, and nothing
+              // trimmed off the number strip or the QR to make it fit.
+              // `StackFit.expand` is what passes those tight bounds down to the
+              // image. Without it (ordinary photo uploads, which have no one
+              // shape) the tile takes the image's own ratio — still gapless,
+              // just not forced into a card.
+              : _shaped(
+                  Stack(
+                    fit: previewAspectRatio == null
+                        ? StackFit.loose
+                        : StackFit.expand,
                     clipBehavior: Clip.none,
                     children: [
                       ClipRRect(
                         // Same radius as the tile so the photo's corners sit
                         // flush inside the border instead of cutting in.
                         borderRadius: BorderRadius.circular(10.0),
-                        child: Image.file(file,
-                            fit: BoxFit.cover, width: double.infinity),
+                        child: previewAspectRatio == null
+                            ? Image.file(file,
+                                fit: BoxFit.cover, width: double.infinity)
+                            : Image.file(file, fit: BoxFit.cover),
                       ),
                       Positioned(
                         top: 6,
@@ -141,6 +180,19 @@ class CommonImageUploadTile extends StatelessWidget {
         ),
       );
     });
+  }
+
+  /// Locks [child] to [previewAspectRatio], or leaves it to size itself when
+  /// no ratio was given.
+  ///
+  /// Applied to BOTH states on purpose: shaping only the filled one would fix
+  /// the picked image but leave a Front tile holding a card standing over an
+  /// empty Back tile beside it, which is half the reason the row looked wrong.
+  /// Callers that pass no ratio keep exactly the tile they had.
+  Widget _shaped(Widget child) {
+    final ratio = previewAspectRatio;
+    if (ratio == null) return child;
+    return AspectRatio(aspectRatio: ratio, child: Center(child: child));
   }
 
   static Future<String?> pickImage({

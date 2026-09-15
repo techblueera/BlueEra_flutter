@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -65,7 +66,7 @@ Future<void> showVideosPickerDialog(BuildContext context,
     },
     onGallery: () async {
       Navigator.pop(Get.context!);
-      final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
+      final picked = await SafeImagePicker().pickVideo(source: ImageSource.gallery);
       Navigator.pushNamed(
         Get.context!,
         RouteHelper.getFullVideoPreviewRoute(),

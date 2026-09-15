@@ -391,8 +391,18 @@ class AppConstants {
 }
 
 class DocumentKeys {
-  // Values are the backend document `type` identifiers (UPPER_SNAKE_CASE)
-  // sent on upload/verification and returned in the document-status response.
+  // These are the app's LOCAL identifiers — the keys `documentStatuses` is
+  // indexed by and every widget passes around. They are NOT the wire format.
+  //
+  // `document-service` accepts a lowerCamelCase enum and rejects anything else
+  // outright:
+  //
+  //   400 Invalid document payload
+  //   "AADHAR is not a valid enum value for path documentType"
+  //
+  // so the UPPER_SNAKE_CASE values below must be translated by [apiType]
+  // before they are put in a request body. `updateStatuses` performs the
+  // reverse translation on the way in, accepting either casing.
   static const aadhar = "AADHAR";
   static const pan = "PAN";
   static const addressProof = "ADDRESS_PROOF";
@@ -427,6 +437,65 @@ class DocumentKeys {
   static const hotelOwnerIdProof = "hotelOwnerIdProof";
   static const hotelOnboardingAgreement = "hotelOnboardingAgreement";
   static const hotelPropertyAgreement = "hotelPropertyAgreement";
+
+  /// A local key translated into the `documentType` value `document-service`
+  /// accepts.
+  ///
+  /// Every upload body must go through this. Posting a raw local key returns
+  /// `400 Invalid document payload` with
+  /// `"<KEY> is not a valid enum value for path documentType"` — which is what
+  /// made Aadhaar verification fail on the My Documents screen while the rider
+  /// onboarding PUT (a different endpoint, no `documentType` field) kept
+  /// working, and what silently broke PAN, driving licence, address proof,
+  /// NOC, bank details and every business certificate alongside it. Only the
+  /// hotel and vehicle keys ever worked, because those were already spelled
+  /// the way the backend wanted.
+  ///
+  /// The pairs below are the exact counterparts `updateStatuses` already maps
+  /// on the way in, so the two directions cannot drift apart.
+  ///
+  /// Unknown keys are returned unchanged: an id this map has not been taught
+  /// is more likely to be a new already-camelCase one than a mistake, and the
+  /// server rejects anything genuinely wrong with a precise message.
+  static String apiType(String localKey) => _apiTypes[localKey] ?? localKey;
+
+  static const Map<String, String> _apiTypes = {
+    aadhar: 'aadhar',
+    pan: 'pan',
+    drivingLicense: 'drivingLicense',
+    addressProof: 'addressProof',
+    noc: 'noc',
+    bankDetails: 'bankDetails',
+    bankersCancelledCheque: 'bankersCancelledCheque',
+
+    // Vehicle
+    vehicleRC: 'vehicleRC',
+    insuranceDocument: 'insuranceDocument',
+    puc: 'puc',
+    vehicleFitnessCertificate: 'fitnessCertificate',
+
+    // Business
+    gstCertificate: 'gstCertificate',
+    fssaiLicense: 'fssaiLicense',
+    medicalLicense: 'medicalLicense',
+    fireSafetyCertificate: 'fireSafetyCertificate',
+    municipalCorpCertificate: 'municipalCorpCertificate',
+    msmeCertificate: 'msmeCertificate',
+    shopActCertificate: 'shopActCertificate',
+
+    // Hotel & home stay — already the wire spelling, mapped explicitly so the
+    // set is complete and the test can assert over it.
+    hotelTradeLicense: 'hotelTradeLicense',
+    hotelPanCard: 'hotelPanCard',
+    hotelGstCertificate: 'hotelGstCertificate',
+    hotelCancelledCheque: 'hotelCancelledCheque',
+    hotelPoliceVerification: 'hotelPoliceVerification',
+    hotelFireSafetyCertificate: 'hotelFireSafetyCertificate',
+    hotelFssaiLicense: 'hotelFssaiLicense',
+    hotelOwnerIdProof: 'hotelOwnerIdProof',
+    hotelOnboardingAgreement: 'hotelOnboardingAgreement',
+    hotelPropertyAgreement: 'hotelPropertyAgreement',
+  };
 }
 
 class MedicalStoreType {

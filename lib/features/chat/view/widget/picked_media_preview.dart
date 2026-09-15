@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -108,7 +109,7 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
   }
 
   Future<void> _pickMoreMedia() async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     List<File> files = [];
     final hasVideo = _mediaFiles.any((f) => _isVideo(f));
 

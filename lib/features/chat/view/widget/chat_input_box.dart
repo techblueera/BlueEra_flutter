@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -1661,7 +1662,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
 
   Future<void> _pickFromGallery(bool isVideo) async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     List<File> files = [];
     if (isVideo) {
       final XFile? pickedVideo = await picker.pickVideo(
@@ -1728,7 +1729,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
 
   Future<void> _pickFromCamera() async {
-    final pickedFile = await ImagePicker().pickImage(
+    final pickedFile = await SafeImagePicker().pickImage(
       source: ImageSource.camera,
     );
     if (pickedFile != null) {

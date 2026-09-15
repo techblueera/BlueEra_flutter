@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
@@ -66,26 +67,26 @@ class PhotoPickerService {
           title: title,
           showCamera: cameraOn,
           showGallery: galleryOn,
-          onCamera: () async {
-            final path = await pickFromCamera(
+          onCamera: () => _closeWith(
+            dialogContext,
+            () => pickFromCamera(
               dialogContext,
               cropAspectRatio: cropAspectRatio,
               quality: quality,
               minWidth: minWidth,
               minHeight: minHeight,
-            );
-            if (dialogContext.mounted) Navigator.pop(dialogContext, path);
-          },
-          onGallery: () async {
-            final path = await pickFromGallery(
+            ),
+          ),
+          onGallery: () => _closeWith(
+            dialogContext,
+            () => pickFromGallery(
               dialogContext,
               cropAspectRatio: cropAspectRatio,
               quality: quality,
               minWidth: minWidth,
               minHeight: minHeight,
-            );
-            if (dialogContext.mounted) Navigator.pop(dialogContext, path);
-          },
+            ),
+          ),
         );
       },
     );
@@ -175,27 +176,27 @@ class PhotoPickerService {
           title: title,
           showCamera: cameraOn,
           showGallery: galleryOn,
-          onCamera: () async {
-            final paths = await pickMultipleFromCamera(
+          onCamera: () => _closeWith(
+            dialogContext,
+            () => pickMultipleFromCamera(
               dialogContext,
               cropAspectRatio: cropAspectRatio,
               quality: quality,
               minWidth: minWidth,
               minHeight: minHeight,
-            );
-            if (dialogContext.mounted) Navigator.pop(dialogContext, paths);
-          },
-          onGallery: () async {
-            final paths = await pickMultipleFromGallery(
+            ),
+          ),
+          onGallery: () => _closeWith(
+            dialogContext,
+            () => pickMultipleFromGallery(
               dialogContext,
               maxImages: maxImages,
               cropAspectRatio: cropAspectRatio,
               quality: quality,
               minWidth: minWidth,
               minHeight: minHeight,
-            );
-            if (dialogContext.mounted) Navigator.pop(dialogContext, paths);
-          },
+            ),
+          ),
         );
       },
     );
@@ -231,17 +232,28 @@ class PhotoPickerService {
     int? minWidth,
     int? minHeight,
   }) async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     final List<XFile> pickedFiles;
     try {
-      pickedFiles = await picker.pickMultiImage();
+      // `limit` caps the selection in the system picker itself. Without it the
+      // user can select an unbounded number of photos and only find out
+      // afterwards — and every extra one still had to be decoded and processed
+      // below, which is how a 60-photo selection turned into an OOM.
+      pickedFiles = await picker.pickMultiImage(
+        limit: (maxImages != null && maxImages > 1) ? maxImages : null,
+      );
     } on PlatformException catch (e) {
       _handlePickerError(e, source: ImageSource.gallery);
+      return null;
+    } catch (e) {
+      _handleUnexpectedError(e);
       return null;
     }
 
     if (pickedFiles.isEmpty) return null;
 
+    // Older devices and some OEM pickers ignore `limit`, so the cap is still
+    // enforced here.
     final limited = (maxImages != null)
         ? pickedFiles.take(maxImages).toList()
         : pickedFiles;
@@ -253,6 +265,7 @@ class PhotoPickerService {
 
     final results = <String>[];
     for (int i = 0; i < limited.length; i++) {
+      if (!context.mounted) break;
       final processed = await _processImage(
         context,
         File(limited[i].path),
@@ -265,6 +278,29 @@ class PhotoPickerService {
       if (processed != null) results.add(processed);
     }
     return results;
+  }
+
+  /// Pops [dialogContext] with whatever [run] produced — including when it
+  /// throws.
+  ///
+  /// The chooser's buttons drive an async pick whose result is delivered by
+  /// popping the dialog. Any throw in between (a failed compress on an OEM
+  /// image format, a cropper failure, a missing temp dir) used to escape as an
+  /// unhandled async error, so the pop never ran: the dialog stayed on screen
+  /// with no way out and the awaiting caller never resolved. Containing the
+  /// error here means the chooser always closes and the caller always gets an
+  /// answer, even if that answer is "nothing".
+  static Future<void> _closeWith<T>(
+    BuildContext dialogContext,
+    Future<T?> Function() run,
+  ) async {
+    T? value;
+    try {
+      value = await run();
+    } catch (e) {
+      _handleUnexpectedError(e);
+    }
+    if (dialogContext.mounted) Navigator.pop(dialogContext, value);
   }
 
   /// Generic source-chooser dialog with caller-supplied handlers —
@@ -374,10 +410,25 @@ class PhotoPickerService {
       themeData: const CupertinoThemeData(),
     );
 
+    // Drop the full-resolution decode from Flutter's image cache now that the
+    // cropper is done with it. Without this each picked photo leaves ~10 MB+ of
+    // decoded bitmap resident, and a multi-image selection walks straight into
+    // an OutOfMemoryError on a low-RAM device.
+    _evict(fileImage);
+
     if (result == null) return ''; // user cancelled the cropper
 
     final savedFile = await _saveUiImageToFile(result.uiImage, page);
     return savedFile?.path ?? '';
+  }
+
+  /// Removes [provider] from the image cache, live entries included.
+  static void _evict(ImageProvider provider) {
+    try {
+      PaintingBinding.instance.imageCache.evict(provider);
+    } catch (_) {
+      // Cache eviction is an optimisation; never let it break a pick.
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -392,15 +443,15 @@ class PhotoPickerService {
     int? minWidth,
     int? minHeight,
   }) async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     final XFile? pickedFile;
     try {
       pickedFile = await picker.pickImage(source: source);
-
     } on PlatformException catch (e) {
-
       _handlePickerError(e, source: source);
-
+      return null;
+    } catch (e) {
+      _handleUnexpectedError(e);
       return null;
     }
 
@@ -474,17 +525,67 @@ class PhotoPickerService {
     }
   }
 
-  static Future<File?> _saveUiImageToFile(ui.Image image, int page) async {
+  /// Last-resort handler for anything that is not a `PlatformException` —
+  /// compression failures on unusual OEM image formats, cropper errors, a
+  /// missing temp directory. These used to escape as unhandled async errors
+  /// and strand the chooser dialog on screen.
+  static void _handleUnexpectedError(Object e) {
+    // ignore: avoid_print
+    print('Photo picker failed: $e');
+    commonSnackBar(message: 'Could not use that photo. Please try again.');
+  }
+
+  /// Persists the cropper's output as JPEG.
+  ///
+  /// `ui.Image.toByteData` can only emit PNG, and writing that PNG straight to
+  /// disk was throwing away the JPEG compression applied moments earlier — a
+  /// photo re-encoded losslessly lands at 4-8 MB, so every upload was several
+  /// times larger than intended and the bytes stayed resident meanwhile. The
+  /// PNG is therefore transcoded to JPEG in memory and only the JPEG is
+  /// written. The source [ui.Image] is disposed as soon as its bytes are out,
+  /// releasing the native bitmap instead of waiting on the GC.
+  static Future<File?> _saveUiImageToFile(
+    ui.Image image,
+    int page, {
+    int quality = 85,
+  }) async {
     try {
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData;
+      try {
+        byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      } finally {
+        try {
+          image.dispose();
+        } catch (_) {
+          // Already disposed by the cropper — nothing to release.
+        }
+      }
       if (byteData == null) return null;
+
+      final pngBytes = byteData.buffer.asUint8List();
+      Uint8List outBytes;
+      String extension;
+      try {
+        outBytes = await FlutterImageCompress.compressWithList(
+          pngBytes,
+          quality: quality,
+          format: CompressFormat.jpeg,
+        );
+        extension = 'jpg';
+      } catch (_) {
+        // Transcode unavailable for this input on this device; the PNG is a
+        // correct (if larger) result, so fall back rather than losing the crop.
+        outBytes = pngBytes;
+        extension = 'png';
+      }
 
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filePath = '${tempDir.path}/cropped_image_$page$timestamp.png';
+      final filePath =
+          '${tempDir.path}/cropped_image_$page$timestamp.$extension';
 
       final file = File(filePath);
-      await file.writeAsBytes(byteData.buffer.asUint8List());
+      await file.writeAsBytes(outBytes);
       return file;
     } catch (e) {
       // ignore: avoid_print

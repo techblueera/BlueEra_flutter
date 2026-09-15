@@ -232,7 +232,7 @@ class DiscoverIcons {
 
   // ── Quick Access grid (Discover v2 home) ────────────────────────────────
   //
-  // The ten tiles at the top of DiscoverScreenV2, in the order the design
+  // The ten tiles at the top of DiscoverScreen, in the order the design
   // draws them: five across, two rows. Same self-contained rounded-plate art
   // as everything else under [_p] — each PNG carries its own tint and corner
   // radius — so they render EDGE-TO-EDGE with no plate and no padding, which

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -10,7 +11,7 @@ import 'package:image_picker/image_picker.dart';
 
 class SocialVisionMissionController extends GetxController {
   final SocialProfileRepo _repo = SocialProfileRepo();
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
 
   final descriptionController = TextEditingController();
   

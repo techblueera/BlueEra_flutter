@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -420,7 +421,7 @@ class SocialCertificatesScreen extends StatelessWidget {
           SizedBox(height: SizeConfig.size8),
           InkWell(
             onTap: () async {
-              final x = await ImagePicker()
+              final x = await SafeImagePicker()
                   .pickImage(source: ImageSource.gallery);
               if (x != null) {
                 certController.selectedFile.value =

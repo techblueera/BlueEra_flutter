@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -72,7 +73,7 @@ class JourneyUpdatePlanningController extends GetxController {
   RxString startLocationAddress = "".obs;
 
   // Photo upload variables
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
   final RxList<String> selectedPhotos = <String>[].obs;
   final RxList<File> selectedPhotoFiles = <File>[].obs;
   final int maxPhotos = 10; // Maximum 10 photos as per requirement

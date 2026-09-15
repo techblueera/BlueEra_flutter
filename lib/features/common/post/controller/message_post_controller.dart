@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -205,7 +206,7 @@ class MessagePostController extends GetxController {
   final Rx<PhotoPost> photoPost = PhotoPost(photoUrls: []).obs;
 
   ///new code
-  final ImagePicker picker = ImagePicker();
+  final SafeImagePicker picker = SafeImagePicker();
 
   // Store up to 5 images
   // RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;

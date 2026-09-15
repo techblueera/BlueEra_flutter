@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -22,7 +23,7 @@ import 'package:image_picker/image_picker.dart';
 /// supports deletion.
 class RoomDetailController extends GetxController {
   final HotelServiceRepo _repo = HotelServiceRepo();
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
 
   // ---- Step 1: metadata form -------------------------------------------------
 

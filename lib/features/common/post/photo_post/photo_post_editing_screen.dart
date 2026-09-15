@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -383,7 +384,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
 
 
   void addPhotos() async {
-    final ImagePicker _picker = ImagePicker();
+    final SafeImagePicker _picker = SafeImagePicker();
     final List<XFile>? images = await _picker.pickMultiImage();
     if (images == null || images.isEmpty) return;
 

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -54,7 +55,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
 
   // Pick image from gallery
   Future<void> pickImage() async {
-    final picker = ImagePicker();
+    final picker = SafeImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {}

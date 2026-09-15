@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -26,7 +27,7 @@ class SchoolHeaderView extends StatefulWidget {
 class _SchoolHeaderViewState extends State<SchoolHeaderView> {
   File? _bannerImage;
   File? _logoImage;
-  final ImagePicker _picker = ImagePicker();
+  final SafeImagePicker _picker = SafeImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);

@@ -1,5 +1,5 @@
 ﻿import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/features/common/Discover/view/v2/discover_screen_v2.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/my_self_pickup_orders_screen.dart';
@@ -784,10 +784,12 @@ class RouteHelper {
   static String getGlobalSearchScreenRoute() =>
       RouteConstant.globalSearchScreen;
 
-  /// Discover **v2** — the new layout, on its OWN route so it can be opened
-  /// beside the live Discover tab rather than replacing it. The bottom nav
-  /// still mounts [DiscoverScreen]; this is how v2 gets looked at on a device
-  /// while both exist.
+  /// Discover, as a pushable route rather than the bottom-nav tab.
+  ///
+  /// It existed to preview the v2 layout beside the then-live v1 tab. There is
+  /// no longer a v1: v2 WAS promoted to [DiscoverScreen] and the old screen is
+  /// deleted, so this route and the tab now mount the same page. Kept because
+  /// the route name is already published; the `V2` in it is historical.
   static String getDiscoverV2ScreenRoute() => RouteConstant.discoverV2Screen;
 
   // Business onboarding (WhatsApp-style) routes
@@ -2548,7 +2550,7 @@ class RouteHelper {
 
       case RouteConstant.discoverV2Screen:
         return MaterialPageRoute(
-            builder: (_) => const DiscoverScreenV2(),
+            builder: (_) => const DiscoverScreen(),
             settings: RouteSettings(name: getDiscoverV2ScreenRoute()));
 
       case RouteConstant.globalSearchScreen:

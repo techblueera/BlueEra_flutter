@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'package:BlueEra/core/api/model/social_activity_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -90,7 +91,7 @@ class SocialActivityController extends GetxController {
   }
 
   Future<void> pickImage(BuildContext context) async {
-     final picker = ImagePicker();
+     final picker = SafeImagePicker();
      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
      if (pickedFile != null) {
        selectedImage.value = File(pickedFile.path);
