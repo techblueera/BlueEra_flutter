@@ -1,5 +1,5 @@
 PODS:
-  - app_links (6.4.1):
+  - app_links (7.0.0):
     - Flutter
   - audio_session (0.0.1):
     - Flutter
@@ -159,8 +159,9 @@ PODS:
     - Flutter
   - flutter_pdfview (1.0.2):
     - Flutter
-  - flutter_secure_storage (6.0.0):
+  - flutter_secure_storage_darwin (10.0.0):
     - Flutter
+    - FlutterMacOS
   - flutter_sound (9.28.0):
     - Flutter
     - flutter_sound_core (= 9.28.0)
@@ -173,8 +174,9 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - geocoding_ios (1.0.5):
+  - geocoding_darwin (0.0.1):
     - Flutter
+    - FlutterMacOS
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
@@ -183,15 +185,15 @@ PODS:
     - libwebp
   - Google-Maps-iOS-Utils (6.1.0):
     - GoogleMaps (~> 9.0)
-  - Google-Mobile-Ads-SDK (11.13.0):
+  - Google-Mobile-Ads-SDK (13.9.0):
     - GoogleUserMessagingPlatform (>= 1.1)
   - google_maps_flutter_ios (0.0.1):
     - Flutter
     - Google-Maps-iOS-Utils (< 7.0, >= 5.0)
     - GoogleMaps (< 11.0, >= 8.4)
-  - google_mobile_ads (5.3.1):
+  - google_mobile_ads (9.1.0):
     - Flutter
-    - Google-Mobile-Ads-SDK (~> 11.13.0)
+    - Google-Mobile-Ads-SDK (~> 13.7)
     - webview_flutter_wkwebview
   - GoogleAdsOnDeviceConversion (3.6.1):
     - GoogleUtilities/Environment (~> 8.1)
@@ -279,7 +281,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - open_file_ios (0.0.1):
+  - open_file_ios (1.0.3):
     - Flutter
   - package_info_plus (0.4.5):
     - Flutter
@@ -288,8 +290,11 @@ PODS:
     - FlutterMacOS
   - pdfx (1.0.0):
     - Flutter
-  - permission_handler_apple (9.3.0):
+  - permission_handler_apple (9.4.8):
     - Flutter
+  - pro_image_editor (12.0.8):
+    - Flutter
+    - FlutterMacOS
   - PromisesObjC (2.4.1)
   - PromisesSwift (2.4.1):
     - PromisesObjC (= 2.4.1)
@@ -299,7 +304,7 @@ PODS:
   - razorpay_flutter (1.1.10):
     - Flutter
     - razorpay-pod
-  - record_ios (1.2.0):
+  - record_ios (2.0.0):
     - Flutter
   - SDWebImage (5.21.7):
     - SDWebImage/Core (= 5.21.7)
@@ -351,7 +356,7 @@ DEPENDENCIES:
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - audio_waveforms (from `.symlinks/plugins/audio_waveforms/ios`)
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
-  - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
+  - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - croppy (from `.symlinks/plugins/croppy/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
@@ -370,12 +375,12 @@ DEPENDENCIES:
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_native_video_trimmer (from `.symlinks/plugins/flutter_native_video_trimmer/ios`)
   - flutter_pdfview (from `.symlinks/plugins/flutter_pdfview/ios`)
-  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
   - flutter_upgrade_version (from `.symlinks/plugins/flutter_upgrade_version/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - gal (from `.symlinks/plugins/gal/darwin`)
-  - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
+  - geocoding_darwin (from `.symlinks/plugins/geocoding_darwin/darwin`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - get_thumbnail_video (from `.symlinks/plugins/get_thumbnail_video/ios`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
@@ -387,6 +392,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - pdfx (from `.symlinks/plugins/pdfx/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - pro_image_editor (from `.symlinks/plugins/pro_image_editor/darwin`)
   - razorpay_flutter (from `.symlinks/plugins/razorpay_flutter/ios`)
   - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - share_handler_ios (from `.symlinks/plugins/share_handler_ios/ios`)
@@ -451,7 +457,7 @@ EXTERNAL SOURCES:
   audioplayers_darwin:
     :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   camera_avfoundation:
-    :path: ".symlinks/plugins/camera_avfoundation/ios"
+    :path: ".symlinks/plugins/camera_avfoundation/darwin"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   croppy:
@@ -488,8 +494,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_native_video_trimmer/ios"
   flutter_pdfview:
     :path: ".symlinks/plugins/flutter_pdfview/ios"
-  flutter_secure_storage:
-    :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  flutter_secure_storage_darwin:
+    :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
   flutter_sound:
     :path: ".symlinks/plugins/flutter_sound/ios"
   flutter_upgrade_version:
@@ -498,8 +504,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   gal:
     :path: ".symlinks/plugins/gal/darwin"
-  geocoding_ios:
-    :path: ".symlinks/plugins/geocoding_ios/ios"
+  geocoding_darwin:
+    :path: ".symlinks/plugins/geocoding_darwin/darwin"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
   get_thumbnail_video:
@@ -522,6 +528,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/pdfx/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  pro_image_editor:
+    :path: ".symlinks/plugins/pro_image_editor/darwin"
   razorpay_flutter:
     :path: ".symlinks/plugins/razorpay_flutter/ios"
   record_ios:
@@ -554,11 +562,11 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
+  app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   audio_waveforms: a6dde7fe7c0ea05f06ffbdb0f7c1b2b2ba6cedcf
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
-  camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
+  camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   croppy: 979e8ddc254f4642bffe7d52dc7193354b27ba30
   CryptoSwift: e2e7776512f250e66205955da748e7a4e4abffe0
@@ -583,28 +591,28 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 422bb80cbf8ff83e69e50bea4d4984fc4704f665
   FirebaseRemoteConfigInterop: 3cbd659033c3129ea81a756a52e4bf1cfc20c3a7
   FirebaseSessions: 3eaac5fd8077513b95f9723efd940438e3e35fb2
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_callkit_incoming: cb8138af67cda6dd981f7101a5d709003af21502
   flutter_contacts: 5383945387e7ca37cf963d4be57c21f2fc15ca9f
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
-  flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
-  flutter_localization: 72299fb6cb4e51cae587bd953ed0b958040b71e6
+  flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
+  flutter_localization: 4cfbf7b88962629bf7afc93156a271be80696f97
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_native_video_trimmer: 11f6c679971dc3844519b485b9c878df8675ae3a
   flutter_pdfview: 32bf27bda6fd85b9dd2c09628a824df5081246cf
-  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
+  flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   flutter_sound: b9236a5875299aaa4cef1690afd2f01d52a3f890
   flutter_sound_core: 427465f72d07ab8c3edbe8ffdde709ddacd3763c
   flutter_upgrade_version: 911009e80a0b058173939342c66acb352c8858c1
   flutter_webrtc: 7de9a15705f7deede4413924a2f1409d39796ab5
   gal: baecd024ebfd13c441269ca7404792a7152fde89
-  geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e
+  geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   get_thumbnail_video: 1a754d46b860dffefcc57b7290a43089cd5d7e58
   Google-Maps-iOS-Utils: 0a484b05ed21d88c9f9ebbacb007956edd508a96
-  Google-Mobile-Ads-SDK: 14f57f2dc33532a24db288897e26494640810407
+  Google-Mobile-Ads-SDK: cec761d0da669c462bcc19cd16c747498b9f39f7
   google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
-  google_mobile_ads: 16ad301354fa6a7ea55770c6254bd4339bf8558b
+  google_mobile_ads: 6b1c16497394528f4a59e76e2fc947cb32b101e2
   GoogleAdsOnDeviceConversion: e3b71da24ff4cf01cf520756ac1c2b93c07b86ff
   GoogleAppMeasurement: d70df385587c4175fc0836c11e413d5cbcaa3c7b
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
@@ -616,17 +624,18 @@ SPEC CHECKSUMS:
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  open_file_ios: 5ff7526df64e4394b4fe207636b67a95e83078bb
+  open_file_ios: c1143c28b4c65f721cdd58d9fba2f7a1c55206cd
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   pdfx: 77f4dddc48361fbb01486fa2bdee4532cbb97ef3
-  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
+  pro_image_editor: e57a76b305fd8c2e06d57f92aec82b9c6a6e8d9f
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   razorpay-core-pod: 7ecea8ed3c47751e6a958f6c88126ea068f8c8fc
   razorpay-pod: 3fc296eacb28a059c55144286ea7c04d33d894f5
   razorpay_flutter: 0e98e4fcaae27ad50e011d85f66d85e0a008754a
-  record_ios: 412daca2350b228e698fffcd08f1f94ceb1e3844
+  record_ios: 390a30c7caaf8b5d0fb1cb1d2fd5064b48b4520c
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_handler_ios: e2244e990f826b2c8eaa291ac3831569438ba0fb
@@ -645,6 +654,6 @@ SPEC CHECKSUMS:
   WebRTC-SDK: 1762e2de812354d27a8407d1b2c532064ec39fce
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 7f68709388672a4532cc594f470869e3d613f451
+PODFILE CHECKSUM: c209ff35437eb86cdbce7e1bd8fd66b67336d70f
 
 COCOAPODS: 1.16.2
