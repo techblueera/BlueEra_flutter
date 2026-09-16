@@ -198,8 +198,7 @@ class BookingController extends GetxController {
       log('currentAddress--> ${currentAddress.value}');
       if (selectedType.value != BookingType.online) {
         if (currentAddress.isEmpty) {
-          Get.snackbar("Location required", "Please add your business location",
-              snackPosition: SnackPosition.TOP);
+          commonSnackBar(message: "Please add your business location");
           return;
         }
 

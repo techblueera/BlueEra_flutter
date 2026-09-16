@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -165,6 +166,10 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
 
     File? croppedFile;
 
+    // Captured before the push: the cropper must not pop itself — see the
+    // `shouldPopAfterCrop: false` below.
+    final cropNavigator = Navigator.of(context);
+
     await showCupertinoImageCropper(
       context,
       locale: const Locale('en', 'US'),
@@ -173,7 +178,12 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
         Transformation.resize,
         Transformation.panAndScale,
       ],
-      shouldPopAfterCrop: true,
+      // OFF deliberately. The package would finish with a bare
+      // `Navigator.of(context).pop(result)`, which throws `Bad state: No
+      // element` when the stack was emptied while the crop was running —
+      // see [PhotoPickerService.cropImage], which closes it the same guarded
+      // way.
+      shouldPopAfterCrop: false,
       allowedAspectRatios: [
         const CropAspectRatio(width: 1, height: 1),
         const CropAspectRatio(width: 3, height: 4),
@@ -189,6 +199,9 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
           croppedFile = File(
               '${tempDir.path}/cropped_${DateTime.now().millisecondsSinceEpoch}.png');
           await croppedFile!.writeAsBytes(byteData.buffer.asUint8List());
+        }
+        if (cropNavigator.mounted && cropNavigator.canPop()) {
+          cropNavigator.pop(result);
         }
         return result;
       },
@@ -390,16 +403,9 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
             isActive: _isHdEnabled,
             onTap: () {
               setState(() => _isHdEnabled = !_isHdEnabled);
-              Get.snackbar(
-                'Quality',
-                _isHdEnabled
+              commonSnackBar(message: _isHdEnabled
                     ? 'HD quality enabled'
-                    : 'Standard quality',
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.black87,
-                colorText: Colors.white,
-                duration: const Duration(seconds: 1),
-              );
+                    : 'Standard quality');
             },
           ),
           const SizedBox(width: 4),

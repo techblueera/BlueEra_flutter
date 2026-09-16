@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -66,15 +67,7 @@ class _AddMoreRestrictionsWidgetState extends State<AddMoreRestrictionsWidget> {
         .toList();
 
     if (restrictions.length > 10) {
-      Get.snackbar(
-        AppStrings.limitExceeded.tr,
-        AppStrings.restrictionsLimitMessage.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(12),
-        borderRadius: 8,
-      );
+      commonSnackBar(message: AppStrings.restrictionsLimitMessage.tr);
       return;
     }
 

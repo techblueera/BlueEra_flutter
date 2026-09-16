@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -384,13 +385,7 @@ class _LivePhotoSlot extends StatelessWidget {
       // widget and re-fires after photos are cleared back to zero.
     } catch (_) {
       controller.localUploadingPhotos.remove(index);
-      Get.snackbar(
-        AppStrings.uploadFailed.tr,
-        AppStrings.couldNotSaveImage.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: AppStrings.couldNotSaveImage.tr);
     } finally {
       AppLoader.hide();
     }

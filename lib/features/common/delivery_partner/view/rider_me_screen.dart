@@ -780,11 +780,7 @@ class _RiderMeScreenState extends State<RiderMeScreen>
   }
 
   void _showComingSoon() {
-    Get.snackbar(
-      AppStrings.comingSoon.tr,
-      'This feature is coming soon.',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    commonSnackBar(message: 'This feature is coming soon.');
   }
 
   // ============================================================

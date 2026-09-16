@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -296,9 +297,7 @@ class _ContextMenuCard extends StatelessWidget {
                 Navigator.of(context).pop();
                 if (message.message != null) {
                   Clipboard.setData(ClipboardData(text: message.message!));
-                  Get.snackbar(AppStrings.copiedLabel.tr, AppStrings.messageCopied.tr,
-                      snackPosition: SnackPosition.BOTTOM,
-                      duration: const Duration(seconds: 1));
+                  commonSnackBar(message: AppStrings.messageCopied.tr);
                 }
               },
             ),
@@ -329,14 +328,9 @@ class _ContextMenuCard extends StatelessWidget {
                       conversationProfileImage ?? profileImage,
                   userId: userId,
                 );
-                Get.snackbar(
-                  AppStrings.starredMessagesLabel.tr,
-                  nowStarred
+                commonSnackBar(message: nowStarred
                       ? AppStrings.messageStarred.tr
-                      : AppStrings.messageUnstarred.tr,
-                  snackPosition: SnackPosition.BOTTOM,
-                  duration: const Duration(seconds: 1),
-                );
+                      : AppStrings.messageUnstarred.tr);
               },
             ),
 
@@ -395,6 +389,10 @@ class _ContextMenuCard extends StatelessWidget {
                     showDeleteForEveryone: message.myMessage == true,
                     showDeleteFromDevice: _isMediaMessage,
                     onDeleteForMe: () async {
+                      // Captured BEFORE the request — see [_closeDialog].
+                      final navigator = Navigator.of(dialogContext);
+                      final route = ModalRoute.of(dialogContext);
+
                       Map<String, dynamic> data = {
                         ApiKeys.conversation_id: "$conversationId",
                         ApiKeys.delete_from_every_one: false,
@@ -405,9 +403,13 @@ class _ContextMenuCard extends StatelessWidget {
                           data, userId ?? '');
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      Navigator.pop(dialogContext);
+                      _closeDialog(navigator, route);
                     },
                     onDeleteForEveryone: () async {
+                      // Captured BEFORE the request — see [_closeDialog].
+                      final navigator = Navigator.of(dialogContext);
+                      final route = ModalRoute.of(dialogContext);
+
                       // Delete from server
                       Map<String, dynamic> data = {
                         ApiKeys.conversation_id: "$conversationId",
@@ -423,7 +425,7 @@ class _ContextMenuCard extends StatelessWidget {
 
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      Navigator.pop(dialogContext);
+                      _closeDialog(navigator, route);
                     },
                   ),
                 );
@@ -441,15 +443,7 @@ class _ContextMenuCard extends StatelessWidget {
     final urls = message.url ?? [];
     if (urls.isEmpty) return;
 
-    Get.snackbar(
-      "Downloading",
-      "Saving to BlueEra/${type == 'document' ? 'Documents' : '${type[0].toUpperCase()}${type.substring(1)}'}...",
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-      icon: const Icon(Icons.download_rounded, color: Colors.white),
-      backgroundColor: Colors.black87,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: "Saving to BlueEra/${type == 'document' ? 'Documents' : '${type[0].toUpperCase()}${type.substring(1)}'}...");
 
     int saved = 0;
     for (final media in urls) {
@@ -462,20 +456,9 @@ class _ContextMenuCard extends StatelessWidget {
       if (file != null) saved++;
     }
 
-    Get.snackbar(
-      saved > 0 ? "Saved" : "Failed",
-      saved > 0
+    commonSnackBar(message: saved > 0
           ? "$saved file${saved > 1 ? 's' : ''} saved to BlueEra folder"
-          : "Could not save files. Check permissions.",
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-      icon: Icon(
-        saved > 0 ? Icons.check_circle_rounded : Icons.error_outline,
-        color: Colors.white,
-      ),
-      backgroundColor: saved > 0 ? Colors.green.shade700 : Colors.red.shade700,
-      colorText: Colors.white,
-    );
+          : "Could not save files. Check permissions.");
   }
 
   /// Deletes saved media files from the device when "Delete for everyone" is used.
@@ -522,4 +505,24 @@ class _ContextMenuCard extends StatelessWidget {
   Widget _divider() {
     return Divider(height: 0.5, thickness: 0.5, color: Colors.grey.shade200);
   }
+}
+
+/// Closes the delete-confirmation dialog after its request has finished.
+///
+/// Both arguments are captured BEFORE the `await`, because the obvious version
+/// — `Navigator.pop(dialogContext)` once the delete returns — crashed with
+/// `Null check operator used on a null value`. `Navigator.of` looks the state
+/// up by walking the element tree, and if the dialog was dismissed while the
+/// request was in flight (barrier tap, back button) that element is defunct:
+/// the walk ends on a `StatefulElement` whose state is already gone.
+///
+/// [ModalRoute.isCurrent] is the other half, and `canPop()` is NOT a substitute
+/// for it. `pop` closes whatever is on TOP, and after the dialog has gone the
+/// thing on top is the chat screen — so a "safe" pop guarded only by `canPop`
+/// would close the conversation instead. Nothing is closed unless this dialog
+/// is still the route in front of the user.
+void _closeDialog(NavigatorState navigator, ModalRoute<dynamic>? route) {
+  if (!navigator.mounted) return;
+  if (route?.isCurrent != true) return;
+  navigator.pop();
 }

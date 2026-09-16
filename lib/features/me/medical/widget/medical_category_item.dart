@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/remote_icon_image.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -5,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class MedicalCategoryItem extends StatelessWidget {
   final String url;
@@ -63,20 +63,15 @@ class MedicalCategoryItem extends StatelessWidget {
   Widget _buildImage(String path) {
 
     if (isNetworkImage(path)) {
-      // Network image
-      return SvgPicture.network(
-        path,
+      // Routes by what the path actually IS. Sending every network URL to the
+      // SVG decoder threw an XML parse error on raster icons, and the loader
+      // fails on a background isolate where it reads as a crash, not a broken
+      // image.
+      return RemoteIconImage(
+        path: path,
         width: SizeConfig.size30,
         height: SizeConfig.size30,
-        fit: BoxFit.contain,
-        placeholderBuilder: (BuildContext context) => const CircularProgressIndicator(),
-        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-          return const Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 40,
-          );
-        },
+        showLoader: true,
       );
     } else {
       // Local asset (svg or png/jpg)

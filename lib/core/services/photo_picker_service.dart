@@ -380,16 +380,20 @@ class PhotoPickerService {
 
     if (!context.mounted) return '';
 
+    // Captured BEFORE the push, and used instead of letting the cropper pop
+    // itself. See [_popCropper] — `shouldPopAfterCrop` is off for the same
+    // reason.
+    final cropNavigator = Navigator.of(context);
+    CropImageResult? cropResult;
+
     // Always open the cropper fresh on the actual image (no `initialData`).
     // A remembered crop is keyed only by `page`, which is not unique to an
     // image, so restoring it carried a previous image's framing over and
     // made the crop appear "reset". Starting fresh every time avoids that.
     //
-    // Await the cropper's own result. With `shouldPopAfterCrop` the cropper
-    // pops itself with the CropImageResult on submit, or with null when the
-    // user backs out — so cancellation returns cleanly instead of hanging,
-    // and a successful crop always reaches us here.
-    final result = await showCupertinoImageCropper(
+    // Cancelling still returns cleanly: the cropper's own Cancel button uses
+    // `Navigator.maybePop`, which is already safe.
+    await showCupertinoImageCropper(
       context,
       locale: const Locale('en', 'US'),
       imageProvider: fileImage,
@@ -398,7 +402,12 @@ class PhotoPickerService {
         Transformation.resize,
         Transformation.panAndScale,
       ],
-      shouldPopAfterCrop: true,
+      shouldPopAfterCrop: false,
+      postProcessFn: (result) async {
+        cropResult = result;
+        _popCropper(cropNavigator, result);
+        return result;
+      },
       allowedAspectRatios: (cropAspectRatio != null)
           ? [cropAspectRatio]
           : const [
@@ -416,10 +425,32 @@ class PhotoPickerService {
     // an OutOfMemoryError on a low-RAM device.
     _evict(fileImage);
 
+    final result = cropResult;
     if (result == null) return ''; // user cancelled the cropper
 
     final savedFile = await _saveUiImageToFile(result.uiImage, page);
     return savedFile?.path ?? '';
+  }
+
+  /// Closes the cropper page ourselves, instead of letting it close itself.
+  ///
+  /// `showCupertinoImageCropper(shouldPopAfterCrop: true)` ends with a bare
+  /// `Navigator.of(context).pop(result)` inside the package (unchanged as of
+  /// croppy 1.5.3, so upgrading is not the answer). Cropping a large photo
+  /// takes long enough for the navigator underneath to be emptied in the
+  /// meantime — a deep link, a logout, an incoming call unwinding the stack —
+  /// and `pop` on a navigator with no present route throws `Bad state: No
+  /// element` out of `_history.lastWhere`, from a callback nothing can catch.
+  /// The widget's own `context.mounted` check does not cover it: the element
+  /// is still alive while its route animates away.
+  ///
+  /// [NavigatorState.canPop] is precisely the missing guard — it reports false
+  /// for the empty-history case that makes `pop` throw. Nothing to pop also
+  /// means nothing to return to, so skipping is the correct outcome, not a
+  /// silent failure.
+  static void _popCropper(NavigatorState navigator, CropImageResult result) {
+    if (!navigator.mounted || !navigator.canPop()) return;
+    navigator.pop(result);
   }
 
   /// Removes [provider] from the image cache, live entries included.

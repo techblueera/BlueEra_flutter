@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
@@ -12,7 +13,8 @@ import 'package:get/get.dart';
 class RcBookCardWidget extends StatelessWidget {
   RcBookCardWidget({super.key});
 
-  final controller = Get.find<DeliveryPartnerController>();
+  final controller =
+      getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {

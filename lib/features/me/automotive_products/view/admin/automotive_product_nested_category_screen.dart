@@ -1,6 +1,6 @@
+import 'package:BlueEra/widgets/remote_icon_image.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -13,7 +13,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
@@ -126,7 +125,6 @@ class _AutomotiveProductNestedCategoryScreenState
               itemBuilder: (BuildContext context) {
                 return _argArrProductSuperCat.map((choice) {
                   final imageUrl = choice.image ?? '';
-                  final isSvg = imageUrl.toLowerCase().endsWith('.svg');
                   return PopupMenuItem<AutomotiveProductNestedCategoryResponse>(
                     value: choice,
                     child: Row(
@@ -134,35 +132,14 @@ class _AutomotiveProductNestedCategoryScreenState
                         SizedBox(
                           width: SizeConfig.size20,
                           height: SizeConfig.size20,
-                          child: isNetworkImage(imageUrl)
-                              ? (isSvg
-                                  ? SvgPicture.network(
-                                      imageUrl,
-                                      width: SizeConfig.size20,
-                                      height: SizeConfig.size20,
-                                      fit: BoxFit.contain,
-                                    )
-                                  : CachedNetworkImage(
-                                      imageUrl: imageUrl,
-                                      width: SizeConfig.size20,
-                                      height: SizeConfig.size20,
-                                      fit: BoxFit.contain,
-                                      placeholder: (_, __) =>
-                                          const SizedBox.shrink(),
-                                      errorWidget: (_, __, ___) => LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.place_holder_image,
-                                        width: SizeConfig.size20,
-                                        height: SizeConfig.size20,
-                                        boxFix: BoxFit.contain,
-                                      ),
-                                    ))
-                              : LocalAssets(
-                                  imagePath: imageUrl,
-                                  width: SizeConfig.size20,
-                                  height: SizeConfig.size20,
-                                  boxFix: BoxFit.contain,
-                                ),
+                          // The SVG branch here had no errorBuilder, so a
+                          // `.svg` URL answering with an HTML error page had
+                          // nowhere to put the parse failure.
+                          child: RemoteIconImage(
+                            path: imageUrl,
+                            width: SizeConfig.size20,
+                            height: SizeConfig.size20,
+                          ),
                         ),
                         SizedBox(width: SizeConfig.size8),
                         // Long category names were pushing this Row past

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,7 +12,6 @@ import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/api/model/support_model.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/snackbar_helper.dart';
 import '../model/faq_details_model.dart';
 import '../repo/user_repo.dart';
 
@@ -65,22 +65,10 @@ class HelpAndSupportController extends GetxController {
       if (await canLaunchUrl(phoneUri)) {
         await launchUrl(phoneUri);
       } else {
-        Get.snackbar(
-          'Error',
-          'Could not launch phone dialer',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        commonSnackBar(message: 'Could not launch phone dialer');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to make phone call: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Failed to make phone call: $e');
     }
   }
 
@@ -166,36 +154,18 @@ commonSnackBar(message:"phone number copied");
 
   void submitForm() {
     if (emailController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your email address',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter your email address');
       return;
     }
 
     if (message.value.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your message',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter your message');
       return;
     }
 
     // Validate email format
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid email address',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter a valid email address');
       return;
     }
 

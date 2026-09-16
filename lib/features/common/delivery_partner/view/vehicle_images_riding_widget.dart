@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -49,7 +50,8 @@ class VehicleImagesRidingWidget extends StatefulWidget {
 
 class _VehicleImagesRidingWidgetState
     extends State<VehicleImagesRidingWidget> {
-  final controller = Get.put(DeliveryPartnerController());
+  final controller =
+      getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   // ─── slot dispatch ────────────────────────────────────────────────
   RxList<File> _imagesFor(_VehicleSlot slot) {

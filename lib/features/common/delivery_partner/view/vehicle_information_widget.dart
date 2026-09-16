@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -27,7 +28,8 @@ class VehicleInformationWidget extends StatefulWidget {
 }
 
 class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
-  final controller = Get.find<DeliveryPartnerController>();
+  final controller =
+      getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   initState(){

@@ -300,9 +300,13 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner>
       // Null for a signed-in account, and null for a guest until the URL
       // arrives — in both cases the card is exactly what it was before, so it
       // never holds an empty slot waiting on the network.
-      final String? videoUrl = guest
-          ? getOrPut(() => DiscoveryVideoController()).videoUrl.value
-          : null;
+      final videoCtrl = guest ? getOrPut(() => DiscoveryVideoController()) : null;
+      final String? videoUrl = videoCtrl?.videoUrl.value;
+
+      // The clip's own first frame, when the backend sends one. Null otherwise,
+      // and null for everyone who isn't a guest — in which case the slot is
+      // exactly the bundled artwork it has always been.
+      final String? videoThumb = videoCtrl?.thumbnailUrl.value;
 
       final leadingSlide = discoverBannerLeadingSlide(
         guest: guest,
@@ -344,10 +348,22 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner>
             // it fails, so this slot is never blank or black and a guest who
             // never gets the clip still gets the sign-up call to action that
             // has always been here.
+            //
+            // The clip's OWN first frame takes that job when the backend sends
+            // one: it is a single small image against a video that has to
+            // connect, buffer and decode, so it wins the race and the slot
+            // shows this clip rather than generic artwork — with nothing to
+            // jump when playback starts. `_slide` already ends a failed network
+            // image at [AppImageAssets.completeProfileBanner], which is what
+            // has to be trusted when the reason the clip failed was the network
+            // itself.
+            //
+            // The tap target is keyed off the ARTWORK either way, so a guest
+            // tapping the frame still opens sign-up.
             fallback: _tappable(
               AppImageAssets.completeProfileBanner,
               guest,
-              _slide(AppImageAssets.completeProfileBanner),
+              _slide(videoThumb ?? AppImageAssets.completeProfileBanner),
             ),
             // Torn down whenever the banner is not in front of the user, and
             // rebuilt when it is again — see [_videoAlive].

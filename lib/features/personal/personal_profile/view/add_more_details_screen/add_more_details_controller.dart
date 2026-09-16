@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
@@ -102,11 +103,7 @@ class AddMoreDetailsController extends GetxController {
       Get.back();
       
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to save details. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      commonSnackBar(message: 'Failed to save details. Please try again.');
     } finally {
       isLoading.value = false;
     }

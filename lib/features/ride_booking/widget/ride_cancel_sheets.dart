@@ -148,13 +148,38 @@ class _CancelReasonSheet extends StatelessWidget {
 
   final RideBookingController controller;
 
-  Future<void> _pick(RideCancelReason reason) async {
+  /// Cancels, then closes this sheet with `true` — but only if the sheet is
+  /// still the thing it would be closing.
+  ///
+  /// [context] is the row's, and both lookups happen BEFORE the await: the
+  /// searching screen's status worker watches `activeBooking`, which
+  /// [RideBookingController.cancelRide] flips to `cancelled` as part of
+  /// succeeding, so that screen can leave (taking this sheet with it) while the
+  /// request is still in flight. A context looked up afterwards is defunct.
+  ///
+  /// `Navigator.pop` rather than `Get.back`, and the `isActive` check rather
+  /// than popping regardless, each fix a real crash from that race:
+  ///
+  ///  * `Get.back` starts with a GetX 4 compatibility branch — if any snackbar
+  ///    is in its queue it closes that instead and RETURNS WITHOUT POPPING.
+  ///    Worse, the queue reports a snackbar as "being shown" the moment it is
+  ///    queued, while its animation controller is still an uninitialised `late`
+  ///    field, so closing it threw `LateInitializationError` out of
+  ///    `SnackbarController._removeEntry`. The screen that pops this sheet used
+  ///    to queue a `Get.snackbar` on its way out, which is precisely the state
+  ///    this line ran into.
+  ///  * Popping a sheet that is already gone pops whatever is underneath it.
+  Future<void> _pick(BuildContext context, RideCancelReason reason) async {
+    final navigator = Navigator.of(context);
+    final route = ModalRoute.of(context);
+
     final ok = await controller.cancelRide(reasonCode: reason.code);
-    if (ok) {
-      Get.back(result: true);
-    } else {
+    if (!ok) {
       commonSnackBar(message: 'Could not cancel the ride. Please try again.');
+      return;
     }
+    if (route?.isActive != true) return;
+    navigator.pop(true);
   }
 
   @override
@@ -218,7 +243,7 @@ class _CancelReasonSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final reason = controller.cancelReasons[index];
                   return InkWell(
-                    onTap: () => _pick(reason),
+                    onTap: () => _pick(context, reason),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,

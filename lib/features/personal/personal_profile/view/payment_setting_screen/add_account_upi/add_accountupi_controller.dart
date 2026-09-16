@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/model/add_account_modal.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/repo/payment_repo.dart';
@@ -96,22 +97,10 @@ class AddAccountupiController extends GetxController {
           'bankName': bankNameController.text.trim(),
           'upi_id': upiController.text.trim().toUpperCase(),
         });
-        Get.snackbar(
-          'Success',
-          addAccountResponseModalClass!.message ?? "",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        commonSnackBar(message: addAccountResponseModalClass!.message ?? "");
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to add account. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Failed to add account. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -137,13 +126,7 @@ class AddAccountupiController extends GetxController {
         'bankName': bankNameController.text.trim(),
         'upi_id': upiController.text.trim().toUpperCase(),
       });
-      Get.snackbar(
-        'Success',
-        addAccountResponseModalClass!.message ?? "",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: addAccountResponseModalClass!.message ?? "");
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_color_selection_tile.dart';
@@ -352,23 +353,11 @@ class _AutomotiveAddVariantDialogState extends State<AutomotiveAddVariantDialog>
           if (isColor) {
             // ── Color branch (unchanged) ───────────────────────────────────
             if (widget.controller.dynamicAttributes.containsKey(title)) {
-              Get.snackbar(
-                AppStrings.error.tr,
-                AppStrings.attributeExists.tr,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.redAccent,
-                colorText: Colors.white,
-              );
+              commonSnackBar(message: AppStrings.attributeExists.tr);
               return;
             }
             if (localSelectedColors.isEmpty) {
-              Get.snackbar(
-                AppStrings.error.tr,
-                AppStrings.pickAtLeastOneColor.tr,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.redAccent,
-                colorText: Colors.white,
-              );
+              commonSnackBar(message: AppStrings.pickAtLeastOneColor.tr);
               return;
             }
 
@@ -398,11 +387,7 @@ class _AutomotiveAddVariantDialogState extends State<AutomotiveAddVariantDialog>
           } else {
             // ── Value branch: send just the key/values to the API ───────────
             if (newValues.isEmpty) {
-              Get.snackbar(
-                AppStrings.error.tr,
-                AppStrings.enterValue.tr,
-                snackPosition: SnackPosition.TOP,
-              );
+              commonSnackBar(message: AppStrings.enterValue.tr);
               return;
             }
 

@@ -374,23 +374,11 @@ class AddBankAccountController extends GetxController {
           'accountNumber': accountNumberController.text.trim(),
           'ifscCode': ifscCodeController.text.trim().toUpperCase(),
         });
-        Get.snackbar(
-          AppStrings.success.tr,
-          addAccountResponseModalClass!.message ?? "",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        commonSnackBar(message: addAccountResponseModalClass!.message ?? "");
       }
 
     } catch (e) {
-      Get.snackbar(
-        AppStrings.error.tr,
-        AppStrings.failedToUpdateAccount.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: AppStrings.failedToUpdateAccount.tr);
     } finally {
       isLoading.value = false;
     }

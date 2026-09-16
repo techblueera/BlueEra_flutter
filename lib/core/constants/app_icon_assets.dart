@@ -480,4 +480,15 @@ class AppIconAssets {
       "${AppConstants.baseIconAssetsPath}Skills.png";
   static const String certificationsIcon =
       "${AppConstants.baseIconAssetsPath}certifications.png";
+
+  // Brand marks. Single-path glyphs carrying NO colour of their own, so every
+  // caller tints them to suit what they sit on: white on the share banner's
+  // coloured circles, [AppColors.grey9A] in the journey social-links row.
+  //
+  // One Instagram mark, not two. It replaced `instagram_grey.svg`, which was
+  // the same brand drawn a second time purely to bake in the `_grey` set's
+  // colour — a tint at the call site does that without a second file, and the
+  // rest of that set is already drawn in it.
+  static const String whatsappIcon = "${iconPath}whatsapp.svg";
+  static const String instagramIcon = "${iconPath}instagram.svg";
 }

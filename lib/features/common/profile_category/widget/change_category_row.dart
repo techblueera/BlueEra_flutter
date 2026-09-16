@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -114,15 +115,7 @@ class ChangeCategoryRow extends StatelessWidget {
   /// panel's job — so the message points there rather than pretending the
   /// change is impossible.
   void _onDisabledTap(BuildContext context) {
-    Get.snackbar(
-      AppStrings.changeCategoryTitle.tr,
-      AppStrings.changeCategoryLimitReached.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: EdgeInsets.all(SizeConfig.size12),
-      backgroundColor: AppColors.white,
-      colorText: AppColors.mainTextColor,
-      duration: const Duration(seconds: 4),
-    );
+    commonSnackBar(message: AppStrings.changeCategoryLimitReached.tr);
   }
 
   Widget _chip(String text) => Container(

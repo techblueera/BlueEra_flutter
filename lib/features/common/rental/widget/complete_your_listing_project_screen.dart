@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
@@ -102,14 +103,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
         child: RentalPrimaryButton(
           label: AppStrings.postNow.tr,
           onTap: () {
-            Get.snackbar(
-              AppStrings.listingPosted.tr,
-              AppStrings.yourProjectListingSubmitted.tr,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: AppColors.primaryColor,
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(14),
-            );
+            commonSnackBar(message: AppStrings.yourProjectListingSubmitted.tr);
             Get.close(3);
           },
         ),

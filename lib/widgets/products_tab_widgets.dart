@@ -1,14 +1,13 @@
+import 'package:BlueEra/widgets/remote_icon_image.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 /// The shared building blocks of the **Products tab** every me-section
@@ -535,26 +534,10 @@ class ProductCategoryTile extends StatelessWidget {
         boxFix: BoxFit.contain,
       );
     }
-    if (!isNetworkImage(img)) {
-      return LocalAssets(imagePath: img, boxFix: BoxFit.contain);
-    }
-    if (img.toLowerCase().endsWith('.svg')) {
-      return SvgPicture.network(
-        img,
-        fit: BoxFit.contain,
-        placeholderBuilder: (_) => const SizedBox.shrink(),
-      );
-    }
-    return CachedNetworkImage(
-      imageUrl: img,
-      fit: BoxFit.contain,
-      placeholder: (_, __) => const SizedBox.shrink(),
-      errorWidget: (_, __, ___) => Icon(
-        Icons.broken_image,
-        size: 20,
-        color: Colors.grey,
-      ),
-    );
+    // The SVG branch used to carry a placeholder but no errorBuilder, so a
+    // `.svg` URL answering with an HTML 404 page had nowhere to put the parse
+    // failure.
+    return RemoteIconImage(path: img);
   }
 }
 

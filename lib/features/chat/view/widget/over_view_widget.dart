@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -181,8 +182,7 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
                                   "Rating: $_userRating, Review: ${_reviewController.text}");
                               // TODO: Call API here
                             } else {
-                              Get.snackbar("Rating required",
-                                  "Please select at least 1 star");
+                              commonSnackBar(message: "Please select at least 1 star");
                             }
                           },
                           child: const Text("Submit"),

@@ -253,10 +253,30 @@ class DateOfIncorporation {
     this.year,
   });
 
+  /// See the note on the same constructor in `viewBusinessProfileModel.dart`:
+  /// this field also arrives as a plain ISO string, and indexing a String with
+  /// a String key is fatal to the whole parse.
   DateOfIncorporation.fromJson(dynamic json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
   }
 
   int? date;

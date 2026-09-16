@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -173,7 +174,7 @@ class _BusinessChatProfileOverviewState extends State<BusinessChatProfileOvervie
                     print("Rating: $_userRating, Review: ${_reviewController.text}");
                     // TODO: Call API here
                   } else {
-                    Get.snackbar(AppStrings.ratingRequired.tr, AppStrings.selectAtLeastOneStar.tr);
+                    commonSnackBar(message: AppStrings.selectAtLeastOneStar.tr);
                   }
                 },
                 child: CustomText(AppStrings.submitLabel.tr),

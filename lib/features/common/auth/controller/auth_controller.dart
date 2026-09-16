@@ -1140,9 +1140,37 @@ class AuthController extends GetxController {
   RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
   RxList<SubCategories> arrIndividualSubCategories = <SubCategories>[].obs;
 
+  /// Why the last [fetchIndividualFields] came back with nothing, or null when
+  /// it came back with something.
+  ///
+  /// [arrIndividualFields] being empty does not say WHY — the list is cleared
+  /// before every request, so "failed", "still to be asked for" and "the
+  /// server has no fields for this tag" all look identical from the outside.
+  /// The pickers that read the list showed the same empty dropdown for all
+  /// three, giving someone whose request simply timed out nothing to tap and
+  /// no reason for it.
+  ///
+  /// Carries the server's own line where there is one, and the transport
+  /// message ("No internet connection") otherwise — see [ResponseModel.message].
+  ///
+  /// Readers run it through `tr`, which returns anything it has no translation
+  /// for unchanged: that translates the fallback key below while leaving a
+  /// server sentence exactly as it arrived.
+  final RxnString individualFieldsError = RxnString();
+
+  /// The tag the last fetch was for, so [retryIndividualFields] needs nothing
+  /// from the widget showing the error. The pickers sit several rebuilds away
+  /// from the selection that chose the tag, and threading it back through
+  /// three screens to power a Retry button is how it goes stale.
+  String? _individualFieldsTagId;
+
   Future<void> fetchIndividualFields({required String tagId}) async {
     try {
       isIndividualFieldLoading.value = true;
+      _individualFieldsTagId = tagId;
+      // Cleared alongside the list: a stale message would otherwise sit over
+      // the spinner for the whole of the next request.
+      individualFieldsError.value = null;
       arrIndividualFields.clear();
       arrIndividualSubCategories.clear();
 
@@ -1156,13 +1184,31 @@ class AuthController extends GetxController {
         arrIndividualFields.value = individualFieldsResponseModel.data?.fields ?? [];
       } else {
         contentCreatorFieldResponse.value = ApiResponse.error('error');
+        // The translation KEY as the fallback, not the literal English
+        // sentence — it is the one of the two that survives `tr`.
+        individualFieldsError.value = response.message?.toString() ??
+            AppStrings.globalSearchSomethingWentWrong;
       }
     } catch (e, s) {
       contentCreatorFieldResponse.value = ApiResponse.error('error');
+      // A parse that throws leaves the list empty exactly like a failed
+      // request, so it is reported exactly like one.
+      individualFieldsError.value = AppStrings.globalSearchSomethingWentWrong;
       print("stack trace: $s");
     } finally {
       isIndividualFieldLoading.value = false;
     }
+  }
+
+  /// Runs the last [fetchIndividualFields] again.
+  ///
+  /// A no-op before the first one: there is no tag to ask about yet, and the
+  /// pickers that offer Retry are only built once a profession has been
+  /// chosen.
+  Future<void> retryIndividualFields() async {
+    final tagId = _individualFieldsTagId;
+    if (tagId == null) return;
+    await fetchIndividualFields(tagId: tagId);
   }
 
   /// Business and Personal Category

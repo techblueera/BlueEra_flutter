@@ -271,7 +271,17 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // We own the orders SSE stream while this screen is alive — tear it
     // down so the connection isn't leaked once the screen is gone.
     _ordersCtrl.stopStream();
-    deleteIfRegistered<DeliveryPartnerController>();
+    // [DeliveryPartnerController] is deliberately NOT dropped here. It is
+    // registered `permanent: true` because its lifetime is the SESSION, not
+    // whichever route happened to create it first, and this screen is only one
+    // of a dozen holders — the rider profile status screen and the document
+    // cards it builds (Aadhaar, PAN, RC, licence, vehicle) each resolve it
+    // independently. Deleting it on the way out took the controller away from
+    // screens still using it and from cards yet to mount, which is what threw
+    // `"DeliveryPartnerController" not found` out of their state constructors.
+    //
+    // `logoutHelper` owns the teardown instead, where the session actually
+    // ends — see the rider-pair note there.
     super.dispose();
   }
 

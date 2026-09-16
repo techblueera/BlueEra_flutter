@@ -505,11 +505,44 @@ class DateOfIncorporation {
       this.month, 
       this.year,});
 
+  /// Tolerates the shapes this field has actually arrived in.
+  ///
+  /// `{date, month, year}` is the documented one. A plain ISO STRING
+  /// ("2000-07-11", or a full timestamp) is what crashed here: indexing a
+  /// String with a String key throws `type 'String' is not a subtype of type
+  /// 'int' of 'index'`, and because this is parsed on the way to
+  /// `businessProfileDetails`, one odd value took the entire business profile
+  /// — and the Me tab with it — down.
+  ///
+  /// Anything unrecognised leaves all three null, which every reader already
+  /// copes with: they are nullable, and the profile renders without a date.
   DateOfIncorporation.fromJson(dynamic json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      // Unambiguous formats only. `11/07/2000` is deliberately left unparsed:
+      // guessing between day-first and month-first would record the wrong date
+      // silently, which is worse than recording none.
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
   }
+
+  /// The parts arrive as ints, as `"11"`, and occasionally as `11.0`.
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
+
   int? date;
   int? month;
   int? year;

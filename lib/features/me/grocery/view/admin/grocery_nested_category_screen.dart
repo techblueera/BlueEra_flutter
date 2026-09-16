@@ -1,7 +1,7 @@
+import 'package:BlueEra/widgets/remote_icon_image.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -13,7 +13,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../widgets/common_back_app_bar.dart';
@@ -121,19 +120,11 @@ class _GroceryNestedCategoryScreenState
                         value: choice,
                         child: Row(
                           children: [
-                            (isNetworkImage(choice.image))
-                                ? SvgPicture.network(
-                                    choice.image ?? '',
-                                    width: SizeConfig.size20,
-                                    height: SizeConfig.size20,
-                                    fit: BoxFit.contain,
-                                  )
-                                : LocalAssets(
-                                    imagePath: choice.image ?? '',
-                                    width: SizeConfig.size20,
-                                    height: SizeConfig.size20,
-                                    boxFix: BoxFit.contain,
-                                  ),
+                            RemoteIconImage(
+                              path: choice.image,
+                              width: SizeConfig.size20,
+                              height: SizeConfig.size20,
+                            ),
                             SizedBox(width: SizeConfig.size8),
                             CustomText(
                               choice.name?.tr,

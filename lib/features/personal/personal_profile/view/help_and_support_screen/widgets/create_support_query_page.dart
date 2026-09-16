@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -8,7 +9,6 @@ import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../../../../../core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -33,7 +33,7 @@ class _CreateSupportQueryPageState extends State<CreateSupportQueryPage> {
   /// ---------------- IMAGE PICK ----------------
   Future<void> pickImage() async {
     if (controller.pickedQueriesImages.length >= 3) {
-      Get.snackbar('Limit reached', 'You can upload max 3 images');
+      commonSnackBar(message: 'You can upload max 3 images');
       return;
     }
 
@@ -57,17 +57,17 @@ class _CreateSupportQueryPageState extends State<CreateSupportQueryPage> {
   /// ---------------- VALIDATION ----------------
   bool validateForm() {
     if (_subjectController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Subject is required');
+      commonSnackBar(message: 'Subject is required');
       return false;
     }
 
     if (_messageController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Message is required');
+      commonSnackBar(message: 'Message is required');
       return false;
     }
 
     if (priority == null) {
-      Get.snackbar('Error', 'Please choose priority');
+      commonSnackBar(message: 'Please choose priority');
       return false;
     }
 

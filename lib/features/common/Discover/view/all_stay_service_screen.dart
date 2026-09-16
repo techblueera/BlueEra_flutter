@@ -717,11 +717,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   Future<void> _openHotelChat(HotelServiceData service) async {
     final businessId = service.businessId ?? service.profile?.businessId ?? '';
     if (businessId.isEmpty) {
-      Get.snackbar(
-        AppStrings.na.tr,
-        AppStrings.businessNotAvailableForChat.tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      commonSnackBar(message: AppStrings.businessNotAvailableForChat.tr);
       return;
     }
     if (isGuestUser()) {
@@ -744,11 +740,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   Future<void> _openRentalChat(RentalServiceData service) async {
     final ownerId = service.userId;
     if (ownerId == null || ownerId.isEmpty) {
-      Get.snackbar(
-        AppStrings.na.tr,
-        AppStrings.businessNotAvailableForChat.tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      commonSnackBar(message: AppStrings.businessNotAvailableForChat.tr);
       return;
     }
     final chatViewController = Get.find<ChatViewController>();

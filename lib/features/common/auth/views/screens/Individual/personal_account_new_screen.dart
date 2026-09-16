@@ -27,6 +27,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/languge_li
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
+import 'package:BlueEra/features/common/auth/views/widget/individual_fields_slot.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/location_help_sheet.dart';
@@ -253,6 +254,29 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
     subDivision.clear();
     specializationController.clear();
   }
+
+  /// The expertise / art-and-skill options, taken from the single field the
+  /// API returns for these tags — empty when there is no field to read them
+  /// from.
+  ///
+  /// The guard is the point. [AuthController.fetchIndividualFields] clears the
+  /// list before every request and lowers `isIndividualFieldLoading` in a
+  /// `finally`, so a failed request, a thrown parse, or a response carrying an
+  /// empty `fields` array all end with the spinner gone and the list EMPTY.
+  /// The dropdowns below then read `arrIndividualFields[0]` inside an `Obx`
+  /// and threw a RangeError mid-build, which takes the whole screen down
+  /// rather than showing one empty picker.
+  ///
+  /// Reads `arrIndividualFields` itself, so callers inside an `Obx` still
+  /// rebuild when the fetch lands.
+  List<SubCategories> get _individualSubCategories {
+    final fields = authController.arrIndividualFields;
+    if (fields.isEmpty) return const [];
+    return fields.first.subcategories ?? const [];
+  }
+
+  Widget _individualFieldsSlot(Widget Function() picker) =>
+      IndividualFieldsSlot(picker: picker);
 
   @override
   Widget build(BuildContext context) {
@@ -570,14 +594,9 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : CommonDropdownDialog<SubCategories>(
-                              items: authController
-                                      .arrIndividualFields[0].subcategories ??
-                                  [],
+                      _individualFieldsSlot(
+                          () => CommonDropdownDialog<SubCategories>(
+                              items: _individualSubCategories,
                               selectedValue: _selectedProfessionalObj,
                               title: langController.tr(AppStrings.expertise),
                               hintText: langController.tr(AppStrings.loanConsultantHint),
@@ -601,11 +620,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.paddingL,
                       ),
 
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : Column(
+                      _individualFieldsSlot(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
@@ -702,16 +717,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.size10,
                       ),
 
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          : Column(
+                      _individualFieldsSlot(() => Column(
                         children: [
                           CommonDropdownDialog<SubCategories>(
-                            items: authController.arrIndividualFields[0]
-                                .subcategories ??
-                                [],
+                            items: _individualSubCategories,
                             selectedValue: _selectedArtistObj,
                             title: langController.tr(AppStrings.selectArtSkill),
                             hintText: langController.tr(AppStrings.actorHint),

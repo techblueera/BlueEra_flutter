@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -33,15 +34,7 @@ class MyCodeHeader extends StatelessWidget {
   Future<void> _copy() async {
     if (code.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: code));
-    Get.snackbar(
-      AppStrings.copiedLabel.tr,
-      AppStrings.referralCodeCopiedToClipboard.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.white,
-      colorText: AppColors.mainTextColor,
-      margin: const EdgeInsets.all(12),
-      borderRadius: 10,
-    );
+    commonSnackBar(message: AppStrings.referralCodeCopiedToClipboard.tr);
   }
 
   /// Builds the branded referral poster off-screen and shares it as an

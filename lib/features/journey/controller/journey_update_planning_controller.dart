@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
@@ -48,7 +49,7 @@ class JourneyUpdatePlanningController extends GetxController {
     ),
     SocialInputFieldsModel(
       name: 'Instagram',
-      icon: 'assets/svg/instagram_grey.svg',
+      icon: AppIconAssets.instagramIcon,
       linkController: TextEditingController(),
     ),
     SocialInputFieldsModel(

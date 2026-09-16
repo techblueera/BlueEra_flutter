@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -255,25 +256,7 @@ class _DayRow extends StatelessWidget {
       (a.hour * 60 + a.minute) < (b.hour * 60 + b.minute);
 
   void _showRangeError(String message) {
-    Get.snackbar(
-      'Invalid hours',
-      message,
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(12),
-      borderRadius: 10,
-      backgroundColor: Colors.white,
-      colorText: AppColors.mainTextColor,
-      icon: Icon(Icons.error_outline_rounded,
-          color: AppColors.primaryColor),
-      boxShadows: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    );
+    commonSnackBar(message: message);
   }
 
   /// Compact pill that takes over the open-state slot when the day

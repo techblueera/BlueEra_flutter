@@ -47,6 +47,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
+import 'package:BlueEra/features/common/auth/views/widget/individual_fields_slot.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -1075,11 +1076,8 @@ class _PersonalProfileSetupNewScreenState
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                        )
-                          : CommonDropdownDialog<SubCategories>(
+                      IndividualFieldsSlot(
+                          picker: () => CommonDropdownDialog<SubCategories>(
                         items: List<SubCategories>.from(
                             authController.arrIndividualFields.isNotEmpty
                                 ? (authController.arrIndividualFields[0].subcategories ?? [])
@@ -1110,11 +1108,8 @@ class _PersonalProfileSetupNewScreenState
                           height: SizeConfig.size10,
                         ),
 
-                        Obx(() => authController.isIndividualFieldLoading.value
-                            ? Center(
-                          child: CircularProgressIndicator(),
-                        )
-                            : Column(
+                        IndividualFieldsSlot(
+                            picker: () => Column(
                           children: [
                             CommonDropdownDialog<SubCategories>(
                               items: List<SubCategories>.from(
@@ -1139,11 +1134,8 @@ class _PersonalProfileSetupNewScreenState
                     if(_selectedProfession?.tagId == CONTENT_CREATOR)...[
                       SizedBox(height: SizeConfig.paddingM),
 
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          : Column(
+                      IndividualFieldsSlot(
+                          picker: () => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(

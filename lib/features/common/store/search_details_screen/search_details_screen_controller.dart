@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -207,13 +208,7 @@ class SearchDetailsScreenController extends GetxController {
     final productIndex = products.indexWhere((item) => item['id'] == productId);
     if (productIndex != -1) {
       products[productIndex]['isAddedToCart'] = true;
-      Get.snackbar(
-        'Added to Cart',
-        'Product has been added to your cart',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Product has been added to your cart');
     }
   }
 
@@ -222,36 +217,18 @@ class SearchDetailsScreenController extends GetxController {
     if (productIndex != -1) {
       products[productIndex]['isWishlisted'] = !products[productIndex]['isWishlisted'];
       products.refresh();
-      Get.snackbar(
-        products[productIndex]['isWishlisted'] ? 'Added to Wishlist' : 'Removed from Wishlist',
-        products[productIndex]['isWishlisted'] ? 'Product added to wishlist' : 'Product removed from wishlist',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: products[productIndex]['isWishlisted'] ? Colors.green : Colors.orange,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: products[productIndex]['isWishlisted'] ? 'Product added to wishlist' : 'Product removed from wishlist');
     }
   }
 
   void viewProductDetails(String productId) {
     final product = products.firstWhere((item) => item['id'] == productId);
-    Get.snackbar(
-      'View Details',
-      'Viewing details for: ${product['name']}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: 'Viewing details for: ${product['name']}');
   }
 
   void shareProduct(String productId) {
     final product = products.firstWhere((item) => item['id'] == productId);
-    Get.snackbar(
-      'Share Product',
-      'Sharing: ${product['name']}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.purple,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: 'Sharing: ${product['name']}');
   }
 
   // Sort Methods

@@ -46,6 +46,17 @@ class _CreateBusinessAccountNewStepThreeState
   }
 
   void _validateForm() {
+    // Not just a field listener: this is also handed to the AI description
+    // dialog as its `onSaved`, and that dialog is a route of its own that
+    // outlives this screen — it stays up when the stack underneath is unwound.
+    // Saving from a dialog whose owner has been disposed reached `setState`
+    // on a dead State, where `_element!` is null: "Null check operator used on
+    // a null value", thrown out of `State.setState` itself.
+    //
+    // The same guard the twin screen already carries — see
+    // `create_business_account_new_step_four.dart`'s `_onDescriptionChanged`.
+    if (!mounted) return;
+
     String email = emailTextController.text.trim();
     bool isEmailValid = email.isEmpty ||
         (GetUtils.isEmail(email) && email.endsWith("@gmail.com"));

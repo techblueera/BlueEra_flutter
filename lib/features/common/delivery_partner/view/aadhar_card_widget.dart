@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -38,7 +39,8 @@ class AadharCardWidget extends StatefulWidget {
 }
 
 class _AadharCardWidgetState extends State<AadharCardWidget> {
-  final controller = Get.find<DeliveryPartnerController>();
+  final controller =
+      getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override
   void initState() {

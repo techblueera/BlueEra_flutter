@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/auth/model/personal_profession_model.dar
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/features/common/auth/views/widget/individual_fields_slot.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -381,9 +382,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size10),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? const Center(child: CircularProgressIndicator())
-                          : CommonDropdownDialog<SubCategories>(
+                      IndividualFieldsSlot(
+                          picker: () => CommonDropdownDialog<SubCategories>(
                               items: List<SubCategories>.from(
                                   authController.arrIndividualFields.isNotEmpty
                                       ? (authController.arrIndividualFields[0]
@@ -408,9 +408,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size10),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? const Center(child: CircularProgressIndicator())
-                          : CommonDropdownDialog<SubCategories>(
+                      IndividualFieldsSlot(
+                          picker: () => CommonDropdownDialog<SubCategories>(
                               items: List<SubCategories>.from(
                                   authController.arrIndividualFields.isNotEmpty
                                       ? (authController.arrIndividualFields[0]
@@ -428,9 +427,8 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
                     ],
                     if (_selectedProfession?.tagId == CONTENT_CREATOR) ...[
                       SizedBox(height: SizeConfig.paddingM),
-                      Obx(() => authController.isIndividualFieldLoading.value
-                          ? const Center(child: CircularProgressIndicator())
-                          : Column(
+                      IndividualFieldsSlot(
+                          picker: () => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(

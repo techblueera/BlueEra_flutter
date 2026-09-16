@@ -1,10 +1,8 @@
+import 'package:BlueEra/widgets/remote_icon_image.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class GroceryCategoryItem extends StatelessWidget {
   final String url;
@@ -60,24 +58,14 @@ class GroceryCategoryItem extends StatelessWidget {
   }
 
   Widget _buildImage(String path) {
-
-    if (isNetworkImage(path)) {
-      // Network image
-      return SvgPicture.network(
-        path,
-        width: SizeConfig.size30,
-        height: SizeConfig.size30,
-        fit: BoxFit.contain,
-      );
-    } else {
-      // Local asset (svg or png/jpg)
-      return LocalAssets(
-        imagePath: path,
-        width: SizeConfig.size30,
-        height: SizeConfig.size30,
-        boxFix: BoxFit.contain,
-      );
-    }
+    // Routes by what the path actually IS. This used to send every network
+    // URL to the SVG decoder, so a PNG category icon threw an XML parse error
+    // off a background isolate.
+    return RemoteIconImage(
+      path: path,
+      width: SizeConfig.size30,
+      height: SizeConfig.size30,
+    );
   }
 
 

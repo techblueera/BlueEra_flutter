@@ -102,7 +102,7 @@ class StudentCornerController extends GetxController {
       studentCornerId.value = postResponse.response?.data['data']['_id'];
       print("New ID created and stored: ${studentCornerId.value}");
     } else {
-      Get.snackbar("Failed", "Could not create student corner section");
+      commonSnackBar(message: "Could not create student corner section");
     }
   }
 

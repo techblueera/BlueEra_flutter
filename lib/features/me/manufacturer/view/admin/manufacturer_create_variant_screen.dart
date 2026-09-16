@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -153,10 +154,7 @@ class _ManufacturerCreateVariantScreenState
                                     );
                                   }
                                 : () {
-                                    Get.snackbar(
-                                      AppStrings.error.tr,
-                                      AppStrings.selectVariantPrompt.tr,
-                                    );
+                                    commonSnackBar(message: AppStrings.selectVariantPrompt.tr);
                                   },
                           ),
                         ),
@@ -1080,11 +1078,7 @@ class _ManufacturerCreateVariantScreenState
                   Obx(() => CustomBtn(
                         onTap: () async {
                           if (newColors.isEmpty) {
-                            Get.snackbar(
-                              AppStrings.error.tr,
-                              AppStrings.pickAtLeastOneColor.tr,
-                              snackPosition: SnackPosition.TOP,
-                            );
+                            commonSnackBar(message: AppStrings.pickAtLeastOneColor.tr);
                             return;
                           }
                           final colors = newColors
@@ -1331,11 +1325,7 @@ class _ManufacturerCreateVariantScreenState
                             () => CustomBtn(
                               onTap: () async {
                                 if (newValues.isEmpty) {
-                                  Get.snackbar(
-                                    AppStrings.error.tr,
-                                    AppStrings.enterValue.tr,
-                                    snackPosition: SnackPosition.TOP,
-                                  );
+                                  commonSnackBar(message: AppStrings.enterValue.tr);
                                   return;
                                 }
 

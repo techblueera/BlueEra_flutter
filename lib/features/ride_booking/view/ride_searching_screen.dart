@@ -31,12 +31,27 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
   /// Fare bumps offered while searching, matching the reference chips.
   static const List<double> _boostAmounts = [10, 20, 30, 40];
 
+  /// This screen's own route and navigator.
+  ///
+  /// Captured because the exits below can fire while a cancel sheet is stacked
+  /// on top — the sheet's own tap is what triggers them — and at that moment
+  /// `Get.back()` pops the SHEET and leaves this now-dead screen in place.
+  NavigatorState? _navigator;
+  ModalRoute<dynamic>? _selfRoute;
+
   @override
   void initState() {
     super.initState();
     // A single worker owns every transition out of this screen, so there is
     // exactly one place that can navigate away.
     _statusWorker = ever(controller.activeBooking, _onBookingChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navigator = Navigator.of(context);
+    _selfRoute = ModalRoute.of(context);
   }
 
   @override
@@ -112,8 +127,29 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
         ? 'This ride was cancelled.'
         : 'No captains available right now. Please try again.';
     controller.resetTrip();
-    Get.back();
-    Get.snackbar('Ride', message, snackPosition: SnackPosition.BOTTOM);
+    _popSelf();
+    // The app's own message overlay, not `Get.snackbar`. GetX's queue reports a
+    // snackbar as "being shown" from the moment it is queued, while its
+    // animation controller is still an uninitialised `late` field — and the
+    // very next `Get.back()` anywhere in the app tries to close it and throws
+    // `LateInitializationError`. The cancel sheet, which is usually mid-pop
+    // when this runs, is exactly the next `Get.back()`.
+    commonSnackBar(message: message);
+  }
+
+  /// Leaves this screen, taking anything stacked on top of it with it.
+  ///
+  /// `Get.back()` pops one route, and the one on top is usually the cancel
+  /// sheet — the tap that reached here came FROM it. That left the search
+  /// screen sitting over a reset controller with nothing left to search for.
+  void _popSelf() {
+    final navigator = _navigator;
+    final route = _selfRoute;
+    // `isActive` before `popUntil`: given a route that has already left the
+    // stack, the predicate never matches and it unwinds the whole app.
+    if (navigator == null || route == null || !route.isActive) return;
+    navigator.popUntil((r) => r == route);
+    navigator.pop();
   }
 
   /// Back / cancel while searching. No captain is attached yet, so this skips
@@ -123,9 +159,13 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
       controller: controller,
       skipCaptainConfirm: true,
     );
-    if (cancelled == true && mounted) {
+    // `_navigated` as well as `mounted`: the worker reaches
+    // [_handleSearchFailed] off the same cancellation and may already have left
+    // this screen, and a second pop here would take the route underneath.
+    if (cancelled == true && mounted && !_navigated) {
+      _navigated = true;
       controller.resetTrip();
-      Get.back();
+      _popSelf();
     }
   }
 

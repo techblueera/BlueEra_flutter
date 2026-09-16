@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -100,69 +101,33 @@ class ProductListingController extends GetxController {
 
   void saveAsDraft() {
     if (productNameController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter a product name',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter a product name');
       return;
     }
 
     // Save as draft functionality
-    Get.snackbar(
-      'Success',
-      'Product saved as draft',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: 'Product saved as draft');
   }
 
   void postProduct() {
     if (productNameController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter a product name',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter a product name');
       return;
     }
 
     // Post product functionality
-    Get.snackbar(
-      'Success',
-      'Product posted successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: 'Product posted successfully');
   }
 
   void searchProduct() {
     final productName = productNameController.text.trim();
     if (productName.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter a product name to search',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      commonSnackBar(message: 'Please enter a product name to search');
       return;
     }
 
     // Search product functionality
-    Get.snackbar(
-      'Searching',
-      'Searching for product: $productName',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
+    commonSnackBar(message: 'Searching for product: $productName');
   }
 
   // Manual initialization method

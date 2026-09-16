@@ -364,6 +364,24 @@ logs("BUSINESS ID=== ${businessId}");
       //       message: responseModel.message ?? AppStrings.somethingWentWrong);
       // }
     }
+    } catch (e, s) {
+      // The `try` here had only a `finally`, so ANY throw inside it escaped and
+      // killed the app. One value of an unexpected type is enough:
+      // `date_of_incorporation` arriving as a string rather than
+      // `{date, month, year}` threw out of [ViewBusinessProfileModel.fromJson]
+      // — see the note there — and took the whole Me tab with it.
+      //
+      // The model is fixed for that field, but a profile parse is a wide
+      // surface and the next surprise should cost the merchant a retry, not a
+      // crash. `meProfileError` is the state the Me tab already renders for
+      // "couldn't load your profile", so this lands somewhere that shows.
+      //
+      // Logged in full, because a swallowed parse error that nobody can see is
+      // how a backend contract change goes unnoticed for a release.
+      logs('BUSINESS PROFILE parse/apply failed: $e\n$s');
+      if (businessProfileDetails.value == null) {
+        meProfileError.value = AppStrings.somethingWentWrong.tr;
+      }
     } finally {
       // Cleared last — AFTER the globals were applied above — so the "Me" tab's
       // rebuild (driven by this true→false flip) reads fresh data.

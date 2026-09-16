@@ -413,11 +413,21 @@ class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
               pIcon: Container(
                 width: 40,
                 child: Center(
+                  // The whole row is tinted from one place rather than each
+                  // glyph carrying its own copy of the colour. A no-op for the
+                  // `_grey` marks, which are already drawn in it; what it is
+                  // for is the shared Instagram mark, which carries no colour
+                  // of its own so it can serve both this row and the white
+                  // share buttons.
                   child: SvgPicture.asset(
                     field.icon,
                     height: SizeConfig.size24,
                     width: SizeConfig.size24,
                     fit: BoxFit.fitHeight,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.grey9A,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),

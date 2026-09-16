@@ -1586,7 +1586,7 @@ void showDiscountCouponDialog(BuildContext context) {
                               Get.put(AddServiceController()).addCoupon(coupon);
 
                               Get.back();
-                              Get.snackbar(AppStrings.success, AppStrings.couponSaved.tr);
+                              commonSnackBar(message: AppStrings.couponSaved.tr);
 
                             }
                           },

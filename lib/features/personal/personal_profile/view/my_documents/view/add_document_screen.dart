@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -45,7 +46,7 @@ class AddDocumentScreen extends StatefulWidget {
 
     if (meta == null ||
         (meta.frontUrl == null && meta.backUrl == null)) {
-      Get.snackbar(AppStrings.info.tr, AppStrings.noDocumentUploaded.tr);
+      commonSnackBar(message: AppStrings.noDocumentUploaded.tr);
       return;
     }
 
