@@ -204,6 +204,11 @@ class AppConstants {
   static const String individual = 'INDIVIDUAL';
   static const String business = 'BUSINESS';
   static const String guest = 'GUEST';
+  /// In the backend's `account_type` enum, with 0 rows in production today.
+  /// A LABEL, never a gate: login must not depend on recognising it (see the
+  /// real `else` in AuthController.verifyOTP), or the next type the backend
+  /// adds locks its users out the same way `GUEST` was locked out.
+  static const String bluefly = 'BLUEFLY';
 
   static const String businessName = "Eg. Friends Collections Center...";
   static const String name = "Eg. Rahul Sharma";

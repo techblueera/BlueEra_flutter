@@ -155,6 +155,45 @@ class OrderLifecycleRepo extends BaseService {
     );
   }
 
+  /// Cash in the shop's hand, after the code matched (`COLLECT_CASH`).
+  Future<ResponseModel> collectCash(String orderId,
+      {num? amountCollected, String service = _defaultService}) {
+    return ApiBaseHelper().postHTTP(
+      orderCollectCash(orderId, service: service),
+      params: {
+        if (amountCollected != null) 'amountCollected': amountCollected,
+      },
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// Close a `picked-up` order by hand (`COMPLETE_ORDER`).
+  Future<ResponseModel> completeOrder(String orderId,
+      {String service = _defaultService}) {
+    return ApiBaseHelper().postHTTP(
+      orderComplete(orderId, service: service),
+      params: const <String, dynamic>{},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// Start packing a doorstep order now that a rider is coming
+  /// (`START_PREPARING`).
+  Future<ResponseModel> startPreparing(String orderId,
+      {String service = _defaultService}) {
+    return ApiBaseHelper().postHTTP(
+      orderStartPreparing(orderId, service: service),
+      params: const <String, dynamic>{},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
   Future<ResponseModel> noShow(String orderId,
       {String? comment, String service = _defaultService}) {
     return ApiBaseHelper().postHTTP(

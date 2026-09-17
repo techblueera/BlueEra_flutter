@@ -10,6 +10,7 @@ import 'package:BlueEra/core/api/model/gst_verify_model.dart';
 import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/api/model/otp_verify_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/auth/model/login_destination.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -177,7 +178,34 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         OtpVerifyModel data = otpVerifyModelFromJson(jsonEncode(response.response?.data));
 
-        final dataUser = response.response?.data?[ApiKeys.user] ?? false;
+        // `user` is the ONLY existence check: "is there an account for this
+        // number?". Read off the model now that OtpVerifyModel parses it,
+        // instead of reaching past the model into the raw response map.
+        final dataUser = data.userExists == true;
+
+        // The account type, resolved ONCE for the whole login. Prefer the
+        // top-level `account_type` (guaranteed non-null when `user` is true)
+        // over `data.account_type`, which rows predating the enum can still
+        // come back without.
+        final rawAccountType =
+            (data.accountType ?? data.data?.accountType ?? '').trim();
+        final accountType = rawAccountType.toUpperCase();
+        // The backend's verdict on whether signup is unfinished. NOT inferred
+        // from the account type — see the field table in
+        // lib/docs/FLUTTER_LOGIN_EXISTING_USER_FIX_GUIDE.md §5.
+        final needsOnboarding = data.needsOnboarding == true;
+
+        // The whole routing decision, in one pure function so it can be
+        // tested without Dio / GetX / secure storage — see
+        // [resolveLoginDestination] and test/login_destination_test.dart.
+        // A GUEST (40% of the base) is a LOGIN, not a signup: its token is
+        // persisted exactly like any other and only the destination differs.
+        final destination = resolveLoginDestination(
+          userExists: dataUser,
+          accountType: rawAccountType,
+          needsOnboarding: needsOnboarding,
+          hasToken: data.token?.isNotEmpty ?? false,
+        );
 
         ///if true user key the user created successfully....
         if (dataUser) {
@@ -193,7 +221,7 @@ class AuthController extends GetxController {
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
             // OnesignalService.setOneSignalUserIdentity(
             //     data.data?.username ?? '');
-            if (data.data?.accountType?.toUpperCase() == AppConstants.business) {
+            if (destination == LoginDestination.business) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.accountType, AppConstants.business);
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
@@ -284,7 +312,45 @@ class AuthController extends GetxController {
                   'landOnDiscover': true,
                 },
               );
-            } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
+            } else if (destination == LoginDestination.guest) {
+              // THE FIX. A GUEST used to reach none of these branches, so
+              // nothing was persisted: the user was left on the OTP screen
+              // holding a valid token the app had thrown away, and a relaunch
+              // read the session as signed out. It affected 26,797 of 66,913
+              // accounts (40.05%) — every one of them indistinguishable from
+              // a fresh install to the person using it.
+              //
+              // This branch used to live as an `else` of `if (dataUser)` and
+              // only ran while the backend answered `user: false` for guests.
+              // Once the backend correctly started answering `user: true`
+              // (the account does exist), that branch became unreachable and
+              // took guest session persistence with it. It is handled HERE,
+              // inside the logged-in ladder, where the token actually is.
+              await _completeGuestLogin(data);
+              navigatedAway = true;
+            } else {
+              // A REAL `else`, deliberately — INDIVIDUAL plus every value the
+              // app does not recognise: `BLUEFLY` (in the backend enum, 0
+              // rows today), and the pre-enum values production still holds,
+              // `Admin` (32 rows) and the literal string `NULL` (2 rows).
+              // Whatever the backend adds next lands here too and LOGS IN,
+              // rather than silently failing the way GUEST did. Never turn
+              // this back into `== AppConstants.individual`.
+              //
+              // Unrecognised types are stored AS `INDIVIDUAL` rather than
+              // verbatim: the app gates screens on
+              // `accountTypeGlobal == INDIVIDUAL | BUSINESS` in dozens of
+              // places (isIndividualUser(), the jobs/post/profile screens),
+              // so persisting "Admin" would log them in to a nowhere-state
+              // that is neither. The individual treatment is also what the
+              // integration guide's §4 `else` prescribes — warm the personal
+              // profile controller. The value the server actually sent is
+              // logged below so it is never lost silently.
+              if (accountType != AppConstants.individual) {
+                logs('LOGIN accountType "$rawAccountType" is not a type this '
+                    'build knows — logging in as INDIVIDUAL via the fallback '
+                    'branch.');
+              }
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               await SharedPreferenceUtils.setSecureValue(
@@ -396,28 +462,23 @@ class AuthController extends GetxController {
           }
         }
 
-        ///Guest create account but profile create.....
-        else if (data.data?.accountType?.toUpperCase() == AppConstants.guest) {
-          await SharedPreferenceUtils.guestUserLoggedIn(
-            loginUserId_: "${data.data?.id}",
-            contactNo: "${data.data?.contactNo}",
-            autToken: "${data.token}",
-            getUserName: "${data.data?.name ?? data.data?.username}",
-            profileImage: data.data?.profileImage ?? '',
-          );
-          await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.guest);
-          await getGuestUserLoginData();
-          // await Future.delayed(Duration(milliseconds: 350));
-          // Get.offAll(() => const ChooseAccountTypeScreen());
-          // Guest signup lands on the bottom nav, NOT on account creation —
-          // the account-type screens are opened later from inside the app via
-          // `createProfileScreen()`.
-          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
-
-          // Get.offNamedUntil(
-          //   RouteHelper.getBottomNavigationBarScreenRoute(),
-          //   (route) => false,
-          // );
+        /// Guest on a backend that still answers `user: false` for guests.
+        ///
+        /// Kept for compatibility, NOT as the live path: a guest login is
+        /// handled by the guest branch inside `if (dataUser)` above, because a
+        /// current backend correctly reports that the account exists. Reaching
+        /// here means a deployment still running the pre-September
+        /// `user: [INDIVIDUAL, BUSINESS].includes(...)` whitelist (see the
+        /// deploy-branch warning in
+        /// lib/docs/FLUTTER_LOGIN_EXISTING_USER_FIX_GUIDE.md §7) — so both
+        /// backends log a guest in, and the app is safe either way.
+        ///
+        /// [resolveLoginDestination] only reports a guest here when a token
+        /// actually arrived: `user: false` with no token is a genuinely new
+        /// number and must fall through to signup rather than have a session
+        /// built out of `"null"` strings.
+        else if (destination == LoginDestination.guest) {
+          await _completeGuestLogin(data);
           otpVerificationResponse.value = ApiResponse.complete(response);
         }
 
@@ -439,6 +500,57 @@ class AuthController extends GetxController {
       commonSnackBar(message: e.toString());
       // Get.dialog(CustomText(e.toString()));
     }
+  }
+
+  /// Signs a GUEST account in: persists the session and lands them on the
+  /// home shell.
+  ///
+  /// A guest is a REAL account with a real token — 26,797 of 66,913 rows in
+  /// production — not a half-finished signup to be thrown away. Everything
+  /// here therefore mirrors the individual/business branches: the token,
+  /// mobile number, ids and `isUserLogin` all hit secure storage at the
+  /// moment the token lands, so a relaunch (and `SplashScreen`, which routes
+  /// purely on `isUserLogin`) finds a session instead of bouncing the user
+  /// back to the login screen.
+  ///
+  /// `isUserLoginGlobal` is set here too, not just the stored flag:
+  /// `DeepLinkRouter` reads the in-memory one to decide whether the session
+  /// is signed in, and `getGuestUserLoginData()` does not populate it.
+  ///
+  /// Destination is the bottom nav, NOT the account-type screen. That is this
+  /// app's deliberate guest flow — a guest browses, and account creation is
+  /// entered from inside the app via `createProfileScreen()` — and it is what
+  /// `createGuestAccountUserController` already does, so the two guest entry
+  /// points stay identical. (It differs from the integration guide's §4
+  /// sketch, which predates that decision.)
+  ///
+  /// Empty strings, never `"null"`: the old call site interpolated nullable
+  /// fields straight into strings, so a missing name or id was persisted as
+  /// the four characters `null` and read back as a real value.
+  Future<void> _completeGuestLogin(OtpVerifyModel data) async {
+    await SharedPreferenceUtils.guestUserLoggedIn(
+      loginUserId_: data.data?.id ?? '',
+      contactNo: data.data?.contactNo ?? '',
+      autToken: data.token ?? '',
+      getUserName: data.data?.name ?? data.data?.username ?? '',
+      profileImage: data.data?.profileImage ?? '',
+    );
+    // Written BEFORE getGuestUserLoginData(), which reads it back into
+    // `accountTypeGlobal` — isGuestUser() is what gates every guest
+    // restriction in the app.
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.accountType, AppConstants.guest);
+    isUserLoginGlobal = "true";
+    await getGuestUserLoginData();
+    await _persistLoginIdentity(data);
+    // Auth is available now — flush the FCM token queued during the
+    // pre-login window so pushes reach this device (see the business branch
+    // in verifyOTP). A guest takes no calls, so the VoIP/CallKit
+    // registration is deliberately not done here.
+    unawaited(AppNotificationHandler.flushPendingTokenSync());
+    _reportAuthToAnalytics(AppConstants.guest);
+    logs('GUEST LOGIN === session persisted, userId=$userId');
+    Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
   }
 
   /// Persists the two ids the verify-otp response carries — `data._id` (the

@@ -7,6 +7,9 @@ class OtpVerifyModel {
     this.message,
     this.token,
     this.data,
+    this.userExists,
+    this.accountType,
+    this.needsOnboarding,
     this.isBlocked,
     this.blockedType,
     this.accountDeletionCancelled,
@@ -17,6 +20,22 @@ class OtpVerifyModel {
     message = json['message'];
     token = json['token'];
     data = json['data'] != null ? User.fromJson(json['data']) : null;
+    // `user` answers ONE question: does an account exist for this number?
+    // It is NOT a statement about the account type, and the controller must
+    // not read it as one. Parsed here so the login path stops reaching past
+    // the model into the raw map (`response.data[ApiKeys.user]`).
+    userExists = json['user'] == true || json['user'] == 'true';
+    // Top-level `account_type`, which the backend guarantees non-null when
+    // `user` is true — unlike `data.account_type`, which pre-enum rows can
+    // still come back without. Only ever a LABEL for picking a profile
+    // screen: never a login gate, and never a whitelist. Production holds
+    // values outside the schema enum (`Admin`, the literal string `NULL`).
+    accountType = json['account_type']?.toString();
+    // The backend's verdict on whether this person still has to finish
+    // signup. The ONLY onboarding signal — do not infer it from
+    // `account_type`.
+    needsOnboarding = json['needs_onboarding'] == true ||
+        json['needs_onboarding'] == 'true';
     isBlocked = json['isBlocked'];
     blockedType = json['blockedType'];
     accountDeletionCancelled = json['account_deletion_cancelled'];
@@ -25,6 +44,9 @@ class OtpVerifyModel {
   String? message;
   String? token;
   User? data;
+  bool? userExists;
+  String? accountType;
+  bool? needsOnboarding;
 
   bool? isBlocked;
   dynamic blockedType;
@@ -38,6 +60,9 @@ class OtpVerifyModel {
     if (data != null) {
       map['data'] = data?.toJson();
     }
+    map['user'] = userExists;
+    map['account_type'] = accountType;
+    map['needs_onboarding'] = needsOnboarding;
     map['isBlocked'] = isBlocked;
     map['blockedType'] = blockedType;
     map['account_deletion_cancelled'] = accountDeletionCancelled;
