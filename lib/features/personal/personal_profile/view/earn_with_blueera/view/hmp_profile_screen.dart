@@ -103,7 +103,10 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
       galleryImages: galleryFiles.isNotEmpty ? galleryFiles : null,
     );
 
-    if (success) {
+    // Checked on the State, not the context: this is a State method, so the
+    // context is State.context. The create call uploads the logo and gallery,
+    // which is long enough for this screen to be gone.
+    if (success && mounted) {
       Navigator.of(context).pop();
     }
   }

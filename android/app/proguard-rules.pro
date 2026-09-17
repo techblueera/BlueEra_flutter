@@ -23,9 +23,23 @@
 -keep class com.arthenica.ffmpegkit.** { *; }
 -dontwarn com.arthenica.ffmpegkit.**
 
-# Keep Flutter JNI stuff
--keep class io.flutter.embedding.** { *; }
--dontwarn io.flutter.embedding.**
+# Keep Flutter JNI stuff.
+#
+# The whole io.flutter tree, not just io.flutter.embedding. The embedding
+# arrives as a plain JAR (flutter_embedding_release-*.jar), and a JAR cannot
+# carry consumer ProGuard rules the way an AAR can — verified: it ships none.
+# So nothing keeps any of it except what is written here, while
+# android.enableR8.fullMode=true and proguard-android-optimize.txt let R8
+# shrink, merge and access-modify freely.
+#
+# io.flutter.view was outside the old rule, and that is where
+# NoClassDefFoundError "Failed resolution of: Lio/flutter/view/a;" came from —
+# AccessibilityBridge (io.flutter.view.n) failing to resolve a sibling in its
+# own package while FlutterView attached to the engine, i.e. on every launch
+# for the affected builds. io.flutter.plugin and io.flutter.util are reached
+# over JNI and by plugin reflection and are equally unprotected.
+-keep class io.flutter.** { *; }
+-dontwarn io.flutter.**
 
 # Firebase Core
 -keep class com.google.firebase.** { *; }

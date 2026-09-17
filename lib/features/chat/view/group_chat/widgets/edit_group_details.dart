@@ -126,7 +126,7 @@ class _EditGroupDetailsDialogState extends State<EditGroupDetailsDialog> {
                     };
                     bool value = await chatViewController
                         .updateGroupInfo(data);
-                    if (value == true) {
+                    if (value == true && context.mounted) {
                       Navigator.pop(context);
                     }
                   },

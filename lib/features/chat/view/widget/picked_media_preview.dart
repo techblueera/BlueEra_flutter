@@ -161,14 +161,19 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
     final file = _mediaFiles[index];
     final fileImage = FileImage(file);
 
+    // Captured before any await: the cropper must not pop itself — see the
+    // `shouldPopAfterCrop: false` below — and this used to sit after the
+    // precache, which is an await, so it was resolving a navigator off a
+    // context that may already have been disposed.
+    final cropNavigator = Navigator.of(context);
+
     // Precache before showing cropper
     await precacheImage(fileImage, context);
+    // The precache decodes the full-size image, which is long enough for this
+    // page to be dismissed underneath it; there is nothing left to crop on.
+    if (!mounted) return;
 
     File? croppedFile;
-
-    // Captured before the push: the cropper must not pop itself — see the
-    // `shouldPopAfterCrop: false` below.
-    final cropNavigator = Navigator.of(context);
 
     await showCupertinoImageCropper(
       context,

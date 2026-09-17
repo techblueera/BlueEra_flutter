@@ -110,6 +110,9 @@ Future<void> showAddProductsKickstartIfNeeded(BuildContext context) async {
     // GetX's `isDialogOpen` / `isBottomSheetOpen` flags are not consulted
     // because they only track sheets opened through Get and go stale when one
     // is dismissed with `Navigator.pop`, which most of this app's sheets do.
+    // The profile wait and the emptiness probe above are both awaits, so the
+    // page that asked for this prompt may already be gone.
+    if (!context.mounted) return;
     if (!await _waitUntilHostIsOnTop(context)) {
       logs('KICKSTART: skip — another route stayed on top');
       return;

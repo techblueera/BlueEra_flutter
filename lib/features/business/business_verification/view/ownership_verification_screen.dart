@@ -54,7 +54,9 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
         };
       }
       viewBusinessDetailsController.postVerifyOwnerBusinessDocs(data);
-      Navigator.pop(context);
+      // `mounted` on the State — this is a State method, and reading the
+      // document into a MultipartFile above is an await.
+      if (mounted) Navigator.pop(context);
     } else {
       commonSnackBar(
           message: "Please provide the required information");

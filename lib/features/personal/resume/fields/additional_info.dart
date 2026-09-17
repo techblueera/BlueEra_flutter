@@ -337,7 +337,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                     date: date,
                                   );
                                 }
-                                Navigator.pop(context);
+                                if (context.mounted) Navigator.pop(context);
                               }
                             : null,
                       ),

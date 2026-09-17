@@ -776,8 +776,13 @@ class _BusinessDetailsEditPageOneState
 
                                 /// After save — navigate back or show success
                                 if (widget.isFromCreateUser == false) {
-                                  Navigator.of(context).pop();
-
+                                  // Guarded on the context: this pop sits in a
+                                  // nested callback, and the save above is a
+                                  // network call. The `else` branch routes
+                                  // through GetX and needs no context.
+                                  if (context.mounted) {
+                                    Navigator.of(context).pop();
+                                  }
                                 } else {
                                   Get.offNamedUntil(
                                     RouteHelper.getBottomNavigationBarScreenRoute(),

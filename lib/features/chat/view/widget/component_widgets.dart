@@ -1762,6 +1762,10 @@ void showAiChatProfileEditSheet(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor),
                     onPressed: () async {
+                      // Resolved before the awaits: saving the name and
+                      // uploading the image are both network round-trips, and
+                      // this dialog can be gone before they finish.
+                      final navigator = Navigator.of(ctx);
                       final newName = nameController.text.trim();
                       if (newName.isNotEmpty) {
                         await controller.saveName(type, newName);
@@ -1769,7 +1773,7 @@ void showAiChatProfileEditSheet(
                       if (previewPath.value.isNotEmpty) {
                         await controller.saveImage(type, previewPath.value);
                       }
-                      Navigator.pop(ctx);
+                      if (navigator.mounted) navigator.pop();
                       commonSnackBar(message: 'Profile updated');
                     },
                     child: CustomText('Save', color: Colors.white),
@@ -2462,13 +2466,16 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                     ApiKeys.message_id_list: chatThemeController.selectedMessageIds
                   };
 
+                  // Resolved before the await: the delete is a network call
+                  // and this sheet can be gone when it returns.
+                  final navigator = Navigator.of(context);
                   await chatViewController
                       .deleteChatMessage(data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
 
-                  Navigator.pop(context);
+                  if (navigator.mounted) navigator.pop();
                 },
 
                 onDeleteForEveryone: () async {
@@ -2480,13 +2487,15 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                     ApiKeys.message_id_list: chatThemeController.selectedMessageIds
                   };
 
+                  // As above — navigator resolved before the await.
+                  final navigator = Navigator.of(context);
                   await chatViewController
                       .deleteChatMessage(data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
 
-                  Navigator.pop(context);
+                  if (navigator.mounted) navigator.pop();
                 },
               ),
             );

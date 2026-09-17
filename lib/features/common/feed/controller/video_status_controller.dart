@@ -23,6 +23,10 @@ class VideoStatusController extends GetxController {
         videoStatus.value = data;
 
         if (data.canUpload == true) {
+          // The context belongs to whoever asked, and the status check above
+          // is a network call — the screen that opened the post menu can be
+          // gone by now. Nothing to open a sheet on in that case.
+          if (!context.mounted) return;
           postVia(context, param);
 
           // commonSnackBar(message: "You can upload a video now!");

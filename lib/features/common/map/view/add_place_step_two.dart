@@ -143,7 +143,8 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
                             ? () async {
                                 await controller.addPlaceController();
                                 if (controller.addPlaceResponse.value.status ==
-                                    Status.COMPLETE) {
+                                        Status.COMPLETE &&
+                                    context.mounted) {
                                   showUnderReviewDialog(context);
                                 }
                               }

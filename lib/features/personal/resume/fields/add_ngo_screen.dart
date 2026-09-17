@@ -185,7 +185,7 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
                                         await ngoController.addEntity(params,
                                             imagePath: imagePath);
                                       }
-                                      Navigator.pop(context);
+                                      if (context.mounted) Navigator.pop(context);
                                     }
                                   : null,
                               title: widget.isEdit ? AppStrings.update : AppStrings.save,

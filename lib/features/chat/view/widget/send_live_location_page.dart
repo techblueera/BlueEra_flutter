@@ -442,6 +442,9 @@ class _SendLocationPageState extends State<SendLocationPage> {
                               );
                             }
                           } catch (e) {
+                            // The reverse geocode that threw is an await, so
+                            // there may be no page left to show this on.
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(AppStrings.failedToGetLocation.tr)),
                             );

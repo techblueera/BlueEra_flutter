@@ -339,7 +339,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                     date: date,
                                   );
                                 }
-                                Navigator.pop(context);
+                                if (context.mounted) Navigator.pop(context);
                               }
                             : null,
                       ),

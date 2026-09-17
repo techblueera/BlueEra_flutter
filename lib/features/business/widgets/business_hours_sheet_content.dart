@@ -145,7 +145,10 @@ class _BusinessHoursSheetContentState
                   ApiKeys.schedule: visitingHoursData,
               };
               await widget.controller.updateBusinessProfileDetails(params);
-              if (context.mounted) Navigator.pop(context);
+              // `mounted`, not `context.mounted`: the context here is
+              // State.context, so the analyzer wants the check on the State
+              // that owns it.
+              if (mounted) Navigator.pop(context);
             },
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom),

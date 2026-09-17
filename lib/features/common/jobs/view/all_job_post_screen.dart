@@ -350,7 +350,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                                   }
                                                                 }
                                                               } catch (e) {
-                                                                print("job card share failed $e");
+                                                                debugPrint("job card share failed $e");
                                                               } finally {
                                                                 _isSharing = false; // Reset flag
                                                               }
@@ -453,7 +453,16 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         child: PositiveCustomBtn(
                                                           height: SizeConfig.size32,
                                                           onTap: () async {
-                                                            if (job != null) {
+                                                            if (job == null) return;
+                                                            // Same guarded shape as the 'Share' menu action above:
+                                                            // the flag stops a second tap starting a parallel
+                                                            // download+share, and the catch keeps a failure in the
+                                                            // share sheet itself off the top of the app.
+                                                            if (_isSharing) return;
+
+                                                            try {
+                                                              _isSharing = true;
+
                                                               final linkShare =
                                                                   jobDeepLink(jobId: job.sId?.toString());
 
@@ -474,6 +483,10 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                                   await file.delete();
                                                                 }
                                                               }
+                                                            } catch (e) {
+                                                              debugPrint("job card share failed $e");
+                                                            } finally {
+                                                              _isSharing = false;
                                                             }
                                                           },
                                                           title: AppStrings.share,
@@ -522,17 +535,47 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
     );
   }
 
-  Future<XFile> urlToCachedXFile(String fileUrl) async {
-    // Get temp (cache) directory
-    final tempDir = await getTemporaryDirectory();
-    final fileName = fileUrl.split('/').last; // keep original name if possible
-    final filePath = "${tempDir.path}/$fileName";
+  /// The share sheet's preview thumbnail, or null when it cannot be fetched.
+  ///
+  /// Null rather than throwing: this is a decoration on a share, and a job
+  /// image that 404s — deleted server-side, or a stale URL in a cached list —
+  /// should cost the user the thumbnail, not the share. Dio throws on any
+  /// non-2xx by default, and that was reaching the share button's `onTap`
+  /// uncaught.
+  Future<XFile?> urlToCachedXFile(String fileUrl) async {
+    String? filePath;
+    try {
+      // Get temp (cache) directory
+      final tempDir = await getTemporaryDirectory();
+      // Strip the query string before deriving the filename — S3 presigned
+      // URLs pack the whole AWS signature into `?X-Amz-...` params, so
+      // `split('/').last` yields a name hundreds of characters long that the
+      // OS rejects with errno 36 ("File name too long"). Same derivation as
+      // BusinessServiceList._urlToCachedXFile.
+      final uri = Uri.parse(fileUrl);
+      final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+      final fileName = segments.isNotEmpty
+          ? segments.last
+          : 'share_${DateTime.now().millisecondsSinceEpoch}';
+      filePath = "${tempDir.path}/$fileName";
 
-    // Download file into cache
-    await Dio().download(fileUrl, filePath);
+      // Download file into cache
+      await Dio().download(fileUrl, filePath);
 
-    // Return as XFile
-    return XFile(filePath);
+      // Return as XFile
+      return XFile(filePath);
+    } catch (e) {
+      debugPrint('job share thumbnail unavailable: $e');
+      // A download that failed part-way still leaves bytes on disk. The
+      // success path deletes its file once the sheet closes, so this one has
+      // to clean up after itself too.
+      if (filePath != null) {
+        try {
+          await File(filePath).delete();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 }
 

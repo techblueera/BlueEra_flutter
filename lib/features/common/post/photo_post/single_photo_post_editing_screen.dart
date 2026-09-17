@@ -109,6 +109,7 @@ class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScr
             print('Saved file path: ${file.path}');
 
             // Pop with file path string
+            if (!context.mounted) return;
             Navigator.pop(context, file.path);
           },
           // onCloseEditor: (EditorMode editorMode) {

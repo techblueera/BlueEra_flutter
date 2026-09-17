@@ -128,8 +128,10 @@ class _BusinessCategorySelectionDialogState extends State<BusinessCategorySelect
 
                     if (selected != null) {
                       Get.back();
-                      Navigator.pushNamed(
-                        context,
+                      // Routed through GetX, not `context`: the `Get.back()`
+                      // immediately above popped this dialog, so pushing via
+                      // its context would reach a defunct element.
+                      Get.toNamed(
                         RouteHelper.getGstNumberScreenRoute(),
                         arguments: {
                           ApiKeys.argAccountType: AppConstants.business,

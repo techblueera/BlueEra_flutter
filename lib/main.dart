@@ -22,6 +22,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
+import 'package:BlueEra/core/routes/anchored_menu_dismiss_observer.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
@@ -1391,6 +1392,11 @@ class _MyAppState extends State<MyApp> {
 // RouteHelper.generateRoute, so they carry a name). Bottom-nav tab switches
 // don't push a route — BottomBarController.onChangeIndex logs those manually.
           AnalyticsService.I.observer,
+// Closes an open PopupMenuButton / DropdownButton menu when a route pushes
+// over it. Flutter re-measures an open menu against its anchor on every
+// layout and only checks that the anchor is mounted and attached, so a menu
+// left open across a navigation crashes with "RenderBox was not laid out".
+          AnchoredMenuDismissObserver(),
         ],
 // Publishes the visible route to CallController.currentRouteRx on every push /
 // pop / replace. The top call strip reads it to know whether a call screen is

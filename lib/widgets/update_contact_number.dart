@@ -139,7 +139,9 @@ class CommonMobileOtpDialog {
                             ApiKeys.otp: otpController.text,
                           });
                           setState(() => isVerifyingOtp = false);
-                          if (verified) Navigator.of(context).pop(newMobileController.text);
+                          if (verified && context.mounted) {
+                            Navigator.of(context).pop(newMobileController.text);
+                          }
                         },
                       ),
 

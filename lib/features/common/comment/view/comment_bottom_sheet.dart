@@ -712,6 +712,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     if (!commentController.replyFocusNode.hasPrimaryFocus) {
       Future.delayed(Duration(milliseconds: 100), () {
+        // The sheet can be dismissed inside the delay, and there is nothing to
+        // move focus within once it is.
+        if (!mounted) return;
         FocusScope.of(context).requestFocus(commentController.replyFocusNode);
       });
     }

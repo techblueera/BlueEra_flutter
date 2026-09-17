@@ -406,7 +406,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<String?> getCurrentCall() async {
-    var calls = await FlutterCallkitIncoming.activeCalls();
+    // The plugin reads its call list through whatever Context it currently
+    // holds, and it drops that reference while detached from the activity —
+    // a channel call landing in that gap comes back as a PlatformException
+    // rather than a list. There is no rider call to resume in that case, and
+    // failing to ask is not worth taking the app down for.
+    final dynamic calls;
+    try {
+      calls = await FlutterCallkitIncoming.activeCalls();
+    } catch (e) {
+      logs("getCurrentCall: activeCalls unavailable — $e");
+      return null;
+    }
     if (calls is List) {
       if (calls.isNotEmpty) {
         // Skip voice/video calls — those are handled by CallController
@@ -415,7 +426,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         final operation = (extra['operation'] ?? '').toString();
         if (operation == 'incoming_call') return null;
 
-        bool accepted = calls[0]['accepted'];
+        // Absent on a call the platform never marked either way; treat
+        // anything that is not an explicit `true` as not accepted.
+        final bool accepted = calls[0]['accepted'] == true;
 
         if (accepted) {
           return extra['orderId'].toString();

@@ -24,41 +24,66 @@ Stream<dynamic> getOrderFromUserStream() async* {
   });
 
 
-  final response = await request.send();
+  // Failures are yielded, not thrown. A gateway timeout on this endpoint takes
+  // about a minute to come back — long enough for the rider to leave the screen
+  // and for DeliveryPartnerOrdersController.stopStream() to cancel the
+  // subscription while the request is still in flight. Throwing into a stream
+  // nobody is listening to any more makes an unhandled async error, which is
+  // how a routine 504 reached Crashlytics as a fatal. A yield cannot do that:
+  // delivered to a live listener it reads as a non-List event, which the
+  // consumer already maps to ApiResponse.error exactly as it did the throw, and
+  // to a cancelled one it simply ends the generator.
+  final http.StreamedResponse response;
+  try {
+    response = await request.send();
+  } catch (e) {
+    yield 'Failed to connect to SSE: $e';
+    return;
+  }
 
   if (response.statusCode != 200) {
-    final body = await response.stream.bytesToString();
-    throw Exception(
-      'Failed to connect to SSE. Status: ${response.statusCode}, Body: $body',
-    );
+    String body;
+    try {
+      body = await response.stream.bytesToString();
+    } catch (e) {
+      body = '<unreadable: $e>';
+    }
+    yield 'Failed to connect to SSE. Status: ${response.statusCode}, Body: $body';
+    return;
   }
 
   // Listen to the stream
   final buffer = StringBuffer();
 
-  await for (final chunk in response.stream.transform(utf8.decoder)) {
-    buffer.write(chunk);
+  try {
+    await for (final chunk in response.stream.transform(utf8.decoder)) {
+      buffer.write(chunk);
 
-    while (true) {
-      final data = buffer.toString();
-      final eventEndIndex = data.indexOf('\n\n');
+      while (true) {
+        final data = buffer.toString();
+        final eventEndIndex = data.indexOf('\n\n');
 
-      if (eventEndIndex == -1) break;
+        if (eventEndIndex == -1) break;
 
-      final event = data.substring(0, eventEndIndex).trim();
-      buffer.clear();
-      buffer.write(data.substring(eventEndIndex + 2));
+        final event = data.substring(0, eventEndIndex).trim();
+        buffer.clear();
+        buffer.write(data.substring(eventEndIndex + 2));
 
-      if (event.startsWith('data:')) {
-        final jsonStr = event.substring(5).trim();
+        if (event.startsWith('data:')) {
+          final jsonStr = event.substring(5).trim();
 
-        try {
-          final decoded = jsonDecode(jsonStr);
-          yield decoded;
-        } catch (e) {
+          try {
+            final decoded = jsonDecode(jsonStr);
+            yield decoded;
+          } catch (e) {
 
+          }
         }
       }
     }
+  } catch (e) {
+    // A long-lived SSE connection dropping mid-flight is ordinary: the same
+    // reasoning as above applies to the read as to the connect.
+    yield 'SSE stream ended unexpectedly: $e';
   }
 }

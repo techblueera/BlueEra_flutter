@@ -64,7 +64,9 @@ class ChannelProductController extends GetxController {
       if (response.isSuccess) {
         deleteChannelProductResponse = ApiResponse.complete(response);
         if (index != -1) list.removeAt(index);
-        Navigator.pop(navigator!.context);
+        // `navigator` is GetX's live root-navigator lookup, so this needs no
+        // BuildContext at all — popping it directly is the same action.
+        navigator!.pop();
         commonSnackBar(message: response.message);
       } else {
         deleteChannelProductResponse = ApiResponse.error('error');

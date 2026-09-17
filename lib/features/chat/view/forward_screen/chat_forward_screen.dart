@@ -557,7 +557,11 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                   // Small delay to let the first pop finish so we don't
                   // accidentally pop an unrelated screen.
                   await Future.delayed(const Duration(milliseconds: 100));
-                  if(Navigator.of(context).canPop()) {
+                  // Asked of the root navigator, not of `context`: the
+                  // `Get.back()` above popped THIS screen, so its context is
+                  // already defunct by the time the delay elapses. `navigator`
+                  // is GetX's live lookup of the root NavigatorState.
+                  if (navigator?.canPop() ?? false) {
                     Get.back();
                   }
                 }

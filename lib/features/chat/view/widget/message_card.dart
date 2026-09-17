@@ -2288,7 +2288,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
       // Opens the native contact editor with prefilled data so user can review/edit
       await FlutterContacts.openExternalInsert(contact);
     } else {
-      // Permission denied
+      // Permission denied. `mounted` on the State, whose context this is —
+      // the permission prompt above is an await, and the chat can be closed
+      // while it is up.
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Contact permission denied')),
       );

@@ -326,6 +326,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
         onTap: () async {
           HapticFeedback.lightImpact();
           final filteredFiles = await exportAllFilteredPhotos();
+          if (!mounted) return;
           Navigator.pop(context, filteredFiles.map((f) => f.path).toList());
         },
         title: AppStrings.continueTxt,

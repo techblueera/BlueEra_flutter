@@ -2615,9 +2615,12 @@ class DiscoverController extends GetxController {
         if (otp.isNotEmpty || pickupOtp.isNotEmpty) {
           fareCallOtpOrderId = orderId;
         }
-        print('[FARE_CALL_OTP] hydrated from server for $orderId → '
-            'pickup=${pickupOtp.isNotEmpty ? pickupOtp : '(not returned)'}, '
-            'delivery=${otp.isNotEmpty ? otp : '(not returned)'}');
+        // Whether each OTP arrived, never its value: these are the codes that
+        // authorise a pickup and a delivery, and `print` is not compiled out
+        // of release builds, so the values were landing in logcat.
+        debugPrint('[FARE_CALL_OTP] hydrated from server for $orderId → '
+            'pickup=${pickupOtp.isNotEmpty ? '(present)' : '(not returned)'}, '
+            'delivery=${otp.isNotEmpty ? '(present)' : '(not returned)'}');
         // orderFor lives inside `metadata` on this endpoint (top-level read
         // always came back empty — passenger-ride detection never hydrated).
         final metadata = (data is Map ? data['metadata'] : null);

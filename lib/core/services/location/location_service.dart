@@ -273,11 +273,24 @@ class LocationService extends GetxService {
     }
     if (permission == LocationPermission.deniedForever) return null;
 
-    Position current = await Geolocator.getCurrentPosition(
+    // The isLocationServiceEnabled() check above is a snapshot, not a lock:
+    // location can be switched off between it and the fix, and on older
+    // Android (Xiaomi/MIUI in particular) the service can report enabled while
+    // the provider it would use is not — either way geolocator answers with a
+    // LocationServiceDisabledException rather than a Position. That is the
+    // same answer as the guards above, just delivered by throwing, and every
+    // other "no fix" path here returns null. Callers rely on that.
+    final Position current;
+    try {
+      current = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
-    );
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Location error: $e');
+      return null;
+    }
 
     // Check if location has changed
     if (_lastPosition == null /*||

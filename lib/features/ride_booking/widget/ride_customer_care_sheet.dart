@@ -120,7 +120,10 @@ class _CustomerCareSheetState extends State<_CustomerCareSheet> {
     if (!_noteFocus.hasFocus) return;
     Future.delayed(const Duration(milliseconds: 260), () {
       final ctx = _noteKey.currentContext;
-      if (!mounted || ctx == null) return;
+      // `ctx` comes from a GlobalKey, so it is not this State's context — the
+      // State's `mounted` says nothing about whether that element is still in
+      // the tree, which is what `ensureVisible` needs.
+      if (!mounted || ctx == null || !ctx.mounted) return;
       Scrollable.ensureVisible(
         ctx,
         duration: const Duration(milliseconds: 220),

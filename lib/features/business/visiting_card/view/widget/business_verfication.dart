@@ -79,7 +79,9 @@ class _BusinessVerificationState extends State<BusinessVerification> {
       };
       viewBusinessDetailsController.postVerifyBusinessDocs(data);
       commonSnackBar(message:"Verification of your business will take a few seconds.");
-      Navigator.pop(context);
+      // `mounted` on the State — this is a State method, and reading the
+      // document into a MultipartFile above is an await.
+      if (mounted) Navigator.pop(context);
     } else {
       commonSnackBar(message:AppStrings.pleaseProvideRequiredInfo);
     }

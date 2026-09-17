@@ -69,6 +69,9 @@ class ReferralShareCard extends StatelessWidget {
       ),
     );
 
+    // Precaching the logo above is an await, and the caller's screen can be
+    // gone before there is an overlay to insert into.
+    if (!context.mounted) return;
     Overlay.of(context).insert(overlay);
     try {
       // One frame to paint, plus a small cushion for slow devices.

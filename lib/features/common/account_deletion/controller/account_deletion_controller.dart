@@ -134,6 +134,9 @@ class AccountDeletionController extends GetxController {
           final ctx = Get.context;
           if (ctx != null) {
             showCommonDialog(
+              // Live `Get.context` lookup read after the await, not a context
+              // captured before it — nothing stale to guard.
+              // ignore: use_build_context_synchronously
               context: ctx,
               text: AppStrings.accountDeletionFeatureDisabled.tr,
               confirmText: '',

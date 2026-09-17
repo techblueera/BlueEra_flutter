@@ -829,6 +829,9 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     // to the actual attempts: it stops while the user is reading the sheet,
     // and on the way out so a refusal leaves a live button rather than one
     // stuck spinning.
+    // `mounted` on the State — reading the logo into a MultipartFile above is
+    // an await, and the guidance flow needs a live context to put sheets on.
+    if (!mounted) return;
     final LocationDataModel? locationData = await resolveLocationWithGuidance(
       context: context,
       controller: locationController,

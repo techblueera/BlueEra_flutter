@@ -121,7 +121,23 @@ class LocalStorageHelper {
   Future<Box<String>> _openStore(String name) async {
     if (Hive.isBoxOpen(name)) return Hive.box<String>(name);
     final dir = await ChatStoragePaths.historyDir();
-    return Hive.openBox<String>(name, path: dir.path);
+    try {
+      return await Hive.openBox<String>(name, path: dir.path);
+    } on FileSystemException catch (e) {
+      // `Chat History/` lives under Android/media/<pkg>/, which is browsable
+      // on purpose (see [ChatStoragePaths]) — so a user with a file manager
+      // can delete it, and external storage can drop out from under us, at any
+      // moment including between historyDir() creating the folder and Hive
+      // opening a box inside it. historyDir() rebuilds the folder, so try once
+      // more before giving up; without this the store is simply gone for the
+      // rest of the session and every chat opens with no history.
+      ChatStorageLogger.warn('openStore', 'Store path vanished — recreating',
+          data: {'box': name, 'error': e.toString()});
+      final rebuilt = await ChatStoragePaths.historyDir();
+      // The failed attempt may still have registered the name with Hive.
+      if (Hive.isBoxOpen(name)) return Hive.box<String>(name);
+      return await Hive.openBox<String>(name, path: rebuilt.path);
+    }
   }
 
   // Single-run migration guard.
@@ -258,7 +274,18 @@ class LocalStorageHelper {
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> putConversation(String newMessage) async {
-    final box = await _conversationBoxRef;
+    final Box<String> box;
+    try {
+      box = await _conversationBoxRef;
+    } catch (e, stack) {
+      // Opening the store can fail outright when its folder has been removed.
+      // Every other method here treats that as "no local data" rather than
+      // letting it out; this one used to let it escape, and unawaited callers
+      // turn that into an unhandled async error.
+      ChatStorageLogger.error('putConversation', 'Store unavailable',
+          error: e, stack: stack);
+      return;
+    }
 
     final jsonString = box.get('openedConversationList');
     List<String> conversationList = [];
@@ -279,7 +306,14 @@ class LocalStorageHelper {
   }
 
   Future<List<String>> getConversation() async {
-    final box = await _conversationBoxRef;
+    final Box<String> box;
+    try {
+      box = await _conversationBoxRef;
+    } catch (e, stack) {
+      ChatStorageLogger.error('getConversation', 'Store unavailable',
+          error: e, stack: stack);
+      return [];
+    }
     final jsonString = box.get('openedConversationList');
 
     if (jsonString == null || jsonString.isEmpty) return [];
@@ -752,7 +786,16 @@ class LocalStorageHelper {
 
   Future<String> getOrDownloadUserImage(String url, String userId) async {
     if (userId.isEmpty || url.isEmpty) return url;
-    final box = await _userImagesBoxRef;
+    final Box<String> box;
+    try {
+      box = await _userImagesBoxRef;
+    } catch (e, stack) {
+      // Falling back to the remote URL is what this method already returns
+      // when there is nothing to cache against, so callers handle it.
+      ChatStorageLogger.error('getOrDownloadUserImage', 'Store unavailable',
+          error: e, stack: stack, data: {'userId': userId});
+      return url;
+    }
     return _getOrDownloadUserImageWithBox(url, userId, box);
   }
 

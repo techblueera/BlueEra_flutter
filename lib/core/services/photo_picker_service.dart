@@ -60,36 +60,49 @@ class PhotoPickerService {
       );
     }
 
-    return showDialog<String>(
+    // The chooser answers which source was picked and closes immediately; the
+    // pick and crop then run with the dialog already gone.
+    //
+    // It used to stay open across that work and pop with the finished path.
+    // That is unsafe: Navigator.pop targets the topmost route of the nearest
+    // navigator, not the route owning the context passed to it, and
+    // `dialogContext.mounted` only says the dialog still exists — not that it
+    // is on top. Croppy's editor is still on the stack when its future
+    // completes, because it holds local history entries, so the pop landed on
+    // a Route<CropImageResult?> carrying a String and LocalHistoryRoute.didPop
+    // threw "type 'String' is not a subtype of type 'CropImageResult?'".
+    final source = await showDialog<ImageSource>(
       context: context,
       builder: (dialogContext) {
         return _PickerDialog(
           title: title,
           showCamera: cameraOn,
           showGallery: galleryOn,
-          onCamera: () => _closeWith(
-            dialogContext,
-            () => pickFromCamera(
-              dialogContext,
-              cropAspectRatio: cropAspectRatio,
-              quality: quality,
-              minWidth: minWidth,
-              minHeight: minHeight,
-            ),
-          ),
-          onGallery: () => _closeWith(
-            dialogContext,
-            () => pickFromGallery(
-              dialogContext,
-              cropAspectRatio: cropAspectRatio,
-              quality: quality,
-              minWidth: minWidth,
-              minHeight: minHeight,
-            ),
-          ),
+          // Safe to pop by context here: nothing has been pushed over the
+          // dialog at this point, so it is still the topmost route.
+          onCamera: () => Navigator.pop(dialogContext, ImageSource.camera),
+          onGallery: () => Navigator.pop(dialogContext, ImageSource.gallery),
         );
       },
     );
+
+    if (source == null || !context.mounted) return null;
+
+    return source == ImageSource.camera
+        ? pickFromCamera(
+            context,
+            cropAspectRatio: cropAspectRatio,
+            quality: quality,
+            minWidth: minWidth,
+            minHeight: minHeight,
+          )
+        : pickFromGallery(
+            context,
+            cropAspectRatio: cropAspectRatio,
+            quality: quality,
+            minWidth: minWidth,
+            minHeight: minHeight,
+          );
   }
 
   /// Open the camera directly (no chooser dialog) for one photo.
@@ -169,37 +182,39 @@ class PhotoPickerService {
       );
     }
 
-    return showDialog<List<String>>(
+    // Same shape as pickSinglePhoto — see the note there for why the chooser
+    // closes before the pick runs rather than popping with the result.
+    final source = await showDialog<ImageSource>(
       context: context,
       builder: (dialogContext) {
         return _PickerDialog(
           title: title,
           showCamera: cameraOn,
           showGallery: galleryOn,
-          onCamera: () => _closeWith(
-            dialogContext,
-            () => pickMultipleFromCamera(
-              dialogContext,
-              cropAspectRatio: cropAspectRatio,
-              quality: quality,
-              minWidth: minWidth,
-              minHeight: minHeight,
-            ),
-          ),
-          onGallery: () => _closeWith(
-            dialogContext,
-            () => pickMultipleFromGallery(
-              dialogContext,
-              maxImages: maxImages,
-              cropAspectRatio: cropAspectRatio,
-              quality: quality,
-              minWidth: minWidth,
-              minHeight: minHeight,
-            ),
-          ),
+          onCamera: () => Navigator.pop(dialogContext, ImageSource.camera),
+          onGallery: () => Navigator.pop(dialogContext, ImageSource.gallery),
         );
       },
     );
+
+    if (source == null || !context.mounted) return null;
+
+    return source == ImageSource.camera
+        ? pickMultipleFromCamera(
+            context,
+            cropAspectRatio: cropAspectRatio,
+            quality: quality,
+            minWidth: minWidth,
+            minHeight: minHeight,
+          )
+        : pickMultipleFromGallery(
+            context,
+            maxImages: maxImages,
+            cropAspectRatio: cropAspectRatio,
+            quality: quality,
+            minWidth: minWidth,
+            minHeight: minHeight,
+          );
   }
 
   /// Single-shot camera capture wrapped in a list (so multi-photo
@@ -290,18 +305,6 @@ class PhotoPickerService {
   /// with no way out and the awaiting caller never resolved. Containing the
   /// error here means the chooser always closes and the caller always gets an
   /// answer, even if that answer is "nothing".
-  static Future<void> _closeWith<T>(
-    BuildContext dialogContext,
-    Future<T?> Function() run,
-  ) async {
-    T? value;
-    try {
-      value = await run();
-    } catch (e) {
-      _handleUnexpectedError(e);
-    }
-    if (dialogContext.mounted) Navigator.pop(dialogContext, value);
-  }
 
   /// Generic source-chooser dialog with caller-supplied handlers —
   /// used for flows where the picker itself isn't an image (e.g. video

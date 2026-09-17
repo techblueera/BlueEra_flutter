@@ -31,5 +31,63 @@ linter:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
+    # Flags a BuildContext used after an `await`. Four fatal crashes were
+    # traced to exactly that: `Navigator.of(context)` (or `pop`, or
+    # `setState`) reached for a context whose element had been disposed while
+    # the gap ran, which throws "Null check operator used on a null value" out
+    # of `StatefulElement.state` — a crash, not a no-op, and one that only
+    # shows up on a device with the wrong timing.
+    #
+    # The fix each time is the same: resolve `NavigatorState` (or capture
+    # whatever you need) BEFORE the await, then check `mounted` after it.
+    use_build_context_synchronously: true
+
+    # ── Silenced: style only ──────────────────────────────────────────────
+    #
+    # Turning the include on (flutter_lints was missing from dev_dependencies,
+    # so none of this ever ran) surfaced 5845 findings at once. The rules below
+    # are the purely cosmetic ones — formatting, naming and modernisation
+    # preferences with no behavioural or safety consequence — and they made up
+    # roughly 4700 of that. Left on, they bury the findings that matter: 94
+    # `use_build_context_synchronously` (the crash family above), 706
+    # `avoid_print`, and the dead-code and deprecation hints.
+    #
+    # These are switched off for signal, not because the style is wrong. Any of
+    # them can be re-enabled once its backlog is worked down — each is an
+    # independent, mechanical cleanup.
+    annotate_overrides: false
+    avoid_unnecessary_containers: false
+    curly_braces_in_flow_control_structures: false
+    dangling_library_doc_comments: false
+    file_names: false
+    # Not a style rule like its neighbours: `catch (_) {}` is a deliberate
+    # idiom here, used where a failure genuinely has no handling beyond "carry
+    # on" — a best-effort temp-file delete, a cache write, a marker file. Off
+    # because every one of the 20 it flagged was intentional, so it reported
+    # only noise. The cost is that it can no longer point out a catch that
+    # swallows something it should not; a `catch` worth noticing should say so
+    # with a log line rather than rely on this.
+    empty_catches: false
+    library_prefixes: false
+    library_private_types_in_public_api: false
+    no_leading_underscores_for_local_identifiers: false
+    non_constant_identifier_names: false
+    prefer_collection_literals: false
+    prefer_const_constructors_in_immutables: false
+    prefer_final_fields: false
+    prefer_interpolation_to_compose_strings: false
+    sized_box_for_whitespace: false
+    sort_child_properties_last: false
+    strict_top_level_inference: false
+    unintended_html_in_doc_comment: false
+    unnecessary_brace_in_string_interps: false
+    unnecessary_new: false
+    unnecessary_string_escapes: false
+    unnecessary_string_interpolations: false
+    unnecessary_this: false
+    unnecessary_to_list_in_spreads: false
+    use_key_in_widget_constructors: false
+    use_super_parameters: false
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

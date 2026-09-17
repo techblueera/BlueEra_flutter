@@ -23,6 +23,9 @@
          chosen items only, so neither needs a runtime permission — do not
          re-add these. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- For WorkManager's RescheduleReceiver, which re-arms the rider
+         live-location watchdog after a reboot. The app declares no boot
+         receiver of its own any more — see the note by the services below. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Legacy read access, capped below API 33. Used only for downloads into
          the shared Downloads folder on pre-Android 13 devices; on 33+ the app
@@ -294,20 +297,27 @@
             android:exported="false"
             android:foregroundServiceType="phoneCall" />
         <!--
-          Restores the rider's live-location service after a reboot, but ONLY if
-          they were live when the device went down (the service's own active flag
-          decides). A rider who ended their shift is never resurrected.
+          There is deliberately NO BOOT_COMPLETED receiver for the rider's
+          live-location service. Do not re-add one.
+
+          It used to restore RiderLocationForegroundService after a reboot when
+          the rider had been live. The problem is not permissions — that path
+          was pre-flighted — it is the deadline: startForegroundService() gives
+          the service ~5s to reach startForeground(), and at boot the device is
+          contending for I/O with every other app that just woke up. Missing it
+          is not a no-op, it is ForegroundServiceDidNotStartInTimeException,
+          which kills the process.
+
+          The rider is restored on their next app open instead, from the
+          backend's own availability status
+          (ViewPersonalDetailsController.getServiceProviderStatus /
+          restoreProviderLiveState → LiveLocationService.start), which is the
+          authoritative answer and does not race a boot deadline. The trade is
+          that a rider who reboots mid-shift stays dark until they open the app.
+
+          RECEIVE_BOOT_COMPLETED is still declared above: WorkManager's own
+          RescheduleReceiver needs it to re-arm the watchdog after a reboot.
         -->
-        <receiver
-            android:name=".RiderLocationBootReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
         <!-- Incoming call notification button receiver -->
         <receiver
             android:name=".CallActionReceiver"

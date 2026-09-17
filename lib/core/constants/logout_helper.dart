@@ -392,8 +392,29 @@ class LogoutHelper {
     ]);
     try {
       await Hive.deleteFromDisk();
+      // Empty the storage folder, but never remove the folder itself.
+      //
+      // The wipe has to stay wholesale — `Hive.deleteFromDisk()` only takes
+      // boxes it has open, so the `.hive` files of boxes this session never
+      // touched are exactly what this pass is for. But deleting the directory
+      // took the ground out from under every other Hive caller: an openBox
+      // landing in the window between here and the recreate below cannot
+      // create its file and throws
+      //   PathNotFoundException: Cannot create file, path =
+      //   '/data/user/0/<pkg>/app_flutter/<box>.hive'
+      // and the window is real — `ChatStoragePaths.clearHistory()` runs
+      // external-storage I/O in it, while `clearPreferenceReactive()` reopens
+      // the translations box and LanguageControllerNew.reset() reopens it
+      // again. Clearing the contents wipes exactly as much, with nothing to
+      // race against.
       final dir = await getApplicationDocumentsDirectory();
-      if (dir.existsSync()) await dir.delete(recursive: true);
+      if (dir.existsSync()) {
+        for (final entity in dir.listSync()) {
+          try {
+            entity.deleteSync(recursive: true);
+          } catch (_) {}
+        }
+      }
     } catch (_) {}
 
     // The relocated chat-history stores live under the external
@@ -421,6 +442,12 @@ class LogoutHelper {
         AppBackgroundController.preload(),
         Hive.openBox('languageBox'),
         Hive.openBox('localizationBox'),
+        // Reopened for the same reason as the two above, and sooner than
+        // either: LanguageControllerNew.reset() and clearPreferenceReactive()
+        // both go for it while logout is still running. Untyped to match how
+        // LanguageControllerNew and LocalizationService each open it — a
+        // typed openBox here would make their Hive.box() lookups throw.
+        Hive.openBox('translations'),
       ]);
     } catch (_) {}
 

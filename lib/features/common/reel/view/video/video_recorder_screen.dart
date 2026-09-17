@@ -164,6 +164,9 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
       if (_videoFile != null) {
         final safePath = await prepareVideoFile(File(_videoFile!.path));
         print("Recording path: $safePath");
+        // Copying the recording off the camera's temp path is an await, and
+        // the recorder can be closed while it runs.
+        if (!mounted) return;
         Navigator.pushNamed(
           context,
           RouteHelper.getFullVideoPreviewRoute(),

@@ -123,6 +123,11 @@ class DeliverPartnerOrdersController extends GetxController {
       log('[RIDER_ORDERS_STREAM] stream error → $error');
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
+      // An error ends the stream, so release the guard here too. onDone
+      // normally follows and would clear it anyway, but a source that errors
+      // without closing would otherwise leave this stuck true and block every
+      // later fetchStream() from ever reconnecting.
+      isStreaming = false;
     }, onDone: () {
       // Connection closed by the server — clear the flag so a later
       // fetchStream() can re-open it.

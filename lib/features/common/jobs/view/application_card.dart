@@ -257,8 +257,9 @@ class _ApplicationCardState extends State<ApplicationCard> {
                                 applicationStatus: AppConstants.Hired);
                         widget.buttonAction();
                       }
-                      if (value == 'Schedule Interview' ||
-                          value == "Reschedule Interview") {
+                      if ((value == 'Schedule Interview' ||
+                              value == "Reschedule Interview") &&
+                          context.mounted) {
                         showInterviewScheduleDialog(context,
                             applicationId: [applicationId],
                             callBack: widget.buttonAction,

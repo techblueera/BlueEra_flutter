@@ -297,6 +297,11 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                 ApiKeys.public_group: publicGroup,
               };
 
+              // Resolved before the await, checked after: creating the group
+              // uploads the attachments, and this page can be gone by the time
+              // that returns. The two pops unwind this page and the member
+              // picker behind it.
+              final navigator = Navigator.of(context);
               bool value = await chatViewController.createGroupApi(
                 data,
                 isFromFile: true,
@@ -304,9 +309,9 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                 fileSended: selectedFiles,
               );
 
-              if (value == true) {
-                Navigator.pop(context);
-                Navigator.pop(context);
+              if (value == true && navigator.mounted) {
+                navigator.pop();
+                navigator.pop();
               }
             } else {
               data = {
@@ -315,10 +320,12 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                 ApiKeys.public_group: publicGroup,
               };
 
+              // As above — navigator resolved before the await.
+              final navigator = Navigator.of(context);
               bool value = await chatViewController.createGroupApi(data);
-              if (value == true) {
-                Navigator.pop(context);
-                Navigator.pop(context);
+              if (value == true && navigator.mounted) {
+                navigator.pop();
+                navigator.pop();
               }
             }
           }

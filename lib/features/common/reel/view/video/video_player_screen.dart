@@ -183,6 +183,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       _isFullScreen = true;
     });
 
+    // Resolved before the orientation awaits below: those are platform round
+    // trips, and this widget can be disposed across them.
+    final navigator = Navigator.of(context);
+
     // Enter fullscreen mode
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations([
@@ -190,7 +194,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       DeviceOrientation.landscapeRight,
     ]);
 
-    await Navigator.of(context).push(
+    if (!navigator.mounted) return;
+    await navigator.push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 300),
         reverseTransitionDuration: const Duration(milliseconds: 300),
@@ -986,13 +991,18 @@ class _FullScreenPlayerState extends State<FullScreenPlayer> {
       ),
     );
 
+    // Both resolved before the fade delay below — the widget can go away
+    // across it, and `Navigator.of` on a dead context throws rather than
+    // no-opping.
+    final navigator = Navigator.of(context);
+
     Overlay.of(context).insert(overlayEntry);
 
     // Wait for fade
     await Future.delayed(const Duration(milliseconds: 200));
 
     // Pop fullscreen
-    Navigator.of(context).pop();
+    if (navigator.mounted) navigator.pop();
 
     // Delay a frame to let the main screen layout
     await Future.delayed(const Duration(milliseconds: 50));

@@ -115,11 +115,14 @@ class WaitingForPaymentDialog extends StatelessWidget {
 
         return WillPopScope(
           onWillPop: () async {
+            // Resolved before the await: the warning dialog sits on top of
+            // this one, and this one can be gone by the time it closes.
+            final navigator = Navigator.of(context);
             // 👇 intercept system back press
             bool shouldLeave = await _showLeaveWarningDialog(context);
             if (shouldLeave) {
               timer?.cancel();
-              Navigator.pop(context);
+              if (navigator.mounted) navigator.pop();
               orderController
                   .cancelOrderForce(orderId, {ApiKeys.status: "cancelled"});
               commonSnackBar(message: AppStrings.orderCanceledPayment);
@@ -337,7 +340,18 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                   orderController.openedMessage?.conversationId,
                                 );
                                 Get.back();
-                                showOrderPlacedDialog(context);
+                                // `context` here belongs to THIS dialog, which
+                                // `Get.back()` just popped — showing the next
+                                // dialog through it reaches a defunct element.
+                                // Take the live root context instead, matching
+                                // the Get.back() above.
+                                // Read after the await, not captured before it,
+                                // so the lint's concern does not apply.
+                                final rootContext = Get.context;
+                                if (rootContext != null) {
+                                  // ignore: use_build_context_synchronously
+                                  showOrderPlacedDialog(rootContext);
+                                }
                               },
                               onPaymentError: (response) {
                                 orderController.cancelOrderForce(

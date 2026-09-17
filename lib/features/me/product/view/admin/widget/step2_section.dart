@@ -121,18 +121,24 @@ class _Step2SectionState extends State<Step2Section> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        // Resolved before the await, checked after: the confirm dialog can
+        // outlive this context, and Navigator.of on a dead element throws.
+        final navigator = Navigator.of(context);
         final shouldPop = await _handleBackPress(context);
-        if (shouldPop) {
-          Navigator.of(context).maybePop();
+        if (shouldPop && navigator.mounted) {
+          navigator.maybePop();
         }
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
           title: AppStrings.productFeature,
           onBackTap: () async {
+            // Resolved before the await, checked after: the confirm dialog can
+            // outlive this context, and Navigator.of on a dead element throws.
+            final navigator = Navigator.of(context);
             final shouldPop = await _handleBackPress(context);
-            if (shouldPop) {
-              Navigator.of(context).maybePop();
+            if (shouldPop && navigator.mounted) {
+              navigator.maybePop();
             }
           },
         ),

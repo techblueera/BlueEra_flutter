@@ -850,7 +850,9 @@ class FeedController extends GetxController {
             }
           }
           list.removeAt(index);
-          Navigator.pop(navigator!.context);
+          // `navigator` is GetX's live root-navigator lookup, so this needs no
+          // BuildContext at all — popping it directly is the same action.
+          navigator!.pop();
           commonSnackBar(message: response.message);
           deletePostResponse = ApiResponse.complete(response);
         } else {

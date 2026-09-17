@@ -110,6 +110,7 @@ class _SplashScreenState extends State<SplashScreen> {
         // No `initialIndex` — the home shell resolves the landing tab itself
         // (see BottomNavigationBarScreen._resolveLandingIndex): Discover for
         // everyone, Me only for gig workers / riders.
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           (Route<dynamic> route) => false,
@@ -227,6 +228,7 @@ class _SplashScreenState extends State<SplashScreen> {
           Get.find<CallController>().reopenCallRoomIfActive();
         }
       } else {
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           RouteHelper.getMobileNumberLoginRoute(),
           (Route<dynamic> route) => false,

@@ -161,7 +161,10 @@ class AuthController extends GetxController {
       // token right after login via the background `refreshAndSyncFcmToken()`
       // call below — so we don't need a fresh one to complete the verify.
       token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
-      print("TOKEN = $token");
+      // Presence, not the token. This is the FCM device token — an identifier
+      // that can be used to push to this device — and `print` is not compiled
+      // out of release builds.
+      debugPrint("device token present: ${token?.isNotEmpty ?? false}");
 
       Map<String, dynamic> requestData = {
         ApiKeys.contact_no: mobileNumberEditController.text,

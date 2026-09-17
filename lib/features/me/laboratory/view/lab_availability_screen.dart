@@ -367,7 +367,13 @@ class _LabAvailabilityScreenState extends State<LabAvailabilityScreen> {
         SizedBox(height: SizeConfig.size6),
         InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () => _pickTime(label: label, current: time, onChanged: onChanged),
+          // Closed while a save is in flight. The save awaits the network and
+          // then pops this screen, so a picker opened during that window would
+          // still be on top when the pop lands.
+          onTap: _isSaving
+              ? null
+              : () => _pickTime(
+                  label: label, current: time, onChanged: onChanged),
           child: Container(
             height: 44,
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -584,6 +590,14 @@ class _LabAvailabilityScreenState extends State<LabAvailabilityScreen> {
       return;
     }
 
+    // `Get.back` pops whatever route is topmost, not this screen's, and the
+    // route casts the result to its own type. Clear anything above us first
+    // with a null result — valid for every route here — so the `true` can only
+    // reach the route it is addressed to.
+    final route = ModalRoute.of(context);
+    if (route != null && route.isActive && !route.isCurrent) {
+      Navigator.of(context).popUntil((r) => r == route);
+    }
     Get.back(result: true);
   }
 

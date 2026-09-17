@@ -212,7 +212,10 @@ class _CustomTabConversationPickerState
                   onPressed: () async {
                     await customTabController.setConversations(
                         widget.tabId, _selected.toList());
-                    if (mounted) Navigator.pop(context, true);
+                    // `context.mounted`, not `mounted`: the pop is inside a
+                    // nested callback, which the analyzer will not tie to a
+                    // check on the State.
+                    if (context.mounted) Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,

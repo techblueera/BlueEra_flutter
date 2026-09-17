@@ -584,7 +584,12 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
     if (order.hasDiscount) {
       final context = Get.context;
       if (context != null) {
+        // Not a stale context: `Get.context` is a live lookup of
+        // `Get.key.currentContext`, read above AFTER the awaits rather than
+        // captured before them. The lint cannot see that — all it knows is
+        // that a BuildContext is used somewhere after an await.
         final confirmed = await showAccountPlanCheckoutSheet(
+          // ignore: use_build_context_synchronously
           context,
           planLabel: card.label,
           order: order,
@@ -730,7 +735,10 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
     final context = Get.context;
     if (context == null) return false;
 
+    // Live `Get.context` lookup after the awaits, not a captured context —
+    // see the same note in the checkout sheet above.
     final confirmed = await showUpgradeConfirmDialog(
+      // ignore: use_build_context_synchronously
       context,
       planLabel: card.label,
       breakdown: breakdown,

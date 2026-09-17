@@ -184,7 +184,7 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                                         await patentController.addEntity(params,
                                             imagePath: imagePath);
                                       }
-                                      Navigator.pop(context);
+                                      if (context.mounted) Navigator.pop(context);
                                     }
                                   : null,
                               title: widget.isEdit

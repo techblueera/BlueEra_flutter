@@ -170,13 +170,22 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
           context: context,
           text: AppStrings.exitConfirmation.tr,
           confirmCallback: () async {
+            // Dismiss first so the tap feels instant — clearPreference() wipes
+            // secure storage and Hive, which is long enough for the dialog to
+            // look stuck if it stays up.
+            //
+            // Then route with GetX, not `Navigator.of(context)`:
+            // clearPreference() ends in Get.clearTranslations(), an app-wide
+            // rebuild storm that can deactivate this element while the await
+            // is in flight. A context lookup afterwards then walks onto a
+            // defunct StatefulElement and throws "Null check operator used on
+            // a null value". Get.offAllNamed needs no context, and matches the
+            // same dismiss/wipe/navigate sequence in GuestExitHandler.
+            Get.back();
             await SharedPreferenceUtils.clearPreference();
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              RouteHelper.getMobileNumberLoginRoute(),
-              (Route<dynamic> route) => false,
-            );
+            Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
           },
-          cancelCallback: () => Navigator.of(context).pop(),
+          cancelCallback: () => Get.back(),
         );
       },
       child: Scaffold(

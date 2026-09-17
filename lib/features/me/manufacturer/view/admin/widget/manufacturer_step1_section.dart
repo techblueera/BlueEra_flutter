@@ -73,18 +73,24 @@ class _ManufacturerStep1SectionState extends State<ManufacturerStep1Section> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
+        // Resolved before the await, checked after: the confirm dialog can
+        // outlive this context, and Navigator.of on a dead element throws.
+        final navigator = Navigator.of(context);
         final shouldPop = await handleBackPress(context);
-        if (shouldPop) {
-          Navigator.of(context).maybePop();
+        if (shouldPop && navigator.mounted) {
+          navigator.maybePop();
         }
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
           title: AppStrings.productDetails,
           onBackTap: () async {
+            // Resolved before the await, checked after: the confirm dialog can
+            // outlive this context, and Navigator.of on a dead element throws.
+            final navigator = Navigator.of(context);
             final shouldPop = await handleBackPress(context);
-            if (shouldPop) {
-              Navigator.of(context).maybePop();
+            if (shouldPop && navigator.mounted) {
+              navigator.maybePop();
             }
           },
         ),

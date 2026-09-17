@@ -323,12 +323,19 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                                 borderRadius: BorderRadius.circular(40),
                                 child: Image(
                                   image: FileImage(File(_imagePath!))..evict(),
+                                  // The crop lives in the cache directory,
+                                  // which Android can reclaim while this form
+                                  // is still open, and `evict()` re-reads it
+                                  // from disk on every rebuild — so the decode
+                                  // has to be allowed to fail. Fall back to the
+                                  // same placeholder the no-photo branch shows
+                                  // rather than leaving a broken image where
+                                  // the avatar should be.
+                                  errorBuilder: (_, __, ___) =>
+                                      _avatarPlaceholder(),
                                 ),
                               )
-                            : LocalAssets(
-                                imagePath: AppIconAssets.user_out_line,
-                                imgColor: AppColors.secondaryTextColor,
-                              ),
+                            : _avatarPlaceholder(),
                       ),
                     ),
                   ),
@@ -1368,8 +1375,25 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
               : null;
           dio.MultipartFile? imageByPart;
           if (imageFile?.path.isNotEmpty ?? false) {
-            String fileName = imageFile?.path.split('/').last ?? "";
-            imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
+            // The crop is written to the cache directory, and everything
+            // between picking it and arriving here — the GPS fix, the reverse
+            // geocode, a trip out to Settings to switch location on and back —
+            // is time Android can reclaim that cache under storage pressure. A
+            // path string being non-empty says nothing about the file still
+            // existing, and MultipartFile.fromFile stats it: a crop that went
+            // away threw PathNotFoundException straight out of submit.
+            if (!await imageFile!.exists()) {
+              if (!mounted) return;
+              commonSnackBar(
+                  message: langController.tr(AppStrings.pleaseSelectImage));
+              setState(() {
+                _imagePath = null;
+                UserSession().imagePath = null;
+              });
+              return;
+            }
+            String fileName = imageFile.path.split('/').last;
+            imageByPart = await dio.MultipartFile.fromFile(imageFile.path,
                 filename: fileName);
           }
           String? designation;
@@ -1504,6 +1528,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       });
     }
   }
+
+  /// The avatar stand-in: shown before a photo is picked, and again if a
+  /// picked one can no longer be read off disk.
+  Widget _avatarPlaceholder() => LocalAssets(
+        imagePath: AppIconAssets.user_out_line,
+        imgColor: AppColors.secondaryTextColor,
+      );
 
   Future<void> _selectImage(BuildContext context) async {
     final String? selected = await PhotoPickerService.pickSinglePhoto(

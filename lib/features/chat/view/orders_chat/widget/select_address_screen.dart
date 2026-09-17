@@ -171,8 +171,12 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                         String? getAddress;
                                         double? getLat;
                                         double? getLong;
-                                        Navigator.push(
-                                          context,
+                                        // Captured now so the `.then` below
+                                        // does not reach for `context` after
+                                        // the search screen has popped.
+                                        final navigator =
+                                            Navigator.of(context);
+                                        navigator.push(
                                           MaterialPageRoute(
                                             builder: (context) => SearchLocationScreen(
                                               onPlaceSelected: (lat, long, address) {
@@ -184,8 +188,8 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                             ),
                                           ),
                                         ).then((value) {
-                                          Navigator.push(
-                                            context,
+                                          if (!navigator.mounted) return;
+                                          navigator.push(
                                             MaterialPageRoute(
                                               builder: (context) => AddAddressScreen(
                                                 message: widget.message,
@@ -276,8 +280,10 @@ AppStrings.edit,                                                color: Colors.gr
                   String? getAddress;
                   double? getLat;
                   double? getLong;
-                  Navigator.push(
-                    context,
+                  // Captured now so the `.then` below does not reach for
+                  // `context` after the search screen has popped.
+                  final navigator = Navigator.of(context);
+                  navigator.push(
                     MaterialPageRoute(
                       builder: (context) => SearchLocationScreen(
                         onPlaceSelected: (lat, long, address) {
@@ -289,8 +295,8 @@ AppStrings.edit,                                                color: Colors.gr
                       ),
                     ),
                   ).then((_) {
-                    Navigator.push(
-                      context,
+                    if (!navigator.mounted) return;
+                    navigator.push(
                       MaterialPageRoute(
                         builder: (context) => AddAddressScreen(
                           message: widget.message,

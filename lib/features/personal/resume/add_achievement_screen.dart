@@ -257,7 +257,7 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                                     }
                                   }
                                   _controller.clearForm();
-                                  Navigator.pop(context);
+                                  if (context.mounted) Navigator.pop(context);
                                 } catch (e) {
                                   commonSnackBar(
                                       message:

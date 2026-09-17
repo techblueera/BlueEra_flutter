@@ -94,7 +94,7 @@ Widget build(BuildContext context) {
                       } else {
                         await controller.addCareerObjectiveApi();
                       }
-                      if (mounted) Navigator.pop(context);
+                      if (context.mounted) Navigator.pop(context);
                     }
                   : null,
             ),

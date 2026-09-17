@@ -762,7 +762,9 @@ class VideoController extends GetxController{
           final response = await ChannelRepo().deleteVideo(videoId: videoId);
           if (response.isSuccess) {
             if (index != -1) list.removeAt(index);
-            Navigator.pop(navigator!.context);
+            // `navigator` is GetX's live root-navigator lookup, so this needs
+            // no BuildContext at all — popping it directly is the same action.
+            navigator!.pop();
             commonSnackBar(message: response.message);
             deleteVideosResponse = ApiResponse.complete(response);
           }else {

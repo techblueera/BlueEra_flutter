@@ -2,7 +2,7 @@ name: BlueEra
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 14.0.86+345
+version: 14.0.87+346
 
 environment:
   sdk: ">=3.3.3 <4.0.0"
@@ -156,6 +156,12 @@ dev_dependencies:
   hive_generator:
   build_runner:
   envied_generator:
+  # Required for the `include: package:flutter_lints/flutter.yaml` in
+  # analysis_options.yaml. Without it declared here the package is not in
+  # package_config.json, the include silently resolves to nothing, and none of
+  # the ten rules it carries — avoid_print and use_build_context_synchronously
+  # among them — ever ran.
+  flutter_lints:
 
 
 flutter:

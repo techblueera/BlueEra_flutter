@@ -410,18 +410,21 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
     }
   }
   Future<void> _pickFromCamera() async {
+    // Resolved before the await, checked after: the camera takes the user out
+    // of the app, and this widget can be gone when they come back. Same shape
+    // as ChatInputBox._pickFromCamera.
+    final navigator = Navigator.of(context);
     final pickedFile = await SafeImagePicker().pickImage(
       source: ImageSource.camera,
     );
-    if (pickedFile != null) {
-      Navigator.push(
-        context,
+    if (pickedFile != null && navigator.mounted) {
+      navigator.push(
         MaterialPageRoute(
           builder: (_) =>
               MultiImagePreviewPage(
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
-                  Navigator.pop(context);
+                  navigator.pop();
 
 
 

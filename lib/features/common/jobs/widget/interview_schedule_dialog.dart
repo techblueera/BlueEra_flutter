@@ -218,7 +218,12 @@ void showInterviewScheduleDialog(BuildContext context,
                                   if (controller.scheduleInterviewResponse.value
                                           .status ==
                                       Status.COMPLETE) {
-                                    Navigator.pop(context);
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                    // Outside the guard — the caller's refresh
+                                    // has to run whether or not this dialog
+                                    // survived the request.
                                     callBack();
                                   }
                                 }

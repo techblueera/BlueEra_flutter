@@ -256,7 +256,10 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
     }
 
     if (!controller.isLoading.value) {
-      Navigator.pop(context, true);
+      // `mounted`, not `context.mounted`: this is a State method, so the
+      // context is State.context and the analyzer wants the check on the
+      // State that owns it.
+      if (mounted) Navigator.pop(context, true);
     }
   }
 

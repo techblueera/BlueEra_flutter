@@ -29,7 +29,6 @@ import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:BlueEra/widgets/static_map_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CreateBusinessAccountNewStepTwo extends StatefulWidget {
   const CreateBusinessAccountNewStepTwo({
@@ -56,8 +55,6 @@ class _CreateBusinessAccountNewStepTwoState
 
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
-  GoogleMapController? mapController;
-  Set<Marker> _markers = {};
   LocationDataModel? locationData;
 
   @override
@@ -152,10 +149,13 @@ class _CreateBusinessAccountNewStepTwoState
         double.parse(locationData!.lat);
     viewBusinessDetailsController.addressLong?.value =
         double.parse(locationData!.long);
-    _updateMarkerOnMap();
   }
 
   void _validateForm() {
+    // Belt and braces with the removeListener in dispose, matching the guard
+    // the sibling steps already carry: this runs from a shared controller's
+    // notifyListeners, so it must never assume the screen is still alive.
+    if (!mounted) return;
     setState(() {
       bool commonValid = cityController.text.trim().isNotEmpty &&
           fullBusinessAddressTextController.text.trim().isNotEmpty &&
@@ -179,44 +179,17 @@ class _CreateBusinessAccountNewStepTwoState
     });
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    if (locationData != null) {
-      _updateMarkerOnMap();
-    }
-  }
-
-  Future<void> _updateMarkerOnMap() async {
-    if (locationData == null) return;
-
-    try {
-      double lat = double.parse(locationData!.lat);
-      double long = double.parse(locationData!.long);
-      LatLng position = LatLng(lat, long);
-
-      // Create the Google Maps Marker
-      final Marker newMarker = Marker(
-        markerId: const MarkerId("selected_location"),
-        position: position,
-        icon: BitmapDescriptor.defaultMarker, // Or use custom icon
-      );
-
-      setState(() {
-        _markers = {newMarker};
-      });
-
-      // Animate Camera
-      await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(position, 14),
-      );
-    } catch (e) {
-      print("Error updating marker: $e");
-    }
-  }
-
   @override
   void dispose() {
+    // This one has to be removed by hand. The seven controllers below belong
+    // to this State and take their listeners down with them when disposed, but
+    // listingDescriptionController belongs to the GetX
+    // ViewBusinessDetailsController and outlives the screen — so a listener
+    // left on it keeps firing into a dead State. The AI description dialog
+    // writes straight to this controller, and that write is what reached
+    // setState() after disposal. Step four pairs the same add/remove.
+    viewBusinessDetailsController.listingDescriptionController.value
+        .removeListener(_validateForm);
     mobileController.dispose();
     landlineCodeController.dispose();
     landlineNumberController.dispose();

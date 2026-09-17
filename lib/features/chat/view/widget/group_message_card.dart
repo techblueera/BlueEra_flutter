@@ -818,7 +818,10 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
       // Opens the native contact editor with prefilled data so user can review.
       await FlutterContacts.openExternalInsert(contact);
     } else {
-      // Permission denied
+      // Permission denied. `mounted` on the State, whose context this is —
+      // the permission prompt above is an await, and the chat can be closed
+      // while it is up.
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.contactPermissionDenied.tr)),
       );

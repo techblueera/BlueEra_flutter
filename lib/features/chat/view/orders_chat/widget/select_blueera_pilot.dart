@@ -451,6 +451,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                           ApiKeys.receiverUserId:
                               "${orderController.openedMessage?.seller?.id}"
                         };
+                        // The address lookups above are awaits, so this sheet
+                        // can be gone before the waiting dialog goes up.
+                        if (!context.mounted) return;
                         showAwaitingForRider(context);
                         await orderController.sendOrderRequestToRider(params);
 

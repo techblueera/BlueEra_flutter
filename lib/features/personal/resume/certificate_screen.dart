@@ -241,7 +241,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                   if (saved &&
                                       !certificationsController
                                           .isLoading.value) {
-                                    Navigator.pop(context, true);
+                                    if (context.mounted) Navigator.pop(context, true);
                                   }
                                 }
                               : null,

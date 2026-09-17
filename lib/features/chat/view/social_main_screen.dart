@@ -349,17 +349,29 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                                         // ApiKeys.additional_message: "${widget.message?.messageType}"
                                       };
 
+                                      // Resolved before the await: forwarding
+                                      // is a network call, and the two pops
+                                      // unwind this sheet and the picker
+                                      // behind it.
+                                      final navigator =
+                                          Navigator.of(context);
                                       bool value = await chatViewController
                                           .forwardMessageApi(data);
 
                                       if (value) {
+                                        // Not gated on `mounted` — this is a
+                                        // socket emit that refreshes the chat
+                                        // list, and it has to happen whether
+                                        // or not this sheet survived.
                                         chatViewController.emitEvent(
                                             ChatEmitEvents.ChatList, {
                                           ApiKeys.type:
                                               AppConstants.personal_Chat_Type
                                         });
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
+                                        if (navigator.mounted) {
+                                          navigator.pop();
+                                          navigator.pop();
+                                        }
                                       }
                                     }
                                   }

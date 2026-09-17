@@ -34,6 +34,9 @@ Future<void> showHiveBottomSheet(BuildContext context,String userId,String conve
   List<String> staticGreeting=[
     "Hello! Welcome to our service. How can we assist you today?",
   ];
+  // Opening the Hive box above is awaited, so the caller's screen can be gone
+  // before there is anything to attach this sheet to.
+  if (!context.mounted) return;
   showModalBottomSheet(
     useSafeArea: true,
     isDismissible: true,

@@ -109,21 +109,20 @@ class RiderLocationForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        // Persist creds when started with them (foreground start from Dart). On
-        // a START_STICKY restart the intent is null → we keep the last values.
-        val token = intent?.getStringExtra("token")
-        val userId = intent?.getStringExtra("userId")
-        val baseUrl = intent?.getStringExtra("baseUrl")
-        if (!token.isNullOrEmpty() && !userId.isNullOrEmpty() && !baseUrl.isNullOrEmpty()) {
-            prefs.edit()
-                .putString(KEY_TOKEN, token)
-                .putString(KEY_USER, userId)
-                .putString(KEY_BASE, baseUrl)
-                .putBoolean(KEY_ACTIVE, true)
-                .apply()
-        }
-
+        // NOTHING above this line. The clock on
+        // ForegroundServiceDidNotStartInTimeException starts at the caller's
+        // startForegroundService() and runs for ~5s; everything between that
+        // call and startForeground() spends it, and all of this runs on the
+        // main thread. Reading SharedPreferences used to happen up here, which
+        // is a synchronous disk read — cheap when the page cache is warm, less
+        // so on a device under I/O load. Persisting the creds first bought
+        // nothing: the promotion does not consult them.
+        //
+        // The worst caller for that deadline, a BOOT_COMPLETED receiver, has
+        // since been removed outright — see the note in AndroidManifest.xml.
+        // What remains are MainActivity (app visible) and the WorkManager
+        // watchdog (process already warm).
+        //
         // MUST be the first thing that can fail, and it MUST NOT throw.
         //
         // Android 14+ (this app targets 36) rejects `startForeground()` for a
@@ -151,6 +150,22 @@ class RiderLocationForegroundService : Service() {
         }
 
         isRunning = true
+
+        // Past the deadline — disk work is safe from here on.
+        val prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        // Persist creds when started with them (foreground start from Dart). On
+        // a START_STICKY restart the intent is null → we keep the last values.
+        val token = intent?.getStringExtra("token")
+        val userId = intent?.getStringExtra("userId")
+        val baseUrl = intent?.getStringExtra("baseUrl")
+        if (!token.isNullOrEmpty() && !userId.isNullOrEmpty() && !baseUrl.isNullOrEmpty()) {
+            prefs.edit()
+                .putString(KEY_TOKEN, token)
+                .putString(KEY_USER, userId)
+                .putString(KEY_BASE, baseUrl)
+                .putBoolean(KEY_ACTIVE, true)
+                .apply()
+        }
 
         // Only ever runs while the rider is live — the flag is cleared the
         // moment they go offline, and the watchdog cancels itself on seeing

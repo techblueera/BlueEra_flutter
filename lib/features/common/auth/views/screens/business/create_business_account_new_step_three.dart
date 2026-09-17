@@ -46,15 +46,20 @@ class _CreateBusinessAccountNewStepThreeState
   }
 
   void _validateForm() {
-    // Not just a field listener: this is also handed to the AI description
-    // dialog as its `onSaved`, and that dialog is a route of its own that
-    // outlives this screen — it stays up when the stack underneath is unwound.
-    // Saving from a dialog whose owner has been disposed reached `setState`
-    // on a dead State, where `_element!` is null: "Null check operator used on
-    // a null value", thrown out of `State.setState` itself.
+    // Defensive: today this only runs as a listener on the three field
+    // controllers, all of which are removed in `dispose()`. The guard is here
+    // because this method used to double as the AI description dialog's
+    // `onSaved`, and that dialog is a route of its own that outlives the
+    // screen — it stays up when the stack underneath is unwound. Saving from a
+    // dialog whose owner had been disposed reached `setState` on a dead State,
+    // where `_element!` is null: "Null check operator used on a null value",
+    // thrown out of `State.setState` itself.
     //
-    // The same guard the twin screen already carries — see
+    // The description moved to step four, which is now the dialog's only
+    // owner and carries the same guard — see
     // `create_business_account_new_step_four.dart`'s `_onDescriptionChanged`.
+    // Keep this one: it also covers the field reads below, which would
+    // otherwise touch controllers this State has already disposed.
     if (!mounted) return;
 
     String email = emailTextController.text.trim();

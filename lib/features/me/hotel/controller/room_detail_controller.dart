@@ -235,6 +235,9 @@ class RoomDetailController extends GetxController {
         // has a stale entry (see progrss_dialog.dart for the same workaround).
         final ctx = Get.context;
         if (ctx != null) {
+          // Live `Get.context` lookup read after the await, not a context
+          // captured before it — nothing stale to guard.
+          // ignore: use_build_context_synchronously
           final navigator = Navigator.of(ctx);
           if (navigator.canPop()) navigator.pop();
           if (navigator.canPop()) navigator.pop();

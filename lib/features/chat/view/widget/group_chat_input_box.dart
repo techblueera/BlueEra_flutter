@@ -843,9 +843,12 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                             },
                             onSubmit: (double lat, double long, String? address,
                                 String? name) async {
+                              // Resolved before the await: sending the
+                              // location message can outlive this sheet.
+                              final navigator = Navigator.of(context);
                               await pickCurrentLocation(
                                   lat, long, address, name);
-                              Navigator.pop(context);
+                              if (navigator.mounted) navigator.pop();
                             }
                         )));
                   },
@@ -1457,6 +1460,10 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
 
 
   Future<void> _pickFromGallery(bool isVideo) async {
+    // Resolved before the await, checked after: the system picker takes the
+    // user out of the app, and on a low-memory device this widget can be gone
+    // by the time they come back.
+    final navigator = Navigator.of(context);
     final picker = SafeImagePicker();
     List<File> files = [];
     if (isVideo) {
@@ -1471,15 +1478,14 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }
     }
-    if (files.isNotEmpty) {
-      Navigator.push(
-        context,
+    if (files.isNotEmpty && navigator.mounted) {
+      navigator.push(
         MaterialPageRoute(
           builder: (_) =>
               MultiImagePreviewPage(
                 mediaFiles: files,
                 onSend: (List<File> getFile, String? commands) async {
-                  Navigator.pop(context);
+                  navigator.pop();
 
                   // Compress media files before upload (~80% size reduction)
                   List<File> selectedFiles = await ChatMediaCompressionService.compressMediaFiles(getFile);
@@ -1535,18 +1541,19 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
 
 
   Future<void> _pickFromCamera() async {
+    // As in _pickFromGallery — the camera can outlive this widget.
+    final navigator = Navigator.of(context);
     final pickedFile = await SafeImagePicker().pickImage(
       source: ImageSource.camera,
     );
-    if (pickedFile != null) {
-      Navigator.push(
-        context,
+    if (pickedFile != null && navigator.mounted) {
+      navigator.push(
         MaterialPageRoute(
           builder: (_) =>
               MultiImagePreviewPage(
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
-                  Navigator.pop(context);
+                  navigator.pop();
 
                   // Compress camera file before upload (~80% size reduction)
                   File originalFile = File(pickedFile.path);

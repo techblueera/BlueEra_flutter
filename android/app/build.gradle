@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '345'
+    flutterVersionCode = '346'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '14.0.86'
+    flutterVersionName = '14.0.87'
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')
@@ -57,8 +57,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 345
-        versionName "14.0.86"
+        versionCode 346
+        versionName "14.0.87"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey
         ]
@@ -92,6 +92,32 @@ android {
     }
     packagingOptions {
         pickFirst "lib/**/libc++_shared.so"
+    }
+
+    bundle {
+        abi {
+            // Every ABI ships in the base APK instead of a per-ABI
+            // split_config apk.
+            //
+            // With splitting on (the App Bundle default) all native code,
+            // libflutter.so included, lives in the split. Installs that arrive
+            // with the base and no split — sideloaded base-only APKs, some
+            // third-party installers, interrupted Play installs, device-transfer
+            // tools that copy only base.apk — therefore have no native libraries
+            // at all, and the app dies during activity launch with
+            // "Could not find 'libflutter.so'. Looked for: [arm64-v8a,
+            // armeabi-v7a, armeabi], but only found: []" before any Dart runs.
+            // Nothing in the app can catch that, so the only fix is to not
+            // depend on the split arriving.
+            //
+            // The trade is download size: the base now carries arm64-v8a and
+            // armeabi-v7a rather than one of them. Play Core's
+            // MissingSplitsManagerFactory would report the broken state instead
+            // at no size cost, but it ships only in the legacy monolithic
+            // com.google.android.play:core, which duplicate-classes against the
+            // app-update artifact in_app_update depends on.
+            enableSplit = false
+        }
     }
 
     configurations.all {

@@ -206,6 +206,9 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
           height: 15,
           onTap: () {
             Future.delayed(const Duration(milliseconds: 100), () {
+              // The delay lets the popup menu close first, and is long enough
+              // for this row to be gone: the list rebuilds when a delete lands.
+              if (!context.mounted) return;
               commonConformationDialog(
                 context: context,
                 text: AppStrings.areYouSureDelete.tr,
