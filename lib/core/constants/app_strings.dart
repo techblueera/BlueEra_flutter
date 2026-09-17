@@ -8903,6 +8903,37 @@ class AppStrings {
   static const String orderStepsRetry = "orderStepsRetry";
   static const String orderStepsEmptyStages = "orderStepsEmptyStages";
 
+  // ─── Order card step strip (OrderJourney) ──────────────────────────────
+  // The node labels on the horizontal tracker each order card carries. Six
+  // variants — customer/owner × pickup/delivery × cash/UPI — see
+  // features/chat/auth/model/order_journey.dart. A server-sent stage list
+  // still wins; these are the copy for the derived strip the card draws with
+  // no network call.
+  static const String orderJourneyOrderPlaced = "orderJourneyOrderPlaced";
+  static const String orderJourneyOrderReceived = "orderJourneyOrderReceived";
+  static const String orderJourneyWaitingForShopAcceptance = "orderJourneyWaitingForShopAcceptance";
+  static const String orderJourneyWaitingForAcceptance = "orderJourneyWaitingForAcceptance";
+  static const String orderJourneyShopAccepted = "orderJourneyShopAccepted";
+  static const String orderJourneyOrderAccepted = "orderJourneyOrderAccepted";
+  static const String orderJourneyUpiPaymentPending = "orderJourneyUpiPaymentPending";
+  static const String orderJourneyUpiPaymentVerification = "orderJourneyUpiPaymentVerification";
+  static const String orderJourneyUpiPaymentVerified = "orderJourneyUpiPaymentVerified";
+  static const String orderJourneyUpiPaymentRejected = "orderJourneyUpiPaymentRejected";
+  static const String orderJourneyShareUpiQrCode = "orderJourneyShareUpiQrCode";
+  static const String orderJourneyPaymentConfirmation = "orderJourneyPaymentConfirmation";
+  static const String orderJourneyPaymentConfirmed = "orderJourneyPaymentConfirmed";
+  static const String orderJourneyPaymentRejected = "orderJourneyPaymentRejected";
+  static const String orderJourneyFindingRider = "orderJourneyFindingRider";
+  static const String orderJourneyRiderFound = "orderJourneyRiderFound";
+  static const String orderJourneyPreparingOrder = "orderJourneyPreparingOrder";
+  static const String orderJourneyPreparedOrder = "orderJourneyPreparedOrder";
+  static const String orderJourneyPreparingDelayed = "orderJourneyPreparingDelayed";
+  static const String orderJourneyPickedUp = "orderJourneyPickedUp";
+  static const String orderJourneyWaitingForDelivery = "orderJourneyWaitingForDelivery";
+  static const String orderJourneyDeliveryCompleted = "orderJourneyDeliveryCompleted";
+  static const String orderJourneyRiderPaymentPending = "orderJourneyRiderPaymentPending";
+  static const String orderJourneyRiderPaymentCompleted = "orderJourneyRiderPaymentCompleted";
+
   // ── Seller controls (§7) ──────────────────────────────────────────────
 
   static const String orderMarkReady = "orderMarkReady";

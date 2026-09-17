@@ -4,6 +4,10 @@ import 'package:BlueEra/core/theme/order_design_tokens.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
+import 'package:BlueEra/features/chat/auth/model/order_journey.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_journey_strip.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/widget/upi_qr_widget.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_broadcast_search_section.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_deadline_countdown.dart';
@@ -147,6 +151,13 @@ class _OrderLifecycleSectionState extends State<OrderLifecycleSection> {
 
         const OrderZoneDivider(),
 
+        // ①b STEPS — the horizontal tracker every screen in the order PDFs
+        // carries. Derived from this same lifecycle (see `OrderJourney`), so it
+        // draws with no network call; a server stage list replaces it wherever
+        // one exists. It sits above the banner because it answers "where is my
+        // order" at a glance, and the banner answers "what does that mean".
+        ..._stepsZone(state, lifecycle, isOwner),
+
         // ② STATUS — server text, verbatim, plus at most one chip.
         _statusZone(lifecycle, state, isOwner),
 
@@ -208,6 +219,31 @@ class _OrderLifecycleSectionState extends State<OrderLifecycleSection> {
         orderValue: widget.ctx.orderTotal,
       );
     });
+  }
+
+  /// The step strip (PDF: the `● ─ ● ─ ○` row under the order number).
+  ///
+  /// Renders nothing rather than guessing when the status is one this build
+  /// does not know — see [OrderJourney.resolve]. A strip that puts an unknown
+  /// status in the wrong place tells the customer their order is somewhere it
+  /// is not, which is worse than no strip at all.
+  List<Widget> _stepsZone(
+      OrderActionsModel? state, OrderLifecycle lifecycle, bool isOwner) {
+    final journey = OrderJourney.resolve(
+      OrderJourneySnapshot.fromState(
+        isOwner: isOwner,
+        state: state,
+        fallbackLifecycle: lifecycle,
+      ),
+    );
+    if (journey == null || journey.isEmpty) return const [];
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+            OrderSpace.s, OrderSpace.m, OrderSpace.s, 0),
+        child: OrderJourneyStrip(journey: journey),
+      ),
+    ];
   }
 
   /// "Doorstep delivery" / "Collect from the shop". Rendered only once the
@@ -449,11 +485,342 @@ class _OrderLifecycleSectionState extends State<OrderLifecycleSection> {
     final payment = _paymentBlock(l, state, isOwner);
     if (payment != null) out.add(payment);
 
+    // The delivery fee, settled with the rider at the door. Renders only when
+    // the server actually sent the block — a QR with no VPA behind it is worse
+    // than no QR.
+    final riderPayment = _riderPaymentBlock(l, isOwner);
+    if (riderPayment != null) out.add(riderPayment);
+
+    // What to do when you get to the shop, and the code panel. Customer side,
+    // self-pickup, once the order is ready.
+    final arrival = _arrivalBlock(l, state, isOwner);
+    if (arrival != null) out.add(arrival);
+
     final refund = _refundBlock(l, state, isOwner);
     if (refund != null) out.add(refund);
 
+    // Who ended it, why, and what money changed hands. Last, because it is
+    // the epitaph.
+    final cancellation = _cancellationBlock(l, state);
+    if (cancellation != null) out.add(cancellation);
+
     return out;
   }
+
+  /// **"When you arrive at the shop"** — the numbered block on the customer's
+  /// ready card, plus the pickup-code panel.
+  ///
+  /// Two decisions worth stating:
+  ///
+  /// * **The steps are conditional on how the order is paid.** The cash list
+  ///   has five entries and includes *"Pay the final amount in cash"*; the UPI
+  ///   list has four and must not, because that money is already with the
+  ///   shop. Showing a paid customer a "pay at the counter" instruction is how
+  ///   someone ends up paying twice.
+  /// * **The panel has no button of its own.** The board draws a `Show Code`
+  ///   link inside it, but the server already offers `VIEW_PICKUP_CODE` in the
+  ///   action bar below, and two controls doing one thing is how a person ends
+  ///   up tapping the wrong one. The panel carries the resting copy — *"Pickup
+  ///   code will be available when you arrive"* — and the action bar carries
+  ///   the tap.
+  Widget? _arrivalBlock(
+      OrderLifecycle l, OrderActionsModel? state, bool isOwner) {
+    if (isOwner || l.isTerminal) return null;
+    if (l.orderStatus != OrderStatusValue.ready) return null;
+    // A doorstep order is not collected by the customer — the rider does that,
+    // with their own PIN.
+    if (state?.isRiderOrder ?? false) return null;
+
+    final steps = <String>[
+      'Go to the shop counter',
+      'Tell the shop your order',
+      'Show your pickup verification code',
+      if (l.isCash) 'Pay the final amount in cash',
+      'Collect your order',
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+          OrderSpace.m, OrderSpace.s, OrderSpace.m, 0),
+      padding: const EdgeInsets.all(OrderSpace.m),
+      decoration: BoxDecoration(
+        color: OrderTone.neutral.surface,
+        borderRadius: BorderRadius.circular(OrderRadius.inner),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('When you arrive at the shop',
+              style: OrderType.title
+                  .copyWith(color: AppColors.mainTextColor, fontSize: 15)),
+          const SizedBox(height: OrderSpace.s),
+          for (var i = 0; i < steps.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    child: Text('${i + 1}.',
+                        style: OrderType.label
+                            .copyWith(color: AppColors.grayText)),
+                  ),
+                  Expanded(
+                    child: Text(steps[i],
+                        style: OrderType.label
+                            .copyWith(color: AppColors.secondaryTextColor)),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: OrderSpace.s),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(OrderSpace.m),
+            decoration: BoxDecoration(
+              color: OrderTone.accent.surface,
+              borderRadius: BorderRadius.circular(OrderRadius.inner),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.qr_code_2,
+                    size: 22, color: OrderTone.accent.color),
+                const SizedBox(height: OrderSpace.xs),
+                Text(
+                  'Pickup code will be available when you arrive',
+                  textAlign: TextAlign.center,
+                  style: OrderType.label
+                      .copyWith(color: AppColors.secondaryTextColor),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The delivery fee, paid to the **rider** at the door (board: customer's
+  /// *"Rider Payment Pending"* screen, and the rider's completion sheet which
+  /// shows the same QR from the other side).
+  ///
+  /// This is a second payee, not a second instalment: the shop's QR was
+  /// charged the product total only. The QR here is generated from the rider's
+  /// VPA **with the amount written into the link**, so the figure is not the
+  /// customer's to type — it is the fee they already agreed to at checkout.
+  Widget? _riderPaymentBlock(OrderLifecycle l, bool isOwner) {
+    if (isOwner) return null;
+    if (!l.riderPaymentDue) return null;
+    final upi = (l.riderPaymentUpiId ?? '').trim();
+    final amount = l.riderPaymentAmount;
+    // Nothing to scan and nothing to copy: render nothing rather than an empty
+    // frame that looks broken.
+    if (upi.isEmpty) return null;
+
+    final submitted =
+        l.riderPaymentState == OrderRiderPaymentState.submitted;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+          OrderSpace.m, OrderSpace.s, OrderSpace.m, 0),
+      padding: const EdgeInsets.all(OrderSpace.m),
+      decoration: BoxDecoration(
+        color: OrderTone.accent.surface,
+        borderRadius: BorderRadius.circular(OrderRadius.inner),
+        border: Border.all(color: OrderTone.accent.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Delivery fee',
+                        style: OrderType.label
+                            .copyWith(color: AppColors.grayText)),
+                    if (amount != null)
+                      Text('₹${amount.toStringAsFixed(0)}',
+                          style: OrderType.mono(size: 20)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: OrderSpace.s, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text('UPI Payment',
+                    style: OrderType.label
+                        .copyWith(color: OrderTone.accent.color)),
+              ),
+            ],
+          ),
+          const SizedBox(height: OrderSpace.s),
+          Text(
+            submitted
+                // Their claim is not the rider's confirmation. Same rule as
+                // the shop leg: a submitted payment is never "paid".
+                ? 'Waiting for your delivery partner to confirm the payment'
+                : 'Pay your delivery partner to finish this order',
+            style: OrderType.label
+                .copyWith(color: AppColors.secondaryTextColor),
+          ),
+          const SizedBox(height: OrderSpace.m),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(OrderSpace.s),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(OrderRadius.inner),
+              ),
+              child: QrImageView(
+                data: upiQrPayload(upi,
+                    payeeName: l.riderPaymentPayeeName, amount: amount),
+                version: QrVersions.auto,
+                size: 132,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
+                gapless: true,
+              ),
+            ),
+          ),
+          const SizedBox(height: OrderSpace.s),
+          // Long-press to copy, like the UTR row: a VPA typed by hand is a
+          // payment sent to the wrong person.
+          InkWell(
+            onLongPress: () {
+              Clipboard.setData(ClipboardData(text: upi));
+              commonSnackBar(message: 'UPI ID copied');
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(upi,
+                    style: OrderType.label.copyWith(
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(width: OrderSpace.xs),
+                Icon(Icons.copy_rounded, size: 13, color: AppColors.grayText),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The cancelled card's **Cancellation details** table (board: customer's
+  /// cancelled screen).
+  ///
+  /// The money line is the point of the whole block. It is stated, never
+  /// implied: *"₹0 collected"* is what stops a customer who cancelled before
+  /// paying from wondering whether they are owed something — and on an order
+  /// where money WAS taken, the refund block above says so in its own words
+  /// rather than this table pretending the sum is closed.
+  Widget? _cancellationBlock(OrderLifecycle l, OrderActionsModel? state) {
+    if (!l.isCancelledOrExpired) return null;
+
+    final info = state?.cancellation;
+    final by = (info?.cancelledBy ?? '').trim();
+    final reason = (info?.comment?.trim().isNotEmpty ?? false)
+        ? info!.comment!.trim()
+        : _humaniseCode(info?.reasonCode ?? l.reasonCode);
+
+    // Cash: nothing was collected unless the shop said it collected it. UPI:
+    // whatever the customer actually paid, which is 0 when they never did.
+    final num collected = l.isCash
+        ? (l.isCashCollected ? (state?.paymentSummary?.amountDue ?? 0) : 0)
+        : (state?.paymentSummary?.amountPaid ?? 0);
+
+    // **One money line per card.** When a refund is in play, the refund block
+    // above is already saying who owes what and how far along it is — and that
+    // conversation outlives the order (guide §6.9). Repeating the figure here
+    // would state the same rupees twice, in two different tenses, which is how
+    // a customer ends up believing they are owed it twice or not at all.
+    //
+    // The board's `Cash collected ₹0` line is for the case it was drawn for:
+    // an order that died before any money moved. That is the case this row
+    // covers, and the only one.
+    final refundInPlay = l.refundDue ||
+        l.paymentState == PaymentStateValue.refundPending ||
+        l.paymentState == PaymentStateValue.refunded;
+
+    final rows = <List<String>>[
+      if (by.isNotEmpty) ['Cancelled by', _humaniseCode(by)],
+      if (reason.isNotEmpty) ['Reason', reason],
+      [
+        'Status',
+        l.orderStatus == OrderStatusValue.expired ? 'Expired' : 'Cancelled'
+      ],
+      if (l.paymentMethod != null)
+        ['Payment method', l.isCash ? 'Cash at shop' : 'UPI'],
+      if (!refundInPlay)
+        [
+          l.isCash ? 'Cash collected' : 'Amount paid',
+          '₹${collected.toStringAsFixed(0)}'
+        ],
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+          OrderSpace.m, OrderSpace.s, OrderSpace.m, 0),
+      padding: const EdgeInsets.all(OrderSpace.m),
+      decoration: BoxDecoration(
+        color: OrderTone.muted.surface,
+        borderRadius: BorderRadius.circular(OrderRadius.inner),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Cancellation details',
+              style: OrderType.title
+                  .copyWith(color: AppColors.mainTextColor, fontSize: 15)),
+          const SizedBox(height: OrderSpace.s),
+          for (final r in rows)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(r[0],
+                        style: OrderType.label
+                            .copyWith(color: AppColors.grayText)),
+                  ),
+                  const SizedBox(width: OrderSpace.s),
+                  Flexible(
+                    child: Text(
+                      r[1],
+                      textAlign: TextAlign.right,
+                      style: OrderType.label.copyWith(
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// `CHANGED_MY_MIND` → `Changed my mind`, `customer` → `Customer`. The
+  /// service sends bare codes; nobody should read one.
+  String _humaniseCode(String? code) {
+    final c = (code ?? '').trim();
+    if (c.isEmpty) return '';
+    final words = c.replaceAll('_', ' ').toLowerCase().trim();
+    if (words.isEmpty) return '';
+    return words[0].toUpperCase() + words.substring(1);
+  }
+
+  /// "Doorstep delivery" / "Collect from the shop". Rendered only once the
 
   /// The UPI payment sub-states. This sequence must never look like a single
   /// step (guide §6.3).

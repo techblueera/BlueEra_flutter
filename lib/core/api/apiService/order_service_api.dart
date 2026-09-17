@@ -93,6 +93,39 @@ mixin OrderServiceApi {
           {String service = defaultOrderService}) =>
       '${_orderBase(service, orderId)}/handover';
 
+  /// `POST <service>/api/orders/:orderId/payment/collect-cash` — business.
+  ///
+  /// Cash orders only, and **after** the pickup code has matched: the shop is
+  /// saying the money is in its hand (PDF, business side: *"Collect ₹600 from
+  /// Customer"* → *Payment Collected*). It is its own call rather than a flag
+  /// on `/handover` because the two are separate moments at the counter, and
+  /// the strip gives each its own node.
+  ///
+  /// `{ amountCollected? }`
+  String orderCollectCash(String orderId,
+          {String service = defaultOrderService}) =>
+      '${_orderBase(service, orderId)}/payment/collect-cash';
+
+  /// `POST <service>/api/orders/:orderId/complete` — business.
+  ///
+  /// Closes a `picked-up` order by hand (PDF, business side: *Complete
+  /// Order*). The sweeper closes it anyway after the grace window; this is the
+  /// shop saying so first, and it is what makes **Picked up** and
+  /// **Completed** two nodes instead of one.
+  String orderComplete(String orderId,
+          {String service = defaultOrderService}) =>
+      '${_orderBase(service, orderId)}/complete';
+
+  /// `POST <service>/api/orders/:orderId/start-preparing` — business.
+  ///
+  /// Doorstep orders: the rider is assigned and the shop starts packing (PDF,
+  /// business side: *"Your Rider Is Ready"* → *Continue*). Packing on a
+  /// doorstep order begins only once a rider is on the way, so this is a real
+  /// transition and not a cosmetic one.
+  String orderStartPreparing(String orderId,
+          {String service = defaultOrderService}) =>
+      '${_orderBase(service, orderId)}/start-preparing';
+
   /// `POST <service>/api/orders/:orderId/no-show` — business. `{ comment? }`
   String orderNoShow(String orderId, {String service = defaultOrderService}) =>
       '${_orderBase(service, orderId)}/no-show';

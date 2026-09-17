@@ -248,6 +248,35 @@ class OrderLifecycleController extends GetxController {
             service: service ?? serviceOf(orderId)),
       );
 
+  /// Cash collected at the counter. Owner + cash only, after the code matched.
+  Future<OrderCallResult> collectCash(String orderId,
+          {num? amountCollected, String? service}) =>
+      _run(
+        orderId: orderId,
+        action: OrderAction.collectCash,
+        call: () => _repo.collectCash(orderId,
+            amountCollected: amountCollected,
+            service: service ?? serviceOf(orderId)),
+      );
+
+  /// Close a `picked-up` order by hand.
+  Future<OrderCallResult> completeOrder(String orderId, {String? service}) =>
+      _run(
+        orderId: orderId,
+        action: OrderAction.completeOrder,
+        call: () => _repo.completeOrder(orderId,
+            service: service ?? serviceOf(orderId)),
+      );
+
+  /// Doorstep: the rider is on the way, start packing.
+  Future<OrderCallResult> startPreparing(String orderId, {String? service}) =>
+      _run(
+        orderId: orderId,
+        action: OrderAction.startPreparing,
+        call: () => _repo.startPreparing(orderId,
+            service: service ?? serviceOf(orderId)),
+      );
+
   Future<OrderCallResult> reportNoShow(String orderId,
           {String? comment, String? service}) =>
       _run(

@@ -182,6 +182,18 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
 
   bool get _isDelivery => _deliveryType == OrderDeliveryType.rider;
 
+  /// **Cash is not an option on a doorstep order.** The delivery board's
+  /// checkout offers UPI and nothing else, and every doorstep card in it reads
+  /// `UPI Payment`.
+  ///
+  /// It is not a styling choice. Cash on delivery puts a stranger's money in a
+  /// rider's pocket and makes the shop, the rider and the platform argue about
+  /// who is short when it goes missing — with no gateway, no escrow and no
+  /// ledger to settle it against. The product money is paid to the shop's QR
+  /// before anything is packed, and the delivery fee is settled with the rider
+  /// at the door.
+  bool get _cashAllowed => !_isDelivery;
+
   /// Delivery needs the shop's own point to quote against. Without it the
   /// sheet degrades honestly rather than showing a broken quote.
   bool get _shopLocated =>
@@ -299,6 +311,11 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
         // forward again must restore the address they already chose.
         _quote = null;
       } else {
+        // Delivery is UPI-only (see `_cashAllowed`), so a cash choice made
+        // while pickup was selected has to move with it. Doing it here, at the
+        // moment of choosing, is what stops the review step from quietly
+        // showing "Cash" on an order the backend would reject.
+        if (!_cashAllowed) _paymentMethod = OrderPaymentMethod.upi;
         // Re-quote if the address was picked while pickup was selected.
         if (_quote == null) _fetchQuote();
       }
@@ -309,7 +326,11 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
     final a = _address;
     Navigator.of(context).pop(CheckoutChoice(
       deliveryType: _deliveryType,
-      paymentMethod: _paymentMethod,
+      // The invariant is enforced again at the exit, not just at the moment of
+      // choosing: this is the value that becomes an order, and a doorstep
+      // order created as cash is one the backend has no flow for.
+      paymentMethod:
+          _isDelivery ? OrderPaymentMethod.upi : _paymentMethod,
       delivery: _isDelivery && a != null
           ? OrderDeliveryDetails(
               addressLine: a.fullAddress,
@@ -845,17 +866,23 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
         const SizedBox(height: OrderSpace.m),
         Row(
           children: [
-            Expanded(
-              child: _choiceCard(
-                icon: Icons.payments_outlined,
-                title: 'Cash',
-                subtitle: 'Pay at the counter',
-                selected: _paymentMethod == OrderPaymentMethod.cash,
-                onTap: () =>
-                    setState(() => _paymentMethod = OrderPaymentMethod.cash),
+            // Cash is **absent** on a doorstep order rather than greyed out. A
+            // disabled card invites a tap and then explains itself; leaving it
+            // out says the same thing without the dead end, and the note below
+            // gives the reason in a sentence.
+            if (_cashAllowed) ...[
+              Expanded(
+                child: _choiceCard(
+                  icon: Icons.payments_outlined,
+                  title: 'Cash',
+                  subtitle: 'Pay at the counter',
+                  selected: _paymentMethod == OrderPaymentMethod.cash,
+                  onTap: () =>
+                      setState(() => _paymentMethod = OrderPaymentMethod.cash),
+                ),
               ),
-            ),
-            const SizedBox(width: OrderSpace.m),
+              const SizedBox(width: OrderSpace.m),
+            ],
             Expanded(
               child: _choiceCard(
                 icon: Icons.qr_code_2,
@@ -869,6 +896,15 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
             ),
           ],
         ),
+        if (!_cashAllowed) ...[
+          const SizedBox(height: OrderSpace.m),
+          _note(
+            tone: OrderTone.neutral,
+            text: 'Doorstep orders are paid by UPI. The shop is paid for the '
+                'items before it packs them, and the delivery fee is paid to '
+                'your delivery partner when your order arrives.',
+          ),
+        ],
         if (_paymentMethod == OrderPaymentMethod.upi) ...[
           const SizedBox(height: OrderSpace.m),
           _note(

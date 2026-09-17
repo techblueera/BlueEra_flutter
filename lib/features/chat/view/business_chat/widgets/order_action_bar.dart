@@ -171,6 +171,9 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.markReady:
       case OrderAction.verifyPayment:
       case OrderAction.confirmHandover:
+      case OrderAction.collectCash:
+      case OrderAction.completeOrder:
+      case OrderAction.startPreparing:
       case OrderAction.submitPayment:
       case OrderAction.viewPickupCode:
       case OrderAction.markRefundSent:
@@ -215,6 +218,12 @@ class OrderActionBar extends StatelessWidget {
         return 'Not received';
       case OrderAction.confirmHandover:
         return 'Handed over';
+      case OrderAction.collectCash:
+        return 'Payment collected';
+      case OrderAction.completeOrder:
+        return 'Complete order';
+      case OrderAction.startPreparing:
+        return 'Start preparing';
       case OrderAction.reportNoShow:
         return "Customer didn't come";
       case OrderAction.markRefundSent:
@@ -298,6 +307,15 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.confirmHandover:
         _handoverFlow(context);
         break;
+      case OrderAction.collectCash:
+        _collectCash();
+        break;
+      case OrderAction.completeOrder:
+        _completeOrder();
+        break;
+      case OrderAction.startPreparing:
+        _startPreparing();
+        break;
       case OrderAction.reportNoShow:
         _noShow();
         break;
@@ -349,6 +367,16 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.confirmHandover:
         return _primary(action, 'Handed over',
             onTap: () => _handoverFlow(context));
+      // Cash at the counter, after the code matched. Green like the other
+      // "money is real" confirmations, and worded as a fact the shop is
+      // reporting rather than an instruction.
+      case OrderAction.collectCash:
+        return _primary(action, 'Payment collected',
+            onTap: _collectCash, color: const Color(0xFF1B9E4B));
+      case OrderAction.completeOrder:
+        return _primary(action, 'Complete order', onTap: _completeOrder);
+      case OrderAction.startPreparing:
+        return _primary(action, 'Start preparing', onTap: _startPreparing);
       case OrderAction.reportNoShow:
         return _text(action, "Customer didn't come", onTap: _noShow);
       case OrderAction.markRefundSent:
@@ -449,6 +477,31 @@ class OrderActionBar extends StatelessWidget {
 
   Future<void> _markReady() async {
     final res = await _controller.markReady(ctx.orderId, service: ctx.service);
+    _after(res);
+  }
+
+  /// The amount is the server's, never a local sum: the shop confirms what it
+  /// was told to collect, and a client-computed total that disagreed would be
+  /// a dispute at the counter.
+  Future<void> _collectCash() async {
+    final due = _controller.stateOf(ctx.orderId)?.paymentSummary?.amountDue;
+    final res = await _controller.collectCash(
+      ctx.orderId,
+      amountCollected: due,
+      service: ctx.service,
+    );
+    _after(res);
+  }
+
+  Future<void> _completeOrder() async {
+    final res =
+        await _controller.completeOrder(ctx.orderId, service: ctx.service);
+    _after(res);
+  }
+
+  Future<void> _startPreparing() async {
+    final res =
+        await _controller.startPreparing(ctx.orderId, service: ctx.service);
     _after(res);
   }
 

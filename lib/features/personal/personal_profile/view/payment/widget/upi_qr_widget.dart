@@ -10,12 +10,22 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 /// Builds a standard UPI deep-link payload so any UPI app can scan the QR and
 /// pay this VPA. e.g. `upi://pay?pa=name@oksbi&pn=SBI&cu=INR`.
-String upiQrPayload(String upiId, {String? payeeName}) {
+///
+/// [amount] writes `am=` into the link, which is what makes a scanned QR open
+/// with the figure already filled in. Used by the order cards, where the
+/// number is not the payer's to choose: a delivery fee typed by hand is a fee
+/// typed wrong, and then argued about at the door.
+String upiQrPayload(String upiId, {String? payeeName, num? amount}) {
   final pa = Uri.encodeComponent(upiId.trim());
   final pn = (payeeName != null && payeeName.trim().isNotEmpty)
       ? '&pn=${Uri.encodeComponent(payeeName.trim())}'
       : '';
-  return 'upi://pay?pa=$pa$pn&cu=INR';
+  // Two decimals, because that is what the UPI spec expects and what every
+  // app displays back unchanged.
+  final am = (amount != null && amount > 0)
+      ? '&am=${amount.toStringAsFixed(2)}'
+      : '';
+  return 'upi://pay?pa=$pa$pn$am&cu=INR';
 }
 
 /// Inline QR preview generated live from a UPI ID — used in the Add screen so

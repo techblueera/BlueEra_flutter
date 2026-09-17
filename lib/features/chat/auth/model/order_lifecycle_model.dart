@@ -36,6 +36,16 @@ class OrderAction {
   static const raiseIssue = 'RAISE_ISSUE';
   static const confirmRefundReceived = 'CONFIRM_REFUND_RECEIVED';
 
+  /// Delivery only: settle the delivery fee with the rider (PDF, customer
+  /// "Rider Payment Pending"). Separate from [submitPayment], which is the
+  /// shop's product money — the two legs are different payees and the QR the
+  /// customer is shown is the rider's, not the shop's.
+  static const payRider = 'PAY_RIDER';
+
+  /// Rate the shop, and on a delivery order the rider too (PDF, customer
+  /// picked-up + completed screens: "Rate your experience").
+  static const rateOrder = 'RATE_ORDER';
+
   // Owner
   static const acceptOrder = 'ACCEPT_ORDER';
   static const rejectOrder = 'REJECT_ORDER';
@@ -44,6 +54,21 @@ class OrderAction {
   static const verifyPayment = 'VERIFY_PAYMENT';
   static const rejectPayment = 'REJECT_PAYMENT';
   static const confirmHandover = 'CONFIRM_HANDOVER';
+
+  /// Cash orders: the shop has the money in hand (PDF, owner "Collect ₹X from
+  /// Customer" → *Payment Collected*). It is deliberately a step of its own,
+  /// after the pickup code and before the goods move: a shop that hands the
+  /// bag over first has nothing left to collect with.
+  static const collectCash = 'COLLECT_CASH';
+
+  /// Close a `picked-up` order by hand (PDF, owner *Complete Order*). The
+  /// sweeper does it anyway after the grace window; this is the shop saying so
+  /// first.
+  static const completeOrder = 'COMPLETE_ORDER';
+
+  /// Owner + delivery: the rider is assigned, start packing (PDF, owner "Your
+  /// Rider Is Ready" → *Continue*).
+  static const startPreparing = 'START_PREPARING';
   static const reportNoShow = 'REPORT_NO_SHOW';
   static const markRefundSent = 'MARK_REFUND_SENT';
   static const contactCustomer = 'CONTACT_CUSTOMER';
@@ -73,7 +98,24 @@ class OrderStatusValue {
   static const accepted = 'accepted';
   static const inProgress = 'in-progress';
   static const ready = 'ready';
+
+  /// The goods have left the shop but the order is not closed yet.
+  ///
+  /// The self-pickup handover and the rider's shop pickup both land here: the
+  /// code matched, the bag moved, and either the shop taps *Complete Order*
+  /// (PDF, owner picked-up screen) or the sweeper closes it. Both order PDFs
+  /// draw **Picked up** and **Completed** as separate nodes, which is the
+  /// whole reason this status is distinct from [completed].
+  static const pickedUp = 'picked-up';
+
   static const dispatched = 'dispatched';
+
+  /// Delivery only: the rider handed the goods to the customer and the
+  /// customer's PIN matched. The order still waits on the **delivery fee**
+  /// (see `riderPayment`) before it completes — PDF, customer "Rider Payment
+  /// Pending" screen.
+  static const delivered = 'delivered';
+
   static const completed = 'completed';
   static const cancelled = 'cancelled';
   static const expired = 'expired';
@@ -103,6 +145,19 @@ class PaymentStateValue {
   static const expired = 'expired';
   static const refundPending = 'refund_pending';
   static const refunded = 'refunded';
+}
+
+/// The **rider-fee leg's** own states.
+///
+/// A delivery order carries two money conversations with two different payees:
+/// the shop's product total (`paymentState`, on the shop's QR) and the
+/// delivery fee the customer settles with the rider at the door against the
+/// *rider's* QR. `verified` is reused where the values coincide; `paid` exists
+/// because a rider confirms receipt rather than a screenshot being verified.
+class OrderRiderPaymentState {
+  static const pending = 'pending';
+  static const submitted = 'submitted';
+  static const paid = 'paid';
 }
 
 /// `deliveryType` on the order.
@@ -617,6 +672,44 @@ class OrderLifecycle {
 
   num? refundAmount;
 
+  /// The shop matched the 4-digit pickup code (self-pickup), or the rider's
+  /// shop-pickup PIN (delivery).
+  ///
+  /// This is the hinge of the **owner's** cash flow: code first, then money,
+  /// then the goods. Until it is set the shop's live step is "Ready for
+  /// pickup" (enter the code); once it is set on a cash order the live step
+  /// becomes "Payment Confirmation" (collect ₹X) — PDF, business-side screens
+  /// 3 and 4. Absent on every order the backend has not been taught to send
+  /// it for, which resolves to "not verified" and leaves today's behaviour
+  /// exactly as it was.
+  String? pickupVerifiedAt;
+
+  /// Cash in the shop's hand on a cash order (`COLLECT_CASH`).
+  String? cashCollectedAt;
+
+  /// **The rider-fee leg.** Delivery only, and a different payee from
+  /// [paymentState]: the shop's QR is charged the product total only, and the
+  /// delivery fee is settled with the rider at the door against the *rider's*
+  /// QR (PDF, customer "Rider Payment Pending" and the rider's completion
+  /// sheet). `pending` → `submitted` → `paid`.
+  String? riderPaymentState;
+
+  /// What the customer owes the rider — the fee quoted at checkout, never
+  /// recomputed on the client.
+  num? riderPaymentAmount;
+
+  /// The **rider's** VPA and name. The QR the customer scans at the door is
+  /// generated from these, so no image has to be fetched — and the amount is
+  /// written into the link, which is what stops a fee being typed wrong.
+  String? riderPaymentUpiId;
+  String? riderPaymentPayeeName;
+
+  /// The server saying outright that preparation has run over, rather than the
+  /// app inferring it from a `readyBy` that has passed. When present it wins:
+  /// a shop that revised its ETA is not late again just because the first
+  /// estimate expired.
+  bool? prepDelayed;
+
   /// Whether the payload this came from actually mentioned `refundDue`.
   ///
   /// `/actions` does not send it, and a plain `false` from a payload that never
@@ -642,6 +735,13 @@ class OrderLifecycle {
     this.refundInitiatedAt,
     this.refundReference,
     this.refundAmount,
+    this.pickupVerifiedAt,
+    this.cashCollectedAt,
+    this.riderPaymentState,
+    this.riderPaymentAmount,
+    this.riderPaymentUpiId,
+    this.riderPaymentPayeeName,
+    this.prepDelayed,
     this.refundDueStated = true,
   })  : customerActions = customerActions ?? const [],
         ownerActions = ownerActions ?? const [],
@@ -677,6 +777,41 @@ class OrderLifecycle {
       refundInitiatedAt: json['refundInitiatedAt']?.toString(),
       refundReference: json['refundReference']?.toString(),
       refundAmount: _parseNum(json['refundAmount']),
+      // Tolerant on purpose: the same fact reaches us as a timestamp from the
+      // order service and as a bare bool from the card writer, and neither
+      // spelling should be the difference between a shop seeing its next step
+      // and seeing nothing.
+      pickupVerifiedAt: _stampOrFlag(
+          json['pickupVerifiedAt'] ?? json['pickupCodeVerifiedAt'],
+          json['pickupVerified']),
+      cashCollectedAt: _stampOrFlag(
+          json['cashCollectedAt'] ?? json['paymentCollectedAt'],
+          json['cashCollected']),
+      riderPaymentState: (json['riderPaymentState'] ??
+              (json['riderPayment'] is Map
+                  ? (json['riderPayment'] as Map)['state']
+                  : null))
+          ?.toString(),
+      riderPaymentAmount: _parseNum(json['riderPaymentAmount'] ??
+          (json['riderPayment'] is Map
+              ? (json['riderPayment'] as Map)['amount']
+              : null)),
+      riderPaymentUpiId: (json['riderPaymentUpiId'] ??
+              (json['riderPayment'] is Map
+                  ? (json['riderPayment'] as Map)['upiId']
+                  : null))
+          ?.toString(),
+      riderPaymentPayeeName: (json['riderPaymentPayeeName'] ??
+              (json['riderPayment'] is Map
+                  ? ((json['riderPayment'] as Map)['payeeName'] ??
+                      (json['riderPayment'] as Map)['riderName'])
+                  : null))
+          ?.toString(),
+      prepDelayed: json.containsKey('prepDelayed')
+          ? json['prepDelayed'] == true
+          : (json.containsKey('isPrepDelayed')
+              ? json['isPrepDelayed'] == true
+              : null),
       refundDueStated: json.containsKey('refundDue'),
       // `seenEvents` is the server's own dedupe ledger — never read, never
       // rendered.
@@ -701,6 +836,13 @@ class OrderLifecycle {
         'refundInitiatedAt': refundInitiatedAt,
         'refundReference': refundReference,
         'refundAmount': refundAmount,
+        'pickupVerifiedAt': pickupVerifiedAt,
+        'cashCollectedAt': cashCollectedAt,
+        'riderPaymentState': riderPaymentState,
+        'riderPaymentAmount': riderPaymentAmount,
+        'riderPaymentUpiId': riderPaymentUpiId,
+        'riderPaymentPayeeName': riderPaymentPayeeName,
+        'prepDelayed': prepDelayed,
       };
 
   /// Actions for the viewer. `isOwner` is the *shop* side of the card.
@@ -771,6 +913,17 @@ class OrderLifecycle {
       refundInitiatedAt: refundInitiatedAt ?? base.refundInitiatedAt,
       refundReference: refundReference ?? base.refundReference,
       refundAmount: refundAmount ?? base.refundAmount,
+      // Field-wise, like everything else here: `/actions` carries none of
+      // these, and a refresh that forgot the pickup was verified would put the
+      // shop back on the code keypad for goods that have already left.
+      pickupVerifiedAt: pickupVerifiedAt ?? base.pickupVerifiedAt,
+      cashCollectedAt: cashCollectedAt ?? base.cashCollectedAt,
+      riderPaymentState: riderPaymentState ?? base.riderPaymentState,
+      riderPaymentAmount: riderPaymentAmount ?? base.riderPaymentAmount,
+      riderPaymentUpiId: riderPaymentUpiId ?? base.riderPaymentUpiId,
+      riderPaymentPayeeName:
+          riderPaymentPayeeName ?? base.riderPaymentPayeeName,
+      prepDelayed: prepDelayed ?? base.prepDelayed,
     );
   }
 
@@ -800,6 +953,35 @@ class OrderLifecycle {
     refundInitiatedAt = other.refundInitiatedAt ?? refundInitiatedAt;
     refundReference = other.refundReference ?? refundReference;
     refundAmount = other.refundAmount ?? refundAmount;
+    pickupVerifiedAt = other.pickupVerifiedAt ?? pickupVerifiedAt;
+    cashCollectedAt = other.cashCollectedAt ?? cashCollectedAt;
+    riderPaymentState = other.riderPaymentState ?? riderPaymentState;
+    riderPaymentAmount = other.riderPaymentAmount ?? riderPaymentAmount;
+    riderPaymentUpiId = other.riderPaymentUpiId ?? riderPaymentUpiId;
+    riderPaymentPayeeName =
+        other.riderPaymentPayeeName ?? riderPaymentPayeeName;
+    prepDelayed = other.prepDelayed ?? prepDelayed;
+  }
+
+  bool get isPickupVerified => (pickupVerifiedAt ?? '').isNotEmpty;
+  bool get isCashCollected => (cashCollectedAt ?? '').isNotEmpty;
+
+  /// The delivery fee still has to be settled with the rider.
+  bool get riderPaymentDue =>
+      riderPaymentState != null &&
+      riderPaymentState != OrderRiderPaymentState.paid &&
+      riderPaymentState != PaymentStateValue.verified;
+
+  /// A timestamp, or a bool re-expressed as one.
+  ///
+  /// `true` becomes a sentinel rather than a real time: the fact is "this
+  /// happened", and nothing renders the value — inventing `now` here would put
+  /// a clock reading on screen that no server ever sent.
+  static String? _stampOrFlag(dynamic stamp, dynamic flag) {
+    final s = stamp?.toString().trim();
+    if (s != null && s.isNotEmpty && s != 'null') return s;
+    if (flag == true || flag == 'true') return 'true';
+    return null;
   }
 }
 
@@ -1021,12 +1203,47 @@ class OrderActionsModel {
 
   bool get isRiderOrder => deliveryType == OrderDeliveryTypeValue.rider;
 
-  /// A doorstep order that is packed and has no rider attached yet. This is
-  /// the auto-dispatch trigger — no button, no second decision (guide §7.2).
-  bool get needsRiderDispatch =>
-      isRiderOrder &&
-      lifecycle.isReady &&
-      (rideOrderId == null || rideOrderId!.isEmpty);
+  /// A doorstep order that should have a rider on the way and does not. This
+  /// is the auto-dispatch trigger — no button, no second decision (guide §7.2).
+  ///
+  /// ## Why this fires on a verified payment, not on `ready`
+  ///
+  /// It used to wait for `ready`, i.e. for the shop to finish packing. The
+  /// rider was then called, and the customer waited out the rider's ride to
+  /// the shop **after** the packing time instead of during it — two waits laid
+  /// end to end where one would do.
+  ///
+  /// The business-side PDF settles it: the shop's own step strip reads
+  /// `Payment Confirmed → Finding Your Rider → Your Rider Found → Preparing
+  /// order`. Dispatch belongs **before** preparing, so the rider is riding
+  /// while the bag is filled, and the shop's card can honestly say "Your Rider
+  /// Is Ready" before it says "Preparing".
+  ///
+  /// The order of the two guards matters:
+  ///
+  /// * **UPI — money first.** Never dispatch on an unpaid order: a rider sent
+  ///   for a payment that is later rejected is a real cost to a real person.
+  ///   `verified` is the gate, which is exactly where the PDF puts it.
+  /// * **Anything else — unchanged.** Cash delivery is not offered at checkout
+  ///   and an order with no `paymentMethod` is a flow this build does not
+  ///   recognise, so both keep the old `ready` trigger rather than gaining a
+  ///   new, untested one.
+  bool get needsRiderDispatch {
+    if (!isRiderOrder) return false;
+    if (rideOrderId != null && rideOrderId!.isNotEmpty) return false;
+    final l = lifecycle;
+    if (l.isTerminal) return false;
+    if (l.isUpi) {
+      // Accepted (or further) **and** paid. `placed` is too early — the shop
+      // has not committed to the order at all yet.
+      final committed = l.orderStatus == OrderStatusValue.accepted ||
+          l.orderStatus == OrderStatusValue.inProgress ||
+          l.orderStatus == OrderStatusValue.ready;
+      return committed && l.paymentState == PaymentStateValue.verified;
+    }
+    return l.isReady;
+  }
+
 
   /// The role-scoped list to render. Falls back to the lifecycle's own split
   /// lists when the server answered with only those (a Plane A seed).
