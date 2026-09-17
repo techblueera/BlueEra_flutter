@@ -381,9 +381,16 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     // contacts permission, upload the phone book, and persist the response.
     // Subsequent entries short-circuit on the Hive cache and never hit the
     // network again. Offline entries skip the sync entirely.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncContactsIfNeeded();
-      _askNotificationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Sequenced, not fired together. permission_handler holds ONE global
+      // lock rather than one per permission, so a second request() while any
+      // other is in flight throws "A request for permissions is already
+      // running". These two both request: contacts at the end of
+      // _syncContactsIfNeeded, notification in _askNotificationPermission.
+      // Unawaited side by side, they raced every entry to this tab on which
+      // both still had something to ask for.
+      await _syncContactsIfNeeded();
+      await _askNotificationPermission();
       // A "contact joined BlueEra" tap that landed before the session was
       // ready now has a live shell to navigate from.
       ConnectMainPage.drainPendingJoinedContactChat();

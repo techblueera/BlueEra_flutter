@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -51,16 +52,16 @@ class _SocialContactUsViewScreenState extends State<SocialContactUsViewScreen> {
           Obx(() {
             return BusinessLocationWidget(
                 key: ValueKey(controller
-                        .contactUsData.value?.data?.location?.coordinates?[0]
+                        .contactUsData.value?.data?.location?.coordinates.coordAt(0)
                         .toString() ??
                     "0.0"),
                 locationText: "",
                 latitude: double.parse(controller
-                        .contactUsData.value?.data?.location?.coordinates?[0]
+                        .contactUsData.value?.data?.location?.coordinates.coordAt(0)
                         .toString() ??
                     "0.0"),
                 longitude: double.parse(controller
-                        .contactUsData.value?.data?.location?.coordinates?[1]
+                        .contactUsData.value?.data?.location?.coordinates.coordAt(1)
                         .toString() ??
                     "0.0"),
                 businessName: "",

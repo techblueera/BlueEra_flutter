@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
@@ -77,17 +78,17 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
   void getAddress() async {
     pickupLocation = await getAddressFromLatLngAsString(
         lat: widget.message.metadata?.order?.pickupLocation?.location
-                ?.coordinates?[1] ??
+                ?.coordinates.coordAt(1) ??
             0,
         lng: widget.message.metadata?.order?.pickupLocation?.location
-                ?.coordinates?[0] ??
+                ?.coordinates.coordAt(0) ??
             0);
     dropLocation = await getAddressFromLatLngAsString(
         lat: widget.message.metadata?.order?.dropLocation?.location
-                ?.coordinates?[1] ??
+                ?.coordinates.coordAt(1) ??
             0,
         lng: widget.message.metadata?.order?.dropLocation?.location
-                ?.coordinates?[0] ??
+                ?.coordinates.coordAt(0) ??
             0);
     if (mounted) setState(() {});
   }

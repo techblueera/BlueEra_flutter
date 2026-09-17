@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -75,7 +76,12 @@ class LostMediaRecovery with WidgetsBindingObserver {
   Future<List<XFile>> guard(Future<List<XFile>> Function() pick) async {
     // iOS keeps the picker in-process, so there is nothing to lose and
     // `retrieveLostData` is a documented no-op there.
-    if (!Platform.isAndroid || _inGuard) return pick();
+    //
+    // `_inGuard` also catches the CONCURRENT case, not just the nested one it
+    // was written for — the flag cannot tell them apart. A second tap while
+    // the first pick is still awaited lands here and calls the platform
+    // again, which is why `_pickOrEmpty` and not `pick` directly.
+    if (!Platform.isAndroid || _inGuard) return _pickOrEmpty(pick);
 
     final completer = Completer<List<XFile>>();
     final previous = _pending;
@@ -88,7 +94,7 @@ class LostMediaRecovery with WidgetsBindingObserver {
       previous.complete(const <XFile>[]);
     }
 
-    unawaited(pick().then(
+    unawaited(_pickOrEmpty(pick).then(
       (files) {
         if (!completer.isCompleted) completer.complete(files);
       },
@@ -103,6 +109,24 @@ class LostMediaRecovery with WidgetsBindingObserver {
     } finally {
       _inGuard = false;
       if (identical(_pending, completer)) _pending = null;
+    }
+  }
+
+  /// Runs [pick], resolving the platform's refusal of a second concurrent
+  /// pick as "nothing selected" rather than an error.
+  ///
+  /// Android allows exactly one picker at a time and answers a second request
+  /// with `PlatformException(already_active)`. That is a double tap, or a tap
+  /// while the previous picker is still opening — the picker the user wanted
+  /// is already on its way up, so the second request has nothing to add. No
+  /// call site in this app catches PlatformException, so it arrived instead as
+  /// a fatal out of whichever controller happened to make the second call.
+  Future<List<XFile>> _pickOrEmpty(Future<List<XFile>> Function() pick) async {
+    try {
+      return await pick();
+    } on PlatformException catch (e) {
+      if (e.code == 'already_active') return const <XFile>[];
+      rethrow;
     }
   }
 

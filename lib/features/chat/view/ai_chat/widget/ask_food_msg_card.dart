@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -77,8 +78,8 @@ class AskFoodMsgCard extends StatelessWidget {
               final price = foodData.price;
 
               final distance = calculateDistance(
-                  location?.coordinates?[1].toDouble() ?? 0.0,
-                  location?.coordinates?[0].toDouble() ?? 0.0);
+                  location?.coordinates.coordAt(1) ?? 0.0,
+                  location?.coordinates.coordAt(0) ?? 0.0);
 
               return InkWell(
                 onTap: (){

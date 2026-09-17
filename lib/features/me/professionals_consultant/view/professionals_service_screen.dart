@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -736,10 +737,10 @@ class ProfessionalsServiceScreen extends StatelessWidget {
             (contact.email ?? '').isNotEmpty);
 
     final lat = double.tryParse(
-            data.contact?.location?.coordinates?[0].toString() ?? '') ??
+            data.contact?.location?.coordinates.coordAt(0).toString() ?? '') ??
         0.0;
     final lng = double.tryParse(
-            data.contact?.location?.coordinates?[1].toString() ?? '') ??
+            data.contact?.location?.coordinates.coordAt(1).toString() ?? '') ??
         0.0;
 
     return CommonCardWidget(

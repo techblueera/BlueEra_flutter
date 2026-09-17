@@ -1425,7 +1425,7 @@ class MedicalController extends GetxController {
       myMedicalDataHasMore = true;
     }
 
-    // try {
+    try {
       Map<String, dynamic> params = {
         ApiKeys.page: myMedicalDataPage,
         ApiKeys.limit: pageLimit,
@@ -1437,7 +1437,14 @@ class MedicalController extends GetxController {
         fetchMyMedicalProductsResponse.value = ApiResponse.complete(responseModel);
         final data = responseModel.response?.data;
         MyMedicalProductsModel myGroceryProductsModel = MyMedicalProductsModel.fromJson(data);
-        List<Products> newItems = myGroceryProductsModel.data?[0].category?.products ?? [];
+        // `data?[0]` guarded null but not emptiness, and `?[]` still evaluates
+        // the index: the endpoint answers `data: []` for a category with
+        // nothing listed, and index 0 of an empty list is
+        // "RangeError (length): Invalid value: Valid value range is empty: 0".
+        final categories = myGroceryProductsModel.data;
+        List<Products> newItems = (categories == null || categories.isEmpty)
+            ? <Products>[]
+            : (categories.first.category?.products ?? <Products>[]);
 
         if (newItems.isNotEmpty) {
           // if(!isSubCategoryProducts){
@@ -1463,16 +1470,21 @@ class MedicalController extends GetxController {
       } else {
         fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
       }
-    // } catch (e) {
-    //   fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
-    //   log("ERROR===== 1 $e");
-    // } finally{
+    } catch (e) {
+      // Restored from being commented out. Without it the RangeError above
+      // escaped the controller as a fatal — and the flag reset below was left
+      // outside a `finally`, so any throw also stranded
+      // `isMyMedicalDataFirstLoading` at true and left the screen spinning
+      // forever.
+      fetchMyMedicalProductsResponse.value = ApiResponse.error('error');
+      log("ERROR===== 1 $e");
+    } finally {
       if (isLoadMore) {
         isMyMedicalDataLoadingMore.value = false;
       } else {
         isMyMedicalDataFirstLoading.value = false;
       }
-    // }
+    }
   }
 
   /// Fetch Grocery Products

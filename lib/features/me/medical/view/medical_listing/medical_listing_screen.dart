@@ -266,8 +266,8 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
   }
 
   Widget medicalCard(MedicalProductData groceryProductData) {
-    final sellingPrice = "₹${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
-    final mrp = "₹${groceryProductData.variants?[0].pricing?[0].mrp}";
+    final sellingPrice = "₹${groceryProductData.variants?.elementAtOrNull(0)?.pricing?.elementAtOrNull(0)?.sellingPrice}";
+    final mrp = "₹${groceryProductData.variants?.elementAtOrNull(0)?.pricing?.elementAtOrNull(0)?.mrp}";
     final discount = '${calculateDiscount(
       sellingPrice,
       mrp,
@@ -400,7 +400,7 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                       child: CustomText(
-                        '${groceryProductData.variants?[0].weight?.toInt()} ${groceryProductData.variants?[0].unit}',
+                        '${groceryProductData.variants?.elementAtOrNull(0)?.weight?.toInt()} ${groceryProductData.variants?.elementAtOrNull(0)?.unit}',
                         fontSize: 11,
                         color: Colors.grey,
                       ),
@@ -617,14 +617,14 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          '₹${variant.pricing?[0].sellingPrice}',
+                          '₹${variant.pricing?.elementAtOrNull(0)?.sellingPrice}',
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          '₹${variant.pricing?[0].mrp}',
+                          '₹${variant.pricing?.elementAtOrNull(0)?.mrp}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,

@@ -270,6 +270,15 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                   }
                 }
 
+                // The place-details fetch above is an await, and the screen
+                // hosting this field can be popped while it runs. Delivering
+                // the selection afterwards calls back into a disposed State:
+                // hosts do the obvious thing in `onSelected` and setState,
+                // which throws "Null check operator used on a null value"
+                // rather than quietly doing nothing. Guarding here covers
+                // every host — there are 29 of them — instead of asking each
+                // callback to defend itself.
+                if (!mounted) return;
                 widget.onSelected
                     ?.call(placeId, latitude, longitude, currentAddress);
                 widget.onPlaceDetails?.call(placeId, currentAddress, details);

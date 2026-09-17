@@ -163,19 +163,30 @@ class MainActivity: FlutterActivity() {
                                 .putExtra("token", token)
                                 .putExtra("userId", userId)
                                 .putExtra("baseUrl", baseUrl)
-                            try {
+                            // The reply is deliberately OUTSIDE the try. A
+                            // MethodChannel result may be answered once; a
+                            // second reply throws IllegalStateException
+                            // ("Reply already submitted") and that is fatal.
+                            // With `result.success(true)` inside the try, a
+                            // reply that failed on its way out — the engine
+                            // detaching mid-call marks it done and then
+                            // throws — sent the catch straight into a second
+                            // reply. Only the start call belongs in here.
+                            val started = try {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     startForegroundService(intent)
                                 } else {
                                     startService(intent)
                                 }
-                                result.success(true)
+                                true
                             } catch (e: Exception) {
                                 // Refused background start (Android 12+) — can
                                 // still happen if the Activity went away between
                                 // the check and the call.
                                 result.error("FGS_START_REFUSED", e.message, null)
+                                false
                             }
+                            if (started) result.success(true)
                         }
                     }
                     // Lets Dart ask, before showing the rider as live, whether a

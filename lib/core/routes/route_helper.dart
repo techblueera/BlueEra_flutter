@@ -1122,7 +1122,12 @@ class RouteHelper {
       case RouteConstant.fullVideoPreview:
         final args = settings.arguments as Map<String, dynamic>;
         final videoPath = args[ApiKeys.videoPath] as String;
-        final argPostVia = args[ApiKeys.argPostVia] as PostVia;
+        // Nullable, matching FullVideoPreview's own `PostVia? argPostVia` —
+        // both callers pass a nullable value (post_via_dialog's `type`,
+        // VideoReelRecorderScreen's `widget.postVia`), so the non-nullable
+        // cast this used to be would have thrown for anyone reaching the
+        // preview without a post-via set.
+        final argPostVia = args[ApiKeys.argPostVia] as PostVia?;
         return MaterialPageRoute(
             builder: (_) =>
                 FullVideoPreview(videoPath: videoPath, argPostVia: argPostVia),

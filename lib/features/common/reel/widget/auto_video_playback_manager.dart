@@ -156,29 +156,47 @@ class SimplePriorityVideoManager extends GetxController {
     _controller = newController;
     playCount[videoId] = 0;
 
-    _controller!.addListener(() {
-      final ctrl = _controller;
-      if (ctrl == null) return;
+    newController.addListener(() {
+      // Bound to the controller this listener belongs to, not to whatever
+      // `_controller` happens to hold. This closure captures `videoId`, so
+      // reading the shared field meant it could count a play against one video
+      // while seeking, replaying or pausing another — and `showReplayOverlay`
+      // would come up over the wrong one. Identity also covers the null case
+      // the old `ctrl == null` check was for.
+      if (!identical(_controller, newController)) return;
 
-      final position = ctrl.value.position;
-      final duration = ctrl.value.duration;
+      final position = newController.value.position;
+      final duration = newController.value.duration;
       if (duration.inMilliseconds == 0) return;
 
       if (position >= duration) {
         final count = playCount[videoId] ?? 0;
         if (count < 1) {
           playCount[videoId] = count + 1;
-          ctrl.seekTo(Duration.zero);
-          ctrl.play();
+          newController.seekTo(Duration.zero);
+          newController.play();
         } else {
-          ctrl.pause();
+          newController.pause();
           showReplayOverlay.value = true;
         }
       }
     });
 
-    await _controller!.setVolume(isMuted.value ? 0 : 1);
-    await _controller!.play();
+    await newController.setVolume(isMuted.value ? 0 : 1);
+
+    // The same token check as after `initialize()` above, for the same reason:
+    // `setVolume` is an await, and across it a newer playVideo or a
+    // `pauseAndRelease` (tab switch) can replace or null `_controller` —
+    // `_controller!.play()` on the next line was the null-check crash.
+    //
+    // Nothing is disposed on this path, unlike the pre-publication bail-outs
+    // above. Once `_controller = newController` has happened, whoever replaces
+    // it owns disposing it (see the oldController branch and pauseAndRelease),
+    // and playing a controller they have already disposed is the crash this
+    // check also avoids.
+    if (_playToken != token || !identical(_controller, newController)) return;
+
+    await newController.play();
     currentIndex.value = videoId.hashCode;
     ScreenService.keepOn();
     update();

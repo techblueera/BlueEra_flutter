@@ -212,7 +212,7 @@ class BusinessContactMapCard extends StatelessWidget {
 
                 _categoryItem(context),
 
-                if (businessProfileDetails?.ownerDetails?[0].email?.isNotEmpty ?? false)
+                if (businessProfileDetails?.ownerDetails?.elementAtOrNull(0)?.email?.isNotEmpty ?? false)
                   _contactItem(AppIconAssets.email, businessProfileDetails!.ownerDetails![0].email!),
 
                 if (businessProfileDetails?.userContactNo?.isNotEmpty ?? false)

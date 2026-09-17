@@ -468,11 +468,11 @@ logs("BUSINESS ID=== ${businessId}");
 
     log('business type -- ${businessProfileDetails.value?.data?.typeOfBusiness}');
     await SharedPreferenceUtils.userLoggedInBusiness(
-      email: businessProfileDetails.value?.data?.ownerDetails?[0].email ?? '',
+      email: businessProfileDetails.value?.data?.ownerDetails?.elementAtOrNull(0)?.email ?? '',
       profileImage: businessProfileDetails.value?.data?.logo ?? '',
       businessName: businessProfileDetails.value?.data?.businessName ?? '',
       businessOwnerName:
-          businessProfileDetails.value?.data?.ownerDetails?[0].name ?? '',
+          businessProfileDetails.value?.data?.ownerDetails?.elementAtOrNull(0)?.name ?? '',
       businessId: resolvedBusinessId,
       loginBusinessUserId: resolvedBusinessUserId,
       userNameAt: "",

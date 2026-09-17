@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -581,8 +582,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
 
         BusinessLocationWidget(
             locationText: "",
-            latitude: double.parse(loc?.coordinates?[1].toString() ?? "0.0"),
-            longitude: double.parse(loc?.coordinates?[0].toString() ?? "0.0"),
+            latitude: double.parse(loc?.coordinates.coordAt(1).toString() ?? "0.0"),
+            longitude: double.parse(loc?.coordinates.coordAt(0).toString() ?? "0.0"),
             businessName: loc?.name ?? "",
             padding: 0,
             isTitleShow: true),

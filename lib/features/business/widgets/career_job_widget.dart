@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:BlueEra/core/constants/text_safety.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -178,10 +179,7 @@ class CareerJobsWidget extends StatelessWidget {
                                     )
                                   : Center(
                                       child: CustomText(
-                                        job.companyName
-                                                ?.substring(0, 1)
-                                                .toUpperCase() ??
-                                            'B',
+                                        initialOr(job.companyName, 'B'),
                                         fontSize: SizeConfig.medium,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.primaryColor,
@@ -322,10 +320,7 @@ class CareerJobsWidget extends StatelessWidget {
                                   )
                                       : Center(
                                     child: CustomText(
-                                      job.companyName
-                                          ?.substring(0, 1)
-                                          .toUpperCase() ??
-                                          'B',
+                                      initialOr(job.companyName, 'B'),
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.primaryColor,

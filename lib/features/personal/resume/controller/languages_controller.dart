@@ -34,7 +34,14 @@ import 'package:get/get.dart';
         isLoading(false);
 
         if (response.isSuccess) {
-          final data = response.response?.data['languages']?[0];
+          // Checked rather than indexed: `data` is dynamic here, so both
+          // `?[0]` and `elementAtOrNull` would dispatch dynamically and throw
+          // NoSuchMethodError on anything that is not a list. An absent or
+          // empty `languages` is the ordinary "nothing saved yet" answer.
+          final languages = response.response?.data['languages'];
+          final data = (languages is List && languages.isNotEmpty)
+              ? languages.first
+              : null;
 
           final speakList = List<String>.from(data?['speakAndUnderstand'] ?? []);
           final writeList = List<String>.from(data?['write'] ?? []);

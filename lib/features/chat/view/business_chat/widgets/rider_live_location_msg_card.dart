@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:BlueEra/widgets/static_map_preview.dart';
@@ -185,7 +186,7 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                                               ?.order
                                               ?.dropLocation
                                               ?.location
-                                              ?.coordinates?[1] ??
+                                              ?.coordinates.coordAt(1) ??
                                           26.7836,
                                       dropLng: widget
                                               .message
@@ -193,7 +194,7 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                                               ?.order
                                               ?.dropLocation
                                               ?.location
-                                              ?.coordinates?[0] ??
+                                              ?.coordinates.coordAt(0) ??
                                           80.9013,
                                     ));
                               } else {

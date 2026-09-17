@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 // Aliased: this file declares its own `User`, which collides with the order
 // payload's `User` from rider_orders_details_model.
@@ -553,9 +554,9 @@ class _OrderCardState extends State<OrderCard> {
   /// content (call button, grocery shop list, …).
   Widget _buildPickupStageLocations() {
     final dropLat =
-        widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+        widget.order.dropLocation?.location?.coordinates.coordAt(1) ?? 0.0;
     final dropLng =
-        widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
+        widget.order.dropLocation?.location?.coordinates.coordAt(0) ?? 0.0;
     final dropKm = calculateDistance(dropLat, dropLng)?.toStringAsFixed(2);
     final pickupKm = _cleanDistance(widget.order.distanceToPickup);
 
@@ -578,12 +579,12 @@ class _OrderCardState extends State<OrderCard> {
               title: AppStrings.pickupLocation.tr,
               dotColor: AppColors.green0B,
               distance: pickupKm == null ? null : _withKm(pickupKm),
-              latitude: widget.order.pickupLocation?.location?.coordinates?[1]
-                      .toDouble() ??
-                  0.0,
-              longitude: widget.order.pickupLocation?.location?.coordinates?[0]
-                      .toDouble() ??
-                  0.0,
+              latitude:
+                  widget.order.pickupLocation?.location?.coordinates.coordAt(1) ??
+                      0.0,
+              longitude:
+                  widget.order.pickupLocation?.location?.coordinates.coordAt(0) ??
+                      0.0,
               onTap: _handleOpenPickupLocation,
             ),
             _buildDivider(),
@@ -732,8 +733,8 @@ class _OrderCardState extends State<OrderCard> {
                 ),
                 SizedBox(height: SizeConfig.size6),
                 _buildLocationText(
-                  latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-                  longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+                  latitude: widget.order.pickupLocation?.location?.coordinates.coordAt(1) ?? 0.0,
+                  longitude: widget.order.pickupLocation?.location?.coordinates.coordAt(0) ?? 0.0,
                 ),
               ],
             ),
@@ -1181,8 +1182,8 @@ class _OrderCardState extends State<OrderCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLocationText(
-          latitude:  widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-          longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+          latitude:  widget.order.dropLocation?.location?.coordinates.coordAt(1) ?? 0.0,
+          longitude: widget.order.dropLocation?.location?.coordinates.coordAt(0) ?? 0.0,
         ),
         // if (_shouldShowContactNumber()) ...[
         //   SizedBox(height: SizeConfig.size4),
@@ -1207,8 +1208,8 @@ class _OrderCardState extends State<OrderCard> {
             CustomText(
               '${
                 calculateDistance(
-                    widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-                    widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0)?.toStringAsFixed(2)
+                    widget.order.dropLocation?.location?.coordinates.coordAt(1) ?? 0.0,
+                    widget.order.dropLocation?.location?.coordinates.coordAt(0) ?? 0.0)?.toStringAsFixed(2)
               } KM Away',
               fontSize: SizeConfig.small11,
               fontWeight: FontWeight.w600,
@@ -2180,16 +2181,16 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   double get _pickupLat =>
-      widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+      widget.order.pickupLocation?.location?.coordinates.coordAt(1) ?? 0.0;
 
   double get _pickupLng =>
-      widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
+      widget.order.pickupLocation?.location?.coordinates.coordAt(0) ?? 0.0;
 
   double get _dropLat =>
-      widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0;
+      widget.order.dropLocation?.location?.coordinates.coordAt(1) ?? 0.0;
 
   double get _dropLng =>
-      widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0;
+      widget.order.dropLocation?.location?.coordinates.coordAt(0) ?? 0.0;
 
   Future<void> _handleOtpSubmit(
       String pin,

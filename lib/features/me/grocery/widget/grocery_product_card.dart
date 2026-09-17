@@ -284,7 +284,7 @@ class GroceryProductCard extends StatelessWidget {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                         child: CustomText(
-                          '${groceryProducts.variants?[0].quantity ?? ''}',
+                          '${groceryProducts.variants?.elementAtOrNull(0)?.quantity ?? ''}',
                           fontSize: 11,
                           color: AppColors.secondaryTextColor,
                         ),

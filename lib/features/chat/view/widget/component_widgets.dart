@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/routes/pending_pop.dart';
+import 'package:BlueEra/core/constants/text_safety.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -639,7 +641,7 @@ Widget  ChatListTile({
                         ),
                         errorWidget: (_, __, ___) => Center(
                           child: CustomText(
-                            (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
+                            (senderName?.isNotEmpty ?? false) ? firstCharacter(senderName!).toUpperCase() : '',
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                             fontSize: SizeConfig.size18,
@@ -657,7 +659,7 @@ Widget  ChatListTile({
                     )
                         : Center(
                       child: CustomText(
-                        (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
+                        (senderName?.isNotEmpty ?? false) ? firstCharacter(senderName!).toUpperCase() : '',
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: SizeConfig.size18,
@@ -1562,7 +1564,7 @@ Widget _chatTitleAvatar({
 }) {
   final hasImage =
       profileImage != null && profileImage != 'null' && profileImage.isNotEmpty;
-  final initial = (name != null && name.isNotEmpty) ? name.substring(0, 1) : 'U';
+  final initial = (name != null && name.isNotEmpty) ? firstCharacter(name) : 'U';
   final placeholder = CircleAvatar(
     radius: SizeConfig.size18,
     backgroundColor: theme.colorScheme.primary,
@@ -1604,7 +1606,7 @@ Widget _chatTitleAvatar({
 Widget _aiAvatarPreview(String? image, String? name) {
   final hasImage = image != null && image != 'null' && image.isNotEmpty;
   final initial = (name != null && name.isNotEmpty && name != 'null')
-      ? name.substring(0, 1).toUpperCase()
+      ? firstCharacter(name).toUpperCase()
       : 'U';
   final placeholder = CircleAvatar(
     radius: 44,
@@ -1765,7 +1767,7 @@ void showAiChatProfileEditSheet(
                       // Resolved before the awaits: saving the name and
                       // uploading the image are both network round-trips, and
                       // this dialog can be gone before they finish.
-                      final navigator = Navigator.of(ctx);
+                      final pendingPop = PendingPop.of(ctx);
                       final newName = nameController.text.trim();
                       if (newName.isNotEmpty) {
                         await controller.saveName(type, newName);
@@ -1773,7 +1775,7 @@ void showAiChatProfileEditSheet(
                       if (previewPath.value.isNotEmpty) {
                         await controller.saveImage(type, previewPath.value);
                       }
-                      if (navigator.mounted) navigator.pop();
+                      pendingPop.close();
                       commonSnackBar(message: 'Profile updated');
                     },
                     child: CustomText('Save', color: Colors.white),
@@ -2468,14 +2470,14 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
 
                   // Resolved before the await: the delete is a network call
                   // and this sheet can be gone when it returns.
-                  final navigator = Navigator.of(context);
+                  final pendingPop = PendingPop.of(context);
                   await chatViewController
                       .deleteChatMessage(data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
 
-                  if (navigator.mounted) navigator.pop();
+                  pendingPop.close();
                 },
 
                 onDeleteForEveryone: () async {
@@ -2488,14 +2490,14 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                   };
 
                   // As above — navigator resolved before the await.
-                  final navigator = Navigator.of(context);
+                  final pendingPop = PendingPop.of(context);
                   await chatViewController
                       .deleteChatMessage(data, userId ?? '');
 
                   chatThemeController.resetSelection();
                   chatThemeController.deActivateSelection();
 
-                  if (navigator.mounted) navigator.pop();
+                  pendingPop.close();
                 },
               ),
             );

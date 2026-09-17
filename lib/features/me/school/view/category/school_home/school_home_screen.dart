@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -110,16 +111,16 @@ class SchoolHomeScreen extends StatelessWidget {
                         ?.coordinates?.isNotEmpty ??
                     false) &&
                 schoolAboutUsController
-                        .schoolDetailsData?.value.location?.coordinates?[0] !=
+                        .schoolDetailsData?.value.location?.coordinates.coordAt(0) !=
                     null &&
                 schoolAboutUsController
-                        .schoolDetailsData?.value.location?.coordinates?[1] !=
+                        .schoolDetailsData?.value.location?.coordinates.coordAt(1) !=
                     null &&
                 schoolAboutUsController
-                        .schoolDetailsData?.value.location?.coordinates?[0] !=
+                        .schoolDetailsData?.value.location?.coordinates.coordAt(0) !=
                     0.0 &&
                 schoolAboutUsController
-                        .schoolDetailsData?.value.location?.coordinates?[1] !=
+                        .schoolDetailsData?.value.location?.coordinates.coordAt(1) !=
                     0.0)
               CommonCardWidget(
                 padding: 5,
@@ -127,11 +128,11 @@ class SchoolHomeScreen extends StatelessWidget {
                     locationText:
                         schoolAboutUsController.schoolDetailsData?.value.name,
                     latitude: double.parse(schoolAboutUsController
-                            .schoolDetailsData?.value.location?.coordinates?[0]
+                            .schoolDetailsData?.value.location?.coordinates.coordAt(0)
                             .toString() ??
                         "0.0"),
                     longitude: double.parse(schoolAboutUsController
-                            .schoolDetailsData?.value.location?.coordinates?[1]
+                            .schoolDetailsData?.value.location?.coordinates.coordAt(1)
                             .toString() ??
                         "0.0"),
                     businessName:

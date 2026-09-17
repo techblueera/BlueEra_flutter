@@ -67,10 +67,15 @@ Future<void> showVideosPickerDialog(BuildContext context,
     onGallery: () async {
       Navigator.pop(Get.context!);
       final picked = await SafeImagePicker().pickVideo(source: ImageSource.gallery);
+      // Backing out of the gallery is the ordinary outcome, and there is
+      // nothing to preview then. Pushing anyway sent `videoPath: null` into a
+      // route that casts it to String, so cancelling the picker crashed the
+      // app: "type 'Null' is not a subtype of type 'String' in type cast".
+      if (picked == null) return;
       Navigator.pushNamed(
         Get.context!,
         RouteHelper.getFullVideoPreviewRoute(),
-        arguments: {ApiKeys.videoPath: picked?.path, ApiKeys.argPostVia: type},
+        arguments: {ApiKeys.videoPath: picked.path, ApiKeys.argPostVia: type},
       );
     },
   );

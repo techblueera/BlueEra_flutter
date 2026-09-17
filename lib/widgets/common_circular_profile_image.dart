@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/text_safety.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -143,7 +144,7 @@ CommonCircularImage({required String? url, String? title, double? radius}) {
           height: 60,
           errorBuilder: (context, error, stackTrace) {
             if (title?.isNotEmpty ?? false) {
-              return Center(child: CustomText(title?.substring(0, 1)));
+              return Center(child: CustomText(firstCharacter(title ?? "")));
             } else {
               return Center(child: Icon(Icons.person_outline_rounded));
             } // fallback initial or icon

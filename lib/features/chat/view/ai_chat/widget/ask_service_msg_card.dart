@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -77,8 +78,8 @@ class AskServiceMsgCard extends StatelessWidget {
               final profile = item.profile;
 
               final distance = calculateDistance(
-                  profile?.location?.coordinates?[1] ?? 0.0,
-                  profile?.location?.coordinates?[0] ?? 0.0);
+                  profile?.location?.coordinates.coordAt(1) ?? 0.0,
+                  profile?.location?.coordinates.coordAt(0) ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -194,7 +195,7 @@ class AskServiceMsgCard extends StatelessWidget {
 
                                     _buildItem(
                                       Icons.language_outlined,
-                                      item.contactUs?[0].websiteUrl ?? "N/A",
+                                      item.contactUs?.elementAtOrNull(0)?.websiteUrl ?? "N/A",
                                       isLink: true,
                                     ),
 

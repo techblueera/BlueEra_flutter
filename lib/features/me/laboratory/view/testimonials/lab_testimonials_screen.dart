@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/text_safety.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -245,8 +246,8 @@ class _LabTestimonialsScreenState extends State<LabTestimonialsScreen> {
     final parts =
         name.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
     if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+    if (parts.length == 1) return firstCharacter(parts.first).toUpperCase();
+    return (firstCharacter(parts.first) + firstCharacter(parts.last))
         .toUpperCase();
   }
 }

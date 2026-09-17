@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -34,8 +35,8 @@ final discoverController = Get.find<DiscoverController>();
     List<Rooms>? rooms = hotelServiceData.rooms;
 
     final distance = calculateDistance(
-        profile?.location?.coordinates?[1].toDouble() ?? 0.0,
-        profile?.location?.coordinates?[0].toDouble() ?? 0.0);
+        profile?.location?.coordinates.coordAt(1) ?? 0.0,
+        profile?.location?.coordinates.coordAt(0) ?? 0.0);
 
     // Helper to clean up API strings (e.g., "standardRoom" -> "Standard Room")
     String _formatTypeName(String type) {
@@ -355,10 +356,10 @@ final discoverController = Get.find<DiscoverController>();
               BusinessLocationWidget(
                   locationText: profile?.location?.name,
                   latitude: double.parse(
-                      profile?.location?.coordinates?[1].toString() ??
+                      profile?.location?.coordinates.coordAt(1).toString() ??
                           "0.0"),
                   longitude: double.parse(
-                      profile?.location?.coordinates?[0].toString() ??
+                      profile?.location?.coordinates.coordAt(0).toString() ??
                           "0.0"),
                   businessName: profile?.name ?? "",
                   padding: 0,

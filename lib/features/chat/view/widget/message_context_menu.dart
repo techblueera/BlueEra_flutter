@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -389,9 +390,8 @@ class _ContextMenuCard extends StatelessWidget {
                     showDeleteForEveryone: message.myMessage == true,
                     showDeleteFromDevice: _isMediaMessage,
                     onDeleteForMe: () async {
-                      // Captured BEFORE the request — see [_closeDialog].
-                      final navigator = Navigator.of(dialogContext);
-                      final route = ModalRoute.of(dialogContext);
+                      // Captured BEFORE the request — see [PendingPop].
+                      final pendingPop = PendingPop.of(dialogContext);
 
                       Map<String, dynamic> data = {
                         ApiKeys.conversation_id: "$conversationId",
@@ -403,12 +403,11 @@ class _ContextMenuCard extends StatelessWidget {
                           data, userId ?? '');
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      _closeDialog(navigator, route);
+                      pendingPop.close();
                     },
                     onDeleteForEveryone: () async {
-                      // Captured BEFORE the request — see [_closeDialog].
-                      final navigator = Navigator.of(dialogContext);
-                      final route = ModalRoute.of(dialogContext);
+                      // Captured BEFORE the request — see [PendingPop].
+                      final pendingPop = PendingPop.of(dialogContext);
 
                       // Delete from server
                       Map<String, dynamic> data = {
@@ -425,7 +424,7 @@ class _ContextMenuCard extends StatelessWidget {
 
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      _closeDialog(navigator, route);
+                      pendingPop.close();
                     },
                   ),
                 );
@@ -507,22 +506,3 @@ class _ContextMenuCard extends StatelessWidget {
   }
 }
 
-/// Closes the delete-confirmation dialog after its request has finished.
-///
-/// Both arguments are captured BEFORE the `await`, because the obvious version
-/// — `Navigator.pop(dialogContext)` once the delete returns — crashed with
-/// `Null check operator used on a null value`. `Navigator.of` looks the state
-/// up by walking the element tree, and if the dialog was dismissed while the
-/// request was in flight (barrier tap, back button) that element is defunct:
-/// the walk ends on a `StatefulElement` whose state is already gone.
-///
-/// [ModalRoute.isCurrent] is the other half, and `canPop()` is NOT a substitute
-/// for it. `pop` closes whatever is on TOP, and after the dialog has gone the
-/// thing on top is the chat screen — so a "safe" pop guarded only by `canPop`
-/// would close the conversation instead. Nothing is closed unless this dialog
-/// is still the route in front of the user.
-void _closeDialog(NavigatorState navigator, ModalRoute<dynamic>? route) {
-  if (!navigator.mounted) return;
-  if (route?.isCurrent != true) return;
-  navigator.pop();
-}

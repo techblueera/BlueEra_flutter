@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/api/model/personal_identity_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -75,8 +76,8 @@ class ProfileIdentityController extends GetxController {
         if (data.location != null &&
             data.location?.coordinates != null &&
             (data.location?.coordinates?.length ?? 0) >= 2) {
-          lat.value = data.location?.coordinates?[0] ?? 0.0;
-          lng.value = data.location?.coordinates?[1] ?? 0.0;
+          lat.value = data.location?.coordinates.coordAt(0) ?? 0.0;
+          lng.value = data.location?.coordinates.coordAt(1) ?? 0.0;
           // Note: We might need reverse geocoding to get address string if API doesn't return it
           // keeping locationController text as is or setting it if we have address
           locationController.text = data.location?.name ?? "";

@@ -57,11 +57,11 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
 
       if (createJobPostController.isEditMode.value && customQuestions != null) {
         controller.confirmAvailability.value =
-            jobDetails?.customQuestions?[0].isMandatory ?? false;
+            jobDetails?.customQuestions?.elementAtOrNull(0)?.isMandatory ?? false;
         controller.willingToRelocate.value =
-            jobDetails?.customQuestions?[1].isMandatory ?? false;
+            jobDetails?.customQuestions?.elementAtOrNull(1)?.isMandatory ?? false;
         controller.noticePeriod.value =
-            jobDetails?.customQuestions?[2].isMandatory ?? false;
+            jobDetails?.customQuestions?.elementAtOrNull(2)?.isMandatory ?? false;
       }
       setState(() {});
     } catch (e) {

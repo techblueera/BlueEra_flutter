@@ -156,14 +156,14 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
                     ),
                     SizedBox(width: SizeConfig.size6),
                     CustomText(
-                      '₹${groceryItems.productVariant?.pricing?[0].sellingPrice}',
+                      '₹${groceryItems.productVariant?.pricing?.elementAtOrNull(0)?.sellingPrice}',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(width: SizeConfig.size6),
                     CustomText(
-                      '₹${groceryItems.productVariant?.pricing?[0].mrp}',
+                      '₹${groceryItems.productVariant?.pricing?.elementAtOrNull(0)?.mrp}',
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,

@@ -107,32 +107,65 @@ class LocationService extends GetxService {
     }
   }
 
+  /// Whether the app both holds location permission and has the device's
+  /// location services switched on.
+  ///
+  /// Answers false rather than throwing. Both checks cross a platform channel
+  /// and either can fail — and `Geolocator.isLocationServiceEnabled()` is the
+  /// bare `.then((value) => value ?? false)` form in
+  /// geolocator_platform_interface, with none of the
+  /// PlatformException-to-typed-exception mapping the position calls get. A
+  /// platform-side failure therefore arrives as a raw
+  /// `PlatformException(LOCATION_SERVICES_DISABLED)` rather than a
+  /// `LocationServiceDisabledException`.
+  ///
+  /// That matters because the caller is AppLifecycleHandler, which awaits this
+  /// on every resume without a guard: anything thrown here was a fatal every
+  /// time the app came back to the foreground. "Cannot determine" and "not
+  /// available" lead to the same behaviour, so returning false loses nothing.
   Future<bool> isLocationAvailable() async {
-    final permission = await Permission.location.status;
-    final gps = await Geolocator.isLocationServiceEnabled();
-    return permission.isGranted && gps;
+    try {
+      final permission = await Permission.location.status;
+      final gps = await Geolocator.isLocationServiceEnabled();
+      return permission.isGranted && gps;
+    } catch (e) {
+      debugPrint('isLocationAvailable check failed: $e');
+      return false;
+    }
   }
 
+  /// Reverse-geocodes [latitude]/[longitude], or [AppStrings.addressNotFound]
+  /// when there is no address to give.
+  ///
+  /// Never throws. Reverse geocoding needs a geocoder backend and a network,
+  /// so `placemarkFromCoordinates` fails routinely in the field: offline, on a
+  /// device without Play services, or when the platform geocoder is
+  /// rate-limited. Its callers are inconsistent about catching that — three of
+  /// the six do — and the method already has an answer for "no address", so it
+  /// returns that rather than throwing past them.
   static Future<String> getAddressUsingLatLng({required double latitude,required double longitude}) async {
-    final placeMarks = await placemarkFromCoordinates(latitude, longitude);
+    try {
+      final placeMarks = await placemarkFromCoordinates(latitude, longitude);
 
-    if (placeMarks.isNotEmpty) {
-      final place = placeMarks.first;
-      // log('place -- $place');
+      if (placeMarks.isNotEmpty) {
+        final place = placeMarks.first;
+        // log('place -- $place');
 
-      userCurrentAddress.value = UserAddress(
-        street: place.thoroughfare ?? '',
-        subLocality: place.subLocality ?? '',
-        city: place.locality ?? '',
-        state: place.administrativeArea ?? '',
-        country: place.country ?? '',
-        postalCode: place.postalCode ?? '',
-      );
-      return "${place.thoroughfare ?? ''}${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''} ,${place.postalCode}";
-    } else {
-      return AppStrings.addressNotFound.tr;
+        userCurrentAddress.value = UserAddress(
+          street: place.thoroughfare ?? '',
+          subLocality: place.subLocality ?? '',
+          city: place.locality ?? '',
+          state: place.administrativeArea ?? '',
+          country: place.country ?? '',
+          postalCode: place.postalCode ?? '',
+        );
+        return "${place.thoroughfare ?? ''}${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''} ,${place.postalCode}";
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode failed for $latitude,$longitude: $e');
     }
 
+    return AppStrings.addressNotFound.tr;
   }
 
   /// In-flight [fetchLocation] call, used to coalesce concurrent callers.
@@ -263,15 +296,32 @@ class LocationService extends GetxService {
   static Position? _lastPosition;
 
   static Future<Position?> getCurrentPosition() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return null;
+    // The pre-checks are guarded too, not just the fix below. All three cross
+    // a platform channel and all three can throw:
+    // `isLocationServiceEnabled()` is the unmapped `.then((v) => v ?? false)`
+    // form in geolocator_platform_interface, so a platform-side failure
+    // arrives as a raw PlatformException — that is what crashed
+    // [isLocationAvailable] — and `requestPermission()` throws outright when
+    // another permission request is already in flight, which this file
+    // already knows happens (see the _inFlightFetch note above).
+    final LocationPermission permission;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return null;
+      var status = await Geolocator.checkPermission();
+      if (status == LocationPermission.denied) {
+        status = await Geolocator.requestPermission();
+      }
+      permission = status;
+    } catch (e) {
+      debugPrint('Location availability check failed: $e');
+      return null;
     }
-    if (permission == LocationPermission.deniedForever) return null;
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return null;
+    }
 
     // The isLocationServiceEnabled() check above is a snapshot, not a lock:
     // location can be switched off between it and the fix, and on older

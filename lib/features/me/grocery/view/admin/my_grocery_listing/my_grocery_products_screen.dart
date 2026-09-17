@@ -240,7 +240,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
 
   Widget groceryCard(GroceryProductData groceryProductData) {
     final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
-    final price = controller.getPriceDetails(groceryProductData.variants?[0].pricing);
+    final price = controller.getPriceDetails(groceryProductData.variants?.elementAtOrNull(0)?.pricing);
     // print("Selling Range: ${price.sellingRange}");
     // print("MRP Range: ${price.mrpRange}");
     // print("Discount Range: ${price.discountRange}");
@@ -324,7 +324,7 @@ class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
                       padding:
                       EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       child: CustomText(
-                        '${groceryProductData.variants?[0].quantity}',
+                        '${groceryProductData.variants?.elementAtOrNull(0)?.quantity}',
                         fontSize: 11,
                         color: AppColors.secondaryTextColor,
                       ),

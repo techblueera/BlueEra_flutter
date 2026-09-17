@@ -193,7 +193,42 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    /**
+     * A [Result] that answers at most once.
+     *
+     * A MethodChannel result may be replied to exactly once; a second reply
+     * throws `IllegalStateException: Reply already submitted` on the platform
+     * thread, which is fatal. [onMethodCall] wraps its whole `when` in one
+     * try/catch, so the catch cannot know whether the branch it is recovering
+     * from had already replied before it threw — and with twenty
+     * `result.success` calls inside, "threw after replying" is not a remote
+     * possibility. Marking done BEFORE delegating also covers the reply itself
+     * failing, which is what happens when the engine detaches mid-call.
+     */
+    private class SingleReply(private val delegate: Result) : Result {
+        private var done = false
+
+        override fun success(result: Any?) {
+            if (done) return
+            done = true
+            delegate.success(result)
+        }
+
+        override fun error(code: String, message: String?, details: Any?) {
+            if (done) return
+            done = true
+            delegate.error(code, message, details)
+        }
+
+        override fun notImplemented() {
+            if (done) return
+            done = true
+            delegate.notImplemented()
+        }
+    }
+
+    override fun onMethodCall(@NonNull call: MethodCall, @NonNull rawResult: Result) {
+        val result = SingleReply(rawResult)
         try {
             when (call.method) {
                 "showCallkitIncoming" -> {

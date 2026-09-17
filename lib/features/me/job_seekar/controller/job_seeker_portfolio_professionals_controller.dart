@@ -86,9 +86,9 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
     // issueDate.value = _parseIsoDate(cert.completionDate);
     List<String>? parts = cert.completionDate?.split('-');
 
-    int day = int.parse(parts?[0] ?? "");
-    int month = int.parse(parts?[1] ?? "");
-    int year = int.parse(parts?[2] ?? "");
+    int day = int.parse(parts?.elementAtOrNull(0) ?? "");
+    int month = int.parse(parts?.elementAtOrNull(1) ?? "");
+    int year = int.parse(parts?.elementAtOrNull(2) ?? "");
     selectedDay = day;
     selectedMonth = month;
     selectedYear = year;

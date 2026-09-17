@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -117,12 +118,12 @@ class WaitingForPaymentDialog extends StatelessWidget {
           onWillPop: () async {
             // Resolved before the await: the warning dialog sits on top of
             // this one, and this one can be gone by the time it closes.
-            final navigator = Navigator.of(context);
+            final pendingPop = PendingPop.of(context);
             // 👇 intercept system back press
             bool shouldLeave = await _showLeaveWarningDialog(context);
             if (shouldLeave) {
               timer?.cancel();
-              if (navigator.mounted) navigator.pop();
+              pendingPop.close();
               orderController
                   .cancelOrderForce(orderId, {ApiKeys.status: "cancelled"});
               commonSnackBar(message: AppStrings.orderCanceledPayment);

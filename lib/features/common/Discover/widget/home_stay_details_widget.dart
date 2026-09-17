@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -29,8 +30,8 @@ class HomeStayDetailsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final distance = calculateDistance(
-        service.location?.coordinates?[1].toDouble() ?? 0.0,
-        service.location?.coordinates?[0].toDouble() ?? 0.0);
+        service.location?.coordinates.coordAt(1) ?? 0.0,
+        service.location?.coordinates.coordAt(0) ?? 0.0);
 
     return Scaffold(
       appBar: CommonBackAppBar(

@@ -393,7 +393,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                                                     color: AppColors.green00,
                                                   ),
                                                   CustomText(
-                                                    "${serviceData.timings?[0].start}",
+                                                    "${serviceData.timings?.elementAtOrNull(0)?.start}",
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     overflow:
@@ -421,7 +421,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                                                     maxLines: 1,
                                                   ),
                                                   CustomText(
-                                                    "${serviceData.timings?[0].end}",
+                                                    "${serviceData.timings?.elementAtOrNull(0)?.end}",
                                                     fontSize: SizeConfig.small,
                                                     fontWeight: FontWeight.w400,
                                                     color: AppColors.grayText,
@@ -581,7 +581,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                                                       color: AppColors.green39,
                                                     ),
                                                     CustomText(
-                                                      "${serviceData.timings?[0].start}",
+                                                      "${serviceData.timings?.elementAtOrNull(0)?.start}",
                                                       fontSize: 12,
                                                       fontWeight:
                                                           FontWeight.w400,
@@ -610,7 +610,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                                                       maxLines: 1,
                                                     ),
                                                     CustomText(
-                                                      "${serviceData.timings?[0].end}",
+                                                      "${serviceData.timings?.elementAtOrNull(0)?.end}",
                                                       fontSize: 12,
                                                       fontWeight:
                                                           FontWeight.w400,

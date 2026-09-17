@@ -341,8 +341,8 @@ class GroceryController extends GetxController {
       builder: (_) {
         return EditGroceryVarientDialog(
           title: title,
-          mrp: variant.pricing?[0].mrp?.toString() ?? "",
-          selling: variant.pricing?[0].sellingPrice?.toString() ?? "",
+          mrp: variant.pricing?.elementAtOrNull(0)?.mrp?.toString() ?? "",
+          selling: variant.pricing?.elementAtOrNull(0)?.sellingPrice?.toString() ?? "",
           onSubmit: (mrp, sellingPrice) {
             if (variant.pricing != null && variant.pricing!.isNotEmpty) {
               variant.pricing![0] = variant.pricing![0].copyWith(
@@ -696,8 +696,8 @@ class GroceryController extends GetxController {
           "batches": [
             {
               "quantity": variant.quantity,
-              "mrp": variant.pricing?[0].mrp,
-              "sellingPrice": variant.pricing?[0].sellingPrice,
+              "mrp": variant.pricing?.elementAtOrNull(0)?.mrp,
+              "sellingPrice": variant.pricing?.elementAtOrNull(0)?.sellingPrice,
             }
           ],
         });

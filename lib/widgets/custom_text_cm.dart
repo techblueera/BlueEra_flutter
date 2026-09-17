@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/text_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -80,7 +81,13 @@ class CustomText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      title?.tr ?? "",
+      // Sanitised here because this is the one place every piece of text in
+      // the app passes through, and because the producer is often not in this
+      // codebase: a caption truncated server-side arrives already malformed,
+      // and a lone surrogate takes down the whole frame from inside
+      // RenderParagraph.performLayout, where nothing can catch it. Clean
+      // strings are returned unchanged, so this is a scan and no allocation.
+      stripLoneSurrogates(title?.tr ?? ""),
       textAlign: textAlign,
       maxLines: maxLines,
       softWrap: true,

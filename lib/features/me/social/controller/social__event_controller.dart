@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/api/model/social_event_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -104,8 +105,8 @@ class SocialEventController extends GetxController {
       }
 
       if (event.venue?.location?.coordinates != null && event.venue!.location!.coordinates!.length >= 2) {
-          lat.value = event.venue?.location?.coordinates?[0].toDouble()??0.0;
-          lng.value = event.venue?.location?.coordinates?[1].toDouble()??0.0;
+          lat.value = event.venue?.location?.coordinates.coordAt(0)??0.0;
+          lng.value = event.venue?.location?.coordinates.coordAt(1)??0.0;
       }
       validateForm();
   }

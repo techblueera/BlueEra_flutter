@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -76,8 +77,8 @@ class AskTravelStayMsgCard extends StatelessWidget {
               final profile = item.profile;
 
               final distance = calculateDistance(
-                  profile?.location?.coordinates?[1] ?? 0.0,
-                  profile?.location?.coordinates?[0] ?? 0.0);
+                  profile?.location?.coordinates.coordAt(1) ?? 0.0,
+                  profile?.location?.coordinates.coordAt(0) ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -148,7 +149,7 @@ class AskTravelStayMsgCard extends StatelessWidget {
                                 isLoading: false,
                                 width: double.infinity,
                                 height: 110,
-                                imagePaths: profile?.photos?[0].imageReferences??[],
+                                imagePaths: profile?.photos?.elementAtOrNull(0)?.imageReferences??[],
                                 borderRadius: BorderRadius.circular(10),
                               ) : LocalAssets(
                                   imagePath: AppIconAssets.place_holder_image,
@@ -200,7 +201,7 @@ class AskTravelStayMsgCard extends StatelessWidget {
                                     _buildItem(
                                       Icons.phone_outlined,
                                       profile!=null && (profile.contacts?.isNotEmpty ?? false)
-                                          ? (profile.contacts?[0].phone ?? AppStrings.na)
+                                          ? (profile.contacts?.elementAtOrNull(0)?.phone ?? AppStrings.na)
                                           : AppStrings.na,
                                     ),
 

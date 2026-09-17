@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -1079,9 +1080,9 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
         child: BusinessLocationWidget(
           locationText: "",
           latitude: double.parse(
-              data?.contact?.location?.coordinates?[0].toString() ?? "0.0"),
+              data?.contact?.location?.coordinates.coordAt(0).toString() ?? "0.0"),
           longitude: double.parse(
-              data?.contact?.location?.coordinates?[1].toString() ?? "0.0"),
+              data?.contact?.location?.coordinates.coordAt(1).toString() ?? "0.0"),
           businessName: "",
           padding: 0,
           isTitleShow: true,

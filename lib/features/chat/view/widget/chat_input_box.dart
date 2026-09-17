@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -1352,10 +1353,10 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   String? name) async {
                                 // Resolved before the await: sending the
                                 // location message can outlive this sheet.
-                                final navigator = Navigator.of(context);
+                                final pendingPop = PendingPop.of(context);
                                 await pickCurrentLocation(
                                     lat, long, address, name);
-                                if (navigator.mounted) navigator.pop();
+                                pendingPop.close();
                               }
                           )));
                     },

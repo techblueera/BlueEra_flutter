@@ -143,7 +143,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
 
                               ),
                               CustomText(
-                                "${singleServiceData?.timings?[0].start}",
+                                "${singleServiceData?.timings?.elementAtOrNull(0)?.start}",
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 overflow: TextOverflow.ellipsis,
@@ -166,7 +166,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
                                 maxLines: 1,
                               ),
                               CustomText(
-                                "${singleServiceData?.timings?[0].end}",
+                                "${singleServiceData?.timings?.elementAtOrNull(0)?.end}",
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.grayText,

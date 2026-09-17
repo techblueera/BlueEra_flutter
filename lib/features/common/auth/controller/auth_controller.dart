@@ -852,9 +852,9 @@ class AuthController extends GetxController {
         if (gstVerifyModel?.value.isVerified == true) {
           List<String>? parts = gstVerifyModel?.value.data?.registrationDate?.split("/");
 
-          selectedDay?.value = int.tryParse(parts?[0] ?? "") ?? 0;
-          selectedMonth?.value = int.tryParse(parts?[1] ?? "") ?? 0;
-          selectedYear?.value = int.tryParse(parts?[2] ?? "") ?? 0;
+          selectedDay?.value = int.tryParse(parts?.elementAtOrNull(0) ?? "") ?? 0;
+          selectedMonth?.value = int.tryParse(parts?.elementAtOrNull(1) ?? "") ?? 0;
+          selectedYear?.value = int.tryParse(parts?.elementAtOrNull(2) ?? "") ?? 0;
           isHaveGstApprove.value = true;
           businessNameTextController.text = gstVerifyModel?.value.data?.tradeName ?? "";
           businessName.value = gstVerifyModel?.value.data?.tradeName ?? "";
