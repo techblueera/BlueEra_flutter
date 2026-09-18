@@ -1125,7 +1125,40 @@ class AppNotificationHandler {
   /// wasn't authenticated yet (e.g. token fetched during the cold-start
   /// pre-login window). `flushPendingTokenSync()` drains it right after
   /// auth becomes available so the backend never misses the live token.
+  ///
+  /// Mirrored to [_pendingFcmKey] so it also survives the process dying before
+  /// auth arrives — in memory alone, a user who opened the app, never reached
+  /// the authenticated window and was then killed silently lost the token with
+  /// nothing scheduled to recover it.
   static String? _pendingTokenSync;
+
+  /// The last FCM token the backend CONFIRMED it stored.
+  ///
+  /// Written only on a successful PATCH — never optimistically. That ordering
+  /// is the whole point: it is what lets the unchanged-token short-circuit be
+  /// safe, because a cache entry can only exist for a token the server
+  /// acknowledged. The VoIP path already worked this way; the FCM path did not,
+  /// which is why it re-sent the same token on every cold start and every
+  /// resume while a genuinely failed write was never retried.
+  static const String _fcmCacheKey = 'fcmTokenSyncedCache';
+
+  /// An FCM token fetched before authentication, persisted across process
+  /// death. Drained by [flushPendingTokenSync].
+  static const String _pendingFcmKey = 'fcmTokenPendingSync';
+
+  /// Wall-clock of the last device-token PATCH attempt, successful or not.
+  /// Bounds the profile-driven repair path — see [shouldAttemptTokenRepair].
+  static const String _fcmLastAttemptKey = 'fcmTokenLastAttemptAt';
+
+  /// Minimum gap between profile-driven repair attempts.
+  ///
+  /// The repair fires whenever a fetched profile comes back with an empty
+  /// `device_token`. If the backend is not persisting what we send, that
+  /// condition never clears, so without a floor here every profile fetch
+  /// re-mints a token and re-PATCHes it — which is exactly the "device-token
+  /// API every ~30 seconds" pattern. Retrying hourly still heals a transient
+  /// failure within one session without hammering a broken write path.
+  static const Duration _tokenRepairCooldown = Duration(hours: 1);
 
   /// Call early (before runApp or in _initDeferred before splash navigates)
   /// to detect if the app was launched via a notification tap.
@@ -1550,23 +1583,41 @@ class AppNotificationHandler {
           sound: true,
         );
 
-    // iOS: explicit Firebase push-notification permission + APNs registration.
-    // Without this, Firebase never marks the app as authorized for remote
-    // notifications and getToken() returns null on real devices.
+    // iOS: ask for display consent, then wait for the APNs device token.
+    //
+    // These are INDEPENDENT, and conflating them cost us every denied user's
+    // token. Verified against firebase_messaging 16.6.0's
+    // FLTFirebaseMessagingPlugin.m:
+    //
+    //  * `requestPermission` calls only `requestAuthorizationWithOptions` — it
+    //    never touches APNs registration;
+    //  * `registerForRemoteNotifications` is called at PLUGIN INIT, gated on
+    //    `FIRMessaging.isAutoInitEnabled` (our Info.plist sets
+    //    `FirebaseMessagingAutoInitEnabled` true) and on nothing else.
+    //
+    // So iOS issues an APNs token whatever the user answered — authorization
+    // governs whether a notification is DISPLAYED, not whether the device is
+    // addressable. This block used to skip `_waitForApnsToken()` whenever the
+    // status came back anything other than authorized/provisional, so
+    // `getToken()` ran before APNs had landed, failed with `apns-token-not-set`
+    // and returned null: every iOS user who declined the prompt — or had not
+    // answered it yet — registered NO device token at all, permanently.
+    //
+    // That also silently broke things consent has no say over: `content-
+    // available` background data pushes still deliver to a denied user, and the
+    // app's own in-app notification hub is fed by them.
     if (Platform.isIOS) {
-      final settings = await FirebaseMessaging.instance.requestPermission(
+      // Result deliberately unused for the token path — see above. It still
+      // matters for whether banners appear, which is reported to GA4 via
+      // [reportNotificationPermission].
+      await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
-      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-          settings.authorizationStatus != AuthorizationStatus.provisional) {
-      } else {
-        // Wait for APNs device token before asking FCM for a token.
-        // APNs registration is async; calling getToken() before the APNs
-        // token is attached fails silently with apns-token-not-set on iOS.
-        await _waitForApnsToken();
-      }
+      // APNs registration is async; calling getToken() before the APNs token is
+      // attached fails with apns-token-not-set on a real device.
+      await _waitForApnsToken();
     }
 
     /// Update the iOS foreground notification presentation options to allow
@@ -1598,6 +1649,14 @@ class AppNotificationHandler {
     final liveToken = await getFcmToken();
     if (liveToken != null && liveToken.isNotEmpty) {
       await _registerDeviceTokenWithBackend(liveToken);
+    } else {
+      // Firebase would not mint a token at all. On Android that is a missing /
+      // broken Play Services; on iOS it is APNs not registering (see
+      // _waitForApnsToken). Either way the backend can never have a token for
+      // this install, and nothing downstream will retry on its own — so record
+      // it rather than letting the install disappear into the "no token"
+      // bucket with no explanation.
+      _reportTokenState('no_token');
     }
 
     // iOS-only: register VoIP push token with the backend so calls can wake
@@ -1710,26 +1769,150 @@ class AppNotificationHandler {
   /// so APNs/FCM pushes target the live token. Silent: no progress dialog,
   /// no snackbar. Skips when the user isn't authenticated yet (login flow
   /// already sends the token via verifyOTP).
-  static Future<void> _registerDeviceTokenWithBackend(String token) async {
+  /// [force] re-sends even when the cache says the backend already has this
+  /// token. Used by the paths that have positive evidence the server does NOT
+  /// have it — post-login, and the profile-driven repair — because the cache
+  /// describes this install's belief, not the server's state.
+  static Future<void> _registerDeviceTokenWithBackend(
+    String token, {
+    bool force = false,
+  }) async {
     if (token.isEmpty) return;
     if (authTokenGlobal == null || authTokenGlobal!.isEmpty) {
       // Not authenticated yet — queue the token so it can be flushed to the
       // backend the moment auth becomes available (see flushPendingTokenSync).
+      // Persisted as well as held in memory: the pre-auth window is exactly
+      // where a process death loses the token entirely.
       _pendingTokenSync = token;
+      try {
+        await SharedPreferenceUtils.setSecureValue(_pendingFcmKey, token);
+      } catch (_) {}
+      _reportTokenState('unauthenticated');
       return;
     }
+
+    // Skip a PATCH the backend has already acknowledged for this exact token.
+    // Without this the endpoint was hit on every cold start, every resume and
+    // every profile fetch with an unchanged value — thousands of no-op writes
+    // that also made a genuinely failed write impossible to spot in the logs.
+    if (!force) {
+      try {
+        final cached = await SharedPreferenceUtils.getSecureValue(_fcmCacheKey);
+        if (cached is String && cached == token) return;
+      } catch (_) {}
+    }
+
+    try {
+      await SharedPreferenceUtils.setSecureValue(
+          _fcmLastAttemptKey, DateTime.now().toIso8601String());
+    } catch (_) {}
+
     try {
       await ApiBaseHelper().patchHTTP(
         'user-service/user/me/device-token',
         params: {ApiKeys.device_token: token},
         showProgress: false,
         onError: (e) {
+          // Deliberately NOT cached. Leaving the cache untouched is what makes
+          // the next launch / resume retry instead of assuming success — the
+          // failure used to be printed and then forgotten forever, which is one
+          // way a live user ends up with no token on the server.
           print("===fcm-token-sync=== error: $e");
+          _reportTokenState('failed', forced: force);
         },
-        onSuccess: (_) {},
+        onSuccess: (_) {
+          // Cache ONLY on confirmed success, so the short-circuit above can
+          // never suppress a delivery that never actually landed.
+          SharedPreferenceUtils.setSecureValue(_fcmCacheKey, token);
+          SharedPreferenceUtils.setSecureValue(_pendingFcmKey, '');
+          _reportTokenState('registered', forced: force);
+        },
       );
     } catch (e) {
       print("===fcm-token-sync=== threw: $e");
+    }
+  }
+
+  /// GA4 user property carrying this install's push-token health.
+  ///
+  /// Registered as a custom dimension in the GA4 UI to answer the question the
+  /// database cannot: the `users` table can say how many ROWS hold a device
+  /// token, but not how many of those rows belong to anyone who still opens the
+  /// app. Segmenting active users by this property separates a live
+  /// registration failure from legacy installs that predate token syncing and
+  /// will never register one until they update.
+  static const String pushTokenStateProperty = 'push_token_state';
+
+  /// Values: `registered` (backend confirmed), `failed` (PATCH rejected),
+  /// `no_token` (Firebase would not mint one — GMS missing, or iOS without
+  /// APNs), `unauthenticated` (fetched before login; queued).
+  static void _reportTokenState(String state, {bool forced = false}) {
+    unawaited(AnalyticsService.I.setProperty(pushTokenStateProperty, state));
+    unawaited(AnalyticsService.I.log(
+      'fcm_token_sync',
+      AnalyticsService.params({
+        'state': state,
+        'platform': Platform.isIOS ? 'ios' : 'android',
+        // Distinguishes a routine re-assert from a repair that was triggered by
+        // positive evidence the server had nothing — the second failing is far
+        // more serious than the first being skipped.
+        'forced': forced,
+      }),
+    ));
+  }
+
+  /// GA4 user property carrying OS-level notification consent.
+  ///
+  /// Reported alongside [pushTokenStateProperty] because the two failures look
+  /// identical from the backend and need opposite fixes: a user with no token
+  /// is a registration problem, while a user with a perfectly good token and
+  /// `denied` here is a consent problem that no amount of token syncing will
+  /// solve. Android mints FCM tokens regardless of POST_NOTIFICATIONS, so
+  /// without this the second group is invisible.
+  static const String notificationPermissionProperty = 'notif_permission';
+
+  /// Records current OS notification consent. Values: `granted`, `denied`,
+  /// `permanently_denied`, `restricted`, `unknown`.
+  static Future<void> reportNotificationPermission() async {
+    try {
+      final status = await Permission.notification.status;
+      final label = status.isGranted
+          ? 'granted'
+          : status.isPermanentlyDenied
+              ? 'permanently_denied'
+              : status.isRestricted
+                  ? 'restricted'
+                  : status.isDenied
+                      ? 'denied'
+                      : 'unknown';
+      unawaited(
+          AnalyticsService.I.setProperty(notificationPermissionProperty, label));
+      unawaited(AnalyticsService.I.log(
+        'notif_permission_state',
+        AnalyticsService.params({
+          'state': label,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+        }),
+      ));
+    } catch (_) {
+      // Never let telemetry break startup.
+    }
+  }
+
+  /// Whether the profile-driven repair may run again yet.
+  ///
+  /// Public so the profile controller can check before doing the (relatively
+  /// expensive) `getFcmToken()` round-trip rather than after.
+  static Future<bool> shouldAttemptTokenRepair() async {
+    try {
+      final raw =
+          await SharedPreferenceUtils.getSecureValue(_fcmLastAttemptKey);
+      if (raw is! String || raw.isEmpty) return true;
+      final last = DateTime.tryParse(raw);
+      if (last == null) return true;
+      return DateTime.now().difference(last) >= _tokenRepairCooldown;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -1738,22 +1921,35 @@ class AppNotificationHandler {
   /// was queued, re-fetch the live token and POST it anyway in case a
   /// rotation happened during the unauthenticated window.
   static Future<void> flushPendingTokenSync() async {
-    final pending = _pendingTokenSync;
+    var pending = _pendingTokenSync;
     _pendingTokenSync = null;
+    if (pending == null || pending.isEmpty) {
+      // Not in memory — this may be a later launch of a process that died
+      // during the pre-auth window, so check the persisted copy too.
+      try {
+        final stored =
+            await SharedPreferenceUtils.getSecureValue(_pendingFcmKey);
+        if (stored is String && stored.isNotEmpty) pending = stored;
+      } catch (_) {}
+    }
+    // force: the caller has just authenticated, and the cache reflects what a
+    // PREVIOUS session believed. Login is also the one moment we can be sure
+    // the account row exists to write to, so it is worth one unconditional
+    // attempt.
     if (pending != null && pending.isNotEmpty) {
-      await _registerDeviceTokenWithBackend(pending);
+      await _registerDeviceTokenWithBackend(pending, force: true);
     } else {
       final live = await getFcmToken();
       if (live != null && live.isNotEmpty) {
-        await _registerDeviceTokenWithBackend(live);
+        await _registerDeviceTokenWithBackend(live, force: true);
       }
     }
   }
 
   /// Public wrapper to POST the current FCM device token to the backend.
-  /// Used by the app-resume re-sync path.
-  static Future<void> syncCurrentToken(String token) =>
-      _registerDeviceTokenWithBackend(token);
+  /// Used by the app-resume re-sync path and the profile-driven repair.
+  static Future<void> syncCurrentToken(String token, {bool force = false}) =>
+      _registerDeviceTokenWithBackend(token, force: force);
 
   /// Polls FirebaseMessaging.getAPNSToken() until it returns a non-null value
   /// or the timeout elapses. Required on iOS real devices before getToken().
@@ -1795,10 +1991,25 @@ class AppNotificationHandler {
 
     try {
       // On iOS, getToken() fails with apns-token-not-set if APNs has not yet
-      // attached a device token. Fall back to the cached value so the caller
-      // can still re-sync whatever we last had.
+      // attached a device token.
+      //
+      // Give registration a bounded chance to land before giving up, rather
+      // than returning the cache on the first null. APNs registration is async
+      // and fires independently of notification consent (see the note in
+      // setupFcmToken), so on a first launch — and on EVERY launch for a user
+      // who declined the prompt — this read is simply early, not impossible.
+      // Returning `cached()` immediately meant a fresh install with no cache
+      // yet produced no token, and nothing on that path ever retried.
       if (Platform.isIOS) {
-        final apns = await firebaseMessaging.getAPNSToken();
+        var apns = await firebaseMessaging.getAPNSToken();
+        if (apns == null || apns.isEmpty) {
+          // Shorter than setupFcmToken's wait: that one runs once at launch and
+          // can afford to be patient. Reaching here means registration has
+          // already had that long and still has nothing, so this is a top-up
+          // for a late arrival, not a first attempt — and this path runs on
+          // every resume.
+          apns = await _waitForApnsToken(timeout: const Duration(seconds: 3));
+        }
         if (apns == null || apns.isEmpty) {
           return cached();
         }

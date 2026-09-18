@@ -75,6 +75,22 @@ class AnalyticsService {
     });
   }
 
+  /// Sets an arbitrary GA4 user property.
+  ///
+  /// Exists so push-token health can be segmented in GA4 the same way
+  /// `account_type` is: the backend can say how many ROWS carry a device token,
+  /// but only a user property can say how many *active* users do — which is the
+  /// difference between a live registration bug and legacy installs that have
+  /// simply never run a build that registers one. See
+  /// `AppNotificationHandler.pushTokenStateProperty`.
+  ///
+  /// GA4 limits: 24-char name, 36-char value, 25 custom properties per project,
+  /// and a property must be registered in the GA4 UI before it appears in
+  /// reports (it is still collected before that).
+  Future<void> setProperty(String name, String? value) async {
+    await _safe(() => _fa.setUserProperty(name: name, value: _emptyToNull(value)));
+  }
+
   /// Manual screen view — for GetX tab switches and any screen the route
   /// observer cannot see (no `RouteSettings.name`).
   Future<void> screen(String screenName) async {

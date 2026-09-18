@@ -192,7 +192,13 @@ class ViewPersonalDetailsController extends GetxController
     // after toggling left the cache stale and the toggle came back OFF.
     await _persistLiveIntent(isOpen);
     if (isOpen) {
-      locationService.start();
+      // `userInitiated` is passed through so a rider who tapped Go Live and has
+      // no "Allow all the time" grant gets the permission flow there and then,
+      // while the restore / scheduler paths only get the notice — see
+      // LiveLocationService.verifyKillModeCoverage. Without that grant the
+      // native killed-state service cannot start, and the rider goes offline
+      // the moment the app is closed while the pill still reads LIVE.
+      locationService.start(userInitiated: userInitiated);
     } else {
       locationService.stop();
     }
@@ -941,6 +947,14 @@ class ViewPersonalDetailsController extends GetxController
           (user is Map) ? user['device_token']?.toString() : null;
       if (serverToken != null && serverToken.isNotEmpty) return;
 
+      // Rate-limited, because the trigger is "the server has no token" and the
+      // action is "tell the server the token" — if the write does not stick,
+      // the trigger never clears and this runs on EVERY profile fetch forever.
+      // That unbounded loop is the device-token endpoint being hit every few
+      // seconds. A cooldown keeps the self-heal (a transient failure still
+      // recovers within the session) without the hammering.
+      if (!await AppNotificationHandler.shouldAttemptTokenRepair()) return;
+
       // Fetch the live FCM token and reconcile it into secure storage
       // (picks up a rotated token, not just an empty cache).
       await AppNotificationHandler.getFcmToken();
@@ -949,7 +963,12 @@ class ViewPersonalDetailsController extends GetxController
           ?.toString();
       if (fcmToken == null || fcmToken.isEmpty) return;
 
-      await PersonalProfileRepo().updateDeviceTokenRepo(deviceToken: fcmToken);
+      // Routed through the shared sync rather than PATCHing directly, so this
+      // path gets the same success-gated cache as every other one — and so a
+      // success here stops the other paths re-sending the same value.
+      // `force` because we have just been told by the server that it does not
+      // have the token, which outranks whatever the local cache believes.
+      await AppNotificationHandler.syncCurrentToken(fcmToken, force: true);
     } catch (e, s) {
       log('restore device token failed -- $e\n$s');
     }

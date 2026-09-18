@@ -1129,9 +1129,13 @@ Future<void> _initDeferred(
     /// location-based APIs. Fire-and-forget — must not block the first frame.
     /// The Android 13+ notification permission request is CHAINED after it:
     /// firing both at once makes the two system dialogs race (Android shows
-    /// one and silently drops the other).
-    unawaited(LocationService.fetchLocation().whenComplete(
-        () => unawaited(_requestStartupPermissions())));
+    /// one and silently drops the other). Bounded by [_permissionChainGate] so
+    /// a location fetch that never settles cannot swallow the notification
+    /// prompt entirely — see the note there.
+    unawaited(LocationService.fetchLocation()
+        .whenComplete(_requestStartupPermissionsOnce));
+    unawaited(
+        Future.delayed(_permissionChainGate, _requestStartupPermissionsOnce));
 
     /// Initialise the Google AdMob SDK + preload the first
     /// interstitial. Fire-and-forget — ads must never block startup; the
@@ -1269,7 +1273,12 @@ Future<void> _initDeferred(
 /// firebaseNotificationSetup() via FirebaseMessaging.requestPermission.
 /// A permanently-denied state is left alone — no settings nag on boot.
 Future<void> _requestNotificationPermissionIfNeeded() async {
-  if (!Platform.isAndroid) return;
+  if (!Platform.isAndroid) {
+    // iOS consent is requested in firebaseNotificationSetup(); still report the
+    // outcome so both platforms are comparable in GA4.
+    unawaited(AppNotificationHandler.reportNotificationPermission());
+    return;
+  }
   try {
     final status = await Permission.notification.status;
     if (status.isDenied) {
@@ -1278,6 +1287,11 @@ Future<void> _requestNotificationPermissionIfNeeded() async {
   } catch (e) {
     logs('notification permission request failed: $e');
   }
+  // Reported AFTER the request so the property reflects the answer, not the
+  // question. Android mints an FCM token whether or not this was granted, so
+  // this is the only signal separating "we have no token for them" from "we
+  // have a token and the OS drops everything we send".
+  unawaited(AppNotificationHandler.reportNotificationPermission());
 }
 
 /// The full cold-start permission chain, run once the location flow settles.
@@ -1293,12 +1307,45 @@ Future<void> _requestStartupPermissions() async {
   await AppServices.permissionHandler();
 }
 
+/// How long the startup permission chain will wait for the location flow before
+/// going ahead anyway.
+///
+/// The chain is sequenced behind location because Android shows one permission
+/// dialog at a time and silently drops any raised while another is up. But the
+/// only part of the location flow that competes for the screen is its own
+/// permission dialog; everything after it — `Geolocator.getCurrentPosition`
+/// (called with NO `timeLimit`) and `placemarkFromCoordinates` (a network
+/// reverse-geocode) — shows nothing and can stay pending for minutes indoors,
+/// on a cold GPS, or on a dead network.
+///
+/// Long enough for the location dialog to be answered, short enough that a
+/// never-completing fix cannot swallow the notification prompt.
+const Duration _permissionChainGate = Duration(seconds: 20);
+
+/// Guards the chain against running twice — once from the gate expiring and
+/// again when the location future finally settles.
+bool _startupPermissionsStarted = false;
+
+Future<void> _requestStartupPermissionsOnce() async {
+  if (_startupPermissionsStarted) return;
+  _startupPermissionsStarted = true;
+  await _requestStartupPermissions();
+}
+
 /// Heavy, first-frame-irrelevant startup work. On a normal launch this runs
 /// inline inside [_initDeferred]; on a notification open it is postponed via a
 /// post-frame callback so the deep-link target renders first.
 Future<void> _initBackgroundBatch() async {
-  unawaited(LocationService.fetchLocation().whenComplete(
-      () => unawaited(_requestStartupPermissions())));
+  // The permission chain waits for the location flow, but is NOT gated on it
+  // succeeding — and never waits longer than [_permissionChainGate]. Chained on
+  // `whenComplete` alone, a location fetch that never settled (no GPS fix, no
+  // network for the reverse-geocode) meant POST_NOTIFICATIONS was never
+  // requested at all: the user ended up with an app that cannot notify them and
+  // no prompt to explain why, which is invisible from inside the app and shows
+  // up only as a user who never receives anything.
+  final locationSettled = LocationService.fetchLocation();
+  unawaited(locationSettled.whenComplete(_requestStartupPermissionsOnce));
+  unawaited(Future.delayed(_permissionChainGate, _requestStartupPermissionsOnce));
   unawaited(InterstitialAdManager.instance.initialize());
   await Future.wait<void>([
     getDeviceInfo(),
