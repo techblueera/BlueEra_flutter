@@ -111,6 +111,13 @@ class AppStrings {
   static const accountDeletionRateLimited = "accountDeletionRateLimited";
   static const accountDeletionFeatureDisabled = "accountDeletionFeatureDisabled";
   static const accountDeletionCancelledBanner = "accountDeletionCancelledBanner";
+  static const accountDeletionBlockedTitle = "accountDeletionBlockedTitle";
+  static const accountDeletionBlockedIntro = "accountDeletionBlockedIntro";
+
+  ///DELETED (TOMBSTONED) ACCOUNTS
+  static const deletedUser = "deletedUser";
+  static const deletedUserUnavailable = "deletedUserUnavailable";
+  static const deletedUserCannotMessage = "deletedUserCannotMessage";
 
   ///ACCOUNT SETTING SCREEN
   static const editProfile = "editProfile";
@@ -1124,6 +1131,10 @@ class AppStrings {
   static const travel = "travel";
   static const individualAccount = "individualAccount";
   static const businessListing = "businessListing";
+
+  /// Already present in every locale file — only the Dart constant was
+  /// missing, so this adds nothing for the translators to do.
+  static const preview = "preview";
 
   // Emotion Types
   static const angerOutrage = "angerOutrage";

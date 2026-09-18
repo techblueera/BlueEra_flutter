@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
+
 /// Lightweight model for the `user-service/user/by-phone/{phone}` response's
 /// `user` object. Only the fields the phone-lookup bottom sheet needs are
 /// parsed; the API returns many more.
@@ -33,6 +35,12 @@ class UserByPhoneModel {
   /// subtext when there's no business category.
   final String? designation;
 
+  /// True when the number resolves to a hard-deleted account. The lookup still
+  /// succeeds — the backend keeps answering for the id with a tombstone — so
+  /// callers must check this before offering Chat / Call / View profile.
+  /// See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
+
   UserByPhoneModel({
     required this.id,
     required this.name,
@@ -47,6 +55,7 @@ class UserByPhoneModel {
     this.businessType,
     this.categoryOfBusiness,
     this.designation,
+    this.isDeleted = false,
   });
 
   /// Header subtext for the phone-lookup UI: the business category when set,
@@ -79,6 +88,7 @@ class UserByPhoneModel {
       categoryOfBusiness: business?['category_Of_Business']?.toString() ??
           (category is Map ? category['tag_id']?.toString() : null),
       designation: json['designation']?.toString(),
+      isDeleted: parseIsDeleted(json['is_deleted']),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -61,25 +62,32 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: AppColors.primaryColor,
-                  backgroundImage: (member.profileImage != null && member.profileImage!.isNotEmpty)
+                  backgroundImage: (!member.isDeleted &&
+                          (member.profileImage ?? '').trim().isNotEmpty)
                       ? CachedNetworkImageProvider(member.profileImage!)
                       : null,
-                  child: (member.profileImage == null || member.profileImage!.isEmpty)
-                      ? CustomText(
-                          member.name?.isNotEmpty == true ? member.name![0].toUpperCase() : '?',
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        )
-                      : null,
+                  child: member.isDeleted
+                      ? const Icon(Icons.person, color: Colors.white, size: 40)
+                      : (member.profileImage == null || member.profileImage!.isEmpty)
+                          ? CustomText(
+                              member.name?.isNotEmpty == true ? member.name![0].toUpperCase() : '?',
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            )
+                          : null,
                 ),
                 const SizedBox(height: 16),
                 CustomText(
-                  member.name ?? AppStrings.unknownMember.tr,
+                  displayUserName(member.name,
+                      isDeleted: member.isDeleted,
+                      fallback: AppStrings.unknownMember.tr),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
-                if (member.contact != null && member.contact!.isNotEmpty)
+                if (!member.isDeleted &&
+                    member.contact != null &&
+                    member.contact!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: CustomText(
@@ -91,17 +99,22 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 const SizedBox(height: 18),
                 // const Divider(color: AppColors.primaryColor, thickness: 1),
                 // const SizedBox(height: 12),
-                _buildBottomSheetButton(
-                  icon: Icons.person_outline,
-                  text: AppStrings.viewProfile.tr,
-                  onTap: () => _openMemberProfile(context, member),
-                ),
-                const SizedBox(height: 12),
-                _buildBottomSheetButton(
-                  icon: Icons.message_outlined,
-                  text: AppStrings.messageLabel.tr,
-                  onTap: () => _openMemberChat(context, member),
-                ),
+                // Both of these route on the member's user id. For a deleted
+                // account that id belongs to nobody, so they're hidden rather
+                // than left to open an empty profile or an unsendable chat.
+                if (!member.isDeleted) ...[
+                  _buildBottomSheetButton(
+                    icon: Icons.person_outline,
+                    text: AppStrings.viewProfile.tr,
+                    onTap: () => _openMemberProfile(context, member),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBottomSheetButton(
+                    icon: Icons.message_outlined,
+                    text: AppStrings.messageLabel.tr,
+                    onTap: () => _openMemberChat(context, member),
+                  ),
+                ],
                 if (amIAdmin && member.id != userId) ...[
                   const SizedBox(height: 12),
                   _buildBottomSheetButton(
@@ -152,6 +165,8 @@ class _GroupMembersListState extends State<GroupMembersList> {
       authorId: id,
       type: isBusiness ? AppConstants.business : AppConstants.individual,
       contactNo: member.contact,
+      // A member whose account is gone stays in the list, but has no profile.
+      isDeleted: member.isDeleted,
     );
   }
 
@@ -359,7 +374,11 @@ class _GroupMembersListState extends State<GroupMembersList> {
             final nonMeMembers = widget.members.where((m) => m.id != userId).toList();
             final member = nonMeMembers[index - 2];
 
-            final String displayName = (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
+            // A since-deleted member stays in the list — they really were in
+            // the group — but reads as a tombstone.
+            // See lib/core/constants/deleted_user.dart.
+            final String displayName =
+                displayUserName(member.name, isDeleted: member.isDeleted, fallback: "-");
             final String initial = displayName.isNotEmpty ? displayName[0] : '?';
 
             return GestureDetector(
@@ -369,7 +388,9 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 leading: CircleAvatar(
                   backgroundColor: AppColors.primaryColor,
                   radius: 22,
-                  child: (member.profileImage != null)
+                  // Empty counts as absent — a tombstone's profile_image is "".
+                  child: (!member.isDeleted &&
+                          (member.profileImage ?? '').trim().isNotEmpty)
                       ? ClipOval(
                           child: CachedNetworkImage(
                             imageUrl: member.profileImage!,
@@ -396,12 +417,17 @@ class _GroupMembersListState extends State<GroupMembersList> {
                           ),
                         )
                       : Center(
-                          child: CustomText(
-                            initial,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
-                          ),
+                          // Person glyph rather than an initial for a deleted
+                          // account — "D" would read as somebody's initial.
+                          child: member.isDeleted
+                              ? const Icon(Icons.person,
+                                  color: Colors.white, size: 24)
+                              : CustomText(
+                                  initial,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                ),
                         ),
                 ),
                 title: CustomText(

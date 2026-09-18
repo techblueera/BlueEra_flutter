@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
@@ -1389,7 +1390,8 @@ class Sender {
       this.username,
       this.name,
       this.lastName,
-      this.contactNo,});
+      this.contactNo,
+      this.isDeleted = false,});
 
   Sender.fromJson(dynamic json) {
     profileImage = json['profile_image'];
@@ -1398,6 +1400,7 @@ class Sender {
     name = json['name'];
     lastName = json['last_name'];
     contactNo = json['contact_no'];
+    isDeleted = parseIsDeleted(json['is_deleted']);
   }
   String? profileImage;
   String? id;
@@ -1405,6 +1408,11 @@ class Sender {
   String? name;
   String? lastName;
   String? contactNo;
+
+  /// True when the author's account has been hard-deleted and this is a
+  /// tombstone. The message itself stays visible — only actions that route on
+  /// [id] are disabled. See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -1414,6 +1422,7 @@ class Sender {
     map['name'] = name;
     map['last_name'] = lastName;
     map['contact_no'] = contactNo;
+    map['is_deleted'] = isDeleted;
     return map;
   }
 

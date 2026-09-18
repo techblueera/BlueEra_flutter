@@ -1,4 +1,5 @@
 
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 /// success : true
@@ -465,8 +466,9 @@ class Sender {
       this.bio, 
       this.introVideo, 
       this.socialLinks, 
-      this.createdAt, 
-      this.updatedAt, 
+      this.createdAt,
+      this.updatedAt,
+      this.isDeleted = false,
       this.v,});
 
   Sender.fromJson(dynamic json) {
@@ -493,6 +495,9 @@ class Sender {
     socialLinks = json['social_links'] != null ? SocialLinks.fromJson(json['social_links']) : null;
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    // Tombstone flag — `deleted_at` above is the SOFT-delete timestamp and is
+    // not the same thing. Absent on older payloads, hence the false default.
+    isDeleted = parseIsDeleted(json['is_deleted']);
     v = json['__v'];
   }
   String? id;
@@ -518,6 +523,11 @@ class Sender {
   SocialLinks? socialLinks;
   String? createdAt;
   String? updatedAt;
+
+  /// True when this account has been hard-deleted and the server is answering
+  /// with a tombstone. Render the row, keep the history, disable every action
+  /// that routes on [id]. See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false;
   num? v;
   // Future<void> processProfileImage() async {
   //   if (profileImage != null && id != null) {
@@ -557,6 +567,7 @@ class Sender {
     }
     map['created_at'] = createdAt;
     map['updated_at'] = updatedAt;
+    map['is_deleted'] = isDeleted;
     map['__v'] = v;
     return map;
   }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:flutter/gestures.dart';
@@ -73,6 +74,10 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
       RegExp(r'[A-Za-z0-9_]').hasMatch(c);
 
   void _openMentionContact(GroupMembersListModel member) {
+    // An @mention of a since-deleted member still renders in the message — the
+    // text is history — but resolves to nobody.
+    // See lib/core/constants/deleted_user.dart.
+    if (blockDeletedUserAction(member.isDeleted)) return;
     final number = member.contact?.trim() ?? '';
     if (number.isNotEmpty) {
       // Open the SAME contact-link sheet a tapped phone number opens: resolves
@@ -224,7 +229,16 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                               color: chatThemeController.getDarkColorForSender(
                                   widget.messages.senderId ?? "unknown", 0.1)),
                           child: Center(
-                              child: CustomText(
+                              child: (widget.messages.sender?.isDeleted ?? false)
+                                  // Person glyph, not an initial: "D" for
+                                  // "Deleted User" would read as a real one.
+                                  ? Icon(Icons.person,
+                                      size: 15,
+                                      color: chatThemeController
+                                          .getDarkColorForSender(
+                                              widget.messages.senderId ??
+                                                  "unknown"))
+                                  : CustomText(
                             "${(widget.messages.sender?.name=='')?'NA':widget.messages.sender?.name?.split('')[0]}",
                             fontSize: 13.2,
                             color: chatThemeController.getDarkColorForSender(
@@ -269,7 +283,15 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                   child: Row(
                                     children: [
                                       CustomText(
-                                        "${widget.messages.sender?.name}",
+                                        // A since-deleted author's messages
+                                        // stay in the thread; only the byline
+                                        // becomes a tombstone.
+                                        displayUserName(
+                                          widget.messages.sender?.name,
+                                          isDeleted: widget.messages.sender
+                                                  ?.isDeleted ??
+                                              false,
+                                        ),
                                         fontWeight: FontWeight.w400,
                                         color: chatThemeController
                                             .getDarkColorForSender(

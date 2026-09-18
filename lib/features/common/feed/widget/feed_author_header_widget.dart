@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
@@ -156,8 +157,15 @@ class PostAuthorHeader extends StatelessWidget {
     logs(" post?.post_via ${post?.post_via} | passedChannelName $channelName"
         " | post.channel?.name ${post?.channel?.name}"
         " | post.channelName ${post?.channelName}");
-    String name =
-        (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
+    // The author's account has been hard-deleted. The post itself stays —
+    // the content isn't the account — but the byline becomes a tombstone and
+    // the tap stops routing on an id nobody owns.
+    // See lib/core/constants/deleted_user.dart.
+    final bool isAuthorDeleted = post?.user?.isDeleted ?? false;
+
+    String name = isAuthorDeleted
+        ? deletedUserName
+        : (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
             ? post?.user?.name ?? 'User'
             : post?.user?.businessName ?? 'User';
 
@@ -202,15 +210,21 @@ class PostAuthorHeader extends StatelessWidget {
                 openFeedProfile(post?.user?.copyWith(id: authorId));
               },
               child: _AuthorIdentity(
-                imageUrl: post?.user?.profileImage ?? '',
-                title: post?.post_via == "channel"
+                // A tombstone's profile_image is "", which
+                // CachedAvatarWidget now reads as absent → person placeholder.
+                imageUrl: isAuthorDeleted ? '' : post?.user?.profileImage ?? '',
+                title: (!isAuthorDeleted && post?.post_via == "channel")
                     ? (channelName ??
                         post?.channel?.name ??
                         post?.channelName ??
                         name)
                     : name,
-                userName: post?.user?.username ?? '',
-                designation: designation != "null" ? designation : 'OTHERS',
+                userName: isAuthorDeleted ? '' : post?.user?.username ?? '',
+                designation: isAuthorDeleted
+                    ? ''
+                    : designation != "null"
+                        ? designation
+                        : 'OTHERS',
               ),
             ),
           ),

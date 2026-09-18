@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
@@ -256,20 +257,30 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
   Widget _buildCommentTile(
       {required CommentData comment, Replies? reply, isReplyTemplate = false}) {
-    String commentName =
-        (comment.createdBy?.accountType == AppConstants.individual)
+    // A hard-deleted author keeps their comment in the thread — pulling it
+    // would break the replies hanging off it — but is rendered as a tombstone.
+    // See lib/core/constants/deleted_user.dart.
+    final bool isCommenterDeleted = comment.createdBy?.isDeleted ?? false;
+    final bool isReplierDeleted = reply?.createdBy?.isDeleted ?? false;
+
+    String commentName = isCommenterDeleted
+        ? deletedUserName
+        : (comment.createdBy?.accountType == AppConstants.individual)
             ? comment.createdBy?.name ?? ''
             : comment.createdBy?.businessName ?? '';
-    String replierName =
-        (reply?.createdBy?.accountType == AppConstants.individual)
+    String replierName = isReplierDeleted
+        ? deletedUserName
+        : (reply?.createdBy?.accountType == AppConstants.individual)
             ? reply?.createdBy?.name ?? ''
             : reply?.createdBy?.businessName ?? '';
-    String commentDesignation =
-        (comment.createdBy?.accountType == AppConstants.individual)
+    String commentDesignation = isCommenterDeleted
+        ? ''
+        : (comment.createdBy?.accountType == AppConstants.individual)
             ? comment.createdBy?.designation ?? ''
             : comment.createdBy?.businessCategory ?? '';
-    String replierDesignation =
-        (reply?.createdBy?.accountType == AppConstants.individual)
+    String replierDesignation = isReplierDeleted
+        ? ''
+        : (reply?.createdBy?.accountType == AppConstants.individual)
             ? reply?.createdBy?.designation ?? ''
             : reply?.createdBy?.businessCategory ?? '';
 
@@ -288,9 +299,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     }
 
     ///EMpty DATA
+    // A tombstone's profile_image is "" anyway; blanking it here makes that
+    // explicit and reaches the person placeholder in CachedAvatarWidget.
     String profilePic = !isReplyTemplate
-        ? comment.createdBy?.profilePic ?? ''
-        : reply?.createdBy?.profilePic ?? '';
+        ? (isCommenterDeleted ? '' : comment.createdBy?.profilePic ?? '')
+        : (isReplierDeleted ? '' : reply?.createdBy?.profilePic ?? '');
     String name = !isReplyTemplate ? commentName : replierName;
     String designation =
         !isReplyTemplate ? commentDesignation : replierDesignation;
@@ -730,6 +743,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     final targetUser = replyUser ?? commentUser;
 
     if (targetUser == null) return;
+
+    // The commenter's account is gone. The comment stays readable; the tap
+    // stops, because the id behind it belongs to nobody.
+    // See lib/core/constants/deleted_user.dart.
+    if (blockDeletedUserAction(targetUser.isDeleted)) return;
 
     final isSelf = userId == targetUser.sId;
     final accountType = targetUser.accountType?.toUpperCase();

@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
+
 class CommentModelResponse {
   bool? success;
   String? message;
@@ -121,6 +123,12 @@ class CreatedBy {
   String? businessName;
   String? businessCategory;
 
+  /// True when the commenter's account has been hard-deleted. The comment
+  /// itself stays — removing it would tear holes in the thread it replies to —
+  /// but the byline becomes a tombstone and stops opening a profile.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false;
+
   CreatedBy({
     this.sId,
     this.accountType,
@@ -129,7 +137,8 @@ class CreatedBy {
     this.designation,
     this.name,
     this.businessName,
-    this.businessCategory
+    this.businessCategory,
+    this.isDeleted = false,
   });
 
   CreatedBy.fromJson(Map<String, dynamic> json) {
@@ -141,6 +150,7 @@ class CreatedBy {
     name = json['name'];
     businessName = json['business_name'];
     businessCategory = json['business_category'];
+    isDeleted = parseIsDeleted(json['is_deleted']);
   }
 
   Map<String, dynamic> toJson() {
@@ -153,6 +163,7 @@ class CreatedBy {
     data['name'] = name;
     data['business_name'] = businessName;
     data['business_category'] = businessCategory;
+    data['is_deleted'] = isDeleted;
     return data;
   }
 }

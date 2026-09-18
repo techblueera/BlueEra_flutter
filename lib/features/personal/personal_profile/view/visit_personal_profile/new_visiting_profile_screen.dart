@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -206,9 +207,18 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   // Same pattern as social_home_screen _buildHeaderSection
   // ─────────────────────────────────────────────
   Widget _buildHeaderSection(dynamic user) {
-    final bannerUrl = (user?.coverPicture?.isNotEmpty ?? false)
-        ? user!.coverPicture!
-        : (user?.profileImage ?? '');
+    // Safety net for the paths that reach this screen with an id alone — a
+    // deep link, a notification tap, an old feed row — and so can't tell
+    // [openVisitProfile] the account is gone. The fetched profile carries the
+    // tombstone flag, so the header degrades here instead of painting an empty
+    // person with a live Follow button.
+    // See lib/core/constants/deleted_user.dart.
+    final bool isUserDeleted = user?.isDeleted == true;
+    final bannerUrl = isUserDeleted
+        ? ''
+        : (user?.coverPicture?.isNotEmpty ?? false)
+            ? user!.coverPicture!
+            : (user?.profileImage ?? '');
 
     return Container(
       color: AppColors.white,
@@ -251,20 +261,25 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   backgroundColor: AppColors.white,
                   child: CircleAvatar(
                     radius: 37,
-                    backgroundImage: (user?.profileImage != null &&
+                    backgroundImage: (!isUserDeleted &&
+                            user?.profileImage != null &&
                             (user?.profileImage?.isNotEmpty ?? false))
                         ? NetworkImage(user?.profileImage ?? "")
                         : null,
                     backgroundColor: AppColors.primaryColor,
-                    child: (user?.profileImage == null ||
-                            (user?.profileImage?.isEmpty ?? false))
-                        ? CustomText(
-                            getInitials(user?.name),
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          )
-                        : null,
+                    child: isUserDeleted
+                        // Placeholder, not initials — "D" for "Deleted User"
+                        // would read as a real person's initial.
+                        ? const Icon(Icons.person, color: Colors.white, size: 36)
+                        : (user?.profileImage == null ||
+                                (user?.profileImage?.isEmpty ?? false))
+                            ? CustomText(
+                                getInitials(user?.name),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              )
+                            : null,
                   ),
                 ),
               ),
@@ -285,6 +300,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 top: 8,
                 child: Row(
                   children: [
+                    // Nothing worth sharing a link to once the account is gone.
+                    if (!isUserDeleted)
                     _circleButton(
                       icon: Icons.share_outlined,
                       onTap: () async {
@@ -305,8 +322,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 ),
               ),
 
-              // Follow button — positioned at right, below banner
-              if (user?.id != null)
+              // Follow button — positioned at right, below banner.
+              // Hidden for a deleted account: there is nobody to follow.
+              if (user?.id != null && !isUserDeleted)
                 Positioned(
                   right: 12,
                   top: 144,
@@ -362,7 +380,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                user?.name ?? '',
+                // The tombstone's own `name` is the English literal "Deleted
+                // User"; [displayUserName] swaps in the localised string.
+                displayUserName(user?.name, isDeleted: isUserDeleted),
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
                 maxLines: 2,

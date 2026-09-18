@@ -17,6 +17,7 @@ import '../../auth/socket/chat_socket.dart';
 import '../widget/broadcast_message_card.dart';
 import 'package:BlueEra/features/chat/view/widget/order_card_dedupe.dart';
 import '../widget/chat_input_box.dart';
+import '../widget/deleted_user_composer_notice.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 
@@ -29,6 +30,7 @@ class PersonalChatScreen extends StatefulWidget {
       this.name,
       this.contactNo,
       required this.isInitialMessage,
+      this.isDeleted = false,
       this.prefilledMessage});
 
   final String? conversationId;
@@ -38,6 +40,14 @@ class PersonalChatScreen extends StatefulWidget {
   final String? contactNo;
   final String? type;
   final bool isInitialMessage;
+
+  /// True when the other participant's account has been hard-deleted and the
+  /// server is answering with a tombstone. The thread still opens and the
+  /// history stays readable — what changes is that the header reads "Deleted
+  /// User", the profile tap and the call button are dead, and the composer is
+  /// replaced by a notice. See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
+
   /// Optional intro text seeded into the input field on first open. Survives
   /// the in-init `clear()` because we apply it right after.
   final String? prefilledMessage;
@@ -181,7 +191,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
   /// resolver would silently reroute to the "Me" tab if it did, so exclude it.
   bool get _canOpenPeerProfile {
     final peerId = widget.userId?.trim() ?? '';
-    return peerId.isNotEmpty && peerId != userId && widget.type != "Admin";
+    // A deleted account has no profile behind its id, so the CTA is hidden
+    // rather than left to open an empty screen.
+    return peerId.isNotEmpty &&
+        peerId != userId &&
+        widget.type != "Admin" &&
+        !widget.isDeleted;
   }
 
   /// Open the peer's profile through the app-wide resolver, so a contact who
@@ -239,6 +254,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                     type: widget.type,
                     name: widget.name,
                     profileImage: widget.profileImage,
+                    isDeleted: widget.isDeleted,
                     contactNo: widget.contactNo, conversationId: widget.conversationId);
           }),
         ),
@@ -490,13 +506,19 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  (widget.type == "Admin")
-                      ? const SizedBox()
-                      : ChatInputBar(
-                          isInitialMessage: widget.isInitialMessage,
-                          userId: widget.userId ?? '',
-                          conversationId: widget.conversationId ?? '',
-                        ),
+                  if (widget.type == "Admin")
+                    const SizedBox()
+                  // The peer's account is gone, so there is nowhere for a new
+                  // message to land. The history above stays fully readable —
+                  // it belongs to the person still here.
+                  else if (widget.isDeleted)
+                    const DeletedUserComposerNotice()
+                  else
+                    ChatInputBar(
+                      isInitialMessage: widget.isInitialMessage,
+                      userId: widget.userId ?? '',
+                      conversationId: widget.conversationId ?? '',
+                    ),
                   const SizedBox(height: 14),
                 ],
               ),

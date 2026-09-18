@@ -1,6 +1,7 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/chat_profile_navigation.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
@@ -36,8 +37,14 @@ class _PhoneUserSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasImage =
-        user.profileImage != null && user.profileImage!.isNotEmpty;
+    // A hard-deleted account still resolves — the backend answers for the id
+    // with a tombstone — so the sheet can open on one. It renders, because the
+    // number really did belong to somebody, but nothing here may route on the
+    // id. See lib/core/constants/deleted_user.dart.
+    final bool isDeleted = user.isDeleted;
+    final bool hasImage = !isDeleted &&
+        user.profileImage != null &&
+        user.profileImage!.isNotEmpty;
     final bool isBusiness =
         (user.accountType ?? '').toUpperCase() == AppConstants.business;
 
@@ -72,14 +79,17 @@ class _PhoneUserSheet extends StatelessWidget {
                             hasImage ? NetworkImage(user.profileImage!) : null,
                         child: hasImage
                             ? null
-                            : CustomText(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '?',
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryColor,
-                              ),
+                            : isDeleted
+                                ? const Icon(Icons.person,
+                                    size: 36, color: AppColors.grayText)
+                                : CustomText(
+                                    user.name.isNotEmpty
+                                        ? user.name[0].toUpperCase()
+                                        : '?',
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primaryColor,
+                                  ),
                       ),
                     ),
                     // "On BlueEra" verified badge.
@@ -100,7 +110,8 @@ class _PhoneUserSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 CustomText(
-                  user.name.isEmpty ? 'BlueEra User' : user.name,
+                  displayUserName(user.name,
+                      isDeleted: isDeleted, fallback: 'BlueEra User'),
                   fontSize: 19,
                   fontWeight: FontWeight.w800,
                   textAlign: TextAlign.center,
@@ -161,6 +172,10 @@ class _PhoneUserSheet extends StatelessWidget {
                     color: AppColors.primaryColor,
                     label: 'Chat',
                     onTap: () {
+                      // No account left to start a conversation with. Existing
+                      // threads stay reachable from the chat list — this only
+                      // refuses to open a NEW one.
+                      if (blockDeletedUserAction(isDeleted)) return;
                       Get.back();
                       Get.find<ChatViewController>()
                           .checkChatConnectionAndOpenChat(
@@ -178,6 +193,8 @@ class _PhoneUserSheet extends StatelessWidget {
                     color: Colors.green,
                     label: 'Audio',
                     onTap: () {
+                      // Nothing to ring — the account is gone.
+                      if (blockDeletedUserAction(isDeleted)) return;
                       Get.back();
                       _startBlueEraCall(user, CallType.audio);
                     },
@@ -188,6 +205,7 @@ class _PhoneUserSheet extends StatelessWidget {
                     color: Colors.blue,
                     label: 'Video',
                     onTap: () {
+                      if (blockDeletedUserAction(isDeleted)) return;
                       Get.back();
                       _startBlueEraCall(user, CallType.video);
                     },

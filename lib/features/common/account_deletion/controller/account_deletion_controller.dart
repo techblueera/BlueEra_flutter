@@ -6,7 +6,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/account_deletion/model/deletion_blocked_model.dart';
 import 'package:BlueEra/features/common/account_deletion/repo/account_deletion_repo.dart';
+import 'package:BlueEra/features/common/account_deletion/widget/deletion_blocked_dialog.dart';
 import 'package:BlueEra/features/common/auth/model/deletion_init_response_model.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -125,7 +127,26 @@ class AccountDeletionController extends GetxController {
           await _launchDeletionUrl(url);
           break;
         case 409:
-          commonSnackBar(message: AppStrings.accountDeletionAlreadyPending.tr);
+          // `/init` answers 409 for two unrelated reasons and only the body's
+          // `code` tells them apart. Branching on the status alone told a user
+          // blocked by a wallet balance that "a deletion request is already in
+          // progress" — wrong, and it buried the per-blocker messages the
+          // backend already writes. See
+          // docs/backend/FRONTEND_ACCOUNT_DELETION_BUGS.md (bug 1).
+          //
+          // The body may arrive as a String, exactly like the 200 branch above.
+          final blocked = DeletionBlockedResponse.fromJson(
+            response.response?.data is String
+                ? jsonDecode(response.response!.data)
+                : response.response?.data,
+          );
+          if (blocked.isBlocked && blocked.blockers.isNotEmpty) {
+            showDeletionBlockedDialog(blocked);
+          } else {
+            // `already_pending_deletion`, and anything else / a missing code:
+            // the legacy snackbar is still the safest thing to say.
+            commonSnackBar(message: AppStrings.accountDeletionAlreadyPending.tr);
+          }
           break;
         case 429:
           commonSnackBar(message: AppStrings.accountDeletionRateLimited.tr);

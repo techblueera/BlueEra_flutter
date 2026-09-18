@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -63,7 +64,15 @@ Future<void> openChatProfile({
   /// `INDIVIDUAL` / `BUSINESS` — the conversation's account type, as the chat
   /// list reported it.
   String? accountType,
+
+  /// The other participant's `is_deleted`, as the caller's payload reported it.
+  /// A hard-deleted account has no profile to open, so the tap is refused
+  /// before the by-phone lookup even runs — a tombstone's `contact_no` is `""`
+  /// anyway, so the lookup could only fall through to the id path.
+  bool isDeleted = false,
 }) async {
+  if (blockDeletedUserAction(isDeleted)) return;
+
   final String? number = _tenDigits(contactNo);
   if (number != null) {
     final controller = getOrPut(() => ChatViewController());
@@ -130,6 +139,9 @@ Future<void> openChatProfile({
 /// number opens, which holds the very same model.
 Future<void> openPhoneUserProfile(UserByPhoneModel user) {
   return openVisitProfile(
+    // The lookup succeeds for a deleted account too — the backend still
+    // answers for the id, with a tombstone — so the resolver has to be told.
+    isDeleted: user.isDeleted,
     accountType: user.accountType,
     typeOfBusiness: user.businessType,
     // `category_Of_Business` is the tag; `category_details.name` is its display

@@ -4397,6 +4397,11 @@ class ChatViewController extends GetxController {
     String? contactName,
     String? contactNo,
     String? profileImage,
+
+    /// True when the other participant's account has been hard-deleted. The
+    /// thread still opens — the history is the surviving person's — but the
+    /// chat screen renders the tombstone and disables sending and calling.
+    bool isDeleted = false,
   }) async {
     businessTabIndexSelected.value = 0;
     await getLocalConversation(
@@ -4410,6 +4415,7 @@ class ChatViewController extends GetxController {
       contactName: contactName ?? '',
       contactNo: contactNo ?? '',
       isFromContactList: false,
+      isDeleted: isDeleted,
     );
   }
 
@@ -4769,6 +4775,12 @@ class ChatViewController extends GetxController {
     required String contactNo,
     bool? isFromContactList,
     String? prefilledMessage,
+
+    /// The peer's `is_deleted`. Carried into the chat screen so its app bar
+    /// can render the tombstone and disable the profile tap, the call button
+    /// and the composer — the thread itself still opens, because the history
+    /// belongs to the surviving participant.
+    bool isDeleted = false,
   }) {
     // `order` is merged into `business`; route legacy order conversations to
     // the business screen too (BusinessChatScreenUpdated tags sends as
@@ -4787,6 +4799,7 @@ class ChatViewController extends GetxController {
             name: contactName,
             contactNo: contactNo,
             prefilledMessage: prefilledMessage,
+            isDeleted: isDeleted,
           ),
         );
       } else {
@@ -4800,6 +4813,7 @@ class ChatViewController extends GetxController {
             name: contactName,
             contactNo: contactNo,
             prefilledMessage: prefilledMessage,
+            isDeleted: isDeleted,
           ),
         );
       }
@@ -4815,6 +4829,7 @@ class ChatViewController extends GetxController {
             name: contactName,
             contactNo: contactNo,
             prefilledMessage: prefilledMessage,
+            isDeleted: isDeleted,
           ),
         );
       } else {
@@ -4828,6 +4843,7 @@ class ChatViewController extends GetxController {
             name: contactName,
             contactNo: contactNo,
             prefilledMessage: prefilledMessage,
+            isDeleted: isDeleted,
           ),
         );
       }

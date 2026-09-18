@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
@@ -130,6 +131,14 @@ Future<void> openVisitProfile({
   /// behaviour.
   String screenFrom = AppConstants.feedScreen,
 
+  /// The visited user's `is_deleted`. A hard-deleted account is answered for
+  /// with a tombstone — the id still resolves, but there is no profile behind
+  /// it — so the tap is refused here, at the one place every profile tap in
+  /// the app passes through, rather than in each caller. Callers that don't
+  /// carry the flag simply leave it false and behave exactly as before.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false,
+
   // ── Optional pre-fetched payloads ────────────────────────────────────────
   //
   // Listing screens usually already hold the record behind the card they were
@@ -167,6 +176,11 @@ Future<void> openVisitProfile({
   String? storeName,
   String? storeLogo,
 }) async {
+  if (blockDeletedUserAction(isDeleted)) {
+    logs('openVisitProfile: user is deleted — refusing to open a tombstone');
+    return;
+  }
+
   final String bid = _pick(businessId, userId);
   final String uid = _pick(userId, businessId);
 

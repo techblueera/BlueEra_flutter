@@ -28,16 +28,21 @@ class UserListItem extends StatelessWidget {
         child: Row(
           children: [
             // User avatar
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: user.profileImage != null
-                  ? NetworkImage(user.profileImage!)
-                  : null,
-              child: user.profileImage == null
-                  ? Icon(Icons.person, color: Colors.grey.shade400)
-                  : null,
-            ),
+            // Empty counts as absent: an API answering "" for a missing image
+            // used to reach NetworkImage(""), which fails the load and leaves
+            // an empty grey circle with no placeholder glyph.
+            Builder(builder: (_) {
+              final avatar = (user.profileImage ?? '').trim();
+              return CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage:
+                    avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                child: avatar.isEmpty
+                    ? Icon(Icons.person, color: Colors.grey.shade400)
+                    : null,
+              );
+            }),
             const SizedBox(width: 12),
             // User name and details
             Expanded(

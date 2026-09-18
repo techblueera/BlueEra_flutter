@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 
 class PostResponse {
@@ -968,6 +969,12 @@ class User {
   final String? business_id;
   final String? categoryOfBusiness;
 
+  /// True when this author's account has been hard-deleted and the payload is
+  /// a tombstone. Their posts stay in the feed — the content is not the
+  /// account — but the byline reads "Deleted User" and the tap does nothing.
+  /// See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
+
   User({
     this.id,
     this.username,
@@ -978,6 +985,7 @@ class User {
     this.businessName,
     this.business_id,
     this.categoryOfBusiness,
+    this.isDeleted = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -991,6 +999,7 @@ class User {
       businessName: json['business_name'] ?? '',
       business_id: json['business_id'] ?? '',
       categoryOfBusiness: json['categoryOfBusiness'] ?? '',
+      isDeleted: parseIsDeleted(json['is_deleted']),
     );
   }
 
@@ -1005,6 +1014,7 @@ class User {
       'business_name': businessName,
       'business_id': business_id,
       'categoryOfBusiness': categoryOfBusiness,
+      'is_deleted': isDeleted,
     };
   }
 
@@ -1022,6 +1032,7 @@ class User {
     String? business_id,
     String? categoryOfBusiness,
     String? natureOfBusiness,
+    bool? isDeleted,
   }) {
     return User(
       id: id ?? this.id,
@@ -1033,6 +1044,7 @@ class User {
       businessName: businessName ?? this.businessName,
       business_id: business_id ?? this.business_id,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 }

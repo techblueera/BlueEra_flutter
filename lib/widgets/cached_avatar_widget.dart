@@ -35,7 +35,12 @@ class CachedAvatarWidget extends StatelessWidget {
               ? Border.all(color: borderColor!, width: 1.5)
               : null,
           boxShadow: boxShadow),
-      child: (imageUrl != null)
+      // Empty counts as absent, not just null. proto3 has no null, so a
+      // tombstoned (deleted) user arrives with `profile_image: ""` — and any
+      // endpoint that answers "" for a missing image hits this too. Letting ""
+      // through fired a doomed network load for every such avatar and, with
+      // showProfileOnFullScreen, opened ImageViewScreen on a blank URL.
+      child: (imageUrl != null && imageUrl!.trim().isNotEmpty)
           ? InkWell(
               onTap: showProfileOnFullScreen
                   ? () {

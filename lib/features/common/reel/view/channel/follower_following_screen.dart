@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -177,8 +178,19 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   }
 
   Widget _buildUserTile(FollowingFollower? user, String? viewTag) {
+    // The account is gone. The row stays — the follow relationship is real and
+    // the counts have to add up — but it opens nothing.
+    // See lib/core/constants/deleted_user.dart.
+    final bool isUserDeleted = user?.isDeleted ?? false;
+    final bool isBusiness =
+        user?.accountType?.toUpperCase() == AppConstants.business;
+    final String avatarUrl = isUserDeleted
+        ? ''
+        : (isBusiness ? user?.business_logo ?? "" : user?.profileImage ?? "");
+
     return InkWell(
       onTap: () {
+        if (blockDeletedUserAction(isUserDeleted)) return;
         final userId = user?.id ?? "";
         if (userId.isEmpty) return;
         if (user?.accountType?.toUpperCase() == AppConstants.business) {
@@ -199,11 +211,14 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundImage: NetworkImage(
-                  user?.accountType?.toUpperCase() == AppConstants.business
-                      ? user?.business_logo ?? ""
-                      : user?.profileImage ?? ""),
+              // NetworkImage("") throws on load; a deleted account has no
+              // avatar, so fall to the grey circle + person glyph instead.
+              backgroundImage:
+                  avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
               backgroundColor: Colors.grey.shade100,
+              child: avatarUrl.isEmpty
+                  ? Icon(Icons.person, size: 26, color: Colors.grey.shade500)
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -211,12 +226,13 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    user?.accountType?.toUpperCase() == AppConstants.business
-                        ? user?.business_name
-                        : user?.name ?? "",
+                    displayUserName(
+                      isBusiness ? user?.business_name : user?.name,
+                      isDeleted: isUserDeleted,
+                    ),
                   ),
                   CustomText(
-                    user?.username ?? "",
+                    isUserDeleted ? "" : user?.username ?? "",
                     fontSize: SizeConfig.small,
                   ),
                 ],

@@ -16,6 +16,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
+import '../widget/deleted_user_composer_notice.dart';
 import '../widget/component_widgets.dart';
 import '../widget/call_customer_button.dart';
 import '../widget/message_card.dart';
@@ -31,6 +32,7 @@ class BusinessChatScreenUpdated extends StatefulWidget {
       this.name,
       this.contactNo,
       required this.isInitialMessage,
+      this.isDeleted = false,
       this.prefilledMessage});
 
   final String? conversationId;
@@ -41,6 +43,12 @@ class BusinessChatScreenUpdated extends StatefulWidget {
   final String? type;
   final bool isInitialMessage;
   final String? contactNo;
+
+  /// True when the other participant's account has been hard-deleted and the
+  /// server is answering with a tombstone. The thread and its history stay
+  /// readable; the header, the call button and the composer don't.
+  /// See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
   /// Optional intro text seeded into the input field on first open. Applied
   /// inside the post-frame callback so it survives the `clear()` there.
   final String? prefilledMessage;
@@ -179,6 +187,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                   contactNo: widget.contactNo,
                   profileImage: widget.profileImage,
                   conversationId: widget.conversationId,
+                  isDeleted: widget.isDeleted,
                 ),
           body: Obx(() {
             final _status =
@@ -432,7 +441,12 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                           SizedBox(
                             height: SizeConfig.size6,
                           ),
-                        if (_showChatInput)
+                        // The peer's account is gone — nowhere for a new message
+                        // to land — so the composer is replaced by a notice.
+                        // The history above is untouched.
+                        if (_showChatInput && widget.isDeleted)
+                          const DeletedUserComposerNotice()
+                        else if (_showChatInput)
                           ChatInputBar(
                             isInitialMessage:
                                 _onHistoryThread ? false : widget.isInitialMessage,

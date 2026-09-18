@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/constants/deleted_user.dart';
+
 UserProfileRes userProfileResFromJson(String str) => UserProfileRes.fromJson(json.decode(str));
 String userProfileResToJson(UserProfileRes data) => json.encode(data.toJson());
 class UserProfileRes {
@@ -84,7 +86,8 @@ class User {
       this.updatedAt, 
       this.v, 
       this.email, 
-      this.introVideo,});
+      this.introVideo,
+      this.isDeleted = false,});
 
   User.fromJson(dynamic json) {
     id = json['_id'];
@@ -119,6 +122,9 @@ class User {
     v = json['__v'];
     email = json['email'];
     introVideo = json['introVideo'];
+    // Tombstone flag. NOT the same as `deleted_at` above, which is the
+    // soft-delete timestamp. See lib/core/constants/deleted_user.dart.
+    isDeleted = parseIsDeleted(json['is_deleted']);
   }
   String? id;
   String? name;
@@ -151,6 +157,10 @@ class User {
   int? v;
   String? email;
   String? introVideo;
+
+  /// True when this account has been hard-deleted and the profile payload is
+  /// a tombstone: the name, avatar, contact and every other field are blank.
+  bool isDeleted = false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -192,6 +202,7 @@ class User {
     map['__v'] = v;
     map['email'] = email;
     map['introVideo'] = introVideo;
+    map['is_deleted'] = isDeleted;
     return map;
   }
 

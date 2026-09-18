@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/deleted_user.dart';
+
 import 'messageMediaUrl.dart';
 
 class GroupDetailsModel {
@@ -149,6 +151,12 @@ class GroupMembersListModel {
   final String? location;
   final bool? isAdmin;
 
+  /// True when this member's account has been hard-deleted. They stay in the
+  /// member list — they really were in the group and their messages are still
+  /// in the thread — but read as a tombstone and open nothing.
+  /// See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
+
   const GroupMembersListModel({
     this.id,
     this.accountType,
@@ -159,6 +167,7 @@ class GroupMembersListModel {
     this.email,
     this.location,
     this.isAdmin,
+    this.isDeleted = false,
   });
 
   GroupMembersListModel copyWith({
@@ -171,6 +180,7 @@ class GroupMembersListModel {
     String? email,
     String? location,
     bool? isAdmin,
+    bool? isDeleted,
   }) {
     return GroupMembersListModel(
       id: id ?? this.id,
@@ -182,6 +192,7 @@ class GroupMembersListModel {
       email: email ?? this.email,
       location: location ?? this.location,
       isAdmin: isAdmin ?? this.isAdmin,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -196,6 +207,7 @@ class GroupMembersListModel {
       email: json['email'] as String?,
       location: json['location'] as String?,
       isAdmin: json['is_admin'] as bool?,
+      isDeleted: parseIsDeleted(json['is_deleted']),
     );
   }
 
@@ -210,6 +222,7 @@ class GroupMembersListModel {
       'email': email,
       'location': location,
       'is_admin': isAdmin,
+      'is_deleted': isDeleted,
     };
   }
 }

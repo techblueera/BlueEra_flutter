@@ -66,6 +66,9 @@ void openFeedProfile(
   }
 
   openVisitProfile(
+    // A hard-deleted author still has an id and still has posts, but no
+    // profile behind them — the resolver refuses the tap and says why.
+    isDeleted: user?.isDeleted ?? false,
     accountType: user?.accountType,
     // Individuals: the feed's `designation` is the profession's display name
     // ("Bike Rider", "Business Finance Consultant"), which is what the

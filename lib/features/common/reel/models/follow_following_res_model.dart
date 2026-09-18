@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/constants/deleted_user.dart';
+
 /// Follower Res model
 FollowerResModel followerResModelFromJson(String str) => FollowerResModel.fromJson(json.decode(str));
 String followerResModelToJson(FollowerResModel data) => json.encode(data.toJson());
@@ -131,6 +133,7 @@ class FollowingFollower {
     this.business_name,
     this.business_logo,
     this.isFollowing,
+    this.isDeleted = false,
     this.accountType,});
 
   FollowingFollower.fromJson(dynamic json) {
@@ -142,6 +145,7 @@ class FollowingFollower {
     business_name = json['business_name'];
     business_logo = json['business_logo'];
     isFollowing = json['isFollowing'];
+    isDeleted = parseIsDeleted(json['is_deleted']);
   }
   String? id;
   String? name;
@@ -151,6 +155,12 @@ class FollowingFollower {
   String? business_name;
   String? business_logo;
   bool? isFollowing;
+
+  /// True when this account has been hard-deleted. The row stays in the list —
+  /// the follow relationship is real and the counts have to add up — but reads
+  /// as a tombstone and opens nothing.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -162,6 +172,7 @@ class FollowingFollower {
     map['business_name'] = business_name;
     map['business_logo'] = business_logo;
     map['isFollowing'] = isFollowing;
+    map['is_deleted'] = isDeleted;
     return map;
   }
 

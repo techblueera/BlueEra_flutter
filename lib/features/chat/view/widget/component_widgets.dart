@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
@@ -355,15 +356,30 @@ Widget  ChatListTile({
   // so prefer the group fields when the row is a group.
   final isGroupChat =
       (chat?.type == AppConstants.group_Chat_Type) || (chat?.isGroup == true);
+  // The other participant's account has been hard-deleted and the server is
+  // answering with a tombstone. The row is NOT hidden — dropping it would make
+  // the conversation vanish for the surviving person — but the name, the
+  // avatar and every action that routes on the id are replaced below. Group
+  // rows are identified by the group, not the sender, so they're exempt.
+  // See lib/core/constants/deleted_user.dart.
+  final isSenderDeleted = !isGroupChat && (sender?.isDeleted ?? false);
   final senderName = (isGroupChat || chat?.lastMessage == "Order Message")
       ? chat?.groupName
-      : sender?.name;
+      : isSenderDeleted
+          ? deletedUserName
+          : sender?.name;
   final senderId = sender?.id ?? '';
-  final senderContactNo = sender?.contactNo;
+  // A tombstone's contact_no is "" — blank it so the name/number fallbacks
+  // downstream can't resurrect a number for a row that has no person behind it.
+  final senderContactNo = isSenderDeleted ? null : sender?.contactNo;
   final senderProfileImage =
       (isGroupChat || chat?.lastMessage == "Order Message")
           ? chat?.groupProfileImage
-          : sender?.profileImage;
+          // Empty (not null): null is the group branch, which paints the group
+          // name's initial. "" falls through to the person placeholder below.
+          : isSenderDeleted
+              ? ''
+              : sender?.profileImage;
   final senderDesignation = sender?.designation;
   // final senderBusinessId = sender?.businessId;
 
@@ -406,6 +422,10 @@ Widget  ChatListTile({
     isSelected = chatViewController.selectedUserIds.contains(senderId);
   }
   void selectChatListCard() {
+    // Forward / group-add pickers select a *destination*. A deleted account
+    // can't receive anything, so it stays unselectable — the row still shows
+    // so the list doesn't silently reshuffle under the user.
+    if (blockDeletedUserAction(isSenderDeleted)) return;
     if (isSelected) {
       chatViewController.selectedUserIds.remove(senderId);
       chatViewController.selectedChatList.remove(chat);
@@ -442,6 +462,10 @@ Widget  ChatListTile({
             // list payloads (`type:"group"`); open the dedicated group screen.
             chatViewController.openGroupFromChatList(chat);
           } else {
+            // Deliberately NOT blocked for a deleted user: the thread must
+            // still open so the surviving participant keeps their history.
+            // The chat screen is what disables sending, calling and the
+            // profile tap — see [getChatTitleAppBar].
             chatViewController.openChatFromChatList(
               userId: senderId,
               conversationId: conversationId,
@@ -449,6 +473,7 @@ Widget  ChatListTile({
               contactName: senderName,
               contactNo: senderContactNo,
               profileImage: senderProfileImage,
+              isDeleted: isSenderDeleted,
             );
           }
         },
@@ -470,6 +495,8 @@ Widget  ChatListTile({
             children: [
           InkWell(
             onTap: () {
+              // A tombstone has no avatar to enlarge and no symbols to open.
+              if (isSenderDeleted) return;
               if(chat?.symbolData?.isNotEmpty??false){
                 Get.to(() => SymbolViewImages(userId: chat?.sender?.id, name: senderName, profileImage: senderProfileImage,));
                 //
@@ -658,12 +685,18 @@ Widget  ChatListTile({
                       ),
                     )
                         : Center(
-                      child: CustomText(
-                        (senderName?.isNotEmpty ?? false) ? firstCharacter(senderName!).toUpperCase() : '',
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: SizeConfig.size18,
-                      ),
+                      // A deleted account gets the person placeholder, never
+                      // an initial — "D" for "Deleted User" would read as a
+                      // real person's initial.
+                      child: isSenderDeleted
+                          ? Icon(Icons.person,
+                              color: Colors.white, size: SizeConfig.size24)
+                          : CustomText(
+                              (senderName?.isNotEmpty ?? false) ? firstCharacter(senderName!).toUpperCase() : '',
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: SizeConfig.size18,
+                            ),
                     ),
                   ),
                 ),
@@ -1302,13 +1335,22 @@ void navigateToProfileFromChat({
   required String authorId,
   required String type,
   String? contactNo,
+
+  /// The target's `is_deleted`, when the caller's payload carries it. A
+  /// tombstone has no profile to open. See lib/core/constants/deleted_user.dart.
+  bool isDeleted = false,
 }) =>
-    _navigateToProfile(authorId: authorId, type: type, contactNo: contactNo);
+    _navigateToProfile(
+        authorId: authorId,
+        type: type,
+        contactNo: contactNo,
+        isDeleted: isDeleted);
 
 void _navigateToProfile({
   required String authorId,
   required String type,
   String? contactNo,
+  bool isDeleted = false,
 }) {
   openChatProfile(
     contactNo: contactNo,
@@ -1316,6 +1358,7 @@ void _navigateToProfile({
     businessId:
         type.toUpperCase() == AppConstants.business ? authorId : null,
     accountType: type,
+    isDeleted: isDeleted,
   );
 }
 
@@ -1560,21 +1603,28 @@ Widget _callOptionTile({
 Widget _chatTitleAvatar({
   String? name,
   String? profileImage,
+  bool isDeleted = false,
   required ThemeData theme,
 }) {
-  final hasImage =
-      profileImage != null && profileImage != 'null' && profileImage.isNotEmpty;
+  final hasImage = !isDeleted &&
+      profileImage != null &&
+      profileImage != 'null' &&
+      profileImage.isNotEmpty;
   final initial = (name != null && name.isNotEmpty) ? firstCharacter(name) : 'U';
   final placeholder = CircleAvatar(
     radius: SizeConfig.size18,
     backgroundColor: theme.colorScheme.primary,
     child: Center(
-      child: CustomText(
-        initial,
-        color: Colors.white,
-        fontWeight: FontWeight.w800,
-        fontSize: SizeConfig.size18,
-      ),
+      // A deleted account gets the person glyph, not an initial: "D" for
+      // "Deleted User" would read as somebody's actual initial.
+      child: isDeleted
+          ? Icon(Icons.person, color: Colors.white, size: SizeConfig.size20)
+          : CustomText(
+              initial,
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: SizeConfig.size18,
+            ),
     ),
   );
   if (!hasImage) return placeholder;
@@ -1897,6 +1947,13 @@ AppBar getChatTitleAppBar(BuildContext context, {
   bool? isGroupPrivate,
   bool? isFromAiChat,
   bool disableCallButton = false,
+
+  /// True when the other participant's account has been hard-deleted. The
+  /// header then reads "Deleted User" over the person placeholder, the title
+  /// no longer opens a profile, and the call button is dead — all three route
+  /// on an id that belongs to nobody. The thread below is untouched.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool isDeleted = false,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
@@ -1941,7 +1998,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
     ),
     titleSpacing: 0,
     title: InkWell(
-      onTap: (isFromAiChat == true)
+      onTap: isDeleted
+          // Tombstone: nothing to open. Silent rather than a snackbar — the
+          // header already reads "Deleted User", so a toast on every stray tap
+          // would only repeat what is on screen.
+          ? null
+          : (isFromAiChat == true)
           ? () {
         // Tapping the AI profile lets the user rename it / change its image,
         // stored locally only.
@@ -2019,7 +2081,10 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     theme: theme,
                   ))
               : _chatTitleAvatar(
-                  name: name, profileImage: profileImage, theme: theme),
+                  name: name,
+                  profileImage: profileImage,
+                  isDeleted: isDeleted,
+                  theme: theme),
           SizedBox(width: SizeConfig.size6), // Slightly smaller spacing
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2037,7 +2102,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
                           fontSize: SizeConfig.size16,
                         ))
                     : CustomText(
-                        '${(name == "null") ? (contactNo) : name ?? contactNo}',
+                        // A tombstone's own `name` is the English literal
+                        // "Deleted User" and its contact_no is "", so neither
+                        // the server text nor the number fallback is usable —
+                        // [displayUserName] substitutes the localised string.
+                        displayUserName(name,
+                            isDeleted: isDeleted, fallback: contactNo),
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                         fontSize: SizeConfig.size16,
@@ -2057,7 +2127,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
                       }
 
                       final String statusLabel;
-                      if (name == "BlueEra Orders") {
+                      if (isDeleted) {
+                        // Online/offline is meaningless for an account that no
+                        // longer exists, and the socket never reports on it.
+                        statusLabel = AppStrings.deletedUserUnavailable.tr;
+                      } else if (name == "BlueEra Orders") {
                         statusLabel = "BlueCs Ltd";
                       } else if (type != AppStrings.Admin) {
                         if (type == "business") {
@@ -2151,7 +2225,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ),
       if(isFromAiChat!=true)
         InkWell(
-            onTap: disableCallButton
+            onTap: (disableCallButton || isDeleted)
                 ? null
                 : () {
               _showCallOptionsBottomSheet(
@@ -2165,11 +2239,16 @@ AppBar getChatTitleAppBar(BuildContext context, {
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: Image.asset(
-             "assets/images/audio_and_video_call.png",
-                width: 24,
-                height: 24,
+              // Greyed out for a deleted account so the dead tap is visible
+              // rather than just unresponsive — there is no device left to ring.
+              child: Opacity(
+                opacity: isDeleted ? 0.35 : 1.0,
+                child: Image.asset(
+               "assets/images/audio_and_video_call.png",
+                  width: 24,
+                  height: 24,
 
+                ),
               ),
             )),
       // Language change shortcut — same action as the 3-dot menu's
