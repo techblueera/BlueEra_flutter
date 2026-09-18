@@ -198,9 +198,11 @@ class RiderLocationForegroundService : Service() {
     private fun promoteToForeground(): Boolean {
         val reason = LocationFgsGuard.ineligibilityReason(
             this,
-            // A visible process may use a while-in-use permission without the
-            // background grant; an invisible one may not.
-            requireBackgroundGrant = !LocationFgsGuard.isAppVisible(this)
+            // A process that may use a while-in-use permission right now needs
+            // no background grant; anything else does. NOT plain visibility —
+            // see [LocationFgsGuard.canUseWhileInUseLocationNow], which is the
+            // question the platform's own rule asks.
+            requireBackgroundGrant = !LocationFgsGuard.canUseWhileInUseLocationNow(this)
         )
         if (reason != null) {
             recordBlocked(reason)

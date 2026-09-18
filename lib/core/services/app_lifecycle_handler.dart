@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -58,6 +60,18 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
         log("Permission granted after returning from settings.");
         await LocationService.fetchLocation();
       }
+
+      // A live rider's killed-state coverage can have been refused while the
+      // app was away — Android 14+ will not promote a `location` foreground
+      // service from the background without "Allow all the time", and the
+      // service is forbidden from crashing over it, so the refusal is silent.
+      // Resume is the first moment we can either repair it or say so; without
+      // this the rider keeps showing as LIVE and stops receiving work the
+      // moment the app is killed. No-op when they aren't live, or on iOS.
+      //
+      // Not `promptToFix`: nobody tapped anything, so we do not hijack the
+      // resume with a permission dialog / Settings jump.
+      unawaited(LiveLocationService().verifyKillModeCoverage());
     }
   }
 

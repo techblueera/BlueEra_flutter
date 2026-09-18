@@ -6,10 +6,25 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'socket_keep_alive_service.dart';
+
+/// What [LiveLocationService.verifyKillModeCoverage] should do about the
+/// native killed-state location service's current state.
+enum KillModeAction {
+  /// The platform still refuses to promote it — tell the rider.
+  warn,
+
+  /// It is allowed again but isn't running; start it without saying anything.
+  restart,
+
+  /// Coverage is fine; drop any recorded failure so a later one can warn again.
+  clear,
+}
+
 // Singleton — every `LiveLocationService()` call returns the same
 // object so the timer started by [ViewPersonalDetailsController] is
 // the same one [LogoutHelper] cancels. Previously each `new` made a
@@ -40,14 +55,26 @@ class LiveLocationService {
   /// shown once per live session instead of on every tick.
   bool _warnedUnavailable = false;
 
+  /// Twin of [_warnedUnavailable] for killed-state coverage. Separate flag on
+  /// purpose: the two failures are independent (location can be perfectly
+  /// usable while the app is open and still be refused to the background
+  /// service), and one recovering must not silence the other.
+  bool _warnedKillModeDegraded = false;
+
   /// Guards against overlapping ticks: a slow GPS fix + retries can outlast the
   /// interval, and two publishes racing would send positions out of order.
   bool _tickInFlight = false;
 
-  Future<void> start() async {
+  /// [userInitiated] distinguishes a rider tapping Go Live from the restore /
+  /// scheduler / backend-confirmation paths that also call this. It only
+  /// affects how a missing background-location grant is handled: a tap earns
+  /// the permission flow, a silent restore gets the notice without having
+  /// Settings thrown at it on app launch. See [verifyKillModeCoverage].
+  Future<void> start({bool userInitiated = false}) async {
     if (_isRunning) return;
     _isRunning = true;
     _warnedUnavailable = false;
+    _warnedKillModeDegraded = false;
 
     // iOS-only, despite the name. `setRiderLiveHold` starts the 10s
     // socket-health timer (alive under CallKit's VoIP entitlement) and makes a
@@ -70,7 +97,21 @@ class LiveLocationService {
     // process is swipe/OS-killed (a Dart Timer dies with the engine). The Dart
     // timer below still covers foreground/background and sends a FRESH GPS fix;
     // the native service is the killed-state fallback (last-known fix).
-    _startNativeKillModePinger();
+    //
+    // ...then confirm it actually took. A refusal is a silent no-op by design
+    // (the service must not crash over it), so "we asked" is not the same as
+    // "the rider is covered" — [verifyKillModeCoverage] is what turns a refusal
+    // into something the rider is told about. It decides on the live permission
+    // flags rather than the native breadcrumb, which matters here: the channel
+    // returns long before the service has tried to promote itself, so the
+    // breadcrumb for THIS attempt may not be written yet. `allowRestart: false`
+    // for the same reason — a second start would race the one in flight.
+    unawaited(_startNativeKillModePinger().then(
+      (_) => verifyKillModeCoverage(
+        promptToFix: userInitiated,
+        allowRestart: false,
+      ),
+    ));
 
     // Ping immediately, then every [_interval] while live — no gap between
     // going live and the first lastSeen stamp (discovery filters on fresh
@@ -160,6 +201,128 @@ class LiveLocationService {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Repairs or reports killed-state location coverage. No-op unless this
+  /// rider is live on Android.
+  ///
+  /// ## Why this has to exist
+  ///
+  /// `RiderLocationForegroundService` is not allowed to crash when Android
+  /// refuses to promote it (that WAS the crash — a `SecurityException` out of
+  /// `onStartCommand`), so every refusal is now a silent no-op that leaves a
+  /// breadcrumb in SharedPreferences. Silent is the right behaviour for the
+  /// process and the wrong behaviour for the rider: the pill still says LIVE,
+  /// the Dart timer keeps publishing while the app is open, and the moment the
+  /// app is killed the map-service closes them after five minutes of silence.
+  /// They find out by not getting orders.
+  ///
+  /// ## Repair before complaint
+  ///
+  /// `lastBlockedReason` says coverage WAS lost; it does not say it still is.
+  /// A rider who granted "Allow all the time" from Settings has fixed the
+  /// cause, but nothing has restarted the service — the breadcrumb is stale and
+  /// warning them about a permission they just granted is worse than useless.
+  /// So the live flags decide:
+  ///
+  ///  * `canRunInBackground == false` → still broken, and only the rider can
+  ///    fix it. Tell them, once per live session.
+  ///  * a breadcrumb but `canRunInBackground == true` → allowed again, just not
+  ///    running. Restart it silently; a successful promotion clears the
+  ///    breadcrumb natively.
+  ///
+  /// [promptToFix] additionally escalates to the permission request (and, when
+  /// permanently denied, app settings). Pass it from a path the rider just
+  /// tapped — being sent to Settings is expected there and startling on a
+  /// resume they didn't ask for.
+  ///
+  /// [allowRestart] exists only for the call immediately after [start], where a
+  /// second start would race the one still in flight.
+  Future<void> verifyKillModeCoverage({
+    bool promptToFix = false,
+    bool allowRestart = true,
+  }) async {
+    if (!Platform.isAndroid) return;
+    // Not live — there is nothing to cover, and nothing to complain about.
+    if (!_isRunning) return;
+
+    final status = await nativeLocationEligibility();
+    // Channel unavailable (older build, non-standard engine): leave whatever
+    // the start path already recorded and say nothing.
+    if (status == null) return;
+
+    final lastBlockedReason =
+        (status['lastBlockedReason'] as String?)?.trim() ?? '';
+
+    switch (killModeActionFor(
+      canRunInBackground: status['canRunInBackground'] == true,
+      hasBreadcrumb: lastBlockedReason.isNotEmpty,
+      allowRestart: allowRestart,
+    )) {
+      case KillModeAction.warn:
+        // Prefer the native reason for the RECORD — it distinguishes "rider
+        // downgraded to While using the app" from "FOREGROUND_SERVICE_LOCATION
+        // not held", which is a build problem. It is never what the rider is
+        // shown; that text is for logs and bug reports.
+        _nativeKillModeUnavailableReason = lastBlockedReason.isNotEmpty
+            ? lastBlockedReason
+            : 'Background location ("Allow all the time") is not granted';
+        await _warnKillModeOnce(promptToFix: promptToFix);
+      case KillModeAction.restart:
+        // `_startNativeKillModePinger` sets/clears the reason itself.
+        await _startNativeKillModePinger();
+      case KillModeAction.clear:
+        // Covered. Allow a later regression to warn again.
+        _nativeKillModeUnavailableReason = null;
+        _warnedKillModeDegraded = false;
+    }
+  }
+
+  /// The decision behind [verifyKillModeCoverage], split out because getting it
+  /// backwards is silent in both directions: warn when the rider has already
+  /// fixed the permission and the notice is noise they can do nothing about;
+  /// stay quiet when they haven't and they lose a shift's orders.
+  ///
+  /// [hasBreadcrumb] is the native `lastBlockedReason` — evidence that a
+  /// promotion WAS refused, which says nothing about whether it still would be.
+  @visibleForTesting
+  static KillModeAction killModeActionFor({
+    required bool canRunInBackground,
+    required bool hasBreadcrumb,
+    required bool allowRestart,
+  }) {
+    // Still refused, and only the rider can lift it.
+    if (!canRunInBackground) return KillModeAction.warn;
+    // Allowed again, but a past refusal means nothing is running right now.
+    if (hasBreadcrumb && allowRestart) return KillModeAction.restart;
+    // Either never broken, or broken-but-already-being-restarted by the caller.
+    return KillModeAction.clear;
+  }
+
+  Future<void> _warnKillModeOnce({required bool promptToFix}) async {
+    if (_warnedKillModeDegraded) return;
+    _warnedKillModeDegraded = true;
+    commonSnackBar(
+      message: 'You\'ll stop receiving orders when the app is closed. '
+          'Set location to "Allow all the time" to stay live.',
+    );
+    if (!promptToFix) return;
+    // [_ensureLocationUsable] runs on the same go-live and escalates the same
+    // way when foreground location is missing. Both firing would stack two
+    // permission flows on one tap, so whichever got there first owns it — and
+    // the foreground grant is the prerequisite anyway, so its prompt subsumes
+    // this one.
+    if (_warnedUnavailable) return;
+    // Same escalation the foreground path uses: request, then app settings if
+    // it has been permanently denied. Only from a rider-initiated path.
+    final granted = await GoLivePermissionService.requestBackgroundLocation();
+    if (granted) {
+      // They fixed it there and then — start the service they were just told
+      // about rather than making them toggle off and on again.
+      await _startNativeKillModePinger();
+      _nativeKillModeUnavailableReason = null;
+      _warnedKillModeDegraded = false;
     }
   }
 

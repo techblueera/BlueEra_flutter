@@ -94,27 +94,71 @@ object LocationFgsGuard {
      * `ProcessLifecycleOwner` because it models what the platform actually
      * gates on — process importance — and because it needs no extra dependency
      * and works in a process with no Activity at all, which is exactly the
-     * BOOT_COMPLETED and WorkManager case. `ProcessLifecycleOwner` reports
-     * *Activity* lifecycle; in a boot-started process it has no activities to
-     * report on. See the class docs for the `lifecycle-process` variant.
+     * WorkManager case. `ProcessLifecycleOwner` reports *Activity* lifecycle;
+     * in a service-only process it has no activities to report on. See the
+     * class docs for the `lifecycle-process` variant.
      *
-     * `IMPORTANCE_FOREGROUND_SERVICE` is included: a process already running
-     * some other foreground service is eligible to start another one, which is
-     * how this service legitimately restarts itself while the app is closed.
+     * Deliberately `IMPORTANCE_FOREGROUND` (100) and not
+     * `IMPORTANCE_FOREGROUND_SERVICE` (125) — see
+     * [canUseWhileInUseLocationNow] for why running *a* foreground service is
+     * not the same as being allowed to use location.
      */
-    fun isAppVisible(context: Context): Boolean {
+    fun processImportance(context: Context): Int? {
         return try {
             val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
-                ?: return false
+                ?: return null
             val mine = android.os.Process.myPid()
-            val info = am.runningAppProcesses?.firstOrNull { it.pid == mine } ?: return false
-            info.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
+            am.runningAppProcesses?.firstOrNull { it.pid == mine }?.importance
         } catch (e: Exception) {
-            // Some OEM builds restrict runningAppProcesses. Unknown state is
-            // treated as "not visible" so we fall back to the strict path.
+            // Some OEM builds restrict runningAppProcesses.
             Log.w(TAG, "importance check failed: $e")
-            false
+            null
         }
+    }
+
+    /**
+     * Whether this process is at foreground (top / visible UI) importance.
+     *
+     * Unknown importance is reported as *not* visible, so an OEM that hides
+     * `runningAppProcesses` falls through to the strict path rather than the
+     * permissive one.
+     */
+    fun isAppVisible(context: Context): Boolean {
+        val importance = processImportance(context) ?: return false
+        return importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+    }
+
+    /**
+     * Whether this process may use the **while-in-use** location permission
+     * right now without holding "Allow all the time".
+     *
+     * This is the question the Android 14+ FGS rule actually asks, and it is
+     * NOT "is some foreground service running". Since Android 11 a process only
+     * holds `PROCESS_CAPABILITY_FOREGROUND_LOCATION` when it is top/visible, or
+     * when it is running a foreground service **whose declared type is
+     * `location`**. A `phoneCall` service — which this app runs, twice
+     * ([CallKeepAliveService] and [IncomingCallService]) — raises process
+     * importance to `IMPORTANCE_FOREGROUND_SERVICE` (125) while conferring no
+     * location capability at all.
+     *
+     * Treating 125 as "visible" therefore let the guard clear a rider who had
+     * granted only "While using the app" the moment they took a call: the
+     * pre-check passed, `startForeground(type=location)` was attempted from the
+     * background, and the platform refused it. The service's own try/catch
+     * keeps that survivable, but the outcome is a rider who is shown as live
+     * and publishes nothing — the exact silent failure this guard exists to
+     * prevent.
+     *
+     * The one 125 case that IS eligible is our own location service already
+     * running: the capability we would be relying on is one the process is
+     * demonstrably already holding, so a re-promotion (the wedged-service
+     * restart path) is allowed.
+     */
+    fun canUseWhileInUseLocationNow(context: Context): Boolean {
+        if (isAppVisible(context)) return true
+        if (!RiderLocationForegroundService.isRunning) return false
+        val importance = processImportance(context) ?: return false
+        return importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
     }
 
     /**
@@ -126,7 +170,10 @@ object LocationFgsGuard {
      * enough and the start is a normal foreground start).
      */
     fun canStartFromBackground(context: Context): Boolean =
-        ineligibilityReason(context, requireBackgroundGrant = !isAppVisible(context)) == null
+        ineligibilityReason(
+            context,
+            requireBackgroundGrant = !canUseWhileInUseLocationNow(context)
+        ) == null
 
     /**
      * The check to run before a **foreground** start — the method channel from
@@ -175,12 +222,12 @@ object LocationFgsGuard {
      * implementation 'androidx.lifecycle:lifecycle-process:2.10.0'
      * ```
      *
-     * [isAppVisible] is preferred for the FGS decision because it reads process
-     * importance — what the platform itself gates on — and is meaningful in a
-     * process with no Activity, which is exactly the BOOT_COMPLETED and
-     * WorkManager case this crash came from. This variant answers a different
-     * and narrower question: "is one of our Activities started?" It is the
-     * better signal for UI decisions (should we show a permission dialog now?)
+     * [canUseWhileInUseLocationNow] is preferred for the FGS decision because
+     * it reads process importance and capability — what the platform itself
+     * gates on — and is meaningful in a process with no Activity, which is
+     * exactly the WorkManager case this crash came from. This variant answers a
+     * different and narrower question: "is one of our Activities started?" It is
+     * the better signal for UI decisions (should we show a permission dialog now?)
      * and it must be called on the main thread.
      */
     fun isAppInForegroundByLifecycle(): Boolean {

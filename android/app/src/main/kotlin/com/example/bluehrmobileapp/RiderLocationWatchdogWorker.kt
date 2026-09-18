@@ -96,10 +96,16 @@ class RiderLocationWatchdogWorker(
         // block sat there looking defensive.
         //
         // WorkManager runs with the app in the background, so the "Allow all the
-        // time" grant is required unless the process happens to be visible.
+        // time" grant is required unless the process is currently allowed to
+        // use a while-in-use location permission anyway. That is a narrower
+        // question than "is some foreground service running" — a `phoneCall`
+        // service raises importance without conferring any location capability,
+        // which used to let this pre-check wave through a start the platform
+        // then refused. See [LocationFgsGuard.canUseWhileInUseLocationNow].
         val blocked = LocationFgsGuard.ineligibilityReason(
             applicationContext,
-            requireBackgroundGrant = !LocationFgsGuard.isAppVisible(applicationContext)
+            requireBackgroundGrant =
+                !LocationFgsGuard.canUseWhileInUseLocationNow(applicationContext)
         )
         if (blocked != null) {
             Log.w(TAG, "not restarting rider location service: $blocked")
