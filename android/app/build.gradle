@@ -1,6 +1,9 @@
 plugins {
     id "com.android.application"
     id 'com.google.gms.google-services'
+    // Must come after google-services: the mapping upload is addressed with
+    // the Firebase app id that plugin reads out of google-services.json.
+    id 'com.google.firebase.crashlytics'
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -88,6 +91,22 @@ android {
             // (proguard-android.txt disables it). App-specific keep rules live in
             // proguard-rules.pro.
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Upload the R8 mapping file so Crashlytics can retrace release
+            // stacks. On by default for a minified build type, but stated
+            // explicitly: it is the difference between a readable crash and
+            // "SourceFile:160", and a silent default is exactly the kind of
+            // thing that gets switched off during an unrelated build cleanup.
+            firebaseCrashlytics {
+                mappingFileUploadEnabled true
+            }
+        }
+        debug {
+            // Debug is not minified, so there is no mapping to upload and the
+            // task is pure build-time cost on every hot restart.
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
         }
     }
     packagingOptions {
