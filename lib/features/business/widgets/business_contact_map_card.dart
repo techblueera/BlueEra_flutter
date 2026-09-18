@@ -103,9 +103,15 @@ class BusinessContactMapCard extends StatelessWidget {
                       child: CustomBtn(
                         height: SizeConfig.size45,
                         onTap: () {
+                          // Captured before the pop — `context` is inside the
+                          // sheet `Get.back()` dismisses, and resolving a
+                          // navigator off a defunct element throws "Null check
+                          // operator used on a null value" rather than doing
+                          // nothing.
+                          final navigator = Navigator.of(context);
                           Get.back();
                           showModalBottomSheet(
-                            context: context,
+                            context: navigator.context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
                             builder: (context) => BusinessLocationBottomSheet(prevBusinessDetails: details),

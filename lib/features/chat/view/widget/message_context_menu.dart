@@ -353,10 +353,25 @@ class _ContextMenuCard extends StatelessWidget {
               icon: Icons.alarm_rounded,
               label: AppStrings.reminderLabel.tr,
               onTap: () {
-                Navigator.of(context).pop();
+                // `context` belongs to a widget INSIDE the menu route we are
+                // about to pop. Resolving a navigator off it afterwards walks
+                // an element that may already be defunct, and that reads
+                // `State._element!` — so it throws "Null check operator used on
+                // a null value" out of StatefulElement.state instead of failing
+                // quietly. Same crash [PendingPop] exists to prevent, reached
+                // from the other direction: there the pop came too late, here
+                // the push does.
+                //
+                // Capturing the NavigatorState first is enough — its own
+                // context stays valid for as long as it is mounted, and
+                // `Navigator.of` resolves a navigator's own context back to
+                // itself, so this targets exactly the navigator the sheet would
+                // have been pushed on anyway.
+                final navigator = Navigator.of(context);
+                navigator.pop();
                 chatThemeController.activateSelection(message);
                 showModalBottomSheet(
-                  context: context,
+                  context: navigator.context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (ctx) => ReminderBottomSheet(
@@ -382,10 +397,13 @@ class _ContextMenuCard extends StatelessWidget {
               label: AppStrings.delete.tr,
               color: Colors.red,
               onTap: () {
-                Navigator.of(context).pop();
+                // Captured before the pop — see the reminder item above for
+                // why the post-pop `context` is not safe to resolve from.
+                final navigator = Navigator.of(context);
+                navigator.pop();
                 chatThemeController.activateSelection(message);
                 showDialog(
-                  context: context,
+                  context: navigator.context,
                   builder: (dialogContext) => CommonDeleteDialog(
                     showDeleteForEveryone: message.myMessage == true,
                     showDeleteFromDevice: _isMediaMessage,

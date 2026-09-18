@@ -71,9 +71,14 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
             const SizedBox(height: 10),
             InkWell(
               onTap: () {
+                // Captured before the pop — `context` is inside the sheet
+                // `Get.back()` dismisses, and resolving a navigator off a
+                // defunct element throws "Null check operator used on a null
+                // value" rather than doing nothing.
+                final navigator = Navigator.of(context);
                 Get.back();
                 showDialog(
-                  context: context,
+                  context: navigator.context,
                   barrierDismissible: false,
                   builder: (BuildContext context) {
                     return Dialog(
@@ -139,9 +144,16 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
             ),
             InkWell(
               onTap: () {
-                Navigator.pop(context);
+                // Captured before the pop: `context` sits inside the sheet
+                // being dismissed, and resolving a navigator off a defunct
+                // element throws "Null check operator used on a null value"
+                // out of StatefulElement.state rather than doing nothing.
+                // The NavigatorState's own context stays valid while it is
+                // mounted, and resolves back to the same navigator.
+                final navigator = Navigator.of(context);
+                navigator.pop();
                 showDialog(
-                  context: context,
+                  context: navigator.context,
                   builder: (context) => BlockUserDialog(
                     onConfirm: () {
                       widget.userBlockVoidCallback();
