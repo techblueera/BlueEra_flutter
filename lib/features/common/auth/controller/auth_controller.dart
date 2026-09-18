@@ -950,6 +950,33 @@ class AuthController extends GetxController {
   bool get hasVerifiedGst =>
       (gstVerifyModel?.value.success ?? false) && verifiedGstNumber.isNotEmpty;
 
+  /// How a GST-registered listing READS to a customer: the registered name
+  /// followed by the branch that distinguishes this outlet from the others on
+  /// the same GSTIN.
+  ///
+  /// Display only — never sent. The two halves are stored separately on
+  /// purpose, and that separation is the point:
+  ///
+  ///  * `business_name` is **server-owned**. When the GSTIN verifies, the
+  ///    backend overwrites it with the registered trade/legal name and discards
+  ///    whatever the app sent (docs/finance-gst-branch-ui-integration.md §2) —
+  ///    which is exactly why step one locks the field behind an
+  ///    `IgnorePointer`. Concatenating the branch into it would be thrown away
+  ///    on the round trip.
+  ///  * `branch` is **user-owned** and independently renameable: a PUT carrying
+  ///    `branch` alone renames it, without re-verifying the GSTIN (§6).
+  ///
+  /// Baking the branch into the name would forfeit that — a later branch rename
+  /// would leave a stale name behind it with no way to correct the part of the
+  /// string the user is actually allowed to change.
+  String get displayBusinessNameWithBranch {
+    final base = businessNameTextController.text.trim();
+    final branch = brandOrBranchNameTextController.text.trim();
+    if (branch.isEmpty) return base;
+    if (base.toUpperCase().endsWith(branch.toUpperCase())) return base;
+    return '$base $branch';
+  }
+
   Future<void> getGstVerify({required String? gstNumber}) async {
     try {
       isGstVerifyLoading.value = true;

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -17,6 +18,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/snackbar_helper.dart';
@@ -42,6 +44,36 @@ class BusinessDetailsEditPageOne extends StatefulWidget {
 class _BusinessDetailsEditPageOneState
     extends State<BusinessDetailsEditPageOne> {
   final companyOrgNameTextController = TextEditingController();
+
+  /// Branch / outlet label. Editable here precisely because the business NAME
+  /// is not: for a GST-registered business the server owns the name (it is
+  /// overwritten from the GST record) while the branch belongs to the user, and
+  /// a PUT carrying `branch` alone renames it without re-verifying the GSTIN.
+  /// See docs/finance-gst-branch-ui-integration.md §2/§6.
+  final branchTextController = TextEditingController();
+
+  /// The branch as it arrived, so the PUT can send the field only when it
+  /// actually changed — §6 is a PARTIAL update, and re-sending an unchanged
+  /// branch asks the server to re-run the duplicate check for nothing.
+  String _initialBranch = '';
+
+  /// Only a GST-registered business carries a branch. Without a GSTIN there is
+  /// no (GST + branch) pair to disambiguate, and the name is already editable
+  /// above, so the field would be noise.
+  bool _hasGstBranch = false;
+
+  /// Whether the typed branch differs from the one that arrived.
+  ///
+  /// Compared the way the BACKEND compares branches — case-insensitive, with
+  /// runs of whitespace collapsed (§4: `"Andheri West"`, `"andheri west"` and
+  /// `"Andheri  West"` are the same branch). So re-casing alone is not an edit
+  /// and will not trigger a duplicate check; a real rename still will.
+  bool get _branchChanged =>
+      _normalizeBranch(branchTextController.text) !=
+      _normalizeBranch(_initialBranch);
+
+  static String _normalizeBranch(String raw) =>
+      raw.trim().toUpperCase().replaceAll(RegExp(r'\s+'), ' ');
   final locationTextController = TextEditingController();
   final landlineNumberController = TextEditingController();
   final landlineCodeController = TextEditingController();
@@ -85,6 +117,12 @@ class _BusinessDetailsEditPageOneState
 
     if (data != null) {
       companyOrgNameTextController.text = data.businessName ?? '';
+
+      _initialBranch = (data.branch ?? '').trim();
+      branchTextController.text = _initialBranch;
+      // `gst.number` is `dynamic` on the model — a profile with no GST can
+      // carry null, "" or a missing key, so normalise before deciding.
+      _hasGstBranch = (data.gst?.number ?? '').toString().trim().isNotEmpty;
 
       selectedBusiness = getBusinessFromString(data.natureOfBusiness);
       websiteController.text = data.websiteUrl ?? '';
@@ -132,6 +170,34 @@ class _BusinessDetailsEditPageOneState
         locationController.fetchAddressFromGeo.value = true;
       }
     }
+  }
+
+  /// Every controller on this page is created here and owned here, so every one
+  /// is disposed here. Each holds a `ChangeNotifier` that the text fields
+  /// subscribe to; without this they outlive the route, and this form is opened
+  /// and closed repeatedly from the profile screen.
+  ///
+  /// Safe against a read-after-dispose despite the Save handler being async:
+  /// `buildBusinessDetailsPayload()` is declared `async` but contains no live
+  /// `await` (the only one is commented out), so it resolves in a microtask and
+  /// every `controller.text` read happens before the one real suspension point
+  /// — the update request itself. Keep it that way: an `await` added inside
+  /// that builder would open a window where the user can pop the route and the
+  /// reads land on disposed controllers.
+  @override
+  void dispose() {
+    companyOrgNameTextController.dispose();
+    branchTextController.dispose();
+    locationTextController.dispose();
+    landlineNumberController.dispose();
+    landlineCodeController.dispose();
+    mobileController.dispose();
+    websiteController.dispose();
+    fullBusinessAddressTextController.dispose();
+    picCodeController.dispose();
+    cityController.dispose();
+    othersCatController.dispose();
+    super.dispose();
   }
 
   Future<void> updateAddressFromLocation() async {
@@ -259,6 +325,48 @@ class _BusinessDetailsEditPageOneState
                       SizedBox(
                         height: SizeConfig.size20,
                       ),
+
+                      /// BRANCH — GST businesses only.
+                      ///
+                      /// The one part of a GST listing's identity the owner is
+                      /// allowed to correct. Before this it was write-once at
+                      /// signup: a branch typed wrong stayed wrong forever,
+                      /// even though the backend has supported renaming it on
+                      /// its own since §6 of the integration guide.
+                      if (_hasGstBranch) ...[
+                        CommonTextField(
+                          textEditController: branchTextController,
+                          maxLength:
+                              ValidationMethod.brandOrBranchNameMaxLength,
+                          isCounterVisible: true,
+                          keyBoardType: TextInputType.text,
+                          textInputAction: TextInputAction.next,
+                          title: AppStrings.brandOrBranchName,
+                          hintText: AppStrings.brandOrBranchNameHint,
+                          // Same formatter set as signup — passing
+                          // `inputFormatters` REPLACES the widget's defaults,
+                          // so the space rules are re-stated here.
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(
+                                RegularExpressionUtils
+                                    .brandOrBranchNamePattern)),
+                            NoLeadingSpaceFormatter(),
+                            NoConsecutiveSpacesFormatter(),
+                            LengthLimitingTextInputFormatter(
+                                ValidationMethod.brandOrBranchNameMaxLength),
+                          ],
+                          validator:
+                              ValidationMethod.validateBrandOrBranchName,
+                        ),
+                        CustomText(
+                          AppStrings.brandOrBranchNameHelper,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.grey9B,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+                      ],
 
                       CustomText(
                         AppStrings.dateOfIncorporation,
@@ -771,8 +879,21 @@ class _BusinessDetailsEditPageOneState
                                 });
 
                                 /// Call API to update business details
-                                await Get.find<ViewBusinessDetailsController>()
-                                    .updateBusinessDetails(updatedParams);
+                                final saved =
+                                    await Get.find<ViewBusinessDetailsController>()
+                                        .updateBusinessDetails(updatedParams);
+
+                                // The result used to be discarded, so the page
+                                // popped whether or not the save landed — the
+                                // user saw an error snackbar flash past as
+                                // their edits disappeared. It matters most for
+                                // the branch: a duplicate (GST + branch) pair
+                                // comes back 409 with a message that names the
+                                // clash and asks for a different branch
+                                // (docs/finance-gst-branch-ui-integration.md
+                                // §4), which is useless advice on a form the
+                                // user has just been thrown off.
+                                if (!saved) return;
 
                                 /// After save — navigate back or show success
                                 if (widget.isFromCreateUser == false) {
@@ -869,6 +990,15 @@ class _BusinessDetailsEditPageOneState
       }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
+
+      // Branch, ONLY when it changed. §6 is a partial update, and the server
+      // re-runs the (GST + branch) duplicate check on every `branch` it
+      // receives — re-sending the unchanged value asks it to check this
+      // profile against itself for nothing. Case/whitespace-insensitive to
+      // match how the backend compares (§4), so re-casing alone is not
+      // treated as an edit.
+      if (_hasGstBranch && _branchChanged)
+        ApiKeys.branch: branchTextController.text.trim(),
 
       // ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value
       //     ? imageByPart

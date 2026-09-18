@@ -62,8 +62,9 @@ class BusinessProfileDetails {
       this.businessLocation, 
       this.id, 
       this.userId, 
-      this.businessName, 
-      this.typeOfBusiness, 
+      this.businessName,
+      this.branch,
+      this.typeOfBusiness,
       this.logo, 
       this.coverimage,
       this.categoryOfBusiness,
@@ -107,6 +108,7 @@ class BusinessProfileDetails {
     businessLocation = json['business_location'] != null ? BusinessLocation.fromJson(json['business_location']) : null;
     id = json['_id'] ?? json['id'];
     businessName = json['business_name'];
+    branch = json['branch']?.toString();
     referral_code = json['referral_code'];
     referralCodeEditable = json['referralCodeEditable'];
     // Backend-generated share poster — render its URL directly instead of
@@ -239,6 +241,15 @@ class BusinessProfileDetails {
   String? id;
   String? userId;
   String? businessName;
+
+  /// Branch / outlet label for a GST-registered business.
+  ///
+  /// Held separately from [businessName] because the two have different owners:
+  /// the name is overwritten by the server from the GST record and cannot be
+  /// edited, while the branch belongs to the user and can be renamed on its own
+  /// with a PUT that carries `branch` alone — the GSTIN is not re-verified.
+  /// See docs/finance-gst-branch-ui-integration.md §2/§6.
+  String? branch;
   String? conversationId;
   String? typeOfBusiness;
   String? referral_code;
@@ -319,6 +330,7 @@ class BusinessProfileDetails {
     map['username'] = username;
     map['category_other'] = category_other;
     map['business_name'] = businessName;
+    map['branch'] = branch;
     map['type_of_business'] = typeOfBusiness;
     map['logo'] = logo;
     map['coverPicture'] = coverimage;

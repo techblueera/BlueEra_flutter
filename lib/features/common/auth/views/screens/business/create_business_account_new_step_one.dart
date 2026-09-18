@@ -503,12 +503,67 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               ],
                               validator:
                                   ValidationMethod.validateBrandOrBranchName,
+                              // Drives the preview below. The branch is part of
+                              // the registered name now, so the user has to be
+                              // able to SEE the name they are creating —
+                              // otherwise they are typing into a field whose
+                              // effect is invisible until the account exists.
+                              onChange: (_) => setState(() {}),
                             ),
                             CustomText(
                               AppStrings.brandOrBranchNameHelper,
                               fontSize: SizeConfig.small,
                               color: AppColors.grey9B,
                             ),
+
+                            /// Live preview of the composed name.
+                            ///
+                            /// Only for the GST path: that is the one where the
+                            /// name above is locked and the branch is appended
+                            /// to it (see [AuthController.composedBusinessName]).
+                            /// A Finance business without GST types its own
+                            /// name, so there is nothing to preview.
+                            if (authController.hasVerifiedGst) ...[
+                              SizedBox(height: SizeConfig.paddingS),
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.all(SizeConfig.size10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    // Labels compounded from keys that already
+                                    // exist and are already translated, rather
+                                    // than new ones — a new key ships English
+                                    // to every other locale until the backend
+                                    // translation set catches up, and
+                                    // `scripts/sync_translations.dart`
+                                    // re-downloads en.json and would drop it.
+                                    CustomText(
+                                      '${AppStrings.businessListing.tr} '
+                                      '(${AppStrings.preview.tr})',
+                                      fontSize: SizeConfig.small,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                    SizedBox(
+                                        height: SizeConfig.paddingXSmall),
+                                    CustomText(
+                                      authController
+                                          .displayBusinessNameWithBranch,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryColor,
+                                      maxLines: 2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
 
                           SizedBox(
@@ -847,6 +902,13 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
       log('sub category --- ${authController.selectedSubCategoryData?.sId}');
       Map<String, dynamic> requestData = {
         ApiKeys.logo_image: imageByPart,
+        // Sent as typed / as GST filled it — deliberately NOT concatenated with
+        // the branch. When the GSTIN verifies, the server OVERWRITES this with
+        // the registered trade/legal name and discards whatever we sent
+        // (docs/finance-gst-branch-ui-integration.md §2), so an appended branch
+        // would vanish on the round trip. The branch travels on its own
+        // `branch` field, which is also what makes it independently renameable
+        // later via PUT (§6) — the GST name never is.
         ApiKeys.business_name: authController.businessNameTextController.text,
         ApiKeys.business_location: jsonEncode({
           ApiKeys.lat: locationData.lat.toString(),
