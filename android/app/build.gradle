@@ -135,7 +135,29 @@ android {
             // at no size cost, but it ships only in the legacy monolithic
             // com.google.android.play:core, which duplicate-classes against the
             // app-update artifact in_app_update depends on.
-            enableSplit = false
+            //
+            // ── Re-enabled deliberately, accepting the above ─────────────────
+            // The base-only-install crash described above IS reintroduced by
+            // this. It was turned back on because the bundle reached 221.9 MB
+            // with splitting off — every device downloading arm64-v8a AND
+            // armeabi-v7a AND x86_64 — which is at the edge of what Play
+            // accepts. Size won; the trade was made with the crash understood,
+            // not forgotten.
+            //
+            // What that costs, concretely: an install that arrives with the
+            // base and no ABI split has no native libraries, and dies at
+            // activity launch with "Could not find 'libflutter.so'" before any
+            // Dart runs, so it cannot be caught, logged, or reported — those
+            // users are invisible in Crashlytics. Normal Play installs are
+            // unaffected; sideloaded base-only APKs, some third-party
+            // installers, interrupted installs and device-transfer tools are
+            // not.
+            //
+            // If that starts showing up as silent installs-that-never-open, the
+            // fix is a missing-splits guard, which needs the
+            // com.google.android.play:core duplicate-classes conflict with
+            // in_app_update resolved first.
+            enableSplit = true
         }
     }
 
