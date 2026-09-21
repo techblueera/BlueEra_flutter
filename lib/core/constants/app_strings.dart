@@ -114,6 +114,16 @@ class AppStrings {
   static const accountDeletionBlockedTitle = "accountDeletionBlockedTitle";
   static const accountDeletionBlockedIntro = "accountDeletionBlockedIntro";
 
+  ///INACTIVE-ACCOUNT DATA PURGE
+  ///(docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md)
+  static const inactivityPurgedTitle = "inactivityPurgedTitle";
+  static const inactivityPurgedBody = "inactivityPurgedBody";
+  static const inactivityPurgedNote = "inactivityPurgedNote";
+  static const inactivityPurgedCta = "inactivityPurgedCta";
+  static const inactivityWarningTitle = "inactivityWarningTitle";
+  static const inactivityWarningBody = "inactivityWarningBody";
+  static const inactivityWarningBodyToday = "inactivityWarningBodyToday";
+
   ///DELETED (TOMBSTONED) ACCOUNTS
   static const deletedUser = "deletedUser";
   static const deletedUserUnavailable = "deletedUserUnavailable";

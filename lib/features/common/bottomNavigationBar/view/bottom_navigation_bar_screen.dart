@@ -42,6 +42,8 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/app_update_bo
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_shimmer.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
+import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
+import 'package:BlueEra/features/common/inactivity/widget/inactivity_warning_banner.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
@@ -220,6 +222,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _getPackageData();
       _commitLandingTab();
       _handlePostFrameInitialization();
+      // Inactive-account data purge (§4/§5 of
+      // docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md). Driven from
+      // the home shell rather than from each login branch because the shell is
+      // what EVERY entry point lands on — fresh login, cold start off the
+      // splash, and a notification open all pass through here exactly once, so
+      // one hook covers the guide's "right after login" without three copies
+      // of it in AuthController. The call itself counts as activity
+      // server-side, which is what takes an opening user out of the purge
+      // cohort, so it runs even on a deep-link background host.
+      unawaited(InactivityController.to.ping());
       // One-shot per launch: surface the joining-bonus claim popup when the
       // profile API says so. Skipped on deep-link background hosts.
       if (!widget.deferHeavyInit) {
@@ -1293,6 +1305,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                           // App-wide "turn on location" nudge, sits directly
                           // above the bottom nav. Self-hides when GPS is on.
                           const LocationPermissionBanner(),
+                          // "Your data will be removed in N days" — self-hides
+                          // unless the inactivity status says otherwise.
+                          const InactivityWarningBanner(),
                           BottomNavigationBarWidget(
                             onHeaderVisibilityChanged: _toggleAppBar,
                             isBottomNavVisible: isVisible,

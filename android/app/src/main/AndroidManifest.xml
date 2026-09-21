@@ -166,6 +166,20 @@
                     android:scheme="https"
                     android:host="emergency.beapp.in" />
             </intent-filter>
+            <!-- Inactive-account purge warning push:
+                 blueera://account/inactivity
+                 No autoVerify — this is a custom scheme, not an App Link, so
+                 there is no assetlinks.json for Android to check. See
+                 docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md §6. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="blueera"
+                    android:host="account" />
+            </intent-filter>
+
             <!-- Deep Link sample -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

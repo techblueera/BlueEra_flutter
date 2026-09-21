@@ -40,6 +40,19 @@
 				<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			</array>
 		</dict>
+		<!-- blueera://account/inactivity — the deep link carried by the
+		     inactive-account purge warning push. See
+		     docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md §6. -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>in.beapp.blueera.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>blueera</string>
+			</array>
+		</dict>
 	</array>
 	<!-- UPI app schemes so canLaunchUrl can detect / open them on iOS. -->
 	<key>LSApplicationQueriesSchemes</key>

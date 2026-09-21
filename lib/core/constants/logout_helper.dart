@@ -143,6 +143,31 @@ class LogoutHelper {
     } catch (_) {}
   }
 
+  /// Public entry point to [_resetSessionControllers], for the one other place
+  /// that has to throw the account's in-memory state away: the inactive-account
+  /// DATA PURGE (docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md).
+  ///
+  /// A purge erases the same content a logout walks away from — posts, orders,
+  /// chats, profile, merchant catalogues — so every controller listed below
+  /// holds data the server no longer has. Wiping Hive alone is not enough:
+  /// these hold their own in-memory copy plus the `FetchCache` stamp that says
+  /// "this is fresh, don't refetch", so the user would sit looking at a
+  /// catalogue that no longer exists.
+  ///
+  /// It delegates rather than duplicating the list on purpose. There is ONE
+  /// inventory of "controllers whose state IS account data", and a new
+  /// vertical added for logout is covered here for free — a second list would
+  /// be a second thing to forget.
+  ///
+  /// **Same precondition as logout: call it only when no screen holding one of
+  /// these is mounted, and re-mount something that re-creates them in the same
+  /// turn.** Unlike logout, a purged user stays signed in with live sockets and
+  /// push routing, and ~185 call sites reach these through a bare
+  /// `Get.find<T>()` that throws when the registry is empty. See
+  /// `InactivityController.acknowledgeAndContinue`, which drops and navigates
+  /// back-to-back for exactly that reason.
+  static void resetAccountControllers() => _resetSessionControllers();
+
   /// Force-deletes the controllers that survive `Get.offAllNamed` and
   /// would otherwise leak the previous session's `.obs` data:
   /// - `ViewPersonalDetailsController`: registered `permanent:true`.

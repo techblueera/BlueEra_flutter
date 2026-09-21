@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
+import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -54,6 +55,14 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
         // token on the server, incoming calls reach iOS only as plain FCM
         // banners that can't trigger CallKit in background/terminated state.
         AppNotificationHandler.syncVoipToken();
+
+        // Inactive-account data purge: the status endpoint doubles as the
+        // "I'm alive" ping, so every resume reconfirms that this account is
+        // in use and takes it back out of the purge cohort. The controller
+        // throttles itself, so a user flicking through the app switcher does
+        // not pay for a request each time.
+        // docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md §4.
+        unawaited(InactivityController.to.ping());
       }
 
       if (await LocationService().isLocationAvailable()) {

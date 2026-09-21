@@ -22,6 +22,23 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   final String accountDeletionInit =
       'user-service/user/account/deletion/init';
+
+  /// Inactive-account data purge — NOT account deletion.
+  ///
+  /// An account left untouched for `threshold_days` has its CONTENT erased
+  /// (posts, orders, chats, profile details, S3 media) while the account
+  /// itself survives and the same phone number keeps logging in. Reading
+  /// [inactivityStatus] also counts as activity server-side, so it doubles as
+  /// the "I'm alive" ping that takes the user out of the purge cohort.
+  ///
+  /// See docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md.
+  final String inactivityStatus =
+      'user-service/user/account/inactivity/status';
+
+  /// Clears the server's `data_purged` flag once the user has seen the
+  /// "your data was removed" screen, so it does not reappear every launch.
+  final String inactivityAcknowledge =
+      'user-service/user/account/inactivity/acknowledge';
   final String getUser =
       'user-service/user/get?contact_no=$userMobileGlobal';
   final String allUsers =

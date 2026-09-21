@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
@@ -3710,6 +3711,20 @@ class AppNotificationHandler {
         break;
       case 'answered_question':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // "Your Blue Era data will be removed soon" — the 7-day warning for the
+      // inactive-account data purge
+      // (docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md §6).
+      //
+      // There is no screen to open. The tap itself has already saved the
+      // account: opening the app cancels the purge, and the forced status
+      // read below is the call that records it. All that is left is to land on
+      // the home shell with the §5.2 banner showing, which the cold-start
+      // `offAllNamed` above has already arranged — on a warm tap the shell is
+      // where the user already was.
+      case 'inactivity_purge_warning':
+        unawaited(InactivityController.to.ping(force: true));
         break;
 
       // Reel operations

@@ -15,6 +15,7 @@ import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
+import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
 import 'package:BlueEra/features/common/profile_share_preview/model/share_profile_overview_response.dart';
 import 'package:BlueEra/features/common/profile_share_preview/repo/share_profile_overview_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
@@ -117,6 +118,25 @@ class DeepLinkRouter {
       final referral = uri.queryParameters['referralCode'];
       if (referral != null && referral.trim().isNotEmpty) {
         await SharedPreferenceUtils.saveDeferredReferralCode(referral);
+      }
+
+      // `blueera://account/inactivity` — the deep link on the inactive-account
+      // purge warning push (§6 of
+      // docs/backend/FLUTTER_INACTIVE_USER_DATA_PURGE_GUIDE.md). The only
+      // custom-scheme link the app claims; everything else below is an https
+      // App Link.
+      //
+      // It opens nothing. Opening the app is itself what cancels the purge,
+      // so the whole job of the link is to be followed — the forced status
+      // read records the activity and raises the §5.2 home banner. Handled
+      // before the `pathSegments` routing because a custom-scheme URI puts
+      // `account` in the HOST, not in the path.
+      if (uri.scheme == 'blueera' && uri.host == 'account') {
+        if (uri.pathSegments.isNotEmpty &&
+            uri.pathSegments.first == 'inactivity') {
+          unawaited(InactivityController.to.ping(force: true));
+        }
+        return;
       }
 
       // Emergency profile QR / sticker links use a dedicated host:
