@@ -1,6 +1,6 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/theme/order_design_tokens.dart';
 import 'package:BlueEra/features/chat/auth/model/order_journey.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 
 /// The horizontal step tracker on an order card — the strip directly under the
@@ -51,7 +51,7 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
   /// Width of one node column. Wide enough for two lines of a label like
   /// "Waiting for shop acceptance" at 11pt without truncating the words the
   /// customer needs ("Waiting", "acceptance").
-  static const double _nodeWidth = 86;
+  static const double _nodeWidth = 82;
 
   @override
   void initState() {
@@ -118,7 +118,7 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
       label: _spokenSummary(steps),
       child: ExcludeSemantics(
         child: SizedBox(
-          height: 74,
+          height: 72,
           child: ListView.builder(
             controller: _scroll,
             scrollDirection: Axis.horizontal,
@@ -163,7 +163,7 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
     required bool outgoingDone,
   }) {
     final tone = _toneFor(step.state);
-    const dot = 20.0;
+    const dot = 22.0;
 
     return SizedBox(
       width: _nodeWidth,
@@ -198,15 +198,15 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 11,
-                height: 1.2,
+                height: 1.22,
                 // The live step and everything achieved are emphasised; what
                 // has not happened yet recedes.
                 fontWeight: step.state == OrderJourneyStepState.pending
-                    ? FontWeight.w400
+                    ? FontWeight.w500
                     : FontWeight.w700,
                 color: step.state == OrderJourneyStepState.pending
-                    ? AppColors.grayText
-                    : tone.color,
+                    ? OrderUi.inkFaint
+                    : _inkFor(step.state),
               ),
             ),
           ),
@@ -217,21 +217,37 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
 
   Widget _connector({required bool done}) => Container(
         height: 2,
-        color: done ? OrderTone.success.color : AppColors.greyE5,
+        color: done ? OrderUi.green : const Color(0xFFE8EAEE),
       );
+
+  /// The board's palette: a deep green for what is done, a burnt orange for
+  /// the step someone is acting on, red for the one an order died at.
+  static Color _inkFor(OrderJourneyStepState state) {
+    switch (state) {
+      case OrderJourneyStepState.done:
+        return OrderUi.green;
+      case OrderJourneyStepState.current:
+        return const Color(0xFFC4551B);
+      case OrderJourneyStepState.cancelled:
+        return OrderUi.danger;
+      case OrderJourneyStepState.pending:
+        return OrderUi.inkFaint;
+    }
+  }
 
   Widget _dot({
     required OrderJourneyStep step,
     required OrderTone tone,
     required double size,
   }) {
+    final ink = _inkFor(step.state);
     switch (step.state) {
       case OrderJourneyStepState.done:
         return Container(
           width: size,
           height: size,
-          decoration: BoxDecoration(color: tone.color, shape: BoxShape.circle),
-          child: const Icon(Icons.check, size: 13, color: Colors.white),
+          decoration: BoxDecoration(color: ink, shape: BoxShape.circle),
+          child: const Icon(Icons.check, size: 14, color: Colors.white),
         );
 
       case OrderJourneyStepState.current:
@@ -243,14 +259,13 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
-            border: Border.all(color: tone.color, width: 2),
+            border: Border.all(color: ink, width: 2),
           ),
           child: Center(
             child: Container(
               width: size / 2.5,
               height: size / 2.5,
-              decoration:
-                  BoxDecoration(color: tone.color, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: ink, shape: BoxShape.circle),
             ),
           ),
         );
@@ -262,9 +277,9 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
-            border: Border.all(color: tone.color, width: 2),
+            border: Border.all(color: ink, width: 2),
           ),
-          child: Icon(Icons.close, size: 12, color: tone.color),
+          child: Icon(Icons.close, size: 13, color: ink),
         );
 
       case OrderJourneyStepState.pending:
@@ -274,7 +289,7 @@ class _OrderJourneyStripState extends State<OrderJourneyStrip> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
-            border: Border.all(color: AppColors.greyE5, width: 2),
+            border: Border.all(color: const Color(0xFFE0E4EA), width: 2),
           ),
         );
     }

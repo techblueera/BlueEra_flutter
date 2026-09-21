@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -100,6 +101,78 @@ class _ProductSelfPickUpCartScreenState
     return total;
   }
 
+  /// The selected basket, flattened for the checkout board's `Your Items`.
+  List<OrderCardItem> _checkoutLines(
+    Map<String, List<GetProductData>> grouped,
+    ProductSelfPickupController controller,
+  ) {
+    final out = <OrderCardItem>[];
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final p in entry.value) {
+        final id = _variantIdOf(p);
+        if (id == null || !selectedVariantIds.contains(id)) continue;
+        final qty = controller.getQuantity(id);
+        if (qty <= 0) continue;
+        final variants = p.product.sellerClassification?.variants ?? [];
+        final v = variants.isNotEmpty ? variants.first : null;
+        final details = p.product.details;
+        out.add(OrderCardItem(
+          name: details?.name ?? '',
+          variant: _variantLabel(v),
+          // The variant's own photo when it has one — a cart of three sizes of
+          // the same product is three identical thumbnails otherwise.
+          imageUrl: (v?.mediaRelatedToVariant.isNotEmpty ?? false)
+              ? v!.mediaRelatedToVariant.first
+              : ((details?.media.isNotEmpty ?? false)
+                  ? details!.media.first
+                  : null),
+          price: v?.sellingPrice,
+          mrp: v?.mrp,
+          quantity: qty,
+        ));
+      }
+    }
+    return out;
+  }
+
+  /// `1kg`, `Large · Red` — the variant's attributes, joined.
+  ///
+  /// A product variant has no single label on this model; it is a bag of
+  /// attributes, and which ones exist depends on the category. Joining the
+  /// values is the only description that works for all of them, and an empty
+  /// bag yields null so the row simply has no second line.
+  static String? _variantLabel(Variant? v) {
+    if (v == null) return null;
+    final parts = v.attributes.values
+        .map((e) => e?.toString().trim() ?? '')
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  /// What the same basket would have cost at MRP.
+  double _checkoutMrpTotal(
+    Map<String, List<GetProductData>> grouped,
+    ProductSelfPickupController controller,
+  ) {
+    double total = 0;
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final p in entry.value) {
+        final id = _variantIdOf(p);
+        if (id == null || !selectedVariantIds.contains(id)) continue;
+        final variants = p.product.sellerClassification?.variants ?? [];
+        final v = variants.isNotEmpty ? variants.first : null;
+        // No MRP on a variant means no claimable saving on it — fall back to
+        // what it actually costs so the row cannot invent a discount.
+        final unit = (v?.mrp ?? 0) > 0 ? v!.mrp : (v?.sellingPrice ?? 0);
+        total += unit * controller.getQuantity(id);
+      }
+    }
+    return total;
+  }
+
   int _calcItemCount(
       List<GetProductData> items, ProductSelfPickupController controller) {
     int count = 0;
@@ -178,6 +251,13 @@ class _ProductSelfPickUpCartScreenState
         grouped.keys.where((k) => selectedBusinessIds.contains(k)).toList();
     final singleShop = businessIds.length == 1;
 
+    // What the customer is about to agree to, in their own words: the board's
+    // `Review Your Order` lists the basket and states the saving. Both are
+    // computed from the same selection the total came from, so the sheet can
+    // never disagree with the figure on the button.
+    final lines = _checkoutLines(grouped, controller);
+    final mrpTotal = _checkoutMrpTotal(grouped, controller);
+
     if (!mounted) return;
     final choice = await showOrderCheckoutSheet(
       context,
@@ -192,6 +272,11 @@ class _ProductSelfPickUpCartScreenState
               )['businessName']
           : null,
       allowDelivery: singleShop,
+      items: lines,
+      // Only when there is a genuine saving to state — a `Total MRP` equal to
+      // the total is a row that says nothing, and a discount computed from a
+      // missing MRP is a lie.
+      mrpTotal: mrpTotal > itemsTotal ? mrpTotal : null,
     );
     if (choice == null) return;
 

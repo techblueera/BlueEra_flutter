@@ -1288,12 +1288,20 @@ class _OrderCardState extends State<OrderCard> {
       );
     }
 
-    return Row(
+    // The board draws this as a stats line over a full-width button pair:
+    // `Travel Distance · Fare` on one row, `✕ Reject` and `✓ Accept` on the
+    // next, each half the card. The pill-sized buttons that used to sit beside
+    // the fare were the smallest tap targets on a screen a rider uses while
+    // straddling a bike.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildFareWidget(),
-        Spacer(),
-        SizedBox(width: SizeConfig.size6),
-        _buildActionButton(
+        _buildNewOrderStatsRow(),
+        SizedBox(height: SizeConfig.size10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
           onTap: () {
             if(widget.order.orderFor==AppConstants.InCity
                 ||widget.order.orderFor==AppConstants.OutStation
@@ -1312,13 +1320,16 @@ class _OrderCardState extends State<OrderCard> {
               _handleRejectOrder(controller);
             }
           },
-          text: AppStrings.reject,
-          bgColor: AppColors.redLite.withValues(alpha: 0.1),
-          borderColor: AppColors.redLite,
-          textColor: AppColors.redLite,
-        ),
-        SizedBox(width: SizeConfig.size6),
-        _buildActionButton(
+              text: AppStrings.reject,
+              icon: Icons.cancel_outlined,
+              bgColor: AppColors.redLite.withValues(alpha: 0.10),
+              borderColor: Colors.transparent,
+              textColor: AppColors.redLite,
+            ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: _buildActionButton(
           onTap: () {
             if(widget.order.orderFor==AppConstants.InCity
                 ||widget.order.orderFor==AppConstants.OutStation
@@ -1343,12 +1354,45 @@ class _OrderCardState extends State<OrderCard> {
               _handleAcceptOrder(controller);
             }
            },
-          text: AppStrings.accept,
-          bgColor: AppColors.green0B.withValues(alpha: 0.1),
-          borderColor: AppColors.green0B,
-          textColor: AppColors.green0B,
+              text: AppStrings.accept,
+              icon: Icons.check_circle_outline,
+              bgColor: AppColors.primaryColor,
+              borderColor: Colors.transparent,
+              textColor: AppColors.white,
+            ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  /// `Travel Distance · Fare` — the two numbers a rider decides on.
+  ///
+  /// The fare used to sit inline with the buttons, which put the money the
+  /// rider is judging and the button they judge it with on the same line at
+  /// two different sizes. On the board they are a matched pair of tiles above
+  /// the decision.
+  Widget _buildNewOrderStatsRow() {
+    final distance = _cleanDistance(widget.order.distancePickupToDrop);
+    if (distance == null) return _buildFareWidget();
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildStatBox(
+              iconAsset: AppIconAssets.distanceLocation,
+              label: AppStrings.travelDistance,
+              value: _withKm(distance),
+              tint: AppColors.primaryColor,
+              onTap: _handleOpenPickupToDropRoute,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(child: _buildFareWidget(fillHeight: true)),
+        ],
+      ),
     );
   }
 
@@ -1590,6 +1634,7 @@ class _OrderCardState extends State<OrderCard> {
     // the orders SSE stream push a list without this order, which rebuilds the
     // ongoing tab and disposes this card — often before the call even returns.
     final customerName = (widget.order.user?.name ?? '').trim();
+    final customerId = widget.order.user?.id;
 
     final completed = await getOrPut(() => DeliverPartnerOrdersController(), permanent: true)
         .completePickupRiderApi(orderId);
@@ -1603,6 +1648,7 @@ class _OrderCardState extends State<OrderCard> {
       // Order-identifying payload for now — the payment string replaces it once
       // the collection flow is defined.
       qrData: orderId,
+      customerId: customerId,
     );
   }
 
@@ -2014,33 +2060,44 @@ class _OrderCardState extends State<OrderCard> {
     required Color textColor,
     IconData? icon,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12,
-          vertical: SizeConfig.size8,
-        ),
-        decoration: BoxDecoration(
-          color: bgColor,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(100.0),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: Icon(icon, color: textColor),
+    // The board's button: 46 high, 10 radius, the label at w700 — the same
+    // shape the customer and shop cards use, so one design carries across all
+    // three apps.
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          height: 46,
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: borderColor == Colors.transparent
+                ? null
+                : Border.all(color: borderColor),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Icon(icon, size: 18, color: textColor),
+                ),
+              Flexible(
+                child: CustomText(
+                  text,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            CustomText(
-              text,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w400,
-              color: textColor,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

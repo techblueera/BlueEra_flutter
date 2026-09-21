@@ -159,8 +159,14 @@ void main() {
           'banner': 'Preparing',
         }),
       );
+      // The board's wording, and the rule it exists to keep: a submitted
+      // payment is a claim, so the panel says what was *submitted* and what
+      // happens next — never that money arrived.
+      expect(find.text('Payment Details Submitted'), findsOneWidget);
+      expect(find.text('Please wait'), findsOneWidget);
       expect(
-        find.text('Waiting for the shop to confirm your payment'),
+        find.text(
+            "We'll notify you as soon as the shop verifies your payment."),
         findsOneWidget,
       );
       // "Paid" must never appear for a submitted payment.
@@ -185,9 +191,15 @@ void main() {
         }),
       );
 
-      expect(find.text('Customer says they paid'), findsOneWidget);
+      // Never a claim of payment — the shop is looking at a screenshot, not
+      // at money. `Paid` survives only as the heading of the figure being
+      // compared against `Due`, which is the comparison the whole panel is for.
+      expect(find.text('Payment Screenshot Received'), findsOneWidget);
+      expect(find.textContaining('says they paid'), findsNothing);
+      expect(find.textContaining('Payment received'), findsNothing);
       expect(find.text('₹450'), findsOneWidget);
-      expect(find.text('₹500'), findsOneWidget);
+      // ₹500 is both the `Due` column and the order total below it.
+      expect(find.text('₹500'), findsWidgets);
       expect(
         find.textContaining('does not match the order total'),
         findsOneWidget,
@@ -210,7 +222,8 @@ void main() {
         }),
       );
       expect(
-        find.text('Payment not confirmed: Nothing reached my account'),
+        find.text('The screenshot could not be verified: '
+            'Nothing reached my account'),
         findsOneWidget,
       );
     });
@@ -246,7 +259,9 @@ void main() {
       );
 
       expect(find.textContaining('returned by the shop'), findsOneWidget);
-      expect(find.textContaining('₹500'), findsOneWidget);
+      // The order total is on the card too, so the figure appears more than
+      // once — what matters is that the refund sentence carries it.
+      expect(find.textContaining('₹500'), findsWidgets);
       // The two phrasings that manufacture a complaint against us.
       expect(find.textContaining('we will refund'), findsNothing);
       expect(find.textContaining('refund is being processed'), findsNothing);
@@ -273,7 +288,7 @@ void main() {
       expect(find.textContaining('UTR777'), findsOneWidget);
       // The confirm button is what actually closes it.
       expect(find.text('I received the refund'), findsOneWidget);
-      expect(find.textContaining('Refund received ✓'), findsNothing);
+      expect(find.textContaining('Refund received'), findsNothing);
     });
 
     testWidgets('the owner waits for the customer at step 2', (tester) async {
@@ -305,7 +320,11 @@ void main() {
           'banner': 'Order cancelled',
         }),
       );
-      expect(find.text('Refund received ✓'), findsOneWidget);
+      expect(find.text('Refund received'), findsOneWidget);
+      expect(
+        find.text('You confirmed the money reached you.'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -341,7 +360,7 @@ void main() {
         }),
       );
       expect(find.text('I sent the refund'), findsOneWidget);
-      expect(find.byIcon(Icons.call), findsOneWidget);
+      expect(find.text('Contact Customer'), findsOneWidget);
     });
   });
 }

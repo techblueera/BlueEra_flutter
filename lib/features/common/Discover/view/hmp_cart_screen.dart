@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -237,6 +238,13 @@ class HmpCartScreen extends StatelessWidget {
                           context,
                           itemsTotal: c.priceOf(key),
                           allowDelivery: false,
+                          // The board's `Your Items` and its `Total MRP` /
+                          // `Savings` rows, read off the same store cart the
+                          // total came from.
+                          items: _boardLines(c, key),
+                          mrpTotal: c.savingsOf(key) > 0
+                              ? c.priceOf(key) + c.savingsOf(key)
+                              : null,
                         );
                         if (choice == null) return;
                         c.paymentMethod.value = choice.paymentMethod;
@@ -505,3 +513,15 @@ class HmpCartScreen extends StatelessWidget {
     );
   }
 }
+
+/// One store's cart, flattened for the checkout board's `Your Items`.
+List<OrderCardItem> _boardLines(HmpCartController c, String key) => [
+      for (final item in c.linesOf(key))
+        OrderCardItem(
+          name: item.product.details?.name ?? '',
+          imageUrl: HmpCartController.imageOf(item),
+          price: HmpCartController.sellingPriceOf(item),
+          mrp: HmpCartController.mrpOf(item),
+          quantity: c.qty(HmpCartController.idOf(item)),
+        ),
+    ];

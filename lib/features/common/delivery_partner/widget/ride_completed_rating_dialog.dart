@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/full_screen_qr_view.dart';
@@ -14,10 +15,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 /// Shown to the rider the moment a ride is completed: confirmation, the QR the
 /// passenger scans to pay, and a rating for the customer.
 ///
-/// **The rating half is deliberately inert.** Stars and the review field hold
-/// their state and Submit closes the sheet, but NOTHING IS SENT ANYWHERE — the
-/// submit path is waiting on the API contract. [_handleSubmit] is the single
-/// place to wire it: the star count and review text are both already in state.
+/// The rating posts to the **customer's personal** rating endpoint — the rider
+/// is rating a person, not a shop — and only when a [customerId] came through
+/// with the order. Without one the block still collects the stars and closes
+/// with a thank-you rather than showing a Submit that cannot do anything;
+/// there is nobody to attach the score to, and inventing one would put a
+/// stranger's rating on a random profile.
+///
 /// Opened on the ROOT navigator (via [Get.dialog]) rather than from the caller's
 /// context. Completing a ride makes the orders stream drop it from the ongoing
 /// list, which disposes the card that started this — a `showDialog(context:)`
@@ -25,11 +29,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 Future<void> showRideCompletedDialog({
   required String customerName,
   required String qrData,
+  String? customerId,
 }) {
   return Get.dialog(
     RideCompletedRatingDialog(
       customerName: customerName,
       qrData: qrData,
+      customerId: customerId,
     ),
     barrierDismissible: false,
   );
@@ -43,10 +49,15 @@ class RideCompletedRatingDialog extends StatefulWidget {
   /// collection flow is defined; today it identifies the order.
   final String qrData;
 
+  /// Who the rating is posted against. Null on an order whose payload carried
+  /// no user — the stars still work, they simply go nowhere.
+  final String? customerId;
+
   const RideCompletedRatingDialog({
     super.key,
     required this.customerName,
     required this.qrData,
+    this.customerId,
   });
 
   @override
@@ -56,6 +67,7 @@ class RideCompletedRatingDialog extends StatefulWidget {
 
 class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
   int _rating = 0;
+  bool _sending = false;
   final TextEditingController _reviewController = TextEditingController();
 
   /// Shared between the inline code and the full-screen one so the Hero can
@@ -220,7 +232,19 @@ class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
           ),
           SizedBox(height: SizeConfig.size12),
           _buildStars(),
-          SizedBox(height: SizeConfig.size12),
+          // The board writes the word, not the number — `4/5` is a score,
+          // `Excellent` is an opinion, and the second is what the rider is
+          // actually being asked for.
+          SizedBox(
+            height: SizeConfig.size20,
+            child: CustomText(
+              _rating == 0 ? '' : _ratingWords[_rating],
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greenShade,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size8),
           TextField(
             controller: _reviewController,
             maxLines: 1,
@@ -250,7 +274,9 @@ class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
           SizedBox(height: SizeConfig.size16),
           CustomBtn(
             title: AppStrings.submit.tr,
-            onTap: _handleSubmit,
+            // No star, no submit: a dialog that opens on five stars collects
+            // five stars from every rider who taps straight through it.
+            onTap: _rating == 0 || _sending ? null : _handleSubmit,
             height: SizeConfig.size48,
             radius: 24,
             bgColor: AppColors.primaryColor,
@@ -260,6 +286,10 @@ class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
       ),
     );
   }
+
+  static const _ratingWords = [
+    '', 'Poor', 'Fair', 'Good', 'Great', 'Excellent',
+  ];
 
   Widget _buildStars() {
     return Row(
@@ -281,10 +311,34 @@ class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
     );
   }
 
-  void _handleSubmit() {
-    Navigator.of(context).pop();
-    // Nothing is posted yet — see the note on [showRideCompletedDialog].
-    commonSnackBar(message: AppStrings.thanksForYourFeedback);
+  /// Posts the rider's rating of the customer.
+  ///
+  /// The dialog closes either way. Completing a ride is done; holding a rider
+  /// on a retry screen for a score that changes nothing about the order —
+  /// while their next job is coming in — is the wrong trade.
+  Future<void> _handleSubmit() async {
+    if (_rating == 0 || _sending) return;
+    final userId = (widget.customerId ?? '').trim();
+
+    if (userId.isEmpty) {
+      Navigator.of(context).pop();
+      commonSnackBar(message: AppStrings.thanksForYourFeedback);
+      return;
+    }
+
+    setState(() => _sending = true);
+    try {
+      await BusinessProfileRepo().submitRatingToPersonal(
+        userId,
+        {'rating': _rating, 'comment': _reviewController.text.trim()},
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _sending = false);
+        Navigator.of(context).pop();
+        commonSnackBar(message: AppStrings.thanksForYourFeedback);
+      }
+    }
   }
 }
 /// The hairline under the header, drawn as a dashed rule.

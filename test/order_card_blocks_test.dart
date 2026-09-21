@@ -99,9 +99,11 @@ void main() {
       expect(find.text('Pay the final amount in cash'), findsOneWidget);
       expect(find.text('Collect your order'), findsOneWidget);
       expect(
-        find.text('Pickup code will be available when you arrive'),
+        find.text('Pickup code will be available when you arrive.'),
         findsOneWidget,
       );
+      // The board's own control for revealing it, inside the panel.
+      expect(find.text('Show Code'), findsOneWidget);
     });
 
     testWidgets('UPI: never tells a customer who already paid to pay again',
@@ -162,8 +164,10 @@ void main() {
     testWidgets('renders the fee, a QR and a copyable VPA', (tester) async {
       await _pump(tester,
           lifecycle: _lc(riderPaymentLifecycle()), deliveryType: 'rider');
-      expect(find.text('Delivery fee'), findsOneWidget);
-      expect(find.text('₹100'), findsOneWidget);
+      // The board draws this as a second `Payment Required` block — a second
+      // payee, not a second instalment.
+      expect(find.text('Payment Required'), findsOneWidget);
+      expect(find.text('₹100'), findsWidgets);
       expect(find.text('amit@okaxis'), findsOneWidget);
       expect(find.byType(QrImageView), findsOneWidget);
     });
@@ -188,7 +192,7 @@ void main() {
         lifecycle: _lc(riderPaymentLifecycle(upiId: null)),
         deliveryType: 'rider',
       );
-      expect(find.text('Delivery fee'), findsNothing);
+      expect(find.text('Payment Required'), findsNothing);
       expect(find.byType(QrImageView), findsNothing);
     });
 
@@ -200,7 +204,8 @@ void main() {
         deliveryType: 'rider',
       );
       expect(
-        find.text('Waiting for your delivery partner to confirm the payment'),
+        find.text(
+            'Waiting for your delivery partner to confirm the payment.'),
         findsOneWidget,
       );
     });
@@ -211,7 +216,7 @@ void main() {
         lifecycle: _lc(riderPaymentLifecycle(state: 'paid')),
         deliveryType: 'rider',
       );
-      expect(find.text('Delivery fee'), findsNothing);
+      expect(find.text('Payment Required'), findsNothing);
     });
 
     testWidgets('never asks the shop to pay the rider', (tester) async {
@@ -221,7 +226,7 @@ void main() {
         deliveryType: 'rider',
         isOwner: true,
       );
-      expect(find.text('Delivery fee'), findsNothing);
+      expect(find.text('Payment Required'), findsNothing);
     });
   });
 
@@ -239,7 +244,7 @@ void main() {
       expect(find.text('Cancellation details'), findsOneWidget);
       expect(find.text('Customer'), findsOneWidget);
       expect(find.text('Changed my mind'), findsOneWidget);
-      expect(find.text('Cash at shop'), findsOneWidget);
+      expect(find.text('Cash at Shop'), findsWidgets);
       expect(find.text('Cash collected'), findsOneWidget);
       expect(find.text('₹0'), findsOneWidget);
     });
@@ -300,7 +305,7 @@ void main() {
 
     testWidgets('expired says Expired, not Cancelled', (tester) async {
       await _pump(tester, lifecycle: _lc({'orderStatus': 'expired'}));
-      expect(find.text('Expired'), findsOneWidget);
+      expect(find.text('Expired'), findsWidgets);
     });
 
     testWidgets('a live order has no epitaph', (tester) async {

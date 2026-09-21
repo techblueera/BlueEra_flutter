@@ -16,6 +16,10 @@ import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -117,7 +121,103 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
         orderFor: 'grocery',
         onFindRider: _isMyMessage ? _findRiderFromCard : null,
         onChanged: _onLifecycleChanged,
+        orderNumber: _boardOrderNumber,
+        placedAtLabel: _boardPlacedAt,
+        items: _boardItems,
+        totalItemCount: widget.message.metadata?.selfPickupOrder?.totalItems,
+        shopPhoto: widget.message.seller?.profileImage,
+        onViewDetails: _openOrderDetails,
+        onGetDirection: _openDirectionsToShop,
+        onShopAgain: _openShop,
       );
+
+  // ── Board data (BlueEra 2026) ──────────────────────────────────────────
+  //
+  // The header, the item strip and the totals are *design*, not state, so they
+  // are read straight off the metadata the card already holds. A summary that
+  // waits on `/track` is a summary that flashes empty on every chat scroll.
+
+  /// `0D1247`. The chat card has no order *number* of its own — only the id —
+  /// so the tail of the id is what the shop and the customer read out loud.
+  String? get _boardOrderNumber {
+    final id = widget.message.metadata?.selfPickupOrder?.orderId ??
+        widget.message.metadata?.selfpickupOrderId ??
+        '';
+    if (id.isEmpty) return null;
+    return id.length > 6 ? id.substring(id.length - 6).toUpperCase() : id;
+  }
+
+  /// `Today, 9:30 AM`.
+  String get _boardPlacedAt {
+    final raw = widget.message.createdAt;
+    final at = raw == null ? null : DateTime.tryParse(raw.toString())?.toLocal();
+    return at == null ? widget.time : OrderUiFormat.dayAndClock(at);
+  }
+
+  List<OrderCardItem> get _boardItems {
+    final items = widget.message.metadata?.selfPickupOrder?.items ?? [];
+    return [
+      for (final i in items)
+        OrderCardItem(
+          name: i.productName ?? '',
+          variant: i.variantName ?? i.quantityLabel ?? i.unit,
+          imageUrl: (i.images != null && i.images!.isNotEmpty)
+              ? i.images!.first.url
+              : null,
+          price: i.sellingPrice,
+          mrp: i.mrp,
+          quantity: i.quantity,
+        ),
+    ];
+  }
+
+  /// `Shop Again` / `Continue Shopping` — back to the shop this order came
+  /// from.
+  ///
+  /// The business *profile*, not the storefront screen: the per-vertical store
+  /// screens expect controllers their own entry point registers, and pushing
+  /// one straight from a chat card is how a "Shop Again" button becomes a
+  /// crash. The profile resolves its own controllers and carries the
+  /// storefront one tap further in.
+  void _openShop() {
+    final businessId = (widget.message.metadata?.selfPickupOrder?.businessId ??
+            widget.message.sender?.id) ?? '';
+    if (businessId.isEmpty) return;
+    VisitProfileResolver.open(
+      businessId: businessId,
+      screenFrom: AppConstants.chatScreen,
+    );
+  }
+
+  /// `Get Direction` on the board's ready card.
+  ///
+  /// The order carries the shop's address as a string and no coordinate, so
+  /// Google resolves the place itself. No address, no button — the section
+  /// drops it rather than opening an empty map.
+  void _openDirectionsToShop() {
+    final where = [
+      widget.message.seller?.name ?? '',
+      widget.message.seller?.location ?? '',
+    ].where((e) => e.trim().isNotEmpty).join(', ');
+    if (where.isEmpty) return;
+    openGoogleMapsDirectionsToPlace(where);
+  }
+
+  /// The order-detail screen the board's `View Details` link opens.
+  ///
+  /// For grocery this is the only surface that shows the real, server-driven
+  /// order state: `/track` works for this vertical and nothing else does
+  /// (ORDER_CHAT_AND_STEPS_UI_EDGE_CASES.md §7).
+  void _openOrderDetails() {
+    if (_lifecycleOrderId.isEmpty) return;
+    Get.to(() => OrderStepsScreen(
+          args: OrderStepsArgs(
+            orderId: _lifecycleOrderId,
+            service: OrderServiceApi.groceryOrderService,
+            isOwner: _isOwnerView,
+          ),
+        ));
+  }
 
   /// Keep the legacy `order_status` / `is_cancelled` flags in step with the
   /// server so the rest of the app keeps behaving, then rebuild.
@@ -892,6 +992,65 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
 
   @override
   Widget build(BuildContext context) {
+    // A server-driven order is drawn by the board (BlueEra 2026): the
+    // announcement bubble, then one card whose whole body is
+    // `OrderLifecycleSection`. The legacy chrome below is kept for orders
+    // created before the rollout, which carry no `metadata.lifecycle` at all.
+    if (_lifecycle != null) return _boardCard();
+    return _legacyCard();
+  }
+
+  /// The board card — `Your order has been placed successfully!` over
+  /// `Order #0D1247`.
+  Widget _boardCard() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _buildForwardCircle(),
+        const SizedBox(width: 8),
+        SizedBox(
+          // The board's card is nearly the full chat width: it carries a step
+          // strip with six labelled nodes and a two-column payment panel, and
+          // neither survives being squeezed into the 72% a text bubble uses.
+          width: SizeConfig.screenWidth * 0.92,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OrderAnnouncementBar(
+                title: _isOwnerView
+                    ? 'New Order Received'
+                    : 'Your order has been placed successfully!',
+                subtitle: widget.time,
+              ),
+              Container(
+                margin: const EdgeInsets.only(bottom: 2),
+                decoration: BoxDecoration(
+                  color: OrderUi.card,
+                  borderRadius: BorderRadius.circular(OrderUi.cardRadius),
+                  border: Border.all(color: OrderUi.cardBorder),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x0F000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: OrderLifecycleSection(
+                  ctx: _cardContext,
+                  fallbackLifecycle: _lifecycle,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _legacyCard() {
     final selfPickupOrder = widget.message.metadata?.selfPickupOrder;
     final items = selfPickupOrder?.items ?? [];
     final totalItems = selfPickupOrder?.totalItems ?? items.length;

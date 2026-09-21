@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -857,6 +858,14 @@ class _PlaceOrderBar extends StatelessWidget {
                         context,
                         itemsTotal: total,
                         allowDelivery: false,
+                        // The board's `Your Items` and its `Total MRP` /
+                        // `Savings` rows. Both read the same selection the
+                        // total came from, so the sheet cannot disagree with
+                        // the figure on its own button.
+                        items: _checkoutLines(controller),
+                        mrpTotal: controller.totalMRP > total
+                            ? controller.totalMRP
+                            : null,
                       );
                       if (choice == null) return;
                       controller.paymentMethod.value = choice.paymentMethod;
@@ -871,4 +880,34 @@ class _PlaceOrderBar extends StatelessWidget {
       );
     });
   }
+}
+
+/// The selected basket, flattened for the checkout board's `Your Items`.
+///
+/// Reads the controller's own selection so the list, the total and the saving
+/// are three views of one thing rather than three sums that can drift.
+List<OrderCardItem> _checkoutLines(
+    GrocerySelfPickupConsumerController controller) {
+  final out = <OrderCardItem>[];
+  for (final variant in controller.selectedGroceriesVariants) {
+    final qty = controller.getQuantity(variant.sId);
+    if (qty <= 0) continue;
+    final pricing =
+        (variant.pricing?.isNotEmpty ?? false) ? variant.pricing!.first : null;
+    out.add(OrderCardItem(
+      name: variant.variantName ?? '',
+      // `500 g` — the pack size, which is the second line the board draws
+      // under the name.
+      variant: [variant.quantity, variant.unit]
+          .where((e) => (e ?? '').trim().isNotEmpty)
+          .join(' '),
+      imageUrl: (variant.images?.isNotEmpty ?? false)
+          ? variant.images!.first.url
+          : null,
+      price: pricing?.sellingPrice,
+      mrp: pricing?.mrp,
+      quantity: qty,
+    ));
+  }
+  return out;
 }

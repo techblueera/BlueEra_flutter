@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -76,6 +77,48 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
       final qty = controller.getQuantity(v.id);
       final sp = (v.baseSellingPrice ?? 0).toDouble();
       total += sp * qty;
+    }
+    return total;
+  }
+
+  /// The selected basket, flattened for the checkout board's `Your Items`.
+  List<OrderCardItem> _checkoutLines(
+    FoodSelfPickupController controller,
+    Map<String, List<FoodVariants>> grouped,
+  ) {
+    final out = <OrderCardItem>[];
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final v in entry.value) {
+        if (!selectedVariantIds.contains(v.id)) continue;
+        final qty = controller.getQuantity(v.id);
+        if (qty <= 0) continue;
+        out.add(OrderCardItem(
+          name: v.variantName ?? '',
+          variant: v.quantityLabel,
+          price: v.baseSellingPrice,
+          mrp: v.mrp,
+          quantity: qty,
+        ));
+      }
+    }
+    return out;
+  }
+
+  /// What the same basket would have cost at MRP. A dish with no MRP on it
+  /// contributes its own price, so the saving can never be invented.
+  double _checkoutMrpTotal(
+    FoodSelfPickupController controller,
+    Map<String, List<FoodVariants>> grouped,
+  ) {
+    double total = 0;
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final v in entry.value) {
+        if (!selectedVariantIds.contains(v.id)) continue;
+        final unit = (v.mrp ?? 0) > 0 ? v.mrp! : (v.baseSellingPrice ?? 0);
+        total += unit * controller.getQuantity(v.id);
+      }
     }
     return total;
   }
@@ -151,10 +194,16 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
     // does not take doorstep orders yet, so the sheet skips the delivery steps
     // entirely (`allowDelivery: false`) and asks only what it can honour.
     if (!mounted) return;
+    final itemsTotal = _checkoutTotal(controller, grouped);
+    final mrpTotal = _checkoutMrpTotal(controller, grouped);
     final choice = await showOrderCheckoutSheet(
       context,
-      itemsTotal: _checkoutTotal(controller, grouped),
+      itemsTotal: itemsTotal,
       allowDelivery: false,
+      // The board's `Your Items` and its `Total MRP` / `Savings` rows, read
+      // off the same selection the total came from.
+      items: _checkoutLines(controller, grouped),
+      mrpTotal: mrpTotal > itemsTotal ? mrpTotal : null,
     );
     if (choice == null) return;
     controller.paymentMethod.value = choice.paymentMethod;

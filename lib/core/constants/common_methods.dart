@@ -524,6 +524,22 @@ Future<void> openGoogleMapsNavigation({
   }
 }
 
+/// Directions to a place we only know by NAME.
+///
+/// The order chat card carries the shop's address as a string and no
+/// coordinate — the order payload never needed one, because the customer is
+/// walking to a shop they chose. Google resolves the query itself, which is
+/// what the "Get Direction" button on the board's ready card needs.
+Future<void> openGoogleMapsDirectionsToPlace(String query) async {
+  final q = query.trim();
+  if (q.isEmpty) return;
+  final uri = Uri.parse('https://www.google.com/maps/dir/?api=1'
+      '&destination=${Uri.encodeComponent(q)}&travelmode=driving');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
 /// Opens the Google Maps app on the DIRECTIONS view — the route drawn between
 /// two points, which is what a rider wants when they tap a location: the line,
 /// the distance and the ETA, not a lone pin ([openGoogleMaps]) and not

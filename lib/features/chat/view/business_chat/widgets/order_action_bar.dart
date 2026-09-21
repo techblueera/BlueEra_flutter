@@ -4,7 +4,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_payment_submit_sheet.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_rating_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_prep_eta_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_reason_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/pickup_code_screen.dart';
@@ -66,6 +68,43 @@ class OrderCardContext {
   /// its own legacy metadata flags and rebuild.
   final void Function(OrderActionsModel? fresh)? onChanged;
 
+  // ── Board data (BlueEra 2026) ──────────────────────────────────────────
+  // The card header and the order-summary block are part of the *design*, not
+  // the state machine, so they are passed in rather than fetched: the card
+  // already holds them in `metadata.order`, and a summary that waits on a
+  // network call is a summary that flashes empty on every chat scroll.
+
+  /// `0D1247` — rendered as `Order #0D1247`.
+  final String? orderNumber;
+
+  /// `Today, 9:30 AM` — the placed-at line under the order number.
+  final String? placedAtLabel;
+
+  /// The order's line items, newest-first as the shop sent them.
+  final List<OrderCardItem> items;
+
+  /// `metadata.order.totalItems` when it disagrees with `items.length`
+  /// (the card only ever carries the first few).
+  final int? totalItemCount;
+
+  /// The shop's photo, for the party card on the ready / rider screens.
+  final String? shopPhoto;
+
+  /// `0.8km away`.
+  final String? shopDistance;
+
+  /// Opens the existing order-detail screen.
+  final VoidCallback? onViewDetails;
+
+  /// Board: `Shop Again` on the completed card.
+  final VoidCallback? onShopAgain;
+
+  /// Board: `Rate your experience` on the picked-up card.
+  final VoidCallback? onRate;
+
+  /// Board: `Get Direction` on the ready card.
+  final VoidCallback? onGetDirection;
+
   const OrderCardContext({
     required this.orderId,
     this.service = OrderServiceApi.defaultOrderService,
@@ -84,6 +123,16 @@ class OrderCardContext {
     this.onFindRider,
     this.onRaiseIssue,
     this.onChanged,
+    this.orderNumber,
+    this.placedAtLabel,
+    this.items = const [],
+    this.totalItemCount,
+    this.shopPhoto,
+    this.shopDistance,
+    this.onViewDetails,
+    this.onShopAgain,
+    this.onRate,
+    this.onGetDirection,
   });
 }
 
@@ -104,17 +153,43 @@ class OrderActionBar extends StatelessWidget {
   final List<String> actions;
   final OrderCardContext ctx;
 
+  /// Actions a panel above has already drawn a control for.
+  ///
+  /// The board puts `Upload Screenshot` inside the payment panel and
+  /// `Show Code` inside the pickup panel, because the control belongs next to
+  /// the thing it acts on. Rendering them again down here would be two buttons
+  /// for one action — so the section names them and the bar skips them. The
+  /// server contract is untouched: the action is still only ever offered when
+  /// `availableActions` contains it.
+  final Set<String> hiddenActions;
+
+  /// Buttons the board draws that the **state machine has no action for**.
+  ///
+  /// `Shop Again`, `Rate your experience`, `Get Direction`, `Continue
+  /// Shopping`, `View Details` — every one of them is navigation, not a
+  /// transition. They cannot come from `availableActions` because they change
+  /// nothing on the server, and inventing action keys for them would blur the
+  /// line the rest of this file exists to hold. They are appended to the right
+  /// of the row, where the board puts them.
+  final List<Widget> extraButtons;
+
   const OrderActionBar({
     super.key,
     required this.actions,
     required this.ctx,
+    this.hiddenActions = const {},
+    this.extraButtons = const [],
   });
 
   OrderLifecycleController get _controller => OrderLifecycleController.instance;
 
   @override
   Widget build(BuildContext context) {
-    if (actions.isEmpty) return const SizedBox.shrink();
+    // Extras are not actions, so an order the state machine has nothing left
+    // to offer — a completed one — still draws its `Shop Again`.
+    if (actions.isEmpty && extraButtons.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Obx(() {
       // Touch the busy set unconditionally. Several actions (the call icon, an
@@ -128,18 +203,26 @@ class OrderActionBar extends StatelessWidget {
 
       // Order: primary → secondary → destructive → icon (guide §3.3). The
       // server sends what is *allowed*; the ranking decides what reads first.
-      final ranked = [...actions]..sort((a, b) => _rank(a).compareTo(_rank(b)));
+      //
+      // The board draws the primary on the RIGHT, so the ranking is reversed
+      // at layout time: rank still decides *which* buttons survive the cap,
+      // the row decides where they sit.
+      final offered =
+          actions.where((a) => !hiddenActions.contains(a)).toList();
+      final ranked = offered..sort((a, b) => _rank(a).compareTo(_rank(b)));
 
-      // Icons never count against the cap — a call button that disappears into
-      // an overflow menu is a call that does not get made.
-      final icons = ranked.where(_isIcon).toList();
-      final buttons = ranked.where((a) => !_isIcon(a)).toList();
-
-      final visible = buttons.take(_maxVisible).toList();
-      final overflow = buttons.skip(_maxVisible).toList();
+      // Two buttons is the board's limit for the whole row, so a card that
+      // already carries a `Shop Again` has room for one server action beside
+      // it and folds the rest.
+      final cap =
+          (_maxVisible - extraButtons.length).clamp(1, _maxVisible).toInt();
+      final visible = ranked.take(cap).toList();
+      final overflow = ranked.skip(cap).toList();
 
       final widgets = <Widget>[];
-      for (final a in [...visible, ...icons]) {
+      // Reversed: `Cancel Order · Accept`, `Need Help · Payment Collected`,
+      // `Contact Shop · Get Direction` — the board's pairing every time.
+      for (final a in visible.reversed) {
         final w = _widgetFor(context, a);
         if (w != null) widgets.add(w);
       }
@@ -147,24 +230,27 @@ class OrderActionBar extends StatelessWidget {
       final knownOverflow =
           overflow.where((a) => _labelFor(a) != null).toList();
       if (knownOverflow.isNotEmpty) {
-        widgets.add(_overflowButton(context, knownOverflow));
+        widgets.insert(0, _overflowButton(context, knownOverflow));
       }
+
+      widgets.addAll(extraButtons);
 
       if (widgets.isEmpty) return const SizedBox.shrink();
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Wrap(spacing: 8, runSpacing: 8, children: widgets),
+        padding: const EdgeInsets.only(top: 12),
+        child: OrderButtonRow(buttons: widgets),
       );
     });
   }
 
-  /// At most three buttons stay on the card; the rest fold into `⋯`.
-  static const int _maxVisible = 3;
-
-  static bool _isIcon(String a) =>
-      a == OrderAction.contactShop || a == OrderAction.contactCustomer;
+  /// The board never draws more than two buttons on a card; a third folds into
+  /// the `⋯`.
+  static const int _maxVisible = 2;
 
   /// Lower sorts earlier. Primary work first, then the ways out.
+  ///
+  /// Only the *cap* reads this — the row reverses it so the primary lands on
+  /// the right, where the board puts it.
   static int _rank(String a) {
     switch (a) {
       case OrderAction.acceptOrder:
@@ -179,20 +265,22 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.markRefundSent:
       case OrderAction.confirmRefundReceived:
         return 0; // primary
+      case OrderAction.rateOrder:
+        return 1;
       case OrderAction.setPrepEta:
         return 1; // secondary
+      case OrderAction.contactShop:
+      case OrderAction.contactCustomer:
+        return 2; // the board's usual left-hand button
+      case OrderAction.raiseIssue:
+        return 3;
       case OrderAction.findRider:
-        return 2; // low-emphasis link
+        return 4;
       case OrderAction.rejectOrder:
       case OrderAction.rejectPayment:
       case OrderAction.reportNoShow:
       case OrderAction.cancelOrder:
-        return 3; // destructive
-      case OrderAction.raiseIssue:
-        return 4;
-      case OrderAction.contactShop:
-      case OrderAction.contactCustomer:
-        return 5; // icon
+        return 5; // destructive
       default:
         // An unknown action from a newer backend sorts last and renders
         // nothing anyway.
@@ -207,39 +295,41 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.acceptOrder:
         return 'Accept';
       case OrderAction.rejectOrder:
-        return "Can't take it";
+        return 'Reject';
       case OrderAction.setPrepEta:
-        return 'Update time';
+        return 'Update Ready Time';
       case OrderAction.markReady:
-        return 'Order packed';
+        return 'Mark as Ready';
       case OrderAction.verifyPayment:
-        return 'Payment received';
+        return 'Confirm';
       case OrderAction.rejectPayment:
-        return 'Not received';
+        return 'Reject';
       case OrderAction.confirmHandover:
-        return 'Handed over';
+        return 'Verify & Continue';
       case OrderAction.collectCash:
-        return 'Payment collected';
+        return 'Payment Collected';
       case OrderAction.completeOrder:
-        return 'Complete order';
+        return 'Complete Order';
       case OrderAction.startPreparing:
-        return 'Start preparing';
+        return 'Start Preparing';
       case OrderAction.reportNoShow:
         return "Customer didn't come";
       case OrderAction.markRefundSent:
         return 'I sent the refund';
       case OrderAction.submitPayment:
-        return 'Pay now';
+        return 'Upload Screenshot';
       case OrderAction.viewPickupCode:
-        return 'Show pickup code';
+        return 'Show Code';
       case OrderAction.findRider:
         return 'Get it delivered';
       case OrderAction.confirmRefundReceived:
         return 'I received the refund';
       case OrderAction.cancelOrder:
-        return 'Cancel order';
+        return 'Cancel Order';
+      case OrderAction.rateOrder:
+        return 'Rate your experience';
       case OrderAction.raiseIssue:
-        return 'Report a problem';
+        return 'Need Help';
       default:
         return null;
     }
@@ -247,8 +337,7 @@ class OrderActionBar extends StatelessWidget {
 
   Widget _overflowButton(BuildContext context, List<String> actions) {
     return SizedBox(
-      height: 38,
-      width: 44,
+      height: OrderUi.buttonHeight,
       child: PopupMenuButton<String>(
         tooltip: 'More',
         padding: EdgeInsets.zero,
@@ -271,12 +360,13 @@ class OrderActionBar extends StatelessWidget {
         ],
         onSelected: (a) => _runAction(context, a),
         child: Container(
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.greyE5),
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFFF7F8FA),
+            border: Border.all(color: OrderUi.blockBorder),
+            borderRadius: BorderRadius.circular(OrderUi.buttonRadius),
           ),
-          child: const Icon(Icons.more_horiz,
-              size: 18, color: AppColors.secondaryTextColor),
+          child: const Icon(Icons.more_horiz, size: 20, color: OrderUi.inkSoft),
         ),
       ),
     );
@@ -337,6 +427,9 @@ class OrderActionBar extends StatelessWidget {
       case OrderAction.cancelOrder:
         _cancelFlow(context);
         break;
+      case OrderAction.rateOrder:
+        _rateFlow(context);
+        break;
       case OrderAction.raiseIssue:
         _raiseIssue();
         break;
@@ -349,69 +442,125 @@ class OrderActionBar extends StatelessWidget {
     switch (action) {
       // ── Owner ────────────────────────────────────────────────────────
       case OrderAction.acceptOrder:
-        return _primary(action, 'Accept',
-            onTap: () => _acceptFlow(context), color: const Color(0xFF1B9E4B));
+        return _btn(action, 'Accept',
+            onTap: () => _acceptFlow(context),
+            icon: Icons.check_circle_outline);
       case OrderAction.rejectOrder:
-        return _destructive(action, "Can't take it",
-            onTap: () => _rejectFlow(context));
+        return _btn(action, 'Reject',
+            onTap: () => _rejectFlow(context),
+            style: OrderButtonStyle.danger,
+            icon: Icons.cancel_outlined);
       case OrderAction.setPrepEta:
-        return _text(action, 'Update time', onTap: () => _etaSheet(context));
+        return _btn(action, 'Update Ready Time',
+            onTap: () => _etaSheet(context),
+            style: OrderButtonStyle.secondary,
+            icon: Icons.schedule);
       case OrderAction.markReady:
-        return _primary(action, 'Order packed', onTap: _markReady);
+        return _btn(action, 'Mark as Ready',
+            onTap: _markReady, icon: Icons.check_circle_outline);
       case OrderAction.verifyPayment:
-        return _primary(action, 'Payment received',
-            onTap: _verifyPayment, color: const Color(0xFF1B9E4B));
+        return _btn(action, 'Confirm',
+            onTap: _verifyPayment, icon: Icons.check_circle_outline);
       case OrderAction.rejectPayment:
-        return _destructive(action, 'Not received',
-            onTap: () => _rejectPaymentFlow(context));
+        return _btn(action, 'Reject',
+            onTap: () => _rejectPaymentFlow(context),
+            style: OrderButtonStyle.danger,
+            icon: Icons.cancel_outlined);
       case OrderAction.confirmHandover:
-        return _primary(action, 'Handed over',
-            onTap: () => _handoverFlow(context));
-      // Cash at the counter, after the code matched. Green like the other
-      // "money is real" confirmations, and worded as a fact the shop is
-      // reporting rather than an instruction.
+        return _btn(action, 'Verify & Continue',
+            onTap: () => _handoverFlow(context),
+            trailingIcon: Icons.arrow_forward);
+      // Cash at the counter, after the code matched. Worded as a fact the shop
+      // is reporting rather than an instruction.
       case OrderAction.collectCash:
-        return _primary(action, 'Payment collected',
-            onTap: _collectCash, color: const Color(0xFF1B9E4B));
+        return _btn(action, 'Payment Collected',
+            onTap: _collectCash, trailingIcon: Icons.arrow_forward);
       case OrderAction.completeOrder:
-        return _primary(action, 'Complete order', onTap: _completeOrder);
+        return _btn(action, 'Complete Order',
+            onTap: _completeOrder, trailingIcon: Icons.arrow_forward);
       case OrderAction.startPreparing:
-        return _primary(action, 'Start preparing', onTap: _startPreparing);
+        return _btn(action, 'Start Preparing', onTap: _startPreparing);
       case OrderAction.reportNoShow:
-        return _text(action, "Customer didn't come", onTap: _noShow);
+        return _btn(action, "Customer didn't come",
+            onTap: _noShow, style: OrderButtonStyle.secondary);
       case OrderAction.markRefundSent:
-        return _primary(action, 'I sent the refund',
+        return _btn(action, 'I sent the refund',
             onTap: () => _refundSentFlow(context));
 
       // ── Customer ─────────────────────────────────────────────────────
       case OrderAction.submitPayment:
-        return _primary(action, 'Pay now', onTap: () => _payFlow(context));
+        return _btn(action, 'Upload Screenshot',
+            onTap: () => _payFlow(context), icon: Icons.attach_file);
       case OrderAction.viewPickupCode:
-        return _primary(action, 'Show pickup code',
-            onTap: () => _showPickupCode(context));
+        return _btn(action, 'Show Code',
+            onTap: () => _showPickupCode(context),
+            icon: Icons.qr_code_2_outlined);
       case OrderAction.findRider:
-        // A text link under the pickup code — never a primary button, and
-        // never a navigation away from chat (guide §5.5). Delivery was already
-        // offered at checkout; this is the "changed my mind" path.
-        return _text(action, "Can't come? Get it delivered", onTap: _findRider);
+        // Delivery was already offered at checkout; this is the "changed my
+        // mind" path, so it stays low-emphasis (guide §5.5).
+        return _btn(action, 'Get it delivered',
+            onTap: _findRider,
+            style: OrderButtonStyle.secondary,
+            icon: Icons.delivery_dining_outlined);
       case OrderAction.confirmRefundReceived:
-        return _primary(action, 'I received the refund',
+        return _btn(action, 'I received the refund',
             onTap: _confirmRefundReceived);
 
       // ── Either ───────────────────────────────────────────────────────
       case OrderAction.cancelOrder:
-        return _text(action, 'Cancel order',
-            onTap: () => _cancelFlow(context), destructive: true);
+        return _btn(action, 'Cancel Order',
+            onTap: () => _cancelFlow(context),
+            style: OrderButtonStyle.danger,
+            icon: Icons.cancel_outlined);
       case OrderAction.contactShop:
       case OrderAction.contactCustomer:
-        return _iconCall(context);
+        // The board gives this a label, not a bare handset: on the ready and
+        // payment screens "Contact Shop" is half of the button pair.
+        return _btn(
+          action,
+          ctx.isOwner ? 'Contact Customer' : 'Contact Shop',
+          onTap: () => _call(context),
+          style: OrderButtonStyle.secondary,
+          icon: Icons.call_outlined,
+        );
+      case OrderAction.rateOrder:
+        return _btn(action, 'Rate your experience',
+            onTap: () => _rateFlow(context),
+            style: OrderButtonStyle.secondary,
+            icon: Icons.star_border_rounded);
       case OrderAction.raiseIssue:
-        return _text(action, 'Report a problem', onTap: _raiseIssue);
+        return _btn(action, 'Need Help',
+            onTap: _raiseIssue,
+            style: OrderButtonStyle.secondary,
+            icon: Icons.help_outline);
 
       // Unknown action from a newer backend → render nothing. Never guess.
       default:
         return null;
     }
+  }
+
+  /// Every button on an order card, in one place.
+  ///
+  /// `OrderButton` carries the board's shape; this only binds it to the busy
+  /// set, so the tapped action spins and the rest of the card stays live.
+  Widget _btn(
+    String action,
+    String label, {
+    required VoidCallback onTap,
+    OrderButtonStyle style = OrderButtonStyle.primary,
+    IconData? icon,
+    IconData? trailingIcon,
+  }) {
+    final busy = _busy(action);
+    return OrderButton(
+      label: label,
+      style: style,
+      icon: icon,
+      trailingIcon: trailingIcon,
+      busy: busy,
+      onTap: busy ? null : onTap,
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────
@@ -516,22 +665,80 @@ class OrderActionBar extends StatelessWidget {
   }
 
   Future<void> _rejectPaymentFlow(BuildContext context) async {
+    final summary = _controller.stateOf(ctx.orderId)?.paymentSummary;
     final choice = await showOrderReasonSheet(
       context,
-      title: 'Why is the payment not confirmed?',
-      // The server does not scope payment-rejection reasons, so this is a
-      // free-text form — the customer sees exactly what the shop typed.
-      reasons: const [],
-      confirmLabel: 'Not received',
+      title: 'Reject Payment Screenshot?',
+      subtitle: "This screenshot doesn't match the order payment. "
+          'Please choose a reason to continue.',
+      // The server does not scope payment-rejection reasons, so these five are
+      // the board's own list, submitted as free text. The customer sees
+      // exactly what the shop picked.
+      reasons: const [
+        OrderCancellationReason(
+            code: 'WRONG_AMOUNT', label: 'Wrong payment amount'),
+        OrderCancellationReason(
+            code: 'INVALID_SCREENSHOT', label: 'Invalid screenshot'),
+        OrderCancellationReason(
+            code: 'NOT_RECEIVED', label: 'Payment not received'),
+        OrderCancellationReason(
+            code: 'UNCLEAR', label: 'Screenshot unclear'),
+        OrderCancellationReason(
+            code: 'OTHER', label: 'Other', requiresComment: true),
+      ],
+      reasonPrompt: 'Why are you rejecting it? (Required)',
+      preview: _screenshotPreview(summary),
+      confirmLabel: 'Reject Payment Screenshot',
+      keepLabel: 'Keep Order',
       commentHint: 'e.g. Nothing has reached my account yet',
     );
     if (choice == null) return;
     final res = await _controller.rejectPayment(
       ctx.orderId,
-      reason: choice.comment ?? choice.reasonCode,
+      // The customer reads this, so a typed note wins over a bare code and a
+      // code is humanised before it is sent.
+      reason: choice.comment ?? _humanReason(choice.reasonCode),
       service: ctx.service,
     );
     _after(res);
+  }
+
+  static String _humanReason(String code) {
+    final words = code.replaceAll('_', ' ').toLowerCase().trim();
+    if (words.isEmpty) return code;
+    return words[0].toUpperCase() + words.substring(1);
+  }
+
+  /// The screenshot the shop is about to reject, shown at the size it was
+  /// judged at — rejecting a payment on a 46dp thumbnail is how a real
+  /// transfer gets bounced.
+  Widget? _screenshotPreview(OrderPaymentSummary? s) {
+    final url = (s?.screenshotUrl ?? '').trim();
+    if (url.isEmpty) return null;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: OrderUi.blockBorder),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          url,
+          height: 180,
+          width: double.infinity,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Container(
+            height: 120,
+            color: OrderUi.block,
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image_outlined,
+                size: 22, color: OrderUi.inkFaint),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _handoverFlow(BuildContext context) async {
@@ -575,6 +782,13 @@ class OrderActionBar extends StatelessWidget {
     );
     if (ok) ctx.onChanged?.call(_controller.stateOf(ctx.orderId));
   }
+
+  /// The screenshot uploader, reachable from a panel that draws its own
+  /// `Upload Screenshot` control.
+  ///
+  /// One code path for the actual POST: the panel owns where the button sits,
+  /// this owns what it does, and the `/payment/submit` call stays in one place.
+  Future<void> openPaymentSheet(BuildContext context) => _payFlow(context);
 
   Future<void> _payFlow(BuildContext context) async {
     // The sheet needs the authoritative amount due, and `/actions` carries no
@@ -638,11 +852,22 @@ class OrderActionBar extends StatelessWidget {
   Future<void> _cancelFlow(BuildContext context) async {
     final reasons = await _reasons();
     if (!context.mounted) return;
+    final state = _controller.stateOf(ctx.orderId);
+    final l = state?.lifecycle;
     final choice = await showOrderReasonSheet(
       context,
       title: 'Cancel this order?',
+      // What the shop is doing right now decides whether cancelling is even
+      // reasonable, so the sheet says it rather than making the customer
+      // remember which screen they came from.
+      subtitle: _cancelSubtitle(l),
+      caption: 'Cancellation may not be available once preparation has '
+          'reached a certain stage.',
+      reasonPrompt: 'Why are you cancelling? (optional)',
+      preview: _cancelPreview(state),
       reasons: reasons,
-      confirmLabel: 'Cancel order',
+      confirmLabel: 'Cancel Order',
+      keepLabel: 'Keep Order',
       fallbackReasonCode: 'OTHER',
     );
     if (choice == null) return;
@@ -653,6 +878,75 @@ class OrderActionBar extends StatelessWidget {
       service: ctx.service,
     );
     _after(res);
+  }
+
+  /// The board's second line: what is happening to the order right now.
+  static String _cancelSubtitle(OrderLifecycle? l) {
+    switch (l?.orderStatus) {
+      case OrderStatusValue.placed:
+        return 'The shop has not accepted this order yet.';
+      case OrderStatusValue.ready:
+        return 'Your order is packed and waiting at the shop.';
+      case OrderStatusValue.accepted:
+      case OrderStatusValue.inProgress:
+        return 'Your order is currently being prepared by the shop.';
+      default:
+        return 'This will end the order for both of you.';
+    }
+  }
+
+  /// The mini-card between the question and the answers.
+  ///
+  /// The money line is the whole reason it is here: a customer cancelling
+  /// before they paid needs to be told, in the same breath, that there is
+  /// nothing to get back — and one who *has* paid needs to know a refund is
+  /// what happens next, not silence.
+  Widget _cancelPreview(OrderActionsModel? state) {
+    final l = state?.lifecycle;
+    final paid = state?.paymentSummary?.amountPaid ?? 0;
+    final collected = (l?.isCash ?? true)
+        ? ((l?.isCashCollected ?? false)
+            ? (state?.paymentSummary?.amountDue ?? 0)
+            : 0)
+        : paid;
+
+    return OrderCancelPreview(
+      orderNo: _previewOrderNo(state),
+      isDelivery: state?.isRiderOrder ?? false,
+      isCash: l?.isCash ?? true,
+      totalAmount: OrderUiFormat.rupees(
+          state?.grandTotal ?? ctx.orderTotal),
+      thumbnails: [
+        for (final i in ctx.items)
+          if ((i.imageUrl ?? '').trim().isNotEmpty) i.imageUrl!.trim(),
+      ],
+      moneyNote: collected > 0
+          ? '${OrderUiFormat.rupees(collected)} has been paid. '
+              'The shop will return it.'
+          : 'No payment has been collected yet.',
+    );
+  }
+
+  String _previewOrderNo(OrderActionsModel? state) {
+    final n = (ctx.orderNumber ?? state?.orderNumber ?? '').trim();
+    if (n.isNotEmpty) return n.replaceFirst(RegExp(r'^#'), '');
+    final id = ctx.orderId;
+    return id.length > 6 ? id.substring(id.length - 6).toUpperCase() : id;
+  }
+
+  /// `Rate your experience`.
+  ///
+  /// Rating is not an order transition — it posts to the business's own rating
+  /// endpoint and the order is already finished — so nothing here refreshes
+  /// the card. It is offered both as a server action (`RATE_ORDER`) and, on a
+  /// completed card, as one of the board's local buttons; both land here so
+  /// there is one sheet and one POST.
+  Future<void> _rateFlow(BuildContext context) async {
+    await showOrderRatingSheet(
+      context,
+      businessId: ctx.businessId ?? '',
+      shopName: ctx.shopName ?? ctx.otherUserName,
+    );
   }
 
   void _raiseIssue() {
@@ -686,124 +980,10 @@ class OrderActionBar extends StatelessWidget {
 
   bool _busy(String action) => _controller.isBusy(ctx.orderId, action);
 
-  Widget _primary(String action, String label,
-      {required VoidCallback onTap, Color? color}) {
-    final busy = _busy(action);
-    return SizedBox(
-      height: 38,
-      child: ElevatedButton(
-        onPressed: busy ? null : onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? AppColors.primaryColor,
-          disabledBackgroundColor:
-              (color ?? AppColors.primaryColor).withValues(alpha: 0.55),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        child: busy
-            ? _spinner(Colors.white)
-            : CustomText(
-                label,
-                fontSize: SizeConfig.size13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-      ),
-    );
-  }
 
-  Widget _secondary(String action, String label,
-      {required VoidCallback onTap}) {
-    final busy = _busy(action);
-    return SizedBox(
-      height: 38,
-      child: OutlinedButton(
-        onPressed: busy ? null : onTap,
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.primaryColor),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        child: busy
-            ? _spinner(AppColors.primaryColor)
-            : CustomText(
-                label,
-                fontSize: SizeConfig.size13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-      ),
-    );
-  }
 
-  Widget _destructive(String action, String label,
-      {required VoidCallback onTap}) {
-    final busy = _busy(action);
-    return SizedBox(
-      height: 38,
-      child: OutlinedButton(
-        onPressed: busy ? null : onTap,
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.red),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        child: busy
-            ? _spinner(Colors.red)
-            : CustomText(
-                label,
-                fontSize: SizeConfig.size13,
-                fontWeight: FontWeight.w700,
-                color: Colors.red,
-              ),
-      ),
-    );
-  }
 
-  Widget _text(String action, String label,
-      {required VoidCallback onTap, bool destructive = false}) {
-    final busy = _busy(action);
-    final color = destructive ? Colors.red : AppColors.secondaryTextColor;
-    return SizedBox(
-      height: 38,
-      child: TextButton(
-        onPressed: busy ? null : onTap,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          minimumSize: const Size(0, 38),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: busy
-            ? _spinner(color)
-            : CustomText(
-                label,
-                fontSize: SizeConfig.size13,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-      ),
-    );
-  }
 
-  Widget _iconCall(BuildContext context) {
-    return SizedBox(
-      height: 38,
-      width: 44,
-      child: OutlinedButton(
-        onPressed: () => _call(context),
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          side: const BorderSide(color: AppColors.primaryColor),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        child: const Icon(Icons.call, size: 18, color: AppColors.primaryColor),
-      ),
-    );
-  }
 
   void _call(BuildContext context) {
     final otherId = ctx.otherUserId ?? '';
@@ -824,9 +1004,4 @@ class OrderActionBar extends StatelessWidget {
     );
   }
 
-  static Widget _spinner(Color color) => SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2, color: color),
-      );
 }

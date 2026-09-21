@@ -378,31 +378,13 @@ void main() {
     });
   });
 
-  group('§17.3 · checkout asks in the order that makes the fee visible', () {
-    test('address is asked before the fulfilment choice', () {
-      // The whole point. With method first, the delivery card can only
-      // advertise a number nothing computed, and §17.2's "self-pickup becomes
-      // the default when the fee exceeds the basket" is unreachable because
-      // the choice has already been made.
-      expect(orderCheckoutAsksAddressFirst, isTrue);
-      expect(kOrderCheckoutSteps.first.name, 'address');
-    });
-
-    test('payment is chosen after fulfilment, and review is last', () {
-      final names = kOrderCheckoutSteps.map((e) => e.name).toList();
-      expect(names, ['address', 'method', 'payment', 'review']);
-    });
-
-    test('no separate quote step — it renders on the delivery card', () {
-      expect(kOrderCheckoutSteps.map((e) => e.name), isNot(contains('quote')));
-    });
-
-    test('a shop with no location is never asked for a delivery address', () {
-      // Nothing to price, so the address step would be a dead gate.
-      final names = kOrderCheckoutStepsNoDelivery.map((e) => e.name).toList();
-      expect(names, ['payment', 'review']);
-      expect(names, isNot(contains('address')));
-      expect(names, isNot(contains('method')));
+  group('§17.3 · the fee is visible at the moment of choosing', () {
+    test('a delivery fee is never quoted before there is a drop point', () {
+      // The whole point. The board puts checkout on one screen, so there is no
+      // step order left to assert — the rule now lives in the flow: choosing
+      // "Book Rider" opens the address picker first, and until a quote exists
+      // the card says so rather than advertising a number nothing computed.
+      expect(orderCheckoutQuotesBeforeChoosing, isTrue);
     });
   });
 }

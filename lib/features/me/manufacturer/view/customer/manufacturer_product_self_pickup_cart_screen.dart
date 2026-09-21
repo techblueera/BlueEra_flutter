@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/order_checkout_stepper_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -83,6 +84,72 @@ class _ProductSelfPickUpCartScreenState
       final variants = p.product.sellerClassification?.variants ?? [];
       final sp = variants.isNotEmpty ? (variants.first.sellingPrice) : 0;
       total += sp * qty;
+    }
+    return total;
+  }
+
+  /// The selected basket, flattened for the checkout board's `Your Items`.
+  List<OrderCardItem> _checkoutLines(
+    ManufacturerProductSelfPickupController controller,
+    Map<String, List<GetProductData>> grouped,
+  ) {
+    final out = <OrderCardItem>[];
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final p in entry.value) {
+        final id = _variantIdOf(p);
+        if (id == null || !selectedVariantIds.contains(id)) continue;
+        final qty = controller.getQuantity(id);
+        if (qty <= 0) continue;
+        final variants = p.product.sellerClassification?.variants ?? [];
+        final v = variants.isNotEmpty ? variants.first : null;
+        final details = p.product.details;
+        out.add(OrderCardItem(
+          name: details?.name ?? '',
+          variant: _variantLabel(v),
+          imageUrl: (v?.mediaRelatedToVariant.isNotEmpty ?? false)
+              ? v!.mediaRelatedToVariant.first
+              : ((details?.media.isNotEmpty ?? false)
+                  ? details!.media.first
+                  : null),
+          price: v?.sellingPrice,
+          mrp: v?.mrp,
+          quantity: qty,
+        ));
+      }
+    }
+    return out;
+  }
+
+  /// `1kg`, `Large · Red` — a variant has no single label on this model, only
+  /// a bag of attributes whose keys depend on the category, so the values are
+  /// joined. An empty bag yields null and the row simply has no second line.
+  static String? _variantLabel(Variant? v) {
+    if (v == null) return null;
+    final parts = v.attributes.values
+        .map((e) => e?.toString().trim() ?? '')
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  /// What the same basket would have cost at MRP. A variant with no MRP
+  /// contributes its own price, so a saving can never be invented.
+  double _checkoutMrpTotal(
+    ManufacturerProductSelfPickupController controller,
+    Map<String, List<GetProductData>> grouped,
+  ) {
+    double total = 0;
+    for (final entry in grouped.entries) {
+      if (!selectedBusinessIds.contains(entry.key)) continue;
+      for (final p in entry.value) {
+        final id = _variantIdOf(p);
+        if (id == null || !selectedVariantIds.contains(id)) continue;
+        final variants = p.product.sellerClassification?.variants ?? [];
+        final v = variants.isNotEmpty ? variants.first : null;
+        final unit = (v?.mrp ?? 0) > 0 ? v!.mrp : (v?.sellingPrice ?? 0);
+        total += unit * controller.getQuantity(id);
+      }
     }
     return total;
   }
@@ -164,10 +231,16 @@ class _ProductSelfPickUpCartScreenState
     // does not take doorstep orders yet, so the sheet skips the delivery steps
     // entirely (`allowDelivery: false`) and asks only what it can honour.
     if (!mounted) return;
+    final itemsTotal = _checkoutTotal(controller, grouped);
+    final mrpTotal = _checkoutMrpTotal(controller, grouped);
     final choice = await showOrderCheckoutSheet(
       context,
-      itemsTotal: _checkoutTotal(controller, grouped),
+      itemsTotal: itemsTotal,
       allowDelivery: false,
+      // The board's `Your Items` and its `Total MRP` / `Savings` rows, read
+      // off the same selection the total came from.
+      items: _checkoutLines(controller, grouped),
+      mrpTotal: mrpTotal > itemsTotal ? mrpTotal : null,
     );
     if (choice == null) return;
     controller.paymentMethod.value = choice.paymentMethod;
