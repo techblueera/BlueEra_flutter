@@ -24,12 +24,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '347'
+    flutterVersionCode = '349'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '14.0.88'
+    flutterVersionName = '14.0.90'
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')
@@ -60,13 +60,6 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        // Driven by pubspec.yaml, via the flutter.versionCode/versionName that
-        // `flutter build` writes into local.properties. These were hardcoded to
-        // 347 / "14.0.88", which silently won over both - so bumping the
-        // version in pubspec changed nothing in the artifact, and every release
-        // needed a second edit here that was easy to forget. A bundle built
-        // against an already-published versionCode is rejected by Play, and the
-        // only clue is a manifest that disagrees with pubspec.
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         manifestPlaceholders = [
