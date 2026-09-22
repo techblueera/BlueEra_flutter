@@ -4918,10 +4918,10 @@ class ChatViewController extends GetxController {
             await ChatViewRepo().updateGroupApi(params);
         if (responseModelCreas.isSuccess) {
           groupDetailsModel.value.copyWith(
-            groupProfileImage: responseModelCreas.data['group_profile_image'],
-            groupCoverImage: responseModelCreas.data['group_cover_image'],
-            groupName: responseModelCreas.data['group_name'],
-            publicGroup: responseModelCreas.data['public_group'],
+            groupProfileImage: responseModelCreas.getNested(['data', 'group_profile_image']),
+            groupCoverImage: responseModelCreas.getNested(['data', 'group_cover_image']),
+            groupName: responseModelCreas.getNested(['data', 'group_name']),
+            publicGroup: responseModelCreas.getNested(['data', 'public_group']),
           );
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.group_Chat_Type});
@@ -4948,10 +4948,10 @@ class ChatViewController extends GetxController {
               {ApiKeys.type: AppConstants.group_Chat_Type});
 
           groupDetailsModel.value.copyWith(
-            groupProfileImage: responseModelCreas.data['group_profile_image'],
-            groupCoverImage: responseModelCreas.data['group_cover_image'],
-            groupName: responseModelCreas.data['group_name'],
-            publicGroup: responseModelCreas.data['public_group'],
+            groupProfileImage: responseModelCreas.getNested(['data', 'group_profile_image']),
+            groupCoverImage: responseModelCreas.getNested(['data', 'group_cover_image']),
+            groupName: responseModelCreas.getNested(['data', 'group_name']),
+            publicGroup: responseModelCreas.getNested(['data', 'public_group']),
           );
           isEditGroupBtnLoading.value = false;
 

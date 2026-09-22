@@ -6,6 +6,17 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 
+/// Pulls `message` out of a response body that is only *expected* to be JSON.
+///
+/// This repo calls Dio directly, so `ResponseModel`'s guarded accessor is not
+/// available and `Response.data` is whatever the transport produced. On an
+/// error status that is most often an HTML page or a bare string — one of
+/// these methods even does `jsonDecode(response.data)` on the success path,
+/// confirming the body arrives as a String — and indexing a non-Map with a
+/// String key throws `type 'String' is not a subtype of type 'int' of 'index'`.
+String? _bodyMessage(dynamic body) =>
+    body is Map ? body['message']?.toString() : null;
+
 class PorterApiService {
   final Dio _dio = Dio(
     BaseOptions(
@@ -31,7 +42,7 @@ class PorterApiService {
         return {"status": true, "data": response.data};
       } else {
         commonSnackBar(
-            message: response.data['message'] ?? AppStrings.somethingWentWrong);
+            message: _bodyMessage(response.data) ?? AppStrings.somethingWentWrong);
         return {"status": false, "data": response.data};
       }
     } on DioException catch (e) {
@@ -76,7 +87,7 @@ class PorterApiService {
         return jsonDecode(response.data);
       } else {
         commonSnackBar(
-            message: response.data['message'] ?? AppStrings.somethingWentWrong);
+            message: _bodyMessage(response.data) ?? AppStrings.somethingWentWrong);
       }
       return null;
     } catch (e) {
@@ -101,12 +112,12 @@ class PorterApiService {
           response.statusCode == 204 ||
           response.statusCode == 201) {
         commonSnackBar(
-            message: response.data['message'] ?? "Order Canceled Successfully");
+            message: _bodyMessage(response.data) ?? "Order Canceled Successfully");
 
         return true;
       } else {
         commonSnackBar(
-            message: response.data['message'] ?? AppStrings.somethingWentWrong);
+            message: _bodyMessage(response.data) ?? AppStrings.somethingWentWrong);
         return null;
       }
 

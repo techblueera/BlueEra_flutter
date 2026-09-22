@@ -102,17 +102,20 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       if (query != currentAddress.value) return;
 
       if (response.statusCode == 200) {
-        final data = response.response?.data;
-        logs("SEARCH DATA === ${data}");
-        final list = data?['predictions'] as List? ?? [];
+        logs("SEARCH DATA === ${response.response?.data}");
+        final list =
+            response.getExtraData('predictions') as List? ?? const [];
 
         // Parse on background isolate to avoid frame drop
         final parsedList = await compute(PlacePrediction.fromList, list);
         predictions.assignAll(parsedList);
         log('Predictions found: ${predictions.length}');
       } else {
+        // Top-level key: the Places envelope has no `data` wrapper, so the old
+        // `.data['error_message']` indexed null and threw rather than
+        // producing the message.
         errorMessage.value =
-            response.data['error_message'] ?? 'Something went wrong';
+            response.getExtraData('error_message') ?? 'Something went wrong';
       }
     } on TimeoutException {
       if (query != currentAddress.value) return;

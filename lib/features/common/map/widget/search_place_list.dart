@@ -111,8 +111,8 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       await PlaceRepo().autoCompleteSearch(query: widget.query);
 
       if (responseModel.statusCode == 200) {
-        final data = responseModel.response?.data;
-        final predictionsJson = data['predictions'] as List;
+        final predictionsJson =
+            responseModel.getExtraData('predictions') as List? ?? const [];
         final results = PlacePrediction.fromList(predictionsJson);
         // Predictions render straight away; nothing is resolved here. This used
         // to call Place Details for EVERY prediction to fill in lat/lng and a
@@ -126,8 +126,15 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
         });
       } else {
         setState(() {
+          // `getExtraData`, not `.data[...]`: the Places envelope carries
+          // `predictions` and `error_message` at the TOP level, while the
+          // `data` getter looks up `body['data']` first. There is no such key,
+          // so the old form indexed null and threw
+          // `The method '[]' was called on null` — this error branch could
+          // only ever crash instead of showing the message it was reading.
           errorMessage =
-              responseModel.data['error_message'] ?? 'Something went wrong';
+              responseModel.getExtraData('error_message') ??
+                  'Something went wrong';
           isLoading = false;
         });
       }

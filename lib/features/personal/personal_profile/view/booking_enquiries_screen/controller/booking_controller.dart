@@ -1037,13 +1037,17 @@ class BookingController extends GetxController {
       final responseModel = await PlaceRepo().autoCompleteSearch(query: query);
 
       if (responseModel.statusCode == 200) {
-        final data = responseModel.response?.data;
-        final predictionsJson = data?['predictions'] as List? ?? [];
+        final predictionsJson =
+            responseModel.getExtraData('predictions') as List? ?? const [];
         predictions.assignAll(PlacePrediction.fromList(predictionsJson));
         log('total prediction-- ${predictions.length}');
       } else {
+        // Top-level key: the Places envelope has no `data` wrapper, so the
+        // old `.data['error_message']` indexed null and threw rather than
+        // producing the message.
         errorMessage.value =
-            responseModel.data['error_message'] ?? 'Something went wrong';
+            responseModel.getExtraData('error_message') ??
+                'Something went wrong';
       }
     } catch (e) {
       errorMessage.value = e.toString();
