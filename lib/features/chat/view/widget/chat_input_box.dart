@@ -146,6 +146,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         codec: Codec.aacADTS,
       );
 
+      if (!mounted) return;
       setState(() {
         isRecording = true;
         isPaused = false;
@@ -194,6 +195,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       _recordingTimer = null;
       _speechToText.stop();
       final path = await _audioRecorder.stopRecorder();
+      if (!mounted) return;
       setState(() {
         isRecording = false;
         isPaused = false;
@@ -211,6 +213,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       _recordingTimer = null;
       await _audioRecorder.pauseRecorder();
       _speechToText.stop();
+      if (!mounted) return;
       setState(() {
         isPaused = true;
       });
@@ -223,6 +226,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
   Future<void> resumeRecording() async {
     try {
       await _audioRecorder.resumeRecorder();
+      if (!mounted) return;
       setState(() {
         isPaused = false;
       });
@@ -255,6 +259,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       print("Error canceling recording: $e");
     }
 
+    if (!mounted) return;
     setState(() {
       isRecording = false;
       isReadyToSend = false;
@@ -275,6 +280,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     if (_isSpeechAvailable) {
       _speechToText.listen(
         onResult: (result) {
+          if (!mounted) return;
           setState(() {
             _transcribedText = result.recognizedWords;
           });

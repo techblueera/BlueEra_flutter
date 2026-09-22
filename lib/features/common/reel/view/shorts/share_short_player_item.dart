@@ -362,6 +362,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
       controller.setLooping(true);
       controller.setVolume(1.0);
       if (widget.autoPlay) controller.play();
+      if (!mounted) return;
       setState(() => _initialized = true);
     } catch (e) {
       debugPrint('Video init error: $e');
@@ -610,6 +611,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
                   .saveVideosToLocalDB(
                       videoFeedItem: fullScreenShortController.videoItem!);
               if (!_isDisposed) {
+                if (!mounted) return;
                 setState(() {});
               }
 

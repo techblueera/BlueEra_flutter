@@ -543,6 +543,7 @@ class _TodoEditorSheetState extends State<TodoEditorSheet> {
       ),
     );
     if (picked == null) return;
+    if (!mounted) return;
     setState(() {
       _dueAt = DateTime(
         picked.year,
@@ -568,6 +569,7 @@ class _TodoEditorSheetState extends State<TodoEditorSheet> {
       ),
     );
     if (picked == null) return;
+    if (!mounted) return;
     setState(() {
       _dueAt = DateTime(
         _dueAt.year,

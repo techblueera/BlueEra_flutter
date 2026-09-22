@@ -229,6 +229,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    if (!mounted) return;
     setState(() => _isPortrait = true);
 
   }

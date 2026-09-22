@@ -302,6 +302,7 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
       AppStrings.uploadYourDocumentPhoto,
     );
     if (selected?.isNotEmpty ?? false) {
+      if (!mounted) return;
       setState(() {
         imagePath = selected;
       });

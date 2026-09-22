@@ -221,6 +221,7 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () async {
+                          if (!mounted) return;
                           setState(() {
                             _initializeControllerFuture = _setupCamera();
                           });
@@ -246,6 +247,7 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
                       width: SizeConfig.size120,
                       icon: Icon(Icons.refresh, color: AppColors.white),
                       onTap: (){
+                        if (!mounted) return;
                         setState(() {
                           _initializeControllerFuture = _setupCamera();
                         });

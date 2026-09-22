@@ -134,6 +134,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
         double.parse(widget.notificationData.metadata?.deliveredAddress?.long
                 .toString() ??
             ''));
+    if (!mounted) return;
     setState(() {});
   }
 

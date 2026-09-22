@@ -926,6 +926,7 @@ class _ChatBackgroundScreenState extends State<ChatBackgroundScreen>
       } catch (_) {}
     }
 
+    if (!mounted) return;
     setState(() {
       _bgFilePath = savedPath;
       _bgAsset = '';

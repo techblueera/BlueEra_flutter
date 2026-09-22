@@ -429,6 +429,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             .toList();
         _routeCoords = routeCoords;
 
+        if (!mounted) return;
         setState(() {
           _polylines.clear();
           _polylines.add(

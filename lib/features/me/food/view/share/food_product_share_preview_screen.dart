@@ -73,6 +73,7 @@ class _FoodProductSharePreviewScreenState
         return;
       }
     }
+    if (!mounted) return;
     setState(() {
       _loading = false;
       _error = AppStrings.noDataFound.tr;

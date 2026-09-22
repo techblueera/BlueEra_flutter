@@ -159,6 +159,7 @@ class _OrderCardState extends State<OrderCard> {
     if (identity == null || !mounted) return;
     // The card may have been recycled onto a different order while in flight.
     if (widget.order.user?.id != userId) return;
+    if (!mounted) return;
     setState(() => _identity = identity);
   }
 
@@ -2490,6 +2491,7 @@ class _SlideToCompleteButtonState extends State<SlideToCompleteButton> {
       }
     } else {
       // Snap back.
+      if (!mounted) return;
       setState(() => _dragX = 0);
     }
   }

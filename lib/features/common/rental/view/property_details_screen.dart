@@ -1907,6 +1907,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         final fetchResponse = await repo.getPropertyById(p.id!);
         Get.back(); // close loading
         if (fetchResponse.isSuccess && fetchResponse.data != null) {
+          if (!mounted) return;
           setState(() {
             _property = PropertyModel.fromJson(
               fetchResponse.data is Map<String, dynamic>
@@ -1952,6 +1953,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         final fetchResponse = await repo.getPropertyById(p.id!);
         Get.back(); // close loading
         if (fetchResponse.isSuccess && fetchResponse.data != null) {
+          if (!mounted) return;
           setState(() {
             _property = PropertyModel.fromJson(
               fetchResponse.data as Map<String, dynamic>,

@@ -211,6 +211,7 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                                 context,
                                             AppStrings
                                                     .uploadYourDocumentPhoto.tr);
+                                    if (!mounted) return;
                                     setState(() {}); // update picker UI
                                   },
                                 ),

@@ -21,6 +21,7 @@ class _PermissionGateState extends State<PermissionGate> {
 
   Future<void> _checkAllPermissions() async {
     final (granted, missing) = await PermissionService.checkAllPermissions();
+    if (!mounted) return;
     setState(() {
       hasPermission = granted;
       missingPermissions = missing;

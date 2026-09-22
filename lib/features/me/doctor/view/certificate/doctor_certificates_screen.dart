@@ -249,6 +249,7 @@ class _CertificateFormSheetState extends State<_CertificateFormSheet> {
       commonSnackBar(message: AppStrings.doctorImageTooLarge.tr);
       return;
     }
+    if (!mounted) return;
     setState(() => _imageFile = result);
   }
 
@@ -259,7 +260,7 @@ class _CertificateFormSheetState extends State<_CertificateFormSheet> {
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
-    if (picked != null) setState(() => _issuedDate = picked);
+    if (picked != null && mounted) setState(() => _issuedDate = picked);
   }
 
   Future<void> _save() async {

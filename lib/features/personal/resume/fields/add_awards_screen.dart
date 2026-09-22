@@ -207,6 +207,7 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
 
                           if (selected?.isNotEmpty ?? false) {
                             _controller.setAttachment(File(selected!));
+                            if (!mounted) return;
                             setState(() {
                               imagePath = selected;
                             });

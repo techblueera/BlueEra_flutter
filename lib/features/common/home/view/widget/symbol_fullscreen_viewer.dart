@@ -1593,6 +1593,7 @@ class _CommentSheetState extends State<_CommentSheet> {
           .editComment(widget.symbol.id!, _editingCommentId!, text);
       if (success) {
         _textController.clear();
+        if (!mounted) return;
         setState(() => _editingCommentId = null);
         if (mounted) Navigator.of(context).pop();
       }
@@ -1778,6 +1779,7 @@ class _StorySymbolVideoState extends State<_StorySymbolVideo> {
       await controller.dispose();
       return;
     }
+    if (!mounted) return;
     setState(() => _controller = controller);
     widget.onReady(controller.value.duration);
     _syncPlayback();

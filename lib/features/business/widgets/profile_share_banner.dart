@@ -961,6 +961,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     final caption = _referralMessage(referralCode);
     await Clipboard.setData(ClipboardData(text: caption));
 
+    if (!mounted) return;
     setState(() => _isExporting = true);
     try {
       final file = await _writeBannerPng();

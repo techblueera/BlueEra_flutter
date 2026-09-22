@@ -38,6 +38,7 @@ class _SchoolBannerWidgetState extends State<SchoolBannerWidget> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(newPath);

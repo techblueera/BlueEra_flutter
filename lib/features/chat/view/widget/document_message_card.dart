@@ -333,6 +333,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       debugPrint("Error loading PDF: $e");
     }
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });

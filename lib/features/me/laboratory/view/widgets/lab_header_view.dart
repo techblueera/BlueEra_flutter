@@ -48,6 +48,7 @@ class _LabHeaderViewState extends State<LabHeaderView> {
     if (imagePath == null || imagePath.isEmpty) return;
 
     final file = File(imagePath);
+    if (!mounted) return;
     setState(() {
       if (isBanner) {
         _bannerImage = file;

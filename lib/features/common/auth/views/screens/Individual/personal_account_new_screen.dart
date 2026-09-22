@@ -733,6 +733,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                             hintText: langController.tr(AppStrings.actorHint),
                             displayValue: (s) => s.name ?? "",
                             onChanged: (value) {
+                              if (!mounted) return;
                               setState(() {
                                 _selectedArtistObj = value;
                               });
@@ -1203,6 +1204,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         },
                         onChange: (value) {
                           authController.isShowCheck.value = true;
+                          if (!mounted) return;
                           setState(() {});
                         },
                       ),
@@ -1523,6 +1525,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         _isSubmitting.value = false;
       }
     } else {
+      if (!mounted) return;
       setState(() {
         _autoValidate = AutovalidateMode.always;
       });
@@ -1545,6 +1548,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
     if (selected?.isNotEmpty ?? false) {
       _imagePath = selected;
       UserSession().imagePath = selected;
+      if (!mounted) return;
       setState(() {});
     }
   }

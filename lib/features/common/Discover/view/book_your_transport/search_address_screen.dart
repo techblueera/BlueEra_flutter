@@ -986,6 +986,7 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
       ),
     );
     if (tag != null && tag.isNotEmpty) {
+      if (!mounted) return;
       setState(() {
         _selectedTag = '__custom__';
         _customTag = tag;

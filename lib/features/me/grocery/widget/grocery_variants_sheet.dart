@@ -342,6 +342,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
     }
 
     variant.inventory?.isOutOfStock = markOutOfStock;
+    if (!mounted) return;
     setState(() => _togglingStockId = null);
     // Same object the controller's list holds, but mutating an element doesn't
     // notify an RxList — nudge the rail behind the sheet.

@@ -390,6 +390,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
     if (picked == null || !mounted) return;
 
     final formatted = picked.formattedAddress.trim();
+    if (!mounted) return;
     setState(() {
       _pickedAddress = picked;
       _pickedFromGps = false;

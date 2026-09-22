@@ -134,6 +134,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                   String? editedImage = await Get.to(() =>
                       SinglePhotoPostEditingScreen(photo: File(selectedPhotos[index]), isPortrait: _selectedAspect == 'Portrait'));
                   if (editedImage != null) {
+                    if (!mounted) return;
                     setState(() {
                       selectedPhotos[index] = editedImage;
                     });
@@ -403,6 +404,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
         _imageKeys.add(GlobalKey());
       }
     }
+    if (!mounted) return;
     setState(() {});
   }
 

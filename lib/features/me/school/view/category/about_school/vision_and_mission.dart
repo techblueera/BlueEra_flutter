@@ -143,6 +143,7 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                                           visionMissionText: currentText);
                                   // 2. IMPORTANT: After the controller refreshes the data,
                                   // sync your local initialText so the button disables again.
+                                  if (!mounted) return;
                                   setState(() {
                                     visionMissionEditController.text =
                                         currentText;

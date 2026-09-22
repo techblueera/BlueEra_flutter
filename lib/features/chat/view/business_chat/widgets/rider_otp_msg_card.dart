@@ -103,6 +103,7 @@ class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.pickupOrderVerifiedSuccessfully.tr);
         // Optimistic flip; the `riderOtpUpdated` socket also marks it consumed.
+        if (!mounted) return;
         setState(() => otp.status = 'consumed');
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);

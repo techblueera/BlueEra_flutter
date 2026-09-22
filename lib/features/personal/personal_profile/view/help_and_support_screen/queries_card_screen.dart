@@ -171,6 +171,7 @@ class _QueriesCardState extends State<QueriesCard> {
                   for (int i = 0; i < postTab.length; i++)
                     InkWell(
                       onTap: () {
+                        if (!mounted) return;
                         setState(() {
                           selectedIndex = i;
                         });

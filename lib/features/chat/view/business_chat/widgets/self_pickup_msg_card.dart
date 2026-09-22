@@ -946,6 +946,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       log('Error generating packing summary PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
+      if (!mounted) return;
       setState(() => _isGeneratingPdf = false);
     }
   }
@@ -978,6 +979,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       // Update local state
       widget.message.metadata?.orderStatus = true;
       widget.message.metadata?.selfPickupOrder?.isReady = true;
+      if (!mounted) return;
       setState(() {});
 
       commonSnackBar(message: 'Order marked as ready for pickup');
@@ -986,6 +988,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       log('Error marking order ready: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
+      if (!mounted) return;
       setState(() => _isMarkingReady = false);
     }
   }
@@ -1975,6 +1978,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       log('Error generating PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
+      if (!mounted) return;
       setState(() => _isGeneratingPdf = false);
     }
   }

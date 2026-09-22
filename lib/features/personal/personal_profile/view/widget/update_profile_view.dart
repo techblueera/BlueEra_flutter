@@ -1302,6 +1302,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                                                   .updateUserProfileDetails(
                                                 params: params,
                                               );
+                                              if (!mounted) return;
                                               setState(() {
                                                 updateBtnLoading =
                                                     !updateBtnLoading;

@@ -47,6 +47,7 @@ class _FranchiseHomeState extends State<FranchiseHome> {
         icon: customIcon,
       );
 
+      if (!mounted) return;
       setState(() {
         _markers.add(customMarker);
       });

@@ -85,6 +85,7 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
     };
 
     await widget.businessController.updateBusinessProfileDetails(params);
+    if (!mounted) return;
     setState(() => _isSaving = false);
     if (mounted) Get.back();
   }

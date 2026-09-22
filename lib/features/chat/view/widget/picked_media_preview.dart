@@ -137,6 +137,7 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
           _videoControllers.add(null);
         }
       }
+      if (!mounted) return;
       setState(() {
         _mediaFiles.addAll(files);
       });

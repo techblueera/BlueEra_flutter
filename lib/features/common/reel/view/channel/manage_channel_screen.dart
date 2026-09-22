@@ -484,6 +484,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
         context, AppStrings.uploadChannelLogo);
     if (imagePath == null || imagePath.isEmpty) return;
     _profileImage = File(imagePath);
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -577,6 +578,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
         commonSnackBar(message: "Something went wrong. Please try again.");
       }
     } else {
+      if (!mounted) return;
       setState(() {});
     }
   }

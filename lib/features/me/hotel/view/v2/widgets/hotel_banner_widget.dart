@@ -38,6 +38,7 @@ class _HotelBannerWidgetState extends State<HotelBannerWidget> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(newPath);

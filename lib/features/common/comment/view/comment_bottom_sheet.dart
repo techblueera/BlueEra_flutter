@@ -556,6 +556,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ),
                                 );
                               }
+                              if (!mounted) return;
                               setState(() {});
                             } catch (e) {
                               logs("ERROR $e");
@@ -628,6 +629,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                       ? "comment_reply"
                                       : "comment",
                                 ));
+                            if (!mounted) return;
                             setState(() {});
                           } catch (e) {
                             logs("ERROR $e");

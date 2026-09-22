@@ -29,6 +29,7 @@ class _FranchiseHeaderState extends State<FranchiseHeader> {
   Future<void> _pickImage(bool isBanner) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      if (!mounted) return;
       setState(() {
         if (isBanner) {
         } else {

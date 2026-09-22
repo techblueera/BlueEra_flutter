@@ -279,6 +279,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
     if (imagePath?.isNotEmpty ?? false) {
       final file = File(imagePath!);
       certificationsController.setAttachment(file);
+      if (!mounted) return;
       setState(() {});
       validateForm();
     }

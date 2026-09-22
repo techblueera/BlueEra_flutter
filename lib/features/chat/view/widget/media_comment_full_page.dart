@@ -103,6 +103,7 @@ class _VideoCommentsPageState extends State<VideoCommentsPage> {
               bool value = await chatViewController.likeAndUnlikeMessage(data,widget.userId,widget.conversationId);
               if(value){
 
+                if (!mounted) return;
                 setState(() {
                   if(like==null){
                     like=widget.message.is_liked;
@@ -444,6 +445,7 @@ class _VideoCommentsPageState extends State<VideoCommentsPage> {
                             if(value!=null&&value){
                               reply_count=reply_count!+1;
                             }
+                            if (!mounted) return;
                             setState(() {
 
                             });

@@ -128,6 +128,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           quality: 75,
         );
 
+        if (!mounted) return;
         setState(() {
           _commonCoverImage = thumbnailPath.path;
         });
@@ -395,6 +396,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               arguments: {ApiKeys.previouslySelectedItems: tagUsers}) as Map<String, String>?;
 
                           if (result != null) {
+                            if (!mounted) return;
                             setState(() {
                               tagUsers = Map.from(result);
                             });
@@ -456,6 +458,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                             ) as SongModel?;
 
                             if (result != null) {
+                              if (!mounted) return;
                               setState(() {
                                 songData = result;
                               });
@@ -625,6 +628,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                             milliseconds: 500),
                                         curve: Curves.easeOut,
                                       );
+                                      if (!mounted) return;
                                       setState(() {
                                         isBookingAvailabilitySet =
                                             isBookingAvailability;
@@ -641,11 +645,13 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                     cancelText: AppLocalizations.of(context)!
                                         .no);
                               } else {
+                                if (!mounted) return;
                                 setState(() {
                                   _acceptBookings = value;
                                 });
                               }
                             } else {
+                              if (!mounted) return;
                               setState(() {
                                 _acceptBookings = value;
                               });
@@ -1135,6 +1141,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     if (croppedPath != null) {
       _commonCoverImage = croppedPath;
       if (_commonCoverImage?.isNotEmpty ?? false) {
+        if (!mounted) return;
         setState(() {});
       }
     }
@@ -1157,12 +1164,14 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
       await uploadVideo();
     } else {
+      if (!mounted) return;
       setState(() {
         _autoValidate = AutovalidateMode.always;
         _isSubmitting = false;
       });
     }
 
+    if (!mounted) return;
     setState(() => _isSubmitting = false);
   }
 

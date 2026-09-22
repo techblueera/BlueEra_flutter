@@ -128,6 +128,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
 
     selectedImage = await PhotoPickerService.pickSinglePhoto(
         context, AppStrings.uploadDocumentPhoto);
+    if (!mounted) return;
     setState(() {});
     if (selectedImage?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...

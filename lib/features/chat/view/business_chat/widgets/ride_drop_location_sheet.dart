@@ -173,6 +173,7 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
       lng: _pickedLng,
     );
     _resetAddForm();
+    if (!mounted) return;
     setState(() {
       _showAddForm = false;
       _selectedId = saved.id; // auto-select the freshly added address
@@ -520,6 +521,7 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
     if (choice == 'current') {
       await _useCurrentLocation();
     } else if (choice == 'manual') {
+      if (!mounted) return;
       setState(() => _manualSearch = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _addressFocus.requestFocus();
@@ -594,6 +596,7 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
       _pickedLng = lng;
       _predictions.clear();
       // Keep the field in read-only "tap to change" mode after auto-fill.
+      if (!mounted) return;
       setState(() => _manualSearch = false);
     } catch (_) {
       commonSnackBar(message: 'Unable to fetch current location');

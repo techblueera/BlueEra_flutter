@@ -687,6 +687,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                   cropAspectRatio: CropAspectRatio(width: 1, height: 1),
                 );
                 if (imgStr != null) {
+                  if (!mounted) return;
                   setState(() => _isLoading = true);
                   await widget.controller
                       .saveBusinessImages(imgStr, widget.controller);

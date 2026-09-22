@@ -67,6 +67,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       if (res.isSuccess && res.response?.data != null) {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
+          if (!mounted) return;
           setState(() => _data = MedicalHomeResponseModel.fromJson(data));
 
           // Populate gallery from home API response if gallery controller is empty
@@ -76,6 +77,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     } catch (e) {
       debugPrint("Error fetching medical profile: $e");
     } finally {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }

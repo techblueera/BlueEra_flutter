@@ -100,6 +100,7 @@ class _RefundSentDialogState extends State<_RefundSentDialog> {
       Navigator.of(context).pop(false);
       return;
     }
+    if (!mounted) return;
     setState(() => _referenceError = res.message?.isNotEmpty == true
         ? res.message!
         : 'Could not record the refund. Try again.');

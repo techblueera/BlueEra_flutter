@@ -97,6 +97,7 @@ class _LockedChatsScreenState extends State<LockedChatsScreen>
     if (_lockController.hasPin.value) {
       final ok = await _lockController.verifyPin(_pinController.text.trim());
       if (!ok) {
+        if (!mounted) return;
         setState(() => _pinError = "Incorrect PIN");
         return;
       }
@@ -113,6 +114,7 @@ class _LockedChatsScreenState extends State<LockedChatsScreen>
       }
       await _lockController.setPin(pin);
     }
+    if (!mounted) return;
     setState(() {
       _isUnlocked = true;
       _pinError = null;

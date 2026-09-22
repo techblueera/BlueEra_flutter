@@ -644,6 +644,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               isShortSavedInDb = await Get.find<ShortsController>()
                   .saveVideosToLocalDB(
                       videoFeedItem: fullScreenShortController.videoItem!);
+              if (!mounted) return;
               setState(() {});
               Get.find<ShortsController>().updateVideoSavedState(
                 videoId: fullScreenShortController.videoItem?.video?.id ?? '0',

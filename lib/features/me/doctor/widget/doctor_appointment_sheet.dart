@@ -252,6 +252,7 @@ class _DoctorAppointmentFormState extends State<_DoctorAppointmentForm> {
       commonSnackBar(message: AppStrings.doctorEndTimeError.tr);
       return;
     }
+    if (!mounted) return;
     setState(() => _endTime = picked);
   }
 

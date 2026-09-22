@@ -209,6 +209,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                                 context,
                                             AppStrings
                                                     .uploadYourDocumentPhoto.tr);
+                                    if (!mounted) return;
                                     setState(() {}); // update picker UI
                                   },
                                 ),

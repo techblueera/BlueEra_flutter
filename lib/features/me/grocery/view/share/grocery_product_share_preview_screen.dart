@@ -79,6 +79,7 @@ class _GroceryProductSharePreviewScreenState extends State<GroceryProductSharePr
         return;
       }
     }
+    if (!mounted) return;
     setState(() {
       _loading = false;
       _error = AppStrings.noDataFound.tr;

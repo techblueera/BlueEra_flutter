@@ -1040,6 +1040,7 @@ class _RiderOrderTabState extends State<RiderOrderTab> {
       commonSnackBar(message: AppStrings.currentLocationUnavailable.tr);
       return;
     }
+    if (!mounted) return;
     setState(() {
       _pickupController.text = data.fullAddress;
       _pickupLat = double.tryParse(data.lat);

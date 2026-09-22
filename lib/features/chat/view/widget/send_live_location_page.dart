@@ -87,6 +87,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
       if (allPlaces.length >= 8) break;
     }
 
+    if (!mounted) return;
     setState(() {
       _nearbyPlaces = allPlaces;
     });

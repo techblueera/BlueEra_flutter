@@ -945,6 +945,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
             currentIndex = deletedIndex;
           }
 
+          if (!mounted) return;
           setState(() {});
           _pageController.jumpToPage(currentIndex);
         },

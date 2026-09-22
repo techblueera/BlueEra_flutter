@@ -40,6 +40,7 @@ class _DoctorGallerySectionState extends State<DoctorGallerySection> {
       ).catchError((_) => null);
       if (path == null || path.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(path);

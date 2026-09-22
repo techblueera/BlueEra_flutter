@@ -40,6 +40,7 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
         }
       }
       await getSchoolID();
+      if (!mounted) return;
       setState(() {
         // Check if global ID was successfully populated
         controller.hasSchool.value = schoolIDGlobal.isNotEmpty;

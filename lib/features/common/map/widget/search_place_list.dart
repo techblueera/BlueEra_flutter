@@ -83,6 +83,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
         icon: customIcon,
       );
 
+      if (!mounted) return;
       setState(() {
         _markers.add(customMarker);
       });
@@ -118,6 +119,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
         // distance label — one billed lookup per row, per search — when the user
         // only ever opens one of them. [_selectPrediction] resolves that one.
         // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
+        if (!mounted) return;
         setState(() {
           isLoading = false;
           predictions = results;

@@ -160,6 +160,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
         // Start recording to the NEW file
         await _audioRecorder.start(const RecordConfig(), path: path);
 
+        if (!mounted) return;
         setState(() {
           _isRecording = true;
           _isRecordingPaused = false;
@@ -225,6 +226,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
         // 4. Update UI
         // We set _isRecording = false, but we do NOT set _isRecordingPaused = true
         // because the API function turns on its own Loading Spinner (_isAudioTransmitToText).
+        if (!mounted) return;
         setState(() {
           _isRecording = false;
         });
@@ -258,6 +260,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
     }
 
     // 4. Reset ALL State
+    if (!mounted) return;
     setState(() {
       // UI Flags
       _isRecording = false;
@@ -276,9 +279,11 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
   void _togglePreviewPlay() async {
     if (_audioPlayer.playing) {
       await _audioPlayer.pause();
+      if (!mounted) return;
       setState(() => _isPlayingPreview = false);
     } else {
       await _audioPlayer.play();
+      if (!mounted) return;
       setState(() => _isPlayingPreview = true);
 
       // Reset when ENTIRE playlist finishes
@@ -336,6 +341,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
         }
       }
 
+      if (!mounted) return;
       setState(() {
         _isRecordingPaused = true;
       });

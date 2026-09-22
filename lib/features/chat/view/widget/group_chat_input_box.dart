@@ -129,6 +129,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         codec: Codec.aacADTS,
       );
 
+      if (!mounted) return;
       setState(() {
         isRecording = true;
         isPaused = false;
@@ -164,6 +165,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
   Future<void> stopRecording() async {
     try {
       final path = await _audioRecorder.stopRecorder();
+      if (!mounted) return;
       setState(() {
         isRecording = false;
         isPaused = false;
@@ -177,6 +179,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
   Future<void> pauseRecording() async {
     try {
       await _audioRecorder.pauseRecorder();
+      if (!mounted) return;
       setState(() {
         isPaused = true;
       });
@@ -189,6 +192,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
   Future<void> resumeRecording() async {
     try {
       await _audioRecorder.resumeRecorder();
+      if (!mounted) return;
       setState(() {
         isPaused = false;
       });
@@ -211,6 +215,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       print("Error canceling recording: $e");
     }
 
+    if (!mounted) return;
     setState(() {
       isRecording = false;
       isReadyToSend = false;

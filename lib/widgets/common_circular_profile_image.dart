@@ -115,6 +115,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
         ///SET IMAGE PATH...
         widget.onImageUpdate(widget.imagePath ?? "");
 
+        if (!mounted) return;
         setState(() {});
       }
     } on Exception catch (e) {

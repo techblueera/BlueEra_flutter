@@ -73,6 +73,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
       );
 
 
+      if (!mounted) return;
       setState(() {
         _markers.add(customMarker);
       });
@@ -237,6 +238,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                           orderController.selectedIndexes.contains(pilot);
                       return GestureDetector(
                         onTap: () {
+                          if (!mounted) return;
                           setState(() {
                             if (isSelected) {
                               orderController.selectedIndexes.remove(pilot);

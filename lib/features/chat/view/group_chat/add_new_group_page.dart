@@ -120,6 +120,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
     String? imagePath = await PhotoPickerService.pickSinglePhoto(
         context, "Choose Group Icon");
     if (imagePath != null) {
+      if (!mounted) return;
       setState(() {
         pickedFile = File(imagePath);
       });

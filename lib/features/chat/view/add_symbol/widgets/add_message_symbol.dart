@@ -453,6 +453,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
               final data = await Clipboard.getData('text/plain');
               if (data?.text != null) {
                 controller.linkTextSymbolController.text = data!.text!;
+                if (!mounted) return;
                 setState(() {});
               }
             },

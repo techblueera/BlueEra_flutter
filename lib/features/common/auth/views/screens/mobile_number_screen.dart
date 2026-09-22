@@ -355,6 +355,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
       await Get.find<AuthController>().sendOTP();
       unFocus();
     } else {
+      if (!mounted) return;
       setState(() {
         _autoValidate = AutovalidateMode.always;
       });

@@ -71,6 +71,7 @@ class _VideoTrimmerPageState extends State<VideoTrimmerPage> {
       startValue: startValue,
       endValue: endValue,
       onSave: (outputPath) {
+        if (!mounted) return;
         setState(() => isSaving = false);
         Navigator.pop(context, outputPath);
       },

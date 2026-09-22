@@ -481,6 +481,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                                 "feed card share failed inside _onShareButtonPressed $e");
                           } finally {
                             _isSharing = false;
+                            if (!mounted) return;
                             setState(() {
                               isShareLoading = false;
                             });

@@ -39,6 +39,7 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(newPath);

@@ -105,6 +105,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
         _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) async {
           if (_isPlaying) {
             final pos = await _waveformController.getDuration(aw.DurationType.current);
+            if (!mounted) return;
             setState(() => _currentPosition = pos);
           }
         });
@@ -116,6 +117,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
       debugPrint("Download or playback error: $e");
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
@@ -320,6 +322,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
                             await _waveformController.startPlayer();
                             _isPlaying = true;
                           }
+                          if (!mounted) return;
                           setState(() {}); // rebuild the button
                         },
                       ),

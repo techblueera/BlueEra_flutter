@@ -50,6 +50,7 @@ class _ManufacturerSubmitVariantDialogState
       if (selected != null && selected.isNotEmpty) {
         final remaining = maxAllowedProductImage - productImages.length;
         if (remaining <= 0) return;
+        if (!mounted) return;
         setState(() {
           productImages.addAll(selected.take(remaining));
         });

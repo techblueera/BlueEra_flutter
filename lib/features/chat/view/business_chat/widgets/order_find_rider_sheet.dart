@@ -82,6 +82,7 @@ class _FindRiderSheetState extends State<_FindRiderSheet> {
       final shopLat = double.tryParse(orderNow.lat.value) ?? 0.0;
       final shopLng = double.tryParse(orderNow.long.value) ?? 0.0;
       if (shopLat == 0.0 && shopLng == 0.0) {
+        if (!mounted) return;
         setState(() {
           _loading = false;
           _error = "We couldn't find the shop's location.";

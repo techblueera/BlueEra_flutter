@@ -78,6 +78,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       // 5. Check visibility immediately
       _playPauseBasedOnVisibility();
 
+      if (!mounted) return;
       setState(() {
         _isInitialized = true;
       });

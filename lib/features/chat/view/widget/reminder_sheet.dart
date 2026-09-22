@@ -198,6 +198,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
                         lastDate: DateTime(2100),
                       );
                       if (picked != null) {
+                        if (!mounted) return;
                         setState(() => selectedDate = picked);
                       }
                     },
@@ -308,6 +309,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
     await showTimePicker(context: context, initialTime: selectedTime,
     );
     if (picked != null) {
+      if (!mounted) return;
       setState(() => selectedTime = picked);
     }
   }

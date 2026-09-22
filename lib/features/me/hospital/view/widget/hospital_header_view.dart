@@ -32,6 +32,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
   Future<void> _pickImage(bool isBanner) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
+    if (!mounted) return;
     setState(() {
       if (!isBanner) _logoImage = File(image.path);
     });

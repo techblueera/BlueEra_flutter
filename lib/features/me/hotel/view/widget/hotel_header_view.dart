@@ -47,6 +47,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
     if (imagePath == null || imagePath.isEmpty) return;
 
     final picked = File(imagePath);
+    if (!mounted) return;
     setState(() {
       if (isBanner) {
         _bannerImage = picked;

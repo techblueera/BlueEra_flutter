@@ -483,6 +483,7 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
       commonSnackBar(message: 'End time must be after start time');
       return;
     }
+    if (!mounted) return;
     setState(() => _endTime = picked);
   }
 

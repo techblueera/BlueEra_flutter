@@ -619,6 +619,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               displayValue: (profession) => profession.displayName,
                               title: AppStrings.natureOfBusiness,
                               onChanged: (value) {
+                                if (!mounted) return;
                                 setState(() {
                                   authController.selectedNatureOfBusiness = value;
                                 });
@@ -823,6 +824,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     if (selected?.isNotEmpty ?? false) {
       _imagePath = selected;
       UserSession().imagePath = selected;
+      if (!mounted) return;
       setState(() {});
     }
   }
@@ -836,6 +838,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     }
 
     if (!(_formKey.currentState?.validate() ?? false)) {
+      if (!mounted) return;
       setState(() {
         _autoValidate = AutovalidateMode.always;
       });

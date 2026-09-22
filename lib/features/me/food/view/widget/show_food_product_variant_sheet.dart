@@ -370,6 +370,7 @@ class _VariantListState extends State<_VariantList> {
     if (Get.isRegistered<RestaurantController>()) {
       Get.find<RestaurantController>().markMenuChanged();
     }
+    if (!mounted) return;
     setState(() => _savingPriceId = null);
     commonSnackBar(message: 'Price updated.');
   }
@@ -496,6 +497,7 @@ class _VariantListState extends State<_VariantList> {
     if (Get.isRegistered<RestaurantController>()) {
       Get.find<RestaurantController>().markMenuChanged();
     }
+    if (!mounted) return;
     setState(() => _togglingStockId = null);
     commonSnackBar(
       message: markOutOfStock ? 'Marked out of stock.' : 'Marked in stock.',

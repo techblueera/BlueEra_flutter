@@ -854,6 +854,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       saveText: AppStrings.applyLabel.tr,
     );
     if (picked == null) return;
+    if (!mounted) return;
     setState(() {
       _customRange = picked;
       _selectedDateFilter = _OrderDateFilter.custom;

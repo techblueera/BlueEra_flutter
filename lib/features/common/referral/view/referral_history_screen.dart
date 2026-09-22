@@ -313,6 +313,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       ),
     );
     if (picked == null) return;
+    if (!mounted) return;
     setState(() => _dateRange = picked);
   }
 
@@ -484,6 +485,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
     );
     if (choice == null) return;
 
+    if (!mounted) return;
     setState(() => _isExporting = true);
     try {
       final bytes = await _buildPdfBytes(rows);

@@ -42,6 +42,7 @@ class _CreateSupportQueryPageState extends State<CreateSupportQueryPage> {
         context, "Choose Image");
 
     if (image != null) {
+      if (!mounted) return;
       setState(() {
         controller.pickedQueriesImages.add(image);
       });

@@ -828,6 +828,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                     setState(() => _isAccepting = true);
                     final accepted = await controller.acceptCall();
                     if (!accepted) {
+                      if (!mounted) return;
                       setState(() => _isAccepting = false);
                     }
                   },

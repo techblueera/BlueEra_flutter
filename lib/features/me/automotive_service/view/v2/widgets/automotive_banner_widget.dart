@@ -39,6 +39,7 @@ class _AutomotiveBannerWidgetState extends State<AutomotiveBannerWidget> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(newPath);

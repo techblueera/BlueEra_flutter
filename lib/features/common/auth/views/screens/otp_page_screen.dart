@@ -138,6 +138,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
         await Get.find<AuthController>().verifyOTP(otp: _otpController.text);
       }
     } else {
+      if (!mounted) return;
       setState(() {
         _autoValidate = PinputAutovalidateMode.onSubmit;
       });
@@ -154,6 +155,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
         Status.COMPLETE) {
       _otpController.clear();
       _startTimer();
+      if (!mounted) return;
       setState(() => _isSubmitDisabled = true);
     }
   }

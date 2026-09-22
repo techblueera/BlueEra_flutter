@@ -32,6 +32,7 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
   Future<void> _pickImage(bool isBanner) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      if (!mounted) return;
       setState(() {
         if (isBanner) {
           _bannerImage = File(image.path);

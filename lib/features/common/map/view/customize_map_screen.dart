@@ -210,6 +210,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     }
 
     // 4. Update State (Add/Remove logic)
+    if (!mounted) return;
     setState(() {
       // Always remove old one first to avoid duplicates
       _markers.removeWhere((m) => m.markerId.value == 'selected_location');
@@ -257,6 +258,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     }).toSet();
 
     // 4. Update Map State
+    if (!mounted) return;
     setState(() {
       // We REMOVE old place markers (if any) before adding new ones
       // This prevents "ghost" markers from previous searches remaining on the map
@@ -539,6 +541,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           tabs: serviceCategory,
           selectedIndex: selectedServiceCategoryIndex,
           onTabSelected: (index, value) {
+            if (!mounted) return;
             setState(() {
               selectedServiceCategoryIndex = index;
 
@@ -622,6 +625,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         lat: _lat,
         lng: _lng,
         onClose: () {
+          if (!mounted) return;
           setState(() {
             selectedServiceCategoryIndex = -1;
             serviceCategoryType = null;
@@ -725,6 +729,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     if (mapCategoryType == MapCategory.jobs) {
       return JobServiceBottomSheet(
           onClose: () {
+            if (!mounted) return;
             setState(() {
               selectedIndex = -1;
               mapCategoryType = null;
@@ -739,6 +744,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       return CustomServiceBottomSheet(
         serviceType: 'PLACES',
         onClose: () {
+          if (!mounted) return;
           setState(() {
             selectedIndex = -1;
             mapCategoryType = null;

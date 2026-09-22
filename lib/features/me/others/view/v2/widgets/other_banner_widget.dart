@@ -39,6 +39,7 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
+      if (!mounted) return;
       setState(() => _isUploading = true);
 
       final file = File(newPath);
