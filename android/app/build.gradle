@@ -22,14 +22,33 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Fail rather than guess. These come from pubspec.yaml, written into
+// local.properties by the Flutter tool on every `flutter build`.
+//
+// They used to fall back to a hardcoded '349' / '14.0.90' — the leftover of
+// the migration that stopped hardcoding the version here. local.properties is
+// git-ignored, so on a fresh clone or a CI runner that calls Gradle directly
+// the file does not exist yet and the fallback applied silently: the bundle
+// came out carrying an ALREADY-PUBLISHED version code. Play either rejects
+// that or, worse, accepts a duplicate and files its crashes under the older
+// build — which is exactly the signal used to tell a fixed crash from a live
+// one.
+//
+// A stale version is worse than no build, so this stops the build instead.
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '349'
+    throw new GradleException(
+            "flutter.versionCode missing from android/local.properties. " +
+            "Build with `flutter build appbundle` rather than invoking Gradle " +
+            "directly - the Flutter tool writes the version from pubspec.yaml.")
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '14.0.90'
+    throw new GradleException(
+            "flutter.versionName missing from android/local.properties. " +
+            "Build with `flutter build appbundle` rather than invoking Gradle " +
+            "directly - the Flutter tool writes the version from pubspec.yaml.")
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')
