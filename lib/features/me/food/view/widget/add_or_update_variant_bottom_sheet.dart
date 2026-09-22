@@ -158,7 +158,15 @@ void addOrVariantBottomSheet({
                   title: (editingIndex!=null) ? AppStrings.update.tr : AppStrings.submit.tr,
                 )),
               ),
-              SizedBox(height: MediaQuery.of(Get.context!).viewInsets.bottom + 20),
+              // Builder, not `Get.context!`: this tree is constructed eagerly
+              // by a top-level function with no BuildContext in scope, so the
+              // old form both risked throwing on a null context and captured
+              // the inset ONCE — the gap never tracked the keyboard opening.
+              Builder(
+                builder: (context) => SizedBox(
+                  height: MediaQuery.of(context).viewInsets.bottom + 20,
+                ),
+              ),
             ],
           ),
         ),

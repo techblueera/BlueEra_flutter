@@ -230,7 +230,13 @@ class PhotoPostController extends GetxController {
               (selectedSymbol == SymbolDuration.hours24) ? "1" : "7",
             );
 
-      Navigator.of(Get.context!, rootNavigator: true).pop();
+      // The upload above can take long enough for the poster to leave, and
+      // `Get.context!` throws once nothing is mounted. Nothing to dismiss in
+      // that case — the progress dialog went with the screen.
+      final ctx = Get.context;
+      if (ctx != null) {
+        Navigator.of(ctx, rootNavigator: true).pop();
+      }
 
       if (response.isSuccess) {
         // Same branch handles a create and an edit — only the create is a new

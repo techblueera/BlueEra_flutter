@@ -660,7 +660,11 @@ class AutomotiveInventoryController extends GetxController {
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(Get.context!).unfocus();
+      // `Get.context` is null when no route is mounted — this fires from onInit,
+      // which can run before the first frame or after the screen it belonged to
+      // is gone, and `Get.context!` then throws inside FocusScope.of.
+      final ctx = Get.context;
+      if (ctx != null) FocusScope.of(ctx).unfocus();
     });
   }
 

@@ -311,10 +311,14 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
 
     userProfileGlobal = profileImage;
-    precacheImage(
-      NetworkImage(userProfileGlobal),
-      Get.context!,
-    );
+    // Warming the avatar is an optimisation, so a missing context is a reason
+    // to skip it, not to throw. These setters run after several awaits and are
+    // reachable from notification and deep-link paths that have no route
+    // mounted yet, where `Get.context!` threw.
+    final ctx = Get.context;
+    if (ctx != null) {
+      precacheImage(NetworkImage(userProfileGlobal), ctx);
+    }
   }
 
   /// Updates the three globals that gate individual UI — profession, profile
@@ -411,10 +415,14 @@ class SharedPreferenceUtils {
         SharedPreferenceUtils.businessType, typeOfBusiness);
 
     userProfileGlobal = profileImage;
-    precacheImage(
-      NetworkImage(userProfileGlobal),
-      Get.context!,
-    );
+    // Warming the avatar is an optimisation, so a missing context is a reason
+    // to skip it, not to throw. These setters run after several awaits and are
+    // reachable from notification and deep-link paths that have no route
+    // mounted yet, where `Get.context!` threw.
+    final ctx = Get.context;
+    if (ctx != null) {
+      precacheImage(NetworkImage(userProfileGlobal), ctx);
+    }
   }
 
   /// Store the refresh token securely
