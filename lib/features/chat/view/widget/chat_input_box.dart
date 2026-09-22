@@ -32,6 +32,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar(
@@ -121,7 +122,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     }
   }
   Future<bool> _requestMicrophonePermission() async {
-    var status = await Permission.microphone.request();
+    var status = await PermissionQueue.request(Permission.microphone);
     return status.isGranted;
   }
 

@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class DownloaderServices {
   DownloaderServices._();
@@ -29,7 +30,7 @@ class DownloaderServices {
     final int sdk = await _androidSdk();
     if (sdk >= 33) return;
 
-    final status = await Permission.storage.request();
+    final status = await PermissionQueue.request(Permission.storage);
     if (!status.isGranted) {
       throw DownloadException('Storage permission denied');
     }

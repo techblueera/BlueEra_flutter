@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import 'chat_storage_paths.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// WhatsApp-style media storage service.
 ///
@@ -45,7 +46,7 @@ class ChatMediaStorageService {
   /// Request photo library access on iOS (for saving to Camera Roll).
   static Future<bool> requestPhotoLibraryPermission() async {
     if (!Platform.isIOS) return true;
-    final status = await Permission.photos.request();
+    final status = await PermissionQueue.request(Permission.photos);
     return status.isGranted || status.isLimited;
   }
 

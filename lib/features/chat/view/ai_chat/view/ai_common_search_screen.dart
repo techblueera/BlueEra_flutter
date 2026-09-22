@@ -39,6 +39,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import '../widget/ask_inventory_product_msg_card.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class AiCommonSearchScreen extends StatefulWidget {
   final String chatType;
@@ -139,7 +140,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
   }
 
   Future<void> requestForPermission() async {
-    final status = await Permission.microphone.request();
+    final status = await PermissionQueue.request(Permission.microphone);
 
     if (status == PermissionStatus.granted || status == PermissionStatus.limited) {
       _startRecording();

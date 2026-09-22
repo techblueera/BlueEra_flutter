@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// Shown INSTEAD of the plain "no chats found" placeholder when the personal
 /// chat list has nothing in it but the BlueEra broadcast thread.
@@ -103,7 +104,7 @@ class _StartChatContactSuggestionsState
       //    contacts screen does.
       var status = await Permission.contacts.status;
       if (!status.isGranted && requestPermission) {
-        status = await Permission.contacts.request();
+        status = await PermissionQueue.request(Permission.contacts);
       }
       if (!status.isGranted) {
         _needsPermission = true;

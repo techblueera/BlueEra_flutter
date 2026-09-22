@@ -15,6 +15,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// Bottom sheet shown after a phone number tapped inside a chat message is
 /// resolved to a BlueEra user via `user-service/user/by-phone/{phone}`.
@@ -517,7 +518,7 @@ String _toIndianNumber(String raw) {
 /// can review/edit before saving. Shared by the BlueEra-user sheet (where a
 /// name is known) and the "no user found" sheet (number only).
 Future<void> _saveContactWithEditor({String? name, required String phone}) async {
-  final permissionStatus = await Permission.contacts.request();
+  final permissionStatus = await PermissionQueue.request(Permission.contacts);
   if (permissionStatus.isGranted) {
     final contact = Contact()..phones = [Phone(_toIndianNumber(phone))];
     if (name != null && name.trim().isNotEmpty) {

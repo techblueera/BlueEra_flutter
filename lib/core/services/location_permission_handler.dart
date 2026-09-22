@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// Resolves the device position, reporting WHY it could not when it fails.
 ///
@@ -53,7 +54,7 @@ class LocationPermissionHandler {
       //    settings page can undo it.
       var status = await Permission.location.status;
       if (status.isDenied) {
-        status = await Permission.location.request();
+        status = await PermissionQueue.request(Permission.location);
       }
 
       if (status.isPermanentlyDenied || status.isRestricted) {

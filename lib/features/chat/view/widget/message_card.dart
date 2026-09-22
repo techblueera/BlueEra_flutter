@@ -73,6 +73,7 @@ import 'document_message_card.dart';
 import 'live_location_message_card.dart';
 import 'message_bubble.dart';
 import 'message_context_menu.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard(
@@ -2278,7 +2279,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
 
   Future<void> saveContactWithEditor(String name, String phoneNumber) async {
     // Request contact permission
-    var permissionStatus = await Permission.contacts.request();
+    var permissionStatus = await PermissionQueue.request(Permission.contacts);
 
     if (permissionStatus.isGranted) {
       final contact = Contact()

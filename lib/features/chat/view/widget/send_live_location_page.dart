@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 
 class SendLocationPage extends StatefulWidget {
@@ -35,10 +36,11 @@ class _SendLocationPageState extends State<SendLocationPage> {
   }
 
   Future<void> _determinePosition() async {
-    final permission = await Permission.location.request();
+    final permission = await PermissionQueue.request(Permission.location);
     if (permission.isGranted) {
       Position pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
+      if (!mounted) return;
       setState(() {
         _currentPosition = LatLng(pos.latitude, pos.longitude);
         alternatCurrentPos = LatLng(pos.latitude, pos.longitude);

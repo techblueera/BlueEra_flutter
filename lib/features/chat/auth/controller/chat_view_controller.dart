@@ -70,6 +70,7 @@ import 'ai_chat_profile_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'payment_qr_controller.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
@@ -3885,7 +3886,7 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> startLiveLocationTracking(Duration duration) async {
-    final permission = await Permission.locationWhenInUse.request();
+    final permission = await PermissionQueue.request(Permission.locationWhenInUse);
     if (!permission.isGranted) return;
     Position pos = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(

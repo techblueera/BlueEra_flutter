@@ -14,6 +14,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/service/contact_store_service.dart';
 import 'others/find_by_other_service_main.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class FindContactWithService extends StatefulWidget {
   final bool fromBottomNav;
@@ -59,7 +60,7 @@ class _FindContactWithServiceState extends State<FindContactWithService>
     PermissionStatus status = await Permission.contacts.status;
 
     if (!status.isGranted) {
-      status = await Permission.contacts.request();
+      status = await PermissionQueue.request(Permission.contacts);
       if (!status.isGranted) {
         throw Exception('Permission denied');
       }

@@ -43,6 +43,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/getx_utils.dart';
 import 'chat_view_controller.dart';
 import '../../../common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 enum CallType { audio, video }
 
@@ -830,7 +831,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     try {
       final permissions = [Permission.microphone];
       if (type == CallType.video) permissions.add(Permission.camera);
-      final statuses = await permissions.request();
+      final statuses = await PermissionQueue.requestAll(permissions);
       if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
         commonSnackBar(message: AppStrings.cameraMicrophonePermissionRequired.tr);
         return false;
@@ -1268,7 +1269,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     try {
       final permissions = [Permission.microphone];
       if (callType.value == CallType.video) permissions.add(Permission.camera);
-      await permissions.request();
+      await PermissionQueue.requestAll(permissions);
     } catch (e) {
       if (kDebugMode)
         print('Permission request error (may already be in progress): $e');
@@ -1606,7 +1607,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     try {
       final permissions = [Permission.microphone];
       if (callType.value == CallType.video) permissions.add(Permission.camera);
-      await permissions.request();
+      await PermissionQueue.requestAll(permissions);
     } catch (e) {
       if (kDebugMode) print('Permission request error: $e');
     }
@@ -2754,7 +2755,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // If switching to video, request camera permission first
     if (newType == 'video_call') {
-      final status = await Permission.camera.request();
+      final status = await PermissionQueue.request(Permission.camera);
       if (!status.isGranted) {
         commonSnackBar(
             message: AppStrings.cameraPermissionRequiredToSwitch.tr);
@@ -2788,7 +2789,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // If accepting, request camera permission first
     if (accepted) {
-      final status = await Permission.camera.request();
+      final status = await PermissionQueue.request(Permission.camera);
       if (!status.isGranted) {
         // Auto-decline if can't get camera permission
         accepted = false;
@@ -2956,7 +2957,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     required String existingCallId,
     required String existingRoomId,
   }) async {
-    await [Permission.microphone, Permission.camera].request();
+    await PermissionQueue.requestAll([Permission.microphone, Permission.camera]);
 
     ResponseModel response = await _callRepo.joinCall({
       'call_id': existingCallId,
@@ -3549,7 +3550,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     try {
       final status = await Permission.bluetoothConnect.status;
       if (!status.isGranted && !status.isPermanentlyDenied) {
-        await Permission.bluetoothConnect.request();
+        await PermissionQueue.request(Permission.bluetoothConnect);
       }
     } catch (_) {}
   }
@@ -4005,7 +4006,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Request microphone permission (same as initiateCall)
     try {
-      final statuses = await [Permission.microphone].request();
+      final statuses = await PermissionQueue.requestAll([Permission.microphone]);
       if (statuses.values.any((s) => s.isDenied || s.isPermanentlyDenied)) {
         commonSnackBar(message: AppStrings.microphonePermissionRequired.tr);
         return false;

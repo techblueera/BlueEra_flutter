@@ -64,6 +64,7 @@ import '../navigation/me_profile_navigator.dart';
 import '../routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -4807,7 +4808,7 @@ class AppNotificationHandler {
                     Get.back();
 
                     // Request permission
-                    final newStatus = await Permission.notification.request();
+                    final newStatus = await PermissionQueue.request(Permission.notification);
                     if (!newStatus.isGranted) {
                       // If still denied, open settings
                       await openAppSettings();
@@ -4892,7 +4893,7 @@ class AppNotificationHandler {
           PositiveCustomBtn(
             onTap: () async {
               Get.back();
-              final newStatus = await Permission.notification.request();
+              final newStatus = await PermissionQueue.request(Permission.notification);
               if (!newStatus.isGranted) {
                 await openAppSettings();
               }

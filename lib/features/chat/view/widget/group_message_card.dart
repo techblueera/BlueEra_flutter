@@ -21,6 +21,7 @@ import 'group_chat_message_bubble.dart';
 import 'group_document_message_view.dart';
 import 'group_video_and_image_card_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class GroupMessageCard extends StatefulWidget {
   const GroupMessageCard({super.key, required this.message,
@@ -808,7 +809,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
   Future<void> saveContactWithEditor(String name, String phoneNumber) async
   {
     // Request contact permission
-    var permissionStatus = await Permission.contacts.request();
+    var permissionStatus = await PermissionQueue.request(Permission.contacts);
 
     if (permissionStatus.isGranted) {
       final contact = Contact()

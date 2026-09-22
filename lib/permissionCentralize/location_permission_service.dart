@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class PermissionService {
   /// Checks and requests all required permissions.
@@ -64,7 +65,7 @@ class PermissionService {
     try {
       var status = await Permission.location.status;
       if (!status.isGranted) {
-        status = await Permission.location.request();
+        status = await PermissionQueue.request(Permission.location);
         if (!status.isGranted) {
           if (status.isPermanentlyDenied)
             {
@@ -105,7 +106,7 @@ class PermissionService {
   //   try {
   //     var status = await Permission.contacts.status;
   //     if (!status.isGranted) {
-  //       status = await Permission.contacts.request();
+  //       status = await PermissionQueue.request(Permission.contacts);
   //       if (!status.isGranted) {
   //         if (status.isPermanentlyDenied) await openAppSettings();
   //         return false;
@@ -168,7 +169,7 @@ class PermissionService {
   //   try {
   //     var status = await Permission.camera.status;
   //     if (!status.isGranted) {
-  //       status = await Permission.camera.request();
+  //       status = await PermissionQueue.request(Permission.camera);
   //       if (!status.isGranted) {
   //         if (status.isPermanentlyDenied) await openAppSettings();
   //         return false;
@@ -267,7 +268,7 @@ class PermissionItem {
 //         );
 //
 //         if (shouldRequest) {
-//           status = await Permission.location.request();
+//           status = await PermissionQueue.request(Permission.location);
 //         } else {
 //           return false;
 //         }
@@ -315,7 +316,7 @@ class PermissionItem {
 //         );
 //
 //         if (shouldRequest) {
-//           status = await Permission.contacts.request();
+//           status = await PermissionQueue.request(Permission.contacts);
 //         } else {
 //           return false;
 //         }
@@ -394,7 +395,7 @@ class PermissionItem {
 //         );
 //
 //         if (shouldRequest) {
-//           status = await Permission.camera.request();
+//           status = await PermissionQueue.request(Permission.camera);
 //         } else {
 //           return false;
 //         }

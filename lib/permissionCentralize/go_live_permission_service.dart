@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// Identifies the discrete permissions required to start a "Go Live" session.
 enum GoLivePermissionType {
@@ -67,7 +68,7 @@ class GoLivePermissionService {
       // Foreground location is a prerequisite for background/always.
       var foreground = await Permission.location.status;
       if (!foreground.isGranted) {
-        foreground = await Permission.location.request();
+        foreground = await PermissionQueue.request(Permission.location);
       }
       if (!foreground.isGranted) {
         if (foreground.isPermanentlyDenied) await openAppSettings();
@@ -85,7 +86,7 @@ class GoLivePermissionService {
 
       var always = await Permission.locationAlways.status;
       if (!always.isGranted) {
-        always = await Permission.locationAlways.request();
+        always = await PermissionQueue.request(Permission.locationAlways);
       }
       if (!always.isGranted && always.isPermanentlyDenied) {
         await openAppSettings();
@@ -143,7 +144,7 @@ class GoLivePermissionService {
       if (!Platform.isAndroid) return true;
       var status = await Permission.ignoreBatteryOptimizations.status;
       if (!status.isGranted) {
-        status = await Permission.ignoreBatteryOptimizations.request();
+        status = await PermissionQueue.request(Permission.ignoreBatteryOptimizations);
       }
       if (!status.isGranted && status.isPermanentlyDenied) {
         await openAppSettings();
@@ -173,7 +174,7 @@ class GoLivePermissionService {
       if (!Platform.isAndroid) return true;
       var status = await Permission.systemAlertWindow.status;
       if (!status.isGranted) {
-        status = await Permission.systemAlertWindow.request();
+        status = await PermissionQueue.request(Permission.systemAlertWindow);
       }
       return status.isGranted;
     } catch (e) {

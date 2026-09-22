@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 /// Single source of truth for BlueEra's on-device chat storage tree.
 ///
@@ -178,7 +179,7 @@ class ChatStoragePaths {
   }
 
   static Future<bool> _requestLegacyStoragePermission() async {
-    final status = await Permission.storage.request();
+    final status = await PermissionQueue.request(Permission.storage);
     return status.isGranted;
   }
 }

@@ -22,6 +22,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/socket/live_location_track_socket.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class TrackLiveLocationPage extends StatefulWidget {
   const TrackLiveLocationPage({super.key, required this.messages});
@@ -132,7 +133,7 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   }
 
   Future<void> _determinePosition() async {
-    final permission = await Permission.location.request();
+    final permission = await PermissionQueue.request(Permission.location);
     if (permission.isGranted) {
       Position pos = await Geolocator.getCurrentPosition(
           locationSettings:

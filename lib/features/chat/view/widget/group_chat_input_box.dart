@@ -30,6 +30,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/group_details_model.dart';
 import 'component_widgets.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class GroupChatInputBar extends StatefulWidget {
   const GroupChatInputBar(
@@ -104,7 +105,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
     }
   }
   Future<bool> _requestMicrophonePermission() async {
-    var status = await Permission.microphone.request();
+    var status = await PermissionQueue.request(Permission.microphone);
     return status.isGranted;
   }
 

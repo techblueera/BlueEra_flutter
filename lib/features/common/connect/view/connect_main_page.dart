@@ -61,6 +61,7 @@ import '../../../personal/personal_profile/controller/languge_list_controller.da
 import '../../../../widgets/glass_surface.dart';
 import 'goods_multi_order_booking_main.dart';
 import '../widget/customer_ongoing_ride_card.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 enum SavedFeedTab {
   posts;
@@ -404,7 +405,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   Future<void> _askNotificationPermission() async {
     final status = await Permission.notification.status;
     if (!status.isGranted) {
-      await Permission.notification.request();
+      await PermissionQueue.request(Permission.notification);
     }
   }
 
@@ -425,7 +426,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     // Ask for contacts permission.
     PermissionStatus status = await Permission.contacts.status;
     if (!status.isGranted) {
-      status = await Permission.contacts.request();
+      status = await PermissionQueue.request(Permission.contacts);
       if (!status.isGranted) {
         // Consent withdrawn — drop the phonebook the contact service is
         // holding. Soft-delete, so re-granting restores the match history.

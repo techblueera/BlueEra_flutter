@@ -11,6 +11,7 @@ import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class LocationService extends GetxService {
   static double lat = 0.0;
@@ -171,7 +172,7 @@ class LocationService extends GetxService {
   /// In-flight [fetchLocation] call, used to coalesce concurrent callers.
   /// Cold start fires a fetch from main()'s deferred init while the home
   /// screen (and others) may fire their own — two overlapping runs mean two
-  /// `Permission.location.request()` calls racing (permission_handler throws
+  /// `PermissionQueue.request(Permission.location)` calls racing (permission_handler throws
   /// "A request for permissions is already running") plus duplicate GPS
   /// fixes. All concurrent callers now share one run.
   static Future<Map<String, dynamic>?>? _inFlightFetch;
@@ -217,7 +218,7 @@ class LocationService extends GetxService {
 
       // Permission denied or restricted
       if (permission.isDenied || permission.isRestricted) {
-        final result = await Permission.location.request();
+        final result = await PermissionQueue.request(Permission.location);
 
         if (result.isDenied || result.isRestricted || result.isPermanentlyDenied) {
           isDeviceLocationOn.value = false;

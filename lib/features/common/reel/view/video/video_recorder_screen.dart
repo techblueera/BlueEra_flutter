@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class VideoReelRecorderScreen extends StatefulWidget {
     final PostVia? postVia;
@@ -44,8 +45,8 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
     }
 
     Future<void> _setupCamera() async {
-      final cameraStatus = await Permission.camera.request();
-      final micStatus = await Permission.microphone.request();
+      final cameraStatus = await PermissionQueue.request(Permission.camera);
+      final micStatus = await PermissionQueue.request(Permission.microphone);
 
       _hasPermission = cameraStatus.isGranted && micStatus.isGranted;
       if (!_hasPermission) return; // stop here if no permission
@@ -67,8 +68,8 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
     }
 
     // Future<void> _setupCamera() async {
-    //   final cameraStatus = await Permission.camera.request();
-    //   final micStatus = await Permission.microphone.request();
+    //   final cameraStatus = await PermissionQueue.request(Permission.camera);
+    //   final micStatus = await PermissionQueue.request(Permission.microphone);
     //
     //   if (!cameraStatus.isGranted || !micStatus.isGranted) {
     //     throw Exception("Camera and microphone permissions are required.");

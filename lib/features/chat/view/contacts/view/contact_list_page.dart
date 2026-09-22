@@ -20,6 +20,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/contactListModel.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class ContactsPage extends StatefulWidget {
   final String? from;
@@ -173,7 +174,7 @@ class _ContactsPageState extends State<ContactsPage> {
         await chatViewController.uploadContacts(formattedContacts);
       }
     } else {
-      PermissionStatus newStatus = await Permission.contacts.request();
+      PermissionStatus newStatus = await PermissionQueue.request(Permission.contacts);
       if (newStatus.isGranted) {
         return _fetchAndUploadContacts(forceRefresh: forceRefresh);
       } else if (newStatus.isPermanentlyDenied) {

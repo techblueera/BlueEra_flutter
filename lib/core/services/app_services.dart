@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class AppServices {
 
@@ -51,7 +52,7 @@ class AppServices {
       // into nothing on Android, and asking again on every launch is the
       // "settings nag on boot" the notification flow already avoids.
       if (status.isDenied) {
-        await permission.request();
+        await PermissionQueue.request(permission);
       }
     } catch (e) {
       // A failed permission request must never take startup down with it.

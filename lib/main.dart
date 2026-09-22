@@ -73,6 +73,7 @@ import 'features/chat/view/widget/chat_video_pip_overlay.dart';
 import 'features/chat/view/widget/ongoing_call_strip.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -1326,7 +1327,7 @@ Future<void> _requestNotificationPermissionIfNeeded() async {
   try {
     final status = await Permission.notification.status;
     if (status.isDenied) {
-      await Permission.notification.request();
+      await PermissionQueue.request(Permission.notification);
     }
   } catch (e) {
     logs('notification permission request failed: $e');

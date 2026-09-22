@@ -31,6 +31,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' as getxObj;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class AuthManager {
   static bool isLoggingOut = false;
@@ -779,7 +780,7 @@ class ApiBaseHelper {
         final android = await plugin.androidInfo;
         final androidVersion = android.version.sdkInt;
         final storageStatus = androidVersion < 33
-            ? await Permission.storage.request()
+            ? await PermissionQueue.request(Permission.storage)
             : PermissionStatus.granted;
         if (storageStatus == PermissionStatus.granted) {
           if (!(await directory.exists())) {

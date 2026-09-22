@@ -23,6 +23,7 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/contactListModel.dart';
 import '../../../auth/model/group_details_model.dart';
+import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
   final String? conversationId;
@@ -162,7 +163,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 
       chatViewController.uploadContacts(formattedContacts);
     } else {
-      PermissionStatus newStatus = await Permission.contacts.request();
+      PermissionStatus newStatus = await PermissionQueue.request(Permission.contacts);
       if (newStatus.isGranted) {
         return _refreshContacts();
       } else if (newStatus.isPermanentlyDenied) {
