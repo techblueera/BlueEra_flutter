@@ -45,6 +45,7 @@ import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart' show DioException, DioExceptionType;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -52,6 +53,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http/http.dart' show ClientException;
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -1057,7 +1059,11 @@ Future<void> main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     if (_isNetworkImageError(details)) return;
     if (kReleaseMode) {
-      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      // A dropped connection is not a crash -- see _isNetworkTransportError.
+      FirebaseCrashlytics.instance.recordFlutterError(
+        details,
+        fatal: !_isNetworkTransportError(details.exception),
+      );
     } else {
       defaultOnError?.call(details);
     }
@@ -1066,7 +1072,13 @@ Future<void> main() async {
 // Catches async errors that aren't handled by Flutter itself
     PlatformDispatcher.instance.onError = (error, stack) {
       if (error is NetworkImageLoadException) return true;
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      final bool isTransport = _isNetworkTransportError(error);
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        reason: isTransport ? 'network-transport' : null,
+        fatal: !isTransport,
+      );
       return true;
     };
   }
@@ -1095,6 +1107,38 @@ Future<void> main() async {
 bool _isNetworkImageError(FlutterErrorDetails details) {
   return details.exception is NetworkImageLoadException ||
       details.library == 'image resource service';
+}
+
+/// True for errors that mean "the connection failed", not "the app has a bug".
+///
+/// A long-lived SSE read dropping mid-flight, a request timing out on a rider's
+/// 2G cell, DNS failing in a basement -- these are ordinary conditions on a
+/// mobile network, not defects. But one that escapes uncaught still reaches the
+/// global handlers above, and reported as fatal it counts against crash-free
+/// users exactly like a real crash. That is how a routine
+/// `ClientException: Connection closed while receiving data` on
+/// riders/orders/requested/stream arrived in Crashlytics as a Fatal Exception.
+///
+/// Nothing here is suppressed -- these are still recorded, just as non-fatals,
+/// so they stay visible under the Crashlytics "Non-fatals" filter without
+/// distorting the crash rate. Anything not matched stays fatal.
+bool _isNetworkTransportError(Object? error) {
+  if (error is SocketException ||
+      error is HttpException ||
+      error is TlsException || // covers HandshakeException
+      error is WebSocketException ||
+      error is TimeoutException ||
+      error is ClientException) {
+    return true;
+  }
+  if (error is DioException) {
+    // Every Dio failure except `unknown` is an HTTP-layer outcome. `unknown`
+    // wraps whatever was thrown inside an interceptor or a transformer, which
+    // may well be a real bug, so classify it by what it actually carries.
+    return error.type != DioExceptionType.unknown ||
+        _isNetworkTransportError(error.error);
+  }
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
