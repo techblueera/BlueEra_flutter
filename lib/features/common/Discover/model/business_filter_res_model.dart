@@ -370,9 +370,19 @@ class BusinessGst {
 class BusinessLocation {
   BusinessLocation({this.lat, this.lon});
 
+  /// The values were already type-checked; what was missing is the shape
+  /// check — a non-map `business_location` threw on the indexing itself.
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'] is num ? json['lat'] as num : null;
-    lon = json['lon'] is num ? json['lon'] as num : null;
+    if (json is! Map) return;
+    lat = _asNum(json['lat']);
+    lon = _asNum(json['lon']);
+  }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
   }
 
   num? lat;
@@ -407,10 +417,27 @@ class OwnerDetail {
 class DateOfIncorporation {
   DateOfIncorporation({this.date, this.month, this.year});
 
+  /// The parts were already coerced; what was missing is the shape check.
+  /// See viewBusinessProfileModel.dart for the crash this guards against: an
+  /// ISO date string where a `{date, month, year}` map was expected, which
+  /// threw `type 'String' is not a subtype of type 'int' of 'index'` on the
+  /// very first `json['date']`.
   DateOfIncorporation.fromJson(dynamic json) {
-    date = _asInt(json['date']);
-    month = _asInt(json['month']);
-    year = _asInt(json['year']);
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      // Unambiguous formats only — `11/07/2000` is left unparsed rather than
+      // guessing day-first vs month-first and recording the wrong date.
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
   }
 
   int? date;

@@ -325,9 +325,20 @@ class BusinessLocation {
     this.lon,
   });
 
+  /// Guarded like the other copies of this class — a non-map
+  /// `business_location` threw on the indexing, and a string coordinate on
+  /// the assignment to `num?`.
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'];
-    lon = json['lon'];
+    if (json is! Map) return;
+    lat = _asNum(json['lat']);
+    lon = _asNum(json['lon']);
+  }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
   }
 
   num? lat;

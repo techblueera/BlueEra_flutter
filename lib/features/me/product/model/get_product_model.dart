@@ -596,9 +596,19 @@ class BusinessLocation {
     this.longitude,
   });
 
+  /// The values were already type-checked; what was missing is the shape
+  /// check — a non-map `business_location` threw on the indexing itself.
   BusinessLocation.fromJson(dynamic json) {
-    latitude = json['lat'] is num ? json['lat'] as num : null;
-    longitude = json['lon'] is num ? json['lon'] as num : null;
+    if (json is! Map) return;
+    latitude = _asNum(json['lat']);
+    longitude = _asNum(json['lon']);
+  }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
   }
 
   num? latitude;

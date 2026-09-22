@@ -132,10 +132,36 @@ class DateOfIncorporation {
 
   DateOfIncorporation({this.date, this.month, this.year});
 
-  DateOfIncorporation.fromJson(Map<String, dynamic> json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
+  /// Takes `dynamic` rather than `Map<String, dynamic>`: the call site passes
+  /// a raw JSON value, so a non-map failed at the parameter as
+  /// `type 'String' is not a subtype of type 'Map<String, dynamic>'` — the
+  /// same crash as viewBusinessProfileModel.dart's, just reported one frame
+  /// earlier. Callers pass positionally, so the signature change is invisible
+  /// to them.
+  DateOfIncorporation.fromJson(dynamic json) {
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      // Unambiguous formats only — `11/07/2000` is left unparsed rather than
+      // guessing day-first vs month-first and recording the wrong date.
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
+  }
+
+  /// The parts arrive as ints, as `"11"`, and occasionally as `11.0`.
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -265,14 +291,29 @@ class Gst {
 }
 
 class BusinessLocation {
-  int? lat;
-  int? lon;
+  /// `num?`, not `int?`. These held `int?` while coordinates are decimals, so
+  /// any real `lat` decoded as a `double` and threw
+  /// `type 'double' is not a subtype of type 'int?'` on assignment — the field
+  /// could only ever have been populated by a whole-number coordinate.
+  /// Widening is safe here: nothing reads either field (checked across
+  /// getstore_list_controller.dart and store_list_widget.dart).
+  num? lat;
+  num? lon;
 
   BusinessLocation({this.lat, this.lon});
 
-  BusinessLocation.fromJson(Map<String, dynamic> json) {
-    lat = json['lat'];
-    lon = json['lon'];
+  /// `dynamic` parameter for the same reason as [DateOfIncorporation] above.
+  BusinessLocation.fromJson(dynamic json) {
+    if (json is! Map) return;
+    lat = _asNum(json['lat']);
+    lon = _asNum(json['lon']);
+  }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
   }
 
   Map<String, dynamic> toJson() {

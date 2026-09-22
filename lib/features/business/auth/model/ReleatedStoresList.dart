@@ -128,9 +128,20 @@ class BusinessLocation {
       this.lat, 
       this.lon,});
 
+  /// Guarded like the other copies of this class — a non-map
+  /// `business_location` threw on the indexing, and a string coordinate on
+  /// the assignment to `num?`.
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'];
-    lon = json['lon'];
+    if (json is! Map) return;
+    lat = _asNum(json['lat']);
+    lon = _asNum(json['lon']);
+  }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
   }
   num? lat;
   num? lon;
@@ -183,10 +194,32 @@ class DateOfIncorporation {
       this.month, 
       this.year,});
 
+  /// Guarded like the other copies of this class — see
+  /// viewBusinessProfileModel.dart for the crash that prompted it.
   DateOfIncorporation.fromJson(dynamic json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      // Unambiguous formats only — `11/07/2000` is left unparsed rather than
+      // guessing day-first vs month-first and recording the wrong date.
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
+  }
+
+  /// The parts arrive as ints, as `"11"`, and occasionally as `11.0`.
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
   }
   num? date;
   num? month;

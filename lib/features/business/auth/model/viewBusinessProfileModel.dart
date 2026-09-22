@@ -462,10 +462,31 @@ class BusinessLocation {
       this.lat, 
       this.lon,});
 
+  /// Tolerates the shapes this field can arrive in, for the same reason
+  /// [DateOfIncorporation.fromJson] does: both are parsed on the way to
+  /// `businessProfileDetails`, so one odd value fails the whole business
+  /// profile rather than the single field it belongs to.
+  ///
+  /// Two ways the old one-liner could throw: `double.parse` on a non-numeric
+  /// string raises `FormatException`, and indexing a non-map — a plain address
+  /// String, or a `[lat, lon]` list — raises `type 'String' is not a subtype of
+  /// type 'int' of 'index'`.
+  ///
+  /// Anything unparseable falls back to `0.0`, which is exactly what a missing
+  /// key already produced and what callers already read as "no location" (see
+  /// the `lat == 0.0 || lng == 0.0` guard in ViewBusinessDetailsController).
   BusinessLocation.fromJson(dynamic json) {
-    lat = double.parse((json['lat']??'0.0').toString());
-    lon = double.parse((json['lon']??'0.0').toString());
+    lat = json is Map ? _asDouble(json['lat']) : 0.0;
+    lon = json is Map ? _asDouble(json['lon']) : 0.0;
   }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static double _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim()) ?? 0.0;
+    return 0.0;
+  }
+
   double? lat;
   double? lon;
 
@@ -488,11 +509,33 @@ class Gst {
       this.number, 
       this.gstVerification,});
 
+  /// Tolerates a non-map `gst` for the same reason as [BusinessLocation].
+  ///
+  /// The two flags are declared `bool?` but were assigned straight from JSON,
+  /// so a backend that sends `"true"` instead of `true` would throw
+  /// `type 'String' is not a subtype of type 'bool?'` — a different exception
+  /// from the indexing one, with the same blast radius. Coerced here instead.
+  /// `number` stays `dynamic` because callers already treat it that way.
   Gst.fromJson(dynamic json) {
-    have = json['have'];
+    if (json is! Map) return;
+    have = _asBool(json['have']);
     number = json['number'];
-    gstVerification = json['gst_verification'];
+    gstVerification = _asBool(json['gst_verification']);
   }
+
+  /// Null for anything unrecognised — the same value a missing key already
+  /// produced, and one every reader treats as "not a GST business".
+  static bool? _asBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalised = value.trim().toLowerCase();
+      if (normalised == 'true' || normalised == '1') return true;
+      if (normalised == 'false' || normalised == '0') return false;
+    }
+    return null;
+  }
+
   bool? have;
   dynamic number;
   bool? gstVerification;

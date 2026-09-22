@@ -251,10 +251,30 @@ class BusinessLocation {
       this.lat, 
       this.lon,});
 
+  /// Guarded like the other two `BusinessLocation` parsers (see
+  /// new_food_home_res_model.dart and viewBusinessProfileModel.dart).
+  ///
+  /// `num?` already absorbs both `int` and `double`, so this one could not hit
+  /// the int-to-double trap the food-home copy had. What it could hit: a
+  /// coordinate sent as the string `"28.61"` (`type 'String' is not a subtype
+  /// of type 'num?'`) and a non-map `business_location` (`type 'String' is not
+  /// a subtype of type 'int' of 'index'`). Either throws while the enclosing
+  /// store entry is being built, failing the whole store list.
+  ///
+  /// `null` stays the fallback — already what a missing key produced.
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'];
-    lon = json['lon'];
+    if (json is! Map) return;
+    lat = _asNum(json['lat']);
+    lon = _asNum(json['lon']);
   }
+
+  /// Coordinates arrive as numbers and as strings like `"28.61"`.
+  static num? _asNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.trim());
+    return null;
+  }
+
   num? lat;
   num? lon;
 

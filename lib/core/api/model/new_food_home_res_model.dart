@@ -677,10 +677,31 @@ class BusinessLocation {
     this.lat,
     this.lon,});
 
+  /// Coerces rather than assigning straight through, because the fields are
+  /// typed `double?` while JSON gives back whatever the backend sent.
+  ///
+  /// A whole-number coordinate — `"lat": 28` — decodes as an `int`, and
+  /// assigning an `int` to a `double?` throws `type 'int' is not a subtype of
+  /// type 'double?'`. That needs no malformed payload at all, just a round
+  /// number. A non-map `business_location` threw the indexing error on top.
+  ///
+  /// The throw lands while [BusinessProfile] is being built, so it fails the
+  /// whole food-home response, not this one field. `null` stays the fallback:
+  /// it is already what a missing key produced. Mirrors the `is Map` guard in
+  /// business_filter_res_model.dart.
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'];
-    lon = json['lon'];
+    if (json is! Map) return;
+    lat = _asDouble(json['lat']);
+    lon = _asDouble(json['lon']);
   }
+
+  /// Coordinates arrive as ints, as doubles, and as strings like `"28.61"`.
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim());
+    return null;
+  }
+
   double? lat;
   double? lon;
 
@@ -852,11 +873,43 @@ class DateOfIncorporation {
     this.month,
     this.year,});
 
+  /// The third copy of this parser, and the one the original hardening pass
+  /// missed — see viewBusinessProfileModel.dart, where the same class taking
+  /// an ISO string instead of `{date, month, year}` threw
+  /// `type 'String' is not a subtype of type 'int' of 'index'` and took the
+  /// business profile down with it. Kept deliberately identical to that one so
+  /// the three copies cannot drift apart again.
+  ///
+  /// Unlike there, a throw here is contained: restaurant_controller.dart
+  /// wraps the parse in a try/catch that resolves to a menu error state. It
+  /// would still have failed the entire food-home response over one field.
   DateOfIncorporation.fromJson(dynamic json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
+    if (json is Map) {
+      date = _asInt(json['date']);
+      month = _asInt(json['month']);
+      year = _asInt(json['year']);
+      return;
+    }
+    if (json is String) {
+      // Unambiguous formats only. `11/07/2000` is deliberately left unparsed:
+      // guessing between day-first and month-first would record the wrong date
+      // silently, which is worse than recording none.
+      final parsed = DateTime.tryParse(json.trim());
+      if (parsed == null) return;
+      date = parsed.day;
+      month = parsed.month;
+      year = parsed.year;
+    }
   }
+
+  /// The parts arrive as ints, as `"11"`, and occasionally as `11.0`.
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
+
   int? date;
   int? month;
   int? year;

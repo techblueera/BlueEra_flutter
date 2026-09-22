@@ -101,9 +101,20 @@ class BusinessLocation {
 
   BusinessLocation({this.lat, this.lon});
 
-  BusinessLocation.fromJson(Map<String, dynamic> json) {
-    lat = (json['lat'] as num?)?.toDouble();
-    lon = (json['lon'] as num?)?.toDouble();
+  /// The `as num?` casts already handled the int-to-double trap; what was
+  /// missing is the shape check (a non-map `business_location` threw at the
+  /// parameter) and a string coordinate, which the cast rejected outright.
+  BusinessLocation.fromJson(dynamic json) {
+    if (json is! Map) return;
+    lat = _asDouble(json['lat']);
+    lon = _asDouble(json['lon']);
+  }
+
+  /// Coordinates arrive as ints, as doubles, and as strings like `"28.61"`.
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim());
+    return null;
   }
 }
 
