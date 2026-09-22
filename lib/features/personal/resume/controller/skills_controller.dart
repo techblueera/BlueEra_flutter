@@ -80,10 +80,10 @@ class SkillsController extends GetxController {
     try {
       final response = await _repo.addSkills(params: params);
       if (response.isSuccess) {
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.success}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.success}");
         Get.back();
       } else {
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -94,13 +94,13 @@ class SkillsController extends GetxController {
     try {
       final response = await _repo.deleteSkills(skill: skillToDelete);
       if (response.isSuccess) {
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.success}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.success}");
 
         skillsList.removeWhere((skill) => skill == skillToDelete);
 
         validateForm();
       } else {
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

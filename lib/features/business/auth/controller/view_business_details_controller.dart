@@ -528,7 +528,7 @@ logs("BUSINESS ID=== ${businessId}");
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
         if (!silent) {
-          commonSnackBar(message: responseModel.response?.data['message']);
+          commonSnackBar(message: responseModel.getExtraData('message'));
         }
         viewBusinessResponse = ApiResponse.complete(responseModel);
         final upgraded = BusinessUserResponseModel.fromJson(
@@ -1520,7 +1520,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
           jsonData = json.decode(jsonEncode(response.response?.data));
         } else if (response.response?.data is Map) {
           jsonData =
-              json.decode(jsonEncode(response.response?.data['services']));
+              json.decode(jsonEncode(response.getExtraData('services')));
         }
 
         services.value =

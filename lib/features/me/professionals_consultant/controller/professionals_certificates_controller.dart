@@ -130,7 +130,7 @@ class ProfessionalsCertificatesController extends GetxController {
 
       if (response.isSuccess) {
         if (isImageEdit.value && selectedFile.value != null) {
-          final uploadUrl = response.response?.data['uploadUrl'] ?? "";
+          final uploadUrl = response.getExtraData('uploadUrl') ?? "";
           if (uploadUrl is String && uploadUrl.isNotEmpty) {
             await ChannelRepo().uploadVideoToS3(
               file: selectedFile.value!,
@@ -178,7 +178,7 @@ class ProfessionalsCertificatesController extends GetxController {
             .professionalsFullDetailsController();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

@@ -38,7 +38,7 @@ class _LaboratoryMainState extends State<LaboratoryMain> with RouteAware {
             await LabServiceRepo().getLabFullDetailsByIdRepo();
         if (response.isSuccess) {
           final fetched =
-              response.response?.data['data']?['profile']?['_id'] ?? '';
+              response.getExtraData('data')?['profile']?['_id'] ?? '';
           labIDGlobal = fetched;
           await setLabID(fetched);
         } else {

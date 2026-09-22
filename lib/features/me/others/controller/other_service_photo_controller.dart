@@ -282,7 +282,7 @@ class OtherServicePhotoPhotoController extends GetxController
 
         if (response.isSuccess) {
           Get.back();
-          commonSnackBar(message: response.response?.data['message']);
+          commonSnackBar(message: response.getExtraData('message'));
           resetUploadForm();
           // The Overview tab's gallery card is now stale — see
           // [OtherProfileDirty].
@@ -313,7 +313,7 @@ class OtherServicePhotoPhotoController extends GetxController
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         OtherProfileDirty.mark(OtherProfileSection.gallery);
         fetchPhotos();
       } else {

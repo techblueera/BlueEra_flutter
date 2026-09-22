@@ -66,6 +66,35 @@ class ResponseModel {
 
   getExtraData(String paramName) => _key(paramName);
 
+  /// Reads a nested path through the body, guarding at every step.
+  ///
+  /// [getExtraData] covers one level, but a second `[...]` applied to its
+  /// result is unguarded again — and that is where the rest of this crash
+  /// shape lives. `data['data']['_id']` throws the same
+  /// `type 'String' is not a subtype of type 'int' of 'index'` the moment
+  /// `data['data']` comes back as a List or a String rather than the expected
+  /// object.
+  ///
+  /// A segment is either a Map key or a List index, so one call covers
+  /// `['data']['_id']` and `['uploadUrls'][0]` alike. Anything that does not
+  /// match the value at that step yields null instead of throwing, which is
+  /// the value every one of these call sites already handles.
+  dynamic getNested(List<Object> path) {
+    dynamic current = response?.data;
+    for (final Object segment in path) {
+      if (segment is int) {
+        if (current is! List || segment < 0 || segment >= current.length) {
+          return null;
+        }
+        current = current[segment];
+      } else {
+        if (current is! Map) return null;
+        current = current[segment];
+      }
+    }
+    return current;
+  }
+
   dynamic _key(String name) {
     final body = response?.data;
     if (body is Map) return body[name];

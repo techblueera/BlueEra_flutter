@@ -262,7 +262,7 @@ class AiProfessionalsController extends GetxController {
       ResponseModel response =
           await repo.createProfessionalsRepo(bodyREQ: bodyREQ);
       if (response.isSuccess && isImageEdit.value) {
-        uploadUrl = response.response?.data['uploadUrl'];
+        uploadUrl = response.getExtraData('uploadUrl');
         if (uploadUrl.isNotEmpty) {
           await ChannelRepo().uploadVideoToS3(
             file: selectedImage.value ?? File(""),

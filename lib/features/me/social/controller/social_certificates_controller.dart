@@ -173,7 +173,7 @@ class SocialCertificatesController extends GetxController {
         await getCertificateController();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful.tr);
+                response.getExtraData('message') ?? AppStrings.successful.tr);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }

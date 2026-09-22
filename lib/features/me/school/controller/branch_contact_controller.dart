@@ -90,7 +90,7 @@ class BranchContactController extends GetxController {
           await SchoolRepo().createSchoolBranchContactRepo(reqParm: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 "Branch details added successfully");
         await getBranchDetailsController();
       } else {
@@ -170,7 +170,7 @@ class BranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
 
         await getBranchDetailsController();
       } else {
@@ -200,7 +200,7 @@ class BranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();
@@ -228,7 +228,7 @@ class BranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -248,7 +248,7 @@ class BranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -274,7 +274,7 @@ class BranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();

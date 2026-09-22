@@ -100,7 +100,7 @@ class SocialFeedController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful.tr);
+                response.getExtraData('message') ?? AppStrings.successful.tr);
         addEditDeptResponse.value =
             ApiResponse.complete(response.response?.data);
         await fetchDepartments(isRefresh: true);
@@ -159,7 +159,7 @@ class SocialFeedController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful.tr);
+                response.getExtraData('message') ?? AppStrings.successful.tr);
         await fetchDepartments(isRefresh: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong.tr);

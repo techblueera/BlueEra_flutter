@@ -110,7 +110,7 @@ class DepartmentController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         addEditDeptResponse.value =
             ApiResponse.complete(response.response?.data);
         await fetchDepartments(isRefresh: true);
@@ -252,7 +252,7 @@ class DepartmentController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await fetchDepartments(isRefresh: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

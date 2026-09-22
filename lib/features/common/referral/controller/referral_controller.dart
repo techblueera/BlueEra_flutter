@@ -208,7 +208,7 @@ class ReferralController extends GetxController {
     try {
       final res = await _repo.getReferralSuggestions();
       if (res.isSuccess) {
-        final raw = res.response?.data['data'];
+        final raw = res.getExtraData('data');
         referralSuggestions.value = raw is List
             ? raw
                 .map((e) => e?.toString() ?? '')

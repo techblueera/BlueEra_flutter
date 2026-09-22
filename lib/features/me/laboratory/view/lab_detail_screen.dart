@@ -142,14 +142,14 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
 
       final testsRes = results[0];
       if (testsRes.isSuccess) {
-        final List data = testsRes.response?.data['data'] ?? [];
+        final List data = testsRes.getExtraData('data') ?? [];
         final tests = data.map((e) => PathologyTest.fromJson(e)).toList();
         if (mounted) setState(() => _tests = tests);
       }
 
       final packagesRes = results[1];
       if (packagesRes.isSuccess) {
-        final List data = packagesRes.response?.data['data'] ?? [];
+        final List data = packagesRes.getExtraData('data') ?? [];
         final packages = data
             .whereType<Map<String, dynamic>>()
             .map(LabPackage.fromJson)

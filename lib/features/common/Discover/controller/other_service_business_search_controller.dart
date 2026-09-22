@@ -49,7 +49,7 @@ class OtherServiceBusinessSearchController extends GetxController {
         onSuccess: (_) {},
       );
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         if (data is Map) {
           selectedDetail.value = OtherServiceBusinessItem.fromJson(
             Map<String, dynamic>.from(data),
@@ -109,7 +109,7 @@ class OtherServiceBusinessSearchController extends GetxController {
         return;
       }
 
-      final List raw = res.response?.data['data'] ?? [];
+      final List raw = res.getExtraData('data') ?? [];
       final items = raw
           .whereType<Map>()
           .map((m) =>

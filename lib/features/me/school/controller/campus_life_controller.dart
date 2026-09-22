@@ -116,7 +116,7 @@ class CampusLifeController extends GetxController {
       if (response.isSuccess) {
         Get.back(); // Close the form
         commonSnackBar(
-          message: response.response?.data['message'] ?? AppStrings.successful,
+          message: response.getExtraData('message') ?? AppStrings.successful,
         );
 
         // Refresh the list after success
@@ -148,7 +148,7 @@ class CampusLifeController extends GetxController {
             ApiResponse.complete(getAllCampusLifeResModel);
       } else {
         String errorMsg =
-            response.response?.data['message'] ?? AppStrings.somethingWentWrong;
+            response.getExtraData('message') ?? AppStrings.somethingWentWrong;
         getAllCampusLifeResponse.value = ApiResponse.error(errorMsg);
         // commonSnackBar(message: errorMsg);
       }
@@ -175,7 +175,7 @@ class CampusLifeController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         getAllCampusLifeDataList.clear();
         await fetchCampusDetailsController();
       } else {

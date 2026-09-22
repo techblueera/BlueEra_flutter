@@ -123,7 +123,7 @@ class FacultyController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         profiles.clear();
 
         await fetchProfiles(isRefresh: true);
@@ -183,7 +183,7 @@ class FacultyController extends GetxController {
           if (response.isSuccess) {
             Get.back();
             commonSnackBar(
-                message: response.response?.data['message'] ??
+                message: response.getExtraData('message') ??
                     AppStrings.successful);
             profiles.clear();
 
@@ -203,7 +203,7 @@ class FacultyController extends GetxController {
           if (response.isSuccess) {
             Get.back();
             commonSnackBar(
-                message: response.response?.data['message'] ??
+                message: response.getExtraData('message') ??
                     AppStrings.successful);
             profiles.clear();
 

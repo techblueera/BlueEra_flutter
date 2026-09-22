@@ -161,7 +161,7 @@ class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
       // LabTestController.fetchPopularTests for the same convention).
       final res = await _testRepo.getPathologyTests('');
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         _allTestsCache = data
             .whereType<Map<String, dynamic>>()
             .map(PathologyTest.fromJson)

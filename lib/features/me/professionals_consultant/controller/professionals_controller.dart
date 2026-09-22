@@ -90,7 +90,7 @@ class ProfessionalsController extends GetxController {
           await ProfessionalsRepo().addProfessionalContactRepo(reqBody: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 "Branch details added successfully");
         Get.back(result: true);
         fetchHomeData();

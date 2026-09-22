@@ -35,9 +35,13 @@ class PorterApiService {
         return {"status": false, "data": response.data};
       }
     } on DioException catch (e) {
+      // `e` is a DioException, not a ResponseModel, so the guarded accessor is
+      // not available — the shape check has to be inline. An error body is the
+      // likeliest of all to be an HTML page rather than the JSON envelope.
+      final dynamic errorBody = e.response?.data;
       commonSnackBar(
-          message:
-              e.response?.data['message'] ?? AppStrings.somethingWentWrong);
+          message: (errorBody is Map ? errorBody['message'] : null) ??
+              AppStrings.somethingWentWrong);
 
       if (e.response != null) {
         print("❌ Error response: ${e.response?.data}");

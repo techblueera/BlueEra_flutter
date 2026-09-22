@@ -40,7 +40,7 @@ class HospitalOtherFacilitiesController extends GetxController {
     try {
       final ResponseModel res = await repo.getByHospital();
       if (res.isSuccess) {
-        final data = res.response?.data['data'] as Map<String, dynamic>?;
+        final data = res.getExtraData('data') as Map<String, dynamic>?;
         if (data != null) {
           current = OtherFacilities.fromJson(data);
           ambulance.value = current?.ambulance ?? false;

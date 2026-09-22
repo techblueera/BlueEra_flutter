@@ -51,7 +51,7 @@ class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
     try {
       final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         if (!mounted) return;
         setState(() {
           _healthCamps = data.map((e) => HealthCamp.fromJson(e)).toList();

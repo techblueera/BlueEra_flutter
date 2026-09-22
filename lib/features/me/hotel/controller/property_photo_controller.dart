@@ -193,7 +193,7 @@ class PropertyPhotoController extends GetxController
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         clearSelection();
         await fetchPhotos();
         _refreshHotelHome();
@@ -223,7 +223,7 @@ class PropertyPhotoController extends GetxController
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.successful);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.successful);
         await fetchPhotos();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

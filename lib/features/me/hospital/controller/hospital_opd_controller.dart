@@ -119,7 +119,7 @@ class HospitalOpdController extends GetxController {
         return;
       }
 
-      final saved = OpdDoctor.fromJson(res.response?.data['data']);
+      final saved = OpdDoctor.fromJson(res.getExtraData('data'));
       if (isCreate) {
         doctors.insert(0, saved);
         commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorAdded.tr);

@@ -54,7 +54,7 @@ class HotelPolicyController extends GetxController {
         return;
       }
 
-      final data = response.response?.data['data'] as Map<String, dynamic>?;
+      final data = response.getExtraData('data') as Map<String, dynamic>?;
       if (data == null) return;
 
       userCheckInSelections.value = data['checkInTime'] ?? "12:00";
@@ -111,7 +111,7 @@ class HotelPolicyController extends GetxController {
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         await loadPolicies();
         _refreshHotelHome();
       } else {

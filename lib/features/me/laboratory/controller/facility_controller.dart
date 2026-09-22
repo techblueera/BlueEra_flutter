@@ -40,7 +40,7 @@ class FacilityController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getFacilitiesByUser();
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         if (data != null) {
           final fac = Facilities.fromJson(data);
           wheelchairAssistance.value = fac.wheelchairAssistance;
@@ -95,7 +95,7 @@ class FacilityController extends GetxController {
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.labFailedToSave.tr,
+        message: res.getExtraData('message') ?? AppStrings.labFailedToSave.tr,
       );
       return false;
     } catch (e) {

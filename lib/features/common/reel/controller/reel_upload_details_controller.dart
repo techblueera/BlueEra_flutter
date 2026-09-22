@@ -317,7 +317,7 @@ class ReelUploadDetailsController extends GetxController {
         videoDetailsResponse = ApiResponse.complete(response);
         log('response--> ${response.response?.data}');
         final VideoFeedItemDataResponse =
-            ShortFeedItem.fromJson(response.response?.data['data']['videos']);
+            ShortFeedItem.fromJson(response.getNested(['data', 'videos']));
         videoData.value = VideoFeedItemDataResponse;
         return videoData.value;
       } else {

@@ -70,7 +70,7 @@ class HospitalServiceAiController extends GetxController {
             message: AppStrings.hospitalCtrlServiceCreatedSuccess.tr);
 
         labAddress.value = "";
-        String? hospitalID = response.response?.data['hospitalId'];
+        String? hospitalID = response.getExtraData('hospitalId');
         if (hospitalID != null && hospitalID.isNotEmpty) {
           await setHospitalID(hospitalID);
         } else {

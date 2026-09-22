@@ -140,7 +140,7 @@ class PaymentQrController extends GetxController {
     try {
       final res = await _repo.getMyPaymentQrs();
       if (res.isSuccess) {
-        final list = (res.response?.data['data'] as List?) ?? const [];
+        final list = (res.getExtraData('data') as List?) ?? const [];
         myQrs.assignAll(list
             .whereType<Map>()
             .map((e) => PaymentQr.fromJson(Map<String, dynamic>.from(e)))

@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -65,7 +65,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     try {
       final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
-        final data = res.response?.data['data'] ?? res.response?.data;
+        final data = res.getExtraData('data') ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
           if (!mounted) return;
           setState(() => _data = MedicalHomeResponseModel.fromJson(data));

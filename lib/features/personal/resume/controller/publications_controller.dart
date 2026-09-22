@@ -114,14 +114,14 @@ class PublicationsController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.publicationAdded);
         clearForm();
         await callAPIGetResume();
 
       } else {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.somethingWentWrong);
       }
     } catch (e) {
@@ -184,7 +184,7 @@ class PublicationsController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.publicationDeleted);
         publications.removeAt(index);
         // await getAllPublicationsApi();
@@ -192,7 +192,7 @@ class PublicationsController extends GetxController {
 
       } else {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.somethingWentWrong);
       }
     } catch (e) {

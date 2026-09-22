@@ -66,7 +66,7 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
       final res = await _testRepo.getPathologyTests('');
       if (!mounted) return;
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         setState(() {
           _allTests = data
               .whereType<Map<String, dynamic>>()

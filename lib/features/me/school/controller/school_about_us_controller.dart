@@ -124,7 +124,7 @@ class SchoolAboutUsController extends GetxController {
           schoolDetailsData?.refresh();
         }
       } else {
-        if (response.response?.data['message'] ==
+        if (response.getExtraData('message') ==
             "About section not found for this school") {
           // Handle new schools gracefully
           aboutUsData?.value = AboutUsData();
@@ -155,7 +155,7 @@ class SchoolAboutUsController extends GetxController {
           uploadVia: result.url,
         });
         if (response.isSuccess) {
-          commonSnackBar(message: response.response?.data['message']);
+          commonSnackBar(message: response.getExtraData('message'));
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
@@ -276,7 +276,7 @@ class SchoolAboutUsController extends GetxController {
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update contacts in schoolDetailsData
         final List<dynamic> contactsJson =
-            response.response?.data['data'] ?? [];
+            response.getExtraData('data') ?? [];
         schoolDetailsData!.value.contacts =
             contactsJson.map((v) => Contacts.fromJson(v)).toList();
         schoolDetailsData?.refresh();
@@ -292,7 +292,7 @@ class SchoolAboutUsController extends GetxController {
           .getSchoolCoursesRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update courses in schoolDetailsData
-        final List<dynamic> coursesJson = response.response?.data['data'] ?? [];
+        final List<dynamic> coursesJson = response.getExtraData('data') ?? [];
         schoolDetailsData!.value.courses =
             coursesJson.map((v) => Courses.fromJson(v)).toList();
         schoolDetailsData?.refresh();
@@ -308,7 +308,7 @@ class SchoolAboutUsController extends GetxController {
           .getAllCampusLifeRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (response.isSuccess && schoolDetailsData?.value != null) {
         final List<dynamic> categoriesJson =
-            response.response?.data['data'] ?? [];
+            response.getExtraData('data') ?? [];
 
         final List<String> extractedUrls = [];
 
@@ -364,7 +364,7 @@ class SchoolAboutUsController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         await getSchoolByIdController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -476,7 +476,7 @@ class SchoolAboutUsController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         visionMissionResponse.value =
@@ -523,7 +523,7 @@ class SchoolAboutUsController extends GetxController {
           Get.back();
           commonSnackBar(
               message:
-                  response.response?.data["message"] ?? AppStrings.successful);
+                  response.getExtraData("message") ?? AppStrings.successful);
           managementTrustResponse.value =
               ApiResponse.complete(response.response?.data);
           updateAboutInfo();
@@ -595,7 +595,7 @@ class SchoolAboutUsController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         managementTrustResponse.value =
             ApiResponse.complete(response.response?.data);
         updateAboutInfo();
@@ -697,7 +697,7 @@ class SchoolAboutUsController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         updateAboutInfo();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -822,7 +822,7 @@ class SchoolAboutUsController extends GetxController {
       isSchoolOptionsLoading.value = true;
       final res = await SchoolRepo().getSchoolOptionsRepo();
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         final boards = data?['boards'];
         final mediums = data?['mediumsOfInstruction'];
         if (boards is List) {
@@ -863,7 +863,7 @@ class SchoolAboutUsController extends GetxController {
         logs("_fetchFieldsForCategory: HTTP failed for '$category'");
         return null;
       }
-      final data = res.response?.data['data'];
+      final data = res.getExtraData('data');
       final fieldsRaw = data is Map ? data['fields'] : null;
       if (fieldsRaw is! List) {
         logs("_fetchFieldsForCategory: '$category' returned no `data.fields`"
@@ -1089,7 +1089,7 @@ class SchoolAboutUsController extends GetxController {
       final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: values);
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.successful);
+            message: res.getExtraData('message') ?? AppStrings.successful);
         await fetchSchoolQuickInfo();
         return true;
       }

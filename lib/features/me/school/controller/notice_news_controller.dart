@@ -144,7 +144,7 @@ class NoticeController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         addNoticeNewsResponse.value =
             ApiResponse.complete(response.response?.data);
         getSchoolNoticeNewsController();
@@ -176,7 +176,7 @@ class NoticeController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         addNoticeNewsResponse.value =
             ApiResponse.complete(response.response?.data);
         getSchoolNoticeNewsController();
@@ -206,7 +206,7 @@ class NoticeController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         deleteNoticeNewsResponse.value =
             ApiResponse.complete(response.response?.data);
         getSchoolNoticeNewsController();

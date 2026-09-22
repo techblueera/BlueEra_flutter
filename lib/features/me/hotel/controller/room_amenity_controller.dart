@@ -35,7 +35,7 @@ class RoomAmenityController extends GetxController {
       final ResponseModel response =
           await _repo.getHotelRoomAmenitiesRepo(roomId: roomId);
       if (response.isSuccess) {
-        final data = response.response?.data['data'] as Map<String, dynamic>?;
+        final data = response.getExtraData('data') as Map<String, dynamic>?;
         roomAmenityStatus.assignAll(_filterBooleans(data));
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -65,7 +65,7 @@ class RoomAmenityController extends GetxController {
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }

@@ -97,7 +97,7 @@ class LabProfilesListController extends GetxController {
           await _repo.listLaboratoryProfiles(page: p, limit: _pageSize);
 
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         final items =
             data.map((e) => LabProfileListItem.fromJson(e)).toList();
         if (items.isEmpty || items.length < _pageSize) {

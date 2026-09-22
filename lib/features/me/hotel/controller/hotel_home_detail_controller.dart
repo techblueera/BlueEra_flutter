@@ -69,7 +69,7 @@ class HotelDetailController extends GetxController {
       });
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         await loadHotelData();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -89,7 +89,7 @@ class HotelDetailController extends GetxController {
       isSaving.value = true;
       final ResponseModel response = await _repo.deleteHotelRoomRepo(roomId);
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         await loadHotelData();
       } else {
         commonSnackBar(

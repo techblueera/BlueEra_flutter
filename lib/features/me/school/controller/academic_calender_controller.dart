@@ -71,7 +71,7 @@ class AcademicCalenderController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
 
         getSchoolNoticeNewsController();
       } else {
@@ -105,7 +105,7 @@ class AcademicCalenderController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
 
         getSchoolNoticeNewsController();
         notice_news_id.value = "";
@@ -129,7 +129,7 @@ class AcademicCalenderController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
 
         getSchoolNoticeNewsController();
       } else {

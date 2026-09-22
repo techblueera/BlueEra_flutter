@@ -189,7 +189,7 @@ class HealthCampController extends GetxController {
       isTestsLoading.value = true;
       final ResponseModel res = await _testRepo.getPathologyTests(category);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         labTestsMap[category] =
             data.map((e) => PathologyTest.fromJson(e)).toList();
       }
@@ -271,7 +271,7 @@ class HealthCampController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         camps.value = data.map((e) => HealthCamp.fromJson(e)).toList();
       }
     } catch (e) {
@@ -287,7 +287,7 @@ class HealthCampController extends GetxController {
       isDetailLoading.value = true;
       final ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         if (data is List && data.isNotEmpty) {
           // The "last" entry is the camp belonging to this lab — the
           // backend returns history-ordered results.
@@ -336,7 +336,7 @@ class HealthCampController extends GetxController {
         await fetchCamps();
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ??
+            message: res.getExtraData('message') ??
                 AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
@@ -371,8 +371,8 @@ class HealthCampController extends GetxController {
         await fetchCamps();
         return true;
       }
-      final errorMsg = res.response?.data['message'] ??
-          res.response?.data['error'] ??
+      final errorMsg = res.getExtraData('message') ??
+          res.getExtraData('error') ??
           failureFallback;
       logs("HealthCamp $operationLabel failed: ${res.response?.data}");
       commonSnackBar(message: errorMsg.toString());

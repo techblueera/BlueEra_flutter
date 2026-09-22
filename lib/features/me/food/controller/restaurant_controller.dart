@@ -468,7 +468,7 @@ class RestaurantController extends GetxController {
           await FoodRepo().addFoodContactRepo(reqBody: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.foodBranchDetailsAdded.tr);
         Get.back();
         // Contact/branch details are part of the cached home payload, so this

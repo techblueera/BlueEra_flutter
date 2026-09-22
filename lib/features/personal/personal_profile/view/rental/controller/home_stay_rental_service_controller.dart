@@ -323,7 +323,7 @@ class HomeStayRentalServiceController extends GetxController{
 
       if (response.isSuccess) {
         addHomeStayRentalServiceResponse.value = ApiResponse.complete(response);
-        rentalId = response.response?.data['data']['_id'];
+        rentalId = response.getNested(['data', '_id']);
         print('rental id-- $rentalId');
 
         // await setEarnServiceOptData(true);
@@ -448,7 +448,7 @@ class HomeStayRentalServiceController extends GetxController{
       if (response.isSuccess) {
         generateHomeRentalServiceResponse.value = ApiResponse.complete(response);
 
-        final List<dynamic>? responseData = response.response?.data['description_suggestions'];
+        final List<dynamic>? responseData = response.getExtraData('description_suggestions');
 
         if (responseData != null && responseData.isNotEmpty) {
           descriptionSuggestions.value =

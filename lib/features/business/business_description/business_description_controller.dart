@@ -105,7 +105,7 @@ class BusinessDescriptionController extends GetxController {
           .aiGenerateDescriptionRepo(bodyParam: bodyRequest);
 
       if (response.isSuccess && response.response?.data != null) {
-        final data = response.response?.data['description_suggestions'] ?? [];
+        final data = response.getExtraData('description_suggestions') ?? [];
         setSuggestions(data);
         // descriptionSuggestions.value = List<String>.from(data);
         await showDescriptionSuggestionsDialog(onSaved: onSaved);

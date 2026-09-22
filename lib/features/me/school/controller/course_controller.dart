@@ -78,7 +78,7 @@ class CourseController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await fetchCourses(isRefresh: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -198,7 +198,7 @@ class CourseController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await fetchCourses(isRefresh: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

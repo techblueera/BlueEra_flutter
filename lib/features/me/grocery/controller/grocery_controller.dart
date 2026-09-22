@@ -1245,7 +1245,7 @@ class GroceryController extends GetxController {
           // see [_hydrateGroceryDataFromCache].
           if (!otherStore) {
             final rawItems = responseModel.response?.data is Map
-                ? (responseModel.response?.data['data'] as List?) ?? const []
+                ? (responseModel.getExtraData('data') as List?) ?? const []
                 : const [];
             unawaited(GroceryLocalStore.writeTopSelling(
               userId,

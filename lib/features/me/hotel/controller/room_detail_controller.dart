@@ -242,7 +242,7 @@ class RoomDetailController extends GetxController {
           if (navigator.canPop()) navigator.pop();
           if (navigator.canPop()) navigator.pop();
         }
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         await getHotelRoomDetails(roomTYPE: type);
         resetForm();
         _refreshHotelHome();
@@ -266,7 +266,7 @@ class RoomDetailController extends GetxController {
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
-            message: response.response?.data['message'] ?? AppStrings.successful);
+            message: response.getExtraData('message') ?? AppStrings.successful);
         await getHotelRoomDetails(roomTYPE: hotelRoomType);
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

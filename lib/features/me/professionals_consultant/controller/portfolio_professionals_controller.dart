@@ -121,7 +121,7 @@ class PortfolioProfessionalsController extends GetxController {
 
       if (response.isSuccess) {
         if (docUploadName.value.isNotEmpty && selectedFile.value != null) {
-          final uploadUrl = response.response?.data['uploadUrls'][0] ?? "";
+          final uploadUrl = response.getNested(['uploadUrls', 0]) ?? "";
           if (uploadUrl is String && uploadUrl.isNotEmpty) {
             await ChannelRepo().uploadVideoToS3(
               file: selectedFile.value!,
@@ -166,7 +166,7 @@ class PortfolioProfessionalsController extends GetxController {
             .professionalsFullDetailsController();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

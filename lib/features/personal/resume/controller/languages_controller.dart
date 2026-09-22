@@ -38,7 +38,7 @@ import 'package:get/get.dart';
           // `?[0]` and `elementAtOrNull` would dispatch dynamically and throw
           // NoSuchMethodError on anything that is not a list. An absent or
           // empty `languages` is the ordinary "nothing saved yet" answer.
-          final languages = response.response?.data['languages'];
+          final languages = response.getExtraData('languages');
           final data = (languages is List && languages.isNotEmpty)
               ? languages.first
               : null;
@@ -96,11 +96,11 @@ import 'package:get/get.dart';
       final response = await _repo.addLanguages(params: params);
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.success);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.success);
         await getLanguagesApi();
         Get.back();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -150,10 +150,10 @@ import 'package:get/get.dart';
           _populateLanguageTypesFromStrings();
         }
 
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.success}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.success}");
         await getLanguagesApi(); // refresh after delete
       } else {
-        commonSnackBar(message: "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+        commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

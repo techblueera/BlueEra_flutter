@@ -141,7 +141,7 @@ class SocialContactUsController extends GetxController {
           await SocialProfileRepo().addSocialContactRepo(reqBody: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 "Branch details added successfully");
         Get.back();
         fetchHomeData();

@@ -21,7 +21,7 @@ class HotelServiceController extends GetxController {
           await _repo.createHotelServiceRepo(reqBody: reqParm);
 
       if (response.isSuccess) {
-        final hotelID = response.response?.data['data']?['_id'] as String?;
+        final hotelID = response.getExtraData('data')?['_id'] as String?;
         await setHotelID(hotelID?.isNotEmpty == true ? hotelID! : "");
         await getHotelID();
       } else {

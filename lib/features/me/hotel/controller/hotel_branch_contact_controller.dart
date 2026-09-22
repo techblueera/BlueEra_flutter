@@ -189,7 +189,7 @@ class HotelBranchContactController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ?? successMessage);
+            message: response.getExtraData('message') ?? successMessage);
         Get.back();
         await getBranchDetailsController();
         _refreshHotelHome();
@@ -208,7 +208,7 @@ class HotelBranchContactController extends GetxController {
     if (response.isSuccess) {
       Get.back();
       commonSnackBar(
-          message: response.response?.data["message"] ?? AppStrings.successful);
+          message: response.getExtraData("message") ?? AppStrings.successful);
       getBranchDetailsController();
     } else {
       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

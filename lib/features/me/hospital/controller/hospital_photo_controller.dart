@@ -166,7 +166,7 @@ class HospitalPhotoController extends GetxController
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         fetchPhotos();
         hospitalServiceController.getHospitalFullDetailsController();
       } else {

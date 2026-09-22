@@ -186,7 +186,7 @@ class FoodServicePhotoPhotoController extends GetxController
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         resetUploadForm();
         fetchPhotos();
       } else {
@@ -214,7 +214,7 @@ class FoodServicePhotoPhotoController extends GetxController
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

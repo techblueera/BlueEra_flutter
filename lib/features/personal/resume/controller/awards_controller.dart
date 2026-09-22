@@ -116,11 +116,11 @@ class AwardsController extends GetxController {
         attachment: selectedFile,
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardAdded.tr);
+        commonSnackBar(message: response.getExtraData('message') ??AppStrings.awardAdded.tr);
         clearForm();
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardAddFailed);
+        commonSnackBar(message: response.getExtraData('message') ??AppStrings.awardAddFailed);
       }
     } finally {
       isLoading.value = false;
@@ -157,12 +157,12 @@ class AwardsController extends GetxController {
         removeAttachment: selectedFile == null && (selectedImageUrl?.isNotEmpty ?? false),
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardUpdated);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.awardUpdated);
         clearForm();
         selectedAwardId.value = null;
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardUpdateFailed);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.awardUpdateFailed);
       }
     } finally {
       isLoading.value = false;
@@ -175,10 +175,10 @@ class AwardsController extends GetxController {
       isLoading.value = true;
       final response = await _repo.deleteAward(id: id);
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardDeleted);
+        commonSnackBar(message: response.getExtraData('message') ?? AppStrings.awardDeleted);
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardDeleteFailed);
+        commonSnackBar(message: response.getExtraData('message') ??AppStrings.awardDeleteFailed);
       }
     } finally {
       isLoading.value = false;

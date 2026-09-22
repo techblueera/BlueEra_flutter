@@ -48,7 +48,7 @@ class AchievementsController extends GetxController {
 
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ??
+            message: res.getExtraData('message') ??
                 AppStrings.achievementAddedSuccess.tr);
         // await fetchAchievements();
         clearForm();
@@ -105,7 +105,7 @@ class AchievementsController extends GetxController {
       final res = await _repo.deleteAchievement(id: id);
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.achievementDeleteSuccess.tr);
+            message: res.getExtraData('message') ?? AppStrings.achievementDeleteSuccess.tr);
         // await fetchAchievements();
         achievementsList.removeAt(index);
 

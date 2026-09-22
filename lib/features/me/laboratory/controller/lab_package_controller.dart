@@ -51,7 +51,7 @@ class LabPackageController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getMyPackages();
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         myPackages.value = data
             .whereType<Map<String, dynamic>>()
             .map(LabPackage.fromJson)
@@ -70,7 +70,7 @@ class LabPackageController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getPackagesByLab(labId.trim());
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         byLabPackages.value = data
             .whereType<Map<String, dynamic>>()
             .map(LabPackage.fromJson)
@@ -89,7 +89,7 @@ class LabPackageController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getPackageById(id.trim());
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         if (data is Map<String, dynamic>) {
           current.value = LabPackage.fromJson(data);
         }
@@ -127,12 +127,12 @@ class LabPackageController extends GetxController {
       final ResponseModel res = await _repo.createPackage(pkg.toCreateJson());
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Package created');
+            message: res.getExtraData('message') ?? 'Package created');
         await fetchMyPackages();
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ??
+        message: res.getExtraData('message') ??
             AppStrings.labFailedToAddTest.tr,
       );
       return false;
@@ -152,12 +152,12 @@ class LabPackageController extends GetxController {
       final ResponseModel res = await _repo.updatePackage(id.trim(), patch);
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Package updated');
+            message: res.getExtraData('message') ?? 'Package updated');
         await fetchMyPackages();
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ??
+        message: res.getExtraData('message') ??
             AppStrings.labFailedToAddTest.tr,
       );
       return false;
@@ -177,12 +177,12 @@ class LabPackageController extends GetxController {
       final ResponseModel res = await _repo.deletePackage(id.trim());
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Package deleted');
+            message: res.getExtraData('message') ?? 'Package deleted');
         myPackages.removeWhere((p) => p.id == id.trim());
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.somethingWentWrong,
+        message: res.getExtraData('message') ?? AppStrings.somethingWentWrong,
       );
       return false;
     } catch (e) {

@@ -574,7 +574,7 @@ class FoodServiceController extends GetxController {
     ResponseModel response =
         await FoodRepo().getFoodByCategoryIdRepo(queryPatrams: params);
     if (response.isSuccess) {
-      List rawList = response.response?.data['data'];
+      List rawList = response.getExtraData('data');
       categoryFoundProductDataList.value =
           rawList.map((e) => CategoryFoodProductData.fromJson(e)).toList();
       getFoodByCategoryIDResponse.value =
@@ -670,7 +670,7 @@ class FoodServiceController extends GetxController {
             Get.find<RestaurantController>().markMenuChanged();
           }
 
-          String variantId = responseModel.response?.data['data']['_id'];
+          String variantId = responseModel.getNested(['data', '_id']);
 
           return variantId;
           // Get.until((route) =>
@@ -995,7 +995,7 @@ class FoodServiceController extends GetxController {
           await FoodRepo().fetchSingleFoodProductDetailsRepo(foodID: FoodId);
       if (response.isSuccess) {
         singleFoodProductData.value =
-            CategoryFoodProductData.fromJson(response.response?.data['data']);
+            CategoryFoodProductData.fromJson(response.getExtraData('data'));
         getSingleFoodProductResponse.value =
             ApiResponse.complete(singleFoodProductData);
       } else {
@@ -1078,7 +1078,7 @@ class FoodServiceController extends GetxController {
           // logic for missing product creation flow
 
           // if (createMissingProductIndex != -1) {
-          final responseData = responseModel.response?.data['data'];
+          final responseData = responseModel.getExtraData('data');
           if (responseData != null && (responseData as List).isNotEmpty) {
             final firstItem = responseData[0];
 

@@ -365,7 +365,7 @@ class VehicleRentalServiceController extends GetxController {
 
       if (response.isSuccess) {
         addVehicleRentalServiceResponse.value = ApiResponse.complete(response);
-        rentalId = response.response?.data['data']['_id'];
+        rentalId = response.getNested(['data', '_id']);
         print('rental id-- $rentalId');
 
         // await setEarnServiceOptData(true);

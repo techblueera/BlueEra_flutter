@@ -100,7 +100,7 @@ class SocialHomeController extends GetxController {
           await SocialProfileRepo().addSocialContactRepo(reqBody: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 "Contact updated successfully");
         await fetchProfile();
       } else {

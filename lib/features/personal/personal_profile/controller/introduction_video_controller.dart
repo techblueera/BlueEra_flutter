@@ -196,8 +196,8 @@ class IntroductionVideoController extends GetxController {
       if (response.isSuccess) {
         // Extract video URL from response if available
         if (response.response?.data != null &&
-            response.response!.data['data']['introVideo'] != null) {
-          videoUrl.value = response.response!.data['data']['introVideo'];
+            response.getNested(['data', 'introVideo']) != null) {
+          videoUrl.value = response.getNested(['data', 'introVideo']);
           await initializeVideoPlayerFromNetwork(videoUrl.value);
 
         }

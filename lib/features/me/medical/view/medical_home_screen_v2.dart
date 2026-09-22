@@ -192,7 +192,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       final res = await MedicalRepo()
           .fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
-        final data = res.response?.data['data'] ?? res.response?.data;
+        final data = res.getExtraData('data') ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
           if (!mounted) return;
           setState(() => _data = MedicalHomeResponseModel.fromJson(data));

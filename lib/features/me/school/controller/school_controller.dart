@@ -60,7 +60,7 @@ class SchoolController extends GetxController {
       });
       if (response.isSuccess) {
         commonSnackBar(message: "School create successfully");
-        String? schoolID = response.response?.data['data']['_id'];
+        String? schoolID = response.getNested(['data', '_id']);
 
 
         if (schoolID != null && schoolID.isNotEmpty) {

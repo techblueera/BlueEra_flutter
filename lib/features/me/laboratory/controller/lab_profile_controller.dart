@@ -45,7 +45,7 @@ class LabProfileController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getProfile();
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         final desc = data?['description'];
         descController.text = desc is String ? desc : '';
         hasExisting.value = descController.text.trim().isNotEmpty;
@@ -71,7 +71,7 @@ class LabProfileController extends GetxController {
         return true;
       }
       commonSnackBar(
-          message: res.response?.data['message'] ??
+          message: res.getExtraData('message') ??
               AppStrings.labFailedToSave.tr);
       return false;
     } catch (e) {

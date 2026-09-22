@@ -156,7 +156,7 @@ class JourneyPlanningController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(
             message:
-                responseModel.response?.data['message'] ?? AppStrings.success);
+                responseModel.getExtraData('message') ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
             true;
         Get.until((route) =>

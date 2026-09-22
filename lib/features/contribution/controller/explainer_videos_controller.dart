@@ -79,7 +79,7 @@ class ExplainerVideosController extends GetxController {
 
     final ResponseModel res = await _repo.fetchVideos();
     if (res.statusCode == 200 && res.response?.data?['data'] is List) {
-      final raw = res.response!.data['data'] as List;
+      final raw = res.getExtraData('data') as List;
       _apply(raw);
       final maps =
           raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();

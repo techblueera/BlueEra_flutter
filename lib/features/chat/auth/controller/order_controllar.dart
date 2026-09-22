@@ -113,8 +113,8 @@ class OrderNowController extends GetxController {
       ResponseModel responseModel = await BusinessProfileRepo()
           .viewBusinessIdForLocation(userId, userType);
       if ((userType == 'INDIVIDUAL')
-          ? (responseModel.response?.data['status'])
-          : (responseModel.response?.data['success'])) {
+          ? (responseModel.getExtraData('status'))
+          : (responseModel.getExtraData('success'))) {
         final data = responseModel.response?.data;
 
         if (userType == 'INDIVIDUAL') {

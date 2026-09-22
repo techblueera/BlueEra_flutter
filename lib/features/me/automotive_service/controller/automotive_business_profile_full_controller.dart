@@ -192,7 +192,7 @@ class AutomotiveBusinessProfileFullController extends GetxController {
           "profileName": _profileNameForUpdate
         });
         if (response.isSuccess) {
-          commonSnackBar(message: response.response?.data['message']);
+          commonSnackBar(message: response.getExtraData('message'));
           getBusinessProfileFull(forceRefresh: true);
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);

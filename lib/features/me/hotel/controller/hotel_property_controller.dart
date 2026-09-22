@@ -43,7 +43,7 @@ class HotelPropertyController extends GetxController {
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }

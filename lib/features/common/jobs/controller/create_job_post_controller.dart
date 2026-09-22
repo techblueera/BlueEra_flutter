@@ -144,8 +144,8 @@ class CreateJobPostController extends GetxController {
       }
       final response = await _repo.jobPostRepo(params: params);
       if (response.isSuccess) {
-        final jobId = response.response?.data['jobId'] ??
-            response.response?.data['data']?['jobId'];
+        final jobId = response.getExtraData('jobId') ??
+            response.getExtraData('data')?['jobId'];
         jobID.value = jobId;
         commonSnackBar(message: response.message ?? AppStrings.success);
         Get.toNamed(RouteHelper.getCreateJobPostStep2Route());

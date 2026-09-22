@@ -43,7 +43,7 @@ class ContributionController extends GetxController {
     currentStatus.value = Status.LOADING;
     final ResponseModel res = await _repo.fetchCurrent();
     if (res.statusCode == 200 && res.response?.data?['data'] != null) {
-      final data = res.response!.data['data'];
+      final data = res.getExtraData('data');
       currentRecharge.value =
           data is Map<String, dynamic> ? data : <String, dynamic>{};
       hasActiveRecharge.value = true;

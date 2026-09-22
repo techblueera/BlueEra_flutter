@@ -127,14 +127,14 @@ class ProfilePicController extends GetxController {
     try {
       final res = await ResumeRepo().editProfilePicWithFile(imageFile);
       if (res.isSuccess) {
-        final newUrl = res.response?.data['profilePicture'];
+        final newUrl = res.getExtraData('profilePicture');
         if (newUrl != null && newUrl.isNotEmpty) {
           profilePic.value = newUrl;
         }
 
         commonSnackBar(
             message:
-                res.response?.data['message'] ?? AppStrings.profilePicUpdated);
+                res.getExtraData('message') ?? AppStrings.profilePicUpdated);
       } else {
         commonSnackBar(
             message: res.message ?? AppStrings.profilePicUpdateFailed);

@@ -194,7 +194,7 @@ class LabServicePhotoPhotoController extends GetxController
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(message: response.response?.data['message']);
+        commonSnackBar(message: response.getExtraData('message'));
         // Also clears `isCustomCategory`, which the inline pair above didn't
         // know about — otherwise the next upload would open on the "Other"
         // branch left over from this one.
@@ -224,7 +224,7 @@ class LabServicePhotoPhotoController extends GetxController
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
-            message: response.response?.data['message'] ?? AppStrings.successful);
+            message: response.getExtraData('message') ?? AppStrings.successful);
         await fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

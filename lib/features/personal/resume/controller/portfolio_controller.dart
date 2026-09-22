@@ -53,7 +53,7 @@ class PortfolioController extends GetxController {
     if (res.isSuccess) {
       portfolioLinks.remove(link);
       validateForm();
-      commonSnackBar(message: res.response?.data['message'] ?? AppStrings.portfolioDeletedSuccess);
+      commonSnackBar(message: res.getExtraData('message') ?? AppStrings.portfolioDeletedSuccess);
     } else {
       commonSnackBar(message: res.message ?? AppStrings.portfolioDeleteFailed);
     }
@@ -80,7 +80,7 @@ class PortfolioController extends GetxController {
         addPortfolioResponse = ApiResponse.complete(res);
         // await fetchPortfolios(); // Update the portfolio list
         Get.back();
-        commonSnackBar(message: res.response?.data['message'] ?? AppStrings.portfolioAddedSuccess);
+        commonSnackBar(message: res.getExtraData('message') ?? AppStrings.portfolioAddedSuccess);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

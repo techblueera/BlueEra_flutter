@@ -98,8 +98,8 @@ class StudentCornerController extends GetxController {
     ResponseModel postResponse = await SchoolRepo().createStudentCornerRepo();
 
     if (postResponse.response?.data != null &&
-        postResponse.response?.data['success'] == true) {
-      studentCornerId.value = postResponse.response?.data['data']['_id'];
+        postResponse.getExtraData('success') == true) {
+      studentCornerId.value = postResponse.getNested(['data', '_id']);
       print("New ID created and stored: ${studentCornerId.value}");
     } else {
       commonSnackBar(message: "Could not create student corner section");
@@ -123,10 +123,10 @@ class StudentCornerController extends GetxController {
           studentCornerId: studentCornerId.value, reqParm: reqDATA);
 
       if (postResponse.response?.data != null &&
-          postResponse.response?.data['success'] == true) {
+          postResponse.getExtraData('success') == true) {
         Get.back();
 
-        commonSnackBar(message: postResponse.response?.data['message']);
+        commonSnackBar(message: postResponse.getExtraData('message'));
         initStudentCorner();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -149,7 +149,7 @@ class StudentCornerController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
 
         initStudentCorner();
       } else {
@@ -186,7 +186,7 @@ class StudentCornerController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
 
         initStudentCorner();
       } else {

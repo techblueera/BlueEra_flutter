@@ -143,7 +143,7 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
         callAPIGetResume();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -160,7 +160,7 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

@@ -204,7 +204,7 @@ class BusinessProfileFullController extends GetxController {
           "profileName": _profileNameForUpdate
         });
         if (response.isSuccess) {
-          commonSnackBar(message: response.response?.data['message']);
+          commonSnackBar(message: response.getExtraData('message'));
           getBusinessProfileFull(forceRefresh: true);
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -231,7 +231,7 @@ class BusinessProfileFullController extends GetxController {
       });
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ?? 'Saved');
+            message: response.getExtraData('message') ?? 'Saved');
         await getBusinessProfileFull(forceRefresh: true);
         return true;
       }
@@ -252,7 +252,7 @@ class BusinessProfileFullController extends GetxController {
         commonSnackBar(message: AppStrings.otherServiceCreatedSuccess.tr);
         createSchoolResponse.value =
             ApiResponse.complete(response.response?.data);
-        otherServiceIDGlobal = response.response?.data['data']['_id'];
+        otherServiceIDGlobal = response.getNested(['data', '_id']);
 
         if (otherServiceIDGlobal.isNotEmpty) {
           await setOtherServiceID(otherServiceIDGlobal);

@@ -128,7 +128,7 @@ class LabTestController extends GetxController {
       final ResponseModel res =
           await _repo.getTestCategoriesByLab(scopedLabId);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         categories.value = data.map((e) => TestCategory.fromJson(e)).toList();
       }
     } catch (e) {
@@ -143,7 +143,7 @@ class LabTestController extends GetxController {
       final ResponseModel res =
           await _repo.getTestParametersByLab(scopedLabId);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         parameters.value = data.map((e) => TestParameter.fromJson(e)).toList();
       }
     } catch (e) {
@@ -156,7 +156,7 @@ class LabTestController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getPathologyTests(collection);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         tests.value = data.map((e) => PathologyTest.fromJson(e)).toList();
       }
     } catch (e) {
@@ -174,7 +174,7 @@ class LabTestController extends GetxController {
       isLoadingPopular.value = true;
       final ResponseModel res = await _repo.getPathologyTests('');
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         final all = data.map((e) => PathologyTest.fromJson(e)).toList();
         popularTests.value = all.take(limit).toList();
       }
@@ -191,7 +191,7 @@ class LabTestController extends GetxController {
       final ResponseModel res =
           await _repo.getPathologyTestsByLab(labId, collection);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         tests.value = data.map((e) => PathologyTest.fromJson(e)).toList();
       }
     } catch (e) {
@@ -221,7 +221,7 @@ class LabTestController extends GetxController {
         limit: limit,
       );
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         final items = data.map((e) => TestCatalogItem.fromJson(e)).toList();
         if (isFirstPage) {
           catalogTests.value = items;
@@ -281,7 +281,7 @@ class LabTestController extends GetxController {
       }
       commonSnackBar(
         message:
-            res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr,
+            res.getExtraData('message') ?? AppStrings.labFailedToSelect.tr,
       );
       return false;
     } catch (e) {
@@ -309,7 +309,7 @@ class LabTestController extends GetxController {
         // (e.g. "1 test(s) removed..."); fall back to a plain string if
         // it ever comes back empty.
         commonSnackBar(
-          message: res.response?.data['message'] ?? 'Removed',
+          message: res.getExtraData('message') ?? 'Removed',
         );
         await Future.wait([
           fetchCatalog(groupCategory: collection),
@@ -318,7 +318,7 @@ class LabTestController extends GetxController {
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ??
+        message: res.getExtraData('message') ??
             AppStrings.somethingWentWrong.tr,
       );
       return false;
@@ -342,7 +342,7 @@ class LabTestController extends GetxController {
       }
       commonSnackBar(
         message:
-            res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr,
+            res.getExtraData('message') ?? AppStrings.labFailedToAddTest.tr,
       );
       return false;
     } catch (e) {
@@ -365,7 +365,7 @@ class LabTestController extends GetxController {
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ??
+        message: res.getExtraData('message') ??
             AppStrings.labFailedToUpdateTest.tr,
       );
       return false;
@@ -387,7 +387,7 @@ class LabTestController extends GetxController {
         await fetchTests(collection);
       } else {
         commonSnackBar(
-          message: res.response?.data['message'] ??
+          message: res.getExtraData('message') ??
               AppStrings.labFailedToDeleteTest.tr,
         );
       }

@@ -38,7 +38,7 @@ class FinanceDiscoverController extends GetxController {
         onSuccess: (data) {},
       );
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
+        final data = res.getExtraData('data');
         if (data != null) {
           selectedDetail.value =
               FinanceBusinessItem.fromJson(Map<String, dynamic>.from(data));
@@ -135,7 +135,7 @@ class FinanceDiscoverController extends GetxController {
       );
 
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         final items = data.map((e) => FinanceBusinessItem.fromJson(e)).toList();
         // A same-category reload swaps the list in one assignment. Not merged
         // with the dedup path below on purpose: this response IS the new page 1,

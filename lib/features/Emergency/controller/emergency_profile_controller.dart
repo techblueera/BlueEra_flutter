@@ -69,7 +69,7 @@ class EmergencyProfileViewController extends GetxController {
           await EmergencyServiceRepo().getEmergencyProfileById(_effectiveId);
 
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data['data'];
+        final data = responseModel.getExtraData('data');
         if (data != null) {
           emergencyProfileData.value = EmergencyProfileModel.fromJson(data);
           // Cache only the user's OWN profile, never other users' profiles.

@@ -166,7 +166,7 @@ class LabFullDetailsController extends GetxController {
 
       if (!res.isSuccess) {
         commonSnackBar(
-          message: res.response?.data['message'] ??
+          message: res.getExtraData('message') ??
               AppStrings.labFailedToSave.tr,
         );
         return false;

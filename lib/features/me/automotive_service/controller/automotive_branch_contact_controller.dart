@@ -92,7 +92,7 @@ class AutomotiveBranchContactController extends GetxController {
           await OtherRepo().createOtherBranchContactRepo(reqParm: body);
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.hotelBranchAddedSuccess.tr);
         await getBranchDetailsController();
         _refreshHomeScreen();
@@ -183,7 +183,7 @@ class AutomotiveBranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         await getBranchDetailsController();
         _refreshHomeScreen();
       } else {
@@ -213,7 +213,7 @@ class AutomotiveBranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();
@@ -242,7 +242,7 @@ class AutomotiveBranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await getBranchDetailsController();
         _refreshHomeScreen();
       } else {
@@ -263,7 +263,7 @@ class AutomotiveBranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         await getBranchDetailsController();
         _refreshHomeScreen();
       } else {
@@ -290,7 +290,7 @@ class AutomotiveBranchContactController extends GetxController {
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data["message"] ?? AppStrings.successful);
+                response.getExtraData("message") ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
         await getBranchDetailsController();

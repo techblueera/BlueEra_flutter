@@ -54,7 +54,7 @@ class SymbolFeedController extends GetxController {
       );
 
       if (response.isSuccess) {
-        final rawData = response.response?.data['data'] ?? {};
+        final rawData = response.getExtraData('data') ?? {};
         final parsed =
             SymbolGroupedData.fromJson(Map<String, dynamic>.from(rawData));
         final groups = parsed.groups ?? [];
@@ -104,7 +104,7 @@ class SymbolFeedController extends GetxController {
       );
 
       if (response.isSuccess) {
-        final rawData = response.response?.data['data'] ?? {};
+        final rawData = response.getExtraData('data') ?? {};
         final parsed =
             SymbolGroupedData.fromJson(Map<String, dynamic>.from(rawData));
         final newGroups = parsed.groups ?? [];

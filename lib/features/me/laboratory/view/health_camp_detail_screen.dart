@@ -57,7 +57,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
     try {
       final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         if (data.isNotEmpty && mounted) {
           setState(() => _otherCamp = HealthCamp.fromJson(data.last));
         }

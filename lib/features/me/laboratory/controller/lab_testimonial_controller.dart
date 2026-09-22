@@ -26,7 +26,7 @@ class LabTestimonialController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getMyTestimonials();
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         myTestimonials.value = data
             .whereType<Map<String, dynamic>>()
             .map(LabTestimonial.fromJson)
@@ -45,7 +45,7 @@ class LabTestimonialController extends GetxController {
       isLoading.value = true;
       final ResponseModel res = await _repo.getTestimonialsByLab(labId.trim());
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
+        final List data = res.getExtraData('data') ?? [];
         byLabTestimonials.value = data
             .whereType<Map<String, dynamic>>()
             .map(LabTestimonial.fromJson)
@@ -81,12 +81,12 @@ class LabTestimonialController extends GetxController {
           await _repo.createTestimonial(t.toCreateJson());
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Testimonial added');
+            message: res.getExtraData('message') ?? 'Testimonial added');
         await fetchMyTestimonials();
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.somethingWentWrong,
+        message: res.getExtraData('message') ?? AppStrings.somethingWentWrong,
       );
       return false;
     } catch (e) {
@@ -105,12 +105,12 @@ class LabTestimonialController extends GetxController {
       final ResponseModel res = await _repo.updateTestimonial(id.trim(), patch);
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Testimonial updated');
+            message: res.getExtraData('message') ?? 'Testimonial updated');
         await fetchMyTestimonials();
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.somethingWentWrong,
+        message: res.getExtraData('message') ?? AppStrings.somethingWentWrong,
       );
       return false;
     } catch (e) {
@@ -129,12 +129,12 @@ class LabTestimonialController extends GetxController {
       final ResponseModel res = await _repo.deleteTestimonial(id.trim());
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? 'Testimonial deleted');
+            message: res.getExtraData('message') ?? 'Testimonial deleted');
         myTestimonials.removeWhere((t) => t.id == id.trim());
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.somethingWentWrong,
+        message: res.getExtraData('message') ?? AppStrings.somethingWentWrong,
       );
       return false;
     } catch (e) {

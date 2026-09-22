@@ -5159,7 +5159,7 @@ class ChatViewController extends GetxController {
         await ChatViewRepo().getPinMessageListData(params);
     if (responseModel.isSuccess) {
       getListOfMessageData?.clear();
-      List<dynamic> details = responseModel.response?.data['messages'];
+      List<dynamic> details = responseModel.getExtraData('messages');
       getListOfMessageData
           ?.addAll(details.map((e) => Messages.fromJson(e)).toList());
       getListOfMessageResponse.value =

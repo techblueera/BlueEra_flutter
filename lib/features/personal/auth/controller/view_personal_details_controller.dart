@@ -299,7 +299,7 @@ class ViewPersonalDetailsController extends GetxController
           await PersonalProfileRepo().getServiceStatusRepo();
 
       if (responseModel.isSuccess) {
-        final statusData = responseModel.response?.data['availabilityStatus']
+        final statusData = responseModel.getExtraData('availabilityStatus')
             .toString()
             .toUpperCase();
         if (statusData == AppConstants.OPEN.toUpperCase()) {
@@ -1235,7 +1235,7 @@ class ViewPersonalDetailsController extends GetxController
 
       if (responseModel.isSuccess) {
         String isUserServiceExits =
-            responseModel.response?.data['exists'].toString() ?? 'false';
+            responseModel.getExtraData('exists').toString() ?? 'false';
         return isUserServiceExits;
       } else {
         commonSnackBar(

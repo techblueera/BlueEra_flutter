@@ -124,7 +124,7 @@ class ProfessionalsServicePhotoPhotoController extends GetxController
         "contentTypes": contentTypes,
       });
 
-      final List<dynamic> urls = response.response?.data['uploadUrls'] ?? [];
+      final List<dynamic> urls = response.getExtraData('uploadUrls') ?? [];
       // Never index past either list: the server can answer with a different
       // number of urls than files were sent.
       final int uploadCount = min(urls.length, selectedImages.length);
@@ -188,7 +188,7 @@ class ProfessionalsServicePhotoPhotoController extends GetxController
         Get.back();
         commonSnackBar(
             message:
-                response.response?.data['message'] ?? AppStrings.successful);
+                response.getExtraData('message') ?? AppStrings.successful);
         fetchPhotos();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

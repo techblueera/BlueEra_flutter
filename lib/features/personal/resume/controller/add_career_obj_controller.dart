@@ -33,12 +33,12 @@ class CareerObjectiveController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.careerObjectiveAdded.tr}");
+                "${response.getExtraData('message') ?? AppStrings.careerObjectiveAdded.tr}");
         // await getCareerObjectiveApi();
       } else {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+                "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       // Handle error, show message
@@ -52,12 +52,12 @@ class CareerObjectiveController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.careerObjectiveUpdated.tr}");
+                "${response.getExtraData('message') ?? AppStrings.careerObjectiveUpdated.tr}");
         // await getCareerObjectiveApi();
       } else {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+                "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       // Handle error, show message
@@ -70,12 +70,12 @@ class CareerObjectiveController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.success}");
+                "${response.getExtraData('message') ?? AppStrings.success}");
         careerObjective.value = '';
       } else {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? AppStrings.somethingWentWrong}");
+                "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }
     } catch (e) {
       // Handle error if needed

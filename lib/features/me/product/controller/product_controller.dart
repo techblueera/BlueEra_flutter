@@ -761,7 +761,7 @@ class ProductController extends GetxController{
       }
       if (responseModel.isSuccess) {
         createProductResponse.value = ApiResponse.complete(responseModel);
-        // productId = responseModel.response?.data['data']['_id'];
+        // productId = responseModel.getNested(['data', '_id']);
         // Get.toNamed(
         //   RouteHelper.getProductPreviewScreenRoute(),
         // );

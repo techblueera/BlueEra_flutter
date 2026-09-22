@@ -36,7 +36,7 @@ class AiSuggestionController extends GetxController {
       if (response.isSuccess && response.response?.data != null) {
         final key =
            'bio_suggestions';
-        final data = response.response?.data[key] ?? [];
+        final data = response.getExtraData(key) ?? [];
         // suggestions.value = List<String>.from(data);
         setSuggestions(data);
 

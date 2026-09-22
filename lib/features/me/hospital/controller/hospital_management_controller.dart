@@ -143,7 +143,7 @@ class HospitalManagementController extends GetxController {
         return;
       }
 
-      final saved = ManagementMember.fromJson(res.response?.data['data']);
+      final saved = ManagementMember.fromJson(res.getExtraData('data'));
       if (isCreate) {
         members.insert(0, saved);
         commonSnackBar(message: AppStrings.hospitalCtrlMemberAdded.tr);

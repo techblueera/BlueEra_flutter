@@ -199,7 +199,7 @@ commonSnackBar(message:"phone number copied");
 
       if (response.statusCode == 200) {
         final List list =
-            response.response!.data['faqs'] ?? [];
+            response.getExtraData('faqs') ?? [];
 
         final faqs = list
             .map((e) => FaqModel.fromJson(e))
@@ -224,7 +224,7 @@ commonSnackBar(message:"phone number copied");
 
       if (response.statusCode == 200) {
         // final List list =
-        //     response.response!.data['faqs'] ?? [];
+        //     response.getExtraData('faqs') ?? [];
 
         // final faqs = list
         //     .map((e) => FaqModel.fromJson(e))
@@ -251,7 +251,7 @@ commonSnackBar(message:"phone number copied");
 
       if (response.statusCode == 200) {
         // final List list =
-        //     response.response!.data['faqs'] ?? [];
+        //     response.getExtraData('faqs') ?? [];
 
         // final faqs = list
         //     .map((e) => FaqModel.fromJson(e))
@@ -290,8 +290,8 @@ commonSnackBar(message:"phone number copied");
       await uploadFileToS3(
           file: selectedFiles ?? File(''),
           fileType: fileTypes ?? '',
-          preSignedUrl: response.response?.data['uploadUrl']);
-      return response.response?.data['publicUrl'];
+          preSignedUrl: response.getExtraData('uploadUrl'));
+      return response.getExtraData('publicUrl');
     } else {
       commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong);
@@ -368,7 +368,7 @@ commonSnackBar(message:"phone number copied");
 
       if (response.isSuccess) {
         final List list =
-            response.response?.data['queries'] ?? [];
+            response.getExtraData('queries') ?? [];
 
         final cases = list
             .map((e) => SupportCase.fromJson(e))

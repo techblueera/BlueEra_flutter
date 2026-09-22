@@ -30,7 +30,7 @@ import 'package:get/get.dart';
 //       ResponseModel response = await PaymentRepo().bankDetailsRepo(channelId: channelID, params:myReq);
 
 //       if (response.isSuccess && response.response?.data != null) {
-//         commonSnackBar(message: response.response?.data['message'] ?? AppStrings.success);
+//         commonSnackBar(message: response.getExtraData('message') ?? AppStrings.success);
 //         addBankDetailsResponse.value = ApiResponse.complete(response);
 //         clearForm();
 //         Get.back();
@@ -83,7 +83,7 @@ import 'package:get/get.dart';
 
 //       if (response.isSuccess && response.response?.data != null) {
 //         commonSnackBar(
-//             message: response.response?.data['message'] ?? AppStrings.success);
+//             message: response.getExtraData('message') ?? AppStrings.success);
 //         deleteBankBankDetailsResponse.value = ApiResponse.complete(response);
 //         clearForm();
 //       } else {

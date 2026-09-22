@@ -176,7 +176,7 @@ class HospitalBranchContactController extends GetxController {
         if (popOnSuccess) Get.back();
         commonSnackBar(
           message:
-              response.response?.data['message'] ?? fallbackSuccessMsg,
+              response.getExtraData('message') ?? fallbackSuccessMsg,
         );
         onSuccess?.call(response);
         if (refreshOnSuccess) await getBranchDetailsController();

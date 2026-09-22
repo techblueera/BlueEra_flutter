@@ -31,7 +31,7 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
       if (schoolIDGlobal.isEmpty) {
         ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
         if (response.isSuccess) {
-          String? schoolID = response.response?.data['data'][0]['_id'];
+          String? schoolID = response.getNested(['data', 0, '_id']);
           if (schoolID != null && schoolID.isNotEmpty) {
             await setSchoolID(schoolID);
           } else {

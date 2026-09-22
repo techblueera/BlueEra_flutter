@@ -541,7 +541,7 @@ class SelfWorkServiceController extends GetxController{
           .aiGenerateDescriptionRepo(bodyParam: bodyRequest);
 
       if (response.isSuccess && response.response?.data != null) {
-        final rawData = response.response?.data['data']['description_suggestions'];
+        final rawData = response.getNested(['data', 'description_suggestions']);
 
         if (rawData != null && rawData is List) {
           descriptionSuggestions.value = rawData.map((e) => e.toString()).toList();
@@ -776,7 +776,7 @@ class SelfWorkServiceController extends GetxController{
 
         // Set preSignedUrls from response
         String preSignedUrlImages =
-            responseModel.response!.data['uploadData'][0]['url'] ?? [];
+            responseModel.getNested(['uploadData', 0, 'url']) ?? [];
 
         image.preSignedUrl = preSignedUrlImages;
         await uploadAllImages([image]);

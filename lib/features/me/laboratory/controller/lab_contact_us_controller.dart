@@ -91,7 +91,7 @@ class LabContactUsController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
+            message: response.getExtraData('message') ??
                 AppStrings.hotelBranchAddedSuccess.tr);
         Get.back();
         await fetchHomeData();

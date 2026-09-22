@@ -51,7 +51,7 @@ class LabServiceAiController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: AppStrings.labServiceCreatedSuccess.tr);
         labAddress.value = "";
-        final labID = response.response?.data['laboratoryId'] as String?;
+        final labID = response.getExtraData('laboratoryId') as String?;
         await setLabID(labID?.isNotEmpty == true ? labID! : "");
         await getLabID();
         hasLabCreated.value = true;

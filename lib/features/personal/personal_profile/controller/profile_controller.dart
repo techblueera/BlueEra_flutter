@@ -342,7 +342,7 @@ class VisitProfileController extends GetxController {
           await UserRepo().addTestimonialRepo(reqPar: bodyReq);
       if (responseModel.isSuccess) {
         commonSnackBar(
-            message: responseModel.response?.data['message'] ??
+            message: responseModel.getExtraData('message') ??
                 AppStrings.somethingWentWrong);
         await getTestimonialController(userID: bodyReq?[ApiKeys.toUser]);
         addTestimonialResponse.value = ApiResponse.complete(responseModel);
