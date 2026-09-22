@@ -1492,33 +1492,47 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   // Fetch service from API
   final RxList<GetServiceModel> services = <GetServiceModel>[].obs;
 
+  /// The only fetch in this controller that was not wrapped — every sibling
+  /// ([fetchProducts], [_fetchBusinessProfile]) already is. The parse below
+  /// runs on backend data, and a throw from it escapes into an async context
+  /// where `PlatformDispatcher.onError` records it as a fatal: a malformed
+  /// field in one service used to take the app down rather than leave the
+  /// services tab on the error state it already knows how to render.
   Future<void> fetchServices({required String visitBusinessId}) async {
-    errorMessage.value = '';
-    final response = await BusinessProfileRepo().getServices(
-        businessId: visitBusinessId, queryParam: {'type': 'service'});
-    final queryParam = {
-      'type': 'service',
-    };
+    try {
+      errorMessage.value = '';
+      final response = await BusinessProfileRepo().getServices(
+          businessId: visitBusinessId, queryParam: {'type': 'service'});
+      final queryParam = {
+        'type': 'service',
+      };
 
-    await BusinessProfileRepo().getServices(
-      businessId: visitBusinessId,
-      queryParam: queryParam,
-    );
+      await BusinessProfileRepo().getServices(
+        businessId: visitBusinessId,
+        queryParam: queryParam,
+      );
 
-    if (response.isSuccess) {
-      businessServiceResponse.value = ApiResponse.complete(response);
-      List<dynamic> jsonData = [];
+      if (response.isSuccess) {
+        businessServiceResponse.value = ApiResponse.complete(response);
+        List<dynamic> jsonData = [];
 
-      if (response.response?.data is List) {
-        jsonData = json.decode(jsonEncode(response.response?.data));
-      } else if (response.response?.data is Map) {
-        jsonData = json.decode(jsonEncode(response.response?.data['services']));
+        if (response.response?.data is List) {
+          jsonData = json.decode(jsonEncode(response.response?.data));
+        } else if (response.response?.data is Map) {
+          jsonData =
+              json.decode(jsonEncode(response.response?.data['services']));
+        }
+
+        services.value =
+            jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
+      } else {
+        businessServiceResponse.value = ApiResponse.error('error');
       }
-
-      services.value =
-          jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
-    } else {
+    } catch (e) {
+      // Same shape as [fetchProducts]'s handler, so the tab reaches the state
+      // it already renders for a failed load.
       businessServiceResponse.value = ApiResponse.error('error');
+      errorMessage.value = e.toString();
     }
   }
 
