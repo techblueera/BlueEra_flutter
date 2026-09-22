@@ -118,6 +118,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
 
     _debounce = Timer(const Duration(milliseconds: 400), () {
       if (query.trim().isNotEmpty) {
+        if (!mounted) return;
         setState(() {
           _currentSearchQuery = query.trim(); // 👈 update here
         });

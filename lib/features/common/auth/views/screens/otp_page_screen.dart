@@ -77,8 +77,10 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsLeft == 0) {
         _cancelTimer();
+        if (!mounted) return;
         setState(() => _isTimerActive = false);
       } else {
+        if (!mounted) return;
         setState(() => _secondsLeft--);
       }
     });

@@ -22,6 +22,7 @@ class _VideoPreviewScreenState extends State<NetworkVideoPreviewScreen> {
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
       ..initialize().then((_) {
+        if (!mounted) return;
         setState(() {}); // refresh after video loads
         _controller.play();
         _isPlaying = true;

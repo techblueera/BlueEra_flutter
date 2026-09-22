@@ -69,6 +69,7 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
       ..initialize().then((_) {
         _setVideoTypeBasedOnAspectRatio(); // auto detect type
         _getVideoDuration();
+        if (!mounted) return;
         setState(() {});
       })
       ..setLooping(true)

@@ -88,6 +88,7 @@ class _ContactsPageState extends State<ContactsPage> {
         // Filter group connections
         final groupList = chatViewController.groupConnections;
 
+        if (!mounted) return;
         setState(() {
           if (query.isEmpty) {
             _filteredGroupConnections = List.from(groupList);
@@ -103,6 +104,7 @@ class _ContactsPageState extends State<ContactsPage> {
         // Normal contact search (your existing logic)
         final details = chatViewController.contactsListModel?.value.data;
         if (details != null) {
+          if (!mounted) return;
           setState(() {
             _filteredExisting = details.existingNotConnected
                     ?.where((c) =>

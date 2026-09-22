@@ -58,6 +58,7 @@ class _VideoCommentsPageState extends State<VideoCommentsPage> {
       ..setVolume(1.0)
       ..initialize().then((_) {
         _controller.play();
+        if (!mounted) return;
         setState(() {});
       });
 

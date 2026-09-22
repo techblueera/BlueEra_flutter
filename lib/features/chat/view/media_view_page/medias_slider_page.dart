@@ -314,10 +314,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     super.initState();
     if (widget.isNetwork) {
       controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoPath))..initialize().then((_) {
+        if (!mounted) return;
         setState(() {});
       });
     } else {
       controller = VideoPlayerController.file(File(widget.videoPath))..initialize().then((_) {
+        if (!mounted) return;
         setState(() {});
       });
     }

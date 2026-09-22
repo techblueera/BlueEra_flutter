@@ -38,6 +38,7 @@ class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer>
     if(!(widget.videoUrl.contains('http'))){
       _controller = VideoPlayerController.file(File(widget.videoUrl))
         ..initialize().then((_) {
+          if (!mounted) return;
           setState(() {
             _initialized = true;
           });
@@ -46,6 +47,7 @@ class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer>
     }else if (widget.isFromFile == true && widget.filePath != null) {
       _controller = VideoPlayerController.file(widget.filePath!)
         ..initialize().then((_) {
+          if (!mounted) return;
           setState(() {
             _initialized = true;
           });
@@ -53,6 +55,7 @@ class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer>
     } else {
       _controller = VideoPlayerController.network(widget.videoUrl)
         ..initialize().then((_) {
+          if (!mounted) return;
           setState(() {
             _initialized = true;
           });

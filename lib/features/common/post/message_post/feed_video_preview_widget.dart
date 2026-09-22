@@ -35,6 +35,7 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen>
 
     _controller = VideoPlayerController.file(widget.file)
       ..initialize().then((_) {
+        if (!mounted) return;
         setState(() {});
         _controller.play();
         _isPlaying = true;

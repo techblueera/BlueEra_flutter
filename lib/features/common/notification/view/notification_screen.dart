@@ -829,6 +829,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     ).then(
       (value) {
         if (value == true) {
+          if (!mounted) return;
           setState(() {
             // widget.getNotificationsModel.data = [];
           });

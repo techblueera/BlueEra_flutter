@@ -689,6 +689,7 @@ class _PersonalProfileSetupNewScreenState
       // we hit Hive before the network and don't bypass the cache layer.
       if (authController.professionTypeDataList.isEmpty) {
         authController.loadCategoriesCacheFirstThenRefresh().then((_) {
+          if (!mounted) return;
           setState(() {
             updateCategoryOfProfession(_selectedProfileType.type);
           });
@@ -724,6 +725,7 @@ class _PersonalProfileSetupNewScreenState
               try {
                 var match = mainList.firstWhere((element) => element.name == designation);
 
+                if (!mounted) return;
                 setState(() {
                   _selectedContentCreatorSpecialization = match;
                 });
@@ -737,6 +739,7 @@ class _PersonalProfileSetupNewScreenState
             try {
               var match = subList.firstWhere((element) => element.name == designation);
 
+              if (!mounted) return;
               setState(() {
                 _selectedDesignationObj = match;
               });

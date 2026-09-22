@@ -160,6 +160,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
       _recordingTimer?.cancel();
       _recordingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if (!mounted) return;
         setState(() {
           _recordingDuration += Duration(seconds: 1);
         });
@@ -232,6 +233,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       });
       _recordingTimer?.cancel();
       _recordingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if (!mounted) return;
         setState(() {
           _recordingDuration += Duration(seconds: 1);
         });

@@ -59,7 +59,9 @@ class _AddSongScreenState extends State<AddSongScreen> {
 
   void _setupVideoListeners() {
     _videoPlayerController = VideoPlayerController.file(File(widget.video!))
-      ..initialize().then((_) => setState(() {}))
+      ..initialize().then((_) {
+        if (mounted) setState(() {});
+      })
       ..setLooping(true)
       ..setVolume(0.0)
       ..play();

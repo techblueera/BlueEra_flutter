@@ -96,6 +96,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
         // ✅ Exclude already added group members first
         baseList = _excludeGroupMembers(baseList);
 
+        if (!mounted) return;
         setState(() {
           _filteredExisting = baseList
               .where((c) =>

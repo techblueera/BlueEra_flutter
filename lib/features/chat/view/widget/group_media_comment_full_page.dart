@@ -57,6 +57,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
       ..setVolume(1.0)
       ..initialize().then((_) {
         _controller.play();
+        if (!mounted) return;
         setState(() {});
       });
 

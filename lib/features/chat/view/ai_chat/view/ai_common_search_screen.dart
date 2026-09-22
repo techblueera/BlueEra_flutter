@@ -171,6 +171,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
         // 🟢 TIMER LOGIC
         _recordTimer?.cancel();
         _recordTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (!mounted) return;
           setState(() {
             _currentChunkDuration++;
           });
@@ -289,6 +290,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
       // Reset when ENTIRE playlist finishes
       _audioPlayer.playerStateStream.listen((state) {
         if (state.processingState == ProcessingState.completed) {
+          if (!mounted) return;
           setState(() => _isPlayingPreview = false);
           _audioPlayer.seek(Duration.zero, index: 0); // Reset to start of first file
           _audioPlayer.pause();
