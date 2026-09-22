@@ -7,6 +7,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../widget/component_widgets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ArchiveChatListPage extends StatefulWidget {
   const ArchiveChatListPage({super.key, this.isBusiness = false});
@@ -93,7 +94,7 @@ class _ArchiveChatListPageState extends State<ArchiveChatListPage> {
               if (isSelectionMode) {
                 _clearSelection();
               } else {
-                Get.back();
+                safeBack();
               }
             },
           ),

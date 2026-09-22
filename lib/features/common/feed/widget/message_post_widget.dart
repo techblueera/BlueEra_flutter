@@ -37,6 +37,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'social_message_post_grid_widget.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 bool shouldShowTranslate(String text) {
   // Returns true if the text contains non-English characters
@@ -759,7 +760,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     InkWell(
                       onTap: () async {
                         Get.put(MessagePostController());
-                        Get.back();
+                        safeBack();
                         ResponseModel responseModel =
                             await PostRepo().addRePostNewRepo(
                           reqDataData: {
@@ -835,7 +836,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     ),
                     InkWell(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => CreateMessagePostScreenRepost(
                           isEdit: false,
                           post: widget.post,

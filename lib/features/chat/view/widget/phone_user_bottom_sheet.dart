@@ -16,6 +16,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Bottom sheet shown after a phone number tapped inside a chat message is
 /// resolved to a BlueEra user via `user-service/user/by-phone/{phone}`.
@@ -177,7 +178,7 @@ class _PhoneUserSheet extends StatelessWidget {
                       // threads stay reachable from the chat list — this only
                       // refuses to open a NEW one.
                       if (blockDeletedUserAction(isDeleted)) return;
-                      Get.back();
+                      safeBack();
                       Get.find<ChatViewController>()
                           .checkChatConnectionAndOpenChat(
                         userId: user.id,
@@ -196,7 +197,7 @@ class _PhoneUserSheet extends StatelessWidget {
                     onTap: () {
                       // Nothing to ring — the account is gone.
                       if (blockDeletedUserAction(isDeleted)) return;
-                      Get.back();
+                      safeBack();
                       _startBlueEraCall(user, CallType.audio);
                     },
                   ),
@@ -207,7 +208,7 @@ class _PhoneUserSheet extends StatelessWidget {
                     label: 'Video',
                     onTap: () {
                       if (blockDeletedUserAction(isDeleted)) return;
-                      Get.back();
+                      safeBack();
                       _startBlueEraCall(user, CallType.video);
                     },
                   ),
@@ -276,7 +277,7 @@ class _PhoneUserSheet extends StatelessWidget {
                     title: 'Add to contact',
                     bgColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.back();
+                      safeBack();
                       _saveContactWithEditor(
                         name: user.name,
                         phone: user.contactNo ?? '',
@@ -343,7 +344,7 @@ class _PhoneUserSheet extends StatelessWidget {
   /// designation), so a lab opens the lab screen and a grocery its store,
   /// rather than the generic business profile.
   void _onViewProfile() {
-    Get.back();
+    safeBack();
     openPhoneUserProfile(user);
   }
 
@@ -465,7 +466,7 @@ class _AddNewContactSheet extends StatelessWidget {
                     title: 'Add New Contact',
                     bgColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.back();
+                      safeBack();
                       _saveContactWithEditor(phone: phone);
                     },
                   ),
@@ -479,7 +480,7 @@ class _AddNewContactSheet extends StatelessWidget {
                     textColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     onTap: () {
-                      Get.back();
+                      safeBack();
                       _inviteToBlueEra();
                     },
                   ),

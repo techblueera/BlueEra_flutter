@@ -17,6 +17,7 @@ import '../model/upi_details_model.dart';
 import '../model/withdrawal_response_modal.dart';
 import '../model/bank_details_model.dart';
 import '../repo/wallet_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class WalletController extends GetxController {
   // See-All list (supports status/type filters + pagination).
@@ -620,10 +621,10 @@ class WalletController extends GetxController {
   }
 
   void _navigateToWallet(bool isWalletInStack) {
-    Get.back(); // Closes the Dialog first
+    safeBack(); // Closes the Dialog first
     if (isWalletInStack) {
       // FLOW 1: Pop back to existing Wallet screen and trigger refresh
-      Get.back(result: true);
+      safeBack(result: true);
     } else {
       // FLOW 2: Wallet not in stack, push a fresh one and remove the form
       Get.offNamed(RouteHelper.getWalletScreenRoute());

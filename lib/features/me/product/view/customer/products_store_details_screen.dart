@@ -28,6 +28,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProductsStoreDetailsScreen extends StatefulWidget {
   final ProductStore? productStore;
@@ -169,7 +170,7 @@ class _ProductsStoreDetailsScreenState
           title: AppStrings.productDetails,
           onBackTap: () {
             if (widget.productStore != null) {
-              Get.back();
+              safeBack();
               return;
             }
             handleBackPress(context);
@@ -1240,7 +1241,7 @@ class _ProductsStoreDetailsScreenState
                       ),
                     ),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(Icons.close_rounded,
                           color: AppColors.mainTextColor),
                     ),

@@ -74,6 +74,7 @@ import 'live_location_message_card.dart';
 import 'message_bubble.dart';
 import 'message_context_menu.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard(
@@ -690,7 +691,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                     ),
                     SizedBox(width: SizeConfig.size5),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(
                         Icons.close_rounded,
                         color: AppColors.mainTextColor,
@@ -1046,7 +1047,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                                                             await controller.cancelOrderApi(
                                                                 widget.message.metadata?.order?.orderId ?? '',
                                                                 widget.message.conversationId ?? "");
-                                                            Get.back();
+                                                            safeBack();
                                                           },
                                                           title: "Yes"),
                                                     ),
@@ -1054,7 +1055,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                                                     Expanded(
                                                       child: CustomBtn(
                                                           onTap: () {
-                                                            Get.back();
+                                                            safeBack();
                                                           },
                                                           title: "No"),
                                                     ),
@@ -2635,7 +2636,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                                             await controller.cancelOrderApi(
                                                                 widget.message.metadata?.order?.orderId ?? '',
                                                                 widget.message.conversationId ?? "");
-                                                            Get.back();
+                                                            safeBack();
                                                           },
                                                           title: "Yes"),
                                                     ),
@@ -2643,7 +2644,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                                     Expanded(
                                                       child: CustomBtn(
                                                           onTap: () {
-                                                            Get.back();
+                                                            safeBack();
                                                           },
                                                           title: "No"),
                                                     ),

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialEventController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -238,7 +239,7 @@ class SocialEventController extends GetxController {
                 message: eventId == null
                     ? AppStrings.eventScheduledSuccess.tr
                     : AppStrings.eventUpdatedSuccess.tr);
-            Get.back();
+            safeBack();
             getEvents(); // Refresh list
         } else {
             commonSnackBar(
@@ -260,7 +261,7 @@ class SocialEventController extends GetxController {
       final response = await _repo.deleteEvent(eventId!);
       if (response.success == true) {
         commonSnackBar(message: AppStrings.eventDeletedSuccess.tr);
-        Get.back();
+        safeBack();
         getEvents(); // Refresh list
       } else {
         commonSnackBar(message: AppStrings.failedToDeleteEvent.tr);

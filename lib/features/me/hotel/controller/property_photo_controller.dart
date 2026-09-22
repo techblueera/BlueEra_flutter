@@ -8,6 +8,7 @@ import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Drives the property-photos screen: lists existing albums per category,
 /// and handles the multi-image upload flow that batches local files through
@@ -192,7 +193,7 @@ class PropertyPhotoController extends GetxController
       });
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
         clearSelection();
         await fetchPhotos();
@@ -222,7 +223,7 @@ class PropertyPhotoController extends GetxController
       );
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message') ?? AppStrings.successful);
         await fetchPhotos();
       } else {

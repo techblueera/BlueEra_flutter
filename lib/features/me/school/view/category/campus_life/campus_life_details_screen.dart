@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/api/model/get_all_campus_life_res_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CampusLifeDetailsScreen extends StatefulWidget {
   final Subcategories subcategories;
@@ -114,7 +115,7 @@ class _CampusLifeDetailsScreenState extends State<CampusLifeDetailsScreen> {
                             text:
                             AppStrings.deletePhotoConfirm,
                             confirmCallback: () async {
-                              Get.back();
+                              safeBack();
                               await controller.deleteCampusLifeController(
                                   entriesID: widget.subcategories.entries?.first.id??"", imageID: imageData.id??"");
 

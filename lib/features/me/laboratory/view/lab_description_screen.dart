@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/info_banner.dart';
 import 'package:BlueEra/widgets/section_icon_header.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LabDescriptionScreen extends StatefulWidget {
   const LabDescriptionScreen({super.key});
@@ -82,7 +83,7 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
                   onTap: controller.isValid.value
                       ? () async {
                           final ok = await controller.save();
-                          if (ok) Get.back();
+                          if (ok) safeBack();
                         }
                       : null,
                 ),

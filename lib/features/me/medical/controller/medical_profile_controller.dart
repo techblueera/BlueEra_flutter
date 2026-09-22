@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/medical/model/upload_init_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalProfileController extends GetxController {
 
@@ -54,7 +55,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         aboutUsData.value = MedicalAboutUs.fromJson(response.response?.data);
         commonSnackBar(message: response.message ?? AppStrings.medicalAboutUsUpdated.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -129,7 +130,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         contactData.value = MedicalContactInfo.fromJson(response.response?.data);
         commonSnackBar(message: response.message ?? AppStrings.medicalContactSaved.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -212,7 +213,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalTestimonialCreated.tr);
         fetchTestimonials();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -250,7 +251,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalTestimonialUpdated.tr);
         fetchTestimonials();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -339,7 +340,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalGalleryCreated.tr);
         fetchGallery();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -371,7 +372,7 @@ class MedicalProfileController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalGalleryUpdated.tr);
         fetchGallery();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }

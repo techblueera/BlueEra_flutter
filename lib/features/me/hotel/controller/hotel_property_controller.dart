@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Generic catalog-node editor: tracks an `isActive` flag and an optional
 /// `data` payload per node id, and submits the whole set to the policies
@@ -42,7 +43,7 @@ class HotelPropertyController extends GetxController {
           await _repo.addHotelPoliciesRepo(reqBody: {"nodes": nodes});
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

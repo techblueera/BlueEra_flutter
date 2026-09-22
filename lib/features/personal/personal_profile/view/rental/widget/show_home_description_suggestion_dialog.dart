@@ -4,6 +4,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/controlle
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 showHomeDescriptionSuggestionsDialog() {
   final controller = Get.find<HomeStayRentalServiceController>();
@@ -101,7 +102,7 @@ showHomeDescriptionSuggestionsDialog() {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => safeBack(),
                     child: const CustomText(AppStrings.cancel),
                   ),
                   const SizedBox(width: 8),
@@ -115,7 +116,7 @@ showHomeDescriptionSuggestionsDialog() {
                         controller.descriptionCtrl.text = tempSelected.value;
 
                       }
-                      Get.back(); // close dialog
+                      safeBack(); // close dialog
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,

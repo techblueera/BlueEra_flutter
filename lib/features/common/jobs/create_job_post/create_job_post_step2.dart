@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_drop_down.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CreateJobPostStep2 extends StatefulWidget {
   CreateJobPostStep2({super.key});
@@ -283,7 +284,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                     Expanded(
                         child: CustomBtn(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                       },
                       title: AppStrings.back,
                       bgColor: AppColors.white,

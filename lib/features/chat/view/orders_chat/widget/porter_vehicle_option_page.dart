@@ -12,6 +12,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/get_porter_vechile_option_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PorterVehicleListScreen extends StatefulWidget {
   const PorterVehicleListScreen({super.key, this.userName, this.userNum});
@@ -221,7 +222,7 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),
                   ),
-                  onPressed: () => Get.back(),
+                  onPressed: () => safeBack(),
                   icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                   label: const CustomText(
                     AppStrings.goBack,

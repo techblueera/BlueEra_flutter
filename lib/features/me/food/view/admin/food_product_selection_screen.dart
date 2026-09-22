@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FoodProductSelectionScreen extends StatefulWidget {
   final GroceryNestedCategoryModel foodCategoryData;
@@ -97,7 +98,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
       appBar: AppBar(
         leading: InkWell(
             onTap: () {
-              Get.back();
+              safeBack();
             },
             child: const Icon(Icons.arrow_back_ios, color: Colors.black)),
         actions: [

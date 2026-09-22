@@ -23,6 +23,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Rider/Delivery KYC status surface — always embedded inside a
 /// bottom-nav tab body now (Riders & Cab/Transport partner tabs).
@@ -805,7 +806,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 children: [
                   Expanded(
                     child: CustomBtn(
-                      onTap: () => Get.back(),
+                      onTap: () => safeBack(),
                       title: AppStrings.cancel.tr,
                       bgColor: Colors.white,
                       textColor: AppColors.secondaryTextColor,
@@ -818,7 +819,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                   Expanded(
                     child: CustomBtn(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                         _isSubmitted.value = true;
                         _animController.reset();
                       },
@@ -925,7 +926,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         : () async {
                             await SharedPreferenceUtils.setSecureValue(
                                 'riderTypePreference', selectedType.value);
-                            Get.back();
+                            safeBack();
                             commonSnackBar(
                                 message: AppStrings.preferenceSaved.tr);
                           },
@@ -1138,7 +1139,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                     color: AppColors.mainTextColor,
                   ),
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: Container(
                       width: 32,
                       height: 32,
@@ -1256,7 +1257,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         // On failure the controller already surfaced the
                         // server's message; keep the sheet open to retry.
                         if (ok) {
-                          Get.back();
+                          safeBack();
                           _showQuerySubmittedPopup();
                         }
                       },
@@ -1315,7 +1316,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               SizedBox(
                 width: double.infinity,
                 child: CustomBtn(
-                  onTap: () => Get.back(),
+                  onTap: () => safeBack(),
                   title: AppStrings.done.tr,
                   bgColor: AppColors.primaryColor,
                   radius: 10,
@@ -2109,7 +2110,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText(
               AppStrings.cancel.tr,
               fontSize: SizeConfig.medium,
@@ -2119,8 +2120,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           ),
           TextButton(
             onPressed: () {
-              Get.back(); // close confirmation
-              Get.back(); // close the view dialog
+              safeBack(); // close confirmation
+              safeBack(); // close the view dialog
               onDelete();
             },
             child: CustomText(
@@ -2162,7 +2163,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
             ),
           ),
           GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             child: Container(
               width: 32,
               height: 32,
@@ -2292,7 +2293,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   }) {
     return InkWell(
       onTap: () {
-        Get.back();
+        safeBack();
         onReplace();
       },
       borderRadius: BorderRadius.circular(12),
@@ -2371,7 +2372,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
   Widget _buildDialogDoneBtn() {
     return InkWell(
-      onTap: () => Get.back(),
+      onTap: () => safeBack(),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),

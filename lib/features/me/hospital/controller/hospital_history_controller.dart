@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_history_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalHistoryController extends GetxController {
   final HospitalHistoryRepo _repo = HospitalHistoryRepo();
@@ -100,7 +101,7 @@ class HospitalHistoryController extends GetxController {
             message: isCreate
                 ? AppStrings.hospitalCtrlSaved.tr
                 : AppStrings.hospitalCtrlUpdated.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

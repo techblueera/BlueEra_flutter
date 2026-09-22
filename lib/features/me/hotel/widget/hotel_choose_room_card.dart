@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "Choose Room" card — room-type chips + horizontal room list with the
 /// Add / View-All / per-card Edit / Delete affordances. Shared between the
@@ -170,10 +171,10 @@ class _RoomMoreMenu extends StatelessWidget {
       context: context,
       text: AppStrings.hotelDeleteRoomConfirm.tr,
       confirmCallback: () {
-        Get.back();
+        safeBack();
         controller.deleteRoom(room.id ?? "");
       },
-      cancelCallback: () => Get.back(),
+      cancelCallback: () => safeBack(),
     );
   }
 

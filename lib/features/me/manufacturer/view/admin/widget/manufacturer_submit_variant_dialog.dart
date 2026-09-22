@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerSubmitVariantDialog extends StatefulWidget {
   final ManufacturerProductController controller;
@@ -162,7 +163,7 @@ class _ManufacturerSubmitVariantDialogState
                     ),
                     SizedBox(width: SizeConfig.size5),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(
                         Icons.close_rounded,
                         color: AppColors.mainTextColor,
@@ -322,7 +323,7 @@ class _ManufacturerSubmitVariantDialogState
                               mrp: productMrpController.text.trim(),
                               discount:
                                   discountPercent.value.toStringAsFixed(2)));
-                      Get.back();
+                      safeBack();
                     }
                   },
                   bgColor: AppColors.primaryColor,

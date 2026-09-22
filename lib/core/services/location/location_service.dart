@@ -12,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LocationService extends GetxService {
   static double lat = 0.0;
@@ -381,7 +382,7 @@ class LocationService extends GetxService {
               CustomBtn(
                 onTap: () async {
                   // First close the dialog
-                  Get.back();
+                  safeBack();
 
                   // Request permission and fetch location
                   await fetchLocation(openSettingsOnDeny: true);
@@ -395,7 +396,7 @@ class LocationService extends GetxService {
 
               InkWell(
                 onTap: () {
-                  Get.back(result: false);  // Skip returns false
+                  safeBack(result: false);  // Skip returns false
                 },
                 child: CustomText(
                   AppStrings.skip.tr,

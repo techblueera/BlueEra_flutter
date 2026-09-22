@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalOpdController extends GetxController {
   final HospitalOpdRepo _repo = HospitalOpdRepo();
@@ -128,7 +129,7 @@ class HospitalOpdController extends GetxController {
         if (idx != -1) doctors[idx] = saved;
         commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorUpdated.tr);
       }
-      Get.back();
+      safeBack();
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveNewsController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -97,7 +98,7 @@ class AutomotiveNewsController extends GetxController {
         final response = await _repo.createNewsRepo(body);
         if (response != null && response.isSuccess) {
           commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
-          Get.back(); // Close form/screen
+          safeBack(); // Close form/screen
           getNewsRepo(); // Refresh list
         } else {
           commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
@@ -148,7 +149,7 @@ class AutomotiveNewsController extends GetxController {
       final response = await _repo.updateNewsRepo(id, body);
       if (response != null && response.isSuccess) {
         commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
-        Get.back();
+        safeBack();
         getNewsRepo();
       } else {
         commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);

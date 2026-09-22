@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =
@@ -167,7 +168,7 @@ class BranchContactController extends GetxController {
           .addBranchDepartmentRepo(reqParm: reqBody, branchId: branchID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -197,7 +198,7 @@ class BranchContactController extends GetxController {
           reqParm: reqBody, contactID: contactID, branchId: branchID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -225,7 +226,7 @@ class BranchContactController extends GetxController {
           contactID: contactId, deptID: departmentId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -245,7 +246,7 @@ class BranchContactController extends GetxController {
           await SchoolRepo().deleteSchoolBranchRepo(contactID: contactId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -271,7 +272,7 @@ class BranchContactController extends GetxController {
       );
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);

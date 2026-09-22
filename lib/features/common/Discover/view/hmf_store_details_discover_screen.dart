@@ -34,6 +34,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/services/share_service.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HmfStoreDetailsDiscoverScreen extends StatefulWidget {
   /// Store owner user id — drives both the home-foods (profile + items) and
@@ -1230,7 +1231,7 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText('Cancel', color: AppColors.secondaryTextColor, fontWeight: FontWeight.w700),
           ),
           ElevatedButton(
@@ -1241,7 +1242,7 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
             onPressed: () {
               cartController.clear();
               cartController.add(item, store, isTiffin: isTiffin);
-              Get.back();
+              safeBack();
             },
             child: CustomText('New cart', color: AppColors.white, fontWeight: FontWeight.w800),
           ),

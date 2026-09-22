@@ -26,6 +26,7 @@ import '../../controller/rider_location_poll_controller.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import '../../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../controller/discover_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Customer-side tracking screen for **multi-shop goods orders** (cloned from
 /// FareCallQueueScreen). Differs from the standard fare-call screen in two ways
@@ -142,7 +143,7 @@ class _GoodsMultiCallTrackingScreenState
           discoverController.fareCallAcceptedRiderInfo.value == null) {
         debugPrint('[FARE_CALL_SCREEN] ⚠️ Queue exhausted → popping screen in 1s');
         Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) Get.back();
+          if (mounted) safeBack();
         });
       }
     });
@@ -536,7 +537,7 @@ class _GoodsMultiCallTrackingScreenState
     _callController.endCall();
     discoverController.cancelFareCallQueue();
     discoverController.resetFareCallState();
-    Get.back();
+    safeBack();
   }
 
   /// Save a snapshot of the active ride so the customer's ongoing-ride card can
@@ -1593,7 +1594,7 @@ class _GoodsMultiCallTrackingScreenState
                 ),
               ),
               onTap: () {
-                Get.back();
+                safeBack();
                 Get.to(() => ChatForwardScreen(
                       sharedText: shareText,
                       stopChatNav: true,
@@ -1613,7 +1614,7 @@ class _GoodsMultiCallTrackingScreenState
                 ),
               ),
               onTap: () async {
-                Get.back();
+                safeBack();
                 try {
                   await SharePlus.instance.share(
                     ShareParams(text: shareText),

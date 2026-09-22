@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// About Me — the create/edit form body.
 ///
@@ -192,7 +193,7 @@ class _DoctorAboutMeFormState extends State<DoctorAboutMeForm> {
       context: context,
       text: AppStrings.discardChanges.tr,
       confirmCallback: () {
-        Get.back();
+        safeBack();
         widget.onCancel?.call();
       },
       cancelCallback: () => Navigator.of(context).pop(),

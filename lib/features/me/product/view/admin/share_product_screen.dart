@@ -21,6 +21,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Public landing screen for the product share deep link
 /// `https://beapp.in/app/product/{productId}` (optionally `?seller={userId}`).
@@ -106,7 +107,7 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
       appBar: CommonBackAppBar(
         isLeading: true,
         title: AppStrings.productDetails,
-        onBackTap: () => Get.back(),
+        onBackTap: () => safeBack(),
       ),
       body: Obx(() {
         if (controller.isSingleProductLoading.isTrue) {

@@ -27,6 +27,7 @@ import '../../controller/rider_location_poll_controller.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import '../../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../controller/discover_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Customer-side fare-call screen.
 /// Phase 1: Calling UI with queue progress, call controls, ringing animation.
@@ -144,7 +145,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           discoverController.fareCallAcceptedRiderInfo.value == null) {
         debugPrint('[FARE_CALL_SCREEN] ⚠️ Queue exhausted → popping screen in 1s');
         Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) Get.back();
+          if (mounted) safeBack();
         });
       }
     });
@@ -538,7 +539,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _callController.endCall();
     discoverController.cancelFareCallQueue();
     discoverController.resetFareCallState();
-    Get.back();
+    safeBack();
   }
 
   /// Save a snapshot of the active ride so the customer's ongoing-ride card can
@@ -1686,7 +1687,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                 ),
               ),
               onTap: () {
-                Get.back();
+                safeBack();
                 Get.to(() => ChatForwardScreen(
                       sharedText: shareText,
                       stopChatNav: true,
@@ -1706,7 +1707,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                 ),
               ),
               onTap: () async {
-                Get.back();
+                safeBack();
                 try {
                   await SharePlus.instance.share(
                     ShareParams(text: shareText),

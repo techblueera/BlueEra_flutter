@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class QuickFoodSearchScreen extends StatefulWidget {
   const QuickFoodSearchScreen({super.key});
@@ -103,7 +104,7 @@ class _QuickFoodSearchScreenState extends State<QuickFoodSearchScreen> {
         children: [
           IconButton(
               padding: EdgeInsets.zero,
-              onPressed: () => Get.back(),
+              onPressed: () => safeBack(),
               icon: LocalAssets(
                 imagePath: AppIconAssets.back_arrow,
                 height: SizeConfig.paddingL,

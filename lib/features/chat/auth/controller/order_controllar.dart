@@ -20,6 +20,7 @@ import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
 import '../repo/porter_api_repo.dart';
 import 'chat_view_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OrderNowController extends GetxController {
   var address = "".obs;
@@ -587,7 +588,7 @@ ApiKeys.additional_comments: ""
         typeController.value.clear();
 
         commonSnackBar(message: response.message);
-        Get.back();
+        safeBack();
         getAddressApi();
       } else {
         commonSnackBar(
@@ -633,7 +634,7 @@ ApiKeys.additional_comments: ""
         typeController.value.clear();
 
         commonSnackBar(message: response.message);
-        Get.back();
+        safeBack();
         getAddressApi();
       } else {
         commonSnackBar(
@@ -649,7 +650,7 @@ ApiKeys.additional_comments: ""
       ResponseModel? response = await MakeOrderRepo().deleteAddress(addressId);
       if (response.isSuccess) {
         commonSnackBar(message: response.message);
-        Get.back();
+        safeBack();
         getAddressApi();
       } else {
         commonSnackBar(

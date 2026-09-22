@@ -25,6 +25,7 @@ import 'package:get/get.dart';
 
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum CommentType { post, video }
 
@@ -119,7 +120,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                 ),
                                 InkWell(
                                     onTap: () {
-                                      Get.back();
+                                      safeBack();
                                     },
                                     child: LocalAssets(
                                       imagePath: AppIconAssets.close_black,
@@ -324,12 +325,12 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               context: context,
               text: AppStrings.deleteCommentConfirm.tr,
               confirmCallback: () async {
-                Get.back();
+                safeBack();
                 await commentController.commentPostDeleteController(
                     commentId: commentId,
                     postID: widget.id,
                     commentPostType: widget.commentType);
-                Get.back();
+                safeBack();
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog

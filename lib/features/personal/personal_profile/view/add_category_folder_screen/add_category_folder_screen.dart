@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddCategoryFolderScreen extends StatelessWidget {
   const AddCategoryFolderScreen({super.key});
@@ -31,7 +32,7 @@ class AddCategoryFolderScreen extends StatelessWidget {
                 children: [
                   // Back Button
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: const Icon(
                       Icons.arrow_back_ios,
                       color: AppColors.black,

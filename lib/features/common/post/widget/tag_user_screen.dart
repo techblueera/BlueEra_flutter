@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class TagUserScreen extends StatefulWidget {
 
@@ -177,7 +178,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
               ),
               PositiveCustomBtn(
                   onTap: () {
-                    Get.back(result: controller.selectedUsers);
+                    safeBack(result: controller.selectedUsers);
                   },
                   title:AppStrings.save),
               SizedBox(

@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/medical/model/medical_order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalOrdersController extends GetxController{
   Rx<ApiResponse> myGroceryOrdersResponse =
@@ -102,7 +103,7 @@ class MedicalOrdersController extends GetxController{
       if (response.isSuccess) {
         submitCustomerOrderResponse.value = ApiResponse.complete(response);
         selectedGroceryIds.clear();
-        Get.back();
+        safeBack();
         fetchGroceryOrders(
             groceryOrderStatus: 'inprogress'
         );
@@ -165,7 +166,7 @@ class MedicalOrdersController extends GetxController{
 
         if (response.isSuccess) {
           submitOrderToRiderResponse.value = ApiResponse.complete(response);
-          Get.back();
+          safeBack();
           groceryPendingOrders.clear();
           fetchGroceryOrders(
               groceryOrderStatus: 'inprogress'

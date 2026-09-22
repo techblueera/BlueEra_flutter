@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Lets the user theme the profile / home ("me" tab) pages with ONE active
 /// background at a time: either a background colour (applied app-wide via the
@@ -39,7 +40,7 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
   void _apply() {
     // Exactly one background is committed: banner if chosen, else colour.
     ctrl.applyBackground(color: _bgColor, asset: _bannerAsset);
-    Get.back();
+    safeBack();
   }
 
   /// Pick a photo from the gallery, persist it to app storage, and select it
@@ -131,7 +132,7 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: Container(
                       width: 38,
                       height: 38,

@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SelfProfessionServiceScreen extends StatefulWidget {
   const SelfProfessionServiceScreen({Key? key}) : super(key: key);
@@ -1161,7 +1162,7 @@ class _SelfProfessionServiceScreenState
         ),
       ),
       IconButton(
-        onPressed: () => Get.back(),
+        onPressed: () => safeBack(),
         icon: const Icon(Icons.close),
       ),
     ],

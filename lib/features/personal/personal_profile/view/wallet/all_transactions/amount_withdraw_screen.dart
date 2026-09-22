@@ -15,6 +15,7 @@ import '../../../../../../core/constants/getx_utils.dart';
 import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../features/personal/personal_profile/view/wallet/model/wallet_withdrawal_methods.dart';
 import '../controller/wallet_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AmountWithdrawScreen extends StatefulWidget {
   AmountWithdrawScreen({super.key});
@@ -147,7 +148,7 @@ class _AmountWithdrawScreenState extends State<AmountWithdrawScreen> {
 
           // Secondary Action
           InkWell(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             child: CustomText(
               "Go Back",
               color: AppColors.primaryColor,
@@ -579,7 +580,7 @@ class _AmountWithdrawScreenState extends State<AmountWithdrawScreen> {
         ),
         SizedBox(height: SizeConfig.size12),
         CustomBtn(
-          onTap: () => Get.back(),
+          onTap: () => safeBack(),
           bgColor: AppColors.white,
           textColor: AppColors.secondaryTextColor,
           borderColor: AppColors.greyE5,

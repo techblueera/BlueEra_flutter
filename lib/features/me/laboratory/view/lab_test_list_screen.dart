@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LabTestListScreen extends StatefulWidget {
   final String collection;
@@ -137,10 +138,10 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
       context: context,
       text: AppStrings.deleteThisTest.tr,
       confirmCallback: () {
-        Get.back();
+        safeBack();
         controller.deleteTest(t.id!, widget.collection);
       },
-      cancelCallback: () => Get.back(),
+      cancelCallback: () => safeBack(),
       confirmText: AppStrings.delete,
       cancelText: AppStrings.cancel,
     );

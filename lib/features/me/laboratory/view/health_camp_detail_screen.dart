@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HealthCampDetailScreen extends StatefulWidget {
   final bool isOwnProfile;
@@ -552,11 +553,11 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
       context: context,
       text: AppStrings.confirmDeleteCamp.tr,
       confirmCallback: () async {
-        Get.back();
+        safeBack();
         await controller?.deleteCamp(camp.id ?? "");
         controller?.fetchCampFullDetails();
       },
-      cancelCallback: () => Get.back(),
+      cancelCallback: () => safeBack(),
       confirmText: AppStrings.delete,
       cancelText: AppStrings.cancel,
     );

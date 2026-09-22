@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
   const AddServicesScreenNew({Key? key}) : super(key: key);
@@ -1443,7 +1444,7 @@ void showDiscountCouponDialog(BuildContext context) {
                           ),
                           IconButton(
                             onPressed: () {
-                              Get.back();
+                              safeBack();
                             },
                             icon: const Icon(
                               Icons.close_rounded,
@@ -1586,7 +1587,7 @@ void showDiscountCouponDialog(BuildContext context) {
 
                               Get.put(AddServiceController()).addCoupon(coupon);
 
-                              Get.back();
+                              safeBack();
                               commonSnackBar(message: AppStrings.couponSaved.tr);
 
                             }

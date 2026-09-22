@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 // NOTE: Emotion selection removed permanently from AI comment flow
 
@@ -469,7 +470,7 @@ class _PostAiCommentScreenState extends State<PostAiCommentScreen> {
                           TextSelection.fromPosition(
                         TextPosition(offset: text.length),
                       );
-                      Get.back();
+                      safeBack();
                     }
                   },
                   child: Container(

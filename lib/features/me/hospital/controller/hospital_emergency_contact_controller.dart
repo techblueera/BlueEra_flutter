@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/hospital/model/hospital_emergency_contact_mo
 import 'package:BlueEra/features/me/hospital/repo/hospital_emergency_contact_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalEmergencyContactController extends GetxController {
   // Reject numbers starting with 0, allow 10–11 digits.
@@ -85,7 +86,7 @@ class HospitalEmergencyContactController extends GetxController {
             message: wasCreate
                 ? AppStrings.hospitalCtrlSavedSuccessfully.tr
                 : AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

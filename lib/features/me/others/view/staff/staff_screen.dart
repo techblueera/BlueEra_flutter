@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class StaffScreen extends StatelessWidget {
   const StaffScreen({super.key});
@@ -162,10 +163,10 @@ class StaffScreen extends StatelessWidget {
                                   text:
                                       AppStrings.otherConfirmDeleteStaff.tr,
                                   confirmCallback: () {
-                                    Get.back();
+                                    safeBack();
                                     controller.deleteStaff(item.sId ?? "");
                                   },
-                                  cancelCallback: () => Get.back(),
+                                  cancelCallback: () => safeBack(),
                                 );
                               }
                             },

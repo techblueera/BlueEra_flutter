@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../../core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddAccountupiController extends GetxController {
   final TextEditingController bankNameController = TextEditingController();
@@ -93,7 +94,7 @@ class AddAccountupiController extends GetxController {
       if (response.isSuccess) {
         addAccountResponseModalClass =
             AddAccountResponseModalClass.fromJson(response.response!.data);
-        Get.back(result: {
+        safeBack(result: {
           'bankName': bankNameController.text.trim(),
           'upi_id': upiController.text.trim().toUpperCase(),
         });
@@ -122,7 +123,7 @@ class AddAccountupiController extends GetxController {
       addAccountResponseModalClass =
           AddAccountResponseModalClass.fromJson(response.response!.data);
       // Get.to(() => RouteHelper.)
-      Get.back(result: {
+      safeBack(result: {
         'bankName': bankNameController.text.trim(),
         'upi_id': upiController.text.trim().toUpperCase(),
       });

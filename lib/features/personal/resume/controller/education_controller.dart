@@ -5,6 +5,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class EducationController extends GetxController {
   final qualification = ''.obs;
@@ -172,7 +173,7 @@ class EducationController extends GetxController {
       if (res.isSuccess) {
         // await fetchEducationDetails();
         clearAll();
-        Get.back();
+        safeBack();
         await callAPIGetResume();
 
         commonSnackBar(message: AppStrings.educationAdded);
@@ -187,7 +188,7 @@ class EducationController extends GetxController {
         // await fetchEducationDetails();
         clearAll();
         editingId.value = null;
-        Get.back();
+        safeBack();
         await callAPIGetResume();
 
         commonSnackBar(message: AppStrings.educationUpdated);

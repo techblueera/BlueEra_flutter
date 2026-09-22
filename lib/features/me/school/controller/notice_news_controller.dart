@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class NoticeController extends GetxController {
   Rx<ApiResponse> getNoticeNewsResponse = ApiResponse.initial('Initial').obs;
@@ -141,7 +142,7 @@ class NoticeController extends GetxController {
           await SchoolRepo().addSchoolNoticesRepo(reqBODY: reqDATA);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -173,7 +174,7 @@ class NoticeController extends GetxController {
           .editSchoolNoticesRepo(reqBODY: reqDATA, noticeID: notice_news_id.value);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -203,7 +204,7 @@ class NoticeController extends GetxController {
           await SchoolRepo().deleteSchoolNoticesRepo(noticeID: noticeId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

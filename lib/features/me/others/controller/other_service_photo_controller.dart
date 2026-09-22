@@ -8,6 +8,7 @@ import 'package:BlueEra/core/services/other_profile_dirty.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtherServicePhotoPhotoController extends GetxController
     with GalleryUploadGuard {
@@ -281,7 +282,7 @@ class OtherServicePhotoPhotoController extends GetxController
         });
 
         if (response.isSuccess) {
-          Get.back();
+          safeBack();
           commonSnackBar(message: response.getExtraData('message'));
           resetUploadForm();
           // The Overview tab's gallery card is now stale — see
@@ -310,7 +311,7 @@ class OtherServicePhotoPhotoController extends GetxController
           imgID: imgId, reqBody: {"imageUrl": imgUrl});
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BusinessContactMapCard extends StatelessWidget {
   final BusinessProfileDetails? businessProfileDetails;
@@ -57,7 +58,7 @@ class BusinessContactMapCard extends StatelessWidget {
                 Align(
                     alignment: Alignment.topRight,
                     child: InkWell(
-                      onTap: () => Get.back(),
+                      onTap: () => safeBack(),
                       child: Icon(
                         Icons.close,
                         color: AppColors.secondaryTextColor,
@@ -90,7 +91,7 @@ class BusinessContactMapCard extends StatelessWidget {
                     Expanded(
                       child: CustomBtn(
                         height: SizeConfig.size45,
-                        onTap: () => Get.back(),
+                        onTap: () => safeBack(),
                         title: AppStrings.cancel,
                         textColor: AppColors.secondaryTextColor,
                         bgColor: AppColors.white,
@@ -104,12 +105,12 @@ class BusinessContactMapCard extends StatelessWidget {
                         height: SizeConfig.size45,
                         onTap: () {
                           // Captured before the pop — `context` is inside the
-                          // sheet `Get.back()` dismisses, and resolving a
+                          // sheet `safeBack()` dismisses, and resolving a
                           // navigator off a defunct element throws "Null check
                           // operator used on a null value" rather than doing
                           // nothing.
                           final navigator = Navigator.of(context);
-                          Get.back();
+                          safeBack();
                           showModalBottomSheet(
                             context: navigator.context,
                             isScrollControlled: true,

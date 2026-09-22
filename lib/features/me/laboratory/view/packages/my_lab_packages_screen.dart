@@ -14,6 +14,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "My Packages" — the caller's own package catalog.
 ///
@@ -413,7 +414,7 @@ class _CardDescription extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Get.back(),
+              onPressed: () => safeBack(),
               child: const Text('Close'),
             ),
           ],

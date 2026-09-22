@@ -5,6 +5,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SkillsController extends GetxController {
   final ResumeRepo _repo = ResumeRepo();
@@ -81,7 +82,7 @@ class SkillsController extends GetxController {
       final response = await _repo.addSkills(params: params);
       if (response.isSuccess) {
         commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.success}");
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: "${response.getExtraData('message') ?? AppStrings.somethingWentWrong}");
       }

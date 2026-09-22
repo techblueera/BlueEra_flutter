@@ -24,6 +24,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddGrocerySnapSearchScreen extends StatefulWidget {
   const AddGrocerySnapSearchScreen({super.key});
@@ -381,7 +382,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
         ),
         SizedBox(height: SizeConfig.paddingXSL),
         TextButton(
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
           style: TextButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
           ),

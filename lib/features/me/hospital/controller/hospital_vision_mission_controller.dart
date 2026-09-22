@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_vision_mission_repo.d
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalVisionMissionController extends GetxController {
   final hospitalServiceController = Get.find<HospitalServiceAiController>();
@@ -97,7 +98,7 @@ class HospitalVisionMissionController extends GetxController {
             message: isCreate
                 ? AppStrings.hospitalCtrlSavedSuccessfully.tr
                 : AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
-        Get.back();
+        safeBack();
         hospitalServiceController.getHospitalFullDetailsController();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);

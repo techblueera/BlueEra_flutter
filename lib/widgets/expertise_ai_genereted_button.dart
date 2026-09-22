@@ -4,6 +4,7 @@ import 'package:BlueEra/features/me/school/repo/ai_description_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AIExpertiseGeneratorButton extends StatelessWidget {
   final Function(String) onSelected;
@@ -51,7 +52,7 @@ class AIExpertiseGeneratorButton extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const CustomText("Select Expertise", fontWeight: FontWeight.bold, fontSize: 18),
-                    IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+                    IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -104,7 +105,7 @@ class AIExpertiseGeneratorButton extends StatelessWidget {
                         : () {
                       // Return the result joined by commas
                       onSelected(selectedItems.join(", "));
-                      Get.back();
+                      safeBack();
                     },
                     child: CustomText(
                       "Add ${selectedItems.length} items",

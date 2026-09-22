@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveShareProductScreen extends StatefulWidget {
   final String productId;
@@ -34,7 +35,7 @@ class _AutomotiveShareProductScreenState extends State<AutomotiveShareProductScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        onBackTap: ()=> Get.back(),
+        onBackTap: ()=> safeBack(),
         // onBackTap: ()=> _openNextScreen(),
       ),
       body: Obx(()=> controller.isSingleProductLoading.isTrue

@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ReelVideoPopUpMenu extends StatelessWidget {
   final ShortFeedItem videoFeedItem;
@@ -56,7 +57,7 @@ class ReelVideoPopUpMenu extends StatelessWidget {
               text: 'Are you sure you want to delete this video?',
               confirmCallback: () {
                 logs("videoFeedItem.video?.id === ${videoFeedItem.video?.id}");
-                Get.back();
+                safeBack();
                 Get.find<VideoController>().videoDelete(video: video, videoId: videoFeedItem.video?.id ?? '');
               },
               cancelCallback: () {

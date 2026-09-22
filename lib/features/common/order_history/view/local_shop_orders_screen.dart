@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Conversation-style view of every order placed with one shop. Each order is
 /// rendered as a chat bubble (newest at the bottom). Multiple orders from the
@@ -70,7 +71,7 @@ class _LocalShopOrdersScreenState extends State<LocalShopOrdersScreen> {
     );
     if (ok == true) {
       await LocalOrderStore.clearShop(widget.shopKey);
-      Get.back();
+      safeBack();
     }
   }
 

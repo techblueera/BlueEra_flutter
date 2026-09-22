@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialActivityController extends GetxController {
   final SocialProfileRepo _repo = SocialProfileRepo();
@@ -150,7 +151,7 @@ class SocialActivityController extends GetxController {
             message: isEditMode.value
                 ? AppStrings.activityUpdatedSuccess.tr
                 : AppStrings.activityCreatedSuccess.tr);
-        Get.back(); // Go back to list
+        safeBack(); // Go back to list
         getActivities(); // Refresh list
       } else {
         commonSnackBar(message: AppStrings.failedToSaveActivity.tr);

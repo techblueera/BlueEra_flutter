@@ -9,6 +9,7 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_theme_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PinMessageDurationDialog extends StatelessWidget {
   const PinMessageDurationDialog({
@@ -84,7 +85,7 @@ class PinMessageDurationDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: CustomBtn(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     title: AppStrings.cancel.tr,
                   ),
                 ),

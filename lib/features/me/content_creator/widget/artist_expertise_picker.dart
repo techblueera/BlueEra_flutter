@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// API-fed multi-select for the artist's `expertise[]`, shown inside the
 /// Overview "Expertise" edit sheet. The suggestion list comes from
@@ -377,7 +378,7 @@ class _ArtistExpertisePickerState extends State<ArtistExpertisePicker> {
           final ok = await _c.updateArtist({
             'expertise': _c.selectedExpertise.toList(),
           });
-          if (ok) Get.back();
+          if (ok) safeBack();
         },
       );
     });

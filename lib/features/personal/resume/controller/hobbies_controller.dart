@@ -6,6 +6,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HobbiesController extends GetxController {
   final hobbies = <Map<String, String>>[].obs;
@@ -101,7 +102,7 @@ class HobbiesController extends GetxController {
         }
 
         await getResumeController.getMyResume();
-        Get.back();
+        safeBack();
         commonSnackBar(message: AppStrings.hobbiesAddedSuccess);
       } else {
         addHobbiesResponse =

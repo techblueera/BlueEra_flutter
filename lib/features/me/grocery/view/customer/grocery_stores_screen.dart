@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_enum.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class GroceryStoresScreen extends StatefulWidget {
   const GroceryStoresScreen({super.key, this.initialCategoryTagId});
@@ -184,7 +185,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         groceryCustomerController.selectedGroceriesVariants.isEmpty;
 
     if (isCartEmpty) {
-      Get.back();
+      safeBack();
     } else {
       showCartWarningDialog(
         onPlaceOrder: () {
@@ -578,8 +579,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
-                        Get.back();
+                        safeBack();
+                        safeBack();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
@@ -600,7 +601,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         onPlaceOrder();
                       },
                       style: ElevatedButton.styleFrom(

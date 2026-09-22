@@ -30,6 +30,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../auth/controller/auth_controller.dart';
 import '../../controller/discover_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum _ActiveField { none, pickup, drop }
 
@@ -1994,7 +1995,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                             fontWeight: FontWeight.w600),
                                         InkWell(
                                           onTap: () {
-                                            Get.back();
+                                            safeBack();
                                           },
                                           child: const Icon(
                                             Icons.cancel_outlined,
@@ -2056,7 +2057,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                       isValidate: true,
                                       onTap: () {
                                         discoverController.addParcelDetails();
-                                        Get.back();
+                                        safeBack();
                                       },
                                       title: AppStrings.save.tr,
                                     ),

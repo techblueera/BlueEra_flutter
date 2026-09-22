@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class EditGroceryVarientDialog extends StatefulWidget {
   final String title;
@@ -147,7 +148,7 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       icon: Icon(

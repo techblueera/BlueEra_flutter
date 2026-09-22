@@ -31,6 +31,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MessagePostPreviewScreenNew extends StatefulWidget {
   final PostVia? postVia;
@@ -194,7 +195,7 @@ class _MessagePostPreviewScreenNewState
               title: AppStrings.lekhPreview,
               isLeading: msgPostController.isLoading.value ? false : true,
               onBackTap: () {
-                Get.back();
+                safeBack();
               },
             );
           }),
@@ -241,7 +242,7 @@ class _MessagePostPreviewScreenNewState
                                   if (!msgPostController.isMsgPostEdit)
                                     GestureDetector(
                                       onTap: () {
-                                        Get.back();
+                                        safeBack();
                                       },
                                       child: LocalAssets(
                                           imagePath:
@@ -527,7 +528,7 @@ class _MessagePostPreviewScreenNewState
                                   Expanded(
                                     child: PositiveCustomBtn(
                                       onTap: () {
-                                        Get.back();
+                                        safeBack();
                                       },
                                       title: AppStrings.back,
                                       textColor: AppColors.primaryColor,

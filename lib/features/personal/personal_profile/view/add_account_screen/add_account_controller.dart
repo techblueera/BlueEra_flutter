@@ -8,6 +8,7 @@ import 'package:BlueEra/features/personal/model/get_bank_details_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/payment_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 // class AddAccountController extends GetxController {
 //   Rx<ApiResponse> addBankDetailsResponse=ApiResponse.initial("Initial").obs;
@@ -33,7 +34,7 @@ import 'package:get/get.dart';
 //         commonSnackBar(message: response.getExtraData('message') ?? AppStrings.success);
 //         addBankDetailsResponse.value = ApiResponse.complete(response);
 //         clearForm();
-//         Get.back();
+//         safeBack();
 //       } else {
 //         addBankDetailsResponse.value = ApiResponse.error(response.message ?? "Something went wrong");
 //         commonSnackBar(
@@ -185,7 +186,7 @@ import 'package:get/get.dart';
 //       // Here you would typically make an API call to save the account details
 //       // For now, we'll just show success and go back
       
-//       // Get.back(result: {
+//       // safeBack(result: {
 //       //   'bankName': bankNameController.text.trim(),
 //       //   'accountNumber': accountNumberController.text.trim(),
 //       //   'ifscCode': ifscCodeController.text.trim().toUpperCase(),

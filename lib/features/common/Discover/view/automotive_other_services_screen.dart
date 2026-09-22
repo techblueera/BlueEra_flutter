@@ -14,6 +14,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Discover-side listing for the three "other service" automotive categories
 /// (Vehicle Service, Vehicle Support, Transport Logistics Parking). Mirrors
@@ -112,7 +113,7 @@ class _AutomotiveOtherServicesScreenState
             SliverToBoxAdapter(
               child: BannerCarousel(
                 images: _bannerImages,
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 statusBarHeight: statusBarHeight,
                 backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                 bottomBorderSide: const BorderSide(
@@ -143,7 +144,7 @@ class _AutomotiveOtherServicesScreenState
                   if (idx >= 0) _onCategoryTap(idx);
                   setState(() {});
                 },
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 expandedLabelColor: AppColors.white,
                 backgroundGradient: LinearGradient(
                   begin: Alignment.topCenter,

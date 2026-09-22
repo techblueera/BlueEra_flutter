@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FeedControllerNew extends GetxController {
   var posts = <Post>[].obs; // Replace dynamic with your Post model
@@ -273,7 +274,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                       color: Colors.white,
                       size: 25,
                     ),
-                    onPressed: () => Get.back(),
+                    onPressed: () => safeBack(),
                   ),
                 ),
               ),

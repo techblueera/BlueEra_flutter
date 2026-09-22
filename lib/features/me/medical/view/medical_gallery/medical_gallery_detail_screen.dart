@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalGalleryDetailScreen extends StatelessWidget {
   final OtherServiceGalleryData categoryData;
@@ -76,7 +77,7 @@ class MedicalGalleryDetailScreen extends StatelessWidget {
                         context: context,
                         text: AppStrings.deleteConfirmation,
                         confirmCallback: () async {
-                          Get.back();
+                          safeBack();
                           await controller.deleteGalleryImage(
                             galleryId: categoryData.id ?? '',
                             imageUrl: images[index],

@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/controlle
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddFlatRentalServiceController extends GetxController {
   Rx<ApiResponse> addFlatRentalServiceResponse = ApiResponse.initial('Initial').obs;
@@ -162,7 +163,7 @@ class AddFlatRentalServiceController extends GetxController {
     if(currentStep.value > 0){
       previousStep();
     }else{
-      Get.back();
+      safeBack();
     }
   }
 

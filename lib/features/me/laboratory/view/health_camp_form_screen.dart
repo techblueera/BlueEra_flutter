@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HealthCampFormScreen extends StatefulWidget {
   final HealthCamp? existing;
@@ -196,7 +197,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                               ok =
                                   await controller.updateCamp(widget.existing!);
                             }
-                            if (ok) Get.back();
+                            if (ok) safeBack();
                           }
                         : null,
                   )),

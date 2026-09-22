@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/school/repo/ai_description_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AIGeneratorButton extends StatelessWidget {
   final String type;
@@ -49,10 +50,10 @@ class AIGeneratorButton extends StatelessWidget {
         suggestions: suggestions,
         onSelected: (text) {
           onSelected(text);
-          Get.back();
+          safeBack();
         },
         onRegenerate: () {
-          Get.back();
+          safeBack();
           _showAiSuggestions(context);
         },
       ),
@@ -148,7 +149,7 @@ class _AiSuggestionsSheetState extends State<_AiSuggestionsSheet> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => safeBack(),
                   icon: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(

@@ -15,6 +15,7 @@ import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Hive-based storage for wallet self-conversation ID.
 class WalletChatStorage {
@@ -331,7 +332,7 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
             ChatEmitEvents.ChatList,
             {ApiKeys.type: AppConstants.personal_Chat_Type},
           );
-          Get.back();
+          safeBack();
         },
         child: Padding(
           padding: EdgeInsets.only(left: 18),

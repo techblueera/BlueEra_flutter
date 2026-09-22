@@ -6,6 +6,7 @@ import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Trip-details sheet (screenshot 6): vehicle, both endpoints, total fare,
 /// payment mode and the Cancel Ride entry point.
@@ -26,7 +27,7 @@ class _RideTripDetailsSheet extends StatelessWidget {
   final RideBookingController controller;
 
   Future<void> _openCancelFlow() async {
-    Get.back(); // close this sheet before stacking the cancel flow
+    safeBack(); // close this sheet before stacking the cancel flow
     final cancelled = await showRideCancelFlow(controller: controller);
     if (cancelled == true) {
       controller.resetTrip();

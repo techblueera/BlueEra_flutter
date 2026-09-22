@@ -23,6 +23,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveProductPreviewArgs {
   final String? productId;
@@ -384,7 +385,7 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
                           padding: EdgeInsets.zero,
                           onPressed: () {
                             if (widget.isFromProductCreation == false) {
-                              Get.back();
+                              safeBack();
                               return;
                             }
 
@@ -1515,7 +1516,7 @@ class _AutomotiveProductPreviewScreenState extends State<AutomotiveProductPrevie
                     ),
                     SizedBox(width: SizeConfig.size5),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(
                         Icons.close_rounded,
                         color: AppColors.mainTextColor,

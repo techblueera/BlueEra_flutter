@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class JobSeekerPortfolioFormScreen extends StatefulWidget {
   const JobSeekerPortfolioFormScreen({super.key});
@@ -60,7 +61,7 @@ class _JobSeekerPortfolioFormScreenState
                   //     CustomText("Add More", fontWeight: FontWeight.w600),
                   //     IconButton(
                   //       icon: const Icon(Icons.close),
-                  //       onPressed: () => Get.back(),
+                  //       onPressed: () => safeBack(),
                   //     ),
                   //   ],
                   // ),
@@ -170,7 +171,7 @@ class _JobSeekerPortfolioFormScreenState
                                 //   return;
                                 // }
                                 await portfolioController.save();
-                                Get.back();
+                                safeBack();
                               },
                       )),
                 ],

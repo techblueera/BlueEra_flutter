@@ -19,6 +19,7 @@ import '../social_main_screen.dart';
 import 'chat_video_pip_controller.dart';
 import 'component_widgets.dart';
 import 'phone_user_preview.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 class MessageBubble extends StatefulWidget {
   final String message;
   final String time;
@@ -691,7 +692,7 @@ mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   InkWell(
                       onTap: (){
-                        Get.back();
+                        safeBack();
                       },
                       child: CustomText('Close', color: AppColors.primaryColor,fontWeight: FontWeight.w600,fontSize: 14,)),
 

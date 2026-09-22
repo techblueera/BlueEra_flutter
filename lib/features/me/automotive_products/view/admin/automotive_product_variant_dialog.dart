@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Add-variant dialog for the product side. Mirrors
 /// [GroceryVariantDialog] — same quantity / unit / mrp / selling
@@ -91,7 +92,7 @@ class _AutomotiveProductVariantDialogState extends State<AutomotiveProductVarian
                       ),
                       SizedBox(width: SizeConfig.size8),
                       IconButton(
-                        onPressed: () => Get.back(),
+                        onPressed: () => safeBack(),
                         icon: Icon(
                           Icons.close,
                           size: SizeConfig.size20,

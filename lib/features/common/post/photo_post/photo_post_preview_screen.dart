@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PhotoPostPreviewScreen extends StatelessWidget {
   final PostVia? postVia;
@@ -85,7 +86,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   CustomText(AppStrings.uploadPhotos,
                       fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                   InkWell(
-                      onTap: () => Get.back(),
+                      onTap: () => safeBack(),
                       child: LocalAssets(imagePath: AppIconAssets.pen_line))
                 ],
               ),

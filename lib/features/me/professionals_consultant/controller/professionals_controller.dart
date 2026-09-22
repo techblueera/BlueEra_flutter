@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professionals_contact_us_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProfessionalsController extends GetxController {
   // Observables
@@ -92,7 +93,7 @@ class ProfessionalsController extends GetxController {
         commonSnackBar(
             message: response.getExtraData('message') ??
                 "Branch details added successfully");
-        Get.back(result: true);
+        safeBack(result: true);
         fetchHomeData();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

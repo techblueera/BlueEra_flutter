@@ -29,6 +29,7 @@ import '../../../../../widgets/common_drop_down.dart';
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
 import '../../controller/email_verification_controller.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   @override
@@ -281,7 +282,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
     // writes straight into the shared controller, so an un-saved pick would
     // otherwise follow the user out to every other screen reading it.
     //
-    // `canPop: false` + an explicit `Get.back()` rather than letting the pop
+    // `canPop: false` + an explicit `safeBack()` rather than letting the pop
     // through, so the restore is guaranteed to run before the route goes —
     // matching the app bar's own back handler above. Same contract the
     // WillPopScope this replaced had (it returned false and popped itself).
@@ -289,7 +290,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        Get.back();
+        safeBack();
         personalCreateProfileController.imagePath?.value = tempImgPath ?? "";
       },
       child: Scaffold(
@@ -297,7 +298,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
           isLeading: true,
           title: AppStrings.editProfile,
           onBackTap: () {
-            Get.back();
+            safeBack();
             personalCreateProfileController.imagePath?.value =
                 tempImgPath ?? "";
           },
@@ -1073,7 +1074,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                               child: PositiveCustomBtn(
                                 radius: 10,
                                 onTap: () {
-                                  Get.back();
+                                  safeBack();
                                 },
                                 bgColor: AppColors.white,
                                 title: AppStrings.cancel,

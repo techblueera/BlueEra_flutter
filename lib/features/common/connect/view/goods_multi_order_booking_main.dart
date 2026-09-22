@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Multi-shop (multi-stop) goods booking — **shop selection and vehicle choice
 /// on one screen**.
@@ -889,7 +890,7 @@ class _GoodsMultiOrderBookingMainState
                     isValidate: discoverController.selectedRiders.isNotEmpty,
                     onTap: () {
                       if (discoverController.selectedRiders.isEmpty) return;
-                      Get.back();
+                      safeBack();
                       _onCallToRider();
                     },
                     title: AppStrings.callToRider.tr,

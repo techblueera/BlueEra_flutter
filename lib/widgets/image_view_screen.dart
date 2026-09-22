@@ -17,6 +17,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ImageViewScreen extends StatefulWidget {
   final String? subTitle;
@@ -137,7 +138,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                       icon: Icon(Icons.chevron_left,
                           color: Colors.white, size: SizeConfig.size30),
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                       },
                     ),
                   ),

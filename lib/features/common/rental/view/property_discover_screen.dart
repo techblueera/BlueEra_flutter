@@ -21,6 +21,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PropertyDiscoverScreen extends StatefulWidget {
   final int initialCategoryIndex;
@@ -520,7 +521,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => Get.back(),
+                          onTap: () => safeBack(),
                           child: Container(
                             width: 34,
                             height: 34,
@@ -571,7 +572,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                       child: GestureDetector(
                         onTap: () {
                           _ctrl.setSort(local);
-                          Get.back();
+                          safeBack();
                         },
                         child: Container(
                           height: 38,

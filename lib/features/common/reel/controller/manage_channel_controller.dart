@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 
 class ManageChannelController extends GetxController {
@@ -53,7 +54,7 @@ class ManageChannelController extends GetxController {
   Future<void> socialLinks(
       {required String id, required List<Map<String, String>>? reqData}) async {
     if (reqData == null || reqData.isEmpty) {
-      Get.back();
+      safeBack();
       return;
     }
 
@@ -66,7 +67,7 @@ class ManageChannelController extends GetxController {
         socialLinksResponse = ApiResponse.complete(response);
         final viewProfileController = Get.find<ViewPersonalDetailsController>();
         viewProfileController.viewPersonalProfile(forceRefresh: true);
-        Get.back();
+        safeBack();
       } else {
         socialLinksResponse = ApiResponse.error('error');
         commonSnackBar(
@@ -82,7 +83,7 @@ class ManageChannelController extends GetxController {
   Future<void> socialLinksUpdate(
       {required String id, required List<Map<String, String>>? reqData}) async {
     if (reqData == null || reqData.isEmpty) {
-      Get.back(result: true);
+      safeBack(result: true);
       return;
     }
 
@@ -93,7 +94,7 @@ class ManageChannelController extends GetxController {
 
       if (response.isSuccess) {
         socialLinksResponse = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
       } else {
         socialLinksResponse = ApiResponse.error('error');
         commonSnackBar(

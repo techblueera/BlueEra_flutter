@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Pharmacy cart — one pharmacy card holding the item rows, then a place-order
 /// bar. Structurally identical to [GrocerySelfPickUpCartScreen] (tinted store
@@ -318,7 +319,7 @@ class _PharmacyCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -335,7 +336,7 @@ class _PharmacyCard extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         cart.clearAll();
                       },
                       style: ElevatedButton.styleFrom(
@@ -442,7 +443,7 @@ class _ItemRow extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -459,7 +460,7 @@ class _ItemRow extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         cart.removeLine(line.variantId);
                       },
                       style: ElevatedButton.styleFrom(

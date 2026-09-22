@@ -5,6 +5,7 @@ import 'package:BlueEra/features/me/automotive_products/model/automotive_product
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Variant picker for the admin automotive-product-selection flow. Mirrors
 /// the food flow's `ProductVariantBottomSheet`: every tick / untick commits
@@ -124,7 +125,7 @@ class AutomotiveProductSelectionVariantSheet extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
         ),
       ],
     );

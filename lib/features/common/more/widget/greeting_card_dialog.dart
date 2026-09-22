@@ -265,7 +265,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () async {
-                          Get.back();
+                          safeBack();
                           await VisitingCardHelper().shareVisitingCard(
                             _cardKey[_currentIndex],
                           );

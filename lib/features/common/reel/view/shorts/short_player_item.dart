@@ -30,6 +30,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -1062,7 +1063,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         child: IconButton(
             padding: EdgeInsets.zero,
             onPressed: () {
-              Get.back();
+              safeBack();
             },
             icon: LocalAssets(
               imagePath: AppIconAssets.back_arrow,
@@ -1081,7 +1082,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         //   child: IconButton(
         //       padding: EdgeInsets.zero,
         //       onPressed: () {
-        //             Get.back();
+        //             safeBack();
         //           },
         //       icon: LocalAssets(
         //         imagePath: AppIconAssets.back_arrow,

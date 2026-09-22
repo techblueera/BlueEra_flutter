@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BioController extends GetxController {
   final bio = ''.obs;
@@ -51,7 +52,7 @@ Future<void> addBio(Map<String, dynamic> params) async {
     final res = await ResumeRepo().addBio(params: params);
     if (res.isSuccess) {
       addBioToEducationList(params[ApiKeys.bio]);
-      Get.back();
+      safeBack();
       Future.delayed(const Duration(milliseconds: 100), () {
         commonSnackBar(message: AppStrings.bioAdded);
       });
@@ -68,7 +69,7 @@ Future<void> updateBio(Map<String, dynamic> params) async {
     final res = await ResumeRepo().updateBio(params: params);
     if (res.isSuccess) {
       addBioToEducationList(params[ApiKeys.bio]);
-      Get.back();
+      safeBack();
       Future.delayed(const Duration(milliseconds: 100), () {
         commonSnackBar(message: AppStrings.bioUpdated);
       });

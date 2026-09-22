@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManagementController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -143,7 +144,7 @@ class ManagementController extends GetxController {
     isUploading.value = false;
 
     if (res.isSuccess) {
-      Get.back(); // Go back to list
+      safeBack(); // Go back to list
       commonSnackBar(message: res.message ?? AppStrings.genericSavedSuccess.tr);
       // The Overview tab's Management card is now stale — see
       // [OtherProfileDirty].

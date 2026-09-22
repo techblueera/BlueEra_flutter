@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/social/model/social_activity_feed_res_model.
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialFeedController extends GetxController {
   // Observables for Form
@@ -97,7 +98,7 @@ class SocialFeedController extends GetxController {
           : await _repo.addSchoolDepartmentRepo(reqBODY: reqParm);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful.tr);
@@ -156,7 +157,7 @@ class SocialFeedController extends GetxController {
           await _repo.deleteSchoolDepartmentRepo(departmentID: departmentId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful.tr);

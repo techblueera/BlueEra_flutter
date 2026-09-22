@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveStep1Section extends StatefulWidget {
   final AutomotiveProductController controller;
@@ -286,7 +287,7 @@ class _AutomotiveStep1SectionState extends State<AutomotiveStep1Section> {
 
                   CustomBtn(
                     title: AppStrings.save,
-                    onTap: ()=> Get.back(),
+                    onTap: ()=> safeBack(),
                     // onTap: widget.controller.onNext,
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,

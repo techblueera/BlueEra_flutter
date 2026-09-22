@@ -1,6 +1,7 @@
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 typedef ProgressUpdater = void Function(double);
 
@@ -30,7 +31,7 @@ class UploadProgressDialog {
   /// Close dialog
   static void close() {
     if (Get.isDialogOpen ?? false) {
-      Get.back();
+      safeBack();
     }
     _updateProgressUI = null;
   }

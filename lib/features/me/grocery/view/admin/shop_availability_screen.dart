@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Shop availability capture shown right before a Mohalla-Kirana
 /// individual grocery seller goes live. The seller declares when their shop is
@@ -510,7 +511,7 @@ class _ShopAvailabilityScreenState
     if (route != null && route.isActive && !route.isCurrent) {
       Navigator.of(context).popUntil((r) => r == route);
     }
-    Get.back(result: true);
+    safeBack(result: true);
   }
 
   // ── helpers ─────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 
 class SendLocationPage extends StatefulWidget {
@@ -209,7 +210,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
                         _currentPosition!.longitude,
                         durationToLabel(selectedDuration),
                       );
-                      Get.back();
+                      safeBack();
                     },
                     title: AppStrings.shareLiveLocation.tr,
                   ),

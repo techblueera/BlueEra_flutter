@@ -7,6 +7,7 @@ import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Drives the laboratory's property-photos albums screen: lists existing
 /// albums by category, handles the multi-image upload (S3 then API), and
@@ -193,7 +194,7 @@ class LabServicePhotoPhotoController extends GetxController
       });
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
         // Also clears `isCustomCategory`, which the inline pair above didn't
         // know about — otherwise the next upload would open on the "Other"
@@ -222,7 +223,7 @@ class LabServicePhotoPhotoController extends GetxController
       );
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: response.getExtraData('message') ?? AppStrings.successful);
         await fetchPhotos();

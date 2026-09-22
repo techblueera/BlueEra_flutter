@@ -34,6 +34,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Twitter/X-style post detail screen with inline comments
 class TwitterPostDetailScreen extends StatefulWidget {
@@ -553,7 +554,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                     InkWell(
                       onTap: () async {
                         Get.put(MessagePostController());
-                        Get.back();
+                        safeBack();
                         ResponseModel responseModel =
                             await PostRepo().addRePostNewRepo(
                           reqDataData: {
@@ -630,7 +631,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                     // Quote Repost
                     InkWell(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => CreateMessagePostScreenRepost(
                           isEdit: false,
                           post: _post,

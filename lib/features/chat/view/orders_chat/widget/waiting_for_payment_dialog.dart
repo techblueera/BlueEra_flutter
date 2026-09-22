@@ -18,6 +18,7 @@ import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/controller/order_controllar.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class WaitingForPaymentDialog extends StatelessWidget {
   const WaitingForPaymentDialog({
@@ -340,12 +341,12 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                   orderController.openedMessage?.seller?.id,
                                   orderController.openedMessage?.conversationId,
                                 );
-                                Get.back();
+                                safeBack();
                                 // `context` here belongs to THIS dialog, which
-                                // `Get.back()` just popped — showing the next
+                                // `safeBack()` just popped — showing the next
                                 // dialog through it reaches a defunct element.
                                 // Take the live root context instead, matching
-                                // the Get.back() above.
+                                // the safeBack() above.
                                 // Read after the await, not captured before it,
                                 // so the lint's concern does not apply.
                                 final rootContext = Get.context;

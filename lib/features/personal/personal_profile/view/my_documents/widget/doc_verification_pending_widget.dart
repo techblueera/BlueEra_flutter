@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class DocumentVerificationPendingWidget extends StatelessWidget {
   final String documentName;
@@ -75,7 +76,7 @@ class DocumentVerificationPendingWidget extends StatelessWidget {
 
         CustomBtn(
           // onTap: onOkayTap,
-          onTap: ()=> Get.back(),
+          onTap: ()=> safeBack(),
           title: "Okay",
           radius: 10.0,
           height: SizeConfig.size40,

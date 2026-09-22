@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "3 items" / "1 item" — the count and its noun are composed here rather
 /// than inside the translation string, because the plural is a separate word
@@ -622,7 +623,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -642,7 +643,7 @@ class _AutomotiveProductRow extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         controller.removeFromCart(product);
                       },
                       style: ElevatedButton.styleFrom(

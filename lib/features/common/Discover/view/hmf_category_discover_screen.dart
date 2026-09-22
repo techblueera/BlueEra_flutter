@@ -33,6 +33,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HmfCategoryDiscoverScreen extends StatefulWidget {
   const HmfCategoryDiscoverScreen({super.key, this.initialCategoryName});
@@ -169,7 +170,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         cartController.clear();
                         Navigator.of(context).pop();
                       },
@@ -189,7 +190,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => const HmfCartScreen());
                       },
                       style: ElevatedButton.styleFrom(

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/local_assets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class DirectorCard extends StatelessWidget {
   const DirectorCard(
@@ -253,7 +254,7 @@ class _DirectorMessage extends StatelessWidget {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       child: const Text('Close'),
                     ),
                   ],

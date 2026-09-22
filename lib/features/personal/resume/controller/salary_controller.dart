@@ -5,6 +5,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SalaryController extends GetxController {
   var grossSalary = ''.obs;
@@ -164,7 +165,7 @@ class SalaryController extends GetxController {
       if (res.isSuccess) {
         final profilePicController = Get.find<ProfilePicController>();
         await profilePicController.getMyResume();
-        Get.back();
+        safeBack();
         commonSnackBar(message: AppStrings.salaryUpdated);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.salaryUpdateFailed);

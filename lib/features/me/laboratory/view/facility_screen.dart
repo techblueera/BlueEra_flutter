@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/info_banner.dart';
 import 'package:BlueEra/widgets/section_icon_header.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FacilityScreen extends StatefulWidget {
   const FacilityScreen({super.key});
@@ -124,7 +125,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
                   onTap: controller.isValid.value
                       ? () async {
                           final ok = await controller.saveFacilities();
-                          if (ok) Get.back();
+                          if (ok) safeBack();
                         }
                       : null,
                 ),

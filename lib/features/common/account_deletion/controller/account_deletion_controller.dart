@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AccountDeletionController extends GetxController {
   final RxBool isLoading = false.obs;
@@ -81,7 +82,7 @@ class AccountDeletionController extends GetxController {
                         Expanded(
                           child: PositiveCustomBtn(
                             // Can't cancel mid-request.
-                            onTap: loading ? () {} : () => Get.back(),
+                            onTap: loading ? () {} : () => safeBack(),
                             title: AppStrings.no.tr,
                           ),
                         ),
@@ -110,7 +111,7 @@ class AccountDeletionController extends GetxController {
           await AccountDeletionRepo().initAccountDeletionRepo();
 
       // Close the confirm dialog before routing / launching the browser.
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) safeBack();
 
       switch (response.statusCode) {
         case 200:
@@ -176,7 +177,7 @@ class AccountDeletionController extends GetxController {
           );
       }
     } catch (e, s) {
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) safeBack();
       log('AccountDeletionController error: $e\n$s');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

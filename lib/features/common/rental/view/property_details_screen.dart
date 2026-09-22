@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'dart:io';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final PropertyModel property;
@@ -561,7 +562,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           return;
         }
         // Rating submission not wired up yet — just acknowledge for now.
-        Get.back();
+        safeBack();
         commonSnackBar(message: AppStrings.ratingComingSoon.tr);
       },
     );
@@ -867,7 +868,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Get.back(),
+                        onTap: () => safeBack(),
                         child: Container(
                           width: 34,
                           height: 34,
@@ -1119,7 +1120,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => Get.back(),
+                            onTap: () => safeBack(),
                             child: Container(
                               width: 34,
                               height: 34,
@@ -1905,7 +1906,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
       if (response.isSuccess) {
         final fetchResponse = await repo.getPropertyById(p.id!);
-        Get.back(); // close loading
+        safeBack(); // close loading
         if (fetchResponse.isSuccess && fetchResponse.data != null) {
           if (!mounted) return;
           setState(() {
@@ -1916,15 +1917,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             );
           });
         }
-        Get.back(); // close bottom sheet
+        safeBack(); // close bottom sheet
         commonSnackBar(message: AppStrings.updatedSuccessfully.tr);
       } else {
-        Get.back(); // close loading
+        safeBack(); // close loading
         commonSnackBar(
             message: response.message ?? AppStrings.updateFailed.tr);
       }
     } catch (e) {
-      Get.back(); // close loading
+      safeBack(); // close loading
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
@@ -1951,7 +1952,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
       if (response.isSuccess) {
         final fetchResponse = await repo.getPropertyById(p.id!);
-        Get.back(); // close loading
+        safeBack(); // close loading
         if (fetchResponse.isSuccess && fetchResponse.data != null) {
           if (!mounted) return;
           setState(() {
@@ -1960,15 +1961,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             );
           });
         }
-        Get.back(); // close bottom sheet
+        safeBack(); // close bottom sheet
         commonSnackBar(message: AppStrings.photosUploadedSuccessfully.tr);
       } else {
-        Get.back(); // close loading
+        safeBack(); // close loading
         commonSnackBar(
             message: response.message ?? AppStrings.uploadFailed.tr);
       }
     } catch (e) {
-      Get.back(); // close loading
+      safeBack(); // close loading
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }

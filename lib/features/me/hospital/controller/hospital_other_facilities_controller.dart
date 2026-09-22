@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_other_facilities_repo
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalOtherFacilitiesController extends GetxController {
   final hospitalServiceController = Get.find<HospitalServiceAiController>();
@@ -99,7 +100,7 @@ class HospitalOtherFacilitiesController extends GetxController {
       final ResponseModel res = await repo.create(body: body);
       if (res.isSuccess) {
         await load();
-        Get.back();
+        safeBack();
         commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
         hospitalServiceController.getHospitalFullDetailsController();
       } else {

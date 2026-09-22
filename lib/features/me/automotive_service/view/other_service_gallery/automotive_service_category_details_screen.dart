@@ -20,6 +20,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Gallery-category details page for the automotive_service "Special
 /// Automotive" flow.
@@ -508,7 +509,7 @@ class AutomotiveServiceCategoryDetailsScreen extends StatelessWidget {
                     context: context,
                     text: AppStrings.hotelConfirmDeleteImage.tr,
                     confirmCallback: () async {
-                      Get.back();
+                      safeBack();
                       await controller.deleteOtherServiceController(
                         imgId: categoryData.id ?? "",
                         imgUrl: images[index],

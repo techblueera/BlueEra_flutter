@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// One of the four required vehicle photos. Each slot maps to a
 /// pre-existing `RxList<File>` on [DeliveryPartnerController].
@@ -604,7 +605,7 @@ class _VehicleImagesRidingWidgetState
             ),
           ),
           GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             child: Container(
               width: 32,
               height: 32,
@@ -632,7 +633,7 @@ class _VehicleImagesRidingWidgetState
   Widget _buildDialogReplaceBtn(_VehicleSlot slot) {
     return InkWell(
       onTap: () {
-        Get.back();
+        safeBack();
         _onAdd(slot);
       },
       borderRadius: BorderRadius.circular(12),
@@ -670,7 +671,7 @@ class _VehicleImagesRidingWidgetState
   Widget _buildDialogRemoveBtn(_VehicleSlot slot) {
     return InkWell(
       onTap: () {
-        Get.back();
+        safeBack();
         _onRemove(slot);
       },
       borderRadius: BorderRadius.circular(12),

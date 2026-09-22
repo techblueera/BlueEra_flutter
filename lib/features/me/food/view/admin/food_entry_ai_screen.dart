@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FoodEntryAiScreen extends StatefulWidget {
   final int? createMissingProductIndex;
@@ -435,7 +436,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                         if (hasChildren) {
                           currentDisplayList.assignAll(item.children!);
                         } else {
-                          Get.back();
+                          safeBack();
                         }
                       } else if (item.level == 1) {
                         controller.selectedLevel1.value = item;
@@ -443,11 +444,11 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                         if (hasChildren) {
                           currentDisplayList.assignAll(item.children!);
                         } else {
-                          Get.back();
+                          safeBack();
                         }
                       } else {
                         controller.selectedLevel2.value = item;
-                        Get.back();
+                        safeBack();
                       }
                     },
                   );
@@ -468,7 +469,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CustomText(AppStrings.foodSelectCategoryLabel.tr, fontWeight: FontWeight.bold, fontSize: 16),
-            IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+            IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close)),
           ],
         ),
         Wrap(

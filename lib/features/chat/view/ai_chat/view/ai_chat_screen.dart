@@ -14,6 +14,7 @@ import '../../../auth/controller/ai_chat_profile_controller.dart';
 import '../../widget/common_ai_chat_topics.dart';
 import '../../widget/component_widgets.dart';
 import 'ai_chat_message_view_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AiChatScreen extends StatefulWidget {
   AiChatScreen(
@@ -60,7 +61,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   void _openTopicsDialog() {
     Get.dialog(
       GestureDetector(
-        onTap: () => Get.back(),
+        onTap: () => safeBack(),
         behavior: HitTestBehavior.opaque,
         child: Material(
           color: Colors.black.withValues(alpha: 0.2),
@@ -79,7 +80,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       tag: tag,
                       message: message,
                     );
-                    Get.back();
+                    safeBack();
                   },
                 ),
               ),

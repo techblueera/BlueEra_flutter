@@ -28,6 +28,7 @@ import '../model/mybooking_model.dart';
 import '../model/availability_model.dart';
 import '../model/calendar_model.dart';
 import '../repo/booking_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum LocationMode { current, search }
 
@@ -250,7 +251,7 @@ class BookingController extends GetxController {
         if (response.isSuccess) {
           addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
           log("Can go back: ${Get.key.currentState?.canPop()}");
-          Get.back(result: true);
+          safeBack(result: true);
           getBookingAvailability(id: id);
           Future.delayed(const Duration(milliseconds: 100), () {
             commonSnackBar(message: "Availability added");
@@ -317,7 +318,7 @@ class BookingController extends GetxController {
 
       if (response.isSuccess) {
         addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
-        Get.back(result: true);
+        safeBack(result: true);
         getBookingAvailability(id: id);
         commonSnackBar(message: "Availability updated");
       } else {

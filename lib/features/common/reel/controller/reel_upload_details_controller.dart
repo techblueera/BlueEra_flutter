@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_sc
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ReelUploadDetailsController extends GetxController {
   ApiResponse uploadInitResponse = ApiResponse.initial('Initial');
@@ -97,7 +98,7 @@ class ReelUploadDetailsController extends GetxController {
   //     }
   //     else{
   //       logs("STEP 2 ELSE");
-  //       Get.back();
+  //       safeBack();
   //     }
   //   } else {
   //     logs("Get.isDialogOpen====${Get.isDialogOpen}");
@@ -105,7 +106,7 @@ class ReelUploadDetailsController extends GetxController {
   //       // if (kDebugMode) {
   //         print('|--------------->🕙️ Loader end 🕑️<---------------|');
   //       // }
-  //       Get.back();
+  //       safeBack();
   //     }
   //
   //   }
@@ -275,7 +276,7 @@ class ReelUploadDetailsController extends GetxController {
       if (response.isSuccess) {
         videoUploadResponse = ApiResponse.complete(response);
         commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);

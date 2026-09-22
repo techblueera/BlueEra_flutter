@@ -67,6 +67,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LogoutHelper {
   LogoutHelper._();
@@ -115,7 +116,7 @@ class LogoutHelper {
   /// controller re-creations via getOrPut). Phase 2 runs after navigation
   /// when reactive writes are safe.
   static Future<void> _performLogout() async {
-    if (Get.isDialogOpen ?? false) Get.back();
+    if (Get.isDialogOpen ?? false) safeBack();
     AppLoader.showLogout();
 
     // Detach the GA4 identity BEFORE the wipe, so nothing logged during the

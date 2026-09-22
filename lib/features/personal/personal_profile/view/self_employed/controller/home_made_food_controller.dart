@@ -15,6 +15,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/mo
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_response_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HomeMadeFoodController extends GetxController {
   final FoodRepo _repo = FoodRepo();
@@ -180,7 +181,7 @@ class HomeMadeFoodController extends GetxController {
           message:
               isUpdateMode ? 'Updated successfully' : 'Added successfully');
       await fetchAllItems();
-      Get.back();
+      safeBack();
     } catch (e) {
       log('onSubmit failed: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

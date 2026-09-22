@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Grid view of every image inside a single property-photos album, with
 /// per-image delete. The grid reads off the controller's live list so a
@@ -110,7 +111,7 @@ class CategoryDetailsScreen extends StatelessWidget {
       confirmText: AppStrings.yes,
       cancelText: AppStrings.no,
       confirmCallback: () async {
-        Get.back();
+        safeBack();
         await controller.deleteHotelRoomController(
           categoryType: categoryData.category ?? '',
           imgUrl: imageUrl,

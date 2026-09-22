@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "Finding a rider" screen for a multi-shop **broadcast** order.
 ///
@@ -108,7 +109,7 @@ class _GoodsMultiBroadcastSearchingScreenState
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => safeBack(result: false),
             child: CustomText(
               'Pick it up instead',
               fontSize: SizeConfig.size13,
@@ -117,7 +118,7 @@ class _GoodsMultiBroadcastSearchingScreenState
             ),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => safeBack(result: true),
             child: CustomText(
               'Try again',
               fontSize: SizeConfig.size13,
@@ -138,7 +139,7 @@ class _GoodsMultiBroadcastSearchingScreenState
       discoverController.isMultiShopBroadcastSearching.value = true;
       return;
     }
-    Get.back();
+    safeBack();
   }
 
   /// Backing out of a live search must cancel the order, not orphan it — the
@@ -155,12 +156,12 @@ class _GoodsMultiBroadcastSearchingScreenState
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => safeBack(result: false),
             child: CustomText('Keep searching',
                 fontSize: SizeConfig.size13, color: AppColors.primaryColor),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => safeBack(result: true),
             child: CustomText('Cancel request',
                 fontSize: SizeConfig.size13, color: AppColors.red00),
           ),
@@ -173,7 +174,7 @@ class _GoodsMultiBroadcastSearchingScreenState
         reason: 'customer_cancelled');
     if (cancelled && mounted && !_navigated) {
       _navigated = true;
-      Get.back();
+      safeBack();
     }
   }
 

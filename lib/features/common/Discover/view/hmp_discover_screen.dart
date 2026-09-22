@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HmpDiscoverScreen extends StatefulWidget {
   final bool isShowInGrid;
@@ -98,7 +99,7 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         cartController.clear();
                         Navigator.of(context).pop();
                       },
@@ -119,7 +120,7 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => const HmpCartScreen());
                       },
                       style: ElevatedButton.styleFrom(

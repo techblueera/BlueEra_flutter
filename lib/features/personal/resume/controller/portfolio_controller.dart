@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PortfolioController extends GetxController {
   final portfolioLinks = <String>[].obs;
@@ -79,7 +80,7 @@ class PortfolioController extends GetxController {
       if (res.isSuccess) {
         addPortfolioResponse = ApiResponse.complete(res);
         // await fetchPortfolios(); // Update the portfolio list
-        Get.back();
+        safeBack();
         commonSnackBar(message: res.getExtraData('message') ?? AppStrings.portfolioAddedSuccess);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);

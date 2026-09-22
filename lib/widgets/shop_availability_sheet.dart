@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Shared "Shop status" sheet opened from the Go-Live pill once a weekly
 /// schedule exists. It surfaces the schedule-driven auto open/close state and
@@ -83,7 +84,7 @@ class _ShopAvailabilitySheet extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     behavior: HitTestBehavior.opaque,
                     child: Icon(
                       Icons.close_rounded,
@@ -229,7 +230,7 @@ class _ShopAvailabilitySheet extends StatelessWidget {
                   radius: 10,
                   bgColor: AppColors.primaryColor,
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     controller.openWeeklyEditor();
                   },
                 ),
@@ -307,7 +308,7 @@ class _ShopAvailabilitySheet extends StatelessWidget {
           radius: 10,
           bgColor: AppColors.primaryColor,
           onTap: () {
-            Get.back();
+            safeBack();
             controller.openWeeklyEditor();
           },
         ),
@@ -351,7 +352,7 @@ class _ShopAvailabilitySheet extends StatelessWidget {
           radius: 10,
           bgColor: AppColors.primaryColor,
           onTap: () {
-            Get.back();
+            safeBack();
             controller.openWeeklyEditor();
           },
         ),

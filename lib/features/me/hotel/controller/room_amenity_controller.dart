@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Manages the boolean amenity flags for a single room.
 ///
@@ -64,7 +65,7 @@ class RoomAmenityController extends GetxController {
           await _repo.addHotelRoomAmenitiesRepo(reqBody: body);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FeedController extends GetxController {
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
@@ -883,7 +884,7 @@ class FeedController extends GetxController {
         list.removeWhere((p) {
           return p.user?.id == otherUserId;
         });
-        Get.back();
+        safeBack();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse = ApiResponse.error('error');
@@ -903,7 +904,7 @@ class FeedController extends GetxController {
 
     try {
       final response = await AuthRepo().report(params: params);
-      Get.back();
+      safeBack();
       if (response.isSuccess) {
         reportPostResponse = ApiResponse.complete(response);
         if (index != -1) list.removeAt(index);
@@ -926,7 +927,7 @@ class FeedController extends GetxController {
         reportPostResponse = ApiResponse.error('error');
       }
     } catch (_) {
-      Get.back();
+      safeBack();
       reportPostResponse = ApiResponse.error('error');
     }
   }

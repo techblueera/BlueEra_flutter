@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Hotel weekly-hours capture — hotel equivalent of [LabAvailabilityScreen].
 /// Owners declare when the hotel front desk is open, either Daily (same hours
@@ -583,7 +584,7 @@ class _HotelAvailabilityScreenState extends State<HotelAvailabilityScreen> {
     if (route != null && route.isActive && !route.isCurrent) {
       Navigator.of(context).popUntil((r) => r == route);
     }
-    Get.back(result: true);
+    safeBack(result: true);
   }
 
   static final List<TimeOfDay> _timeOptions = [

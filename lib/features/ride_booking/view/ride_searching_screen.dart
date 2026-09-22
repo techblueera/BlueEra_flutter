@@ -35,7 +35,7 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
   ///
   /// Captured because the exits below can fire while a cancel sheet is stacked
   /// on top — the sheet's own tap is what triggers them — and at that moment
-  /// `Get.back()` pops the SHEET and leaves this now-dead screen in place.
+  /// `safeBack()` pops the SHEET and leaves this now-dead screen in place.
   NavigatorState? _navigator;
   ModalRoute<dynamic>? _selfRoute;
 
@@ -139,7 +139,7 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
 
   /// Leaves this screen, taking anything stacked on top of it with it.
   ///
-  /// `Get.back()` pops one route, and the one on top is usually the cancel
+  /// `safeBack()` pops one route, and the one on top is usually the cancel
   /// sheet — the tap that reached here came FROM it. That left the search
   /// screen sitting over a reset controller with nothing left to search for.
   void _popSelf() {

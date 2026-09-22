@@ -12,6 +12,7 @@ import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddUpdateProductController extends GetxController{
   ApiResponse addProductResponse = ApiResponse.initial('Initial');
@@ -66,7 +67,7 @@ class AddUpdateProductController extends GetxController{
 
         if (response.isSuccess) {
           addProductResponse = ApiResponse.complete(response);
-          Get.back();
+          safeBack();
           commonSnackBar(message: "Product add successfully");
         } else {
           addProductResponse = ApiResponse.error('error');
@@ -128,7 +129,7 @@ class AddUpdateProductController extends GetxController{
 
         if (response.isSuccess) {
           addProductResponse = ApiResponse.complete(response);
-          Get.back();
+          safeBack();
           commonSnackBar(message: "Product update successfully");
         } else {
           addProductResponse = ApiResponse.error('error');

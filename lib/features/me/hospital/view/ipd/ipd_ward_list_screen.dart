@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class IpdWardListScreen extends StatefulWidget {
   final String departmentId;
@@ -203,7 +204,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                 context: context,
                 text: AppStrings.areYouSureDelete,
                 confirmCallback: () async {
-                  Get.back();
+                  safeBack();
                   await controller.deleteWard(w);
                 },
                 cancelCallback: Get.back,

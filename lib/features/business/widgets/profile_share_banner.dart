@@ -31,6 +31,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/constants/app_strings.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The referral share card: referral-code header, the promo clip, the
 /// "Share One-Time, Earn Full Year" headline, the poster, and the share-via
@@ -585,7 +586,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
         if (widget.showCloseButton) ...[
           SizedBox(width: SizeConfig.size4),
           InkWell(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             borderRadius: BorderRadius.circular(20),
             child: Padding(
               padding: const EdgeInsets.all(2),

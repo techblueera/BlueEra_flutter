@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/service/food_local_store.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// What a read of the saved Products-tab snapshot produced.
 ///
@@ -470,7 +471,7 @@ class RestaurantController extends GetxController {
         commonSnackBar(
             message: response.getExtraData('message') ??
                 AppStrings.foodBranchDetailsAdded.tr);
-        Get.back();
+        safeBack();
         // Contact/branch details are part of the cached home payload, so this
         // goes through the invalidate hook rather than a bare refetch — the
         // snapshot on disk must not outlive the change.

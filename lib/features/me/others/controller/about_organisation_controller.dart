@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AboutOrganisationController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -97,7 +98,7 @@ class AboutOrganisationController extends GetxController {
         final response = await _repo.createAboutOrganisationRepo(body);
         if (response != null && response.isSuccess) {
           commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
-          Get.back(); // Close form/screen
+          safeBack(); // Close form/screen
           getAboutOrganisation(); // Refresh list
         } else {
           commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
@@ -146,7 +147,7 @@ class AboutOrganisationController extends GetxController {
       final response = await _repo.updateAboutOrganisationRepo(id, body);
       if (response != null && response.isSuccess) {
         commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
-        Get.back();
+        safeBack();
         getAboutOrganisation();
       } else {
         commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);

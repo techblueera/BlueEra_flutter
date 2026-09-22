@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerAddVariantDialog extends StatefulWidget {
   final ManufacturerProductController controller;
@@ -158,7 +159,7 @@ class _ManufacturerAddVariantDialogState
             ),
           ),
           InkWell(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             borderRadius: BorderRadius.circular(30),
             child: const Padding(
               padding: EdgeInsets.all(6),
@@ -385,7 +386,7 @@ class _ManufacturerAddVariantDialogState
                 widget.controller.selectVariantValue('color', color);
               }
               widget.controller.selectedColors.refresh();
-              Get.back();
+              safeBack();
             }
           } else {
             // ── Value branch: send just the key/values to the API ───────────
@@ -399,7 +400,7 @@ class _ManufacturerAddVariantDialogState
               values: newValues.toList(),
             );
 
-            if (success) Get.back();
+            if (success) safeBack();
           }
         },
         bgColor: AppColors.primaryColor,

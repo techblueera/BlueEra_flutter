@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FacultyController extends GetxController {
   var isFormValid = false.obs;
@@ -120,7 +121,7 @@ class FacultyController extends GetxController {
           await SchoolRepo().deleteFacultyRepo(facultyId: facultyID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -181,7 +182,7 @@ class FacultyController extends GetxController {
           );
 
           if (response.isSuccess) {
-            Get.back();
+            safeBack();
             commonSnackBar(
                 message: response.getExtraData('message') ??
                     AppStrings.successful);
@@ -201,7 +202,7 @@ class FacultyController extends GetxController {
           );
 
           if (response.isSuccess) {
-            Get.back();
+            safeBack();
             commonSnackBar(
                 message: response.getExtraData('message') ??
                     AppStrings.successful);

@@ -11,7 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Rapido-rider–style address picker.
 ///
-/// Returned via `Get.back(result: {lat, lng, address})` when the user
+/// Returned via `safeBack(result: {lat, lng, address})` when the user
 /// taps the bottom "Select Pickup / Select Drop" button. Returns
 /// `null` if the user backs out or taps "Change".
 class MapPickAddressScreen extends StatefulWidget {

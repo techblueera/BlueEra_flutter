@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AiSuggestionController extends GetxController {
   var isLoading = false.obs;
@@ -151,7 +152,7 @@ class AiSuggestionController extends GetxController {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       child: const CustomText(AppStrings.cancel),
                     ),
                     const SizedBox(width: 8),
@@ -169,7 +170,7 @@ class AiSuggestionController extends GetxController {
                           onSaved
                               ?.call(); // trigger callback (like form validation)
                         }
-                        Get.back();
+                        safeBack();
                       },
                       child: const CustomText(AppStrings.save,color: AppColors.white,),
                     ),

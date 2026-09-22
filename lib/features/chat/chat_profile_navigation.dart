@@ -10,6 +10,7 @@ import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// A lookup that lands inside this window opens the profile with no loading UI
 /// at all — below it a dialog would only flash.
@@ -115,7 +116,7 @@ Future<void> openChatProfile({
         } catch (e) {
           logs('openChatProfile: by-phone lookup failed — $e');
         } finally {
-          if (Get.isDialogOpen ?? false) Get.back();
+          if (Get.isDialogOpen ?? false) safeBack();
         }
       }
 

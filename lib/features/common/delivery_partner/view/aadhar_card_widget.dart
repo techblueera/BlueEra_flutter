@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Aadhaar verification for the rider onboarding step.
 ///
@@ -315,7 +316,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           SizedBox(height: SizeConfig.paddingM),
           CustomBtn(
             title: AppStrings.done.tr,
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             radius: 10.0,
             bgColor: AppColors.primaryColor,
           ),

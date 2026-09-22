@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FeedCard extends StatefulWidget {
   final Post? post;
@@ -318,7 +319,7 @@ void showShareOptionsDialog(String shareUrl) {
               fontWeight: FontWeight.w500,
             ),
             onTap: () {
-              Get.back();
+              safeBack();
               Get.to(() => ChatForwardScreen(sharedText: shareUrl,stopChatNav: true,));
             },
           ),
@@ -335,7 +336,7 @@ void showShareOptionsDialog(String shareUrl) {
               fontWeight: FontWeight.w500,
             ),
             onTap: () async {
-              Get.back();
+              safeBack();
               if (_isSharing) return;
               try {
                 _isSharing = true;

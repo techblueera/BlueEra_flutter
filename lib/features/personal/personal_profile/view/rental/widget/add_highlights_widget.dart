@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddHighlightsWidget extends StatefulWidget {
   /// Initial highlights (can be empty)
@@ -72,7 +73,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
     }
 
     widget.onSave(highlights);
-    Get.back();
+    safeBack();
   }
 
   @override

@@ -25,6 +25,7 @@ import '../business_chat/business_chat_list.dart';
 import '../widget/component_widgets.dart';
 import '../add_symbol/add_symbol_screen.dart';
 import '../personal_chat/personal_chat_list.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatForwardScreen extends StatefulWidget {
   const ChatForwardScreen({super.key, this.sharedText, this.sharedFiles, this.maxSelectionCount, this.stopChatNav, this.documentFilePath});
@@ -552,17 +553,17 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                 // once since there's no underlying chat screen to return to.
                 // For normal message forwarding, pop the forward screen first,
                 // then pop the message-selection screen.
-                Get.back();
+                safeBack();
                 if(widget.sharedFiles==null && widget.sharedText==null){
                   // Small delay to let the first pop finish so we don't
                   // accidentally pop an unrelated screen.
                   await Future.delayed(const Duration(milliseconds: 100));
                   // Asked of the root navigator, not of `context`: the
-                  // `Get.back()` above popped THIS screen, so its context is
+                  // `safeBack()` above popped THIS screen, so its context is
                   // already defunct by the time the delay elapses. `navigator`
                   // is GetX's live lookup of the root NavigatorState.
                   if (navigator?.canPop() ?? false) {
-                    Get.back();
+                    safeBack();
                   }
                 }
               }

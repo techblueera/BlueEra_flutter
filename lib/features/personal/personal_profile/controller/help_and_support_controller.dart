@@ -14,6 +14,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../model/faq_details_model.dart';
 import '../repo/user_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HelpAndSupportController extends GetxController {
   RxString phoneNumber = '1234567890'.obs;
@@ -347,7 +348,7 @@ commonSnackBar(message:"phone number copied");
       if (response.isSuccess) {
         isLoading.value = false;
         getSupportQueries();
-        Get.back();
+        safeBack();
         Future.delayed(const Duration(milliseconds: 100), () {
           commonSnackBar(message: "Query submitted successfully");
         });

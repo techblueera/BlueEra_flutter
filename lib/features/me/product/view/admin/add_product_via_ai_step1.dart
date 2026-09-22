@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddProductViaAiStep1 extends StatefulWidget {
   final String id;
@@ -952,7 +953,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         if (hasChildren) {
                           currentDisplayList.assignAll(item.children!);
                         } else {
-                          Get.back();
+                          safeBack();
                         }
                       } else if (item.level == 1) {
                         controller.selectedProductLevel1.value = item;
@@ -961,7 +962,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         if (hasChildren) {
                           currentDisplayList.assignAll(item.children!);
                         } else {
-                          Get.back();
+                          safeBack();
                         }
                       } else if (item.level == 2) {
                         controller.selectedProductLevel2.value = item;
@@ -969,11 +970,11 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         if (hasChildren) {
                           currentDisplayList.assignAll(item.children!);
                         } else {
-                          Get.back();
+                          safeBack();
                         }
                       } else {
                         controller.selectedProductLevel3.value = item;
-                        Get.back();
+                        safeBack();
                       }
                     },
                   );
@@ -994,7 +995,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const CustomText("Select Category", fontWeight: FontWeight.bold, fontSize: 16),
-            IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+            IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close)),
           ],
         ),
         Wrap(

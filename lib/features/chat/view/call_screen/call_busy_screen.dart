@@ -8,6 +8,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The outgoing call from the moment Call is tapped until it either becomes a
 /// real call or dies — currently, dies busy.
@@ -142,7 +143,7 @@ class _CallBusyScreenState extends State<CallBusyScreen> {
       if (!mounted) return;
       _tonePlayer.stop();
       if (_userTouched) return;
-      Get.back();
+      safeBack();
     });
   }
 
@@ -173,7 +174,7 @@ class _CallBusyScreenState extends State<CallBusyScreen> {
 
   Future<void> _callAgain() async {
     _holdOpen();
-    Get.back();
+    safeBack();
     // A second busy simply replays this screen — initiateCall opens it again.
     await _controller.initiateCall(
       type: widget.callType,
@@ -188,7 +189,7 @@ class _CallBusyScreenState extends State<CallBusyScreen> {
   /// wants once they know the line is busy.
   void _message() {
     _holdOpen();
-    Get.back();
+    safeBack();
   }
 
   @override
@@ -284,7 +285,7 @@ class _CallBusyScreenState extends State<CallBusyScreen> {
               IconButton(
                 onPressed: () {
                   _holdOpen();
-                  Get.back();
+                  safeBack();
                 },
                 icon: Icon(
                   Icons.close,

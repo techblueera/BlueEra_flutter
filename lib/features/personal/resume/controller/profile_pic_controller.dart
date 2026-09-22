@@ -26,6 +26,7 @@ import 'package:BlueEra/features/personal/resume/controller/salary_controller.da
 import 'package:BlueEra/features/personal/resume/controller/skills_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProfilePicController extends GetxController {
   var isLoading = false.obs;
@@ -173,7 +174,7 @@ class ProfilePicController extends GetxController {
       // await getMyResume();
       callAPIGetResume();
 
-      Get.back();
+      safeBack();
       commonSnackBar(message: AppStrings.personalDetailsUpdated);
     } else {
       commonSnackBar(

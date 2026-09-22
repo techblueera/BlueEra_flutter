@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Buyer entry point for vehicles — what a Discover "New/Old Vehicle Sales"
 /// tile now opens.
@@ -120,7 +121,7 @@ class _VehicleDiscoverScreenV3State extends State<VehicleDiscoverScreenV3> {
             SliverToBoxAdapter(
               child: BannerCarousel(
                 images: _bannerImages,
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 statusBarHeight: statusBarHeight,
                 backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                 bottomBorderSide: const BorderSide(
@@ -146,7 +147,7 @@ class _VehicleDiscoverScreenV3State extends State<VehicleDiscoverScreenV3> {
                       item.id == _allTypesId ? null : item.id);
                   setState(() {});
                 },
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 expandedLabelColor: AppColors.white,
                 backgroundGradient: LinearGradient(
                   begin: Alignment.topCenter,

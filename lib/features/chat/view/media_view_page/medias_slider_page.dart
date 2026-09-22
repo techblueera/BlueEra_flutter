@@ -11,6 +11,7 @@ import 'package:video_player/video_player.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/load_chat_medias_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MediaSliderPage extends StatefulWidget {
   final String conversationId;
@@ -110,7 +111,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                             Row(
                               children: [
                                 InkWell(
-                                  onTap: () => Get.back(),
+                                  onTap: () => safeBack(),
                                   child: Icon(Icons.arrow_back_ios,
                                       color: AppColors.white),
                                 ),

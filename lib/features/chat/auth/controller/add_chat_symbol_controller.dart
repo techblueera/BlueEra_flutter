@@ -26,6 +26,7 @@ import '../model/symbol_details_model.dart';
 import '../model/symbol_interaction_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum PostVisibility { public, private, custom }
 
@@ -385,7 +386,7 @@ class AddChatSymbolController extends GetxController {
         commonSnackBar(message: "Symbol Added Successfully");
         await getSymbolsForPartUser(userId);
         clearData();
-        Get.back();
+        safeBack();
         return true;
       } else {
         commonSnackBar(

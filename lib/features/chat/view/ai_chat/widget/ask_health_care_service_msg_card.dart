@@ -335,13 +335,13 @@ class AskHealthCareServiceMsgCard extends StatelessWidget {
                             //                                 onTap: ()async{
                             //                                   final controller = Get.put(OrderNowController());
                             //                                   await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
-                            //                                   Get.back();
+                            //                                   safeBack();
                             //                                 }, title: "Yes"),
                             //                           ),
                             //                           const SizedBox(width: 10),
                             //                           Expanded(
                             //                             child: CustomBtn(onTap: (){
-                            //                               Get.back();
+                            //                               safeBack();
                             //                             }, title: "No"),
                             //                           ),
                             //                         ],

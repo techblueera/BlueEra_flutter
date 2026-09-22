@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialVisionMissionController extends GetxController {
   final SocialProfileRepo _repo = SocialProfileRepo();
@@ -110,7 +111,7 @@ class SocialVisionMissionController extends GetxController {
             serverImageUrl.value = response.data!.mediaUrl;
             selectedImage.value = null;
         }
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: AppStrings.failedToSave.tr);
       }

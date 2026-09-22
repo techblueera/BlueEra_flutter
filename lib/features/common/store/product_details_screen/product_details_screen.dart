@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'product_details_screen_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({super.key});
@@ -37,7 +38,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     children: [
                       // Back Button
                       GestureDetector(
-                        onTap: () => Get.back(),
+                        onTap: () => safeBack(),
                         child: const Icon(
                           Icons.arrow_back_ios,
                           color: AppColors.black,

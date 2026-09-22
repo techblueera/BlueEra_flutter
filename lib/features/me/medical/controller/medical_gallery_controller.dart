@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalGalleryController extends GetxController {
   var galleryList = <OtherServiceGalleryData>[].obs;
@@ -211,7 +212,7 @@ class MedicalGalleryController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalGalleryUploadedSuccessfully.tr);
         resetUploadForm();
-        Get.back();
+        safeBack();
         fetchGallery();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

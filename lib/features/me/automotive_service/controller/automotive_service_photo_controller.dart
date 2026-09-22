@@ -7,6 +7,7 @@ import 'package:BlueEra/core/services/gallery_upload_guard.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveServicePhotoController extends GetxController
     with GalleryUploadGuard {
@@ -180,7 +181,7 @@ class AutomotiveServicePhotoController extends GetxController
         });
 
         if (response.isSuccess) {
-          Get.back();
+          safeBack();
           commonSnackBar(message: response.getExtraData('message'));
           resetUploadForm();
           fetchPhotos();
@@ -206,7 +207,7 @@ class AutomotiveServicePhotoController extends GetxController
           imgID: imgId, reqBody: {"imageUrl": imgUrl});
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

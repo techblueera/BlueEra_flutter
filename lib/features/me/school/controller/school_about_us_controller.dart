@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
@@ -361,7 +362,7 @@ class SchoolAboutUsController extends GetxController {
           });
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -473,7 +474,7 @@ class SchoolAboutUsController extends GetxController {
           });
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -520,7 +521,7 @@ class SchoolAboutUsController extends GetxController {
         );
 
         if (response.isSuccess) {
-          Get.back();
+          safeBack();
           commonSnackBar(
               message:
                   response.getExtraData("message") ?? AppStrings.successful);
@@ -592,7 +593,7 @@ class SchoolAboutUsController extends GetxController {
       }
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -694,7 +695,7 @@ class SchoolAboutUsController extends GetxController {
       if (response.isSuccess) {
         isDirectorImageUpdate.value = false;
         directorMessageImageFile.value = null;
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);

@@ -18,6 +18,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialCertificatesScreen extends StatelessWidget {
   SocialCertificatesScreen({super.key});
@@ -288,7 +289,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Get.back(),
+                            onPressed: () => safeBack(),
                           ),
                         ],
                       ),
@@ -366,7 +367,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                                 ? null
                                 : () async {
                                     if (await certController.save()) {
-                                      Get.back();
+                                      safeBack();
                                     }
                                   },
                           )),
@@ -379,7 +380,7 @@ class SocialCertificatesScreen extends StatelessWidget {
                               context: context,
                               text: AppStrings.deleteConfirm.tr,
                               confirmCallback: () async {
-                                Get.back();
+                                safeBack();
                                 await certController
                                     .deleteCertificateController(
                                   certiId: certController

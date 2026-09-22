@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 // ignore: must_be_immutable
 class PortfolioProjectCardWidget extends StatelessWidget {
@@ -229,7 +230,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                           CustomText(AppStrings.edit.tr, fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Get.back(),
+                            onPressed: () => safeBack(),
                           ),
                         ],
                       ),
@@ -330,7 +331,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                                 ? null
                                 : () async {
                                     await portfolioController.save();
-                                    Get.back(result: true);
+                                    safeBack(result: true);
                                   },
                           )),
                       SizedBox(height: SizeConfig.size20),

@@ -18,6 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rent
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum LoadCapacity { KG, TON }
 
@@ -248,7 +249,7 @@ class VehicleRentalServiceController extends GetxController {
     if (currentStep.value > 0) {
       previousStep();
     } else {
-      Get.back();
+      safeBack();
     }
   }
 
@@ -515,7 +516,7 @@ class VehicleRentalServiceController extends GetxController {
 
       if (response.isSuccess) {
         uploadImagesResponse.value = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
         vehicleImagesUploadStatus[sectionId] = true;
       } else {
         uploadImagesResponse.value = ApiResponse.error('error');

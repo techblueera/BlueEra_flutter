@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CreateMessagePostScreenRepost extends StatefulWidget {
   final Post? post;
@@ -69,7 +70,7 @@ class _CreateMessagePostScreenNewState
               isLeading: msgController.isLoading.value ? false : true,
               onBackTap: () {
                 msgController.clearRepostData();
-                Get.back();
+                safeBack();
               },
             );
           }),

@@ -33,6 +33,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/my_medical_products_response.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PriceResult {
   final String sellingRange;
@@ -311,7 +312,7 @@ class MedicalController extends GetxController {
             target?.mrp = int.tryParse(mrp);
             target?.sellingPrice = int.tryParse(sellingPrice);
             selectedSnapSearchProductVariants.refresh();
-            Get.back();
+            safeBack();
           },
         );
       },
@@ -592,7 +593,7 @@ class MedicalController extends GetxController {
             // keeps showing the old price.
             selectedProductVariants.refresh();
             update();
-            Get.back();
+            safeBack();
           },
         );
       },
@@ -776,7 +777,7 @@ class MedicalController extends GetxController {
       // it so the row the merchant just created appears without reopening.
       selectedProductVariants.refresh();
       update();
-      Get.back();
+      safeBack();
     } catch (e) {
       createNewMedicalProductNewVariantResponse.value = ApiResponse.error('error');
     } finally {
@@ -1756,7 +1757,7 @@ class MedicalController extends GetxController {
                   batch.quantity = int.tryParse(quantity);
                 }
 
-                Get.back();
+                safeBack();
                 if (categoryId != null) {
                   fetchMyGroceryProducts(categoryId: categoryId);
                 }
@@ -2026,7 +2027,7 @@ class MedicalController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalMissingProductRequestRaised.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -2058,7 +2059,7 @@ class MedicalController extends GetxController {
 
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.medicalMissingProductRequestsRaised.tr);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }

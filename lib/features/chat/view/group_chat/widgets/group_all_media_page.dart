@@ -17,6 +17,7 @@ import '../../../auth/model/messageMediaUrl.dart';
 import '../../contacts/view/be_available_contacts_list.dart';
 import '../../widget/common_delete_message.dart';
 import '../../widget/media_message_full_view.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full "All Media" browser for a group, opened from the group info gallery
 /// preview / "Media, Links & Docs". Three tabs:
@@ -341,7 +342,7 @@ class _GroupAllMediaPageState extends State<GroupAllMediaPage> {
               icon: Icons.forward,
               label: 'Forward',
               onTap: () {
-                Get.back();
+                safeBack();
                 _forward(entry);
               },
             ),
@@ -350,7 +351,7 @@ class _GroupAllMediaPageState extends State<GroupAllMediaPage> {
               label: 'Delete',
               color: AppColors.red,
               onTap: () {
-                Get.back();
+                safeBack();
                 _confirmDelete(entry);
               },
             ),

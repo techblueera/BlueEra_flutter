@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RestaurantNearMeScreen extends StatefulWidget {
   const RestaurantNearMeScreen({super.key, this.initialCategoryTagId});
@@ -119,12 +120,12 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   void _handleBackWithCartWarning() {
     final isCartEmpty = foodCartController.selectedFoodVariants.isEmpty;
     if (isCartEmpty) {
-      Get.back();
+      safeBack();
       return;
     }
     _showCartWarningDialog(
       onPlaceOrder: () {
-        Get.back();
+        safeBack();
       },
     );
   }
@@ -162,8 +163,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
-                        Get.back();
+                        safeBack();
+                        safeBack();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
@@ -184,7 +185,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => const FoodSelfPickUpCartScreen());
                       },
                       style: ElevatedButton.styleFrom(

@@ -13,6 +13,7 @@ import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AiProfessionalsController extends GetxController {
   ProfessionalsRepo _repo = ProfessionalsRepo();
@@ -275,7 +276,7 @@ class AiProfessionalsController extends GetxController {
       if (response.isSuccess) {
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -304,7 +305,7 @@ class AiProfessionalsController extends GetxController {
           await repo.createProfessionalsRepo(bodyREQ: bodyReq);
 
       if (response.isSuccess) {
-        Get.back(result: true);
+        safeBack(result: true);
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
       } else {
@@ -332,7 +333,7 @@ class AiProfessionalsController extends GetxController {
           await repo.createProfessionalsRepo(bodyREQ: bodyReq);
 
       if (response.isSuccess) {
-        Get.back(result: true);
+        safeBack(result: true);
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
       } else {
@@ -432,7 +433,7 @@ class AiProfessionalsController extends GetxController {
         updateServicesOfferedResponse.value = ApiResponse.complete(responseModel);
         // await professionalsFullDetailsController(showProgress: false);
         commonSnackBar(message: 'update services offered');
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         updateServicesOfferedResponse.value = ApiResponse.error('error');
         commonSnackBar(message: responseModel.message);

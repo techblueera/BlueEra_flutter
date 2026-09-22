@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/product/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/add_flat_rental_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddMoreDetailsController extends GetxController {
   // Form Controllers
@@ -100,7 +101,7 @@ class AddMoreDetailsController extends GetxController {
         Get.find<AddFlatRentalServiceController>().addDetail(detailItem);
       }
 
-      Get.back();
+      safeBack();
       
     } catch (e) {
       commonSnackBar(message: 'Failed to save details. Please try again.');
@@ -111,7 +112,7 @@ class AddMoreDetailsController extends GetxController {
 
   // Cancel Action
   void cancel() {
-    Get.back();
+    safeBack();
   }
 
   // Clear Form

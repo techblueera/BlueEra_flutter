@@ -10,6 +10,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AcademicCalenderController extends GetxController {
   Rx<ApiResponse> getAcademicCalenderResponse =
@@ -68,7 +69,7 @@ class AcademicCalenderController extends GetxController {
           await SchoolRepo().addEducationServiceAcademicsRepo(reqBODY: reqDATA);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -102,7 +103,7 @@ class AcademicCalenderController extends GetxController {
               reqBODY: reqDATA, noticeID: notice_news_id.value);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -126,7 +127,7 @@ class AcademicCalenderController extends GetxController {
           .deleteEducationServiceAcademicsRepo(noticeID: noticeId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

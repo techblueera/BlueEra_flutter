@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Certificate & Awards — list, add, edit, delete.
 ///
@@ -136,7 +137,7 @@ class DoctorCertificatesScreen extends StatelessWidget {
       context: context,
       text: AppStrings.deleteConfirm.tr,
       confirmCallback: () async {
-        Get.back();
+        safeBack();
         await controller.deleteCertificate(id: cert.id ?? '');
       },
       cancelCallback: () => Navigator.of(context).pop(),

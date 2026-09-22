@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotivePrivacyConditionScreen extends StatelessWidget {
   AutomotivePrivacyConditionScreen({super.key});
@@ -107,7 +108,7 @@ class AutomotivePrivacyConditionScreen extends StatelessWidget {
                           text:
                               AppStrings.otherConfirmDeletePrivacyTnc.tr,
                           confirmCallback: () async {
-                            Get.back();
+                            safeBack();
                             await controller
                                 .deleteOtherTNCController(item.sId!);
                           },

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Branch / reception contact management for a hotel:
 /// list, create, update and delete reception contacts.
@@ -190,7 +191,7 @@ class HotelBranchContactController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.getExtraData('message') ?? successMessage);
-        Get.back();
+        safeBack();
         await getBranchDetailsController();
         _refreshHotelHome();
       } else {
@@ -206,7 +207,7 @@ class HotelBranchContactController extends GetxController {
 
   void _handleContactWriteResponse(ResponseModel response) {
     if (response.isSuccess) {
-      Get.back();
+      safeBack();
       commonSnackBar(
           message: response.getExtraData("message") ?? AppStrings.successful);
       getBranchDetailsController();

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../model/get_categories_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BusinessSubCategorySelectionDialog extends StatefulWidget {
   final AuthController authController;
@@ -78,7 +79,7 @@ class _BusinessSubCategorySelectionDialogState extends State<BusinessSubCategory
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => safeBack(),
                   icon: const Icon(Icons.close),
                 ),
               ],

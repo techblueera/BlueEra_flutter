@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ShortsController extends GetxController{
   ApiResponse personalizedShortsResponse = ApiResponse.initial('Initial');
@@ -919,7 +920,7 @@ class ShortsController extends GetxController{
           print('userId --> $otherUserId');
           return v.video?.userId == otherUserId;
         });
-        Get.back();
+        safeBack();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse =  ApiResponse.error('error');

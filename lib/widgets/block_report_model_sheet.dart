@@ -5,6 +5,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BlockReportPostModalSheet extends StatefulWidget {
   const BlockReportPostModalSheet({
@@ -59,7 +60,7 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
                 ),
                 IconButton(
                   onPressed: () {
-                    Get.back();
+                    safeBack();
                   },
                   icon: const Icon(
                     Icons.close_rounded,
@@ -72,11 +73,11 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
             InkWell(
               onTap: () {
                 // Captured before the pop — `context` is inside the sheet
-                // `Get.back()` dismisses, and resolving a navigator off a
+                // `safeBack()` dismisses, and resolving a navigator off a
                 // defunct element throws "Null check operator used on a null
                 // value" rather than doing nothing.
                 final navigator = Navigator.of(context);
-                Get.back();
+                safeBack();
                 showDialog(
                   context: navigator.context,
                   barrierDismissible: false,

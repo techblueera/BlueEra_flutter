@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/local_assets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Academics tab — shows the school's course catalog as a vertical list
 /// of banner-left / detail-right cards, with a header "All Courses" and
@@ -159,12 +160,12 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
         content: Text('Remove "${course.name ?? ''}" from your catalog?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Get.back();
+              safeBack();
               final id = course.id;
               if (id == null || id.isEmpty) return;
               final ctrl = Get.isRegistered<CourseController>()

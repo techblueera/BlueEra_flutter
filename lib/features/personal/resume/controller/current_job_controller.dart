@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 String monthName(int month) {
   const months = [
@@ -150,7 +151,7 @@ class CurrentJobController extends GetxController {
     final res = await ResumeRepo().saveCurrentJob(params: params);
     if (res.isSuccess) {
       // await fetchCurrentJobDetails();
-      Get.back();
+      safeBack();
     } else {}
   }
 

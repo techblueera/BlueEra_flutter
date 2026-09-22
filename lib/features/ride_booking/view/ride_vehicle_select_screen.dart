@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Vehicle + fare selection (screenshot 3).
 ///
@@ -899,7 +900,7 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen>
                 ),
                 onTap: () {
                   controller.setPaymentMode(mode.$1);
-                  Get.back();
+                  safeBack();
                 },
               ),
           ],

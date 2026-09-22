@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalCartScreen extends StatefulWidget {
   const MedicalCartScreen({super.key});
@@ -77,7 +78,7 @@ class _MedicalCartScreenState extends State<MedicalCartScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           PositiveCustomBtn(
-                              onTap: ()=> Get.back(),
+                              onTap: ()=> safeBack(),
                               height: SizeConfig.size30,
                               width: SizeConfig.size100,
                               title: AppStrings.addMoreItems,

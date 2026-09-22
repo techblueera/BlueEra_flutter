@@ -28,6 +28,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddDocumentScreen extends StatefulWidget {
   const AddDocumentScreen({
@@ -152,7 +153,7 @@ class AddDocumentScreen extends StatefulWidget {
 
               const SizedBox(height: 20),
               CustomBtn(onTap: (){
-                Get.back();
+                safeBack();
               }, title: AppStrings.close.tr,
                 isValidate: true)
             ],
@@ -688,7 +689,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
           padding: EdgeInsets.all(SizeConfig.size20),
           child: DocumentVerificationPendingWidget(
             documentName: document,
-            // onOkayTap: ()=> Get.back()
+            // onOkayTap: ()=> safeBack()
           ),
         ),
       ),

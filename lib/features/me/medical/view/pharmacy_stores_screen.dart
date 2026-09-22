@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Standalone pharmacy listing — banner + sticky sub-category tabs over the
 /// pharmacy cards, the same shape as the grocery stores screen.
@@ -78,7 +79,7 @@ class _PharmacyStoresScreenState extends State<PharmacyStoresScreen> {
   /// than let a built-up cart quietly strand. Mirrors the grocery stores screen.
   void _handleBack() {
     if (_cart.isEmpty) {
-      Get.back();
+      safeBack();
       return;
     }
     _showCartWarningDialog();
@@ -118,8 +119,8 @@ class _PharmacyStoresScreenState extends State<PharmacyStoresScreen> {
                     child: OutlinedButton(
                       // Pops the dialog, then the screen.
                       onPressed: () {
-                        Get.back();
-                        Get.back();
+                        safeBack();
+                        safeBack();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
@@ -140,7 +141,7 @@ class _PharmacyStoresScreenState extends State<PharmacyStoresScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         Navigator.push(
                           context,
                           MaterialPageRoute(

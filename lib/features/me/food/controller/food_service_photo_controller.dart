@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FoodServicePhotoPhotoController extends GetxController
     with GalleryUploadGuard {
@@ -185,7 +186,7 @@ class FoodServicePhotoPhotoController extends GetxController
           await _repo.addFoodServicePhotosRepo(reqBody: requestBody);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
         resetUploadForm();
         fetchPhotos();
@@ -211,7 +212,7 @@ class FoodServicePhotoPhotoController extends GetxController
           imgID: imgId, reqBody: {"imageUrl": imgUrl});
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

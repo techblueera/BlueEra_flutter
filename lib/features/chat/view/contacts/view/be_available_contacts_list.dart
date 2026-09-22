@@ -24,6 +24,7 @@ import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/contactListModel.dart';
 import '../../../auth/model/group_details_model.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
   final String? conversationId;
@@ -356,7 +357,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                   : () async {
                 if(widget.tagPersonsSelection==true){
                    widget.onSelectedPersons!(_selectedUsers.toList());
-                   Get.back();
+                   safeBack();
                   return ;
                 }else if (widget.isFromAddMember == true) {
                         List<String?> userId =

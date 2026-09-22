@@ -7,6 +7,7 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class DeleteChatHistoryDialog extends StatelessWidget {
   const DeleteChatHistoryDialog({super.key, required this.conversationId});
@@ -40,7 +41,7 @@ class DeleteChatHistoryDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: CustomBtn(onTap: () {
-                    Get.back();
+                    safeBack();
                   }, title: AppStrings.cancel.tr),
                 ),
                 const SizedBox(width: 12),
@@ -56,7 +57,7 @@ class DeleteChatHistoryDialog extends StatelessWidget {
                         };
                         bool? value=await chatViewController.clearChatHistory(params);
                         if(value!=null&&value){
-                          Get.back();
+                          safeBack();
                         }
 
                       },

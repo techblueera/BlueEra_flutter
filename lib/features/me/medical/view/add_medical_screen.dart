@@ -16,6 +16,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddMedicalScreen extends StatefulWidget {
   const AddMedicalScreen({super.key});
@@ -256,11 +257,11 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       onSelected: (value) async {
         if (value == AppConstants.EDIT) {
-          Get.back(result: true);
+          safeBack(result: true);
         } else if (value == AppConstants.REMOVE) {
           controller.selectedMedicalProducts.removeAt(i);
           if (controller.selectedMedicalProducts.length == 0) {
-            Get.back(result: true);
+            safeBack(result: true);
           }
         }
       },

@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtherBlogsScreen extends StatelessWidget {
   OtherBlogsScreen({super.key});
@@ -138,7 +139,7 @@ class OtherBlogsScreen extends StatelessWidget {
                           context: context,
                           text: AppStrings.otherConfirmDeleteBlog.tr,
                           confirmCallback: () async {
-                            Get.back();
+                            safeBack();
                             await controller.deleteBlogRepo(item.sId!);
                           },
                           cancelCallback: () {

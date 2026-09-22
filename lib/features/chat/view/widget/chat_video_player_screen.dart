@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'chat_video_pip_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full-screen in-app player for a video link tapped in a chat message.
 ///
@@ -27,13 +28,13 @@ class _ChatVideoPlayerScreenState extends State<ChatVideoPlayerScreen> {
 
   void _minimizeToPip() {
     controller.enterPip();
-    if (Navigator.of(context).canPop()) Get.back();
+    if (Navigator.of(context).canPop()) safeBack();
   }
 
   void _closeCompletely() {
     _intentionalClose = true;
     controller.close();
-    if (Navigator.of(context).canPop()) Get.back();
+    if (Navigator.of(context).canPop()) safeBack();
   }
 
   @override
@@ -44,7 +45,7 @@ class _ChatVideoPlayerScreenState extends State<ChatVideoPlayerScreen> {
       // back used to exit instead of showing the PiP.
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return; // already popped via an explicit Get.back()
+        if (didPop) return; // already popped via an explicit safeBack()
         if (_intentionalClose) return;
         // Hardware / system back → minimise to the floating PiP.
         _minimizeToPip();

@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full-screen, reels-style feed of IMAGE posts. Opened when the user taps an
 /// image post in the home feed. Vertical [PageView] (one post per screen),
@@ -206,7 +207,7 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
                   title: AppStrings.Repost,
                   subtitle: AppStrings.sharePostWithFollowers,
                   onTap: () async {
-                    Get.back();
+                    safeBack();
                     final ResponseModel res =
                         await PostRepo().addRePostNewRepo(reqDataData: {
                       ApiKeys.type: AppConstants.MESSAGE_POST,
@@ -233,7 +234,7 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
                   title: AppStrings.addYourThings,
                   subtitle: AppStrings.addCommentBeforeShare,
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     Get.to(() => CreateMessagePostScreenRepost(
                           isEdit: false,
                           post: _post,
@@ -310,7 +311,7 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () => Get.back(),
+                  onTap: () => safeBack(),
                   child: const Icon(Icons.arrow_back_ios,
                       color: Colors.white, size: 20),
                 ),

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_contact_us_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalBranchContactController extends GetxController {
   HospitalContactUsRepo hospitalContactUsRepo = HospitalContactUsRepo();
@@ -173,7 +174,7 @@ class HospitalBranchContactController extends GetxController {
     try {
       final response = await call();
       if (response.isSuccess) {
-        if (popOnSuccess) Get.back();
+        if (popOnSuccess) safeBack();
         commonSnackBar(
           message:
               response.getExtraData('message') ?? fallbackSuccessMsg,

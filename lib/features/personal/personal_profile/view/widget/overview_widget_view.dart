@@ -70,7 +70,7 @@ class OverviewWidgetView extends StatelessWidget {
                                     );
                                   },
                                   cancelCallback: () {
-                                    Get.back();
+                                    safeBack();
                                   });
                             },
                             child:

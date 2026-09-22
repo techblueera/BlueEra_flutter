@@ -18,6 +18,7 @@ import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../../auth/model/get_adress_details_model.dart';
 import 'add_address_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddressListScreen extends StatefulWidget {
   const AddressListScreen(
@@ -228,7 +229,7 @@ AppStrings.edit,                                                color: Colors.gr
                                             content:  CustomText(AppStrings.confirmDeleteAddress),
                                             actions: [
                                               TextButton(
-                                                  onPressed: () => Get.back(),
+                                                  onPressed: () => safeBack(),
                                                   child:  CustomText(AppStrings.cancel)),
                                               TextButton(
                                                   onPressed: () {

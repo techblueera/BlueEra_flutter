@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_gallery_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalPhotoController extends GetxController
     with GalleryUploadGuard {
@@ -136,7 +137,7 @@ class HospitalPhotoController extends GetxController
 
       if (response.isSuccess) {
         clearUploadState();
-        Get.back();
+        safeBack();
         commonSnackBar(message: AppStrings.hospitalCtrlUploadSuccessfully.tr);
         fetchPhotos();
         hospitalServiceController.getHospitalFullDetailsController();
@@ -163,7 +164,7 @@ class HospitalPhotoController extends GetxController
               reqBODY: {"image": imgUrl}, id: categoryId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

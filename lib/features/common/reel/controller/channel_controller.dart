@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChannelController extends GetxController{
   ApiResponse followUnFollowChannelResponse = ApiResponse.initial('Initial');
@@ -130,7 +131,7 @@ class ChannelController extends GetxController{
   Future<void> socialLinksUpdate(
       {required String id, required List<Map<String, String>>? reqData}) async {
     if (reqData == null || reqData.isEmpty) {
-      Get.back(result: true);
+      safeBack(result: true);
       return;
     }
 
@@ -141,7 +142,7 @@ class ChannelController extends GetxController{
 
       if (response.isSuccess) {
         socialLinksResponse = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
       } else {
         socialLinksResponse = ApiResponse.error('error');
         commonSnackBar(

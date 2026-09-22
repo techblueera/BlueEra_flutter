@@ -19,6 +19,7 @@ import '../../../../../core/api/apiService/api_response.dart';
 import '../../controller/discover_controller.dart';
 import 'fare_call_queue_screen.dart';
 import '../../model/get_booking_rider_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Booking screen for the product-order (self-pickup) ride flow.
 ///
@@ -116,7 +117,7 @@ class _ProductOrderBookingRiderMainState
                     );
                     if (dispatched) {
                       discoverController.clearChatDispatchContext();
-                      Get.back();
+                      safeBack();
                       commonSnackBar(
                           message: AppStrings.riderDispatchRequested.tr);
                     }

@@ -50,6 +50,7 @@ import '../../../../widgets/glass_surface.dart';
 import 'common_delete_message.dart';
 import '../media_view_page/conversation_media_page.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Returns true when [createdAt] (ISO-8601 from server) is older than 24 hours.
 /// Used to expire rider action buttons, the order chat input, and the appbar
@@ -1918,12 +1919,12 @@ void showAiChatClearDialog({required String type}) {
       content: CustomText('Are you sure you want to clear this chat?'),
       actions: [
         TextButton(
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
           child: CustomText('Cancel', color: AppColors.grayText),
         ),
         TextButton(
           onPressed: () async {
-            Get.back();
+            safeBack();
             await Get.find<ChatViewController>().clearAiChat(type);
             commonSnackBar(message: 'Chat cleared');
           },
@@ -1982,7 +1983,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               RouteHelper.getBottomNavigationBarScreenRoute()));
           chatViewController.onSelectChatTab(1);
         } else {
-          // Use the framework Navigator instead of Get.back(): Get.back()
+          // Use the framework Navigator instead of safeBack(): safeBack()
           // internally calls closeCurrentSnackbar(), which throws a
           // LateInitializationError when a queued snackbar's animation
           // controller hasn't been initialized yet.
@@ -2191,7 +2192,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                   Get.dialog(
                     GestureDetector(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Material(
@@ -2447,7 +2448,7 @@ void showExitGroupDialog(String conId) {
               children: [
                 Expanded(
                   child: CustomBtn(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     title: AppStrings.cancel.tr,
                   ),
                 ),
@@ -2458,7 +2459,7 @@ void showExitGroupDialog(String conId) {
                     bgColor: AppColors.red,
                     textColor: AppColors.white,
                     onTap: () {
-                      Get.back();
+                      safeBack();
                       chatViewController.leaveConversation();
                       chatViewController.emitEvent(
                           ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
@@ -2744,7 +2745,7 @@ void showMessageEditDialog(String userId,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 InkWell(
-                  onTap: () => Get.back(),
+                  onTap: () => safeBack(),
                   child: CustomText(
                     AppStrings.close.tr,
                     color: AppColors.primaryColor,
@@ -2772,7 +2773,7 @@ void showMessageEditDialog(String userId,
                         ApiKeys.per_page_message: 30,
                       });
                       chatThemeController.resetSelection();
-                      Get.back();
+                      safeBack();
                     }
                   },
                   child: CustomText(

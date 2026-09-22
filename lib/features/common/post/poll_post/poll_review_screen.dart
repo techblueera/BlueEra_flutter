@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PollReviewScreen extends StatefulWidget {
   final PostVia? postVia;
@@ -32,7 +33,7 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        onBackTap: () => Get.back(),
+        onBackTap: () => safeBack(),
         title: AppStrings.poll.tr,
       ),
       body: Obx(() {
@@ -121,7 +122,7 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                       children: [
                         Expanded(
                           child: PositiveCustomBtn(
-                            onTap: () => Get.back(),
+                            onTap: () => safeBack(),
                             title: AppStrings.back.tr,
                             textColor: AppColors.primaryColor,
                             bgColor: AppColors.white,
@@ -283,7 +284,7 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => Get.back(),
+                onPressed: () => safeBack(),
                 child: CustomText(
                   AppStrings.ok.tr,
                   color: AppColors.primaryColor,

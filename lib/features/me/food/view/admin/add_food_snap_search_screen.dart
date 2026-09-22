@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/snap_scan_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddFoodSnapSearchScreen extends StatefulWidget {
   const AddFoodSnapSearchScreen({super.key});
@@ -368,7 +369,7 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
         ),
         const SizedBox(height: 10),
         TextButton(
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
           child: CustomText(
             AppStrings.foodSearchManuallyLabel.tr,
             fontSize: 14,

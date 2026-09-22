@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/content_creator/controller/earn_artist_contr
 import 'package:BlueEra/features/me/content_creator/model/earn_artist_model.dart';
 import 'package:BlueEra/features/me/content_creator/repo/earn_artist_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Drives the "Add associate brands" search page. Searches businesses via
 /// `GET user-service/business/search` (text + geo, paged) and lets the creator
@@ -199,7 +200,7 @@ class AssociateBrandsController extends GetxController {
       );
       if (ok) {
         commonSnackBar(message: 'Associate brands updated');
-        Get.back();
+        safeBack();
       }
       return ok;
     } finally {

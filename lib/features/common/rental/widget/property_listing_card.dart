@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Single card layout used on both the Discover feed and the Owner
 /// "My Listings" screen. Visuals match the design spec from the
@@ -703,7 +704,7 @@ class PropertyListingCard extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText(
               AppStrings.cancel.tr,
               fontSize: 14,
@@ -713,7 +714,7 @@ class PropertyListingCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Get.back();
+              safeBack();
               _deleteProperty();
             },
             child: CustomText(
@@ -737,7 +738,7 @@ class PropertyListingCard extends StatelessWidget {
     try {
       final repo = PropertyRepo();
       final response = await repo.deleteProperty(property.id!);
-      Get.back();
+      safeBack();
       if (response.isSuccess) {
         commonSnackBar(message: AppStrings.propertyDeletedSuccessfully.tr);
         onDeleted?.call();
@@ -745,7 +746,7 @@ class PropertyListingCard extends StatelessWidget {
         commonSnackBar(message: response.message ?? AppStrings.failedToDeleteProperty.tr);
       }
     } catch (_) {
-      Get.back();
+      safeBack();
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }

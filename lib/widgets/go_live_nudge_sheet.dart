@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "You're offline" nudge, shown on arrival at the Me section when an account
 /// that CAN be live isn't.
@@ -100,7 +101,7 @@ Future<void> showGoLiveNudgeSheet({
                 // screen, the hours editor or the plan page, and pushing over a
                 // live sheet leaves it underneath — backing out would land the
                 // user right back on this prompt.
-                Get.back();
+                safeBack();
                 onGoLive();
               },
               style: ElevatedButton.styleFrom(

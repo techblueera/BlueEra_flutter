@@ -10,6 +10,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/model/messageMediaUrl.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "Manage Storage" for a group: lists every shared media item with the space
 /// it currently occupies on this device (the on-disk cache for network media,
@@ -385,7 +386,7 @@ class _ManageGroupStorageScreenState extends State<ManageGroupStorageScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       child: CustomText('Cancel',
                           color: AppColors.primaryColor),
                     ),
@@ -397,7 +398,7 @@ class _ManageGroupStorageScreenState extends State<ManageGroupStorageScreen> {
                         backgroundColor: AppColors.red,
                       ),
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         _deleteAll();
                       },
                       child: const CustomText('Delete', color: Colors.white),

@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Arguments for [OrderStepsScreen], passed through the named route.
 class OrderStepsArgs {
@@ -64,7 +65,7 @@ class _OrderStepsScreenState extends State<OrderStepsScreen>
 
   /// The `isGone` listener. Held so it can be disposed: the controller is
   /// ref-counted and may outlive this screen (the chat card holds it too), and
-  /// a surviving worker would call `Get.back()` on whatever screen happened to
+  /// a surviving worker would call `safeBack()` on whatever screen happened to
   /// be open when the order was later found to be missing.
   Worker? _goneWorker;
 
@@ -88,7 +89,7 @@ class _OrderStepsScreenState extends State<OrderStepsScreen>
       if (!gone || _poppedForGone || !mounted) return;
       _poppedForGone = true;
       commonSnackBar(message: AppStrings.orderNoLongerExists.tr);
-      Get.back(result: OrderStepsResult.gone);
+      safeBack(result: OrderStepsResult.gone);
     });
   }
 

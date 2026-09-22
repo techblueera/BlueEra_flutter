@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FoodItemBottomSheet extends StatelessWidget {
   final bool isEdit;
@@ -90,7 +91,7 @@ class FoodItemBottomSheet extends StatelessWidget {
                           ),
                         ),
                         InkWell(
-                          onTap: () => Get.back(),
+                          onTap: () => safeBack(),
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
                             width: 32, height: 32,

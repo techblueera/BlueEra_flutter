@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LabTestCatalogScreen extends StatefulWidget {
   final String collection;
@@ -274,10 +275,10 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
       context: context,
       text: AppStrings.deleteThisTest.tr,
       confirmCallback: () {
-        Get.back();
+        safeBack();
         controller.deleteTest(t.id!, widget.collection);
       },
-      cancelCallback: () => Get.back(),
+      cancelCallback: () => safeBack(),
       confirmText: AppStrings.delete,
       cancelText: AppStrings.cancel,
     );
@@ -528,7 +529,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
                                     item.id!,
                                     collection: widget.collection,
                                   );
-                                  if (ok) Get.back();
+                                  if (ok) safeBack();
                                   return;
                                 }
                                 if (formKey.currentState!.validate()) {
@@ -551,7 +552,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
                                     collection: widget.collection,
                                     customData: overrides,
                                   );
-                                  if (ok) Get.back();
+                                  if (ok) safeBack();
                                 }
                               },
                         title: isDeselectMode.value

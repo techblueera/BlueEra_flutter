@@ -22,6 +22,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 // Shared palette for the form + both picker sheets. Kept as top-level
 // consts so the sheet widgets outside the state class can use them.
@@ -292,7 +293,7 @@ class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
       // reached via the preset landing (multiple screens deep), so replace
       // the stack down to the list.
       if (_isEditing) {
-        Get.back();
+        safeBack();
       } else {
         Get.off(() => const MyLabPackagesScreen());
       }

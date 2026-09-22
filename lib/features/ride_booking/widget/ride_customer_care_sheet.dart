@@ -7,6 +7,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.da
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Customer Care sheet for a ride that is already under way.
 ///
@@ -187,7 +188,7 @@ class _CustomerCareSheetState extends State<_CustomerCareSheet> {
       if (!mounted) return;
       // Close the sheet only now — the thread exists, so there is somewhere to
       // land. Then open it over whatever the sheet was covering.
-      Get.back();
+      safeBack();
       Get.to(
         () => PersonalChatScreen(
           type: AppConstants.personal_Chat_Type,

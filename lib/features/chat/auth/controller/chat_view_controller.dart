@@ -71,6 +71,7 @@ import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'payment_qr_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
@@ -5469,7 +5470,7 @@ class ChatViewController extends GetxController {
           ApiKeys.conversation_id: params[ApiKeys.conversation_id]
         };
         getGroupMembersApi(data);
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);

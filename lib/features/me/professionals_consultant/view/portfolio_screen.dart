@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PortfolioScreen extends StatelessWidget {
   PortfolioScreen({super.key});
@@ -91,7 +92,7 @@ class PortfolioScreen extends StatelessWidget {
                           CustomText(AppStrings.addMore.tr, fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Get.back(),
+                            onPressed: () => safeBack(),
                           ),
                         ],
                       ),
@@ -202,7 +203,7 @@ class PortfolioScreen extends StatelessWidget {
                                       return;
                                     }
                                     await portfolioController.save();
-                                    Get.back(result: true);
+                                    safeBack(result: true);
                                   },
                           )),
                       SizedBox(height: SizeConfig.size20),

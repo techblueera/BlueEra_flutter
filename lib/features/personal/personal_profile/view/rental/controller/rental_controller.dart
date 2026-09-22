@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RentalController extends GetxController{
   Rx<ApiResponse> rentalServicesResponse
@@ -101,7 +102,7 @@ class RentalController extends GetxController{
 
       if (response.isSuccess) {
         deleteServiceResponse.value = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
         switch (selectedRentalTabs.value) {
           case RentalServiceType.homeStay:
             homeStayServices.removeWhere((s) => s.sId == serviceId);

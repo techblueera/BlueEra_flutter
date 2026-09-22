@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/delete_dialog.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The user's saved addresses: list, select one, add / edit / delete.
 ///
@@ -88,7 +89,7 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
       return;
     }
     widget.onAddressSelected?.call(address);
-    Get.back(result: address);
+    safeBack(result: address);
   }
 
   @override

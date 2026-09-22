@@ -3,6 +3,7 @@ import 'package:BlueEra/features/me/doctor/view/about/doctor_about_me_form.dart'
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Routable wrapper around [DoctorAboutMeForm].
 ///
@@ -24,8 +25,8 @@ class DoctorAboutMeEditScreen extends StatelessWidget {
         // button keeps the two entry points behaving identically — and it is
         // the one that warns about unsaved changes.
         child: DoctorAboutMeForm(
-          onSaved: () => Get.back(),
-          onCancel: () => Get.back(),
+          onSaved: () => safeBack(),
+          onCancel: () => safeBack(),
         ),
       ),
     );

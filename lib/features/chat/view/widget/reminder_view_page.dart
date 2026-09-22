@@ -7,6 +7,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/message_card.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ReminderViewPage extends StatefulWidget {
   const ReminderViewPage({super.key,required this.conversationId,required this.name,required this.profileImagePath});
@@ -105,7 +106,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
     ).then((_) {
       // If all messages removed, go back to the list
       if (chatThemeController.reminderMessageModel.isEmpty) {
-        Get.back();
+        safeBack();
       }
     });
   }

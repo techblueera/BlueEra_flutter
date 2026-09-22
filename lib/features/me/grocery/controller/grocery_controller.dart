@@ -31,6 +31,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Top-level so it can run in a background isolate via [compute]. The
 /// `jsonDecode(jsonEncode())` round-trip normalises types so the same parser
@@ -358,7 +359,7 @@ class GroceryController extends GetxController {
             // MRP / selling price whether or not the variant is selected.
             selectedProductVariants.refresh();
             selectedGroceries.refresh();
-            Get.back();
+            safeBack();
           },
         );
       },
@@ -598,7 +599,7 @@ class GroceryController extends GetxController {
       // it so the row the merchant just created appears without reopening.
       selectedProductVariants.refresh();
       // update();
-      Get.back();
+      safeBack();
     } catch (e) {
       createNewGroceryProductNewVariantResponse.value = ApiResponse.error('error');
     } finally {

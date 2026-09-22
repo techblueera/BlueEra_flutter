@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/local_assets.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Shared course card — same visual used by the owner's Academics tab
 /// (`SchoolAcademicsTabV2`) and by the public-facing discover screen
@@ -258,7 +259,7 @@ class _CardDescription extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Get.back(),
+              onPressed: () => safeBack(),
               child: const Text('Close'),
             ),
           ],

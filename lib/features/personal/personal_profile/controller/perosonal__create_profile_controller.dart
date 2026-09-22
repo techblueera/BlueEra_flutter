@@ -15,6 +15,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PersonalCreateProfileController extends GetxController {
   ApiResponse updateUserProfileResponse = ApiResponse.initial('Initial');
@@ -205,7 +206,7 @@ class PersonalCreateProfileController extends GetxController {
         unawaited(Get.find<ViewPersonalDetailsController>()
             .viewPersonalProfile(forceRefresh: true));
         if (!isFromProfileOnly) {
-          Get.back();
+          safeBack();
         }
         commonSnackBar(message: responseModel.response?.data?['message'] ?? "Update successfully");
       } else {
@@ -251,7 +252,7 @@ class PersonalCreateProfileController extends GetxController {
         deleteProjectResponse.value = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>()
             .viewPersonalProfile(forceRefresh: true);
-        Get.back();
+        safeBack();
         commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
         deleteProjectResponse.value = ApiResponse.error('Delete failed');
@@ -278,7 +279,7 @@ class PersonalCreateProfileController extends GetxController {
         deleteExperienceResponse.value = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>()
             .viewPersonalProfile(forceRefresh: true);
-        Get.back();
+        safeBack();
         commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
         deleteExperienceResponse.value = ApiResponse.error('Delete failed');

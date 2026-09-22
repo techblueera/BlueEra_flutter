@@ -15,6 +15,7 @@ import 'package:get/get.dart';
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../model/business_category_response_model.dart';
 import '../../model/get_categories_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BusinessCategorySelectionDialog extends StatefulWidget {
   final AuthController authController;
@@ -79,7 +80,7 @@ class _BusinessCategorySelectionDialogState extends State<BusinessCategorySelect
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => safeBack(),
                   icon: const Icon(Icons.close),
                 ),
               ],
@@ -127,8 +128,8 @@ class _BusinessCategorySelectionDialogState extends State<BusinessCategorySelect
                     );
 
                     if (selected != null) {
-                      Get.back();
-                      // Routed through GetX, not `context`: the `Get.back()`
+                      safeBack();
+                      // Routed through GetX, not `context`: the `safeBack()`
                       // immediately above popped this dialog, so pushing via
                       // its context would reach a defunct element.
                       Get.toNamed(

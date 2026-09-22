@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 // ignore: must_be_immutable
 class FoodDetailScreen extends StatefulWidget {
@@ -35,8 +36,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           padding:  EdgeInsets.only(left: SizeConfig.size20,right: SizeConfig.size20,bottom: SizeConfig.size20),
           child: PositiveCustomBtn(
               onTap: () {
-                Get.back();
-                Get.back();
+                safeBack();
+                safeBack();
               },
               title: AppStrings.goBack),
         ),

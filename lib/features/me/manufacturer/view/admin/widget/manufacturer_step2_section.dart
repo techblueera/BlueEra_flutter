@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerStep2Section extends StatefulWidget {
   final ManufacturerProductController controller;
@@ -154,7 +155,7 @@ class _ManufacturerStep2SectionState extends State<ManufacturerStep2Section> {
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                   child: CustomBtn(
                     title: AppStrings.save,
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
                     height: SizeConfig.size40,

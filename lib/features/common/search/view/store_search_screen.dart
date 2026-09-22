@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full-screen store search for ONE vertical, opened from a listing screen's
 /// search bar (currently the grocery stores screen).
@@ -120,7 +121,7 @@ class _StoreSearchScreenState extends State<StoreSearchScreen> {
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new,
                 color: AppColors.mainTextColor, size: 22),
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
           ),
           Expanded(
             child: Container(

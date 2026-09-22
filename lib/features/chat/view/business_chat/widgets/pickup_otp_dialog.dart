@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Popup to enter & verify the customer's self-pickup OTP. Replaces the old
 /// "Call" shortcut on the self-pickup order cards (food / product / grocery).
@@ -56,7 +57,7 @@ class _PickupOtpDialogState extends State<_PickupOtpDialog> {
     FocusScope.of(context).unfocus();
     await orderController
         .uploadThePickupOtp({ApiKeys.pickupOTP: otp}, widget.orderId);
-    if (mounted) Get.back();
+    if (mounted) safeBack();
   }
 
   @override
@@ -78,7 +79,7 @@ class _PickupOtpDialogState extends State<_PickupOtpDialog> {
                   ),
                 ),
                 InkWell(
-                  onTap: () => Get.back(),
+                  onTap: () => safeBack(),
                   child: const Icon(Icons.close, color: AppColors.grayText),
                 ),
               ],

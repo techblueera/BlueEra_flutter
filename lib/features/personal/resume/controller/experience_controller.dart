@@ -5,6 +5,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ExperienceController extends GetxController {
   final bool isFullTime; // true for full-time, false for part-time
@@ -272,7 +273,7 @@ class ExperienceController extends GetxController {
 
     if (res.isSuccess) {
       // await fetchExperience();
-      Get.back();
+      safeBack();
     }
   }
 

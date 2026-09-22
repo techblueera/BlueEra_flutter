@@ -12,6 +12,7 @@ import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CampusLifeController extends GetxController {
   var categoryList = <CampusLifeCategoriesData>[].obs;
@@ -114,7 +115,7 @@ class CampusLifeController extends GetxController {
 
       // 4. Handle Response
       if (response.isSuccess) {
-        Get.back(); // Close the form
+        safeBack(); // Close the form
         commonSnackBar(
           message: response.getExtraData('message') ?? AppStrings.successful,
         );
@@ -172,7 +173,7 @@ class CampusLifeController extends GetxController {
           await SchoolRepo().deleteCampusCategoryLifeRepo(entriesId: entriesID, imageId: imageID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

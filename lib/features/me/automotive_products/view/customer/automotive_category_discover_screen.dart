@@ -22,6 +22,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Consumer discover screen for AUTO PARTS shops.
 ///
@@ -193,7 +194,7 @@ class _AutomotiveCategoryDiscoverScreenState
   // ── Confirm-exit when the cart has items (same flow as ProductsStoreScreen).
   void _handleBackWithCartWarning() {
     if (_cartController.selectedProductVariants.isEmpty) {
-      Get.back();
+      safeBack();
       return;
     }
     _showCartWarningDialog(
@@ -236,9 +237,9 @@ class _AutomotiveCategoryDiscoverScreenState
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         _cartController.clearCart();
-                        Get.back();
+                        safeBack();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
@@ -259,7 +260,7 @@ class _AutomotiveCategoryDiscoverScreenState
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         onPlaceOrder();
                       },
                       style: ElevatedButton.styleFrom(

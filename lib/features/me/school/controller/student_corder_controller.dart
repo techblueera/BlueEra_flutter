@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class StudentCornerController extends GetxController {
   Rx<ApiResponse> getStudentCornerResponse = ApiResponse.initial('Initial').obs;
@@ -124,7 +125,7 @@ class StudentCornerController extends GetxController {
 
       if (postResponse.response?.data != null &&
           postResponse.getExtraData('success') == true) {
-        Get.back();
+        safeBack();
 
         commonSnackBar(message: postResponse.getExtraData('message'));
         initStudentCorner();
@@ -146,7 +147,7 @@ class StudentCornerController extends GetxController {
           studentCornerType: studentCornerTYPE);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -183,7 +184,7 @@ class StudentCornerController extends GetxController {
           studentCornerType: studentCornerTYPE);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

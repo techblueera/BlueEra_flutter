@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Runs the full cancellation flow (screenshots 7 and 8) and returns `true`
 /// only if the ride was actually cancelled.
@@ -96,7 +97,7 @@ Future<bool?> _showCaptainConfirmSheet(RideCaptain captain) {
           RideOutlineButton(
             label: 'Cancel Ride',
             color: RideStyle.danger,
-            onTap: () => Get.back(result: true),
+            onTap: () => safeBack(result: true),
           ),
           const SizedBox(height: 12),
           RidePrimaryButton(
@@ -106,7 +107,7 @@ Future<bool?> _showCaptainConfirmSheet(RideCaptain captain) {
           const SizedBox(height: 12),
           RideOutlineButton(
             label: 'Go Back',
-            onTap: () => Get.back(result: false),
+            onTap: () => safeBack(result: false),
           ),
         ],
       ),

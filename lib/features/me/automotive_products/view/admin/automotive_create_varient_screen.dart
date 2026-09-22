@@ -19,6 +19,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveCreateVariantScreen extends StatefulWidget {
   final AutomotiveProductController controller;
@@ -952,7 +953,7 @@ class _AutomotiveCreateVariantScreenState extends State<AutomotiveCreateVariantS
 
                       if (success) {
                         widget.controller.selectedColors.assignAll(allColors);
-                        Get.back();
+                        safeBack();
                       }
                     },
                     title: widget.controller.isAddUpdateProductVariantLoading.value
@@ -1072,7 +1073,7 @@ class _AutomotiveCreateVariantScreenState extends State<AutomotiveCreateVariantS
                             colorCodeKey: colorCodeKey,
                             colors: colors,
                           );
-                          if (success) Get.back();
+                          if (success) safeBack();
                         },
                         title: widget.controller
                                 .isAddUpdateProductVariantLoading.value
@@ -1184,7 +1185,7 @@ class _AutomotiveCreateVariantScreenState extends State<AutomotiveCreateVariantS
                             ),
                           ),
                           InkWell(
-                            onTap: () => Get.back(),
+                            onTap: () => safeBack(),
                             borderRadius: BorderRadius.circular(30),
                             child: const Padding(
                               padding: EdgeInsets.all(6),
@@ -1312,7 +1313,7 @@ class _AutomotiveCreateVariantScreenState extends State<AutomotiveCreateVariantS
 
                                 // Display is refreshed from the API by the
                                 // controller on success.
-                                if (success) Get.back();
+                                if (success) safeBack();
                               },
                               title: widget.controller
                                       .isAddUpdateProductVariantLoading.value

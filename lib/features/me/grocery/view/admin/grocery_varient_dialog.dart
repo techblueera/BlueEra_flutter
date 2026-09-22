@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class GroceryVariantDialog extends StatefulWidget {
   final String title;
@@ -166,7 +167,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
                     ),
                     SizedBox(width: SizeConfig.size8),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: Icon(
                         Icons.close,
                         size: SizeConfig.size20,

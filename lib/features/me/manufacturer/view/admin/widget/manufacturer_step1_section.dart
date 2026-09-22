@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerStep1Section extends StatefulWidget {
   final ManufacturerProductController controller;
@@ -155,7 +156,7 @@ class _ManufacturerStep1SectionState extends State<ManufacturerStep1Section> {
                   SizedBox(height: SizeConfig.size30),
                   CustomBtn(
                     title: AppStrings.save,
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
                     height: SizeConfig.size40,

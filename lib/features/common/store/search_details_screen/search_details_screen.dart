@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../product_details_screen/product_details_screen.dart';
 import 'search_details_screen_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SearchDetailsScreen extends StatelessWidget {
   const SearchDetailsScreen({super.key});
@@ -30,7 +31,7 @@ class SearchDetailsScreen extends StatelessWidget {
                     children: [
                       // Back Button
                       GestureDetector(
-                        onTap: () => Get.back(),
+                        onTap: () => safeBack(),
                         child: const Icon(
                           Icons.arrow_back_ios,
                           color: AppColors.black,

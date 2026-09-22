@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 final deepLinkNetworkResources = DeepLinkNetworkResources();
 
@@ -74,7 +75,7 @@ class DeepLinkNetworkResources {
     } catch (e) {
       logs('DEEPLINK_DEBUG: Error navigating to video detail: $e');
     } finally {
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) safeBack();
     }
 
     final item = videoFeedItem;
@@ -127,7 +128,7 @@ class DeepLinkNetworkResources {
     } catch (e) {
       logs('DEEPLINK_DEBUG: Error fetching hotel by businessId: $e');
     } finally {
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) safeBack();
     }
 
     final data = hotel;

@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/price_row.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Flat product view used by [MedicalProductCard]. Constructed at the call
 /// site from either `PopularProduct` or `CategoryProduct` — the card itself
@@ -406,13 +407,13 @@ class MedicalProductCard extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText('Cancel', color: AppColors.secondaryTextColor),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
             onPressed: () {
-              Get.back();
+              safeBack();
               _cart.clearAll();
             },
             child: CustomText('Clear cart', color: AppColors.white),

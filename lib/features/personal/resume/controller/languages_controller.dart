@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
   class LanguagesController extends GetxController {
     final ResumeRepo _repo = ResumeRepo();
@@ -98,7 +99,7 @@ import 'package:get/get.dart';
       if (response.isSuccess) {
         commonSnackBar(message: response.getExtraData('message') ?? AppStrings.success);
         await getLanguagesApi();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: response.getExtraData('message') ?? AppStrings.somethingWentWrong);
       }

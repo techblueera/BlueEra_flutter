@@ -30,6 +30,7 @@ import '../../../personal/personal_profile/view/visit_personal_profile/visit_per
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
@@ -106,7 +107,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
         arguments: {ApiKeys.initialIndex: 1},
       );
     } else {
-      Get.back();
+      safeBack();
     }
   }
 
@@ -737,7 +738,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   //                           children: [
   //                             Expanded(
   //                               child: CustomBtn(
-  //                                 onTap: () => Get.back(),
+  //                                 onTap: () => safeBack(),
   //                                 title: "Cancel",
   //                                 radius: 12,
   //                                 borderColor: AppColors.skyBlueDF,

@@ -5,6 +5,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CommonDropdownDialog<T> extends StatefulWidget {
   final List<T> items;
@@ -61,7 +62,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(Icons.close),
                     ),
                   ],

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Builds a standard UPI deep-link payload so any UPI app can scan the QR and
 /// pay this VPA. e.g. `upi://pay?pa=name@oksbi&pn=SBI&cu=INR`.
@@ -136,7 +137,7 @@ void showUpiQrDialog({required String upiId, String? bankName}) {
             ),
             SizedBox(height: SizeConfig.size20),
             InkWell(
-              onTap: () => Get.back(),
+              onTap: () => safeBack(),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,

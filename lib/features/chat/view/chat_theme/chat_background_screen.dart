@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../auth/controller/chat_theme_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatBackgroundScreen extends StatefulWidget {
   const ChatBackgroundScreen({super.key});
@@ -128,7 +129,7 @@ class _ChatBackgroundScreenState extends State<ChatBackgroundScreen>
     ctrl.chatFontFamily.value = _fontFamily;
     ctrl.saveTheme();
     commonSnackBar(message: "Settings applied successfully");
-    Get.back();
+    safeBack();
   }
 
   void _resetToDefault() {
@@ -246,7 +247,7 @@ class _ChatBackgroundScreenState extends State<ChatBackgroundScreen>
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: Container(
                       width: 38,
                       height: 38,

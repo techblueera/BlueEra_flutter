@@ -11,6 +11,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
 
 import '../../auth/controller/call_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1925,7 +1926,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     final customController = TextEditingController();
 
     Future<void> send(String message) async {
-      Get.back();
+      safeBack();
       await controller.declineWithMessage(message);
     }
 
@@ -2137,7 +2138,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                             color: Color(0xFF25D366))
                         : null,
                     onTap: () {
-                      Get.back();
+                      safeBack();
                       controller.selectAudioRoute(route);
                     },
                   );
@@ -2197,7 +2198,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                   ),
                   enabled: !controller.isSwitchTypePending.value,
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     controller.switchCallType();
                   },
                 ),
@@ -2213,7 +2214,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                     ),
                   ),
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     controller.switchCamera();
                   },
                 ),
@@ -2304,7 +2305,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         actions: [
           TextButton(
             onPressed: () {
-              Get.back();
+              safeBack();
               controller.respondToSwitchType(false);
             },
             child: const Text('Decline',
@@ -2315,7 +2316,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              Get.back();
+              safeBack();
               controller.respondToSwitchType(true);
             },
             style: ElevatedButton.styleFrom(

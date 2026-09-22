@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChannelFeedPostListingScreen extends StatefulWidget {
   ChannelFeedPostListingScreen({super.key, required this.channelData});
@@ -58,7 +59,7 @@ class _ChannelFeedPostListingScreenState
                     children: [
                       InkWell(
                           onTap: () {
-                            Get.back();
+                            safeBack();
                           },
                           child: Icon(
                             Icons.arrow_back_ios,

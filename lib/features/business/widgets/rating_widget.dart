@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_icon_assets.dart';
 import '../../../core/constants/snackbar_helper.dart';
 import '../auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RatingFeedbackDialog extends StatefulWidget {
   final String businessId, reviewFor;
@@ -153,7 +154,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                           child: CustomBtn(
                             height: SizeConfig.size40,
                             onTap: () {
-                              Get.back();
+                              safeBack();
                             },
                             title: AppStrings.cancel,
                             textColor: AppColors.primaryColor,

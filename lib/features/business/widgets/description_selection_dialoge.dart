@@ -5,6 +5,7 @@ import 'package:BlueEra/features/business/business_description/business_descript
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
  showDescriptionSuggestionsDialog({VoidCallback? onSaved}) {
   final businessDescriptionController =
@@ -104,7 +105,7 @@ import 'package:get/get.dart';
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => safeBack(),
                     child: const CustomText(AppStrings.cancel),
                   ),
                   const SizedBox(width: 8),
@@ -122,7 +123,7 @@ import 'package:get/get.dart';
                         // ✅ Trigger callback here
                         onSaved?.call();
                       }
-                      Get.back(); // close dialog
+                      safeBack(); // close dialog
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,

@@ -14,6 +14,7 @@ import '../../../../../core/constants/regular_expression.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OrderCommonWidget {
   static Future<void> showEnterOrderValueDialog(
@@ -172,7 +173,7 @@ class _ChoosePickupAndDeliveryOptionState
                   ),
                 ),
                 IconButton(
-                    onPressed: () => Get.back(), icon: const Icon(Icons.close))
+                    onPressed: () => safeBack(), icon: const Icon(Icons.close))
               ],
             ),
             const SizedBox(height: 10),

@@ -62,6 +62,7 @@ import 'package:get/get.dart';
 import '../../../common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PostTabModel {
   final String id; // For internal logic
@@ -245,7 +246,7 @@ class _PersonalProfileSetupNewScreenState
       deleteIfRegistered<IntroductionVideoController>();
     } else {
       deleteIfRegistered<IntroductionVideoController>();
-      Get.back();
+      safeBack();
     }
   }
 

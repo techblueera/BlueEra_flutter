@@ -7,6 +7,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_departments_repo.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalDepartmentsController extends GetxController {
   final HospitalDepartmentsRepo repo = HospitalDepartmentsRepo();
@@ -82,7 +83,7 @@ class HospitalDepartmentsController extends GetxController {
 
       if (res.isSuccess) {
         await loadDepartments();
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: isCreate
                 ? AppStrings.hospitalCtrlDepartmentCreated.tr

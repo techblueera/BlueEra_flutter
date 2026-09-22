@@ -20,6 +20,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddServiceController extends GetxController {
   Rx<ApiResponse> createServiceResponse = ApiResponse.initial('Initial').obs;
@@ -541,7 +542,7 @@ class AddServiceController extends GetxController {
 
         UploadProgressDialog.close();
         commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         createServiceResponse.value = ApiResponse.error('error');
         UploadProgressDialog.close();

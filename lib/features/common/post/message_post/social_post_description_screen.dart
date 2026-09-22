@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialPostDescriptionScreen extends StatelessWidget {
   SocialPostDescriptionScreen({super.key});
@@ -197,7 +198,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                   child: PositiveCustomBtn(
-                                onTap: () => Get.back(),
+                                onTap: () => safeBack(),
                                 title: AppStrings.cancel,
                                 borderColor: AppColors.primaryColor,
                                 bgColor: AppColors.white,
@@ -239,7 +240,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                                                   ?.name ??
                                               "";
 
-                                          Get.back();
+                                          safeBack();
                                         }
                                       : null, // Disabled if no selection
                                 ),

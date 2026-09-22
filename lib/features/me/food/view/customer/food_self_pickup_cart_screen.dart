@@ -15,6 +15,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Self-pickup cart for the food flow. Mirrors the grocery cart screen
 /// (`GrocerySelfPickUpCartScreen`) — items are grouped by store, each
@@ -659,7 +660,7 @@ class _ProductRow extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -679,7 +680,7 @@ class _ProductRow extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         controller.removeFromCart(variant);
                       },
                       style: ElevatedButton.styleFrom(

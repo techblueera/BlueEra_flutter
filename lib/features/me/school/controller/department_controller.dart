@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class DepartmentController extends GetxController {
   // Observables for Form
@@ -107,7 +108,7 @@ class DepartmentController extends GetxController {
           : await SchoolRepo().addSchoolDepartmentRepo(reqBODY: reqParm);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -249,7 +250,7 @@ class DepartmentController extends GetxController {
           .deleteSchoolDepartmentRepo(departmentID: departmentId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

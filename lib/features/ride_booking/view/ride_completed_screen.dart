@@ -9,6 +9,7 @@ import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// End-of-ride summary: fare, captain, a star rating and a way to report a
 /// problem.
@@ -427,7 +428,7 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
                 trailing: const Icon(Icons.chevron_right_rounded,
                     size: 20, color: RideStyle.inkMuted),
                 onTap: () {
-                  Get.back();
+                  safeBack();
                   _submitReport(reason.slug);
                 },
               ),

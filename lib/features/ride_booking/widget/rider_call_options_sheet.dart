@@ -7,6 +7,7 @@ import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Asks how the customer wants to reach their captain, then places the call.
 ///
@@ -75,7 +76,7 @@ class _CallOptionsSheet extends StatelessWidget {
   /// Place the in-app audio call. Closes the sheet first so the call UI isn't
   /// pushed underneath it.
   Future<void> _internetCall() async {
-    Get.back();
+    safeBack();
     if (!Get.isRegistered<CallController>()) {
       commonSnackBar(message: AppStrings.callingUnavailableRightNow.tr);
       return;
@@ -89,7 +90,7 @@ class _CallOptionsSheet extends StatelessWidget {
   }
 
   Future<void> _phoneCall() async {
-    Get.back();
+    safeBack();
     await openDialer(phone!);
   }
 

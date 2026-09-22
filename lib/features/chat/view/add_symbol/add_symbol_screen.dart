@@ -11,6 +11,7 @@ import 'package:share_handler/share_handler.dart';
 
 import '../../../../widgets/commom_textfield.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddChatSymbolScreen extends StatefulWidget {
   AddChatSymbolScreen(
@@ -101,7 +102,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
               if (controller.selectedSymbolPostType.value != null) {
                 controller.clearData();
               } else {
-                Get.back();
+                safeBack();
               }
             },
           ),

@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Whether a whole dish reads as out of stock — true only when EVERY variant
 /// is flagged. One sellable size still means a customer can order it, so a
@@ -85,7 +86,7 @@ class _Header extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
         ),
       ],
     );
@@ -277,7 +278,7 @@ class _VariantListState extends State<_VariantList> {
   /// so it OWNS its `TextEditingController`s and disposes them in its own
   /// `dispose()`. Disposing them at this call site — right after the `await`
   /// returned — threw "A TextEditingController was used after being disposed":
-  /// `Get.bottomSheet`'s future completes the moment `Get.back()` runs, while
+  /// `Get.bottomSheet`'s future completes the moment `safeBack()` runs, while
   /// the route is still playing its exit animation and rebuilding the fields.
   Future<void> _openPriceEditor(FoodVariants item) async {
     final inventoryId = item.inventoryId ?? '';
@@ -750,7 +751,7 @@ typedef _VariantPrice = ({int sellingPrice, int mrp});
 /// The owner's selling-price / MRP editor for one published variant.
 ///
 /// A real widget rather than a builder closure so it OWNS its controllers: the
-/// bottom-sheet future completes on `Get.back()` while the route is still
+/// bottom-sheet future completes on `safeBack()` while the route is still
 /// animating out and rebuilding these fields, so disposing them at the call
 /// site threw "used after being disposed". Here `dispose()` runs when the
 /// element actually leaves the tree.
@@ -810,7 +811,7 @@ class _VariantPriceEditorSheetState extends State<_VariantPriceEditorSheet> {
     final message = _validate();
     setState(() => _error = message);
     if (message != null) return;
-    Get.back(result: (sellingPrice: _selling!, mrp: _mrp!));
+    safeBack(result: (sellingPrice: _selling!, mrp: _mrp!));
   }
 
   @override
@@ -904,7 +905,7 @@ class _VariantPriceEditorSheetState extends State<_VariantPriceEditorSheet> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        onPressed: () => Get.back(),
+                        onPressed: () => safeBack(),
                         child: CustomText(
                           AppStrings.cancel.tr,
                           color: AppColors.secondaryTextColor,

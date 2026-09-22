@@ -21,6 +21,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class GroceryRiderSnapSearchScreen extends StatefulWidget {
   const GroceryRiderSnapSearchScreen({super.key});
@@ -64,7 +65,7 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
         padding: EdgeInsets.all(SizeConfig.size15),
         child: SafeArea(
           child: CustomBtn(
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             radius: SizeConfig.size8,
             bgColor: AppColors.primaryColor,
             title: '${AppStrings.groceryViewCartItems} ($count)',

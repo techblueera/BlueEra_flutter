@@ -5,6 +5,7 @@ import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_scre
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
   const ChooseHomeMadeFoodOptionDialog({super.key});
@@ -70,7 +71,7 @@ class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
               title: 'Search Via Store',
               subtitle: 'Browse nearby home made food kitchens',
               onTap: () {
-                Get.back();
+                safeBack();
                 Get.to(() => const HmfStoreDiscoverScreen());
               },
             ),
@@ -81,7 +82,7 @@ class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
               title: 'Search Via Category',
               subtitle: 'Explore tiffin & food items by category',
               onTap: () {
-                Get.back();
+                safeBack();
                 Get.to(() => const HmfCategoryDiscoverScreen());
               },
             ),
@@ -93,7 +94,7 @@ class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
 
   Widget _closeButton() {
     return InkWell(
-      onTap: () => Get.back(),
+      onTap: () => safeBack(),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(5),

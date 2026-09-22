@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalManagementController extends GetxController {
   final HospitalManagementRepo _repo = HospitalManagementRepo();
@@ -152,7 +153,7 @@ class HospitalManagementController extends GetxController {
         if (idx != -1) members[idx] = saved;
         commonSnackBar(message: AppStrings.hospitalCtrlMemberUpdated.tr);
       }
-      Get.back();
+      safeBack();
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

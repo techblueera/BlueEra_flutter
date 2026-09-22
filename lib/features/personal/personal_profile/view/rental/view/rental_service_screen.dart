@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RentalServiceScreen extends StatefulWidget {
   const RentalServiceScreen({super.key});
@@ -146,7 +147,7 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
                       );
                     },
                     cancelCallback: () {
-                      Get.back();
+                      safeBack();
                     },
                   );
                 },

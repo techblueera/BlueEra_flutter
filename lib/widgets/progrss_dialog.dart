@@ -38,6 +38,8 @@ class ProgressDialog {
       // Bypass Get.back() — it routes through closeCurrentSnackbar() which
       // crashes with LateInitializationError when the GetX snackbar queue has
       // a stale entry whose animation controller was never initialized.
+      // safeBack() skips that branch and would also be safe here; this path is
+      // left alone because it additionally needs the overlay context.
       final ctx = Get.overlayContext ?? Get.context;
       if (ctx != null) {
         Navigator.of(ctx, rootNavigator: true).pop();

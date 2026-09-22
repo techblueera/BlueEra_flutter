@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 void showEditVariantPriceSheet({
   required FoodVariants vData,
@@ -41,7 +42,7 @@ void showEditVariantPriceSheet({
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         FocusManager.instance.primaryFocus?.unfocus();
-                        Get.back();
+                        safeBack();
                       },
                     ),
                   ],
@@ -88,7 +89,7 @@ void showEditVariantPriceSheet({
 
                                       onUpdate(parsedPrice, parsedMrp);
 
-                                  Get.back();
+                                  safeBack();
                                 });
                               }
                             : null,

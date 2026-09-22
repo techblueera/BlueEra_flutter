@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/constants/app_strings.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The payout method being added. Replaces the old free-string
 /// 'Bank Account' / 'UPI' / 'Select Account' triple — "nothing chosen yet" is
@@ -239,7 +240,7 @@ class AddBankAccountController extends GetxController {
         clearForm();
         // Return `true` so the caller knows something was actually added and
         // only then re-fetches the list (not on every back-press).
-        Get.back(result: true);
+        safeBack(result: true);
       }else{
         // Keep the entered details so the user can fix + retry.
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
@@ -320,7 +321,7 @@ class AddBankAccountController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(message: response.message??AppStrings.bankAddedSuccessfully.tr);
         clearForm();
-        Get.back(result: true);
+        safeBack(result: true);
       }else{
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
       }
@@ -369,7 +370,7 @@ class AddBankAccountController extends GetxController {
         addAccountResponseModalClass =
             AddAccountResponseModalClass.fromJson(response.response!.data);
 
-        Get.back(result: {
+        safeBack(result: {
           'bankName': bankNameController.text.trim(),
           'accountNumber': accountNumberController.text.trim(),
           'ifscCode': ifscCodeController.text.trim().toUpperCase(),

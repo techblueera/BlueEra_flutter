@@ -1,5 +1,6 @@
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class StatusViewerController extends GetxController {
   var currentIndex = 0.obs;
@@ -13,7 +14,7 @@ class StatusViewerController extends GetxController {
     if (currentIndex.value < posts.length - 1) {
       currentIndex.value++;
     } else {
-      Get.back(); // close after last
+      safeBack(); // close after last
     }
   }
 
@@ -57,7 +58,7 @@ class StatusViewerController extends GetxController {
 //       currentIndex.value++;
 //       startProgress();
 //     } else {
-//       Get.back(); // Close viewer after last status
+//       safeBack(); // Close viewer after last status
 //     }
 //   }
 //

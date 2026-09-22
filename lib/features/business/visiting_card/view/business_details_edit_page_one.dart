@@ -25,6 +25,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/new_common_date_selection_dropdown.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class BusinessDetailsEditPageOne extends StatefulWidget {
   const BusinessDetailsEditPageOne({
@@ -226,7 +227,7 @@ class _BusinessDetailsEditPageOneState
                 (route) => false,
           );
         } else {
-          Get.back();
+          safeBack();
         }
         return false;
       },
@@ -241,7 +242,7 @@ class _BusinessDetailsEditPageOneState
                     (route) => false,
               );
             } else {
-              Get.back();
+              safeBack();
             }
           },
         ),

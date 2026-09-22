@@ -31,6 +31,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum RiderProfileStep {
   personalInfo,
@@ -898,7 +899,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.complete(response);
-        Get.back();
+        safeBack();
       } else {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.error('error');
@@ -1245,7 +1246,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.complete(response);
-        Get.back();
+        safeBack();
       } else {
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.error('error');
@@ -1287,7 +1288,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.complete(response);
-        Get.back();
+        safeBack();
       } else {
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.error('error');
@@ -1696,7 +1697,7 @@ class DeliveryPartnerController extends GetxController {
       // route.settings.name ==
       //     RouteHelper.getBottomNavigationBarScreenRoute());
     } else {
-      Get.back();
+      safeBack();
     }
   }
 

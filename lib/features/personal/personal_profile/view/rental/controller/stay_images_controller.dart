@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class StayImagesController extends GetxController {
   Rx<ApiResponse> uploadImagesResponse = ApiResponse.initial('Initial').obs;
@@ -91,7 +92,7 @@ class StayImagesController extends GetxController {
 
       if (response.isSuccess) {
         uploadImagesResponse.value = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
         sectionUploadStatus[sectionId] = true;
       } else {
         uploadImagesResponse.value = ApiResponse.error('error');

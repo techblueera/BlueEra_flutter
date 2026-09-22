@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_flag_controller.dart';
 import '../../auth/model/chat_flag_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatFlagBottomSheet extends StatefulWidget {
   final String conversationId;
@@ -371,7 +372,7 @@ class _ChatFlagDropdownState extends State<ChatFlagDropdown> {
                 ),
                 InkWell(
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     showAddFlagLabelDialog(context, flagController);
                   },
                   child: const Padding(
@@ -408,7 +409,7 @@ class _ChatFlagDropdownState extends State<ChatFlagDropdown> {
                         flagController.assignFlagToConversation(
                             widget.conversationId, flag);
                       }
-                      Get.back();
+                      safeBack();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -450,7 +451,7 @@ class _ChatFlagDropdownState extends State<ChatFlagDropdown> {
                   onTap: () {
                     flagController
                         .removeFlagFromConversation(widget.conversationId);
-                    Get.back();
+                    safeBack();
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),

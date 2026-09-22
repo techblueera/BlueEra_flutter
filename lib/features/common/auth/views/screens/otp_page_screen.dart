@@ -24,6 +24,7 @@ import 'package:pinput/pinput.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtpPageScreen extends StatefulWidget {
   const OtpPageScreen({super.key, this.mobileNumber});
@@ -185,11 +186,11 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
             // defunct StatefulElement and throws "Null check operator used on
             // a null value". Get.offAllNamed needs no context, and matches the
             // same dismiss/wipe/navigate sequence in GuestExitHandler.
-            Get.back();
+            safeBack();
             await SharedPreferenceUtils.clearPreference();
             Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
           },
-          cancelCallback: () => Get.back(),
+          cancelCallback: () => safeBack(),
         );
       },
       child: Scaffold(

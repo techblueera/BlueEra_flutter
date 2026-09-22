@@ -17,6 +17,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/mo
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/tiffin_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class TiffinController extends GetxController {
   final TiffinRepo _repo = TiffinRepo();
@@ -228,7 +229,7 @@ class TiffinController extends GetxController {
       }
 
       await fetchAllMeals();
-      Get.back();
+      safeBack();
     } catch (e) {
       commonSnackBar(message: 'Something went wrong');
     } finally {

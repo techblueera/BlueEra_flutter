@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../model/emergency_profile_model.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Drives the "edit emergency contact" form and the
 /// `PUT emergency-service/emergency-contacts/{id}` call.
@@ -74,7 +75,7 @@ class EmergencyContactEditController extends GetxController {
           await _repo.updateEmergencyContact(id: id, body: body);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.updatedSuccessfully.tr);
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.updateFailed.tr);
       }

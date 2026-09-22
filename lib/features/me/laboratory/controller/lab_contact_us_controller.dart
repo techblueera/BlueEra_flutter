@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Manages the laboratory's branch / reception contact: load + create.
 class LabContactUsController extends GetxController {
@@ -93,7 +94,7 @@ class LabContactUsController extends GetxController {
         commonSnackBar(
             message: response.getExtraData('message') ??
                 AppStrings.hotelBranchAddedSuccess.tr);
-        Get.back();
+        safeBack();
         await fetchHomeData();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

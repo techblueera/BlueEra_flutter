@@ -15,6 +15,7 @@ import '../controller/loan_application_controller.dart';
 import '../loan_validators.dart';
 import '../model/loan_enums.dart';
 import '../widget/loan_form_widgets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The supported way to open the form — **use this rather than
 /// `Get.to(() => const QuickLoanApplyScreen())`.**
@@ -339,7 +340,7 @@ class _QuickLoanApplyScreenState extends State<QuickLoanApplyScreen> {
         ],
       ),
     );
-    if (mounted) Get.back();
+    if (mounted) safeBack();
   }
 
   // ─────────────────────────────────────────────────────────────────
@@ -366,7 +367,7 @@ class _QuickLoanApplyScreenState extends State<QuickLoanApplyScreen> {
             _scrollToTop();
             return;
           }
-          Get.back();
+          safeBack();
         },
       ),
       bottomNavigationBar: _bottomBar(),

@@ -35,6 +35,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerInventoryController extends GetxController {
   Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
@@ -1099,7 +1100,7 @@ class ManufacturerInventoryController extends GetxController {
 
       markInventoryChanged();
       commonSnackBar(message: 'ManufacturerVariant added successfully');
-      Get.back();
+      safeBack();
     } catch (e, s) {
       log('createNewProductVariantApi error: $e\n$s');
     } finally {

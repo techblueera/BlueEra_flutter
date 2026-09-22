@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Add / edit one address.
 ///
@@ -62,7 +63,7 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final saved = await controller.save();
-    if (saved != null && mounted) Get.back(result: saved);
+    if (saved != null && mounted) safeBack(result: saved);
   }
 
   @override

@@ -35,7 +35,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
   final controller = Get.find<AiProfessionalsController>();
 
   /// Push [screen] for editing; only refresh the dashboard when the
-  /// child explicitly reports a save (`Get.back(result: true)`). A
+  /// child explicitly reports a save (`safeBack(result: true)`). A
   /// plain back-press returns `null`, so we skip the refetch.
   void _navigateToEdit(Widget screen) async {
     final didSave = await Get.to(() => screen);

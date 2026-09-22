@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class VideoController extends GetxController{
   Rx<ApiResponse> videoPostsResponse = ApiResponse.initial('Initial').obs;
@@ -797,7 +798,7 @@ class VideoController extends GetxController{
           print('userId --> $otherUserId');
           return v.video?.userId == otherUserId;
         });
-        Get.back();
+        safeBack();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse =  ApiResponse.error('error');

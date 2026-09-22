@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'product_listing_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProductListingScreen extends StatefulWidget {
   const ProductListingScreen({super.key});
@@ -52,7 +53,7 @@ class _ProductListingScreenState extends State<ProductListingScreen>
                 children: [
                   // Back Button
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: const Icon(
                       Icons.arrow_back_ios,
                       color: AppColors.black,

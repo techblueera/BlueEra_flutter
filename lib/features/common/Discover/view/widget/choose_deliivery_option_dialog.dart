@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChooseDeliveryOptionDialog extends StatefulWidget {
   const ChooseDeliveryOptionDialog({super.key});
@@ -52,7 +53,7 @@ class _ChooseDeliveryOptionDialogState extends State<ChooseDeliveryOptionDialog>
                     color: AppColors.mainTextColor,
                   ),
                 ),
-                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close))
+                IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))
               ],
             ),
             const SizedBox(height: 10),

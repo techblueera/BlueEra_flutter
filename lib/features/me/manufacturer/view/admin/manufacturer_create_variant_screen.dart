@@ -19,6 +19,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ManufacturerCreateVariantScreen extends StatefulWidget {
   final ManufacturerProductController controller;
@@ -971,7 +972,7 @@ class _ManufacturerCreateVariantScreenState
 
                       if (success) {
                         widget.controller.selectedColors.assignAll(allColors);
-                        Get.back();
+                        safeBack();
                       }
                     },
                     title: widget
@@ -1094,7 +1095,7 @@ class _ManufacturerCreateVariantScreenState
                             colorCodeKey: colorCodeKey,
                             colors: colors,
                           );
-                          if (success) Get.back();
+                          if (success) safeBack();
                         },
                         title: widget.controller
                                 .isAddUpdateProductVariantLoading.value
@@ -1207,7 +1208,7 @@ class _ManufacturerCreateVariantScreenState
                             ),
                           ),
                           InkWell(
-                            onTap: () => Get.back(),
+                            onTap: () => safeBack(),
                             borderRadius: BorderRadius.circular(30),
                             child: const Padding(
                               padding: EdgeInsets.all(6),
@@ -1339,7 +1340,7 @@ class _ManufacturerCreateVariantScreenState
                                   values: List<String>.from(newValues),
                                 );
 
-                                if (success) Get.back();
+                                if (success) safeBack();
                               },
                               title: widget.controller
                                       .isAddUpdateProductVariantLoading.value

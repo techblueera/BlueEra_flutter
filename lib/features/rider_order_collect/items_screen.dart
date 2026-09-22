@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ItemsScreen extends StatelessWidget {
   final ItemsController controller = Get.put(ItemsController());
@@ -149,7 +150,7 @@ void _showMissingItemsSheet(BuildContext context) {
               children: [
                 CustomText("Missing Items",
                     fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: Icon(Icons.close), onPressed: () => Get.back()),
+                IconButton(icon: Icon(Icons.close), onPressed: () => safeBack()),
               ],
             ),
             Divider(),

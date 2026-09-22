@@ -41,6 +41,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The identity/stats/bio/website sections read from the personal profile and
 /// render regardless of the earn fetch, so the tab is never blocked on the
@@ -1313,7 +1314,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
                   final mode = _earnCtrl.bookingTypeController.text.trim();
                   if (mode.isNotEmpty) booking['bookingType'] = mode;
                   final ok = await _earnCtrl.updateArtist({'booking': booking});
-                  if (ok) Get.back();
+                  if (ok) safeBack();
                 },
               )),
         ],
@@ -1999,7 +2000,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
                           description: _earnCtrl.certDescController.text,
                           existing: artist.certificatesAndAwards,
                         );
-                  if (ok) Get.back();
+                  if (ok) safeBack();
                 },
               )),
         ],
@@ -2241,7 +2242,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
                         color: AppColors.mainTextColor),
                   ),
                   InkWell(
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     child: const Icon(Icons.close),
                   ),
                 ],

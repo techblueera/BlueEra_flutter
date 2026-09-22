@@ -40,6 +40,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -433,7 +434,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         }
                         // No link: the user is already on the list the push
                         // would have sent them to, so the read-flip above is
-                        // the whole interaction. Deliberately no `Get.back()` —
+                        // the whole interaction. Deliberately no `safeBack()` —
                         // closing the inbox on a nudge with nowhere to go
                         // would look like the tap failed.
                       }
@@ -479,7 +480,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Get.to(() => PostDeatilPage(), arguments: {"postId": data.metadata?.jobId ?? ""});
                       }
                       else {
-                        Get.back();
+                        safeBack();
                         // redirectToProfileScreen(
                         //   accountType: data.senderProfile?.account_type ?? "",
                         //   profileId: data.senderProfile?.id ?? "",
@@ -763,7 +764,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Align(
                         alignment: Alignment.topRight,
                         child: InkWell(
-                          onTap: () => Get.back(),
+                          onTap: () => safeBack(),
                           child: Icon(
                             Icons.close,
                             color: AppColors.secondaryTextColor,

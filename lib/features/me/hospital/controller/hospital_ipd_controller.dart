@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hospital/model/ipd_ward_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_ipd_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalIpdController extends GetxController {
   final HospitalIpdRepo _repo = HospitalIpdRepo();
@@ -116,7 +117,7 @@ class HospitalIpdController extends GetxController {
         if (departmentIdArg != null) {
           await loadByDepartment(departmentIdArg!);
         }
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: isCreate
                 ? AppStrings.hospitalCtrlIpdAddedSuccessfully.tr

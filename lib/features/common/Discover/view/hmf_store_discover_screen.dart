@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HmfStoreDiscoverScreen extends StatefulWidget {
   const HmfStoreDiscoverScreen({super.key});
@@ -96,7 +97,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         cartController.clear();
                         Navigator.of(context).pop();
                       },
@@ -117,7 +118,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         Get.to(() => const HmfCartScreen());
                       },
                       style: ElevatedButton.styleFrom(

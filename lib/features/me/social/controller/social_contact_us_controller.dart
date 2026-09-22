@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialContactUsController extends GetxController {
   // Observables
@@ -143,7 +144,7 @@ class SocialContactUsController extends GetxController {
         commonSnackBar(
             message: response.getExtraData('message') ??
                 "Branch details added successfully");
-        Get.back();
+        safeBack();
         fetchHomeData();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong.tr);

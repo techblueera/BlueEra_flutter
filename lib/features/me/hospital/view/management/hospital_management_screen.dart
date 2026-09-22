@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HospitalManagementScreen extends StatefulWidget {
   const HospitalManagementScreen({super.key});
@@ -185,7 +186,7 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                 context: context,
                 text: AppStrings.deleteMemberConfirm,
                 confirmCallback: () async {
-                  Get.back();
+                  safeBack();
                   await controller.deleteMember(member);
                 },
                 cancelCallback: Get.back,

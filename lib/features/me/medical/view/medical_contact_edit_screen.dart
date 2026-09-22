@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class MedicalContactEditScreen extends StatefulWidget {
   final BusinessProfile profile;
@@ -87,7 +88,7 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
     await widget.businessController.updateBusinessProfileDetails(params);
     if (!mounted) return;
     setState(() => _isSaving = false);
-    if (mounted) Get.back();
+    if (mounted) safeBack();
   }
 
   @override

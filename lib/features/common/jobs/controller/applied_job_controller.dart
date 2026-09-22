@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/jobs/widget/interview_schedule_dialog.da
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AppliedJobController extends GetxController {
   Rx<ApiResponse> appliedAllJobResponse = ApiResponse.initial('Initial').obs;
@@ -188,7 +189,7 @@ class AppliedJobController extends GetxController {
       ResponseModel responseModel =
           await JobRepo().feedbackPostRepo(reqParam: bodyReq ?? {});
       if (responseModel.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         jobFeedBackPostResponse.value = ApiResponse.complete(responseModel);
@@ -211,7 +212,7 @@ class AppliedJobController extends GetxController {
       ResponseModel responseModel =
           await JobRepo().clearClosedAppliedRepo(reqParam: bodyReq ?? {});
       if (responseModel.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         clearAppliedJobPostResponse.value = ApiResponse.complete(responseModel);
@@ -261,7 +262,7 @@ class AppliedJobController extends GetxController {
       ResponseModel responseModel = await JobRepo().interviewFeedbackPostRepo(
           reqParam: bodyReq ?? {}, interviewID: interviewId ?? "");
       if (responseModel.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         interviewFeedBackPostResponse.value =
@@ -349,7 +350,7 @@ class AppliedJobController extends GetxController {
         clearSelections();
       },
       cancelCallback: () {
-        Get.back();
+        safeBack();
       },
     );
   }

@@ -9,10 +9,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full-screen destination search.
 ///
-/// Pops with the chosen [RidePlace] via `Get.back(result:)`, so the caller
+/// Pops with the chosen [RidePlace] via `safeBack(result:)`, so the caller
 /// decides what happens next rather than this screen knowing the flow order.
 class RideDestinationSearchScreen extends StatefulWidget {
   const RideDestinationSearchScreen({super.key});
@@ -67,7 +68,7 @@ class _RideDestinationSearchScreenState
       return;
     }
     _focusNode.unfocus();
-    Get.back(result: resolved);
+    safeBack(result: resolved);
   }
 
   /// Hearting a row also needs its coordinates — a saved place with none is a

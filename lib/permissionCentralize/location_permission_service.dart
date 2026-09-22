@@ -499,14 +499,14 @@ class PermissionItem {
 //         actions: [
 //           TextButton(
 //             onPressed: () {
-//               Get.back(); // close dialog
+//               safeBack(); // close dialog
 //             },
 //             child: const Text('Cancel'),
 //           ),
 //           TextButton(
 //             onPressed: () {
 //               granted = true;
-//               Get.back(); // close dialog
+//               safeBack(); // close dialog
 //             },
 //             child: const Text('Allow'),
 //           ),

@@ -15,6 +15,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Lists every room of a given [roomType] for the hotel, with a per-row
 /// image carousel, price, bed type / occupancy, and a delete action.
@@ -91,7 +92,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
       confirmText: AppStrings.yes,
       cancelText: AppStrings.no,
       confirmCallback: () async {
-        Get.back();
+        safeBack();
         await controller.deleteHotelRoomController(
           hotelRoomId: room.id ?? '',
           hotelRoomType: room.type ?? '',

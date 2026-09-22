@@ -17,6 +17,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/re
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ServiceController extends GetxController {
   Rx<ApiResponse> serviceAiResponse
@@ -264,7 +265,7 @@ class ServiceController extends GetxController {
 
       if (response.isSuccess) {
         deleteServiceResponse.value = ApiResponse.complete(response);
-        Get.back();
+        safeBack();
         serviceDataList.removeWhere((service) => service.id == serviceId);
         serviceDataList.refresh();
 

@@ -15,6 +15,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ServicesNearMeScreen extends StatefulWidget {
   final String? serviceCategoryName;
@@ -101,7 +102,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
             SliverToBoxAdapter(
               child: BannerCarousel(
                 images: _bannerImages,
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 statusBarHeight: statusBarHeight,
                 backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                 bottomBorderSide: const BorderSide(
@@ -136,7 +137,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                   if (idx >= 0) _onCategoryTap(_categories[idx], idx);
                   setState(() {});
                 },
-                onBack: () => Get.back(),
+                onBack: () => safeBack(),
                 expandedLabelColor: AppColors.white,
                 // Service category names ("Repair & Maintenance", "Beauty and
                 // Wellness") are the longest on any Discover screen — one step

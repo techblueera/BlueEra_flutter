@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The `409 deletion_blocked` answer from `/account/deletion/init`.
 ///
@@ -79,7 +80,7 @@ void showDeletionBlockedDialog(DeletionBlockedResponse blocked) {
                     bgColor: AppColors.white,
                     borderColor: AppColors.primaryColor,
                     textColor: AppColors.primaryColor,
-                    onTap: () => Get.back(),
+                    onTap: () => safeBack(),
                     title: AppStrings.ok.tr,
                   ),
                 ),

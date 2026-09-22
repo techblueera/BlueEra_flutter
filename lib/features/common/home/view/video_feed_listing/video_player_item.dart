@@ -16,6 +16,7 @@ import 'dart:async';
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_cache_manager.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final VideoPost video;
@@ -205,7 +206,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 children: [
                   InkWell(
                       onTap: () {
-                        Get.back();
+                        safeBack();
                       },
                       child: Icon(
                         Icons.arrow_back_ios,

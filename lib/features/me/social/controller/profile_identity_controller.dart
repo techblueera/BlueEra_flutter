@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProfileIdentityController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -129,7 +130,7 @@ class ProfileIdentityController extends GetxController {
         if (response.success == true) {
           commonSnackBar(message: AppStrings.profileSavedSuccessfully.tr);
           isEditMode.value = true;
-          Get.back();
+          safeBack();
         } else {
           commonSnackBar(message: AppStrings.failedToSaveProfile.tr);
         }

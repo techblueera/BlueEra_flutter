@@ -3,6 +3,7 @@ import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/loading_ui.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CustomVideoPicker {
   static Future<String?> pickVideo() async {
@@ -24,7 +25,7 @@ class CustomVideoPicker {
       logs("Video Picker Error => $e");
       return null;
     } finally {
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) safeBack();
     }
   }
 }

@@ -20,6 +20,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProfessionalsCertificatesScreen extends StatelessWidget {
   ProfessionalsCertificatesScreen({super.key});
@@ -228,7 +229,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Get.back(),
+                            onPressed: () => safeBack(),
                           ),
                         ],
                       ),
@@ -319,7 +320,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                                 ? null
                                 : () async {
                                     if (await certController.save()) {
-                                      Get.back(result: true);
+                                      safeBack(result: true);
                                     }
                                   },
                           )),
@@ -332,7 +333,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                               text:
                                   AppStrings.proConsultAreYouSureDeleteCert.tr,
                               confirmCallback: () async {
-                                Get.back();
+                                safeBack();
                                 await certController
                                     .deleteCertificateController(
                                         certiId: certController
@@ -344,7 +345,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                               },
                               confirmText: AppStrings.yes.tr,
                               cancelText: AppStrings.no.tr);
-                          // Get.back();
+                          // safeBack();
                         },
                         bgColor: AppColors.red00,
                       ),

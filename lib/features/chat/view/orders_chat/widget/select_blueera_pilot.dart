@@ -18,6 +18,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/stream/rider_response_stream.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
@@ -137,7 +138,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
       if (event is List) {
         if (event.isEmpty) {
           if (paymentDialogShow == true) {
-            Get.back();
+            safeBack();
           }
         } else {
           for (final item in event) {
@@ -155,7 +156,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               break; // stop after first match
             } else if (status == 'rejected') {
               if (paymentDialogShow == true) {
-                Get.back();
+                safeBack();
               }
               commonSnackBar(
                   message:
@@ -496,8 +497,8 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                         //     commonSnackBar(
                         //         message:
                         //         "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
-                        //     Get.back();
-                        //     Get.back();
+                        //     safeBack();
+                        //     safeBack();
                         //
                         //   },
                         //   onPaymentError: (response) {

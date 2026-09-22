@@ -23,6 +23,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Service listing scoped to business & channel providers only (no
 /// earn-with-BlueEra / user path). [providerType] must be
@@ -750,7 +751,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
               isFromEarnWithBlueEra: false,
             );
           },
-          cancelCallback: () => Get.back(),
+          cancelCallback: () => safeBack(),
         );
         break;
     }

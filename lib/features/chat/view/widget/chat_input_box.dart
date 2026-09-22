@@ -33,6 +33,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar(
@@ -1356,7 +1357,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   ApiKeys.longitude: long,
                                 };
                                await sendMessageToUser(data: data, isInitial: isInitialFlow);
-                                Get.back();
+                                safeBack();
                           },
                               onSubmit: (double lat, double long, String? address,
                                   String? name) async {

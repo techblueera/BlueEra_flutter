@@ -40,6 +40,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import '../widget/ask_inventory_product_msg_card.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AiCommonSearchScreen extends StatefulWidget {
   final String chatType;
@@ -630,7 +631,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
               unFocus();
               return;
             }
-            Get.back();
+            safeBack();
           }
       ),
       body: Obx(()=> _UnifiedAiChatWidget()),

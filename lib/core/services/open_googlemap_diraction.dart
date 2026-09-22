@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class LocationModel {
   final double? latitude;
@@ -45,6 +46,6 @@ Future<void> openGoogleMaps({LocationModel? locationModel}) async {
     print('Error opening Google Maps: $e');
     commonSnackBar(message: 'Could not open Google Maps: $e');
   } finally {
-    Get.back(); // Always close loading dialog
+    safeBack(); // Always close loading dialog
   }
 }

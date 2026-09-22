@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/widgets/stock_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Bottom sheet that lists **all variants** of one grocery product. Dual-mode:
 ///
@@ -299,7 +300,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
     _service.refreshOwner();
 
     if (mounted) setState(() {});
-    Get.back(); // close the edit sheet — the variants list stays open
+    safeBack(); // close the edit sheet — the variants list stays open
     commonSnackBar(message: 'Variant updated');
   }
 
@@ -507,7 +508,7 @@ class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
             ),
           ),
           IconButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             icon: Icon(Icons.close,
                 size: SizeConfig.size20, color: AppColors.black),
           ),

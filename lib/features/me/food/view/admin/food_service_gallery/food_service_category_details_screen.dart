@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FoodServiceCategoryDetailsScreen extends StatelessWidget {
   final OtherServiceGalleryData categoryData;
@@ -73,7 +74,7 @@ class FoodServiceCategoryDetailsScreen extends StatelessWidget {
                           context: context,
                           text: AppStrings.foodConfirmDeleteImage.tr,
                           confirmCallback: () async {
-                            Get.back();
+                            safeBack();
                             await controller.deleteOtherServiceController(
                                 imgId: categoryData.id ?? "",
                                 imgUrl:   images[index],

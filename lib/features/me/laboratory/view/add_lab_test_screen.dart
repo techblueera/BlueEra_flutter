@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddLabTestScreen extends StatefulWidget {
   final PathologyTest? testToEdit;
@@ -603,7 +604,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
       }
 
       if (success) {
-        Get.back();
+        safeBack();
       }
     }
   }

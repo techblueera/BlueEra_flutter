@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Full-screen "Add associate brands" search. The signature element is the
 /// circular dark brand mark (mirrors how brands appear on the Overview strip):
@@ -70,7 +71,7 @@ class _AssociateBrandsScreenState extends State<AssociateBrandsScreen> {
       appBar: CommonBackAppBar(
         isLeading: true,
         backArrowColor: AppColors.mainTextColor,
-        onBackTap: () => Get.back(),
+        onBackTap: () => safeBack(),
         isCustomTitleWidget: _titleBlock,
       ),
       body: SafeArea(

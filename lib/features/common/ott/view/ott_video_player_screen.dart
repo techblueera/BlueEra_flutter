@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OttVideoPlayerScreen extends StatefulWidget {
   OttVideoPlayerScreen({super.key, required this.videoItems});
@@ -38,7 +39,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
         if (controller.isFullScreen.value) {
           controller.toggleFullScreen();
         } else {
-          Get.back();
+          safeBack();
         }
       },
       child: Scaffold(
@@ -52,7 +53,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back_ios,
                             color: Colors.white),
-                        onPressed: () => Get.back(),
+                        onPressed: () => safeBack(),
                       ),
                     ),
                     Expanded(
@@ -115,7 +116,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                                                     icon: const Icon(
                                                         Icons.arrow_back_ios,
                                                         color: Colors.white),
-                                                    onPressed: () => Get.back(),
+                                                    onPressed: () => safeBack(),
                                                   ),
                                                   Expanded(
                                                       child: CustomText(

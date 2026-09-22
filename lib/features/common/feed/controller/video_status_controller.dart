@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class VideoStatusController extends GetxController {
   Rx<VideoStatusModel> videoStatus = VideoStatusModel().obs;
@@ -54,7 +55,7 @@ class VideoStatusController extends GetxController {
         remainingSeconds.value--;
       } else {
         timer.cancel();
-        Get.back(); // close dialog
+        safeBack(); // close dialog
       }
     });
 
@@ -65,7 +66,7 @@ class VideoStatusController extends GetxController {
         remainingSeconds: remainingSeconds,
         onClose: () {
           countdownTimer?.cancel();
-          Get.back();
+          safeBack();
         },
       ),
       barrierDismissible: false,

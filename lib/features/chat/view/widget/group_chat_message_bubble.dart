@@ -14,6 +14,7 @@ import '../../auth/model/group_details_model.dart';
 import 'chat_bubble_painter.dart';
 import 'component_widgets.dart';
 import 'phone_user_preview.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class GroupChatMessageBubble extends StatefulWidget {
   final String message;
@@ -632,7 +633,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: InkWell(
                   onTap: () {
-                    Get.back();
+                    safeBack();
                   },
                   child: CustomText(
                     'Close',

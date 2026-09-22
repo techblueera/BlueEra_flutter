@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveManagementController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -142,7 +143,7 @@ class AutomotiveManagementController extends GetxController {
     isUploading.value = false;
 
     if (res.isSuccess) {
-      Get.back(); // Go back to list
+      safeBack(); // Go back to list
       commonSnackBar(message: res.message ?? AppStrings.genericSavedSuccess.tr);
       getManagementData();
     } else {

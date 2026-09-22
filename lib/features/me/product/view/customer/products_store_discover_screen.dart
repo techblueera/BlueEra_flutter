@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProductsStoreDiscoverScreen extends StatefulWidget {
   final String? productCategoryName;
@@ -98,7 +99,7 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
   void _handleBackWithCartWarning() {
     final isCartEmpty = productCartController.selectedProductVariants.isEmpty;
     if (isCartEmpty) {
-      Get.back();
+      safeBack();
       return;
     }
     _showCartWarningDialog(
@@ -141,9 +142,9 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         productCartController.clearCart();
-                        Get.back();
+                        safeBack();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
@@ -164,7 +165,7 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
+                        safeBack();
                         onPlaceOrder();
                       },
                       style: ElevatedButton.styleFrom(

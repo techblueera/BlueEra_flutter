@@ -14,6 +14,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rent
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/show_home_description_suggestion_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HomeStayRentalServiceController extends GetxController{
   Rx<ApiResponse> addHomeStayRentalServiceResponse = ApiResponse.initial('Initial').obs;
@@ -197,7 +198,7 @@ class HomeStayRentalServiceController extends GetxController{
     if(currentStep.value > 0){
       previousStep();
     }else{
-      Get.back();
+      safeBack();
     }
   }
 

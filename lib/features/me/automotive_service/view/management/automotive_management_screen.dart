@@ -15,6 +15,7 @@ import 'package:get/get.dart';
 
 import 'automotive_add_management_form_screen.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveManagementScreen extends StatelessWidget {
   const AutomotiveManagementScreen({super.key});
@@ -133,10 +134,10 @@ class AutomotiveManagementScreen extends StatelessWidget {
                                   text:
                                       AppStrings.otherConfirmDeleteMember.tr,
                                   confirmCallback: () {
-                                    Get.back();
+                                    safeBack();
                                     controller.deleteManagement(item.sId ?? "");
                                   },
-                                  cancelCallback: () => Get.back(),
+                                  cancelCallback: () => safeBack(),
                                 );
                               }
                             },

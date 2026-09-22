@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RentalServicesDashboardScreenV2 extends StatelessWidget {
   const RentalServicesDashboardScreenV2({super.key});
@@ -318,7 +319,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => Get.back(),
+                      onTap: () => safeBack(),
                       child: Container(
                         width: 34,
                         height: 34,
@@ -351,7 +352,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   color: const Color(0xFF0086FF),
                   bg: const Color(0xFFEBF5FF),
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     Get.to(() => const ListYourPropertyScreen());
                   },
                 ),
@@ -363,7 +364,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   color: const Color(0xFF00B87A),
                   bg: const Color(0xFFE6FAF3),
                   onTap: () {
-                    Get.back();
+                    safeBack();
                     Get.to(() => const ListYourRentPropertyScreen());
                   },
                 ),

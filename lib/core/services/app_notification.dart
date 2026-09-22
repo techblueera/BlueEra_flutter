@@ -65,6 +65,7 @@ import '../routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -2764,7 +2765,7 @@ class AppNotificationHandler {
           return;
         }
       }
-      Get.back();
+      safeBack();
       rideNotifLog('dismiss: incoming screen closed');
     } catch (e) {
       rideNotifLog('dismiss: close FAILED: $e');
@@ -4784,7 +4785,7 @@ class AppNotificationHandler {
               ),
               InkWell(
                 onTap: () {
-                  Get.back();
+                  safeBack();
                   _showSkipNotificationWarning();
                 },
                 borderRadius: BorderRadius.circular(20),
@@ -4805,7 +4806,7 @@ class AppNotificationHandler {
               const SizedBox(height: 16),
               PositiveCustomBtn(
                   onTap: () async {
-                    Get.back();
+                    safeBack();
 
                     // Request permission
                     final newStatus = await PermissionQueue.request(Permission.notification);
@@ -4818,7 +4819,7 @@ class AppNotificationHandler {
               const SizedBox(height: 10),
               InkWell(
                 onTap: () {
-                  Get.back();
+                  safeBack();
                   _showSkipNotificationWarning();
                 },
                 child: CustomText(
@@ -4882,7 +4883,7 @@ class AppNotificationHandler {
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText(
               AppStrings.continueWithout.tr,
               fontSize: 14,
@@ -4892,7 +4893,7 @@ class AppNotificationHandler {
           ),
           PositiveCustomBtn(
             onTap: () async {
-              Get.back();
+              safeBack();
               final newStatus = await PermissionQueue.request(Permission.notification);
               if (!newStatus.isGranted) {
                 await openAppSettings();

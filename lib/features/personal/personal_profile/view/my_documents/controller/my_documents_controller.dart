@@ -16,6 +16,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/mod
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/repo/my_document_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum DocStatus {
   notUploaded, // Key not found in API
@@ -330,7 +331,7 @@ class MyDocumentsController extends GetxController {
           IFSCCodeController.clear();
           cancelChequeFrontImage.value = null;
           cancelChequeBackImage.value = null;
-          Get.back();
+          safeBack();
         } else {
           cancelChequeUploadResponse.value = ApiResponse.error('error');
           commonSnackBar(
@@ -502,7 +503,7 @@ class MyDocumentsController extends GetxController {
       if (response.isSuccess) {
         genericDocumentUploadResponse.value = ApiResponse.complete(response);
         isGenericDocumentLoading.value = false;
-        Get.back();
+        safeBack();
         fetchAllDocumentStatusApi();
       } else {
         isGenericDocumentLoading.value = false;

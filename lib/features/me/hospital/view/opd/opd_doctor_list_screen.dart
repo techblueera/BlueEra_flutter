@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OpdDoctorListScreen extends StatefulWidget {
   final String departmentId;
@@ -214,7 +215,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                 context: context,
                 text: AppStrings.areYouSureDelete.tr,
                 confirmCallback: () async {
-                  Get.back();
+                  safeBack();
                   await controller.deleteOpd(d);
                 },
                 cancelCallback: Get.back,

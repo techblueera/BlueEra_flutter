@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddCategoryFolderScreenController extends GetxController {
   final TextEditingController categoryNameController = TextEditingController();
@@ -52,13 +53,13 @@ class AddCategoryFolderScreenController extends GetxController {
       
       Future.delayed(const Duration(seconds: 1), () {
         isLoading.value = false;
-        Get.back();
+        safeBack();
       });
     }
   }
 
   void cancel() {
-    Get.back();
+    safeBack();
   }
 
   String? validateCategoryName(String? value) {

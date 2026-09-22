@@ -5,6 +5,7 @@ import 'package:BlueEra/features/me/others/model/otherTNC_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtherPrivacyConditionController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -74,7 +75,7 @@ class OtherPrivacyConditionController extends GetxController {
       final response = await _repo.createOtherTNCRepo(body);
       if (response != null && response.isSuccess) {
         commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
-        Get.back(); // Close form/screen
+        safeBack(); // Close form/screen
         getOtherTNCController(); // Refresh list
       } else {
         commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
@@ -107,7 +108,7 @@ class OtherPrivacyConditionController extends GetxController {
       final response = await _repo.updateOtherTNCRepo(id, body);
       if (response != null && response.isSuccess) {
         commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
-        Get.back();
+        safeBack();
         getOtherTNCController();
       } else {
         commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);

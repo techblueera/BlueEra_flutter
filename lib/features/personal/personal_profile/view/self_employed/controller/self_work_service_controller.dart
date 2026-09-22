@@ -24,6 +24,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/wi
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SelfWorkServiceController extends GetxController{
   Rx<ApiResponse> predefinedCategoryResponse =
@@ -449,7 +450,7 @@ class SelfWorkServiceController extends GetxController{
 
       if (responseModel.isSuccess) {
         updateServiceResponse.value = ApiResponse.complete(responseModel);
-        Get.back();
+        safeBack();
         fetchSelfProfessionData(isLoading: false);
       } else {
         updateServiceResponse.value = ApiResponse.error('error');

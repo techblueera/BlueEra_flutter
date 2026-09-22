@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// One row in a [VariantPickerSheet] — a catalogue variant as the picker needs
 /// to see it, with the vertical's own model already flattened away.
@@ -119,7 +120,7 @@ class VariantPickerSheet extends StatelessWidget {
                 if (onAddMore != null) _addMoreButton(),
                 const SizedBox(height: 16),
                 PositiveCustomBtn(
-                  onTap: () => Get.back(),
+                  onTap: () => safeBack(),
                   title: selectedCount > 0
                       ? 'Done  •  $selectedCount in cart'
                       : 'Done',
@@ -164,7 +165,7 @@ class VariantPickerSheet extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Get.back(),
+          onPressed: () => safeBack(),
         ),
       ],
     );

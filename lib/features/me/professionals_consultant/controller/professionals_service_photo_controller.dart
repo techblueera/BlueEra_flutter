@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/professionals_consultant/model/professonals_
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProfessionalsServicePhotoPhotoController extends GetxController
     with GalleryUploadGuard {
@@ -160,7 +161,7 @@ class ProfessionalsServicePhotoPhotoController extends GetxController
         // screen instantly and then uploaded headless: no progress anywhere,
         // and both the success and failure snackbars landed on whatever screen
         // they had moved on to.
-        Get.back();
+        safeBack();
         commonSnackBar(message: 'All photos uploaded successfully!');
         selectedImages.clear();
         fetchPhotos();
@@ -185,7 +186,7 @@ class ProfessionalsServicePhotoPhotoController extends GetxController
       );
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

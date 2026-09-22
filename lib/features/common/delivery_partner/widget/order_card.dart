@@ -41,6 +41,7 @@ import '../model/grocery_order_details.dart';
 import 'customer_rating_badge.dart';
 import 'delivery_pickup_shops_list.dart';
 import 'rider_map_actions.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The rider's order card.
 ///
@@ -974,7 +975,7 @@ class _OrderCardState extends State<OrderCard> {
                         ),
                         InkWell(
                             onTap: (){
-                              Get.back();
+                              safeBack();
                             },
                             child: Icon(Icons.close))
                       ],

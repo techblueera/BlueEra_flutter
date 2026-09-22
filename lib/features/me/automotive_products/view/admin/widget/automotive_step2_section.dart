@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveStep2Section extends StatefulWidget {
   final AutomotiveProductController controller;
@@ -194,7 +195,7 @@ class _AutomotiveStep2SectionState extends State<AutomotiveStep2Section> {
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                   child: CustomBtn(
                     title: AppStrings.save,
-                    onTap: ()=> Get.back(),
+                    onTap: ()=> safeBack(),
                     // onTap: widget.controller.onNext,
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,

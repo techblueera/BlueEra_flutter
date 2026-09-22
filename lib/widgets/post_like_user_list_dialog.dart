@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PostLikeUserListDialog extends StatefulWidget {
   final String postId;
@@ -69,7 +70,7 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(
                         Icons.close_rounded,
                         color: AppColors.mainTextColor,
@@ -93,7 +94,7 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
           );
         } else if (feedController.allLikeUsersOfPostResponse.status ==
             Status.ERROR) {
-          Get.back();
+          safeBack();
         }
 
         return SizedBox();
@@ -113,7 +114,7 @@ class _UserTile extends StatelessWidget {
       padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
       child: InkWell(
         onTap: () {
-          Get.back();
+          safeBack();
           redirectToProfileScreen(
               accountType: user.accountType ?? "",
               profileId:

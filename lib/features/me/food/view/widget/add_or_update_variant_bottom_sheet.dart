@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 void addOrVariantBottomSheet({
   String? foodID,
@@ -43,7 +44,7 @@ void addOrVariantBottomSheet({
                   ),
                   Spacer(),
                   IconButton(
-                      onPressed: ()=> Get.back(),
+                      onPressed: ()=> safeBack(),
                       icon: Icon(Icons.close, color: AppColors.mainTextColor)
                   )
                 ],
@@ -142,7 +143,7 @@ void addOrVariantBottomSheet({
                     }
 
                     vc.clearAllField();
-                    Get.back(); // Close sheet
+                    safeBack(); // Close sheet
 
                   }
                       : null,
@@ -235,7 +236,7 @@ void addOrVariantBottomSheet({
 //                               vc.addOrUpdateVariant(
 //                                 foodId: foodID ?? "",
 //                               ); // Logic to save/update
-//                               Get.back(); // Close sheet
+//                               safeBack(); // Close sheet
 //                             }
 //                           : null,
 //                       child:

@@ -19,6 +19,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/symbol_details_model.dart';
 import '../widget/custom_video_player.dart';
 import '../widget/symbol_cached_image.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SymbolViewImages extends StatefulWidget {
   final String? userId;
@@ -935,7 +936,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
           allImages = await addSymbolController.deleteSymbol(symbolData: symbol);
 
           if (allImages == null || allImages!.isEmpty) {
-            Get.back();
+            safeBack();
             return;
           }
 

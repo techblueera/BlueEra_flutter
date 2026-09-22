@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class HealthCampListScreen extends StatefulWidget {
   const HealthCampListScreen({super.key});
@@ -74,7 +75,7 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
       context: context,
       text: AppStrings.deleteThisHealthCamp.tr,
       confirmCallback: () => controller.deleteCamp(camp.id!),
-      cancelCallback: () => Get.back(),
+      cancelCallback: () => safeBack(),
       confirmText: AppStrings.delete,
       cancelText: AppStrings.cancel,
     );

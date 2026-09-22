@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CourseController extends GetxController {
   var coursesList = <SchoolCourseData>[].obs;
@@ -69,13 +70,13 @@ class CourseController extends GetxController {
     try {
       // Call delete API
       coursesList.removeWhere((element) => element.id == courseID);
-      Get.back(); // Close dialog
+      safeBack(); // Close dialog
       commonSnackBar(message: "Course deleted successfully");
       ResponseModel response =
           await SchoolRepo().deleteSchoolCourseRepo(courseId: courseID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -195,7 +196,7 @@ class CourseController extends GetxController {
               courseId: courseId ?? "", reqBODY: reqParm)
           : await SchoolRepo().addSchoolCourseRepo(reqBODY: reqParm);
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);

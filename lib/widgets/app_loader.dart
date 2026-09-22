@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// App-wide loader.
 ///
@@ -56,7 +57,7 @@ class AppLoader {
   static void hide() {
     if (!_isShowing) return;
     if (Get.isDialogOpen ?? false) {
-      Get.back();
+      safeBack();
       _isShowing = false;
       _hideRequested = false;
     } else {
@@ -76,7 +77,7 @@ class AppLoader {
         return;
       }
       if (Get.isDialogOpen ?? false) {
-        Get.back();
+        safeBack();
         _isShowing = false;
         _hideRequested = false;
       } else if (_hideAttempts++ < 20) {

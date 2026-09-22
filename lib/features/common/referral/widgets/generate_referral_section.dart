@@ -15,6 +15,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// "Generate Your Referral Code" card — the entire registration form
 /// in the new single-step flow. The user types or picks a code, accepts
@@ -152,7 +153,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                             c.referralFocusNode.unfocus();
                             final ok = await c.updateReferralCode(
                                 c.referralCodeController.text);
-                            if (ok) Get.back();
+                            if (ok) safeBack();
                           }
                         }
                       : null,

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Manages the hotel-wide policies: check-in/out window, allowance flags
 /// and food restrictions.
@@ -110,7 +111,7 @@ class HotelPolicyController extends GetxController {
           await _repo.addHotelPoliciesRepo(reqBody: body);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(message: response.getExtraData('message'));
         await loadPolicies();
         _refreshHotelHome();

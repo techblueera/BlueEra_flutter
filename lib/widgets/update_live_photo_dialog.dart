@@ -19,6 +19,7 @@ import 'package:get/get.dart';
 
 import '../core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 Future<void> showLivePhotoDialog({
   required BuildContext context,
@@ -106,7 +107,7 @@ Future<void> showLivePhotoDialog({
                       bgColor: AppColors.white,
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
-                      onTap: () => Get.back(),
+                      onTap: () => safeBack(),
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -121,7 +122,7 @@ Future<void> showLivePhotoDialog({
                           return;
                         }
 
-                        Get.back();
+                        safeBack();
                         Get.toNamed(RouteHelper.getProductScreenRoute());
                       },
                     ),
@@ -158,7 +159,7 @@ Widget _buildImageContainer(
               text: AppStrings.upload3StorePictures.tr,
               // text: 'Please upload all 3 live photos of your store.',
               confirmCallback: () async {
-                Get.back();
+                safeBack();
                 final imgStr = await PhotoPickerService.pickFromCamera(
                     context,
                     cropAspectRatio: CropAspectRatio(width: 3, height: 4)
@@ -168,7 +169,7 @@ Widget _buildImageContainer(
                   controller.update(['livePhotos']);
                 }
               },
-              cancelCallback: () => Get.back(),
+              cancelCallback: () => safeBack(),
               confirmText: AppStrings.ok,
               cancelText: AppStrings.cancel,
             );

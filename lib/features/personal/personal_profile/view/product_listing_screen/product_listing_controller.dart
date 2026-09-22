@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ProductListingController extends GetxController {
   final TextEditingController productNameController = TextEditingController();
@@ -86,7 +87,7 @@ class ProductListingController extends GetxController {
               title: Text(type),
               onTap: () {
                 selectedListingType.value = type;
-                Get.back();
+                safeBack();
               },
               trailing: selectedListingType.value == type
                   ? const Icon(Icons.check, color: Colors.blue)

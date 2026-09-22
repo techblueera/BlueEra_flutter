@@ -24,6 +24,7 @@ import 'package:octo_image/octo_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PostFeedAutoPlayVideoCard extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -238,7 +239,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                                                         MessagePostController());
 
                                                     ///REPOST MESSAGE AND POLL POST...
-                                                    Get.back();
+                                                    safeBack();
                                                     ResponseModel
                                                         responseModel =
                                                         await PostRepo()

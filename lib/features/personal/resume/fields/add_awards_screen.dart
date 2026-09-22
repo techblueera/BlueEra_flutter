@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/new_common_date_selection_dropdown.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddAwardsScreen extends StatefulWidget {
   const AddAwardsScreen({super.key});
@@ -246,7 +247,7 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                                     } else {
                                       await _controller.addAwardApi();
                                     }
-                                    Get.back();
+                                    safeBack();
                                   }
                                 : null,
                             title: AppStrings.save,

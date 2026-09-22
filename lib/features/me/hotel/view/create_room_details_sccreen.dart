@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Discount-coupon type values. These match the literals
 /// [RoomDetailController.isCouponValidMethod] inspects, so changing either
@@ -394,7 +395,7 @@ class RoomDesignScreen extends StatelessWidget {
           onTap: controller.isCouponValid.value
               ? () {
                   controller.addCoupon();
-                  Get.back();
+                  safeBack();
                 }
               : null,
           title: AppStrings.save.tr,

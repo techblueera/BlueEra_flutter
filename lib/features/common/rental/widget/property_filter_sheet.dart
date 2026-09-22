@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// A 99acres-style filtering bottom sheet: a left sidebar listing the
 /// available filter "sections" and a right pane showing the controls
@@ -135,7 +136,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
   }
 
   void _apply() {
-    Get.back();
+    safeBack();
     _ctrl.applyAllFilters(
       cityVal: _cityCtrl.text.trim(),
       min: _minCtrl.text.trim(),
@@ -200,7 +201,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
                 ),
               ),
               GestureDetector(
-                onTap: () => Get.back(),
+                onTap: () => safeBack(),
                 child: Container(
                   width: 34,
                   height: 34,

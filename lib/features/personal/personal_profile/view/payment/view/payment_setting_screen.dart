@@ -18,6 +18,7 @@ import '../../wallet/model/bank_details_model.dart';
 import '../../wallet/model/upi_details_model.dart';
 import '../widget/upi_qr_widget.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PaymentSettingScreen extends StatefulWidget {
   const PaymentSettingScreen({super.key});
@@ -802,7 +803,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => safeBack(),
             child: CustomText(
               AppStrings.cancel,
               color: AppColors.secondaryTextColor,
@@ -817,7 +818,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
-              Get.back();
+              safeBack();
               controller.deleteWithdrawalMethod(id);
             },
             child: const CustomText(

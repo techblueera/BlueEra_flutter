@@ -14,6 +14,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../widget/component_widgets.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class RiderDetailsMsgCard extends StatefulWidget {
   final Messages message;
@@ -531,7 +532,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Get.back(),
+                        onPressed: () => safeBack(),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
                               vertical: SizeConfig.size12),
@@ -550,7 +551,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () async {
-                          Get.back();
+                          safeBack();
                           await orderController.cancelOrderApi(
                               orderId, conversationId);
                         },

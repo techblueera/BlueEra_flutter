@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Fullscreen WhatsApp-style search:
 /// * Empty query → falls back to the regular `PersonalChatsList`.
@@ -239,7 +240,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
                   splashRadius: 22,
                   icon: const Icon(Icons.arrow_back,
                       size: 22, color: Colors.black87),
-                  onPressed: () => Get.back(),
+                  onPressed: () => safeBack(),
                 ),
                 Expanded(child: _buildSearchField()),
               ],

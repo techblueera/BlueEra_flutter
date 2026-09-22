@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ApplicationCard extends StatefulWidget {
   final int index;
@@ -229,7 +230,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                             widget.buttonAction();
                           },
                           cancelCallback: () {
-                            Get.back();
+                            safeBack();
                           });
                     },
                     title: AppStrings.notInterested,

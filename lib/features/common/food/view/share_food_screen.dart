@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ShareFoodScreen extends StatefulWidget {
   final String foodServiceId;
@@ -34,7 +35,7 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        onBackTap: ()=> Get.back(),
+        onBackTap: ()=> safeBack(),
         // onBackTap: ()=> _openNextScreen(),
       ),
       body: Obx(()=> controller.isSingleFoodServiceLoading.isTrue

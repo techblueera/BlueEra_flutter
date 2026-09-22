@@ -44,6 +44,7 @@ import '../../../../core/constants/getx_utils.dart';
 import 'chat_view_controller.dart';
 import '../../../common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum CallType { audio, video }
 
@@ -1014,7 +1015,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// a call screen.
   void _closeAttemptScreen() {
     if (_attemptScreenIsUp && Get.key.currentState?.canPop() == true) {
-      Get.back();
+      safeBack();
     }
   }
 
@@ -2167,7 +2168,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (callEnded == true) {
       try { commonSnackBar(message: AppStrings.callDeclined.tr); } catch (_) {}
       _leaveRoomAndCleanup();
-      Get.back();
+      safeBack();
     } else {
       // Group call: some users declined but others may still answer
       if (kDebugMode) print('User ${data['declined_by']} declined group call');
@@ -2372,7 +2373,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         route == '/OutgoingCallScreen' ||
         route == '/IncomingCallScreen' ||
         route == '/IncomingRiderOrderScreen') {
-      Get.back();
+      safeBack();
     }
     // Note: FareCallQueueScreen manages its own lifecycle via DiscoverController
   }

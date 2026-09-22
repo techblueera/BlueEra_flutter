@@ -21,6 +21,7 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -116,7 +117,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: InkWell(
-                            onTap: () => Get.back(),
+                            onTap: () => safeBack(),
                             customBorder: const CircleBorder(),
                             child: Container(
                               height: SizeConfig.size34,

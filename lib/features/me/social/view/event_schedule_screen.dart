@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class EventScheduleScreen extends StatelessWidget {
   final controller = Get.put(SocialEventController());
@@ -240,7 +241,7 @@ class EventScheduleScreen extends StatelessWidget {
         context: context,
         text: AppStrings.deleteEventConfirm.tr,
         confirmCallback: () async {
-          Get.back();
+          safeBack();
           controller.eventId = event.sId;
           controller.deleteEvent();
         },

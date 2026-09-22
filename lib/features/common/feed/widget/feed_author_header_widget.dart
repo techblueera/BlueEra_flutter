@@ -24,6 +24,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// The byline: avatar, then the display name and `@handle` sharing one line,
 /// with the designation chip on the line beneath.
@@ -367,7 +368,7 @@ void blockUserPopUp({required Post postData, required PostType postType}) {
 }
 
 void postReportPopUp({required Post postData, required PostType postType}) {
-  Get.back();
+  safeBack();
   showDialog(
     context: Get.context!,
     barrierDismissible: false,

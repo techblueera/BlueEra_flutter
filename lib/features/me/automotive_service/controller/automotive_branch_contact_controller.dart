@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/automotive_business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AutomotiveBranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =
@@ -96,7 +97,7 @@ class AutomotiveBranchContactController extends GetxController {
                 AppStrings.hotelBranchAddedSuccess.tr);
         await getBranchDetailsController();
         _refreshHomeScreen();
-        Get.back();
+        safeBack();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -180,7 +181,7 @@ class AutomotiveBranchContactController extends GetxController {
           .addBranchDepartmentRepo(reqParm: reqBody, branchId: branchID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -210,7 +211,7 @@ class AutomotiveBranchContactController extends GetxController {
           reqParm: reqBody, contactID: contactID, branchId: branchID);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);
@@ -239,7 +240,7 @@ class AutomotiveBranchContactController extends GetxController {
           contactID: contactId, deptID: departmentId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -260,7 +261,7 @@ class AutomotiveBranchContactController extends GetxController {
           await OtherRepo().deleteSchoolBranchRepo(contactID: contactId);
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
@@ -287,7 +288,7 @@ class AutomotiveBranchContactController extends GetxController {
       );
 
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message:
                 response.getExtraData("message") ?? AppStrings.successful);

@@ -13,6 +13,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Drives the multi-step "create room" flow:
 ///   1. metadata form (count, size, bed type, occupancy, price)
@@ -264,7 +265,7 @@ class RoomDetailController extends GetxController {
     try {
       final ResponseModel response = await _repo.deleteHotelRoomRepo(hotelRoomId);
       if (response.isSuccess) {
-        Get.back();
+        safeBack();
         commonSnackBar(
             message: response.getExtraData('message') ?? AppStrings.successful);
         await getHotelRoomDetails(roomTYPE: hotelRoomType);

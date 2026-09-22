@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 
 import '../controller/getplace_list_controller.dart';
 import '../controller/getstore_list_controller.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtherProfileDetailsBottomSheet extends StatelessWidget {
   final ScrollController scrollController;
@@ -113,7 +114,7 @@ class _SheetBodyState extends State<_SheetBody> {
                                   height: SizeConfig.size24),
                               SizedBox(width: SizeConfig.size8),
                               InkWell(
-                                onTap: ()=> Get.back(),
+                                onTap: ()=> safeBack(),
                                 child: Icon(
                                   Icons.close,
                                   size: SizeConfig.size24,
@@ -280,7 +281,7 @@ class _SheetBodyState extends State<_SheetBody> {
                               height: SizeConfig.size24),
                           SizedBox(width: SizeConfig.size8),
                           InkWell(
-                            onTap: ()=> Get.back(),
+                            onTap: ()=> safeBack(),
                             child: Icon(
                               Icons.close,
                               size: SizeConfig.size24,

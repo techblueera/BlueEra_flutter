@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Aadhaar verification — the only path there is.
 ///
@@ -275,7 +276,7 @@ class _AadhaarManualKycScreenState extends State<AadhaarManualKycScreen> {
           SizedBox(height: SizeConfig.paddingM),
           CustomBtn(
             title: 'Done',
-            onTap: () => Get.back(),
+            onTap: () => safeBack(),
             radius: 10.0,
             bgColor: AppColors.primaryColor,
           ),

@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/routes/safe_back.dart';
 
 class JobPostStep3Controller extends GetxController {
   RxString walkInInterview = 'No'.obs;
@@ -608,7 +609,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                   Expanded(
                       child: CustomBtn(
                     onTap: () {
-                      Get.back();
+                      safeBack();
                     },
                     title: AppStrings.back,
                     bgColor: AppColors.white,
