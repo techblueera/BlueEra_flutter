@@ -316,7 +316,10 @@ class SharedPreferenceUtils {
     // reachable from notification and deep-link paths that have no route
     // mounted yet, where `Get.context!` threw.
     final ctx = Get.context;
-    if (ctx != null) {
+    // `mounted`, not just non-null: Get.context returns key.currentContext,
+    // which survives as a defunct element after its route goes -- using it
+    // throws the same way the null did.
+    if (ctx != null && ctx.mounted) {
       precacheImage(NetworkImage(userProfileGlobal), ctx);
     }
   }
@@ -420,7 +423,10 @@ class SharedPreferenceUtils {
     // reachable from notification and deep-link paths that have no route
     // mounted yet, where `Get.context!` threw.
     final ctx = Get.context;
-    if (ctx != null) {
+    // `mounted`, not just non-null: Get.context returns key.currentContext,
+    // which survives as a defunct element after its route goes -- using it
+    // throws the same way the null did.
+    if (ctx != null && ctx.mounted) {
       precacheImage(NetworkImage(userProfileGlobal), ctx);
     }
   }

@@ -233,8 +233,10 @@ class PhotoPostController extends GetxController {
       // The upload above can take long enough for the poster to leave, and
       // `Get.context!` throws once nothing is mounted. Nothing to dismiss in
       // that case — the progress dialog went with the screen.
+      // `mounted` too: Get.context can hand back a defunct element, which
+      // Navigator.of rejects exactly as it rejects a null one.
       final ctx = Get.context;
-      if (ctx != null) {
+      if (ctx != null && ctx.mounted) {
         Navigator.of(ctx, rootNavigator: true).pop();
       }
 
