@@ -1043,6 +1043,24 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// An inline prompt rather than a screen, per rev 3 §7.4 — opening an
   /// outgoing-call UI here would be inventing a second call that does not exist.
   void _promptReturnToCall(String roomId) {
+    // `Get.snackbar` dereferences `Get.overlayContext!` inside
+    // `SnackbarController._configureOverlay`, so it throws
+    // `Null check operator used on a null value` from `Overlay.of` wherever no
+    // Overlay is mounted.
+    //
+    // This controller is one of the few that genuinely runs without one: it is
+    // registered in Android's CallActivity engine as well, which hosts no
+    // navigator — the same constraint snackbar_helper.dart documents for
+    // GlobalMessageService. A 409 arriving while that engine is the live one
+    // reaches this line with a null overlay context.
+    //
+    // The fallback drops the "Return to call" button, which costs nothing:
+    // with no Overlay there is no surface to tap it on. commonSnackBar
+    // degrades to a log if its service is not registered either.
+    if (Get.overlayContext == null) {
+      commonSnackBar(message: AppStrings.youAreAlreadyOnACall.tr);
+      return;
+    }
     Get.snackbar(
       '',
       '',

@@ -859,6 +859,16 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   /// merchant taps Undo (restore previous location) or Edit (open the full
   /// location sheet to correct the address / pincode).
   void _showLiveLocationNotice() {
+    // `Get.showSnackbar` reaches `Overlay.of(Get.overlayContext!)` inside
+    // `SnackbarController._configureOverlay` and throws
+    // `Null check operator used on a null value` when nothing is mounted —
+    // this fires off the back of a silent GPS save, so it can land during a
+    // teardown with no Overlay left. The plain message is the degraded form:
+    // no Undo / Edit, but with no Overlay there is nothing to render them on.
+    if (Get.overlayContext == null) {
+      commonSnackBar(message: AppStrings.locationUpdatedFromLivePhoto.tr);
+      return;
+    }
     // Use GetSnackBar directly (not Get.snackbar) so there's no forced empty
     // title slot — that title/message gap was pushing the row above center.
     // With only messageText, the content row centers vertically in the bar.
